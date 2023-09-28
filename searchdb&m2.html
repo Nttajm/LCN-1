@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Info Management App</title>
+<style>
+  /* Reset default margins and paddings */
+  body, h1, h2, p, ul, input, button {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Basic styling */
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+  }
+  #info-container {
+    margin: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  h1, h2 {
+    color: #555;
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  p {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  input, button {
+    margin: 5px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #0056b3;
+  }
+  ul {
+    list-style: none;
+    margin: 10px 0;
+  }
+  li {
+    font-size: 16px;
+    margin-bottom: 5px;
+  }
+</style>
+</head>
+<body>
+<div id="info-container">
+  <h1>Info Management App</h1>
+  
+  <h2>Search Info</h2>
+  <p class="space">Press space once and search to see all saved info of the current session.</p>
+  <input type="text" id="searchInput" placeholder="Search...">
+  <button onclick="searchInfo()">Search</button>
+  <ul id="searchResults"></ul>
+  
+  <h2>Store/Edit Info</h2>
+  <input type="text" id="infoInput" placeholder="Enter info...">
+  <button onclick="storeInfo()">Store</button>
+</div>
+
+<script>
+  // Load stored info from Local Storage if available
+  const storedInfo = JSON.parse(localStorage.getItem("storedInfo")) || [];
+
+  function searchInfo() {
+    const searchInput = document.getElementById("searchInput").value.toLowerCase();
+    const searchResults = document.getElementById("searchResults");
+    searchResults.innerHTML = "";
+
+    for (const info of storedInfo) {
+      if (info.toLowerCase().includes(searchInput)) {
+        const li = document.createElement("li");
+        li.textContent = info;
+        searchResults.appendChild(li);
+      }
+    }
+  }
+
+  function storeInfo() {
+    const infoInput = document.getElementById("infoInput").value;
+    storedInfo.push(infoInput);
+    localStorage.setItem("storedInfo", JSON.stringify(storedInfo));
+    document.getElementById("infoInput").value = "";
+    alert("Info stored successfully!");
+  }
+</script>
+</body>
+</html>
