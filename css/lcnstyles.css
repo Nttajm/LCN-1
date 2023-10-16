@@ -6,6 +6,7 @@ body , p {
 strong { 
   font-weight: 500;
   font-family: tahoma;
+  color: rgb(10, 94, 90);
 }
 
 .help {
