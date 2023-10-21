@@ -15,3 +15,9 @@ strong {
     font-weight: 600;
     color: rgb(10, 94, 90);
 }
+
+.button {
+    border-style: none;
+    border: solid;
+    border-width: 1.1px;
+}
