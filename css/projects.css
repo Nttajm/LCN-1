@@ -7,7 +7,7 @@ body , p    {
 }
 
 .top-section {
-  border: solid red;  /* border */
+  border: solid rgb(255, 0, 0);  /* border */
   background-color: rgb(3, 71, 68);
   padding-top: 180px;
   padding: 80px;
@@ -36,7 +36,7 @@ body , p    {
 }
 
 .img-1 {
-  width: 300px;
+  width: 250px;
 }
 
 .top-text {
@@ -50,7 +50,7 @@ body , p    {
 
 .buttons-top-s {
   border: solid red; /* border */
-  max-width: 190px;
+  max-width: 170px;
   margin: 0 auto;
 }
 
@@ -118,7 +118,7 @@ body , p    {
   margin-left: 20px ;
   margin-top: 10px;
   vertical-align: middle;
-  height: 70px;
+  max-height: 90px;
 }
 
 .ib-head {
@@ -208,4 +208,16 @@ body , p    {
   font-weight: 700;
   display: inline;
   margin-left: 60px;
+}
+
+.footer {
+  background-color: rgb(3, 71, 68) ;
+  text-align: center;
+  color: #aaaaaa;
+  padding: 26px;
+  margin-top: 40px;
+}
+
+strong {
+  color: #ffffff;
 }
