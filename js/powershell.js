@@ -2,6 +2,8 @@ const inputElement = document.getElementById("input");
 const commandElement = document.getElementById("command");
 const outputElement = document.getElementById("output");
 
+let timexInterval;  // Store the interval ID for the "timex" command
+
 const commandHistory = [];
 const responseHistory = [];
 
@@ -13,6 +15,7 @@ const availableCommands = {
     "rec": "Display the last response",
     "timex": "Display the current date and time with live seconds",
     "lcn": "Visit lcnjoel.com",
+    "reset": "Clear the session and start over",
 };
 
 inputElement.addEventListener("keydown", function(event) {
@@ -20,15 +23,10 @@ inputElement.addEventListener("keydown", function(event) {
         const command = inputElement.value;
         inputElement.value = "";
 
-        // Store the command in history
-        commandHistory.push(command);
-        if (commandHistory.length > 10) {
-            commandHistory.shift();
+        // Clear the "timex" interval when a new command is entered
+        if (timexInterval) {
+            clearInterval(timexInterval);
         }
-
-        // Display the entered command
-        commandElement.textContent = command;
-        commandElement.style.color = "#00FF00";
 
         // Process the command and provide a response
         let response;
@@ -53,9 +51,9 @@ inputElement.addEventListener("keydown", function(event) {
                 outputElement.lastChild.textContent = response;
             };
 
-            // Update "timex" every second
+            // Update "timex" every second and store the interval ID
             updateTimex();
-            setInterval(updateTimex, 1000);
+            timexInterval = setInterval(updateTimex, 1000);
         } else if (command.toLowerCase() === "lcn") {
             window.location.href = "https://lcnjoel.com";
         } else if (command.toLowerCase().startsWith("calc")) {
@@ -82,8 +80,20 @@ inputElement.addEventListener("keydown", function(event) {
             } else {
                 response = "No previous response";
             }
+        } else if (command.toLowerCase() === "reset") {
+            // Clear the entire session
+            outputElement.innerHTML = "";
+            commandHistory.length = 0;
+            responseHistory.length = 0;
+            response = "Session has been reset.";
         } else {
             response = "Command not recognized";
+        }
+
+        // Store the command in history
+        commandHistory.push(command);
+        if (commandHistory.length > 10) {
+            commandHistory.shift();
         }
 
         // Store the response in history
@@ -92,7 +102,8 @@ inputElement.addEventListener("keydown", function(event) {
             responseHistory.shift();
         }
 
-        // Display the response
-        outputElement.innerHTML += `<br> ${response}`;
+        // Display the entered command and the response
+        outputElement.innerHTML += `<div>db$ ${command}</div>`;
+        outputElement.innerHTML += `<div>${response}</div>`;
     }
 });
