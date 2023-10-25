@@ -7,7 +7,7 @@ body , p    {
 }
 
 .top-section {
-  border: solid rgb(255, 0, 0);  /* border */
+ /* border */
   background-color: rgb(3, 71, 68);
   padding-top: 180px;
   padding: 80px;
@@ -21,7 +21,7 @@ body , p    {
 }
 
 .top-text {
-  border: solid rgb(111, 0, 255); /* border */
+ /* border */
   max-width: 280px;
   padding: 4px;
   margin: auto;
@@ -29,7 +29,7 @@ body , p    {
 }
 
 .img {
-  border: solid rgb(8, 240, 28);  /* border */
+  /* border */
   margin-bottom: 40px;
   max-width: 300px;
   margin: 0 auto;
@@ -49,7 +49,7 @@ body , p    {
 }
 
 .buttons-top-s {
-  border: solid red; /* border */
+ /* border */
   max-width: 170px;
   margin: 0 auto;
 }
@@ -96,14 +96,14 @@ body , p    {
 }
 
 .container {
-  border: solid rgb(0, 0, 255); /* border */
+ /* border */
   margin: 10px auto;
   padding: 20px;
   max-width: 800px;
 }
 
 .info-projects {
-  border: solid rgb(0, 205, 3); /* border */
+/* border */
   padding: 10px;
   margin: 0 auto;
 }
@@ -145,6 +145,7 @@ body , p    {
   border-width: 2px;
   border-radius: 10px;
   padding: 10px;
+  
 }
 
 .text {
@@ -154,7 +155,7 @@ body , p    {
 
 .container-boxes {
   margin-left: 10px;
-  border: solid red; /* border */
+/* border */
   display: inline-block;
   padding: 8px;
 }
