@@ -1,1 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerShell</title>
+    <style>
+        body {
+            background-color: #04028d;
+            color: #f8f8f8;
+            font-family: Consolas, monospace;
+        }
+        .db {
+            display: inline;
+        }
+        #output {
+            font-size: 16px;
+        }
+        #response {
+           background-color: black; 
+        }
+        .input {
+            background-color: #04028d;
+            border-style: none;
+            outline: none;
+            color: white;
+            width: 400px;
+        }
+
+        ::selection {
+            background: rgb(0, 0, 0);
+             color: red;
+}
+    </style>
+</head>
+<body>
+    <div  class="db" id="output">db$&nbsp;<span id="command"></span></div>
+    <input class="input" type="text" id="input" autofocus>
+    <script src="js/powershell.js"></script>
+</body>
+</html>
 
