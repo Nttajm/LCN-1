@@ -103,22 +103,21 @@ body , p    {
 }
 
 .info-projects {
-/* border */
-  padding: 10px;
-  margin: 0 auto;
+  /* border */
+  margin: auto;
+  max-width: 800px;
+
 }
 
 .info-box {
   border: solid rgb(174, 174, 174);
+  border-width: 2.5px;
   border-radius: 10.3px;
   padding: 30px;
-  border-width: 2.5px;
-  display: inline-block;
-  max-width: 300px;
-  margin-left: 20px ;
-  margin-top: 10px;
-  vertical-align: middle;
+  max-width: 248px;
   max-height: 90px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .ib-head {
@@ -145,6 +144,7 @@ body , p    {
   border-width: 2px;
   border-radius: 10px;
   padding: 10px;
+  margin-top: 20px;
   
 }
 
