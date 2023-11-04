@@ -97,16 +97,15 @@ body , p    {
 
 .container {
  /* border */
-  margin: 10px auto;
+  margin:  auto;
   padding: 20px;
   max-width: 800px;
 }
 
 .info-projects {
-  /* border */
+/* border */
   margin: auto;
-  max-width: 800px;
-
+  max-width: 620px;
 }
 
 .info-box {
@@ -114,10 +113,11 @@ body , p    {
   border-width: 2.5px;
   border-radius: 10.3px;
   padding: 30px;
-  max-width: 248px;
+  max-width: 242px;
   max-height: 90px;
   display: inline-block;
   vertical-align: middle;
+  margin-bottom: 10px;
 }
 
 .ib-head {
@@ -144,8 +144,9 @@ body , p    {
   border-width: 2px;
   border-radius: 10px;
   padding: 10px;
-  margin-top: 20px;
-  
+  margin: auto;
+  max-width: 596px;
+
 }
 
 .text {
