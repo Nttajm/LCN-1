@@ -4,6 +4,8 @@ const outputElement = document.getElementById("output");
 
 let timexInterval;  // Store the interval ID for the "timex" command
 
+let timerInterval; // Store the interval ID for the timer
+
 const commandHistory = [];
 const responseHistory = [];
 
@@ -16,7 +18,33 @@ const availableCommands = {
     "timex": "Display the current date and time with live seconds",
     "lcn": "Visit lcnjoel.com",
     "reset": "Clear the session and start over",
+    "rand": "Generate a random number between the specified range (e.g., 'rand(x-y)'",
+    "timer": "Start a timer (e.g., 'timer(01:00:23)')",
+    "timeu": "Interactively view the time in different time zones and regions",
 };
+
+const timeZones = [
+    { id: "gmt", name: "Greenwich Mean Time (GMT)", offset: 0 },
+    { id: "pst", name: "Pacific Standard Time (PST)", offset: -8 },
+    { id: "mst", name: "Mountain Standard Time (MST)", offset: -7 },
+    { id: "cst", name: "Central Standard Time (CST)", offset: -6 },
+    { id: "est", name: "Eastern Standard Time (EST)", offset: -5 },
+    { id: "aest", name: "Australian Eastern Standard Time (AEST)", offset: 10 },
+    // Add more time zones as needed
+];
+
+function getTimeInTimeZone(offset) {
+    const currentTime = new Date();
+    const offsetMilliseconds = offset * 60 * 60 * 1000;
+    const targetTime = new Date(currentTime.getTime() + offsetMilliseconds);
+    return targetTime;
+}
+
+function formatTime(time, name) {
+    const hours = time.getUTCHours().toString().padStart(2, '0');
+    const minutes = time.getUTCMinutes().toString().padStart(2, '0');
+    return `Time in ${name}: ${hours}:${minutes}`;
+}
 
 inputElement.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
@@ -26,6 +54,11 @@ inputElement.addEventListener("keydown", function(event) {
         // Clear the "timex" interval when a new command is entered
         if (timexInterval) {
             clearInterval(timexInterval);
+        }
+
+        // Clear the "timer" interval when a new command is entered
+        if (timerInterval) {
+            clearInterval(timerInterval);
         }
 
         // Process the command and provide a response
@@ -86,6 +119,59 @@ inputElement.addEventListener("keydown", function(event) {
             commandHistory.length = 0;
             responseHistory.length = 0;
             response = "Session has been reset.";
+        } else if (command.toLowerCase().startsWith("rand")) {
+            // Generate a random number between the specified range
+            const match = command.match(/\((\d+)-(\d+)\)/);
+            if (match) {
+                const min = parseInt(match[1]);
+                const max = parseInt(match[2]);
+                response = `Random number between ${min} and ${max}: ${Math.floor(Math.random() * (max - min + 1)) + min}`;
+            } else {
+                response = "Invalid 'rand' command format. Use 'rand(x-y)' to specify the range.";
+            }
+        } else if (command.toLowerCase().startsWith("timer")) {
+            // Start a timer with the specified time (e.g., 'timer(01:00:23)')
+            const match = command.match(/\((\d{2}:\d{2}:\d{2})\)/);
+            if (match) {
+                const timeString = match[1];
+                const [hours, minutes, seconds] = timeString.split(":").map(Number);
+                const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                let remainingSeconds = totalSeconds;
+                const updateTimer = () => {
+                    const displayHours = String(Math.floor(remainingSeconds / 3600)).padStart(2, '0');
+                    const displayMinutes = String(Math.floor((remainingSeconds % 3600) / 60)).padStart(2, '0');
+                    const displaySeconds = String(remainingSeconds % 60).padStart(2, '0');
+                    response = `Timer: ${displayHours}:${displayMinutes}:${displaySeconds}`;
+                    outputElement.lastChild.textContent = response;
+                    if (remainingSeconds <= 0) {
+                        clearInterval(timerInterval);
+                    } else {
+                        remainingSeconds--;
+                    }
+                };
+
+                // Start the timer and store the interval ID
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
+            } else {
+                response = "Invalid 'timer' command format. Use 'timer(HH:MM:SS)' to specify the time.";
+            }
+        } else if (command.toLowerCase() === "timeu") {
+            response = "Time Zones and Regions:";
+            timeZones.forEach((zone, index) => {
+                response += `<br> ${index + 1}. ${zone.name} (${zone.id})`;
+            });
+            response += "<br>Enter the number of the time zone you want to view:";
+        } else if (/^timeu \d+$/.test(command)) {
+            // Handle time zone selection
+            const timeZoneIndex = parseInt(command.split(" ")[1]) - 1;
+            if (timeZoneIndex >= 0 && timeZoneIndex < timeZones.length) {
+                const selectedTimeZone = timeZones[timeZoneIndex];
+                const targetTime = getTimeInTimeZone(selectedTimeZone.offset);
+                response = formatTime(targetTime, selectedTimeZone.name);
+            } else {
+                response = "Invalid selection. Enter a valid number.";
+            }
         } else {
             response = "Command not recognized";
         }
