@@ -1,48 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="/css/get.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&family=Oswald:wght@300;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/projects2.css">
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>get.db&m</title>
+  <title>Projects</title>
 </head>
 <body>
   <div class="nav">
+    <div class="logo"><a href="https://lcnjoel.com">LCN</a></div>
     <div class="nav-left">
-      <button class="navbutton">&lt; LCN</button>
-      <button class="navbutton">Projects</button>
+      <div class="navbutton-proj">projects</div>
+      <div class="navbutton">
+        <a  class="link-b" href="https://github.com/Nttajm/LCN-1">github</a>
+      </div>
+      <div class="navbutton">
+        <a class="link-b" href="https://github.com/Nttajm/LCN-1/wiki">wiki</a>
     </div>
-    <div class="nav-right">
-      <button class="navbutton">wiki</button>
-      <button class="help">?</button>
-    </div>
+      <div class="navbutton">standard.css</div>
+      <div class="navbutton-right"><a class="special-m1" href="https://lcnjoel.com/help">?</a></div>
+    </div>   
   </div>
   <div class="container">
-    <div class="box">
-      <div class="info">
-        <div class="head">DB<span style="color: rgb(215, 215, 0);"">&</span>M</div>
-        <div class="textinfo">
-          After getting the '4-5,' digit code, kindly 
-          <strong>submit it to the designated verifier or relevant authority as requested.</strong>
-          Follow the specified guidelines for submission to ensure proper handling. 
-        </div>
-        <div class="images">
-          <img src="/images/nfcsym.webp" alt="nfc" class="img-1">
-        </div>
-        <button class="getbutton" onclick="generateRandomNumber()">Get Code</button>
+    <div class="left-nav">
+      <div class="left-nav-boxes">
+        <div class="left-nav-boxes-head">Updates</div>
+        <div class="discription"></div>
       </div>
-      <div class="numbers" id="numberSection">
-        <span id="result"></span>
+      <div class="left-nav-boxes">
+        <div class="left-nav-boxes-head">
+          <img class="img-inbox" src="/images/githublogo.png">
+          Repositories</div>
       </div>
+      <div class="left-nav-boxes"></div>
+    </div>
+    <div class="m-boxes">
+      <div class="m-box">Projects</div>
+      <div class="m-box">Repositories</div>
+      
+    </div>
+    <div class="boxsection">
+        <div clashs="head-box">Projects</div>
+          <div class="project-info">LCN-1 <button class="github-link"><a href="https://github.com/Nttajm/LCN-1">github</a></button></div>
+          <div class="project-box">
+            <div class="head-box-2"> <img class="img-inbox-2" src="/images/the creator.jpg"> <span style="color:#808080;">user:</span> Ntta.jm </div>
+            <div class="projects">
+              <a class="link-b" href="https://lcnjoel.com/PowerShell">PowerShell<span class="sp1">/db&m</span></a>
+              <span class="date">5-12-23</span>
+            </div>
+            <div class="projects">
+              <a class="link-b" href="https://lcnjoel.com/projects/getcode">getcode <span class="sp1">/db&m</span></a>
+              <span class="date">10-12-23</span>
+            </div>
+            <div class="projects"> 
+              <a class="link-b" href="https://lcnjoel.com/ths">THS Student page</a>
+              <span class="date">11-6-23</span>
+            </div> 
+          </div> 
     </div>
   </div>
-
-  <script>
-    function generateRandomNumber() {
-      var randomNumber = Math.floor(Math.random() * 9000) + 1030;
-      document.getElementById("result").innerHTML = " " + randomNumber;
-    }
-  </script>
 </body>
 </html>
