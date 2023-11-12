@@ -258,12 +258,14 @@ body {
     .container {
       max-width: 504px; 
       margin: 0 auto;
+      border: solid yellow;
     }
     .m-boxes {
       display: block;
       padding: 17px;
       width: 330px;
       margin: auto;
+      border: solid red;
     }
     .m-box {
       width: 151px;
@@ -286,9 +288,8 @@ body {
       border-radius: 5px;
       padding-bottom: 20px;
       width: 330px;
-      display: inline-block;
-      margin-top: 10px;
-      margin-left: 10px;
+      display: block;
+      margin: auto;
     }
     
     .head-box {
