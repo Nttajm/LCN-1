@@ -7,7 +7,7 @@ body {
 
 p, a {
   font-family: 'roboto', arial;
-  color: black;
+  color: black, white;
   text-decoration: none;
   margin-top: 0px;
   margin-bottom: 0px;
@@ -18,8 +18,58 @@ strong {
   color: rgb(129, 129, 0);
 }
 .nav {
-  background-color: rgb(129, 129, 0);
-  
+  background-color: rgb(112, 112, 0);
+  padding: 12px;
+  vertical-align: middle;
+}
+
+.nav-left {
+  display: inline-block;
+}
+
+.nav-right {
+  display: inline-block;
+  float: right;
+}
+
+
+.navbutton {
+  background-color: rgb(112, 112, 0);
+  color: #ffffff;
+  border-style: none;
+  border: solid;
+  border-width: 1.1px;
+  border-radius: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  margin-right: 8px;
+  transition: background-color 0.125s;
+}
+.navbutton:hover {
+  background-color: rgb(191, 191, 0);
+}
+.help {
+  background-color: rgb(112, 112, 0);
+  color: #ffffff;
+  border-style: none;
+  border: solid;
+  border-width: 1.1px;
+  border-radius: 18px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  transition: background-color 0.125s;
+}
+
+.help:hover {
+  background-color: rgb(191, 191, 0);
+}
+.space {
+  border: solid;
+  width: 20px;
+  height: 14px;
+  display: inline-block;
 }
 .container {
   max-width: 300px;
@@ -40,7 +90,7 @@ strong {
   padding-top: 15px;
   padding-left: 15px;
   font-size: 30px;
-  font-family: tahoma;
+  font-family: arial;
 }
 .textinfo {
   width: 150px;
