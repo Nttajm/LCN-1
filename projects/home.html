@@ -49,7 +49,7 @@
         <div class="head-box">Projects</div>
           <div class="project-info">LCN-1 <button class="github-link"><a href="https://github.com/Nttajm/LCN-1">github</a></button></div>
           <div class="project-box">
-            <div class="head-box-2d"> <img class="img-inbox-2" src="/images/the creator.jpg"> <span style="color:#808080;">user:</span> Ntta.jm </div>
+            <div class="head-box-2"> <img class="img-inbox-2" src="/images/the creator.jpg"> <span style="color:#808080;">user:</span> Ntta.jm </div>
             <div class="projects">
               <a class="link-b" href="https://lcnjoel.com/PowerShell">PowerShell<span class="sp1">/db&m</span></a>
               <span class="date">11-6-23</span>
@@ -63,7 +63,24 @@
               <span class="date">10-6-23</span>
             </div> 
           </div> 
+          <div class="bottom-box">
+            <div class="bottum-text">
+              All projects/websites of this series are linked with 
+              <span class="githubpages">Github pages</span>
+            </div>
+            <div class="sync">
+              Synced as of <span id="Date"></span> &check;         
+            </div>
+          </div>
     </div>
   </div>
+
+  <script>
+    var currentDate = new Date();
+
+    var formattedDate = currentDate.toDateString();
+
+    document.getElementById("Date").innerHTML = formattedDate;
+</script>
 </body>
 </html>
