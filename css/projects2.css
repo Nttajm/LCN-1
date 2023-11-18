@@ -255,6 +255,7 @@ div {
   padding-top: 14px;
   padding-bottom: 14px;
   padding-left: 20px;
+  height: 20px;
   background-color:  #43464b;
   font-size: 12px;
 }
@@ -319,8 +320,37 @@ div {
   text-transform: capitalize;
 }
 
-.m-boxes {
-  display: none;
+.rb-discription {
+  padding-left: 6px;
+  padding-right: 6px;
+  border: solid red;
+  margin-bottom: 11px;
+}
+
+.rep-box {
+  padding: 7px;
+  margin-top: 10px;
+  border: solid rgb(133, 133, 133);
+  border-width: 1px;
+  border-radius: 5px;
+  background-color: #252525;
+  vertical-align: middle;
+  transition: background-color 0.095s;
+}
+
+.rep-box:hover {
+  background-color: #4c4f56;
+}
+.synccircle {
+  float: right;
+  color: rgb(247, 128, 0);
+  font-size: 20px;
+}
+
+.not-synccircle {
+  float: right;
+  color: rgb(219, 0, 0);
+  font-size: 20px;
 }
 
 @media only screen and (max-width: 500px) {
@@ -394,7 +424,7 @@ div {
   
   .sync {
     color: rgb(247, 128, 0);
-    margin-top: 1px;
+    padding-top: 5px;
     font-size: 11px;
     display: inline;
   }
