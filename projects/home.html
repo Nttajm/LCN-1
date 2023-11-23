@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&family=Oswald:wght@300;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/home.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects</title>
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-top-left">
+      <div class="logo"><a href="https://lcnjoel.com">LCN</a></div>
+      <div class="nav-top-right">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search a location &ldquo; projects/LCN-1 &rdquo;">
+        <button class="more-navbutton">&lt;/&gt;</button>
+      </div>  
+    </div>
+    <div class="nav-left">
+      <div class="navbutton">
+        <a class="link-b" href="">projects</a>
+      </div>
+      <div class="navbutton">
+        <a  class="link-b" href="https://github.com/Nttajm/LCN-1">github</a>
+      </div>
+      <div class="navbutton">
+        <a class="link-b" href="https://github.com/Nttajm/LCN-1/wiki">wiki</a>
+    </div>
+      <div class="navbutton">standard.css</div>
+      <div class="navbutton-right"><a class="special-m1" href="https://lcnjoel.com/help">?</a></div>
+    </div>   
+  </div>
+  <div class="location">
+   <span class="hovertext">Projects</span>&#47;<span class="hovertext">Home</span> 
+  </div>
+
+  <div class="container">
+    <div class="container-left">
+        <div class="left-head">Repositories</div>
+        <div class="rep-sec">
+          <p class="text small">(lcn/github)</p>
+          <div class="github-section">
+          <div class="repository">
+            <img src="/images/nttajmpfp.png" alt="" class="img-1 pfp">
+            <p class="text">Nttajm<a class="link-b in" href="https://github.com/Nttajm/LCN-1">&#47;LCN-1</a></p>
+          </div>
+          <div class="repository">
+            <img src="/images/nttajmpfp.png" alt="" class="img-1 pfp">
+            <p class="text">Nttajm<a class="link-b in" href="https://github.com/Nttajm/Xtviewer">&#47;Xtviewer</a></p>
+          </div>
+          <div class="repository">
+            <img src="/images/nttajmpfp.png" alt="" class="img-1 pfp">
+            <p class="text">Nttajm<a class="link-b in" href="https://github.com/Nttajm/Rand">&#47;Rand</a></p>
+          </div>
+          <div class="repository">
+            <img src="/images/nttajmpfp.png" alt="" class="img-1 pfp">
+            <p class="text">Nttajm<a class="link-b in" href="https://github.com/Nttajm/projects">&#47;Projects</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+      <div class="blog-right">
+        <div class="synced-as-of">
+          Synced as of <span id="Date"></span>
+        </div>
+        <div class="blog">
+          <img src="/images/powershell.png" alt="" class="imgblog">
+          <p class="location link-b loc1">
+            /projects/powershell <button class="fr btn-3">jump to &rarr;</button>
+          </p>
+          <p class="imgdiscription">
+            From /db&amp;m; Configrate, program using commands to 
+            perform tasks like code modifications, script execution.
+          </p>
+          <p class="other-imgdiscription">
+            Synced as of <span class="sync" id="Dat">today</span>
+          </p>
+        </div>
+        <div class="blog">
+          <img src="/images/powershell.png" alt="" class="imgblog">
+          <p class="location link-b loc1">
+            /projects/powershell <button class="fr btn-3">jump to &rarr;</button>
+          </p>
+          <p class="imgdiscription">
+            From /db&amp;m; Configrate, program using commands to 
+            perform tasks like code modifications, script execution.
+          </p>
+          <p class="other-imgdiscription">
+            Not Synced
+          </p>
+        </div>
+    </div>
+    
+  </div>
+ 
+  <script>
+    var currentDate = new Date();
+
+var formattedDate = currentDate.toDateString();
+
+document.getElementById("Date").innerHTML = formattedDate;
+    // Get the search input element
+    var searchInput = document.getElementById('searchInput');
+
+    // Event listener for keydown event
+    document.addEventListener('keydown', function(event) {
+        // Check if the pressed key is the Enter key (keyCode 13)
+        if (event.keyCode === 13) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+
+            // Get the user's input from the search input
+            var userInput = searchInput.value.trim();
+
+            // If the user input is not empty, redirect to the specified URL
+            if (userInput !== "") {
+                // Construct the URL by appending user input to the base URL
+                var redirectURL = "https://lcnjoel.com/" + userInput;
+
+                // Redirect to the constructed URL
+                window.location.href = redirectURL;
+            }
+        }
+    });
+  </script>
+
+</body>
+</html>
