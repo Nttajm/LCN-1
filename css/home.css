@@ -28,6 +28,18 @@ body {
   .special-m1:hover {
     color: rgb(0, 124, 120);
   }
+
+  .fr {
+    float: right;
+  }
+
+  .hb {
+    border: solid red;
+  }
+  
+  .vb {
+    border: solid blue;
+  }
   
   .link-b {
     font-family: 'roboto', arial;
@@ -56,9 +68,13 @@ body {
   }
   
   .img-1{
-    display: inline;
     margin-right: 5px;
     margin-left: 5px;
+  }
+
+  .imgmed {
+    width: 200px;
+    display: inline-block;
   }
 
   .pfp {
@@ -131,7 +147,6 @@ body {
   .more-navbutton:hover {
     color: rgb(208, 208, 208);
     border-color: rgb(208, 208, 208);
-  
   }
   
   .navbutton-proj {
@@ -192,15 +207,17 @@ body {
   }
   
   .container {
-    max-width: 1270px;
     margin: 0 auto;
-    border: solid orange;
+    border: solid rgb(206, 134, 0);
     padding-top: 20px;
-    padding-left: 10px;
   }
 
   .container-left {
     width: 300px;
+    height: 600px;
+    border: solid red;
+    margin-left: 10px;
+    display: inline-block;
     vertical-align: top;
   }
 
@@ -219,6 +236,19 @@ body {
     border: solid #54525c 1px;
   }
 
+  .githubpages {
+    color: rgb(255, 255, 255);
+    background-color: #238636;
+    padding: 4px;
+    margin-left: 5px;
+    border-radius: 5px;
+  }
+  
+  .githubpages:hover {
+    opacity: 0.9;
+  }
+
+
   .repository {
     margin-top: 7px;
     padding-top: 2px;
@@ -231,7 +261,7 @@ body {
   }
 
   .text {
-    display: inline;
+    display: inline-block;
     padding-bottom: 3px;
   }
 
@@ -239,13 +269,60 @@ body {
     margin-left: 4px;
   }
 
-  .blog-right {
-    border: solid yellow;
-    float: right ;
+  .synced-as-of {
+    margin-left: 25px;
+    margin-bottom: 25px;
+    
   }
 
-  .img-blog-big {
-    width: 300px;
+  .blog-right {
+    padding: 15px;
+    display: inline-block;
+  }
+
+  .bvw {
+    width: 400px;
+  }
+
+  .blog {
+    height: 210px;
+    display: inline-block;
+    margin-left: 20px;
+    vertical-align: top;
+  }
+  .imgblog {
     border-radius: 15px;
   }
 
+  .btn-3 { 
+    margin-right: 10px;
+    border-radius: 4px;
+    border-width: 1px;
+    background-color: black;
+    border-color: rgb(158, 158, 158);
+    color: rgb(158, 158, 158);
+    transition: 
+    color 0.125s,
+    border-color 0.125s,
+    background-color 0.125;
+  }
+
+  .btn-3:hover {
+    color: rgb(0, 124, 120);
+    border-color: rgb(208, 208, 208);
+    background-color: #38363d;
+  }
+
+  .loc1 {
+    vertical-align: top;
+  }
+
+  .imgdiscription {
+    margin-top: 10px;
+  }
+
+  .other-imgdiscription {
+    margin-top: 5px;
+    border-top: solid white 1px;
+    color: rgba(255, 168, 6, 0.651);
+  }
