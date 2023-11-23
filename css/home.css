@@ -1,0 +1,251 @@
+body { 
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    background-color: hsl(213, 45%, 8%);
+    color: white;
+  }
+  
+  
+  div {
+    color: white;
+  }
+  
+  p, a {
+    font-family: 'roboto', arial;
+    color: rgb(189, 189, 189);
+    text-decoration: none;
+    margin-top: 0px;
+    margin-bottom: 0px;
+  
+  }
+  
+  .special-m1 {
+    color: rgb(189, 189, 189);
+  }
+  
+  .special-m1:hover {
+    color: rgb(0, 124, 120);
+  }
+  
+  .link-b {
+    font-family: 'roboto', arial;
+    color: rgb(189, 189, 189);
+    text-decoration: none;
+  }
+  
+  .link-b:hover {
+    color: rgb(0, 124, 120);
+  }
+  
+  strong { 
+    font-weight: 600;
+    color: rgb(10, 94, 90);
+  }
+  
+  button {
+    border: solid;
+    border-width: 1.1px;
+    color: white;
+  
+  }
+  
+  div {
+    font-family: roboto;
+  }
+  
+  .img-1{
+    display: inline;
+    margin-right: 5px;
+    margin-left: 5px;
+  }
+
+  .pfp {
+    width: 20px;
+    border-radius: 10px;
+  }
+
+  .sp1 {
+    color: #697ac9c4;
+    text-align: center;
+  }
+  
+  .nav {
+    background-color: black;
+    padding-left: 10px;
+    padding-right: 10px;
+    height: 74px;
+  }
+  
+  .nav-top-left {
+    margin-bottom: 5px;
+    padding-top: 5px;
+  }
+  
+  .logo {
+    color: white;
+    font-size: 28px;
+    padding-left: 10px;
+    padding-top: 5px;
+    padding-bottom: 6px;
+    display: inline;
+  }
+
+  .nav-top-right {
+    float: right;
+  }
+
+  .search-bar {
+    width: 220px;
+    margin-right: 15px;
+    margin-top: 7px;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    background-color: #1d1d1d;
+    border-style: none;
+    border: solid #7a8492 1px;
+    color: white;
+    border-radius: 5px;
+    caret-color: aliceblue;
+    outline: none;
+  }
+
+  .more-navbutton {
+    margin-top: 7px;
+    margin-right: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px ;
+    border-radius: 4px;
+    border-width: 1px;
+    background-color: black;
+    border-color: rgb(158, 158, 158);
+    color: rgb(158, 158, 158);
+    transition: 
+    color 0.125s,
+    border-color 0.125s;
+  }
+  
+  .more-navbutton:hover {
+    color: rgb(208, 208, 208);
+    border-color: rgb(208, 208, 208);
+  
+  }
+  
+  .navbutton-proj {
+    color: rgb(189, 189, 189);
+    border-bottom: solid orange;
+    border-width: 2px;
+    display: inline;
+    margin-left: 10px;
+    padding-bottom: 10px;
+  
+  }
+  
+  .navbutton {
+    color: rgb(189, 189, 189);
+    display: inline;
+    margin-left: 10px;
+    padding-bottom: 10px;
+  
+  }
+  
+  .navbutton-right  {
+    color: rgb(189, 189, 189);
+    display: inline;
+    margin-right: 10px;
+    padding-bottom: 10px;
+    float: right;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+  
+  .navbutton:hover {
+    color: rgb(0, 124, 120);
+    border-bottom: solid rgba(255, 166, 0, 0.393);
+  }
+  
+  .navbutton-right:hover {
+    color: rgb(255, 255, 255);
+    border-bottom: solid rgba(255, 166, 0, 0.393);
+  }
+  
+  .location {
+    background-color: #1d1d1d;
+    padding-left: 15px;  
+    padding-top: 4px;
+    padding-bottom: 4px;
+    color: #7a8492;
+  }
+  
+  .hovertext {
+    margin-right: 3px;
+    margin-left: 3px;
+  }
+  
+  .hovertext:hover {
+    color: rgb(0, 124, 120);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
+  .container {
+    max-width: 1270px;
+    margin: 0 auto;
+    border: solid orange;
+    padding-top: 20px;
+    padding-left: 10px;
+  }
+
+  .container-left {
+    width: 300px;
+    vertical-align: top;
+  }
+
+  .left-head {
+    font-size: 22.5px;
+    margin-bottom: 10px;
+  }
+
+  .rep-sec {
+    background-color: rgb(36, 36, 36);
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-right: 10px;
+    padding-left: 10px;
+    border-radius: 8px;
+    border: solid #54525c 1px;
+  }
+
+  .repository {
+    margin-top: 7px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-radius: 7px;
+  }
+
+  .repository:hover {
+    background-color: #434249;
+  }
+
+  .text {
+    display: inline;
+    padding-bottom: 3px;
+  }
+
+  .in {
+    margin-left: 4px;
+  }
+
+  .blog-right {
+    border: solid yellow;
+    float: right ;
+  }
+
+  .img-blog-big {
+    width: 300px;
+    border-radius: 15px;
+  }
+
