@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/css/get.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>get.db&m</title>
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-left">
+      <button class="navbutton">&lt; LCN</button>
+      <button class="navbutton">Projects</button>
+    </div>
+    <div class="nav-right">
+      <button class="navbutton">wiki</button>
+      <button class="help">?</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="box">
+      <div class="info">
+        <div class="head">DB<span style="color: rgb(215, 215, 0);"">&</span>M</div>
+        <div class="textinfo">
+          After getting the '4-5,' digit code, kindly 
+          <strong>submit it to the designated verifier or relevant authority as requested.</strong>
+          Follow the specified guidelines for submission to ensure proper handling. 
+        </div>
+        <div class="images">
+          <img src="/images/nfcsym.webp" alt="nfc" class="img-1">
+        </div>
+        <button class="getbutton" onclick="generateRandomNumber()">Get Code</button>
+      </div>
+      <div class="numbers" id="numberSection">
+        <span id="result"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function generateRandomNumber() {
+      var randomNumber = Math.floor(Math.random() * 9000) + 1030;
+      document.getElementById("result").innerHTML = " " + randomNumber;
+    }
+  </script>
+</body>
+</html>
