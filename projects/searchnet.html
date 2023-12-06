@@ -11,12 +11,13 @@
   <div class="nav">
     <div class="leftnav">
       <a class="an" href="https://lcnjoel.com/help">about</a>
+      <a class="an r" href="https://lcnjoel.com">LCN</a>
     </div>
     <div class="rightnav"></div>
   </div>
-  <div class="container vb">
-    <div class="imgsec hb ">
-      <img src="/images/bwsearchnet.png" alt="searchnet" class="img vb">
+  <div class="container ">
+    <div class="imgsec  ">
+      <img src="/images/bwsearchnet.png" alt="searchnet" class="img ">
     </div>
     <div class="searchsec">
       <input class="searchbar h" type="text" id="searchInput" placeholder="Search a locatin  'projects/proj/searchnet' " autocomplete="off">
@@ -28,8 +29,7 @@
         var suggestionsContainer = document.getElementById('suggestions');
 
         var suggestions = [
-            'projects',
-            'proj',
+            'ths',
             'projects/searchnet',
             'index',
             'Xtviewer',
@@ -75,7 +75,7 @@
             return suggestion.replace(regex, match => `<span style="background-color: blue; color: white;">${match}</span>`);
         }
 
-        document.addEventListener('keydown', function(event) {
+        document.addEventLkistener('keydown', function(event) {
             if (event.keyCode === 13) {
                 event.preventDefault();
 
