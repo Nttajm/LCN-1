@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="shortcut icon" href="images/bwsearchnet">
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Search</title>
   <link rel="stylesheet" href="/css/searchnet.css">
 </head>
 <body>
-  <div class="nav">
-    <div class="leftnav">
-      <a class="an" href="https://lcnjoel.com/help">about</a>
-      <a class="an r" href="https://lcnjoel.com">LCN</a>
+  <div class="nav ">
+      <a class="" href="https://lcnjoel.com/help">about</a>
+      <a class=" r" href="https://lcnjoel.com">LCN</a>
     </div>
-    <div class="rightnav"></div>
   </div>
   <div class="container ">
     <div class="imgsec  ">
@@ -35,8 +34,16 @@
             'Xtviewer',
             'help',
             'PowerShell',
+            'indexold',
             'projects/proj/getcode',
-            'projects/home'
+            'projects/home',
+            'projects/proj/searchindexDB&M',
+            'projects/proj/googlebr',
+            'projects/proj/datasaverDB&M',
+            'projects/proj/datasaver',
+            'projects/proj/reps/lcn-1',
+            'projects/proj/reps/Xtviewer',
+            'projects/proj/reps/Rand',
         ];
 
         searchInput.addEventListener('input', function() {
@@ -45,7 +52,7 @@
                 return suggestion.toLowerCase().includes(userInput);
             });
 
-            displaySuggestions(filteredSuggestions.slice(0, 3), userInput);
+            displaySuggestions(filteredSuggestions.slice(0, 5), userInput);
         });
 
         function displaySuggestions(suggestionsArray, userInput) {
