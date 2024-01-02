@@ -1,26 +1,135 @@
 body { 
-  margin-top: 0px;
-  margin-bottom: 0px;
-  margin-left: 0px;
-  margin-right: 0px;
-}
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    background: var(--bkc2);
+    background: rgb(2,0,36);
+    color: white;
+  }
+  
+  
+  div {
+    color: white;
+  }
+  
+  p, a {
+    font-family: 'roboto', arial;
+    color: rgb(189, 189, 189);
+    text-decoration: none;
+    margin-top: 0px;
+    margin-bottom: 0px;
+  
+  }
+  
+  .cur:hover {
+    cursor: pointer;
+  }
+  
+  .special-m1 {
+    color: rgb(189, 189, 189);
+  }
+  
+  .special-m1:hover {
+    color: var(--tlkk);
+  }
+  
+  .fr {
+    float: right;
+  }
+  
+  .hb {
+    border: solid red;
+  }
 
-p, a {
-  font-family: 'roboto', arial;
-  color: black;
-  text-decoration: none;
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
+  .u {
+    text-decoration: underline !important;
+  }
 
-strong { 
+  .vb {
+    border: solid blue;
+  }
+  
+  .i {
+    display: inline-block !important;
+  }
+
+  .dn {
+    display: none !important;
+  }
+
+  .th {
+    font-family: tahoma;
+  }
+  
+  .tx-ss {
+    font-family: 12px;
+  }
+  
+  .tx-s {
+    font-size: 17px;
+  }
+
+  .cs-b {
+    border: solid rgb(141, 140, 140) 1px;
+    border-radius: 5px;
+  }
+
+  .cs-b2 {
+    border: solid rgb(141, 140, 140) 2px;
+    border-radius: 5px;
+  }
+
+  
+  
+  .link-b {
+    font-family: 'roboto', arial;
+    color: rgb(189, 189, 189);
+    text-decoration: none;
+  }
+  
+  .link-b:hover {
+    color: var(--tlkk);
+  }
+  
+  strong { 
     font-weight: 600;
     color: rgb(10, 94, 90);
-}
-
-button {
-    color: #ffffff;
-    border-style: none;
+    border-radius: 9px;
+  }
+  
+  button {
     border: solid;
     border-width: 1.1px;
-}
+    color: white;
+  
+  }
+  
+  div {
+    font-family: roboto;
+  }
+  
+  .img-1{
+    margin-right: 10px;
+    margin-left: 5px;
+  }
+  
+  .imgmed {
+    width: 200px;
+    display: inline-block;
+  }
+  
+  .pfp {
+    width: 20px;
+    border-radius: 10px;
+  }
+  
+  :root {
+    --ug:rgb(40, 40, 46);
+    --tlkk: rgb(0, 124, 120);
+    --ug2:  #1d1d1d;
+    --bkc:  hsl(213, 45%, 8%);
+    --idle: rgb(246, 160, 0);
+    --bkc2:linear-gradient(2deg, rgba(2,0,36,1) 0%, rgba(0,0,56,1) 27%, rgba(0,0,56,1) 63%, rgba(0,95,115,1) 100%);
+  
+  }
