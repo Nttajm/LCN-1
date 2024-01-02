@@ -127,7 +127,5 @@ body {
     --tlkk: rgb(0, 124, 120);
     --ug2:  #1d1d1d;
     --bkc:  hsl(213, 45%, 8%);
-    --idle: rgb(246, 160, 0);
-    --bkc2:linear-gradient(2deg, rgba(2,0,36,1) 0%, rgba(0,0,56,1) 27%, rgba(0,0,56,1) 63%, rgba(0,95,115,1) 100%);
-  
+    --idle: rgb(246, 160, 0);  
   }
