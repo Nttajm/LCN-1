@@ -11,10 +11,10 @@
 <body>
   <div class="nav ">
       <a class="" href="https://lcnjoel.com/help">about</a>
-      <a class=" r" href="https://lcnjoel.com">LCN</a>
+      <a class="" href="https://lcnjoel.com">LCN</a>
     </div>
   </div>
-  <div class="container ">
+  <div class="container">
     <div class="imgsec  ">
       <img src="/images/bwsearchnet.png" alt="searchnet" class="img ">
     </div>
@@ -25,81 +25,81 @@
   </div>
   <script>
     var searchInput = document.getElementById('searchInput');
-        var suggestionsContainer = document.getElementById('suggestions');
+    var suggestionsContainer = document.getElementById('suggestions');
 
-        var suggestions = [
-            'ths',
-            'projects/searchnet',
-            'index',
-            'Xtviewer',
-            'help',
-            'PowerShell',
-            'indexold',
-            'projects/proj/getcode',
-            'projects/home',
-            'projects/proj/searchindexDB&M',
-            'projects/proj/googlebr',
-            'projects/proj/datasaverDB&M',
-            'projects/proj/datasaver',
-            'projects/proj/reps/lcn-1',
-            'projects/proj/reps/Xtviewer',
-            'projects/proj/reps/Rand',
-            'projects/proj/syntaxhighliter',
-        ];
+    var suggestions = [
+        'ths',
+        'projects/searchnet',
+        'index',
+        'Xtviewer',
+        'help',
+        'PowerShell',
+        'indexold',
+        'projects/proj/getcode',
+        'projects/home',
+        'projects/proj/searchindexDB&M',
+        'projects/proj/googlebr',
+        'projects/proj/datasaverDB&M',
+        'projects/proj/datasaver',
+        'projects/proj/reps/lcn-1',
+        'projects/proj/reps/Xtviewer',
+        'projects/proj/reps/Rand',
+        'projects/proj/syntaxhighliter',
+    ];
 
-        searchInput.addEventListener('input', function() {
-            var userInput = searchInput.value.trim().toLowerCase();
-            var filteredSuggestions = suggestions.filter(function(suggestion) {
-                return suggestion.toLowerCase().includes(userInput);
-            });
-
-            displaySuggestions(filteredSuggestions.slice(0, 6), userInput);
+    searchInput.addEventListener('input', function() {
+        var userInput = searchInput.value.trim().toLowerCase();
+        var filteredSuggestions = suggestions.filter(function(suggestion) {
+            return suggestion.toLowerCase().includes(userInput);
         });
 
-        function displaySuggestions(suggestionsArray, userInput) {
-            suggestionsContainer.innerHTML = '';
+        displaySuggestions(filteredSuggestions.slice(0, 6), userInput);
+    });
 
-            if (suggestionsArray.length > 0) {
-                suggestionsContainer.style.display = 'block'; // Show the suggestions container
+    function displaySuggestions(suggestionsArray, userInput) {
+        suggestionsContainer.innerHTML = '';
 
-                suggestionsArray.forEach(function(suggestion) {
-                    var suggestionElement = document.createElement('div');
-                    suggestionElement.innerHTML = highlightMatchedCharacters(suggestion, userInput);
+        if (suggestionsArray.length > 0) {
+            suggestionsContainer.style.display = 'block'; // Show the suggestions container
 
-                    suggestionElement.addEventListener('click', function() {
-                        var redirectURL = "https://lcnjoel.com/" + suggestion;
-                        window.location.href = redirectURL;
-                    });
+            suggestionsArray.forEach(function(suggestion) {
+                var suggestionElement = document.createElement('div');
+                suggestionElement.innerHTML = highlightMatchedCharacters(suggestion, userInput);
 
-                    suggestionsContainer.appendChild(suggestionElement);
+                suggestionElement.addEventListener('click', function() {
+                    var redirectURL = "https://lcnjoel.com/" + suggestion;
+                    window.location.href = redirectURL;
                 });
-            } else {
-                suggestionsContainer.style.display = 'none'; // Hide the suggestions container
-            }
+
+                suggestionsContainer.appendChild(suggestionElement);
+            });
+        } else {
+            suggestionsContainer.style.display = 'none'; // Hide the suggestions container
         }
+    }
 
-        function highlightMatchedCharacters(suggestion, userInput) {
-            var regex = new RegExp(userInput, 'ig');
-            return suggestion.replace(regex, match => `<span style="background-color: blue; color: white;">${match}</span>`);
+    function highlightMatchedCharacters(suggestion, userInput) {
+        var regex = new RegExp(userInput, 'ig');
+        return suggestion.replace(regex, match => `<span style="background-color: blue; color: white;">${match}</span>`);
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+
+            var userInput = searchInput.value.trim();
+            var redirectURL = "https://lcnjoel.com/" + userInput;
+
+            window.location.href = redirectURL;
         }
+    });
 
-        document.addEventLkistener('keydown', function(event) {
-            if (event.keyCode === 13) {
-                event.preventDefault();
-
-                var userInput = searchInput.value.trim();
-                var redirectURL = "https://lcnjoel.com/" + userInput;
-
-                window.location.href = redirectURL;
-            }
-        });
-
-        document.addEventListener('click', function(event) {
-            // Close suggestions if user clicks outside the input and suggestions container
-            if (event.target !== searchInput && event.target !== suggestionsContainer) {
-                suggestionsContainer.style.display = 'none'; // Hide the suggestions container
-            }
-        });
-</script>
+    document.addEventListener('click', function(event) {
+        // Close suggestions if the user clicks outside the input and suggestions container
+        if (event.target !== searchInput && event.target !== suggestionsContainer) {
+            suggestionsContainer.style.display = 'none'; // Hide the suggestions container
+        }
+    });
+  </script>
 </body>
 </html>
