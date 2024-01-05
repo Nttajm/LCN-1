@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="type.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="nav">
+        <button class="button cs-b"><a class="p" href="https://lcnjoel.com">LCN</a></button>
+        <button onclick="toggleContent()" class="cs-b button">Settings</button>
+        <div id="contentToReveal">
+            <div id="sizeControls" class="fl-r Controls">
+                <span id="currentSize" class="p">30px</span>
+                <button class="button2 cs-b" onclick="increaseTextSize()">+</button>
+                <button class="button2 cs-b" onclick="decreaseTextSize()">-</button>
+            </div>
+        </div>
+    </div>
+    <div class="container ">
+        <textarea  placeholder="type here..." id="textArea"></textarea>
+    </div>
+</body>
+<script>
+    var contentIsVisible = false;
+    function toggleContent() {
+        var contentToReveal = document.getElementById('contentToReveal');
+
+        // Toggle between displaying and hiding the content
+        if (!contentIsVisible) {
+            contentToReveal.style.display = 'block';
+        } else {
+            contentToReveal.style.display = 'none';
+        }
+
+        // Update the visibility state for the next click
+        contentIsVisible = !contentIsVisible;
+    }
+
+    var textSize = 30; // Initial font size
+
+    function updateTextSize() {
+        var textArea = document.getElementById('textArea');
+        textArea.style.fontSize = textSize + 'px';
+
+        // Update the displayed size value
+        document.getElementById('currentSize').textContent = textSize + 'px';
+    }
+
+    function increaseTextSize() {
+        textSize += 1;
+        updateTextSize();
+    }
+
+    function decreaseTextSize() {
+        textSize -= 1;
+        updateTextSize();
+    }
+</script>>
+</html>
