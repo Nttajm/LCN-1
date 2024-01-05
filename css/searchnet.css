@@ -51,10 +51,6 @@ button {
   border: solid blue 3px;
 }
 
-.r {
-  float: right;
-}
-
 :root {
   --bkc: rgb(53, 53, 53);
   --bkch: rgb(90, 90, 90);
@@ -89,7 +85,10 @@ img {
   margin-top: 10px;
 }
 
-
+.nav {
+  display: flex;
+  justify-content: space-between;
+}
 
 .searchbar {
   font-size: 15px;
@@ -144,10 +143,6 @@ img {
 
 #suggestions div:hover {
   background-color: var(--bkch);
-}
-
-::placeholder {
-  
 }
 
 @media only screen and (width <= 395px) {
