@@ -15,20 +15,20 @@
       <div class="logo"><a href="https://lcnjoel.com">LCN</a></div>
       <div class="nav-top-right">
         <input type="text" id="searchInput" class="search-bar acsr" autocomplete="off" placeholder="Search a location &ldquo; projects/LCN-1 &rdquo;">
-        <button class="more-navbutton">&lt;/&gt;</button>
+        <button class="more-navbutton"><a href="https://github.com/Nttajm/LCN-1/blob/main/projects/home.html ">&lt;/&gt;</a></button>
       </div>  
     </div>
     <div class="nav-left">
-      <div class="navbutton">
-        <a class="link-b" href="">projects</a>
+      <div class="navbutton-selected">
+        <a class="link-b" href="https://lcnjoel.com/projects/home">Home</a>
       </div>
       <div class="navbutton">
-        <a  class="link-b" href="https://github.com/Nttajm/LCN-1">github</a>
+        <a class="link-b" href="https://lcnjoel.com/projects/home/all"> Projects</a>
       </div>
       <div class="navbutton">
-        <a class="link-b" href="https://github.com/Nttajm/LCN-1/wiki">wiki</a>
-    </div>
-      <div class="navbutton">standard.css</div>
+        <a  class="link-b" href="https://github.com/Nttajm/LCN-1">Github</a>
+      </div>
+      <div class="navbutton"><a class="link-b" href="https://github.com/Nttajm/Xtviewer/blob/main/standards/standard.css">Standard.css</a></div>
       <div class="navbutton-right"><a class="special-m1" href="https://lcnjoel.com/help">?</a></div>
     </div>   
   </div>
@@ -45,25 +45,19 @@
         </h4>
         <div class="repositories cs-b2">
           <div class="rep-button">
-             <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/
-             Rand
-             ">
+             <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/Rand">
              <p class="p i"><span class="slash">/</span>RAND</p> 
              </a>
             <div class="jumpto2 ">&xrarr;</div>
           </div>
           <div class="rep-button ">
-            <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/
-            Xtviewr
-            ">
+            <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/Xtviewer">
             <p class="p "><span class="slash">/</span>Xtviewr</p> 
             </a>
            <div class="jumpto2 ">&xrarr;</div>
          </div>
          <div class="rep-button">
-          <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/
-          lcn-1
-          ">
+          <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/lcn-1">
           <p class="p i"><span class="slash">/</span>LCN-1</p> 
           </a>
          <div class="jumpto2 ">&xrarr;</div>
@@ -90,12 +84,15 @@
           </div>
         </div>
       </div>
-      <div class="info-space cs-b">
-        <img src="/images/tealcircle.png" alt="" class="img-1">
-        <div class="info-space-text"> Today's features projects/tools </div>
+      <div class="info-space cs-b fl-jsp-b">
+        <div class="fl-r fl-ai">
+          <img src="/images/tealcircle.png" alt="" class="img-1">
+          <div class="info-space-text"> Today's features projects/tools </div>
+        </div>
+        <span class="fr"><a class="link-b fr u" href="https://lcnjoel.com/projects/home/all/pg1">View all</a></span>
       </div>
       <div class="psec-2">
-        <div class="info-box cs-b">
+        <div class="info-box cs-b fl-jsp-c">
           <h4 class="h4">Interact with commands</h4>
           <p class="p-ib">Use commands to excute different function and more with "powershel.net"; apart of the <span>/db&m</span> series </p>
           <div class="powershell-demo cs-b">
@@ -123,7 +120,6 @@
               <div class="psd-loc">projects &#47; serachnet</div>
               <button class="psd-jumpto cs-b2 cur"><a class="" href="https://lcnjoel.com/searchnet">Jump to &xrarr;</a></button>
             </div>
-
           </div>
         </div>
       </div>
@@ -146,6 +142,32 @@
           </p>
         </div>
       </div>
+      <div class="info-space cs-b">
+        <img src="/images/tealcircle.png" alt="" class="img-1">
+        <div class="info-space-text"> Learn to code with HTML, CSS and javascript</div>
+      </div>
+      <div class="psec-2">
+        <div class="info-box cs-b h-n">
+          <h4 class="h4">
+           HTML & CSS tutorial
+          </h4>
+          <p class="p">follow this free full course by supersimple.dev that has tutorials,
+             teaching the major skills that we need to create complex websites and goes in depth
+              of both CSS and HTML construct.</p> 
+              <span class="psd-loc">not linked neither sponsered</span>
+              <div class="cs-b ib-2-sn">
+                <img src="/images/hq720.webp" alt="" class=" img-2">
+                <div class="psd-top">
+                  <div class="psd-loc"> youtube.com &#47; </div>
+                  <button class="psd-jumpto cs-b2 cur"><a class="" href="https://www.youtube.com/watch?v=G3e-cpL7ofc&t=13069s&ab_channel=SuperSimpleDev">Jump to &xrarr;</a></button>
+                </div>
+              </div>
+        </div>
+        <div class="info-box cs-b">
+        </div>
+      </div>
+
+
       
 
   <div class="footer dn">
@@ -168,6 +190,30 @@
     updateCurrentTime();
 
     setInterval(updateCurrentTime, 1000);
+
+    // Get the search input element
+    var searchInput = document.getElementById('searchInput');
+
+// Event listener for keydown event
+    document.addEventListener('keydown', function(event) {
+    // Check if the pressed key is the Enter key (keyCode 13)
+    if (event.keyCode === 13) {
+        // Prevent the default form submission behavior
+        event.preventDefault();
+
+        // Get the user's input from the search input
+        var userInput = searchInput.value.trim();
+
+        // If the user input is not empty, redirect to the specified URL
+        if (userInput !== "") {
+            // Construct the URL by appending user input to the base URL
+            var redirectURL = "https://lcnjoel.com/" + userInput;
+
+            // Redirect to the constructed URL
+            window.location.href = redirectURL;
+        }
+    }
+});
   </script>
 </body> 
 </html>
