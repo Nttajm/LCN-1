@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Input to Information</title>
+    <script>
+        function generateInfo() {
+            var name = document.getElementById("name").value;
+            var dob = document.getElementById("dob").value;
+            var height = document.getElementById("height").value;
+            var numberPlate = document.getElementById("numberPlate").value;
+            var skinColor = document.getElementById("skinColor").value;
+            var eyeColor = document.getElementById("eyeColor").value;
+            var description = document.getElementById("description").value;
+            var address = document.getElementById("address").value;
+            var tags = document.getElementById("tags").value;
+
+            var tagList = tags.split(',').map(tag => "#" + tag.trim()).join(' ');
+
+            var infoText = "name: " + name + "\ndob: " + dob + "\nheight: " + height +
+                           "\nnumber plate: " + numberPlate + "\nskin color: " + skinColor +
+                           "\neye color: " + eyeColor + "\ndescription: " + description +
+                           "\naddress: " + address + "\ntags: " + tagList;
+
+            document.getElementById("infoOutput").textContent = infoText;
+        }
+    </script>
+</head>
+<body>
+    <label for="name">Name:</label>
+    <input type="text" id="name"><br><br>
+
+    <label for="dob">DOB:</label>
+    <input type="text" id="dob"><br><br>
+
+    <label for="height">Height:</label>
+    <input type="text" id="height"><br><br>
+
+    <label for="numberPlate">Number Plate:</label>
+    <input type="text" id="numberPlate"><br><br>
+
+    <label for="skinColor">Skin Color:</label>
+    <input type="text" id="skinColor"><br><br>
+
+    <label for="eyeColor">Eye Color:</label>
+    <input type="text" id="eyeColor"><br><br>
+
+    <label for="description">Description:</label><br>
+    <textarea id="description" rows="4" cols="50"></textarea><br><br>
+
+    <label for="address">Address:</label><br>
+    <input type="text" id="address"><br><br>
+
+    <label for="tags">Tags:</label>
+    <input type="text" id="tags"><br><br>
+
+    <label for="image">Choose an image:</label><br>
+    <input type="file" id="image"><br><br>
+
+    <button onclick="generateInfo()">Generate Information</button><br><br>
+
+    <textarea id="infoOutput" rows="10" cols="50"></textarea>
+</body>
+</html>
