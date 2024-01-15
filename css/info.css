@@ -117,6 +117,10 @@ body {
     color: rgb(189, 189, 189);
     text-decoration: none;
   }
+
+  .uh:hover {
+    text-decoration: underline !important;
+  }
   
   .link-b:hover {
     color: var(--tlkk);
@@ -315,7 +319,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: center;
+    position: fixed;
   }
 
  .container-info {
@@ -332,6 +336,23 @@ body {
   padding-top: 10px;
   padding-bottom: 10px;
   border-top: solid rgb(68, 68, 68) 1px;
+ }
+
+ .header {
+  margin-bottom: 20px;
+ }
+
+ .head-top{
+  margin-bottom: 15px;
+  font-size: 13px;
+ }
+
+ .header
+
+ .head {
+  font-size: 23px;
+  border-bottom: solid rgb(68, 68, 68) 1px;
+  padding-bottom: 10px;
  }
 
  .section {

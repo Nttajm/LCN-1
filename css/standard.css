@@ -108,6 +108,10 @@ p, a {
   text-decoration: none;
 }
 
+.uh:hover {
+  text-decoration: underline !important;
+}
+
 .link-b:hover {
   color: var(--tlkk);
 }
