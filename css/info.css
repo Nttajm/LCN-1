@@ -46,7 +46,7 @@ body {
     text-decoration: underline !important;
   }
 
-  .vb- {
+  .vb {
     border: solid blue;
   }
   
@@ -98,6 +98,10 @@ body {
 
   .fl-ai {
     align-items: center;
+  }
+
+  .fl-grw {
+    flex-grow: 1;
   }
 
   .fl-jsp-c {
@@ -166,6 +170,7 @@ body {
     --ug2:  #1d1d1d;
     --bkc:  hsl(213, 45%, 8%);
     --idle: rgb(246, 160, 0);  
+    --notetext:  #808ea1;
   }
   
   .sp1 {
@@ -304,17 +309,48 @@ body {
     fill: rgb(184, 184, 184);
   }
 
+  .side-left {
+    padding: 20px;
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
  .container-info {
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
     padding: 30px;
     background-color: var(--bkc);
-    height: 800px;
+    min-height: 800px;
+    flex-grow: 1;
  }
 
  .info {
   padding-top: 10px;
   padding-bottom: 10px;
   border-top: solid rgb(68, 68, 68) 1px;
+ }
+
+ .section {
+  font-size: 20px;
+  margin-bottom: 5px;
+  transition: all 0.125s;
+ }
+
+ .section:hover {
+  font-size: 23px;
+  color: white !important;
+  font-weight: 700;
+ }
+
+ .s-r-footer {
+  background-color: var(--ug2);
+  color: #808ea1;
+  padding: 20px;
+  display: flex;
+  font-size: 13px;
+  justify-content: center;
  }
