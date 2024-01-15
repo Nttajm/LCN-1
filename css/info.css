@@ -75,7 +75,9 @@ body {
     border-radius: 5px;
   }
 
- 
+  .it {
+    font-style: italic;
+  }
 
   .cs-b2 {
     border: solid rgb(141, 140, 140) 2px;
@@ -365,6 +367,11 @@ body {
   font-size: 23px;
   color: white !important;
   font-weight: 700;
+ }
+
+ .textviewer-text {
+  border: solid gray 1px;
+  border-radius: 8px;
  }
 
  .s-r-footer {

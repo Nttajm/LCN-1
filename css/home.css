@@ -55,7 +55,7 @@ body {
   }
 
   .dn {
-    display: none !important;
+    display: none;
   }
 
   .th {
@@ -115,6 +115,10 @@ body {
   .link-b:hover {
     color: var(--tlkk);
   }
+
+  .uh:hover {
+    text-decoration: underline !important;
+  }
   
   strong { 
     font-weight: 600;
@@ -156,7 +160,8 @@ body {
     --tlkk: rgb(0, 124, 120);
     --ug2:  #1d1d1d;
     --bkc:  hsl(213, 45%, 8%);
-    --idle: rgb(246, 160, 0);  
+    --idle: rgb(246, 160, 0);
+    --notetext:  #808ea1;
   }
   
   .sp1 {
@@ -165,30 +170,27 @@ body {
   }
   
   .nav {
-    background-color: black;
-    padding-left: 10px;
-    padding-right: 10px;
-    height: 74px;
-  }
-  
-  .nav-top-left {
-    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
     padding-top: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: black;
   }
-  
+
+  .nav-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
   .logo {
     color: white;
     font-size: 28px;
-    padding-left: 10px;
-    padding-top: 5px;
     padding-bottom: 6px;
     display: inline;
   }
-  
-  .nav-top-right {
-    float: right;
-  }
-  
+
   .search-bar {
     width: 220px;
     margin-right: 15px;
@@ -213,7 +215,7 @@ body {
   .acsr:hover {
     border: solid #9dabbe 1px;
   }
-  
+
   .more-navbutton {
     margin-top: 7px;
     margin-right: 10px;
@@ -228,7 +230,7 @@ body {
     color 0.125s,
     border-color 0.125s;
   }
-  
+
   .more-navbutton:hover {
     color: rgb(208, 208, 208);
     border-color: rgb(208, 208, 208);
@@ -241,36 +243,47 @@ body {
     display: inline;
     margin-left: 10px;
     padding-bottom: 10px;
-  
   }
-  
-  .navbutton {
-    color: rgb(189, 189, 189);
-    display: inline;
-    margin-left: 10px;
-    padding-bottom: 10px;
-  
+
+  .nav-bottom {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 3px;
   }
-  
-  .navbutton-right  {
-    color: rgb(189, 189, 189);
-    display: inline;
+
+  .nav-buttons {
+    display: flex;
+    justify-content: space-evenly;
+  }
+
+  .nav-b {
     margin-right: 10px;
-    padding-bottom: 10px;
-    float: right;
-    padding-left: 7px;
-    padding-right: 7px;
+    padding-bottom: 8px;
+    padding-left: 3px;
+    padding-right: 3px;
+    margin-bottom: 2px;
   }
-  
-  .navbutton:hover {
+
+  .nav-b:hover {
+    border-bottom: var(--idle) solid 2px;
     color: var(--tlkk);
-    border-bottom: solid rgba(255, 166, 0, 0.393);
   }
-  
-  .navbutton-right:hover {
-    color: rgb(255, 255, 255);
-    border-bottom: solid rgba(255, 166, 0, 0.393);
+
+  .nb-selected {
+    border-bottom: var(--idle) solid 2px;
+
   }
+
+  .greeting {
+    color: #b8b8b8;
+    font-weight: 700;
+  }
+
+  .text-about {
+    margin-right: 20px;
+  }
+
   
   .location {
     background-color: #2b2a2a;
@@ -296,7 +309,7 @@ body {
     display: flex;
   }
   
-  .side-right {
+  .side-left {
     display: flex;
     padding-top: 10px;
     padding-left: 20px;
@@ -384,13 +397,17 @@ body {
 
 .page {
   display: flex;
-  width: var(--infowidth);
+  flex-grow: 1;
+  justify-content: center;
+  padding-bottom: 30px;
   margin-top: 20px;
-  margin-left: auto;
-  margin-right: auto;
+}
+
+.page-main {
+  display: flex;
+  width: var(--infowidth);
   flex-wrap: wrap;
   align-content: flex-start;
-  padding-bottom: 30px;
 }
 
 .psec-1{
@@ -561,6 +578,39 @@ body {
   padding: 3px;
 }
 
+.side-right {
+  display: flex;
+  flex-direction: column;
+  margin-left: 20px;
+  min-width: 220px;
+}
+
+.ib-r {
+ padding-top: 10px;
+ padding-bottom: 10px; 
+ padding-left: 20px;
+ padding-right: 20px;
+}
+
+.head-ib-r {
+  border-bottom: #706e6e solid 1px;
+  padding-bottom: 7px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-style: italic;
+}
+
+.link-space {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding-left: 4px;
+}
+
+.ib-r-link2 {
+  color: white !important;
+  font-weight: 700;
+}
+
 .status {
   display: flex;
   justify-content: flex-end;
@@ -581,12 +631,10 @@ body {
 
 .mark {
   background-color: rgb(88, 88, 88);
-  font-size: 4px;
+  font-size: 12px;
   margin-left: 3px;
-  padding-left: 5px;
-  padding-right: 5px;
-  padding-top: 2px;
-  padding-bottom: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
   border-radius: 8px;
 }
 
@@ -624,23 +672,22 @@ body {
 }
 
 .footer-info {
-  margin-left: auto;
-  margin-right: auto;
   text-align: center;
-  font-size: 13px;
+  font-size: 9px;
+  color: var(--notetext);
 }
 
-@media only screen and (width <= 930px) {
+@media only screen and (width <= 1130px) {
   :root {
     --infowidth: 600px;
   }
   .container {
     flex-direction: column;
   }
-  .side-right {
+  .side-left {
     border: none;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: center;
   }
 
   .rep-sec {
@@ -653,6 +700,16 @@ body {
     flex-grow: 1;
     width: var(--infowidth);
   }
+
+  .nav {
+    display: block;
+    font-size: 15px;
+  }
+
+  .side-right {
+    display: none;
+  }
+
 }
 
 @media only screen and (width <= 550px) {
@@ -682,3 +739,4 @@ body {
     width: 170px;
   }
 }
+ 

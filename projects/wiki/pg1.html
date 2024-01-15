@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,700;1,300&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/wiki.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects | Wiki</title>
+</head>
+<body> 
+    <div class="nav">
+        <div class="nav-top">
+            <div class="logo"><a href="https://lcnjoel.com/">LCN</a></div>
+            <div class="nav-t-r">
+                <input type="text" id="searchInput" class="search-bar acsr" autocomplete="off" placeholder="Search a location &ldquo; projects/LCN-1 &rdquo;">
+                <button class="more-navbutton"><a href="https://github.com/Nttajm/LCN-1/blob/main/projects/home.html ">&lt;/&gt;</a></button>
+            </div>
+        </div>
+        <div class="nav-bottom">
+            <div class="nav-buttons">
+                <div class="nav-b nb-selected link-b">
+                    <a class="cur link-b fl-r"
+                    href="https://lcnjoel.com/r/p">Home
+                    </a>
+                </div>
+                <div class="nav-b  link-b">
+                    <a class="cur link-b fl-r"
+                    href="https://lcnjoel.com/r/p">Projects
+                    </a>
+                </div>
+                <div class="nav-b  link-b">
+                    <a class="cur link-b fl-r"
+                    href="https://lcnjoel.com/r/p/w">Wiki
+                    </a>
+                </div>
+                <div class="nav-b link-b">
+                    <a class="cur link-b fl-r"
+                    href="https://github.com/Nttajm/Xtviewer/blob/main/standards/standard.css">
+                    standard.css
+                    </a>
+                </div>
+            </div>
+            <div id="greeting" class="greeting"></div>
+            <div class="text-about nav-b cur link-b"><a class="link-b" href="https://lcnjoel.com/help">?</a></div>
+        </div>
+    </div>
+    <script src="/js/greeting.js"></script>
+    <script src="/js/searchbar.js"></script>  
+      </div>
+      <div class="location">
+       <span class="hovertext">Projects</span>&#47;<span class="hovertext">wiki</span>&#47;<span class="hovertext">pg1</span> <svg class="svgsize svg" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="10" height="10" viewBox="0 0 50 50" color="white">
+        <path d="M 21 3 C 11.621094 3 4 10.621094 4 20 C 4 29.378906 11.621094 37 21 37 C 24.710938 37 28.140625 35.804688 30.9375 33.78125 L 44.09375 46.90625 L 46.90625 44.09375 L 33.90625 31.0625 C 36.460938 28.085938 38 24.222656 38 20 C 38 10.621094 30.378906 3 21 3 Z M 21 5 C 29.296875 5 36 11.703125 36 20 C 36 28.296875 29.296875 35 21 35 C 12.703125 35 6 28.296875 6 20 C 6 11.703125 12.703125 5 21 5 Z"></path>
+        </svg>
+      </div>
+      <div class="container fl-r">
+        <div class="side-left" id="outline">
+          <div class="header">
+            <div class="head-top">
+                <a class="link-b uh cur" href="https://lcnjoel.com/projects/home">&xlarr; projects/home</a>
+            </div>
+          <div class="head">Projects: Things To Know</div>
+          </div>
+          <p class="section p"><a href="#section1">FastLinks</a></p>
+          <p class="section p"><a href="#section2">Searchnet</a></p>
+          <p class="section p"><a href="#section3">PowerShell /db&m</a></p>
+        </div>
+        <div class="container-info fl-c" id="outline">
+            <div class="info">
+                <h4 class="h4" id="section1">FastLinks</h4>
+                <p class="p">Fast links help you be able to type long tiresome links quickly. For example: <span class="it">"lcnjoel.com/projects/proj/datasaver"</span>  to: lcnjoel.com/r/p/ds 
+                </p>
+                <p class="p">here's a list: 
+                </p>
+                <div class="textviewer-text">
+                    <div class="tx-top">List of available FastLinks.</div>
+                    <div class="tx">
+                        <p class="p"><span class="dash">-
+                        </span>https://lcnjoel.com/projects/home &xrarr; <strong>r/p</strong></p>
+                        <p class="p"><span class="dash">-
+                        </span>https://lcnjoel.com/projects/searchnet &xrarr; <strong>r/s</strong></p>
+                        <p class="p"><span class="dash">-
+                        </span>https://lcnjoel.com/PowerShell &xrarr; <strong>r/ps</strong></p>
+                        <p class="p"><span class="dash">-
+                        </span>https://lcnjoel.com/projects/wiki/pg1 &xrarr; <strong>r/p/w</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="info">
+                <h4 class="h4">Powershell Commands</h4>
+                <p class="p"></p>
+            </div>
+
+        </div>
+      </div>
+      <div class="s-r-footer">
+        note, this site is a developing site; content is still being updated.
+      </div>
+</body>
+<script>
+  // JavaScript code for automatic scrolling
+  document.addEventListener("DOMContentLoaded", function() {
+      // Get all links in the outline
+      var outlineLinks = document.querySelectorAll('#outline a');
+
+      // Add click event listeners to each link
+      outlineLinks.forEach(function(link) {
+          link.addEventListener('click', function(event) {
+              event.preventDefault(); // Prevent the default link behavior
+              var targetId = this.getAttribute('href').substring(1); // Get the target section ID
+              var targetSection = document.getElementById(targetId);
+
+              // Check if the target section exists
+              if (targetSection) {
+                  // Scroll to the target section
+                  targetSection.scrollIntoView({ behavior: "smooth" });
+              }
+          });
+      });
+  });
+
+  var searchInput = document.getElementById('searchInput');
+
+// Event listener for keydown event
+    document.addEventListener('keydown', function(event) {
+    // Check if the pressed key is the Enter key (keyCode 13)
+    if (event.keyCode === 13) {
+        // Prevent the default form submission behavior
+        event.preventDefault();
+
+        // Get the user's input from the search input
+        var userInput = searchInput.value.trim();
+
+        // If the user input is not empty, redirect to the specified URL
+        if (userInput !== "") {
+            // Construct the URL by appending user input to the base URL
+            var redirectURL = "https://lcnjoel.com/" + userInput;
+
+            // Redirect to the constructed URL
+            window.location.href = redirectURL;
+        }
+    }
+});
+
+</script>
+</html>

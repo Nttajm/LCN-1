@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projects | Info</title>
 </head>
-<body>
+<body> 
     <div class="nav">
         <div class="nav-top-left">
           <div class="logo"><a href="https://lcnjoel.com">LCN</a></div>
@@ -23,10 +23,10 @@
             <a class="link-b" href="https://lcnjoel.com/projects/home">Home</a>
           </div>
           <div class="navbutton">
-            <a class="link-b" href="https://lcnjoel.com/projects/home/all"> Projects</a>
+            <a class="link-b" href="https://lcnjoel.com/projects/all/pg1">Projects</a>
           </div>
           <div class="navbutton">
-            <a  class="link-b" href="https://github.com/Nttajm/LCN-1">Github</a>
+            <a  class="link-b" href="https://lcnjoel.com/r/p/w">wiki</a>
           </div>
           <div class="navbutton"><a class="link-b" href="https://github.com/Nttajm/Xtviewer/blob/main/standards/standard.css">Standard.css</a></div>
           <div class="navbutton-right"><a class="special-m1" href="https://lcnjoel.com/help">?</a></div>
@@ -45,8 +45,6 @@
           </div>
           <p class="section"><a href="#section1">Activity </a></p>
           <p class="section"><a href="#section2">Sync</a></p>
-          <p class="section"><a href="#section3">Section 3</a></p>
-          <p class="section"><a href="#section4">Section 4</a></p>
         </div>
         <div class="container-info fl-c">
           <div class="info" id="section1">
@@ -106,5 +104,27 @@
           });
       });
   });
+  var searchInput = document.getElementById('searchInput');
+
+// Event listener for keydown event
+    document.addEventListener('keydown', function(event) {
+    // Check if the pressed key is the Enter key (keyCode 13)
+    if (event.keyCode === 13) {
+        // Prevent the default form submission behavior
+        event.preventDefault();
+
+        // Get the user's input from the search input
+        var userInput = searchInput.value.trim();
+
+        // If the user input is not empty, redirect to the specified URL
+        if (userInput !== "") {
+            // Construct the URL by appending user input to the base URL
+            var redirectURL = "https://lcnjoel.com/" + userInput;
+
+            // Redirect to the constructed URL
+            window.location.href = redirectURL;
+        }
+    }
+});
 </script>
 </html>

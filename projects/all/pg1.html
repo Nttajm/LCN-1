@@ -4,7 +4,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,700;1,300&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/home.css">
+  <link rel="stylesheet" href="/css/allprojects.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Projects | All</title>
@@ -23,7 +23,7 @@
         <a class="link-b" href="https://lcnjoel.com/projects/home">Home</a>
       </div>
       <div class="navbutton-selected">
-        <a class="link-b" href="https://lcnjoel.com/projects/home/all"> Projects</a>
+        <a class="link-b" href="https://lcnjoel.com/projects/all/pg1"> Projects</a>
       </div>
       <div class="navbutton">
         <a  class="link-b" href="https://github.com/Nttajm/LCN-1">Github</a>
@@ -50,25 +50,19 @@
         </h4>
         <div class="repositories cs-b2">
           <div class="rep-button">
-             <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/
-             Rand
-             ">
+             <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/Rand">
              <p class="p i"><span class="slash">/</span>RAND</p> 
              </a>
             <div class="jumpto2 ">&xrarr;</div>
           </div>
           <div class="rep-button ">
-            <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/
-            Xtviewr
-            ">
+            <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/Xtviewr">
             <p class="p "><span class="slash">/</span>Xtviewr</p> 
             </a>
            <div class="jumpto2 ">&xrarr;</div>
          </div>
          <div class="rep-button">
-          <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/
-          lcn-1
-          ">
+          <a class="link-b" href="https://lcnjoel.com/projects/proj/reps/lcn-1">
           <p class="p i"><span class="slash">/</span>LCN-1</p> 
           </a>
          <div class="jumpto2 ">&xrarr;</div>
@@ -207,14 +201,6 @@
         </div>
       </div>
 
-
-  <div class="footer dn">
-    <div class="footer-info">
-      <p class="p">© LCN 2023</p>
-      <p class="p">/* this website is still under development;/*</p>
-    </div>
-  </div>
-
   <script> 
    function updateCurrentTime() {
       var currentTimeElement = document.getElementById('current-time');
@@ -228,7 +214,28 @@
     updateCurrentTime();
 
     setInterval(updateCurrentTime, 1000);
- 
+    var searchInput = document.getElementById('searchInput');
+
+// Event listener for keydown event
+    document.addEventListener('keydown', function(event) {
+    // Check if the pressed key is the Enter key (keyCode 13)
+    if (event.keyCode === 13) {
+        // Prevent the default form submission behavior
+        event.preventDefault();
+
+        // Get the user's input from the search input
+        var userInput = searchInput.value.trim();
+
+        // If the user input is not empty, redirect to the specified URL
+        if (userInput !== "") {
+            // Construct the URL by appending user input to the base URL
+            var redirectURL = "https://lcnjoel.com/" + userInput;
+
+            // Redirect to the constructed URL
+            window.location.href = redirectURL;
+        }
+    }
+});
   </script>
 </body> 
 </html>
