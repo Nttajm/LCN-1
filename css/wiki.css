@@ -13,7 +13,7 @@ body {
     color: white;
   }
   
-  p, a {
+  p, a { 
     color: rgb(189, 189, 189);
     text-decoration: none;
   }
@@ -149,6 +149,7 @@ body {
   .h4 {
     margin-top: 10px;
     margin-bottom: 10px;
+    font-size: 23px;
   }
   
   div {
@@ -179,6 +180,12 @@ body {
     --bkc:  hsl(213, 45%, 8%);
     --idle: rgb(246, 160, 0);  
     --notetext:  #808ea1;
+    --regtextsize: 20px;
+    --textsize1: 20px;
+  }
+
+  .mr {
+    font-size: var(--textsize1) !important;
   }
 
   .p {
@@ -331,9 +338,20 @@ body {
     fill: rgb(184, 184, 184);
   }
 
+  .back-link {
+    margin-left: 20px;
+    margin-top: 10px;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
   .side-left {
     padding: 20px;
-    min-width: 130px;
+    min-width: 120px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -356,6 +374,10 @@ body {
   margin-top: 10px;
   margin-bottom: 3px;
   border-bottom: solid rgb(68, 68, 68) 1px;
+ }
+
+ .i-section{
+  margin-bottom: 30px;
  }
 
  .header {
@@ -388,8 +410,16 @@ body {
 }
 
 .tx {
-    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
     font-family: monospace;
+}
+
+.tx-single {
+  padding: 5px;
+  font-family: monospace;
 }
 
 
@@ -414,3 +444,21 @@ body {
   justify-content: center;
  }
 
+@media only screen and (width < 1281px){
+  p {
+    font-size: 15px;
+  }
+
+  :root {
+    --regtextsize: 20px;
+    --textsize1: 13px;
+  }
+  
+  .greeting {
+    font-size: 15px;
+  }
+
+  .head {
+    font-size: 10px;
+  }
+}

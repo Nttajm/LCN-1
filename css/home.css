@@ -105,6 +105,10 @@ body {
   .fl-jsp-b {
     justify-content: space-between;
   }
+
+  .dis {
+    all: none;
+  }
   
   .link-b {
     font-family: 'roboto', arial;
@@ -593,8 +597,10 @@ body {
 }
 
 .head-ib-r {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   border-bottom: #706e6e solid 1px;
-  padding-bottom: 7px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   font-style: italic;
 }

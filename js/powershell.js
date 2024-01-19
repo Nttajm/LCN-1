@@ -23,6 +23,7 @@ const availableCommands = {
     "timeu": "Interactively view the time in different time zones and regions",
     "timeus": "Show time zones in the United States",
     "flip coin": "Flip a coin and output 'heads' or 'tails'",
+    "more": "see more help @ lcnjoel.com/r/p/w",
 };
 
 const timeZones = [
