@@ -6,8 +6,11 @@ let timexInterval;
 let timerInterval;
 
 const commandHistory = [];
-let lastCommandIndex = -1; // Track the index of the last executed command
+let lastCommandIndex = -1;
 const responseHistory = [];
+const logEntries = []; // Array to store log entries
+
+let userData = {}; // Object to store user configuration data
 
 const availableCommands = {
     "time": "Display the current time",
@@ -23,6 +26,9 @@ const availableCommands = {
     "timeu": "Interactively view the time in different time zones and regions",
     "timeus": "Show time zones in the United States",
     "flip coin": "Flip a coin and output 'heads' or 'tails'",
+    "config log": "Configure logging options",
+    "show log": "Display the current user configuration data and log entries",
+    "log": "Save a log entry",
     "more": "see more help @ lcnjoel.com/r/p/w",
 };
 
@@ -44,7 +50,24 @@ const usTimeZones = [
     { id: "hst", name: "Hawaii-Aleutian Standard Time (HST)", offset: -10 },
 ];
 
-inputElement.addEventListener("keydown", function(event) {
+
+// Load user data from localStorage
+const loadUserData = () => {
+    const storedData = localStorage.getItem("userData");
+    if (storedData) {
+        userData = JSON.parse(storedData);
+    }
+};
+
+// Save user data to localStorage
+const saveUserData = () => {
+    localStorage.setItem("userData", JSON.stringify(userData));
+};
+
+// Load user data on page load
+loadUserData();
+
+inputElement.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         const fullCommand = inputElement.value;
         inputElement.value = "";
@@ -64,21 +87,23 @@ inputElement.addEventListener("keydown", function(event) {
 
             let response;
             if (command.toLowerCase() === "hello") {
-                response = "Hello, Welcome to the DB&M PowerShell. For help, simply type 'help'.";
+                response = userData.name
+                    ? `Hello, ${userData.name}!`
+                    : "Hello! Welcome to the DB&M PowerShell. For help, simply type 'help'.";
             } else if (command.toLowerCase() === "time") {
                 const currentTime = new Date();
-                const hours = currentTime.getHours().toString().padStart(2, '0');
-                const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+                const hours = currentTime.getHours().toString().padStart(2, "0");
+                const minutes = currentTime.getMinutes().toString().padStart(2, "0");
                 const meridian = currentTime.getHours() >= 12 ? "pm" : "am";
                 response = `${hours}:${minutes}${meridian}`;
             } else if (command.toLowerCase() === "timex") {
                 const updateTimex = () => {
                     const currentTime = new Date();
-                    const hours = currentTime.getHours().toString().padStart(2, '0');
-                    const minutes = currentTime.getMinutes().toString().padStart(2, '0');
-                    const seconds = currentTime.getSeconds().toString().padStart(2, '0');
-                    const day = currentTime.getDate().toString().padStart(2, '0');
-                    const month = (currentTime.getMonth() + 1).toString().padStart(2, '0');
+                    const hours = currentTime.getHours().toString().padStart(2, "0");
+                    const minutes = currentTime.getMinutes().toString().padStart(2, "0");
+                    const seconds = currentTime.getSeconds().toString().padStart(2, "0");
+                    const day = currentTime.getDate().toString().padStart(2, "0");
+                    const month = (currentTime.getMonth() + 1).toString().padStart(2, "0");
                     const year = currentTime.getFullYear();
                     response = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
                     outputElement.lastChild.textContent = response;
@@ -123,7 +148,9 @@ inputElement.addEventListener("keydown", function(event) {
                 if (match) {
                     const min = parseInt(match[1]);
                     const max = parseInt(match[2]);
-                    response = `Random number between ${min} and ${max}: ${Math.floor(Math.random() * (max - min + 1)) + min}`;
+                    response = `Random number between ${min} and ${max}: ${Math.floor(
+                        Math.random() * (max - min + 1)
+                    ) + min}`;
                 } else {
                     response = "Invalid 'rand' command format. Use 'rand(x-y)' to specify the range.";
                 }
@@ -135,9 +162,9 @@ inputElement.addEventListener("keydown", function(event) {
                     const totalSeconds = hours * 3600 + minutes * 60 + seconds;
                     let remainingSeconds = totalSeconds;
                     const updateTimer = () => {
-                        const displayHours = String(Math.floor(remainingSeconds / 3600)).padStart(2, '0');
-                        const displayMinutes = String(Math.floor((remainingSeconds % 3600) / 60)).padStart(2, '0');
-                        const displaySeconds = String(remainingSeconds % 60).padStart(2, '0');
+                        const displayHours = String(Math.floor(remainingSeconds / 3600)).padStart(2, "0");
+                        const displayMinutes = String(Math.floor((remainingSeconds % 3600) / 60)).padStart(2, "0");
+                        const displaySeconds = String(remainingSeconds % 60).padStart(2, "0");
                         response = `Timer: ${displayHours}:${displayMinutes}:${displaySeconds}`;
                         outputElement.lastChild.textContent = response;
                         if (remainingSeconds <= 0) {
@@ -182,8 +209,34 @@ inputElement.addEventListener("keydown", function(event) {
                 } else {
                     response = "Invalid selection. Enter a valid number.";
                 }
-            } else if (command.toLowerCase() === "flip coin") {
-                response = Math.random() < 0.5 ? "Heads" : "Tails";
+            } else if (command.toLowerCase().startsWith("flip coin")) {
+                const match = command.match(/\*\)(\d+)/);
+                const repetitions = match ? parseInt(match[1]) : 1;
+                let flips = [];
+                for (let i = 0; i < repetitions; i++) {
+                    flips.push(Math.random() < 0.5 ? "Heads" : "Tails");
+                }
+                response = flips.join(", ");
+            } else if (command.toLowerCase().startsWith("config log")) {
+                const configParts = command.split(" ");
+                if (configParts.length === 4 && configParts[2] === "user.name") {
+                    userData.name = configParts[3];
+                    response = `User name set to: ${userData.name}`;
+                    saveUserData(); // Save the updated user data
+                } else {
+                    response = "Invalid 'config log' command format. Use 'config log user.name <name>' to set the user name.";
+                }
+            } else if (command.toLowerCase() === "show log") {
+                response = "Current User Configuration:";
+                response += `<br> User Name: ${userData.name || "Not set"}`;
+                response += "<br><br> Log Entries:";
+                logEntries.forEach((logEntry, index) => {
+                    response += `<br> ${index + 1}. ${logEntry}`;
+                });
+            } else if (command.toLowerCase().startsWith("log")) {
+                const logEntry = command.substring(3).trim();
+                logEntries.push(logEntry);
+                response = `Log entry saved: ${logEntry}`;
             } else {
                 response = "Command not recognized";
             }

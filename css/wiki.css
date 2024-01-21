@@ -122,6 +122,10 @@ body {
     text-decoration: none;
   }
 
+  .link-b-a {
+    color: var(--tlkk);
+  }
+
   .uh:hover {
     text-decoration: underline !important;
   }
