@@ -34,7 +34,7 @@ body {
     float: right;
   }
   
-  .hb- {
+  .hb {
     border: solid red;
   }
 
@@ -444,7 +444,7 @@ body {
   justify-content: center;
  }
 
-@media only screen and (width < 1281px){
+@media only screen and (width <= 1281px){
   p {
     font-size: 15px;
   }
@@ -460,5 +460,12 @@ body {
 
   .head {
     font-size: 10px;
+  }
+}
+
+@media only screen and (width <= 397px) {
+  .side-right {
+    background-color: var(--ug);
+    display: none;
   }
 }
