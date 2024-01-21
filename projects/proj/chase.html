@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,700;1,300&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="chase.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="nav">
+        <div class="nav-top">
+            <img src="images/chaselogo.png" alt="" class="img-1">
+            <p class="p-i">sign out</p>
+        </div>
+        <div class="nav-bottom">
+            <div class="nav-buttons-selected i">Account</div>
+            <div class="nav-buttons i"> Recent transactions</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 id="greeting"></h2>
+        <div class="account-info cs-b2">
+            <div class="ai-head">
+                Banking account details of 
+                <span class="name randomNameContainer"></span>
+            </div>
+            <div class="ai-main">
+                <div class="ai-name">CHEACKING - - 
+                    <span class="randomNameContainer"></span>
+                     (...<span id="randomNumber4digit"></span> )
+                </div>
+                <div class="ai-tran">
+                    <div class="fl-c">
+                        <div class="money ">
+                            <span class="">$</span>
+                            <span class="randomNumber"></span>
+                        </div>
+                        <div>
+                            <p class="p">Present balance</p>
+                        </div>
+                    </div>
+                    <div class="fl-c">
+                        <div class="money ">
+                            <span class="">$</span>
+                            <span class="secondGeneration"></span>
+                        </div>
+                        <div>
+                            <p class="p">Spending amount (M)</p>
+                        </div>
+                    </div>
+
+                    <div class="fl-c">
+                        <div class="money ">
+                            <span class="">$</span>
+                            <span class="thirdGeneration"></span>
+                        </div>
+                        <div>
+                            <p class="p">Revenue (M)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="account-info cs-b2">
+            <div class="ai-head">
+                Card details
+            </div>
+            <div class="ai-main">
+                <div class="ai-m-cd fl-r">
+                    <img src="/images/Former_Visa_(company)_logo.svg.png" alt="" class="img-card">
+                    <span id="randomCardNumber"></span>
+                </div>
+            </div>
+            
+        </div>
+        <div class="account-info cs-b2">
+            <div class="ai-head">
+                Recent transactions
+            </div>
+            <div class="ai-main ">
+                <div class="ai-m-head fl-r">
+                    <div class="ai-des">
+                        date
+                    </div>
+                    <div class="ai-des">
+                        discription
+                    </div>
+                    <div class="ai-des">
+                        amount
+                    </div>   
+                </div>
+                <div class="ai-table">
+                    <div class="ai-t-section">
+                        <div class=" ai-t-s-des"></div>
+                        <div class=" ai-t-s-des randomItems"></div>
+                        <div class=" ai-t-s-des">
+                            <div class="tran">
+                                <span class="dash">-$</span>
+                                <span class="randomTran ai-t-s-des-tran"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-t-section">
+                        <div class=" ai-t-s-des"></div>
+                        <div class=" ai-t-s-des randomItems"></div>
+                        <div class=" ai-t-s-des">
+                            <div class="tran">
+                                <span class="dash">-$</span>
+                                <span class="randomTran ai-t-s-des-tran"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ai-t-section">
+                        <div class=" ai-t-s-des"></div>
+                        <div class=" ai-t-s-des randomItems"></div>
+                        <div class=" ai-t-s-des">
+                            <div class="tran">
+                                <span class="dash">-$</span>
+                                <span class="randomTran ai-t-s-des-tran"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="chase.js/names.js"></script>
+<script src="chase.js/4-dignumber.js"></script>
+<script src="chase.js/money.js"></script>
+<script src="chase.js/greeting.js"></script>
+<script src="chase.js/items.js"></script>
+<script src="chase.js/transactions.js"></script>
+</body>
+</html>
