@@ -2,6 +2,7 @@ const inputElement = document.getElementById("input");
 const commandElement = document.getElementById("command");
 const outputElement = document.getElementById("output");
 
+
 let timexInterval;
 let timerInterval;
 
@@ -29,8 +30,37 @@ const availableCommands = {
     "config log": "Configure logging options",
     "show log": "Display the current user configuration data and log entries",
     "log": "Save a log entry",
-    "more": "see more help @ lcnjoel.com/r/p/w",
+    "ping": "Check network connectivity to a specified URL",
+    "run js/": "Run JavaScript code and display the output",
+    "gl get": "Interactive command to get resources from GitLab",
 };
+
+const gitLabResources = [
+    "npm lit start",
+    "npm lit nav",
+    "db config API",
+    "access key alt v.12",
+    "BB-5",
+];
+
+let gitLabDownloadInProgress = false;
+
+function simulateDownload() {
+    gitLabDownloadInProgress = true;
+    let progress = 0;
+
+    const downloadInterval = setInterval(() => {
+        if (progress < 100) {
+            outputElement.lastChild.textContent = `Downloading ${progress}%...`;
+            progress += 17;
+        } else {
+            clearInterval(downloadInterval);
+            outputElement.lastChild.textContent = "Done.";
+            gitLabDownloadInProgress = false;
+        }
+    }, 1000);
+}
+
 
 const timeZones = [
     { id: "gmt", name: "Greenwich Mean Time (GMT)", offset: 0 },
@@ -49,7 +79,6 @@ const usTimeZones = [
     { id: "akst", name: "Alaska Standard Time (AKST)", offset: -9 },
     { id: "hst", name: "Hawaii-Aleutian Standard Time (HST)", offset: -10 },
 ];
-
 
 // Load user data from localStorage
 const loadUserData = () => {
@@ -237,6 +266,43 @@ inputElement.addEventListener("keydown", function (event) {
                 const logEntry = command.substring(3).trim();
                 logEntries.push(logEntry);
                 response = `Log entry saved: ${logEntry}`;
+            } else if (command.toLowerCase().startsWith("ping")) {
+                const match = command.match(/\(([^)]+)\)/);
+                if (match) {
+                    const url = match[1];
+                    ping(url);
+                    response = `Pinging ${url}...`;
+                } else {
+                    response = "Invalid 'ping' command format. Use 'ping(<url>)' to check network connectivity.";
+                }
+            } else if (command.toLowerCase().startsWith("run js/")) {
+                const code = command.substring(7).trim();
+                try {
+                    response = eval(code);
+                } catch (error) {
+                    response = "Error: " + error.message;
+                }
+            } else if (command.toLowerCase() === "gl get") {
+                response = "Git Resources:";
+                gitLabResources.forEach((resource, index) => {
+                    response += `<br> ${index + 1}. ${resource}`;
+                });
+                response += "<br>Enter the number of the resource you want to download:";
+        
+                // Clear any ongoing downloads
+                if (gitLabDownloadInProgress) {
+                    clearInterval(timerInterval);
+                    gitLabDownloadInProgress = false;
+                }
+            } else if (/^gl get \d+$/.test(command)) {
+                const resourceIndex = parseInt(command.split(" ")[2]) - 1;
+                if (resourceIndex >= 0 && resourceIndex < gitLabResources.length) {
+                    const selectedResource = gitLabResources[resourceIndex];
+                    response = `Downloading ${selectedResource}...`;
+                    simulateDownload();
+                } else {
+                    response = "Invalid selection. Enter a valid number.";
+                }
             } else {
                 response = "Command not recognized";
             }
@@ -257,3 +323,9 @@ inputElement.addEventListener("keydown", function (event) {
         });
     }
 });
+
+console.log('200.pass')
+
+function ping(url) {
+    navigator.sendBeacon(url, "");
+}
