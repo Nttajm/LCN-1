@@ -1,3 +1,5 @@
+// main.js
+
 const inputElement = document.getElementById("input");
 const commandElement = document.getElementById("command");
 const outputElement = document.getElementById("output");
@@ -29,7 +31,9 @@ const availableCommands = {
     "config log": "Configure logging options",
     "show log": "Display the current user configuration data and log entries",
     "log": "Save a log entry",
-    "more": "see more help @ lcnjoel.com/r/p/w",
+    "ping": "Check network connectivity to a specified URL",
+    "run js/": "Run JavaScript code and display the output",
+    "gl get": "Interactive command to get resources from GitLab",
 };
 
 const timeZones = [
@@ -49,7 +53,6 @@ const usTimeZones = [
     { id: "akst", name: "Alaska Standard Time (AKST)", offset: -9 },
     { id: "hst", name: "Hawaii-Aleutian Standard Time (HST)", offset: -10 },
 ];
-
 
 // Load user data from localStorage
 const loadUserData = () => {
@@ -237,6 +240,24 @@ inputElement.addEventListener("keydown", function (event) {
                 const logEntry = command.substring(3).trim();
                 logEntries.push(logEntry);
                 response = `Log entry saved: ${logEntry}`;
+            } else if (command.toLowerCase().startsWith("ping")) {
+                const match = command.match(/\(([^)]+)\)/);
+                if (match) {
+                    const url = match[1];
+                    ping(url);
+                    response = `Pinging ${url}...`;
+                } else {
+                    response = "Invalid 'ping' command format. Use 'ping(<url>)' to check network connectivity.";
+                }
+            } else if (command.toLowerCase().startsWith("run js/")) {
+                const code = command.substring(7).trim();
+                try {
+                    response = eval(code);
+                } catch (error) {
+                    response = "Error: " + error.message;
+                }
+            } else if (command.toLowerCase() === "gl get" || /^gl get \d+$/.test(command)) {
+                response = handleGlGetCommand(command, outputElement);
             } else {
                 response = "Command not recognized";
             }
@@ -257,3 +278,9 @@ inputElement.addEventListener("keydown", function (event) {
         });
     }
 });
+
+function ping(url) {
+    navigator.sendBeacon(url, "");
+}
+
+// ... (remaining functions and utility code)

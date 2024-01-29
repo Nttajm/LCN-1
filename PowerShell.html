@@ -9,7 +9,25 @@
             background-color: #04028d;
             color: #f8f8f8;
             font-family: Consolas, monospace;
+            margin: 0;
+            padding: 0;
         }
+
+        .p {
+            padding: 0;
+            margin: 0;
+        }
+
+        .ps {
+            padding: 8px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-content: space-between;
+        }
+
         .db {
             display: inline;
         }
@@ -31,13 +49,79 @@
         ::selection {
             background: rgb(0, 0, 0);
              color: red;
-}
+        }
+
+        .foot {
+            background-color: rgb(35, 35, 35);
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+        }
+
+        .footer-index {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .f-l {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .f-l-text {
+            display: flex;
+        }
+        
+        .tx {
+            padding-top: 2px;
+            padding-bottom: 3px;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .tx:hover {
+            background-color: rgb(80, 80, 80);
+            cursor: pointer;
+        }
+
+        .ps-box{
+            background-color:  #0400ee;
+            font-family: monospace;
+            padding: 2px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
-    <div  class="db" id="output">db$&nbsp;<span id="command"></span></div>
-    <input class="input" type="text" id="input" autofocus>
-    <script src="js/powershell.js"></script>
+    <div class="container">
+        <div class="ps">
+            <div  class="db" id="output">db$&nbsp;<span id="command"></span></div>
+            <input class="input" type="text" id="input" autofocus>
+        </div>
+    </div>
+    <footer class="foot">
+        <div class="footer-index">
+            <div class="f-l">
+                <div class="ps-box">
+                    &lt;/&gt;
+                </div>
+                <div class="f-l-text">
+                    <span id="status" class="tx-u tx">...</span>
+                </div>
+            </div>
+            <div class="f-m">
+                <p class="tx p" id="save1">saving...</p>
+            </div>
+            <div class="f-r">
+                <p class="tx p">session id: <span id="randomNumber"></span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="js/ps/netstat.js"></script>
+    <script src="js/ps/powershell.js"></script>
+    <script src="js/ps/sessionid.js"></script>
+    <script src="js/ps/handles.js"></script>
 </body>
 </html>
 
