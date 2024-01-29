@@ -4,6 +4,7 @@ const inputElement = document.getElementById("input");
 const commandElement = document.getElementById("command");
 const outputElement = document.getElementById("output");
 
+
 let timexInterval;
 let timerInterval;
 
@@ -35,6 +36,33 @@ const availableCommands = {
     "run js/": "Run JavaScript code and display the output",
     "gl get": "Interactive command to get resources from GitLab",
 };
+
+const gitLabResources = [
+    "npm lit start",
+    "npm lit nav",
+    "db config API",
+    "access key alt v.12",
+    "BB-5",
+];
+
+let gitLabDownloadInProgress = false;
+
+function simulateDownload() {
+    gitLabDownloadInProgress = true;
+    let progress = 0;
+
+    const downloadInterval = setInterval(() => {
+        if (progress < 100) {
+            outputElement.lastChild.textContent = `Downloading ${progress}%...`;
+            progress += 17;
+        } else {
+            clearInterval(downloadInterval);
+            outputElement.lastChild.textContent = "Done.";
+            gitLabDownloadInProgress = false;
+        }
+    }, 1000);
+}
+
 
 const timeZones = [
     { id: "gmt", name: "Greenwich Mean Time (GMT)", offset: 0 },
@@ -256,8 +284,32 @@ inputElement.addEventListener("keydown", function (event) {
                 } catch (error) {
                     response = "Error: " + error.message;
                 }
+<<<<<<< HEAD
             } else if (command.toLowerCase() === "gl get" || /^gl get \d+$/.test(command)) {
                 response = handleGlGetCommand(command, outputElement);
+=======
+            } else if (command.toLowerCase() === "gl get") {
+                response = "Git Resources:";
+                gitLabResources.forEach((resource, index) => {
+                    response += `<br> ${index + 1}. ${resource}`;
+                });
+                response += "<br>Enter the number of the resource you want to download:";
+        
+                // Clear any ongoing downloads
+                if (gitLabDownloadInProgress) {
+                    clearInterval(timerInterval);
+                    gitLabDownloadInProgress = false;
+                }
+            } else if (/^gl get \d+$/.test(command)) {
+                const resourceIndex = parseInt(command.split(" ")[2]) - 1;
+                if (resourceIndex >= 0 && resourceIndex < gitLabResources.length) {
+                    const selectedResource = gitLabResources[resourceIndex];
+                    response = `Downloading ${selectedResource}...`;
+                    simulateDownload();
+                } else {
+                    response = "Invalid selection. Enter a valid number.";
+                }
+>>>>>>> 863b09b9ab08fb91f2eb5c1056449e0195550fdb
             } else {
                 response = "Command not recognized";
             }
@@ -279,8 +331,16 @@ inputElement.addEventListener("keydown", function (event) {
     }
 });
 
+<<<<<<< HEAD
 function ping(url) {
     navigator.sendBeacon(url, "");
 }
 
 // ... (remaining functions and utility code)
+=======
+console.log('200.pass')
+
+function ping(url) {
+    navigator.sendBeacon(url, "");
+}
+>>>>>>> 863b09b9ab08fb91f2eb5c1056449e0195550fdb

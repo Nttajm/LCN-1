@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Syntax Highlighter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            background-color: #1e2127;
+            color: #abb2bf;
+            border: none;
+            outline: none;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <textarea id="code" oninput="highlightCode()"></textarea>
+    <pre id="highlighted-code" class="language-html"></pre>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
+    <script>
+        function highlightCode() {
+            const codeTextarea = document.getElementById('code');
+            const highlightedCode = Prism.highlight(codeTextarea.value, Prism.languages.html, 'html');
+            document.getElementById('highlighted-code').innerHTML = highlightedCode;
+        }
+    </script>
+</body>
+</html>
