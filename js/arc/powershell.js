@@ -1,5 +1,9 @@
+// main.js
+
 const inputElement = document.getElementById("input");
+const commandElement = document.getElementById("command");
 const outputElement = document.getElementById("output");
+
 
 let timexInterval;
 let timerInterval;
@@ -28,8 +32,37 @@ const availableCommands = {
     "config log": "Configure logging options",
     "show log": "Display the current user configuration data and log entries",
     "log": "Save a log entry",
+    "ping": "Check network connectivity to a specified URL",
     "run js/": "Run JavaScript code and display the output",
+    "gl get": "Interactive command to get resources from GitLab",
 };
+
+const gitLabResources = [
+    "npm lit start",
+    "npm lit nav",
+    "db config API",
+    "access key alt v.12",
+    "BB-5",
+];
+
+let gitLabDownloadInProgress = false;
+
+function simulateDownload() {
+    gitLabDownloadInProgress = true;
+    let progress = 0;
+
+    const downloadInterval = setInterval(() => {
+        if (progress < 100) {
+            outputElement.lastChild.textContent = `Downloading ${progress}%...`;
+            progress += 17;
+        } else {
+            clearInterval(downloadInterval);
+            outputElement.lastChild.textContent = "Done.";
+            gitLabDownloadInProgress = false;
+        }
+    }, 1000);
+}
+
 
 const timeZones = [
     { id: "gmt", name: "Greenwich Mean Time (GMT)", offset: 0 },
@@ -235,6 +268,15 @@ inputElement.addEventListener("keydown", function (event) {
                 const logEntry = command.substring(3).trim();
                 logEntries.push(logEntry);
                 response = `Log entry saved: ${logEntry}`;
+            } else if (command.toLowerCase().startsWith("ping")) {
+                const match = command.match(/\(([^)]+)\)/);
+                if (match) {
+                    const url = match[1];
+                    ping(url);
+                    response = `Pinging ${url}...`;
+                } else {
+                    response = "Invalid 'ping' command format. Use 'ping(<url>)' to check network connectivity.";
+                }
             } else if (command.toLowerCase().startsWith("run js/")) {
                 const code = command.substring(7).trim();
                 try {
@@ -242,6 +284,8 @@ inputElement.addEventListener("keydown", function (event) {
                 } catch (error) {
                     response = "Error: " + error.message;
                 }
+            } else if (command.toLowerCase() === "gl get" || /^gl get \d+$/.test(command)) {
+                response = handleGlGetCommand(command, outputElement);
             } else {
                 response = "Command not recognized";
             }
@@ -262,3 +306,9 @@ inputElement.addEventListener("keydown", function (event) {
         });
     }
 });
+
+console.log('200.pass')
+
+function ping(url) {
+    navigator.sendBeacon(url, "");
+}
