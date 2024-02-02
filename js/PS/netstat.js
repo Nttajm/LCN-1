@@ -9,8 +9,11 @@ function updateNetworkStatus() {
 }
 
 // Delay the initial check for 5 seconds
-setTimeout(updateNetworkStatus, 6400);
+setTimeout(updateNetworkStatus, 1400);
 
 // Add event listener for online/offline events
 window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
+
+
+console.log('200.pass')
