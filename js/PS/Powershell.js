@@ -4,12 +4,17 @@ const outputElement = document.getElementById("output");
 let timexInterval;
 let timerInterval;
 
+let stopwatchInterval;
+let stopwatchSeconds = 0;
+
 const commandHistory = [];
 let lastCommandIndex = -1;
 const responseHistory = [];
 const logEntries = []; // Array to store log entries
 
 let userData = {}; // Object to store user configuration data
+
+console.log('200.pass')
 
 const availableCommands = {
     "time": "Display the current time",
@@ -28,6 +33,7 @@ const availableCommands = {
     "config log": "Configure logging options",
     "show log": "Display the current user configuration data and log entries",
     "log": "Save a log entry",
+    "stwatch": "Start or stop a stopwatch",
     "run js/": "Run JavaScript code and display the output",
 };
 
@@ -81,6 +87,11 @@ inputElement.addEventListener("keydown", function (event) {
 
             if (timerInterval) {
                 clearInterval(timerInterval);
+            }
+
+            if (stopwatchInterval) {
+                clearInterval(stopwatchInterval);
+                stopwatchInterval = null;
             }
 
             let response;
@@ -242,6 +253,30 @@ inputElement.addEventListener("keydown", function (event) {
                 } catch (error) {
                     response = "Error: " + error.message;
                 }
+            } else if (command.toLowerCase() === "stwatch") {
+                if (stopwatchInterval) {
+                    response = "Stopwatch is already running. Use 'stwatch stop' to stop it.";
+                } else {
+                    stopwatchSeconds = 0;
+                    response = "Stopwatch started. Use 'stwatch stop' to stop.";
+                    stopwatchInterval = setInterval(() => {
+                        stopwatchSeconds++;
+                        const displayMinutes = String(Math.floor(stopwatchSeconds / 60)).padStart(2, "0");
+                        const displaySeconds = String(stopwatchSeconds % 60).padStart(2, "0");
+                        response = `Stopwatch: ${displayMinutes}:${displaySeconds}`;
+                        outputElement.lastChild.textContent = response;
+                    }, 1000);
+                }
+            } else if (command.toLowerCase() === "stwatch stop") {
+                if (stopwatchInterval) {
+                    clearInterval(stopwatchInterval);
+                    stopwatchInterval = null;
+                    const displayMinutes = String(Math.floor(stopwatchSeconds / 60)).padStart(2, "0");
+                    const displaySeconds = String(stopwatchSeconds % 60).padStart(2, "0");
+                    response = `Stopwatch stopped. Elapsed time: ${displayMinutes}:${displaySeconds}`;
+                } else {
+                    response = "Stopwatch is not running.";
+                }
             } else {
                 response = "Command not recognized";
             }
@@ -268,4 +303,5 @@ inputElement.addEventListener("keydown", function (event) {
 
 
 
-console.log('200.pass')
+
+

@@ -16,4 +16,4 @@ window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
 
 
-console.log('200.pass')
+console.log('202.pass')
