@@ -94,6 +94,15 @@ inputElement.addEventListener("keydown", function (event) {
                 stopwatchInterval = null;
             }
 
+            if (command.toLowerCase() === "dis log") {
+                userData = {};
+                logEntries.length = 0;
+                saveUserData();
+                response = "Log and all saved data cleared.";
+                outputElement.innerHTML = ""; // Clear the output
+                return;
+            }
+
             let response;
             if (command.toLowerCase() === "hello") {
                 response = userData.name
@@ -277,6 +286,7 @@ inputElement.addEventListener("keydown", function (event) {
                 } else {
                     response = "Stopwatch is not running.";
                 }
+               
             } else {
                 response = "Command not recognized";
             }
@@ -292,8 +302,9 @@ inputElement.addEventListener("keydown", function (event) {
                 responseHistory.shift();
             }
 
-            outputElement.innerHTML += `<div>db$ ${command}</div>`;
-            outputElement.innerHTML += `<div>${response}</div>`;
+
+            outputElement.innerHTML += `<div>user ${userData.name}$ ${command}</div>`;
+            outputElement.innerHTML += `<div>db$${response}</div>`;
         });
     }
 });
