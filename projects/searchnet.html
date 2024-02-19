@@ -1,108 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="shortcut icon" href="images/bwsearchnet">
+  <meta http-equiv="refresh"
+    content="0; url = ../searchnet.html " />
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search</title>
-  <link rel="stylesheet" href="/css/searchnet.css">
+  <title>Redirecting...</title>
+  <style> 
+  body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color:  hsl(213, 45%, 8%);;
+    }
+
+    .loading-bar-container {
+      width: 300px;
+      height: 30px;
+      overflow: hidden;
+      border-radius: 5px;
+      background-color: #ddd;
+      position: relative;
+    }
+
+    .loading-bar {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      animation: moveBackAndForth 2s linear infinite;
+    }
+
+    .loading-bar .segment {
+      width: 20%;
+      height: 100%;
+      background-color: #3498db;
+      float: left;
+      animation: colorChange 4s linear infinite;
+    }
+
+    @keyframes moveBackAndForth {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(100%);
+      }
+    }
+
+    @keyframes colorChange {
+      0% {
+        background-color: #3498db;
+      }
+      25% {
+        background-color: #e74c3c;
+      }
+      50% {
+        background-color: #2ecc71;
+      }
+      75% {
+        background-color: #f39c12;
+      }
+      100% {
+        background-color: #3498db;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="nav ">
-      <a class="" href="https://lcnjoel.com/help">about</a>
-      <a class="" href="https://lcnjoel.com">LCN</a>
+  <div class="loading-bar-container">
+    <div class="loading-bar">
+      <div class="segment"></div>
+      <div class="segment"></div>
+      <div class="segment"></div>
+      <div class="segment"></div>
+      <div class="segment"></div>
     </div>
   </div>
-  <div class="container">
-    <div class="imgsec  ">
-      <img src="/images/bwsearchnet.png" alt="searchnet" class="img ">
-    </div>
-    <div class="searchsec">
-      <input class="searchbar h" type="text" id="searchInput" placeholder="Search a location  'projects/proj/searchnet' " autocomplete="off">
-      <div id="suggestions"></div>
-    </div>
-  </div>
-  <script>
-    var searchInput = document.getElementById('searchInput');
-    var suggestionsContainer = document.getElementById('suggestions');
-
-    var suggestions = [
-        'ths',
-        'projects/searchnet',
-        'index',
-        'help',
-        'PowerShell',
-        'indexold',
-        'projects/home',
-        'projects/home/all/pg1',
-        'projects/Type',
-        'projects/wiki/pg1',
-        'projects/proj/getcode',
-        'projects/proj/secaccount',
-        'projects/proj/searchindexDB&M',
-        'projects/proj/googlebr',
-        'projects/proj/datasaverDB&M',
-        'projects/proj/datasaver',
-        'projects/proj/reps/lcn-1',
-        'projects/proj/reps/Xtviewer',
-        'projects/proj/reps/Rand',
-        'projects/proj/syntaxhighliter',
-    ];
-
-    searchInput.addEventListener('input', function() {
-        var userInput = searchInput.value.trim().toLowerCase();
-        var filteredSuggestions = suggestions.filter(function(suggestion) {
-            return suggestion.toLowerCase().includes(userInput);
-        });
-
-        displaySuggestions(filteredSuggestions.slice(0, 6), userInput);
-    });
-
-    function displaySuggestions(suggestionsArray, userInput) {
-        suggestionsContainer.innerHTML = '';
-
-        if (suggestionsArray.length > 0) {
-            suggestionsContainer.style.display = 'block'; // Show the suggestions container
-
-            suggestionsArray.forEach(function(suggestion) {
-                var suggestionElement = document.createElement('div');
-                suggestionElement.innerHTML = highlightMatchedCharacters(suggestion, userInput);
-
-                suggestionElement.addEventListener('click', function() {
-                    var redirectURL = "https://lcnjoel.com/" + suggestion;
-                    window.location.href = redirectURL;
-                });
-
-                suggestionsContainer.appendChild(suggestionElement);
-            });
-        } else {
-            suggestionsContainer.style.display = 'none'; // Hide the suggestions container
-        }
-    }
-
-    function highlightMatchedCharacters(suggestion, userInput) {
-        var regex = new RegExp(userInput, 'ig');
-        return suggestion.replace(regex, match => `<span style="background-color: blue; color: white;">${match}</span>`);
-    }
-
-    document.addEventListener('keydown', function(event) {
-        if (event.keyCode === 13) {
-            event.preventDefault();
-
-            var userInput = searchInput.value.trim();
-            var redirectURL = "https://lcnjoel.com/" + userInput;
-
-            window.location.href = redirectURL;
-        }
-    });
-
-    document.addEventListener('click', function(event) {
-        // Close suggestions if the user clicks outside the input and suggestions container
-        if (event.target !== searchInput && event.target !== suggestionsContainer) {
-            suggestionsContainer.style.display = 'none'; // Hide the suggestions container
-        }
-    });
-  </script>
 </body>
 </html>
