@@ -1,3 +1,4 @@
+
 function updateNetworkStatus() {
   const statusElement = document.getElementById('status');
 
@@ -17,3 +18,7 @@ window.addEventListener('offline', updateNetworkStatus);
 
 
 console.log('202.pass')
+
+const altSpecific = document.getElementById('js-get-netstat');
+altSpecific.textContent = 'pass.200';
+altSpecific.classList.add('stat');

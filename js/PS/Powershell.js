@@ -12,6 +12,10 @@ let lastCommandIndex = -1;
 const responseHistory = [];
 const logEntries = []; // Array to store log entries
 
+const element = document.getElementById('js-get-powerShell'); // let main know that file is active
+element.textContent = 'pass.200';
+element.classList.add('stat');
+
 let userData = {}; // Object to store user configuration data
 
 console.log('200.pass')

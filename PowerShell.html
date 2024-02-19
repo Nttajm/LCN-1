@@ -1,99 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="shortcut icon" href="images/ps-logo.png">
+    <link rel="stylesheet" href="css/root.css">
+    <link rel="stylesheet" href="css/ps.css">
+    <link rel="stylesheet" href="css/standard.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PowerShell</title>
-    <style>
-        body {
-            background-color: #04028d;
-            color: #f8f8f8;
-            font-family: Consolas, monospace;
-            margin: 0;
-            padding: 0;
-        }
-
-        .p {
-            padding: 0;
-            margin: 0;
-        }
-
-        .ps {
-            padding: 8px;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-content: space-between;
-        }
-
-        .db {
-            display: inline;
-        }
-        #output {
-            font-size: 16px;
-        }
-        #response {
-           background-color: black; 
-        }
-        .input {
-            background-color: #04028d;
-            border-style: none;
-            outline: none;
-            color: white;
-            width: 400px;
-            font-family: Consolas, monospace;
-        }
-
-        ::selection {
-            background: rgb(0, 0, 0);
-             color: red;
-        }
-
-        .foot {
-            background-color: rgb(35, 35, 35);
-            width: 100%;
-            position: fixed;
-            bottom: 0;
-        }
-
-        .footer-index {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .f-l {
-            display: flex;
-            flex-direction: row;
-        }
-
-        .f-l-text {
-            display: flex;
-        }
-        
-        .tx {
-            padding-top: 2px;
-            padding-bottom: 3px;
-            padding-left: 5px;
-            padding-right: 5px;
-        }
-
-        .tx:hover {
-            background-color: rgb(80, 80, 80);
-            cursor: pointer;
-        }
-
-        .ps-box{
-            background-color:  #0400ee;
-            font-family: monospace;
-            padding: 2px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-    </style>
-
-
 </head>
 <body>
     <div class="container">
@@ -103,27 +17,66 @@
         </div>
     </div>
     <footer class="foot">
+        <div class="settings fl-r">
+            <div class="settings-left">
+                <div class="label-cont i">
+                    <span><a>Problems</a></span>
+                    <div class="label" id="label">
+                        <div>
+                            <p class="p">PowerShell:</p><p class="stat-error" id="js-get-powerShell">error.404</p>
+                         </div>
+                        <div>
+                           <p class="p">netstat:</p><p class="stat-error" id="js-get-netstat">error.501</p>
+                        </div>
+                        <div>
+                            <p class="p">sessionid:</p><p class="stat-error" id="js-get-sessionid">error.404</p>
+                         </div>
+                        <button class="ps-btn-mini"
+                        onclick="red('index');">Go to Status Page</a></button>
+                    </div>
+                </div>
+                <svg id="problem-dot" height="10" width="10" xmlns="http://www.w3.org/2000/svg">
+                    <circle r="4.5" cx="5.0" cy="5.0" fill="red" />
+                </svg>
+                <span><a href="projects/wiki/index.html">References</a></span>
+                <button class="s-span output-btn" onclick="toggleDivOutput();">Output</button>
+            </div>
+            <div class="settings-right">
+                <span>time</span>
+            </div>
+        </div>
+        <div class="jsoutput-cont" id="outputToggle">
+            <div class="jso-c-t">
+                <button class="s-span output-btn" onclick="runCode();">RUN</button>
+            </div>
+            <div class="jso-c-m">
+                <div class=""><textarea placeholder="console.log('hola, mundo)" id="editor"></textarea>                </div>
+                <div class="jsoutput" id="jsOutPut">output:</div>
+            </div>
+        </div>
         <div class="footer-index">
             <div class="f-l">
                 <div class="ps-box">
-                    &lt;/&gt;
+                    <Button class="btn-no-value btn-2">&lt;/&gt;</Button>
                 </div>
                 <div class="f-l-text">
                     <span id="status" class="tx-u tx">...</span>
                 </div>
             </div>
             <div class="f-m">
-                <p class="tx p" id="save1">saving...</p>
+                <p class="tx p" id="save1">Type Something To Save ...</p>
             </div>
             <div class="f-r">
-                <p class="tx p">session id: <span id="randomNumber"></span></p>
+                <p class="tx p">Session ID: <span id="randomNumber"></span></p>
             </div>
         </div>
     </footer>
+    <script src="js/ps/redirect.js"></script>
     <script src="js/ps/handles.js"></script>
     <script src="js/ps/Powershell.js"></script>
     <script src="js/ps/netstat.js"></script>
     <script src="js/ps/sessionid.js"></script>
+    <script src="js/ps/output.js"></script>
 </body>
 </html>
 

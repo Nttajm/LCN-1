@@ -29,3 +29,8 @@ app.post('/chat', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+
+const altSpecific = document.getElementById('js-get-server');
+altSpecific.textContent = 'pass.200';
+altSpecific.classList.add('stat');

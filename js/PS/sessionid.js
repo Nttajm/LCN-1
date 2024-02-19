@@ -13,3 +13,12 @@ if (storedNumber) {
 
 
 console.log('203.pass')
+
+function check() {
+  document.getElementById('sessionid').textContent = '200.pass';
+  console.log(value + 1);
+}
+
+const altSpecific2 = document.getElementById('js-get-sessionid');
+altSpecific2.textContent = 'pass.200';
+altSpecific2.classList.add('stat');
