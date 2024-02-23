@@ -1,8 +1,10 @@
+
+
 function runCode() {
     var code = document.getElementById('editor').value;
     var outputDiv = document.getElementById('jsOutPut');
     try {
-        outputDiv.innerHTML = '<strong>dbjs$</strong><br>';
+        outputDiv.innerHTML = '<strong>console$</strong><br>';
         // Redirect console.log to outputDiv
         var oldLog = console.log;
         console.log = function(message) {
@@ -17,21 +19,11 @@ function runCode() {
 }
 
 function toggleDivOutput() {
-    const div = document.getElementById("outputToggle")
-    div.style.display = div.style.display === "none" ? "block" : "none";
+    hiddendiv = document.getElementById("outputToggle")
+    hiddendiv.style.display = hiddendiv.style.display === "none" ? "block" : "none";
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-var findelement = document.querySelectorAll("#label div p");
-var dot = document.getElementById("#problem-dot");
+const altSpecific3 = document.getElementById('js-get-output');
+altSpecific3.textContent = 'pass.200';
+altSpecific3.classList.add('stat');
 
-elements.forEach(function(element) {
-    if (findelement.textContent.includes("error")) {
-    dot.style.display = "block";
-    }
-});
-});
-
-const altSpecific4 = document.getElementById('js-get-output');
-altSpecific4.textContent = 'pass.200';
-altSpecific4.classList.add('stat');

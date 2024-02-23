@@ -20,26 +20,8 @@ let userData = {}; // Object to store user configuration data
 
 console.log('200.pass')
 
-const availableCommands = {
-    "time": "Display the current time",
-    "calc": "Perform basic arithmetic calculations",
-    "help": "Display a list of available commands and their descriptions",
-    "bk": "Execute the last command",
-    "rec": "Execute the last response",
-    "timex": "Display the current date and time with live seconds",
-    "lcn": "Visit lcnjoel.com",
-    "reset": "Clear the session and start over",
-    "rand": "Generate a random number between the specified range (e.g., 'rand(x-y)'",
-    "timer": "Start a timer (e.g., 'timer(01:00:23)')",
-    "timeu": "Interactively view the time in different time zones and regions",
-    "timeus": "Show time zones in the United States",
-    "flip coin": "Flip a coin and output 'heads' or 'tails'",
-    "config log": "Configure logging options",
-    "show log": "Display the current user configuration data and log entries",
-    "log": "Save a log entry",
-    "stwatch": "Start or stop a stopwatch",
-    "run js/": "Run JavaScript code and display the output",
-};
+import { availableCommands } from 'objects/commands.js';
+
 
 const timeZones = [
     { id: "gmt", name: "Greenwich Mean Time (GMT)", offset: 0 },
@@ -64,18 +46,19 @@ const loadUserData = () => {
     const storedData = localStorage.getItem("userData");
     if (storedData) {
         userData = JSON.parse(storedData);
-
-        const savedTheme = userData.theme;
-    if (savedTheme) {
-        document.body.style.backgroundColor = savedTheme;
     }
 
+    const savedLog = localStorage.getItem("logEntries");
+    if (savedLog) {
+        logEntries = JSON.parse(savedLog);
     }
 };
 
 // Save user data to localStorage
 const saveUserData = () => {
     localStorage.setItem("userData", JSON.stringify(userData));
+    localStorage.setItem("logEntries", JSON.stringify(logEntries));
+
 };
 
 // Load user data on page load
@@ -171,6 +154,8 @@ inputElement.addEventListener("keydown", function (event) {
                 lastCommandIndex = -1;
                 responseHistory.length = 0;
                 response = "Session has been reset.";
+            } else if (command.toLowerCase() === "test") {
+                outputElement.innerHTML = "hi";
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -265,6 +250,7 @@ inputElement.addEventListener("keydown", function (event) {
                 const logEntry = command.substring(3).trim();
                 logEntries.push(logEntry);
                 response = `Log entry saved: ${logEntry}`;
+                saveUserData(); // Save the updated user data
             } else if (command.toLowerCase().startsWith("run js/")) {
                 const code = command.substring(7).trim();
                 try {
@@ -296,18 +282,12 @@ inputElement.addEventListener("keydown", function (event) {
                 } else {
                     response = "Stopwatch is not running.";
                 }
-            } else if (command.toLowerCase().startsWith("change-theme")) {
-                    const themeParts = command.split(" ");
-                    if (themeParts.length === 2) {
-                        const color = themeParts[1];
-                        document.body.style.backgroundColor = color;
-                        userData.theme = color; // Save the theme color
-                        saveUserData(); // Save the updated user data
-                        response = `Theme changed to ${color}.`;
-                    } else {
-                        response = "Invalid 'change-theme' command format. Use 'change-theme <color>' to change the theme color.";
-                    }
-            } else {
+            } else if (command.toLowerCase() === "reset-theme") {
+                document.body.style.backgroundColor = ""; // Reset to default
+                delete userData.theme; // Remove saved theme color
+                saveUserData(); // Save the updated user data
+                response = "Theme color reset to default.";
+            }  else {
                 response = "Command not recognized";
             }
 
@@ -322,13 +302,8 @@ inputElement.addEventListener("keydown", function (event) {
                 responseHistory.shift();
             }
 
-        let nameIfy = userData.name;
 
-        if (!nameIfy) {
-            userData.name = '(unset)';
-        }
-
-            outputElement.innerHTML += `<div>user ${nameIfy}$ ${command}</div>`;
+            outputElement.innerHTML += `<div>user ${userData.name}$ ${command}</div>`;
             outputElement.innerHTML += `<div>db$${response}</div>`;
         });
     }

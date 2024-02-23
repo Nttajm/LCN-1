@@ -1,3 +1,14 @@
+
+
+.yellow {
+    color: yellow;
+}
+
+.purple {
+    color: purple;
+}
+
+
 body {
     background-color: #04028d;
     color: #f8f8f8;
@@ -150,7 +161,7 @@ span a {
     padding-right: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
-    border-bottom: solid 1px rgb(80, 80, 80);
+    border-bottom: solid var(--midg) 1px;
     justify-content: space-between;
     align-items: center;
     resize: both;
@@ -160,7 +171,7 @@ span a {
     display: flex;
     align-items: baseline;
     justify-content: space-around;
-    gap: 5px;
+    gap: 3px;
 }
 
 .settings span {
@@ -246,6 +257,7 @@ span a {
     flex-direction: column;
     padding: 7px;
     display: none;
+    border-bottom: solid var(--midg);
 }
 
 .jso-c-t {
