@@ -160,13 +160,12 @@ span a {
     display: flex;
     align-items: baseline;
     justify-content: space-around;
-    width: 200px;
+    gap: 5px;
 }
 
 .settings span {
     padding: 2px;
     color: rgb(158, 158, 158);
-    margin-left: 5px;
 }
 
 .settings span:hover {

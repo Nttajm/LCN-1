@@ -10,7 +10,7 @@
     <title>PowerShell</title>
 </head>
 <body>
-    <div class="container">
+    <div class="container"></div>
         <div class="ps">
             <div  class="db" id="output">db$&nbsp;<span id="command"></span></div>
             <input class="input" type="text" id="input" autofocus>
@@ -23,7 +23,7 @@
                     <span><a>Problems</a></span>
                     <div class="label" id="label">
                         <div>
-                            <p class="p">PowerShell:</p><p class="stat-error" id="js-get-powerShell">error.404</p>
+                            <p class="p">PowerShell:</p><p class="stat-error p" id="js-get-powerShell">error.404</p>
                          </div>
                         <div>
                            <p class="p">netstat:</p><p class="stat-error" id="js-get-netstat">error.501</p>
@@ -31,15 +31,18 @@
                         <div>
                             <p class="p">sessionid:</p><p class="stat-error" id="js-get-sessionid">error.404</p>
                          </div>
+                         <div>
+                            <p class="p">output:</p><p class="stat-error" id="js-get-output">error.404</p>
+                         </div>
                         <button class="ps-btn-mini"
-                        onclick="red('index');">Go to Status Page</a></button>
+                        onclick="red('index');">Go to Status Page</a</button>
                     </div>
                 </div>
-                <svg id="problem-dot" height="10" width="10" xmlns="http://www.w3.org/2000/svg">
+                <svg id="problemDot" height="10" width="10" xmlns="http://www.w3.org/2000/svg">
                     <circle r="4.5" cx="5.0" cy="5.0" fill="red" />
                 </svg>
                 <span><a href="projects/wiki/index.html">References</a></span>
-                <button class="s-span output-btn" onclick="toggleDivOutput();">Output</button>
+                <button class="s-span output-btn" onclick="toggleDivOutput();">Console</button>
             </div>
             <div class="settings-right">
                 <span>time</span>
@@ -50,7 +53,7 @@
                 <button class="s-span output-btn" onclick="runCode();">RUN</button>
             </div>
             <div class="jso-c-m">
-                <div class=""><textarea placeholder="console.log('hola, mundo)" id="editor"></textarea>                </div>
+                <div class=""><textarea placeholder="exp: console.log('hola, mundo')" id="editor"></textarea>                </div>
                 <div class="jsoutput" id="jsOutPut">output:</div>
             </div>
         </div>
@@ -71,12 +74,41 @@
             </div>
         </div>
     </footer>
+    <script>
+        document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            // Add a 1-second delay using setTimeout
+            setTimeout(function() {
+            document.getElementById('save1').textContent = 'saved.';
+            }, 1000);
+        }
+        });
+
+
+
+        function toggleDivOutput() {
+            const div = document.getElementById("outputToggle")
+            div.style.display = div.style.display === "none" ? "block" : "none";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+        var findelement = document.querySelectorAll("#label div p");
+        var dot = document.getElementById("#problem-dot");
+
+        elements.forEach(function(element) {
+            if (findelement.textContent.includes("error")) {
+            dot.style.display = "block";
+            }
+        });
+    });
+
+    </script>
     <script src="js/ps/redirect.js"></script>
-    <script src="js/ps/handles.js"></script>
     <script src="js/ps/Powershell.js"></script>
     <script src="js/ps/netstat.js"></script>
     <script src="js/ps/sessionid.js"></script>
     <script src="js/ps/output.js"></script>
 </body>
 </html>
+
 

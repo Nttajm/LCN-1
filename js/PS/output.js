@@ -15,3 +15,23 @@ function runCode() {
         outputDiv.innerHTML = '<strong>Error:</strong><br>' + error.message;
     }
 }
+
+function toggleDivOutput() {
+    const div = document.getElementById("outputToggle")
+    div.style.display = div.style.display === "none" ? "block" : "none";
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+var findelement = document.querySelectorAll("#label div p");
+var dot = document.getElementById("#problem-dot");
+
+elements.forEach(function(element) {
+    if (findelement.textContent.includes("error")) {
+    dot.style.display = "block";
+    }
+});
+});
+
+const altSpecific4 = document.getElementById('js-get-output');
+altSpecific4.textContent = 'pass.200';
+altSpecific4.classList.add('stat');

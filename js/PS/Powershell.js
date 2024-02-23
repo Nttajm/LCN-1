@@ -64,6 +64,12 @@ const loadUserData = () => {
     const storedData = localStorage.getItem("userData");
     if (storedData) {
         userData = JSON.parse(storedData);
+
+        const savedTheme = userData.theme;
+    if (savedTheme) {
+        document.body.style.backgroundColor = savedTheme;
+    }
+
     }
 };
 
@@ -290,7 +296,17 @@ inputElement.addEventListener("keydown", function (event) {
                 } else {
                     response = "Stopwatch is not running.";
                 }
-               
+            } else if (command.toLowerCase().startsWith("change-theme")) {
+                    const themeParts = command.split(" ");
+                    if (themeParts.length === 2) {
+                        const color = themeParts[1];
+                        document.body.style.backgroundColor = color;
+                        userData.theme = color; // Save the theme color
+                        saveUserData(); // Save the updated user data
+                        response = `Theme changed to ${color}.`;
+                    } else {
+                        response = "Invalid 'change-theme' command format. Use 'change-theme <color>' to change the theme color.";
+                    }
             } else {
                 response = "Command not recognized";
             }
@@ -306,8 +322,13 @@ inputElement.addEventListener("keydown", function (event) {
                 responseHistory.shift();
             }
 
+        let nameIfy = userData.name;
 
-            outputElement.innerHTML += `<div>user ${userData.name}$ ${command}</div>`;
+        if (!nameIfy) {
+            userData.name = '(unset)';
+        }
+
+            outputElement.innerHTML += `<div>user ${nameIfy}$ ${command}</div>`;
             outputElement.innerHTML += `<div>db$${response}</div>`;
         });
     }
