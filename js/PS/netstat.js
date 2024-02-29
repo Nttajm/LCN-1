@@ -9,6 +9,15 @@ function updateNetworkStatus() {
   }
 }
 
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+      // Add a 1-second delay using setTimeout
+      setTimeout(function() {
+      document.getElementById('save1').textContent = 'saved.';
+      }, 1000);
+  }
+  });
+
 // Delay the initial check for 5 seconds
 setTimeout(updateNetworkStatus, 1400);
 

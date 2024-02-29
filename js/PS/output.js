@@ -1,10 +1,8 @@
-
-
 function runCode() {
     var code = document.getElementById('editor').value;
     var outputDiv = document.getElementById('jsOutPut');
     try {
-        outputDiv.innerHTML = '<strong>console$</strong><br>';
+        outputDiv.innerHTML = '<strong>dbjs$</strong><br>';
         // Redirect console.log to outputDiv
         var oldLog = console.log;
         console.log = function(message) {
@@ -18,12 +16,29 @@ function runCode() {
     }
 }
 
-function toggleDivOutput() {
-    hiddendiv = document.getElementById("outputToggle")
-    hiddendiv.style.display = hiddendiv.style.display === "none" ? "block" : "none";
-}
+function toggleDiv(option) {
+    // Get the div element
+    var div = document.getElementById(option);
+  
+    // If the div is currently hidden, show it; otherwise, hide it
+    if (div.style.display === "none") {
+      div.style.display = "block";
+    } else {
+      div.style.display = "none";
+    }
+  }
 
-const altSpecific3 = document.getElementById('js-get-output');
-altSpecific3.textContent = 'pass.200';
-altSpecific3.classList.add('stat');
+  document.addEventListener("DOMContentLoaded", function() {
+    var elements = document.querySelectorAll("#label div");
+    var hiddenDiv = document.getElementById("hiddenDiv");
+  
+    elements.forEach(function(element) {
+      if (element.textContent.includes("error")) {
+        hiddenDiv.style.display = "block";
+      }
+    });
+  });;
 
+const altSpecific4 = document.getElementById('js-get-output');
+altSpecific4.textContent = 'pass.200';
+altSpecific4.classList.add('stat');

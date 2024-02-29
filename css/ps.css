@@ -1,14 +1,3 @@
-
-
-.yellow {
-    color: yellow;
-}
-
-.purple {
-    color: purple;
-}
-
-
 body {
     background-color: #04028d;
     color: #f8f8f8;
@@ -19,6 +8,10 @@ body {
 
 div {
     font-family: Consolas, monospace !important;
+}
+
+.highlight {
+    color: yellow;
 }
 
 .p {
@@ -161,7 +154,7 @@ span a {
     padding-right: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
-    border-bottom: solid var(--midg) 1px;
+    border-bottom: solid 1px rgb(80, 80, 80);
     justify-content: space-between;
     align-items: center;
     resize: both;
@@ -171,7 +164,11 @@ span a {
     display: flex;
     align-items: baseline;
     justify-content: space-around;
-    gap: 3px;
+    gap: 5px;
+}
+
+#hiddenDiv {
+    display: none;
 }
 
 .settings span {
@@ -248,16 +245,12 @@ span a {
     color: red;
 }
 
-#problem-dot {
-    display: none;
-}
 
 .jsoutput-cont {
     display: flex;
     flex-direction: column;
     padding: 7px;
     display: none;
-    border-bottom: solid var(--midg);
 }
 
 .jso-c-t {
