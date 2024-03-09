@@ -10,7 +10,9 @@ let stopwatchSeconds = 0;
 const commandHistory = [];
 let lastCommandIndex = -1;
 const responseHistory = [];
-const logEntries = []; // Array to store log entries
+let logEntries = [];
+
+const rN = Math.random();
 
 const element = document.getElementById('js-get-powerShell'); // let main know that file is active
 element.textContent = 'pass.200';
@@ -20,8 +22,27 @@ let userData = {}; // Object to store user configuration data
 
 console.log('200.pass')
 
-import { availableCommands } from 'objects/commands.js';
-
+const availableCommands = {
+    "time": "Display the current time",
+    "calc": "Perform basic arithmetic calculations",
+    "help": "Display a list of available commands and their descriptions",
+    "bk": "Execute the last command",
+    "rec": "Execute the last response",
+    "timex": "Display the current date and time with live seconds",
+    "lcn": "Visit lcnjoel.com",
+    "reset": "Clear the session and start over",
+    "rand": "Generate a random number between the specified range (e.g., 'rand(x-y)'",
+    "timer": "Start a timer (e.g., 'timer(01:00:23)')",
+    "timeu": "Interactively view the time in different time zones and regions",
+    "timeus": "Show time zones in the United States",
+    "flip coin": "Flip a coin and output 'heads' or 'tails'",
+    "config log": "Configure logging options",
+    "show log": "Display the current user configuration data and log entries",
+    "log": "Save a log entry",
+    "run js/": "Run JavaScript code and display the output",
+    "change-theme": "Change the background color of the page",
+    "stwatch": "Start a stop watch",
+};
 
 const timeZones = [
     { id: "gmt", name: "Greenwich Mean Time (GMT)", offset: 0 },
@@ -48,26 +69,51 @@ const loadUserData = () => {
         userData = JSON.parse(storedData);
     }
 
-    const savedLog = localStorage.getItem("logEntries");
-    if (savedLog) {
-        logEntries = JSON.parse(savedLog);
+    const savedTheme = userData.theme;
+    if (savedTheme) {
+        document.body.style.backgroundColor = savedTheme;
     }
+
 };
 
 // Save user data to localStorage
 const saveUserData = () => {
     localStorage.setItem("userData", JSON.stringify(userData));
-    localStorage.setItem("logEntries", JSON.stringify(logEntries));
-
+    localStorage.setItem("userData", JSON.stringify(userData));
 };
 
 // Load user data on page load
 loadUserData();
 
+import { systemInfo, cred } from './systeminfo/systeminfo.js';
+
+function readyReady(optionk) {
+    let readyResponse = '';
+
+    if (rN > optionk) {
+        readyResponse = 'true, ready'
+    } else {
+        readyResponse = 'false, not ready'
+    }
+
+    return readyResponse;
+}
+
 inputElement.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         const fullCommand = inputElement.value;
         inputElement.value = "";
+
+        // v number -- dev-php devs!
+        let variable = '' || 'i(0)';
+        let variableDefiner = '';
+        // v number -- dev-php devs!
+
+        if (variable === 'i(0)') {
+            variableDefiner = 'intial';
+        } else {
+            variableDefiner = 'as-set';
+        }
 
         const commands = fullCommand.split(")(");
 
@@ -100,7 +146,7 @@ inputElement.addEventListener("keydown", function (event) {
             if (command.toLowerCase() === "hello") {
                 response = userData.name
                     ? `Hello, ${userData.name}!`
-                    : "Hello! Welcome to the DB&M PowerShell. For help, simply type 'help'.";
+                    : "Hello! This is the DB&M PowerShell. For help, simply type 'help'.";
             } else if (command.toLowerCase() === "time") {
                 const currentTime = new Date();
                 const hours = currentTime.getHours().toString().padStart(2, "0");
@@ -198,6 +244,10 @@ inputElement.addEventListener("keydown", function (event) {
                     response += `<br> ${index + 1}. ${zone.name} (${zone.id})`;
                 });
                 response += "<br>Enter the number of the time zone you want to view:";
+            } else if (command.toLowerCase() === "system-ready?") {
+                response = `<br>Getting DB data...`
+                response += `<br>current standing: (val)`
+                response += `<br> variable standing definer: ${variableDefiner}`
             } else if (/^timeu \d+$/.test(command)) {
                 const timeZoneIndex = parseInt(command.split(" ")[1]) - 1;
                 if (timeZoneIndex >= 0 && timeZoneIndex < timeZones.length) {
@@ -236,20 +286,30 @@ inputElement.addEventListener("keydown", function (event) {
                     userData.name = configParts[3];
                     response = `User name set to: ${userData.name}`;
                     saveUserData(); // Save the updated user data
+                } else if (configParts.length === 4 && configParts[2] === "test.variable") {
+                    variable = configParts[3];
+                    response = `variable set to: ${variable}`;
+                } else if (configParts.length === 4 && configParts[2] === "test.variable.show") {
+                    response = `variable (${variableDefiner}): ${variable}`
                 } else {
-                    response = "Invalid 'config log' command format. Use 'config log user.name <name>' to set the user name.";
+                    response = "Invalid 'config log' command format.";
+                    response += "<br> note: Config.log uses the 'dot-notaion rules'"
                 }
             } else if (command.toLowerCase() === "show log") {
                 response = "Current User Configuration:";
+                response += `<br> Version: ${systemInfo.version}`
+                response += `<br> status: ${systemInfo.status}`
                 response += `<br> User Name: ${userData.name || "Not set"}`;
                 response += "<br><br> Log Entries:";
                 logEntries.forEach((logEntry, index) => {
                     response += `<br> ${index + 1}. ${logEntry}`;
                 });
+            } else if (command.toLowerCase().startsWith("cred")) {
+                response += `credits ${cred.name}`
             } else if (command.toLowerCase().startsWith("log")) {
                 const logEntry = command.substring(3).trim();
                 logEntries.push(logEntry);
-                response = `Log entry saved: ${logEntry}`;
+                response = `Log entry saved:" ${logEntry} "`;
                 saveUserData(); // Save the updated user data
             } else if (command.toLowerCase().startsWith("run js/")) {
                 const code = command.substring(7).trim();
@@ -282,13 +342,24 @@ inputElement.addEventListener("keydown", function (event) {
                 } else {
                     response = "Stopwatch is not running.";
                 }
+            } else if (command.toLowerCase().startsWith("change-theme")) {
+                const themeParts = command.split(" ");
+                if (themeParts.length === 2) {
+                    const color = themeParts[1];
+                    document.body.style.backgroundColor = color;
+                    userData.theme = color; // Save the theme color
+                    saveUserData(); // Save the updated user data
+                    response = `Theme changed to ${color}. reset theme with " reset-theme "`;
+                } else {
+                    response = "Invalid 'change-theme' command format. Use 'change-theme <color>' to change the theme color.";
+                }
             } else if (command.toLowerCase() === "reset-theme") {
                 document.body.style.backgroundColor = ""; // Reset to default
                 delete userData.theme; // Remove saved theme color
                 saveUserData(); // Save the updated user data
                 response = "Theme color reset to default.";
             }  else {
-                response = "Command not recognized";
+                response = "Command not recognized"; 
             }
 
             commandHistory.push(command);
@@ -301,6 +372,10 @@ inputElement.addEventListener("keydown", function (event) {
             if (responseHistory.length > 10) {
                 responseHistory.shift();
             }
+
+            if (!userData.name) {
+                userData.name = "";
+            } 
 
 
             outputElement.innerHTML += `<div>user ${userData.name}$ ${command}</div>`;
