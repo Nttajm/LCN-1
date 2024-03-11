@@ -7,7 +7,12 @@ function updateNetworkStatus() {
   } else {
     statusElement.textContent = 'Offline';
   }
+
+  return statusElement.textContent;
 }
+
+export const network = updateNetworkStatus();
+
 
 document.addEventListener('keydown', function(event) {
   if (event.key === 'Enter') {
@@ -19,7 +24,7 @@ document.addEventListener('keydown', function(event) {
   });
 
 // Delay the initial check for 5 seconds
-setTimeout(updateNetworkStatus, 1400);
+setTimeout(network, 1400);
 
 // Add event listener for online/offline events
 window.addEventListener('online', updateNetworkStatus);

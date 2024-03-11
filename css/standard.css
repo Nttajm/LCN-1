@@ -95,6 +95,7 @@ p, a {
 }
 
 .fl-ai {
+  display: flex;
   align-items: center !important;
 }
 
@@ -140,10 +141,6 @@ strong {
 button {
   border: solid;
   border-width: 1.1px;
-}
-
-div {
-  font-family: roboto;
 }
 
 span a {

@@ -1,5 +1,7 @@
 // Check if the random number is already stored in local storage
-const storedNumber = localStorage.getItem('randomNumber');
+ const storedNumber = localStorage.getItem('randomNumber');
+
+export const sessionId = storedNumber;
 
 if (storedNumber) {
   // If the number is stored, display it
@@ -12,12 +14,14 @@ if (storedNumber) {
 }
 
 
+
 console.log('203.pass')
 
 function check() {
   document.getElementById('sessionid').textContent = '200.pass';
   console.log(value + 1);
 }
+
 
 const altSpecific2 = document.getElementById('js-get-sessionid');
 altSpecific2.textContent = 'pass.200';

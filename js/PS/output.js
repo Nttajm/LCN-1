@@ -28,16 +28,6 @@ function toggleDiv(option) {
     }
   }
 
-  document.addEventListener("DOMContentLoaded", function() {
-    var elements = document.querySelectorAll("#label div");
-    var hiddenDiv = document.getElementById("hiddenDiv");
-  
-    elements.forEach(function(element) {
-      if (element.textContent.includes("error")) {
-        hiddenDiv.style.display = "block";
-      }
-    });
-  });;
 
 const altSpecific4 = document.getElementById('js-get-output');
 altSpecific4.textContent = 'pass.200';
