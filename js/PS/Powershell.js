@@ -326,7 +326,7 @@ inputElement.addEventListener("keydown", function (event) {
                 response += `<div>current system info</div>`;
                 response += `<br> system version: ${systemInfo.version}`
                 response += `<br> validation: ${variableDefiner}`
-                response += `netwrok status: ${network}`
+                response += `netwrok status: <span class="g"> ${network} </span>`
                 response += `<hr>`
                 setTimeout(() => {
                     response +=  delay('', 400);
@@ -347,7 +347,7 @@ inputElement.addEventListener("keydown", function (event) {
 
                 response += `<br> system version: ${systemInfo.version}`
                 response += `<br> validation: ${variableDefiner}`
-                response += `netwrok status: ${network}`
+                response += `netwrok status: <span class="g"> ${network} </span>`
                 response += `<hr>`
                     setTimeout(() => {
                         response +=  delay('Run', 400);
@@ -383,7 +383,7 @@ inputElement.addEventListener("keydown", function (event) {
                 response += `<br> current system opperation and i/o name: ${ioName}`;
                 response += `<br> current system server: ${currentServer}`
                 response += `<br> user of current session: ${userData.name}`
-                response += `netwrok status: ${network}`
+                response += `<br> netwrok status: <span class="g"> ${network} </span>`
                 response += `<hr>`
             } else if (command.toLowerCase() === "spam") {
                 for (let i = 0; i < 70; i++) {
