@@ -1,0 +1,147 @@
+
+:root {
+    font-size: 18px;
+    --funfont: "Madimi One", sans-serif;
+    --roboto: roboto;
+}
+
+body {
+    background-color: lightblue;
+}
+
+.fn {
+    font-family: var(--funfont);
+}
+
+.rb {
+    font-family: var(--roboto);
+    font-weight: 700;
+}
+
+.head {
+    background-color: rgb(255, 255, 255);
+    padding: 9px;
+    font-size: 1.4rem;
+    font-family: roboto, arial;
+    font-weight: 500;
+    padding-left: 20px;
+}
+
+.notif {
+    background-color: rgba(138, 138, 138, 0.459);
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 40px;
+    padding-right: 40px;
+    border-radius: 24px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.container {
+    margin-top: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.label {
+    background-color:  rgba(28, 174, 223, 0.3);
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 100vh;
+    display: flex;
+    justify-content: center;
+    border: solid;
+}
+
+.score {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    font-size: 2.4rem;
+
+}
+
+.label>span {
+    font-family: var(--funfont);
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+#score {
+    margin-left: 10px;
+}
+
+.info {
+    display: flex;
+}
+
+.r-head {
+    font-size: 2rem;
+    border-bottom: solid ;
+    width: 100vh;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.rewards {
+    flex-direction: column;
+}
+
+.rewards-button {
+
+}
+
+
+#r100 {
+    font-size: 1.3rem;
+    border: dashed rgb(0, 37, 116) 3px;
+    cursor: pointer;
+    display: none;
+}
+
+#r100.disabled {
+    background-color: rgba(112, 101, 101, 0.26);
+    text-decoration: line-through;
+}
+
+#rwd-btn:hover {
+    background-color: rgb(211, 211, 211);
+}
+
+
+.leader {
+    flex-direction: column;
+}
+
+.l-r {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: solid 1px black;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+.leader-b {
+
+}
+
+.l-r>span {
+    font-size: 1.5rem;
+    font-family: var(--roboto);
+}
+
+.winner {
+    color: gold;
+}
+
+.second {
+    color: rgb(223, 85, 21);
+}
+
+.third {
+    color: silver;
+}
