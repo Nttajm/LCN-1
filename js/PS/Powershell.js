@@ -98,6 +98,7 @@ import { network } from './netstat.js';
 import { sessionId } from './sessionid.js';
 import { serverId } from './systeminfo/serlist.js';
 import { psCmsJarg } from './commands/jarg.js';
+import { message } from './commands/message.js';
 // exports, execept for user data lol.
 export let currentServer = serverId.CA1;
 // games
@@ -260,8 +261,6 @@ inputElement.addEventListener("keydown", function (event) {
                 lastCommandIndex = -1;
                 responseHistory.length = 0;
                 response = "Session has been reset.";
-            } else if (command.toLowerCase() === "test") {
-                outputElement.innerHTML = "hi";
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -389,6 +388,13 @@ inputElement.addEventListener("keydown", function (event) {
                 for (let i = 0; i < 70; i++) {
                     response += `<div>Lorem ipsum dolor sit amet consectet</div>\n`;
                 }
+            } else if (command.toLowerCase() === "npm") {
+                const npmD = command.split(" ");
+                if (npmD[1] === "i"){
+                    response += 'dwn';
+                } else {
+                    response += message.npm.error;
+                }
             } else if (/^timeu \d+$/.test(command)) {
                 const timeZoneIndex = parseInt(command.split(" ")[1]) - 1;
                 if (timeZoneIndex >= 0 && timeZoneIndex < timeZones.length) {
@@ -485,9 +491,10 @@ inputElement.addEventListener("keydown", function (event) {
                 }
             } else if (command.toLowerCase().startsWith("change-theme")) {
                 const themeParts = command.split(" ");
+                const themeDiv = document.querySelector('.thColor');
                 if (themeParts.length === 2) {
                     const color = themeParts[1];
-                    document.body.style.backgroundColor = color;
+                    themeDiv.style.setProperty('--bg-color', color);
                     userData.theme = color; // Save the theme color
                     saveUserData(); // Save the updated user data
                     response = `Theme changed to ${color}. reset theme with " reset-theme "`;

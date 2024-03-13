@@ -8,12 +8,16 @@
     position: fixed;
     top: 0;
     left: 0;
-    transition: all 0.122s ease;
+    transition: all 0.922s ;
     font-family: roboto, arial !important;
 }
 
 .nav-before {
     display: none;
+}
+
+.thColor {
+    --bg-color:  #04028d;
 }
 
 #ie {
@@ -64,7 +68,7 @@
 }
 
 .nav-cont:hover {
-    border-left: solid rgb(0, 132, 255) 5px;
+    border-left: solid var(--bg-color) 5px;
     background-color: rgba(88, 88, 88, 0.3);
 }
 
@@ -103,6 +107,3 @@
     flex-wrap:wrap;
 }
 
-@media screen and only {width} {
-    
-}

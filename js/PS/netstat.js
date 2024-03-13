@@ -1,14 +1,22 @@
 
 function updateNetworkStatus() {
   const statusElement = document.getElementById('status');
+  const eiconNet = document.getElementById
+  let netVar = '';
+  if (navigator.onLine) {
+    netVar = 'Online';
+  } else {
+    netVar = 'Offline';
+  }
 
   if (navigator.onLine) {
     statusElement.textContent = 'Online';
+
   } else {
     statusElement.textContent = 'Offline';
   }
 
-  return statusElement.textContent;
+  return netVar;
 }
 
 export const network = updateNetworkStatus();
