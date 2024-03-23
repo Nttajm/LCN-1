@@ -20,43 +20,6 @@ element.classList.add('stat');
 
 export let userData = {}; // Object to store user configuration data
 
-const system = {
-    error: {
-        syntaxRef: `DATA href cmd&wiki/refrence: " ${command} "<br>`,
-        syntax: `Unable to interpret the command due to improper syntax or invalid command`,
-        syntaxParts: `The term '${command}' is not recognized as a valid function, script file, or operable within the command.`,
-        notLoaded: `The intail DB request for (" ${command} ") can not be excuted becuase it is not loaded.`
-    }
-}
-
-let npmIObj = {
-    error: `the npm part is not recognized as a valid function or command within the command.`,
-    name: localStorage.getItem('npm-name') || 'not set',
-    savedData: {
-        project: 'not saved',
-    }
-}
-
-let npmName = npmIObj.savedData.project;
-
-let npmI = localStorage.getItem("npm") || false;
-
-window.addEventListener('load', displayFile)
-
-function displayFile() {
-    if (npmI) {
-        createFile(npmIObj.name);
-    } 
-}
-
-let npmSavedDifinerColor = '';
-
-    if (!npmName === 'not saved') {
-        npmSavedDifinerColor = `<span class="g">saved</span>` 
-    } else {
-        npmSavedDifinerColor = `<span class="r">not saved</span>`
-    }
-
 
 console.log('200.pass')
 
@@ -119,66 +82,6 @@ const loadUserData = () => {
     }
 };
 
-function createNotification(text, option, icon, color) {
-    option = option || 'System Error';
-    icon = icon || 'error';
-    color = color || 'stat-error';
-    // Create elements
-    const notificationDiv = document.createElement('div');
-    notificationDiv.classList.add('notification');
-
-    const headDiv = document.createElement('div');
-    headDiv.classList.add('n-head', 'fl-ai');
-
-    const errorIconSpan = document.createElement('span');
-    errorIconSpan.classList.add('material-symbols-outlined', color, 'eicon');
-    errorIconSpan.textContent = icon;
-
-    const systemErrorSpan = document.createElement('span');
-    systemErrorSpan.textContent = option;
-
-    const infoSpan = document.createElement('span');
-    infoSpan.classList.add('n-info');
-    infoSpan.textContent = text;
-
-    // Append elements
-    headDiv.appendChild(errorIconSpan);
-    headDiv.appendChild(systemErrorSpan);
-    notificationDiv.appendChild(headDiv);
-    notificationDiv.appendChild(infoSpan);
-
-    // Append notification to the div with class "notification"
-    const notificationContainer = document.querySelector('.notification-container'); // Change this selector to match your actual container
-    notificationContainer.appendChild(notificationDiv);
-}
-
-function createFile(option) {
-    const fileContainer = document.querySelector('.file-cont');
-    fileContainer.classList.add('nav-before');
-
-    // Create fileDiv element
-    const fileDiv = document.createElement('div');
-    fileDiv.classList.add('file');
-
-    // Create iconSpan element
-    const iconSpan = document.createElement('span');
-    iconSpan.classList.add('material-symbols-outlined');
-    iconSpan.textContent = 'description'; // Set the text content of the span
-
-    // Create fileNameSpan element
-    const fileNameSpan = document.createElement('span');
-    fileNameSpan.id = 'fileName';
-    fileNameSpan.textContent = option; // Set the text content of the span
-
-    // Append iconSpan and fileNameSpan to fileDiv
-    fileDiv.appendChild(iconSpan);
-    fileDiv.appendChild(fileNameSpan);
-
-    // Append fileDiv to fileContainer
-    fileContainer.appendChild(fileDiv);
-}
-
-
 
 
 // Save user data to localStorage
@@ -186,26 +89,6 @@ function saveUserData() {
     localStorage.setItem("userData", JSON.stringify(userData));
     localStorage.setItem("logEntries", JSON.stringify(logEntries));
 }
-
-function themeColorComps(setColor) {
-    setColor = setColor || '';
-    document.documentElement.style.setProperty('--theme', setColor);
-    localStorage.setItem('theme', setColor);
-} 
-
-function loadTheme() {
-    themeColorComps(userData.theme);
-}
-
-function saveNpmData() {
-    localStorage.setItem('npm', true);
-    localStorage.setItem('npm-name', npmIObj.name);
-    npmIObj.savedData.project = 'saved';
-    
-}
-
-// event listners
-window.addEventListener('load', loadTheme);
 
 // Load user data on page load
 loadUserData();
@@ -215,8 +98,6 @@ import { network } from './netstat.js';
 import { sessionId } from './sessionid.js';
 import { serverId } from './systeminfo/serlist.js';
 import { psCmsJarg } from './commands/jarg.js';
-// import { system } from './sytem-ui/messages.js';
-
 // exports, execept for user data lol.
 export let currentServer = serverId.CA1;
 // games
@@ -266,15 +147,6 @@ inputElement.addEventListener("keydown", function (event) {
             setTimeout(() => {
                 outputElement.innerHTML += `<div>${phrase}</div>`;
             }, time);
-        }
-
-        function delayfun(fun1, delay1, fun2, delay2) {
-            setTimeout(() => {
-                response += fun1;
-            }, delay1);
-            setTimeout(() => {
-                fun2
-            }, delay2);
         }
 
         function delaySpan(phrase, time) {
@@ -362,7 +234,6 @@ inputElement.addEventListener("keydown", function (event) {
                     response = eval(expression);
                 } catch (error) {
                     response = "Error: " + error.message;
-                    createNotification(system.error.syntax);
                 }
             } else if (command.toLowerCase() === "lcn") {
                 window.location.href = "https://lcnjoel.com";
@@ -390,9 +261,7 @@ inputElement.addEventListener("keydown", function (event) {
                 responseHistory.length = 0;
                 response = "Session has been reset.";
             } else if (command.toLowerCase() === "test") {
-                response = "hi - this is ment for dev, just me, joel.";
-                createFile('jota');
-                createNotification('this is ment for devs, aka just me, joel.', 'HII!!', 'done', 'stat');
+                outputElement.innerHTML = "hi";
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -403,7 +272,6 @@ inputElement.addEventListener("keydown", function (event) {
                     ) + min}`;
                 } else {
                     response = "Invalid 'rand' command format. Use 'rand(x-y)' to specify the range.";
-                    createNotification(system.error.syntax);
                 }
             } else if (command.toLowerCase().startsWith("timer")) {
                 const match = command.match(/\((\d{2}:\d{2}:\d{2})\)/);
@@ -429,7 +297,6 @@ inputElement.addEventListener("keydown", function (event) {
                     timerInterval = setInterval(updateTimer, 1000);
                 } else {
                     response = "Invalid 'timer' command format. Use 'timer(HH:MM:SS)' to specify the time.";
-                    createNotification(system.error.syntax);
                 }
             } else if (command.toLowerCase() === "timeu") {
                 response = "Time Zones and Regions:";
@@ -519,53 +386,8 @@ inputElement.addEventListener("keydown", function (event) {
                 response += `<br> netwrok status: <span class="g"> ${network} </span>`
                 response += `<hr>`
             } else if (command.toLowerCase() === "spam") {
-                const spamParts = command.split(" ") || 70;
-                const spam = parseInt(spamParts[2] || 70);
-                for (let i = 0; i <spam; i++) {
+                for (let i = 0; i < 70; i++) {
                     response += `<div>Lorem ipsum dolor sit amet consectet</div>\n`;
-                }     
-            } else if (command.toLowerCase().startsWith("npm i")) {
-                npmI = true;
-                const npmParts = command.split(" ");
-                npmIObj.name = npmParts[2] || 'not set';
-                
-                const npmValid = localStorage.getItem('npm');
-        
-                if (npmValid === true) {
-                    response += `npm file already declared`
-                } else {
-                    response += 'npm has been intaitied';
-                    response += '<br>download status:';
-                    response += '<hr>';
-                    setTimeout(() => {
-                        response += delay(`DB: configuring project reqest`, 802);
-                        response += delay(`npm connection : <span class="g">True</span>`, 1000);
-                        response += delay(`DATA href?file?definer: " ${npmName} "; save file with " npi s "`, 1300);
-                        response += delay(`DATA href?file?fileName: " ${npmIObj.name} "`, 1550)
-                        response += delay('downloaded', 1800);
-                    }, 800);
-                    setTimeout(() => {
-                        createNotification(`npm lit start file "${npmIObj.name}..." has been created`, 'downlaoded', 'check_circle', 'stat')
-                    }, 2600);
-                }
-            } else if (command.toLowerCase().startsWith("npm s")) {
-                if (!npmI) {
-                    response += system.error.notLoaded;
-                } else {
-                    saveNpmData();
-                    createFile(npmIObj.name);
-                }
-            } else if (command.toLowerCase() === "npm") {
-                var npmIcount = 0;
-
-                if (npmI) {
-                    response = `current project: ${npmIObj.name}`;
-                    response += `<br> npmI status: <span class="g"> ${network} </span>`;
-                    response += `<br> dir = ${npmIcount}</span>`;
-                    response += `<br> DATA href?file?definer: ${npmSavedDifinerColor}`
-                } else {
-                    createNotification('npm lit start has not either been downloaded or ready.')
-                    response = system.error.notLoaded;
                 }
             } else if (/^timeu \d+$/.test(command)) {
                 const timeZoneIndex = parseInt(command.split(" ")[1]) - 1;
@@ -575,7 +397,6 @@ inputElement.addEventListener("keydown", function (event) {
                     response = formatTime(targetTime, selectedTimeZone.name);
                 } else {
                     response = "Invalid selection. Enter a valid number.";
-                    createNotification(system.error.syntax);
                 }
             } else if (command.toLowerCase() === "timeus") {
                 response = "Time Zones in the United States:";
@@ -590,7 +411,7 @@ inputElement.addEventListener("keydown", function (event) {
                     const targetTime = getTimeInTimeZone(selectedTimeZone.offset);
                     response = formatTime(targetTime, selectedTimeZone.name);
                 } else {
-                    response = system.error.syntaxParts;
+                    response = "Invalid selection. Enter a valid number.";
                 }
             } else if (command.toLowerCase().startsWith("flip coin")) {
                 const match = command.match(/\*\)(\d+)/);
@@ -612,8 +433,7 @@ inputElement.addEventListener("keydown", function (event) {
                 } else if (configParts.length === 4 && configParts[2] === "test.variable.show") {
                     response = `variable (${variableDefiner}): ${variable}`
                 } else {
-                    response = system.error.syntaxParts;
-                    createNotification(system.error.syntax);
+                    response = "Invalid 'config log' command format.";
                     response += "<br> note: Config.log uses the 'dot-notaion rules'"
                 }
             } else if (command.toLowerCase() === "show log") {
@@ -638,7 +458,6 @@ inputElement.addEventListener("keydown", function (event) {
                     response = eval(code);
                 } catch (error) {
                     response = "Error: " + error.message;
-                    createNotification(system.error.syntax);
                 }
             } else if (command.toLowerCase() === "stwatch") {
                 if (stopwatchInterval) {
@@ -667,16 +486,13 @@ inputElement.addEventListener("keydown", function (event) {
             } else if (command.toLowerCase().startsWith("change-theme")) {
                 const themeParts = command.split(" ");
                 if (themeParts.length === 2) {
-                    var color = themeParts[1];
+                    const color = themeParts[1];
                     document.body.style.backgroundColor = color;
                     userData.theme = color; // Save the theme color
-                    themeColorComps(color);
                     saveUserData(); // Save the updated user data
                     response = `Theme changed to ${color}. reset theme with " reset-theme "`;
                 } else {
-                    createNotification(system.error.syntax);
-                    response += system.error.syntaxParts;
-                    response += "Invalid 'change-theme' command format. Use 'change-theme <color>' to change the theme color.";
+                    response = "Invalid 'change-theme' command format. Use 'change-theme <color>' to change the theme color.";
                 }
             } else if (command.toLowerCase() === "reset-theme") {
                 document.body.style.backgroundColor = ""; // Reset to default
@@ -705,13 +521,15 @@ inputElement.addEventListener("keydown", function (event) {
             
 
 
-            outputElement.innerHTML += `<div>user ${userData.name} $ ${command}</div>`;
-            outputElement.innerHTML += `<div>db$ ${response}</div>`;
+            outputElement.innerHTML += `<div>user ${userData.name}$ ${command}</div>`;
+            outputElement.innerHTML += `<div>db$${response}</div>`;
         });
     }
 });
 
 // alternitive ui  
+
+
 
 
 

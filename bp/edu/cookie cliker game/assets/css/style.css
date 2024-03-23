@@ -96,22 +96,21 @@ body {
 }
 
 
-#r100 {
+.r100 {
     font-size: 1.3rem;
     border: dashed rgb(0, 37, 116) 3px;
     cursor: pointer;
     display: none;
 }
 
-#r100.disabled {
+.r100.disabled {
     background-color: rgba(112, 101, 101, 0.26);
     text-decoration: line-through;
 }
 
-#rwd-btn:hover {
+.rwd-btn:hover {
     background-color: rgb(211, 211, 211);
 }
-
 
 .leader {
     flex-direction: column;

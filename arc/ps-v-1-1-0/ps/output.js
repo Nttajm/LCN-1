@@ -1,4 +1,3 @@
-
 function runCode() {
     var code = document.getElementById('editor').value;
     var outputDiv = document.getElementById('jsOutPut');

@@ -5,10 +5,6 @@ body {
     padding: 0;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #0805a5;
-}
-
 :root {
     --font-ps: "IBM Plex Mono", monospace;
     font-size: 16px;
@@ -56,7 +52,6 @@ body {
     width: 700px;
     font-family: var(--font-ps);
     margin-bottom: 150px;
-    --webkit-car
 }
 
 ::selection {
@@ -65,7 +60,7 @@ body {
 }
 
 .foot {
-    background-color: var(--ps-gray);
+    background-color: rgb(35, 35, 35);
     width: 100%;
     position: fixed;
     bottom: 0;
@@ -100,7 +95,7 @@ body {
 }
 
 .ps-box{
-    background-color:  var(--theme);
+    background-color:  var(--ps-light);
     font-family: var(--font-ps);
     padding: 2px;
     cursor: pointer;
@@ -129,7 +124,7 @@ body {
 .ps-btn-mini {
     border-style: none;
     color: white;
-    background-color: var(--theme);
+    background-color: rgb(0, 110, 255);
     padding-left: 5px;
     padding-right: 5px;
     font-weight: 600;
@@ -149,7 +144,7 @@ body {
 }
 
 .btn-2 {
-    background-color: var(--theme);
+    background-color: var(--ps-light);
     color: white;
     font-family: var(--font-ps);
 }
@@ -184,7 +179,7 @@ span a {
 .settings span, .nav-item {
     padding: 2px;
     color: rgb(158, 158, 158);
-}
+}er
 
 .settings span:hover, .nav-item:hover {
     background-color: var(--midg);
@@ -292,12 +287,8 @@ span a {
     outline: none;
     width: 300px;
     resize: vertical;
-    overflow: ;
+    overflow: auto;
     border-style: none;
-}
-
-textarea::-webkit-scrollbar-track {
-    color:darkgoldenrod
 }
 
 .jsoutput {
@@ -305,46 +296,3 @@ textarea::-webkit-scrollbar-track {
     padding-left: 15px;
     border-left: solid 2px var(--textg);
 }
-
-.notification {
-    background-color: var(--ps-gray);
-    padding: 15px 40px 15px 20px;
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    right: 20px;
-    bottom: 90px;
-    animation: fadeOut 5s forwards;
-}
-
-.n-head {
-    font-family: roboto;
-    gap: 4px;
-    font-size: larger;
-    margin-bottom: 20px;
-}
-
-.n-info {
-    color: gray;
-    font-family: roboto;
-    font-size: 0.8rem;
-}
-
-.eicon {
-    font-size: 1.2rem;
-}
-
-@keyframes fadeOut {
-    0% {
-      opacity: 1; /* Start with full opacity */
-    }
-    70% {
-      opacity: 1; /* End with zero opacity */
-    }
-
-    100% {
-        opacity: 0;
-        display: none;
-    }
-  }
-

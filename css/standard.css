@@ -22,6 +22,10 @@ p, a {
   all: none;
 }
 
+.d-btn {
+  cursor: disabled;
+}
+
 .cur:hover {
   cursor: pointer;
 }
