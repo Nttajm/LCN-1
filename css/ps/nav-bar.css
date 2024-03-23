@@ -8,7 +8,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    transition: all 0.122s ease;
+    transition: all 0.922s ;
     font-family: roboto, arial !important;
 }
 
@@ -21,6 +21,10 @@
 
 .nav-before {
     display: none;
+}
+
+.thColor {
+    --bg-color:  #04028d;
 }
 
 #ie {

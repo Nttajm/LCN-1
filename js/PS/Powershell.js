@@ -393,6 +393,7 @@ inputElement.addEventListener("keydown", function (event) {
                 response = "hi - this is ment for dev, just me, joel.";
                 createFile('jota');
                 createNotification('this is ment for devs, aka just me, joel.', 'HII!!', 'done', 'stat');
+
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -567,6 +568,13 @@ inputElement.addEventListener("keydown", function (event) {
                     createNotification('npm lit start has not either been downloaded or ready.')
                     response = system.error.notLoaded;
                 }
+            } else if (command.toLowerCase() === "npm") {
+                const npmD = command.split(" ");
+                if (npmD[1] === "i"){
+                    response += 'dwn';
+                } else {
+                    response += message.npm.error;
+                }
             } else if (/^timeu \d+$/.test(command)) {
                 const timeZoneIndex = parseInt(command.split(" ")[1]) - 1;
                 if (timeZoneIndex >= 0 && timeZoneIndex < timeZones.length) {
@@ -666,6 +674,7 @@ inputElement.addEventListener("keydown", function (event) {
                 }
             } else if (command.toLowerCase().startsWith("change-theme")) {
                 const themeParts = command.split(" ");
+                const themeDiv = document.querySelector('.thColor');
                 if (themeParts.length === 2) {
                     var color = themeParts[1];
                     document.body.style.backgroundColor = color;

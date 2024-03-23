@@ -1,5 +1,5 @@
 body {
-    background-color: #04028d;
+    background-color: var(--bg-color);
     color: #f8f8f8;
     margin: 0;
     padding: 0;
@@ -12,6 +12,7 @@ body {
 :root {
     --font-ps: "IBM Plex Mono", monospace;
     font-size: 16px;
+    --bg-color: #04028d;
 }
 
 .highlight {
@@ -53,7 +54,7 @@ body {
     border-style: none;
     outline: none;
     color: white;
-    width: 700px;
+    width: 100%;
     font-family: var(--font-ps);
     margin-bottom: 150px;
     --webkit-car
