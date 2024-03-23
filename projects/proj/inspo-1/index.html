@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Encode+Sans:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Lekton:ital,wght@0,400;0,700;1,400&family=Madimi+One&family=Ojuju:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGN IN</title>
+</head>
+<body>
+    <div id="overlay">
+        <div class="time">
+            <span class="time"></span>
+        </div>
+        <div class="date">
+            March 22, 2024
+        </div>
+    </div>
+    <div class="cont animation-bur dn"> <!--dn needed--> 
+        <div class="login">
+            <img src="assets/defult_user-1.png" alt="" class="img-1 profile-img">
+            <div class="name">
+                <span>ADMIN</span>
+            </div>
+            <div class="input-sec">
+                <input type="text" class="input hoveri" id="input" placeholder="Password" autocomplete="off" j>
+                <button class="btn i" id="enterBtn">
+                    <span class="material-symbols-outlined">
+                        arrow_forward
+                    </span>
+                </button>
+            </div>
+            <div class="incorrect-sec dn" id="incorrect-cont">
+                <span class="description">
+                    Password is incorrect. Try again.
+                </span>
+                <button class="btn i-btn hoveri" id="okBtn">OK</button>
+            </div>
+            <div class="info">
+                <span id="info"></span>
+            </div>
+
+        </div>
+        <div class="icons dn">
+            <ul class="icon-sec">
+                <li>
+                    <span class="material-symbols-outlined">
+                        rss_feed
+                    </span>
+                </li>
+                <li>
+                    <span class="material-symbols-outlined">
+                        power_settings_new
+                    </span>
+                </li>
+                <li></li>
+            </ul>
+        </div>
+    </div>
+<script src="index.js"></script>
+</body>
+</html>
