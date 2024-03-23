@@ -57,12 +57,11 @@ body {
     width: 100%;
     font-family: var(--font-ps);
     margin-bottom: 150px;
-    --webkit-car
 }
 
 ::selection {
     background: rgb(0, 0, 0);
-     color: red;
+    color: red;
 }
 
 .foot {
@@ -293,7 +292,6 @@ span a {
     outline: none;
     width: 300px;
     resize: vertical;
-    overflow: ;
     border-style: none;
 }
 
