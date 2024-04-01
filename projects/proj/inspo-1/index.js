@@ -31,14 +31,12 @@ enterBtn.addEventListener('click', function(event) {
 });
 
 inputElem.addEventListener('keydown', function(event) {
-    
     const key = event.key; 
-    if (event.key === 'Enter') {
+    if (key === 'Enter') {
         EnterByButton();
-      } else if (event.key === 'Escape') {
+      } else if (key === 'Escape') {
         inputElem.value = '';
       }
-
 });
 
 function EnterByButton() {

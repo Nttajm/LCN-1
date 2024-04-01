@@ -4,7 +4,7 @@
 }
 
 body {
-    background-image: url('assets/wp9197366-dark-hills-wallpapers.jpg');
+    background-image: url('assets/pexels-splitshire-1562.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     color: white;
@@ -114,9 +114,10 @@ body {
     color: rgb(110, 110, 110);
 }
 
-.input-sec:focus:focus-within {
+.input-sec:focus-within {
     border: 2px solid rgb(255, 255, 255);
 }
+
 
 :root {
     --border: rgb(119, 119, 119) 2px;
@@ -131,7 +132,7 @@ body {
     align-items: center;
     font-size: 0.4rem;
     border-style: none;
-    color: rgb(124, 124, 124);
+    color: rgb(211, 211, 211);
     background: rgba(122, 122, 122, 0.144);
     backdrop-filter: blur(9.2px);
     transition: var(--tran); 
@@ -169,6 +170,9 @@ body {
     color: rgb(185, 185, 185);
 }
 
+.input:focus::placeholder {
+    color: rgb(153, 152, 152);
+}
 
 .info {
     margin-top: 10px;
