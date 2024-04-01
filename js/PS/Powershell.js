@@ -37,17 +37,49 @@ let npmIObj = {
     }
 }
 
+let fileArray = [];
+const firstFile = fileArray[0];
 let npmName = npmIObj.savedData.project;
 
 let npmI = localStorage.getItem("npm") || false;
-
 window.addEventListener('load', displayFile)
-
 function displayFile() {
     if (npmI) {
         createFile(npmIObj.name);
     } 
 }
+
+function createFile(option) {
+    const fileContainer = document.querySelector('.file-cont');
+    fileContainer.classList.add('nav-before');
+
+    // Create fileDiv element
+    const fileDiv = document.createElement('div');
+    fileDiv.classList.add('file');
+
+    // Create iconSpan element
+    const iconSpan = document.createElement('span');
+    iconSpan.classList.add('material-symbols-outlined');
+    iconSpan.textContent = 'description'; // Set the text content of the span
+
+    // Create fileNameSpan element
+    const fileNameSpan = document.createElement('span');
+    fileNameSpan.id = 'fileName';
+    fileNameSpan.textContent = option; // Set the text content of the span
+
+    // Append iconSpan and fileNameSpan to fileDiv
+    fileDiv.appendChild(iconSpan);
+    fileDiv.appendChild(fileNameSpan);
+
+    // Append fileDiv to fileContainer
+    fileContainer.appendChild(fileDiv);
+
+    if (!firstFile === npmIObj.name) {
+        fileArray.push(option)
+    }
+}
+
+console.log(firstFile)
 
 let npmSavedDifinerColor = '';
 
@@ -56,7 +88,6 @@ let npmSavedDifinerColor = '';
     } else {
         npmSavedDifinerColor = `<span class="r">not saved</span>`
     }
-
 
 console.log('200.pass')
 
@@ -152,35 +183,6 @@ function createNotification(text, option, icon, color) {
     notificationContainer.appendChild(notificationDiv);
 }
 
-function createFile(option) {
-    const fileContainer = document.querySelector('.file-cont');
-    fileContainer.classList.add('nav-before');
-
-    // Create fileDiv element
-    const fileDiv = document.createElement('div');
-    fileDiv.classList.add('file');
-
-    // Create iconSpan element
-    const iconSpan = document.createElement('span');
-    iconSpan.classList.add('material-symbols-outlined');
-    iconSpan.textContent = 'description'; // Set the text content of the span
-
-    // Create fileNameSpan element
-    const fileNameSpan = document.createElement('span');
-    fileNameSpan.id = 'fileName';
-    fileNameSpan.textContent = option; // Set the text content of the span
-
-    // Append iconSpan and fileNameSpan to fileDiv
-    fileDiv.appendChild(iconSpan);
-    fileDiv.appendChild(fileNameSpan);
-
-    // Append fileDiv to fileContainer
-    fileContainer.appendChild(fileDiv);
-}
-
-
-
-
 // Save user data to localStorage
 function saveUserData() {
     localStorage.setItem("userData", JSON.stringify(userData));
@@ -201,7 +203,6 @@ function saveNpmData() {
     localStorage.setItem('npm', true);
     localStorage.setItem('npm-name', npmIObj.name);
     npmIObj.savedData.project = 'saved';
-    
 }
 
 // event listners
@@ -553,12 +554,15 @@ inputElement.addEventListener("keydown", function (event) {
                 if (!npmI) {
                     response += system.error.notLoaded;
                 } else {
-                    saveNpmData();
-                    createFile(npmIObj.name);
+                    if (npmName === 'not saved') {
+                        response = `file (" ${npmIObj.name} ") already saved`
+                    } else {
+                        saveNpmData();
+                        createFile(npmIObj.name);
+                    }
                 }
             } else if (command.toLowerCase() === "npm") {
                 var npmIcount = 0;
-
                 if (npmI) {
                     response = `current project: ${npmIObj.name}`;
                     response += `<br> npmI status: <span class="g"> ${network} </span>`;
@@ -571,7 +575,9 @@ inputElement.addEventListener("keydown", function (event) {
             } else if (command.toLowerCase() === "npm") {
                 const npmD = command.split(" ");
                 if (npmD[1] === "i"){
-                    response += 'dwn';
+                    response += 'fueo?';
+                } else if (npmD[1] === "name") {
+                    response += npmIObj.name;
                 } else {
                     response += message.npm.error;
                 }
