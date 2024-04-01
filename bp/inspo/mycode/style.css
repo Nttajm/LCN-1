@@ -5,7 +5,7 @@ body {
 .dn {
   display: none !important;
 }
-
+ 
 :root {
   --font: roboto;
   font-size: 16px;
@@ -20,6 +20,7 @@ body {
   background-color: rgb(57, 57, 57);
   border-bottom: solid rgb(104, 104, 104) 1px;
   margin-bottom: 30px;
+  z-index: 999;
 }
 
 .nav span {
