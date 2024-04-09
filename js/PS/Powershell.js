@@ -37,9 +37,14 @@ let npmIObj = {
     }
 }
 
+let dbArray = localStorage.getItem('dbArray') || [];
+
+
 let fileArray = [];
 const firstFile = fileArray[0];
+
 let npmName = npmIObj.savedData.project;
+
 
 let npmI = localStorage.getItem("npm") || false;
 window.addEventListener('load', displayFile)
@@ -581,6 +586,46 @@ inputElement.addEventListener("keydown", function (event) {
                 } else {
                     response += message.npm.error;
                 }
+            } else if (command.toLowerCase().startsWith("db /")) {
+                const comdParts = command.split(" ");
+                const secp = comdParts[2];
+                const thrdp = comdParts[3];
+                const lastfileIndex = dbArray.length;
+                const lastfileNum = dbArray.length + 1;
+                var savedDinfiner = 'not saved';
+
+                function save() {
+                    localStorage.setItem('dbArray', dbArray);
+                }
+
+                if (secp === 'i') {
+                    dbArray.push(secp);
+                    response = `<br>${thrdp} added`;
+                    response += '<hr>';
+                    setTimeout(() => {
+                        response += delay(`DB: configuring project reqest`, 802);
+                        response += delay(`git connection : <span class="g">True</span>`, 1000);
+                        response += delay(`dir = ${lastfileIndex}`, 1302);
+                        response += delay(`file number = ${lastfileNum}`, 1302);
+                        response += delay(`DATA href?file?fileName: " ${thrdp} "`, 1550)
+                        response += delay('downloaded', 1800);
+                    }, 800);
+                    setTimeout(() => {
+                        createNotification(`db / start file "${thrdp}..." has been created`, 'downlaoded', 'check_circle', 'stat')
+                    }, 2600);
+                } else if (secp === 's') {
+                    save();
+                    response = 'saved.'
+                } else if (secp === '') {
+                    response = `porject saved:` + savedDinfiner;
+                    response += `<br> saved projects:` + lastfileNum;
+                    response += `<br> dir = ` + lastfileIndex;
+                } else{
+                    createNotification(system.error.syntax)
+                    response = system.error.syntaxParts
+                }
+            } else if (command.toLowerCase().startsWith('e /')) {
+                response = 'test working'
             } else if (/^timeu \d+$/.test(command)) {
                 const timeZoneIndex = parseInt(command.split(" ")[1]) - 1;
                 if (timeZoneIndex >= 0 && timeZoneIndex < timeZones.length) {
@@ -614,6 +659,16 @@ inputElement.addEventListener("keydown", function (event) {
                     flips.push(Math.random() < 0.5 ? "Heads" : "Tails");
                 }
                 response = flips.join(", ");
+            } else if (command.toLowerCase() === 'e') {
+                 response = "<br>explorer..."
+
+                 const explorCont = document.querySelector(".explorer");
+                 explorCont.classList.toggle('dbe');
+
+                 var display = localStorage.getItem('display-e');
+                 display = display === 'false' ? 'true' : 'false';
+                 localStorage.setItem('display-e', display);
+
             } else if (command.toLowerCase().startsWith("config log")) {
                 const configParts = command.split(" ");
                 if (configParts.length === 4 && configParts[2] === "user.name") {
@@ -726,9 +781,22 @@ inputElement.addEventListener("keydown", function (event) {
     }
 });
 
-// alternitive ui  
 
+// alternitive ui 
 
+const display = localStorage.getItem('display-e')
+const eCont = document.querySelector('.explorer') 
+
+if (localStorage.getItem('display-e')) {
+    eCont.classList.add('dbe')
+} else {
+    eCont.classList.remove('dbe')
+}
+
+function error() {
+    response = system.error.syntax;
+    createNotification(system.error.syntax);
+}
 
 
 

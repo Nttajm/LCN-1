@@ -41,6 +41,10 @@
     display: block;
 }
 
+.nav-bar:hover .input {
+    display: none;
+}
+
 /* hover needed */
 
 .nav-bar:hover #ie {

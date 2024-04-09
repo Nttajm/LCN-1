@@ -7,8 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Lekton:ital,wght@0,400;0,700;1,400&family=Madimi+One&family=Ojuju:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/ps/nav-bar.css">
     <link rel="shortcut icon" href="images/ps-logo.png">
+    <link rel="stylesheet" href="css/ps/explorer.css">
     <link rel="stylesheet" href="css/root.css">
     <link rel="stylesheet" href="css/ps/ps.css">
+    <link rel="stylesheet" href="css/ps/suggestions.css">
     <link rel="stylesheet" href="css/standard.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,7 +56,7 @@
                     <div class="p-names"> 
                         <div>
                             <div class="profile-name-gray"><span>elapsed</span></div>
-                            <div class="profile-name-gray">Sserver</div>
+                            <div class="profile-name-gray">Server</div>
                         </div>
                         <div>
                             <div class="profile-name"><span id="timer"> error</span></div>
@@ -69,7 +71,23 @@
         </nav>
         <div class="ps">
             <div  class="db" id="output">db$&nbsp;<span id="command"></span></div>
-            <input class="input" type="text" id="input" autofocus autocomplete="off">
+            <div class="autocomplete">
+                <input class="input" type="text" id="input" autofocus autocomplete="off">
+
+            </div>
+        </div>
+    </div>
+    <div class="explorer">
+        <div class="slidebar">
+            
+        </div>
+        <div class="e-top">
+            <button class="close" onclick="toggleDisplayWdbe('explorer')">X</button>
+        </div>
+        <div class="explorer-area">
+            <div class="eOP">
+                No data called, inputed or loaded.
+            </div>
         </div>
     </div>
     <footer class="foot">
@@ -111,7 +129,7 @@
                         chat_info
                     </span>
                 </div>
-                <button class="s-span output-btn fl-ai" onclick="toggleDiv('myDiv')">
+                <button class="s-span output-btn fl-ai" onclick="toggleDisplay('jsoutput-cont');">
                         Console
                     <span class="material-symbols-outlined">
                         terminal
@@ -174,6 +192,8 @@
     <script src="js/ps/sytem-ui/nav.js" type="module"></script>
     <script type="module" src="js/ps/commands/jarg.js"></script>
     <script type="module" src="js/ps/sytem-ui/messages.js"></script>
+    <script src="js/ps/sytem-ui/suggestions.js"></script>
+    <script src="js/ps/sytem-ui/basic-functins.js"></script>
 </body>
 </html>
 
