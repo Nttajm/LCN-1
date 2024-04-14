@@ -62,3 +62,29 @@
   background-color: var(--theme);
   cursor:col-resize;
 }
+
+.explorer-area {
+  padding-left: 5px;
+}
+
+.files {
+  font-family: roboto;
+}
+
+.h12 {
+  margin: 5px 0px 10px 5px;
+  font-size: 1.7rem;
+  font-family: roboto;
+}
+
+#e-file {
+  padding: 10px 10px 10px 0px;
+  gap: 5px;
+  cursor: pointer;
+  border-bottom: solid 1px;
+  padding-left: 10px;
+}
+
+#e-file:nth-of-type(1) {
+  border-top: solid 1px;
+}

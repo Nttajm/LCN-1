@@ -27,11 +27,14 @@ var suggestions = [
   'system-valid',
   'stwatch stop',
   "change-theme",
+  "text-color",
   "user.name",
   "db / ",
   "db / i",
   "db / s",
   'e /',
+  'dis log',
+  'r',
 ];
 
     // Function to create autocomplete suggestions

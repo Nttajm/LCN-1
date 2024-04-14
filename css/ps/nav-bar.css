@@ -152,7 +152,6 @@
 
 
 .file:first-child {
-    margin-top: 20px;
 }
 
 .file {
@@ -173,4 +172,11 @@
     color: white;
     background-color: var(--midg);
     border-left: solid var(--theme) 4px;
+}
+
+/* 
+*/
+
+#cloud {
+    color: goldenrod;
 }

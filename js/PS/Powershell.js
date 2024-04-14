@@ -11,6 +11,7 @@ const commandHistory = [];
 let lastCommandIndex = -1;
 const responseHistory = [];
 let logEntries = [];
+let dbArray = [];
 
 const rN = Math.random();
 
@@ -36,8 +37,6 @@ let npmIObj = {
         project: 'not saved',
     }
 }
-
-let dbArray = localStorage.getItem('dbArray') || [];
 
 
 let fileArray = [];
@@ -153,6 +152,12 @@ const loadUserData = () => {
     if (savedLog) {
         logEntries = JSON.parse(savedLog);
     }
+
+    const dbSaved = localStorage.getItem("dbArray");
+    if (dbSaved) {
+        dbArray = JSON.parse(dbSaved);
+    }
+
 };
 
 function createNotification(text, option, icon, color) {
@@ -192,22 +197,49 @@ function createNotification(text, option, icon, color) {
 function saveUserData() {
     localStorage.setItem("userData", JSON.stringify(userData));
     localStorage.setItem("logEntries", JSON.stringify(logEntries));
+    localStorage.setItem("dbArray", JSON.stringify(dbArray));
+    cloudIcon();
+}
+
+function cloudIcon() {
+    const icon = document.getElementById('cloud');
+    icon.style.color = 'cornflowerblue';
 }
 
 function themeColorComps(setColor) {
     setColor = setColor || '';
     document.documentElement.style.setProperty('--theme', setColor);
     localStorage.setItem('theme', setColor);
+
+    const input = document.getElementById('input');
+    const container = document.getElementById('output');
+    input.style.color = setColor;
+    container.style.color = setColor;
+
 } 
+
+function TextColorComps(setColor) {
+    setColor = setColor || '';
+    const input = document.getElementById('input');
+    const container = document.getElementById('output');
+    const bottumLeftbtn = document.querySelector('.btn-2')
+
+    input.style.color = setColor;
+    container.style.color = setColor
+    bottumLeftbtn.style.colr = setColor
+    document.documentElement.style.setProperty('--textColor', setColor);
+}
 
 function loadTheme() {
     themeColorComps(userData.theme);
+    TextColorComps(userData.textColor);
 }
 
 function saveNpmData() {
     localStorage.setItem('npm', true);
     localStorage.setItem('npm-name', npmIObj.name);
     npmIObj.savedData.project = 'saved';
+    cloudIcon(true);
 }
 
 // event listners
@@ -328,7 +360,10 @@ inputElement.addEventListener("keydown", function (event) {
 
             if (command.toLowerCase() === "dis log") {
                 userData = {};
+                dbArray = [];
                 logEntries.length = 0;
+                localStorage.setItem('theme', '');
+
                 saveUserData();
                 response = "Log and all saved data cleared.";
                 outputElement.innerHTML = "system-reset, true!"; // Clear the output
@@ -524,6 +559,7 @@ inputElement.addEventListener("keydown", function (event) {
                 response += `<br> current system server: ${currentServer}`
                 response += `<br> user of current session: ${userData.name}`
                 response += `<br> netwrok status: <span class="g"> ${network} </span>`
+                response += `<br> files stored: ${dbArray.length + 1}`
                 response += `<hr>`
             } else if (command.toLowerCase() === "spam") {
                 const spamParts = command.split(" ") || 70;
@@ -593,13 +629,8 @@ inputElement.addEventListener("keydown", function (event) {
                 const lastfileIndex = dbArray.length;
                 const lastfileNum = dbArray.length + 1;
                 var savedDinfiner = 'not saved';
-
-                function save() {
-                    localStorage.setItem('dbArray', dbArray);
-                }
-
                 if (secp === 'i') {
-                    dbArray.push(secp);
+                    dbArray.push(thrdp);
                     response = `<br>${thrdp} added`;
                     response += '<hr>';
                     setTimeout(() => {
@@ -611,19 +642,26 @@ inputElement.addEventListener("keydown", function (event) {
                         response += delay('downloaded', 1800);
                     }, 800);
                     setTimeout(() => {
-                        createNotification(`db / start file "${thrdp}..." has been created`, 'downlaoded', 'check_circle', 'stat')
+                        createNotification(`db / start file "${thrdp}..." has been created`, 'downlaoded', 'check_circle', 'stat');
+                        saveUserData();
                     }, 2600);
                 } else if (secp === 's') {
-                    save();
+                    saveUserData();
                     response = 'saved.'
                 } else if (secp === '') {
                     response = `porject saved:` + savedDinfiner;
-                    response += `<br> saved projects:` + lastfileNum;
+                    response += `<br> projects:` + lastfileNum;
                     response += `<br> dir = ` + lastfileIndex;
+                    response += `<hr>`;
+                    dbArray.forEach((db, index) => {
+                        response += `<br> ${index + 1} (${index}). ${db}`;
+                    });
                 } else{
                     createNotification(system.error.syntax)
                     response = system.error.syntaxParts
                 }
+            } else if (command.toLowerCase() === 'r') {
+                location.reload();
             } else if (command.toLowerCase().startsWith('e /')) {
                 response = 'test working'
             } else if (/^timeu \d+$/.test(command)) {
@@ -636,6 +674,8 @@ inputElement.addEventListener("keydown", function (event) {
                     response = "Invalid selection. Enter a valid number.";
                     createNotification(system.error.syntax);
                 }
+            } else if (command.toLowerCase() === userData.name) {
+                response = `yes that is you, ${userData.name}.`
             } else if (command.toLowerCase() === "timeus") {
                 response = "Time Zones in the United States:";
                 usTimeZones.forEach((zone, index) => {
@@ -666,7 +706,7 @@ inputElement.addEventListener("keydown", function (event) {
                  explorCont.classList.toggle('dbe');
 
                  var display = localStorage.getItem('display-e');
-                 display = display === 'false' ? 'true' : 'false';
+                 display = display === false ? true : false;
                  localStorage.setItem('display-e', display);
 
             } else if (command.toLowerCase().startsWith("config log")) {
@@ -735,7 +775,6 @@ inputElement.addEventListener("keydown", function (event) {
                 }
             } else if (command.toLowerCase().startsWith("change-theme")) {
                 const themeParts = command.split(" ");
-                const themeDiv = document.querySelector('.thColor');
                 if (themeParts.length === 2) {
                     var color = themeParts[1];
                     document.body.style.backgroundColor = color;
@@ -753,6 +792,34 @@ inputElement.addEventListener("keydown", function (event) {
                 delete userData.theme; // Remove saved theme color
                 saveUserData(); // Save the updated user data
                 response = "Theme color reset to default.";
+            } else if (command.toLowerCase().startsWith("theme")) {
+                const themeParts = command.split(" ")
+                const c1 = themeParts[1]
+                const c2 = themeParts[2]
+                theme(c1, c2, command);
+                response = `Theme changed to ${c1}, and text text color set to ${c2}"`;
+                saveUserData();
+                loadTheme()
+            } else if (command.toLowerCase().startsWith("text-color")) {
+                const themeParts = command.split(" ");
+
+                if (themeParts.length === 2) {
+                    const input = document.getElementById('input');
+                    const container = document.getElementById('output');
+                    const color = themeParts[1];
+                    userData.textColor = color;
+
+                    saveUserData();
+                    TextColorComps(color);
+                    loadTheme()
+                    input.style.color = color;
+                    container.style.color = color;
+                    response = `Text color changed to ${color}. reset theme with " reset-theme "`;
+
+                } else {
+                    createNotification(system.error.syntax);
+                    response += system.error.syntaxParts;
+                }
             }  else {
                 response = "Command not recognized"; 
             }
@@ -787,17 +854,45 @@ inputElement.addEventListener("keydown", function (event) {
 const display = localStorage.getItem('display-e')
 const eCont = document.querySelector('.explorer') 
 
-if (localStorage.getItem('display-e')) {
-    eCont.classList.add('dbe')
-} else {
-    eCont.classList.remove('dbe')
-}
 
 function error() {
     response = system.error.syntax;
     createNotification(system.error.syntax);
 }
+function renderLogs() {
+    const outputHTML = document.getElementById('e-out');
+    logEntries.forEach((logEntry, index) => {
+         outputHTML.innerHTML += `
+         <div class="file fl-ai" id="e-file">
+         <span class="material-symbols-outlined">
+            format_list_bulleted
+        </span>
+        <span>
+            ${logEntry}
+        </span>
+        </div>
+         `;
+    });
+}
 
+renderLogs();
+
+
+function theme(theme, color, command) {
+    const input = document.getElementById('input');
+    const container = document.getElementById('output');
+    input.style.color = color;
+    container.style.color = color;
+
+    userData.theme = theme;
+    userData.textColor = color;
+    document.body.style.backgroundColor = theme;
+
+    themeColorComps(theme);
+    TextColorComps(color);
+    loadTheme();
+    saveUserData();
+}
 
 
 
