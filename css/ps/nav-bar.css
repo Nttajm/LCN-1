@@ -41,6 +41,10 @@
     display: block;
 }
 
+.nav-bar:hover .input {
+    display: none;
+}
+
 /* hover needed */
 
 .nav-bar:hover #ie {
@@ -148,7 +152,6 @@
 
 
 .file:first-child {
-    margin-top: 20px;
 }
 
 .file {
@@ -169,4 +172,11 @@
     color: white;
     background-color: var(--midg);
     border-left: solid var(--theme) 4px;
+}
+
+/* 
+*/
+
+#cloud {
+    color: goldenrod;
 }

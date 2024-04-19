@@ -1,0 +1,90 @@
+.explorer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background-color: var(--lowerg);
+  border: solid 1px rgb(150, 150, 150);
+  width: 50%;
+  display: none;
+  resize: horizontal;
+  overflow: auto;
+}
+
+.dbe {
+  display: block !important;
+}
+
+:root {
+  --border: solid 1px rgb(80, 80, 80);
+}
+
+.e-top {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: solid 1px rgb(150, 150, 150);
+  background-color: var(--theme);
+  opacity: 0.7;
+}
+
+.e-top button {
+  padding: 5px;
+  background-color: var(--lowerg);
+  color: rgb(161, 161, 161);
+  border-style: none;
+  font-family: roboto;
+}
+
+.e-top button:hover {
+  background-color: darko;
+}
+
+.eOP {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  padding: 15px;
+}
+
+.eOP {
+  font-family: roboto;
+}
+
+.slidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 3px;
+  border-right: var(--border) solid;
+  z-index: 1;
+  height: 100%;
+  background-color: var(--theme);
+  cursor:col-resize;
+}
+
+.explorer-area {
+  padding-left: 5px;
+}
+
+.files {
+  font-family: roboto;
+}
+
+.h12 {
+  margin: 5px 0px 10px 5px;
+  font-size: 1.7rem;
+  font-family: roboto;
+}
+
+#e-file {
+  padding: 10px 10px 10px 0px;
+  gap: 5px;
+  cursor: pointer;
+  border-bottom: solid 1px;
+  padding-left: 10px;
+}
+
+#e-file:nth-of-type(1) {
+  border-top: solid 1px;
+}

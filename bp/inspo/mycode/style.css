@@ -1,5 +1,7 @@
 body {
   background-color: rgb(22, 22, 22);
+  margin: 0;
+  padding: 0;
 }
 
 .dn {
@@ -107,6 +109,17 @@ body {
   z-index: 2;
 }
 
+#chase {
+  background-color: rgb(38, 93, 204);
+}
+
+.img {
+  width: 170px;
+  position: absolute;
+  top: 0;
+  right: -40px;
+}
+
 .card-sec span {
   color: rgba(255, 255, 255, 0.83);
 }
@@ -173,4 +186,68 @@ body {
 .my-code-logo {
   font-size: 25px;
   font-weight: 500;
+  justify-content: space-between;
+  display: flex;
+}
+
+.my-code-logo span:nth-child(2) {
+  font-family: major mono display;
+}
+
+/* animations */
+
+@keyframes up-an {
+  from {
+    margin-top: 10px;
+  } 
+  to {
+
+  }
+}
+
+@keyframes hover-ani {
+  from {
+
+  }
+
+  to {
+    margin-bottom: 150px;
+  }
+}
+
+.card-sec {
+  z-index: 6;
+  transform: translateY(0%);
+  animation: up-ani 0.4s ease forwards;
+  transition: all 0.125;
+}
+
+.card-sec:hover {
+  animation: hover-ani 0.245s ease-in-out forwards;
+
+}
+ /*
+.hoverI:hover {
+  animation-play-state: paused;
+}
+*/
+
+.card-sec:nth-child(2) {
+  z-index: 7;
+  transform: translateY(-80%);
+}
+
+.card-sec:nth-child(3) {
+  z-index: 8;
+  transform: translateY(-160%);
+}
+
+.card-sec:nth-child(4) {
+  z-index: 9;
+  transform: translateY(-240%);
+}
+
+.card-sec:nth-child(5) {
+  z-index: 10;
+  transform: translateY(-320%);
 }
