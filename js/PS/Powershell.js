@@ -12,6 +12,25 @@ let lastCommandIndex = -1;
 const responseHistory = [];
 let logEntries = [];
 let dbArray = [];
+let react = [{
+    type: 'python',
+    name: 'another_one'
+},
+{
+    type: 'Javascript',
+    name: 'test two'
+},
+{
+    type: 'python',
+    name: 'test two'
+}];
+
+function push() {
+    react.push({
+        name: 'joel',
+        type: 'python'
+    })
+}
 
 const rN = Math.random();
 
@@ -430,11 +449,8 @@ inputElement.addEventListener("keydown", function (event) {
                 lastCommandIndex = -1;
                 responseHistory.length = 0;
                 response = "Session has been reset.";
-            } else if (command.toLowerCase() === "test") {
-                response = "hi - this is ment for dev, just me, joel.";
-                createFile('jota');
-                createNotification('this is ment for devs, aka just me, joel.', 'HII!!', 'done', 'stat');
-
+            } else if (command.toLowerCase() === "bitly") {
+                push();
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -635,10 +651,10 @@ inputElement.addEventListener("keydown", function (event) {
                     response += '<hr>';
                     setTimeout(() => {
                         response += delay(`DB: configuring project reqest`, 802);
-                        response += delay(`git connection : <span class="g">True</span>`, 1000);
+                        response += delay(`git connection : <span class="g">True</span>`, 802);
                         response += delay(`dir = ${lastfileIndex}`, 1302);
                         response += delay(`file number = ${lastfileNum}`, 1302);
-                        response += delay(`DATA href?file?fileName: " ${thrdp} "`, 1550)
+                        response += delay(`DATA href?file?fileName: " ${thrdp} "`, 250)
                         response += delay('downloaded', 1800);
                     }, 800);
                     setTimeout(() => {
@@ -649,9 +665,8 @@ inputElement.addEventListener("keydown", function (event) {
                     saveUserData();
                     response = 'saved.'
                 } else if (secp === '') {
-                    response = `porject saved:` + savedDinfiner;
-                    response += `<br> projects:` + lastfileNum;
                     response += `<br> dir = ` + lastfileIndex;
+                    response += `<br> set dir: DB$M/db/array(${dbArray.length})`
                     response += `<hr>`;
                     dbArray.forEach((db, index) => {
                         response += `<br> ${index + 1} (${index}). ${db}`;
@@ -800,6 +815,31 @@ inputElement.addEventListener("keydown", function (event) {
                 response = `Theme changed to ${c1}, and text text color set to ${c2}"`;
                 saveUserData();
                 loadTheme()
+            } else if (command.toLowerCase().startsWith("th")) {
+                const thParts = command.split(" ");
+                if (thParts[1] === 'calm') {
+                    theme('darkolivegreen', 'orange', command);
+                    saveUserData();
+                    loadTheme()
+                    response = ``;
+                } else if (thParts[1] === 'night') {
+                    theme('black', 'red', command);
+                    saveUserData();
+                    loadTheme()
+                    response = ``;
+                } else {
+                    createNotification(system.error.syntax)
+                    response = system.error.syntaxParts;
+                }
+            } else if (command === "devColors"){
+                response = `<span class="green">A</span>
+                <span class="blue">b</span>
+                <span class="highlight">C</span>
+                <span class="purple">d</span>
+                <span class="stat-error">E</span>
+                <span class="stat">f</span>
+                <span class="g">1234ABCabc</span>
+                <span class="r">1234ABCabc</span>`
             } else if (command.toLowerCase().startsWith("text-color")) {
                 const themeParts = command.split(" ");
 
@@ -876,6 +916,92 @@ function renderLogs() {
 }
 
 renderLogs();
+renderApps();
+
+function renderApps() {
+    const outputHTML = document.getElementById('js-apps');
+    react.forEach((app, index) => {
+        let contentsHTML = `
+        <div class="contents jse${index + 1}">
+            <div class="f-content">
+                <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
+                <span>package.json</span>
+            </div>
+        </div>
+        `;
+        if (app.type === 'Javascript') {
+            contentsHTML = `
+                <div class="contents jse${index + 1}">
+                    <div class="f-content">
+                        <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
+                        <span>package.json</span>
+                    </div>
+                    <div class="f-content">
+                        <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
+                        <span>package-lock.json</span>
+                    </div>
+                    <div class="f-content">
+                        <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
+                        <span>db&mAPI.json</span>
+                    </div>
+                    <div class="f-content">
+                        <img src="js/ps/assets/JavaScript-logo.png" alt="img" class="pfp">
+                        <span>source.js</span>
+                    </div>
+                    <div class="f-content">
+                        <img src="js/ps/assets/JavaScript-logo.png" alt="img" class="pfp">
+                        <span>app.js</span>
+                    </div>
+                    <div class="f-content">
+                        <img src="js/ps/assets/JavaScript-logo.png" alt="img" class="pfp">
+                        <span>reportWebVitals.js</span>
+                    </div>
+                </div>`;
+        }
+
+        if (app.type === 'python') {
+            contentsHTML = `
+            <div class="contents jse${index + 1}">
+                <div class="f-content">
+                    <img src="js/ps/assets/py.png" alt="img" class="pfp">
+                    <span>package.py</span>
+                </div>
+                <div class="f-content">
+                    <img src="js/ps/assets/py.png" alt="img" class="pfp">
+                    <span>smsAPI.py</span>
+                </div>
+                <div class="f-content">
+                    <img src="js/ps/assets/py.png" alt="img" class="pfp">
+                    <span>keys.py</span>
+                </div>
+            </div>
+            `
+        }
+
+        outputHTML.innerHTML += `
+            <div class="file react" id="e-file">
+                <div class="react-top">
+                    <div class="fl-r fl-ai g-10">
+                        <div class="img">
+                            <img src="js/ps/assets/react.webp" alt="img" class="pfp">
+                        </div>
+                        <div class="f-sec1">
+                            <span>${app.name}</span>
+                            <span>React app</span>
+                            <span id="${app.type}"> &lt;&sol;&gt; ${app.type}</span>
+                        </div>
+                    </div>
+                    <button class="ps-btn-mini view-btn" onclick="toggleDisplay('jse${index + 1}')">
+                        <span class="material-symbols-outlined">
+                            more_horiz
+                        </span>
+                    </button>
+                </div>
+                ${contentsHTML}
+            </div>`;
+    });
+}
+
 
 
 function theme(theme, color, command) {
@@ -898,3 +1024,12 @@ function theme(theme, color, command) {
 
 
 
+const explarray = []
+
+explarray.push({
+    'bluh': 'e22',
+    'thisThatg': 'hi mom'
+});
+
+console.log(explarray);
+console.log(explarray[0].bluh);

@@ -35,6 +35,10 @@ var suggestions = [
   'e /',
   'dis log',
   'r',
+  'devColors',
+  'theme',
+  'th calm',
+  'th night'
 ];
 
     // Function to create autocomplete suggestions

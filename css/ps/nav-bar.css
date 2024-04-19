@@ -170,7 +170,7 @@
 
 .file:hover {
     color: white;
-    background-color: var(--midg);
+    background-color: var(--theme);
     border-left: solid var(--theme) 4px;
 }
 

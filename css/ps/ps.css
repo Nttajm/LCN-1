@@ -9,6 +9,10 @@ body {
     background: #0805a5;
 }
 
+.close:hover {
+    color: var(--textColor);
+}
+
 :root {
     --font-ps: "IBM Plex Mono", monospace;
     font-size: 16px;
@@ -19,7 +23,28 @@ body {
 
 .highlight {
     color: yellow;
+    opacity: 0.87;
 }
+
+
+
+.purple {
+    color: rgb(104, 23, 179);
+    opacity: 0.87;
+}
+
+.green {
+    color: rgb(24, 207, 0);
+    opacity: 0.87;
+}
+
+.blue {
+    color: rgb(0, 55, 206);
+    opacity: 0.87;
+}
+
+
+
 
 .p {
     padding: 0;
@@ -352,7 +377,6 @@ textarea::-webkit-scrollbar-track {
 .eicon {
     font-size: 1.2rem;
 }
-
 
 
 @keyframes fadeOut {

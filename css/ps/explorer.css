@@ -74,7 +74,8 @@
 .h12 {
   margin: 5px 0px 10px 5px;
   font-size: 1.7rem;
-  font-family: roboto;
+  font-family: poppins;
+  font-weight: 400;
 }
 
 #e-file {
@@ -87,4 +88,63 @@
 
 #e-file:nth-of-type(1) {
   border-top: solid 1px;
+}
+
+.react {
+  display: flex;
+  flex-direction: column;
+}
+
+.react-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 13px !important;
+  justify-content: space-between;
+}
+
+
+.f-sec1 {
+  display: flex;
+  flex-direction: column;
+}
+
+.f-sec1 span:first-child {
+  font-size: 1.3rem;
+  color: white;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.f-sec1 span:nth-child(2) {
+  font-size: 0.75rem;
+}
+
+#Javascript {
+  font-size: 0.75rem;
+  color: rgb(190, 190, 0);
+}
+
+#python {
+  color: rgb(101, 181, 228);
+  font-size: 0.75rem;
+}
+
+.view-btn {
+  background-color: transparent !important;
+  display: inline-block;
+}
+
+.contents {
+  margin-top: 10px;
+  border-top: dashed var(--midg);
+  display: none;
+}
+
+.f-content {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 3px;
+  color: rgb(180, 180, 180);
 }
