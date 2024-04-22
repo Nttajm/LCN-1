@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading Animation</title>
+  <style>
+    .loading-bar-container {
+      width: 300px; /* Adjust width as needed */
+      height: 20px; /* Adjust height as needed */
+      border: 1px solid #ccc; /* Border color */
+      overflow: hidden; /* Hide overflow */
+    }
+
+    #loading-bar {
+      width: 0;
+      height: 100%;
+      background-color: #eeff00; /* Loading bar color */
+      transition: width 2s ease-in-out; /* Smooth transition with ease-in-out */
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-bar-container">
+    <div id="loading-bar"></div>
+  </div>
+
+  <script>
+    function startLoading(duration, int) {
+      const loadingBar = document.getElementById('loading-bar');
+      const interval = int; // Interval in milliseconds
+      const steps = duration / interval;
+      let width = 0;
+
+      const stepWidth = 100 / steps;
+
+      const animate = setInterval(() => {
+        width += stepWidth;
+        loadingBar.style.width = `${width}%`;
+
+        if (width >= 30) { // Slow down when reaching 70%
+          clearInterval(animate);
+          const slowInterval = setInterval(() => {
+            width += stepWidth / 2; // Slow down by half
+            loadingBar.style.width = `${width}%`;
+
+            if (width >= 100) { // Finish loading when reaching 100%
+              clearInterval(slowInterval);
+            }
+          }, interval * 2);
+        }
+      }, interval,);
+    }
+
+    // Example: Start loading animation for 3 seconds
+    startLoading(220, 10);
+  </script>
+</body>
+</html>

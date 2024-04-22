@@ -26,8 +26,6 @@ body {
     opacity: 0.87;
 }
 
-
-
 .purple {
     color: rgb(104, 23, 179);
     opacity: 0.87;
@@ -43,9 +41,6 @@ body {
     opacity: 0.87;
 }
 
-
-
-
 .p {
     padding: 0;
     margin: 0;
@@ -55,6 +50,7 @@ body {
     padding: 8px;
     font-family:var(--font-ps);
     padding-bottom: 350px;
+    width: 50%;
 }
 
 .dbk {
@@ -393,3 +389,16 @@ textarea::-webkit-scrollbar-track {
     }
   }
 
+
+  .loading-bar-container {
+    width: 100%; /* Adjust width as needed */
+    height: 3px; /* Adjust height as needed */
+    overflow: hidden; /* Hide overflow */
+  }
+
+  #loading-bar {
+    width: 0;
+    height: 100%;
+    background-color: var(--textColor); /* Loading bar color */
+    transition: width 2s ease-in-out; /* Smooth transition with ease-in-out */
+  }

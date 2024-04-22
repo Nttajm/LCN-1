@@ -1,0 +1,86 @@
+body {
+    background-color: var(--lowerg);
+}
+
+:root {
+    font-size: 16px;
+}
+
+nav div{
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.6rem;
+    font-family: roboto;
+    padding: 10px;
+    border-bottom: 1px solid rgb(82, 82, 82);
+}
+
+.cont {
+    padding-left: 10px;
+}
+
+.post {
+    padding: 5px;
+    color: white;
+    font-family: roboto;
+    cursor: pointer;
+}
+
+.post:hover {
+    background-color: rgb(53, 53, 53);
+}
+
+.p-top {
+    color: rgb(163, 159, 159);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.p-mid {
+    font-weight: 600;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    gap: 6px;
+}
+
+.post-img {
+    width: 40px;
+    border-radius: 7px;
+}
+
+.p-bottum {
+    display: flex;
+    align-items: center;
+    align-content: stretch;
+    gap: 10px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    color: rgb(148, 148, 148);
+}
+
+.p-bottum button {
+    background-color: rgb(59, 59, 59);
+    color: rgb(194, 194, 194);
+    display: flex;
+    align-items: center;
+    border-style: none;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.p-bottum button:hover {
+    color: white;
+}
+
+.p-bottum button:active {
+    color: rgb(197, 197, 197);
+}
+
+.p-bottum button:focus {
+    color: gold;
+}

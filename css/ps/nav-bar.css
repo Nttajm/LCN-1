@@ -170,7 +170,6 @@
 
 .file:hover {
     color: white;
-    background-color: var(--theme);
     border-left: solid var(--theme) 4px;
 }
 
@@ -179,4 +178,16 @@
 
 #cloud {
     color: goldenrod;
+}
+
+.load span {
+    padding: 5px;
+    font-family: roboto;
+    color: var(--highg);
+    font-size: 0.75rem;
+    margin-bottom: 5px;
+}
+
+.load {
+    display: none;
 }

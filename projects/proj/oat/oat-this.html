@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../css/oat.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="/css/root.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T | of all time</title>
+</head>
+<body>
+    <nav>
+        <div>
+            <img src="../images/logored.jpg" alt="pfp" class="pfp">
+            <span>OAT > 2024</span>
+        </div>
+    </nav>
+    <div class="cont">
+        <div class="post">
+            <div class="p-top">
+                <span class="genre uh">Music</span>
+                &bull;
+                <span>11 years ago</span>
+            </div>
+            <div class="p-mid">
+                <img src="images/oat-photos/rockstar.webp" alt="photo" class="post-img">
+                <span>Just for now - Lil B (feat. Jm)</span>
+            </div>
+            <div class="p-bottum">
+                <button>
+                    <span class="material-symbols-outlined">
+                        swap_vert
+                    </span>
+                    8.4K
+                </button>
+                <span>
+                    49.3K views
+                </span>
+                <span>
+                    382 comments
+                </span>
+            </div>
+        </div>
+    </div>
+</body>
+ <script>
+    const postArray = [];
+
+function push(genre, date, name, likes, views, comments, rank) {
+    postArray.push({
+        genre,
+        date,
+        name,
+        likes,
+        views,
+        comments,
+        rank
+    });
+    postArray.sort((a, b) => a.rank - b.rank); // Sort the array based on rank after pushing
+}
+
+    push('Music', '1 week ago', 'Overtime - Ken Carson', 
+    '44.3k','1.6M', '6.5k', 1);
+    push('Music', '3 week ago', 'Donk - beyoncé (feat. Jm)', 
+    '94.6k','10.6M', '98k', );
+    push('Music - Dj_creal', '2 weeks ago', 'Just for now remix - Dj creal', 
+    '34.1k','3M', '98k', );
+    push('Music - cruf', '1 month ago', 'Just for now remix - Dj creal', 
+    '4.1k','160k', '98k', );
+    push('enternal!', '3 month ago', ' 2pm - playboi carti', 
+    '17.4k','960k', '98k', );
+    push('enternal!', '3 month ago', 'cancun (arialB remix) - playboi carti', 
+    '21.9k','1M', '98k', );
+
+    renderPosts();
+
+    function renderPosts() {
+        const cont = document.querySelector('.cont');
+        cont.innerHTML = ``;
+        postArray.forEach((post) => {
+            cont.innerHTML += `
+                <div class="post">
+                    <div class="p-top">
+                        <span class="genre uh">${post.genre}</span>
+                        &bull;
+                        <span>${post.date}</span>
+                    </div>
+                    <div class="p-mid">
+                        <span class="uh">${post.name}</span>
+                    </div>
+                    <div class="p-bottum">
+                        <button>
+                            <span class="material-symbols-outlined">
+                                swap_vert
+                            </span>
+                            ${post.likes}
+                        </button>
+                        <span>
+                            ${post.views} views
+                        </span>
+                        <span>
+                            ${post.comments} comments
+                        </span>
+                    </div>
+                </div>
+            `
+    });
+
+    }
+
+    
+
+ </script>
+</html>

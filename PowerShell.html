@@ -102,7 +102,7 @@
                 -->
             </div>
             <h1 class="h12">
-                Files
+                Folders
             </h1>
             <div class="files" id="js-apps">
                 <div class="file react" id="e-file">
@@ -123,7 +123,8 @@
                             </span>
                         </button>
                     </div>
-                    <div class="contents">
+                    <!--
+                        <div class="contents">
                         <div class="f-content">
                             <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
                             <span>package.json</span>
@@ -149,11 +150,19 @@
                             <span>reportWebVitals.js</span>
                         </div>
                     </div>
+                    -->
+                    
                 </div>
             </div>
         </div>
     </div>
     <footer class="foot">
+        <div class="load">
+            <span>Initiallizing...</span>
+            <div class="loading-bar-container">
+                <div id="loading-bar"></div>
+            </div>
+        </div>
         <div class="notification-container">
              <!--notifications here-->
         </div>
@@ -247,8 +256,10 @@
             errorDiv.innerHTML = "running_with_errors";
         }
         });
+
     });;
     </script>
+    <script src="js/ps/sytem-ui/loader.js"></script>
     <script src="js/ps/Powershell.js" type="module"></script>
     <script src="js/ps/netstat.js" type="module"></script>
     <script src="js/ps/sessionid.js" type="module"></script>

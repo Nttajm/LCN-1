@@ -38,7 +38,9 @@ var suggestions = [
   'devColors',
   'theme',
   'th calm',
-  'th night'
+  'th night',
+  'bitly',
+  't--devlOAD'
 ];
 
     // Function to create autocomplete suggestions

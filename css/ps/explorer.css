@@ -9,6 +9,7 @@
   display: none;
   resize: horizontal;
   overflow: auto;
+  padding-bottom: 70px;
 }
 
 .dbe {
@@ -65,6 +66,7 @@
 
 .explorer-area {
   padding-left: 5px;
+  padding-bottom: 80px;
 }
 
 .files {
@@ -130,6 +132,26 @@
   font-size: 0.75rem;
 }
 
+#java {
+  color: brown;
+  font-size: 0.75rem;
+}
+
+#node {
+  color: rgb(190, 190, 0);
+  font-size: 0.75rem;
+}
+
+#php {
+  color: rgb(174, 112, 231);
+  font-size: 0.75rem;
+}
+
+#config {
+  color: cornflowerblue;
+  font-size: 0.75rem;
+}
+
 .view-btn {
   background-color: transparent !important;
   display: inline-block;
@@ -139,6 +161,9 @@
   margin-top: 10px;
   border-top: dashed var(--midg);
   display: none;
+  column-gap: 3px;
+  background-color: var(--midg);
+
 }
 
 .f-content {
@@ -147,4 +172,12 @@
   align-items: center;
   margin-top: 3px;
   color: rgb(180, 180, 180);
+  padding: 5px;
+  box-sizing: border-box;
+  opacity: 1;
+}
+
+.f-content:hover {
+  color: white;
+  background-color: var(--highg);
 }
