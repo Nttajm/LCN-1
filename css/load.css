@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Encode+Sans:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Lekton:ital,wght@0,400;0,700;1,400&family=Madimi+One&family=Ojuju:wght@200..800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+.c:hover {
+    color: teal;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+:root {
+    font-size: 70px;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 10px;
+    font-family: poppins;
+    font-size: 0.3rem;
+
+}
+
+.head {
+    font-size: 0.5rem;
+}
+
+.cont {
+    margin-left: auto;
+    margin-right: auto;
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 2.2rem;
+    font-family: Arial, Helvetica, sans-serif;
+    margin-top: 100px;
+}
+
+.result-cont {
+    display: flex;
+    transform: translateX(15%);
+}
+
+.result {
+    font-weight: 600;
+    font-family: roboto mono;
+}
+
+.secs {
+    position: relative;
+    bottom: -130px;
+    font-size: .42rem;
+    color: rgb(104, 104, 104);
+}
+
+.form {
+    transform: translateY(-40%);
+}
+
+.form input {
+    padding: 8px;
+    border-style: none;
+    background-color: rgba(233, 255, 240, 0.486);
+    border: solid black 2px;
+    border-radius: 6px;
+    font-size: 0.25rem;
+}
+
+.form button {
+    margin-left: -30px;
+    padding: 8px;
+    font-size: 16px;
+    border-style: none;
+    border-radius: 20px;
+    border: rgba(0, 128, 128, 0.548) solid 3px;
+}
+
+.btn:hover {
+    border: rgba(0, 77, 77, 0.548) solid 3px;
+}
+
+.btn:active {
+    opacity: 0.70;
+}
+
+.btn-m {
+    padding: 8px;
+    margin-top: -50px;
+    font-size: 14px;
+    border-style: none;
+    border-radius: 10px;
+    border: rgba(0, 128, 128, 0.548) solid 3px;
+}

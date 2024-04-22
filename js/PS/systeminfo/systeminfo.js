@@ -5,7 +5,7 @@
 
     export const systemInfo = {
         systemcheck: 'pass.200',
-        version : 'v.1.1.0',
+        version : 'v.1.5.0',
         name: 'dbmPs',
         status: 'semi-opp'
     }

@@ -11,26 +11,6 @@ const commandHistory = [];
 let lastCommandIndex = -1;
 const responseHistory = [];
 let logEntries = [];
-let dbArray = [];
-let react = [{
-    type: 'python',
-    name: 'another_one'
-},
-{
-    type: 'Javascript',
-    name: 'test two'
-},
-{
-    type: 'python',
-    name: 'test two'
-}];
-
-function push() {
-    react.push({
-        name: 'joel',
-        type: 'python'
-    })
-}
 
 const rN = Math.random();
 
@@ -57,12 +37,9 @@ let npmIObj = {
     }
 }
 
-
 let fileArray = [];
 const firstFile = fileArray[0];
-
 let npmName = npmIObj.savedData.project;
-
 
 let npmI = localStorage.getItem("npm") || false;
 window.addEventListener('load', displayFile)
@@ -171,12 +148,6 @@ const loadUserData = () => {
     if (savedLog) {
         logEntries = JSON.parse(savedLog);
     }
-
-    const dbSaved = localStorage.getItem("dbArray");
-    if (dbSaved) {
-        dbArray = JSON.parse(dbSaved);
-    }
-
 };
 
 function createNotification(text, option, icon, color) {
@@ -216,49 +187,22 @@ function createNotification(text, option, icon, color) {
 function saveUserData() {
     localStorage.setItem("userData", JSON.stringify(userData));
     localStorage.setItem("logEntries", JSON.stringify(logEntries));
-    localStorage.setItem("dbArray", JSON.stringify(dbArray));
-    cloudIcon();
-}
-
-function cloudIcon() {
-    const icon = document.getElementById('cloud');
-    icon.style.color = 'cornflowerblue';
 }
 
 function themeColorComps(setColor) {
     setColor = setColor || '';
     document.documentElement.style.setProperty('--theme', setColor);
     localStorage.setItem('theme', setColor);
-
-    const input = document.getElementById('input');
-    const container = document.getElementById('output');
-    input.style.color = setColor;
-    container.style.color = setColor;
-
 } 
-
-function TextColorComps(setColor) {
-    setColor = setColor || '';
-    const input = document.getElementById('input');
-    const container = document.getElementById('output');
-    const bottumLeftbtn = document.querySelector('.btn-2')
-
-    input.style.color = setColor;
-    container.style.color = setColor
-    bottumLeftbtn.style.colr = setColor
-    document.documentElement.style.setProperty('--textColor', setColor);
-}
 
 function loadTheme() {
     themeColorComps(userData.theme);
-    TextColorComps(userData.textColor);
 }
 
 function saveNpmData() {
     localStorage.setItem('npm', true);
     localStorage.setItem('npm-name', npmIObj.name);
     npmIObj.savedData.project = 'saved';
-    cloudIcon(true);
 }
 
 // event listners
@@ -379,10 +323,7 @@ inputElement.addEventListener("keydown", function (event) {
 
             if (command.toLowerCase() === "dis log") {
                 userData = {};
-                dbArray = [];
                 logEntries.length = 0;
-                localStorage.setItem('theme', '');
-
                 saveUserData();
                 response = "Log and all saved data cleared.";
                 outputElement.innerHTML = "system-reset, true!"; // Clear the output
@@ -449,8 +390,11 @@ inputElement.addEventListener("keydown", function (event) {
                 lastCommandIndex = -1;
                 responseHistory.length = 0;
                 response = "Session has been reset.";
-            } else if (command.toLowerCase() === "bitly") {
-                push();
+            } else if (command.toLowerCase() === "test") {
+                response = "hi - this is ment for dev, just me, joel.";
+                createFile('jota');
+                createNotification('this is ment for devs, aka just me, joel.', 'HII!!', 'done', 'stat');
+
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -575,7 +519,6 @@ inputElement.addEventListener("keydown", function (event) {
                 response += `<br> current system server: ${currentServer}`
                 response += `<br> user of current session: ${userData.name}`
                 response += `<br> netwrok status: <span class="g"> ${network} </span>`
-                response += `<br> files stored: ${dbArray.length + 1}`
                 response += `<hr>`
             } else if (command.toLowerCase() === "spam") {
                 const spamParts = command.split(" ") || 70;
@@ -638,47 +581,6 @@ inputElement.addEventListener("keydown", function (event) {
                 } else {
                     response += message.npm.error;
                 }
-            } else if (command.toLowerCase().startsWith("db /")) {
-                const comdParts = command.split(" ");
-                const secp = comdParts[2];
-                const thrdp = comdParts[3];
-                const lastfileIndex = dbArray.length;
-                const lastfileNum = dbArray.length + 1;
-                var savedDinfiner = 'not saved';
-                if (secp === 'i') {
-                    dbArray.push(thrdp);
-                    response = `<br>${thrdp} added`;
-                    response += '<hr>';
-                    setTimeout(() => {
-                        response += delay(`DB: configuring project reqest`, 802);
-                        response += delay(`git connection : <span class="g">True</span>`, 802);
-                        response += delay(`dir = ${lastfileIndex}`, 1302);
-                        response += delay(`file number = ${lastfileNum}`, 1302);
-                        response += delay(`DATA href?file?fileName: " ${thrdp} "`, 250)
-                        response += delay('downloaded', 1800);
-                    }, 800);
-                    setTimeout(() => {
-                        createNotification(`db / start file "${thrdp}..." has been created`, 'downlaoded', 'check_circle', 'stat');
-                        saveUserData();
-                    }, 2600);
-                } else if (secp === 's') {
-                    saveUserData();
-                    response = 'saved.'
-                } else if (secp === '') {
-                    response += `<br> dir = ` + lastfileIndex;
-                    response += `<br> set dir: DB$M/db/array(${dbArray.length})`
-                    response += `<hr>`;
-                    dbArray.forEach((db, index) => {
-                        response += `<br> ${index + 1} (${index}). ${db}`;
-                    });
-                } else{
-                    createNotification(system.error.syntax)
-                    response = system.error.syntaxParts
-                }
-            } else if (command.toLowerCase() === 'r') {
-                location.reload();
-            } else if (command.toLowerCase().startsWith('e /')) {
-                response = 'test working'
             } else if (/^timeu \d+$/.test(command)) {
                 const timeZoneIndex = parseInt(command.split(" ")[1]) - 1;
                 if (timeZoneIndex >= 0 && timeZoneIndex < timeZones.length) {
@@ -689,8 +591,6 @@ inputElement.addEventListener("keydown", function (event) {
                     response = "Invalid selection. Enter a valid number.";
                     createNotification(system.error.syntax);
                 }
-            } else if (command.toLowerCase() === userData.name) {
-                response = `yes that is you, ${userData.name}.`
             } else if (command.toLowerCase() === "timeus") {
                 response = "Time Zones in the United States:";
                 usTimeZones.forEach((zone, index) => {
@@ -714,16 +614,6 @@ inputElement.addEventListener("keydown", function (event) {
                     flips.push(Math.random() < 0.5 ? "Heads" : "Tails");
                 }
                 response = flips.join(", ");
-            } else if (command.toLowerCase() === 'e') {
-                 response = "<br>explorer..."
-
-                 const explorCont = document.querySelector(".explorer");
-                 explorCont.classList.toggle('dbe');
-
-                 var display = localStorage.getItem('display-e');
-                 display = display === false ? true : false;
-                 localStorage.setItem('display-e', display);
-
             } else if (command.toLowerCase().startsWith("config log")) {
                 const configParts = command.split(" ");
                 if (configParts.length === 4 && configParts[2] === "user.name") {
@@ -790,6 +680,7 @@ inputElement.addEventListener("keydown", function (event) {
                 }
             } else if (command.toLowerCase().startsWith("change-theme")) {
                 const themeParts = command.split(" ");
+                const themeDiv = document.querySelector('.thColor');
                 if (themeParts.length === 2) {
                     var color = themeParts[1];
                     document.body.style.backgroundColor = color;
@@ -807,59 +698,6 @@ inputElement.addEventListener("keydown", function (event) {
                 delete userData.theme; // Remove saved theme color
                 saveUserData(); // Save the updated user data
                 response = "Theme color reset to default.";
-            } else if (command.toLowerCase().startsWith("theme")) {
-                const themeParts = command.split(" ")
-                const c1 = themeParts[1]
-                const c2 = themeParts[2]
-                theme(c1, c2, command);
-                response = `Theme changed to ${c1}, and text text color set to ${c2}"`;
-                saveUserData();
-                loadTheme()
-            } else if (command.toLowerCase().startsWith("th")) {
-                const thParts = command.split(" ");
-                if (thParts[1] === 'calm') {
-                    theme('darkolivegreen', 'orange', command);
-                    saveUserData();
-                    loadTheme()
-                    response = ``;
-                } else if (thParts[1] === 'night') {
-                    theme('black', 'red', command);
-                    saveUserData();
-                    loadTheme()
-                    response = ``;
-                } else {
-                    createNotification(system.error.syntax)
-                    response = system.error.syntaxParts;
-                }
-            } else if (command === "devColors"){
-                response = `<span class="green">A</span>
-                <span class="blue">b</span>
-                <span class="highlight">C</span>
-                <span class="purple">d</span>
-                <span class="stat-error">E</span>
-                <span class="stat">f</span>
-                <span class="g">1234ABCabc</span>
-                <span class="r">1234ABCabc</span>`
-            } else if (command.toLowerCase().startsWith("text-color")) {
-                const themeParts = command.split(" ");
-
-                if (themeParts.length === 2) {
-                    const input = document.getElementById('input');
-                    const container = document.getElementById('output');
-                    const color = themeParts[1];
-                    userData.textColor = color;
-
-                    saveUserData();
-                    TextColorComps(color);
-                    loadTheme()
-                    input.style.color = color;
-                    container.style.color = color;
-                    response = `Text color changed to ${color}. reset theme with " reset-theme "`;
-
-                } else {
-                    createNotification(system.error.syntax);
-                    response += system.error.syntaxParts;
-                }
             }  else {
                 response = "Command not recognized"; 
             }
@@ -888,148 +726,12 @@ inputElement.addEventListener("keydown", function (event) {
     }
 });
 
-
-// alternitive ui 
-
-const display = localStorage.getItem('display-e')
-const eCont = document.querySelector('.explorer') 
-
-
-function error() {
-    response = system.error.syntax;
-    createNotification(system.error.syntax);
-}
-function renderLogs() {
-    const outputHTML = document.getElementById('e-out');
-    logEntries.forEach((logEntry, index) => {
-         outputHTML.innerHTML += `
-         <div class="file fl-ai" id="e-file">
-         <span class="material-symbols-outlined">
-            format_list_bulleted
-        </span>
-        <span>
-            ${logEntry}
-        </span>
-        </div>
-         `;
-    });
-}
-
-renderLogs();
-renderApps();
-
-function renderApps() {
-    const outputHTML = document.getElementById('js-apps');
-    react.forEach((app, index) => {
-        let contentsHTML = `
-        <div class="contents jse${index + 1}">
-            <div class="f-content">
-                <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
-                <span>package.json</span>
-            </div>
-        </div>
-        `;
-        if (app.type === 'Javascript') {
-            contentsHTML = `
-                <div class="contents jse${index + 1}">
-                    <div class="f-content">
-                        <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
-                        <span>package.json</span>
-                    </div>
-                    <div class="f-content">
-                        <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
-                        <span>package-lock.json</span>
-                    </div>
-                    <div class="f-content">
-                        <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
-                        <span>db&mAPI.json</span>
-                    </div>
-                    <div class="f-content">
-                        <img src="js/ps/assets/JavaScript-logo.png" alt="img" class="pfp">
-                        <span>source.js</span>
-                    </div>
-                    <div class="f-content">
-                        <img src="js/ps/assets/JavaScript-logo.png" alt="img" class="pfp">
-                        <span>app.js</span>
-                    </div>
-                    <div class="f-content">
-                        <img src="js/ps/assets/JavaScript-logo.png" alt="img" class="pfp">
-                        <span>reportWebVitals.js</span>
-                    </div>
-                </div>`;
-        }
-
-        if (app.type === 'python') {
-            contentsHTML = `
-            <div class="contents jse${index + 1}">
-                <div class="f-content">
-                    <img src="js/ps/assets/py.png" alt="img" class="pfp">
-                    <span>package.py</span>
-                </div>
-                <div class="f-content">
-                    <img src="js/ps/assets/py.png" alt="img" class="pfp">
-                    <span>smsAPI.py</span>
-                </div>
-                <div class="f-content">
-                    <img src="js/ps/assets/py.png" alt="img" class="pfp">
-                    <span>keys.py</span>
-                </div>
-            </div>
-            `
-        }
-
-        outputHTML.innerHTML += `
-            <div class="file react" id="e-file">
-                <div class="react-top">
-                    <div class="fl-r fl-ai g-10">
-                        <div class="img">
-                            <img src="js/ps/assets/react.webp" alt="img" class="pfp">
-                        </div>
-                        <div class="f-sec1">
-                            <span>${app.name}</span>
-                            <span>React app</span>
-                            <span id="${app.type}"> &lt;&sol;&gt; ${app.type}</span>
-                        </div>
-                    </div>
-                    <button class="ps-btn-mini view-btn" onclick="toggleDisplay('jse${index + 1}')">
-                        <span class="material-symbols-outlined">
-                            more_horiz
-                        </span>
-                    </button>
-                </div>
-                ${contentsHTML}
-            </div>`;
-    });
-}
-
-
-
-function theme(theme, color, command) {
-    const input = document.getElementById('input');
-    const container = document.getElementById('output');
-    input.style.color = color;
-    container.style.color = color;
-
-    userData.theme = theme;
-    userData.textColor = color;
-    document.body.style.backgroundColor = theme;
-
-    themeColorComps(theme);
-    TextColorComps(color);
-    loadTheme();
-    saveUserData();
-}
+// alternitive ui  
 
 
 
 
 
-const explarray = []
 
-explarray.push({
-    'bluh': 'e22',
-    'thisThatg': 'hi mom'
-});
 
-console.log(explarray);
-console.log(explarray[0].bluh);
+
