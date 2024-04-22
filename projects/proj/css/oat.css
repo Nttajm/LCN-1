@@ -84,3 +84,25 @@ nav div{
 .p-bottum button:focus {
     color: gold;
 }
+
+.Spotify {
+    color: white;
+    background-color: rgb(0, 145, 0);
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 5px;
+}
+
+.Spotify img {
+    width: 12px;
+}
+
+.trending {
+    color: white;
+    background-color: rgb(202, 106, 27);
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 5px;
+    padding-bottom: 1px;
+    padding-top: 1px;
+}
