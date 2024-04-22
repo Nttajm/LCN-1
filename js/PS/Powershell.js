@@ -12,25 +12,17 @@ let lastCommandIndex = -1;
 const responseHistory = [];
 let logEntries = [];
 let dbArray = [];
-let react = [{
-    type: 'python',
-    name: 'another_one'
-},
-{
-    type: 'Javascript',
-    name: 'test two'
-},
-{
-    type: 'python',
-    name: 'test two'
-}];
+let react = [];
 
-function push() {
-    react.push({
-        name: 'joel',
-        type: 'python'
+function push(name, type, file) {
+    dbArray.push({
+        name,
+        type,
+        file
     })
 }
+
+push('hi', '2', '');
 
 const rN = Math.random();
 
@@ -449,8 +441,8 @@ inputElement.addEventListener("keydown", function (event) {
                 lastCommandIndex = -1;
                 responseHistory.length = 0;
                 response = "Session has been reset.";
-            } else if (command.toLowerCase() === "bitly") {
-                push();
+            } else if (command.toLowerCase().startsWith('npx')) {
+                startLoading(220, 10);
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -642,11 +634,19 @@ inputElement.addEventListener("keydown", function (event) {
                 const comdParts = command.split(" ");
                 const secp = comdParts[2];
                 const thrdp = comdParts[3];
+                const th4 = comdParts[4];
+                const th5 = comdParts[5];
+
                 const lastfileIndex = dbArray.length;
                 const lastfileNum = dbArray.length + 1;
                 var savedDinfiner = 'not saved';
                 if (secp === 'i') {
-                    dbArray.push(thrdp);
+                    startLoading(20, 10);
+                    dbArray.push({
+                        name: thrdp,
+                        type: th4,
+                        file: th5
+                    });
                     response = `<br>${thrdp} added`;
                     response += '<hr>';
                     setTimeout(() => {
@@ -658,18 +658,22 @@ inputElement.addEventListener("keydown", function (event) {
                         response += delay('downloaded', 1800);
                     }, 800);
                     setTimeout(() => {
-                        createNotification(`db / start file "${thrdp}..." has been created`, 'downlaoded', 'check_circle', 'stat');
-                        saveUserData();
+                        createNotification(`db / start file "${thrdp}..." has been created(not saved)`, 'downlaoded', 'check_circle', 'stat');
+                        renderApps();
                     }, 2600);
                 } else if (secp === 's') {
                     saveUserData();
                     response = 'saved.'
                 } else if (secp === '') {
+                    let userName = userData.name
+                    if (!userData.name) {
+                        userName = 'user'
+                    }
                     response += `<br> dir = ` + lastfileIndex;
-                    response += `<br> set dir: DB$M/db/array(${dbArray.length})`
+                    response += `<br> set dir: DB$M/db/${userName}/array(${dbArray.length})`
                     response += `<hr>`;
                     dbArray.forEach((db, index) => {
-                        response += `<br> ${index + 1} (${index}). ${db}`;
+                        response += `<br> ${index + 1} (${index}). ${db.name}`;
                     });
                 } else{
                     createNotification(system.error.syntax)
@@ -840,9 +844,13 @@ inputElement.addEventListener("keydown", function (event) {
                 <span class="stat">f</span>
                 <span class="g">1234ABCabc</span>
                 <span class="r">1234ABCabc</span>`
+            } else if (command.startsWith("t--devlOAD")) {
+                const parts = command.split(" ")
+                startLoading(parts[1], parts[2])
+                response = 'testing...'
+
             } else if (command.toLowerCase().startsWith("text-color")) {
                 const themeParts = command.split(" ");
-
                 if (themeParts.length === 2) {
                     const input = document.getElementById('input');
                     const container = document.getElementById('output');
@@ -918,9 +926,11 @@ function renderLogs() {
 renderLogs();
 renderApps();
 
+
 function renderApps() {
     const outputHTML = document.getElementById('js-apps');
-    react.forEach((app, index) => {
+    outputHTML.innerHTML = '';
+    dbArray.forEach((app, index) => {
         let contentsHTML = `
         <div class="contents jse${index + 1}">
             <div class="f-content">
@@ -959,6 +969,17 @@ function renderApps() {
                 </div>`;
         }
 
+        if (app.type === 'php') {
+            contentsHTML = `
+            <div class="contents jse${index + 1}">
+                ${contents('smskeys.php', 'php')}
+                ${contents('APIsm.php', 'php')}
+                ${contents('source.php', 'php')}
+                ${contents('response.php', 'php')}
+            </div>
+            `
+        }
+
         if (app.type === 'python') {
             contentsHTML = `
             <div class="contents jse${index + 1}">
@@ -978,16 +999,107 @@ function renderApps() {
             `
         }
 
+        if (app.type === 'java') {
+            contentsHTML = `
+            <div class="contents jse${index + 1}">
+                <div class="f-content">
+                    <img src="js/ps/assets/java_logo.png" alt="img" class="pfp">
+                    <span>package.java</span>
+                </div>
+                <div class="f-content">
+                    <img src="js/ps/assets/java_logo.png" alt="img" class="pfp">
+                    <span>package_sourceAPI.java</span>
+                </div>
+                <div class="f-content">
+                    <img src="js/ps/assets/java_logo.png" alt="img" class="pfp">
+                    <span>genral.java</span>
+                </div>
+                <div class="f-content">
+                        <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
+                        <span>db&mAPI.json</span>
+                </div>
+            </div>
+            `
+        }
+
+        if (app.type === 'lso') {
+            contentsHTML = `
+            <div class="contents jse${index + 1}">
+            ${contents('package.json', 'json_out')}
+            ${contents('erat', 'json_out')}
+            ${contents('scon', 'json_out')}
+            ${contents('utils.js', 'JavaScript-logo')}
+            ${contents('locals.js', 'JavaScript-logo')}
+            ${contents('localHost.js', 'JavaScript-logo')}
+            ${contents('res.js', 'JavaScript-logo')}
+            ${contents('items.js', 'JavaScript-logo')}
+
+            </div>
+            `
+        }
+
+        if (app.type === 'config') {
+            contentsHTML = `
+            <div class="contents jse${index + 1}">
+            ${contents('package.json', 'json_out')}
+            ${contents('app.js', 'JavaScript-logo')}
+            ${contents('utils.js', 'JavaScript-logo')}
+            ${contents('locals.js', 'JavaScript-logo')}
+            </div>
+            `
+        }
+
+        if (app.type === 'system') {
+            contentsHTML = `
+            <div class="contents jse${index + 1}">
+            ${contents('package.ts', 'json_out')}
+            ${contents('app.ts', 'typescript')}
+            ${contents('lnoAPI.ts', 'typescript')}
+            ${contents('library.ts', 'typescript')}
+            ${contents('app.ts', 'typescript')}
+            ${contents('Tran.ts', 'typescript')}
+            </div>
+            `
+        }
+
+        let appLogo = `react.webp`
+        let appName = `React`
+
+        if (app.file === 'ang') {
+            appLogo = `angular.png`
+            appName = `Angular`
+        }
+
+        if (app.type === 'lso') {
+            appLogo = `node.png`
+            appName = `node`
+        }
+
+        if (app.type === 'node') {
+            appLogo = `node.png`
+            appName = `node`
+        }
+
+        if (app.type === 'system') {
+            appLogo = `node.png`
+            appName = `TS config`
+        }
+
+        if (app.type === 'php') {
+            appLogo = `php.png`
+            appName = `html, server`
+        }
+
         outputHTML.innerHTML += `
             <div class="file react" id="e-file">
                 <div class="react-top">
                     <div class="fl-r fl-ai g-10">
                         <div class="img">
-                            <img src="js/ps/assets/react.webp" alt="img" class="pfp">
+                            <img src="js/ps/assets/${appLogo}" alt="img" class="pfp">
                         </div>
                         <div class="f-sec1">
                             <span>${app.name}</span>
-                            <span>React app</span>
+                            <span>${appName} app</span>
                             <span id="${app.type}"> &lt;&sol;&gt; ${app.type}</span>
                         </div>
                     </div>
@@ -1000,6 +1112,16 @@ function renderApps() {
                 ${contentsHTML}
             </div>`;
     });
+}
+
+function contents(name, img) {
+    const text = `
+    <div class="f-content">
+        <img src="js/ps/assets/${img}.png" alt="img" class="pfp">
+        <span>${name}</span>
+    </div>
+    `
+    return text;
 }
 
 
