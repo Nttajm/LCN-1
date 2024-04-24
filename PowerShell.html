@@ -83,7 +83,21 @@
         <div class="e-top">
             <button class="close" onclick="toggleDisplayWdbe('explorer')">X</button>
         </div>
-        <div class="explorer-area">
+        <div class="tab-buttons">
+            <button class="tab" onclick="openTab1('tab1', this)">
+                Main Directory
+            </button>
+            <button class="tab" onclick="openTab1('tab2', this)">
+                Apps
+            </button>
+            <button class="tab"  onclick="openTab1('tab3', this)">
+                Output display
+            </button>
+            <button class="tab"  onclick="openTab1('tab4', this)">
+                System output
+            </button>
+        </div>
+        <div class="explorer-area tab-content" style="display: block;" id="tab1">
             <!--e here-->
             <div class="eOP dn">
                 No data called, inputed or loaded.
@@ -105,6 +119,7 @@
                 Folders
             </h1>
             <div class="files" id="js-apps">
+                <!--
                 <div class="file react" id="e-file">
                     <div class="react-top">
                         <div class="fl-r fl-ai g-10">
@@ -123,7 +138,6 @@
                             </span>
                         </button>
                     </div>
-                    <!--
                         <div class="contents">
                         <div class="f-content">
                             <img src="js/ps/assets/json_out.png" alt="img" class="pfp">
@@ -154,6 +168,62 @@
                     
                 </div>
             </div>
+        <div class="tab-content" id="tab4">
+            <div class="sys-output">
+                <div class="sys-info">
+                    <div class="sys-top">
+                        <span>Message list</span>
+                    </div>
+                    <div class="sys-middle">
+                        <div class="sys-box">
+                            <span class="material-symbols-outlined stat-error">
+                                error
+                            </span>
+                            <span id="js-errorCount">0</span> Errors
+                        </div>
+                        |
+                        <div class="sys-box">
+                            <span class="material-symbols-outlined highlight">
+                                warning
+                            </span>
+                            <span id="js-waringCount">0</span> Warnings
+                        </div>
+                        |
+                        <div class="sys-box">
+                            <span class="material-symbols-outlined skyblue">
+                                article
+                             </span>
+                            <span id="js-messagesCount">0</span> Messages
+                        </div>
+                    </div>
+                </div>
+                <div class="sys-bottom">
+                    <span id="js-sys-out">db/m directory ~ bm/main/array/user/ > </span>
+                </div>
+            </div>
+        </div>
+        <div class="tab-content" id="tab2">
+            <div class="app-cont">
+                <div class="app file react" id="e-file">
+                   <div>
+                    <span>Snake Game</span>
+                    <span>play snake game. eat as many apples as you can!</span>
+                    <span id="Javascript"> &lt;&sol;&gt; Javascript</span>
+                   </div>
+                   <div>
+                    <button class="ps-btn-mini">
+                        Install
+                    </button>
+                    <button class="ps-btn-mini">
+                        Disable
+                    </button>
+                   </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-content" id="tab3">
+           $> nothing loaded
+        </div>
         </div>
     </div>
     <footer class="foot">
@@ -215,7 +285,7 @@
                 <span>utf-8</span>
             </div>
         </div>
-        <div class="jsoutput-cont" id="myDiv">
+        <div class="jsoutput-cont dn" id="myDiv">
             <div class="jso-c-t">
                 <button class="s-span output-btn" onclick="runCode();">RUN</button>
             </div>

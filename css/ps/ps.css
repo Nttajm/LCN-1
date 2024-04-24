@@ -41,6 +41,10 @@ body {
     opacity: 0.87;
 }
 
+.skyblue {
+    color: rgb(131, 177, 230);
+}
+
 .p {
     padding: 0;
     margin: 0;

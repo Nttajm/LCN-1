@@ -30,3 +30,48 @@ slider.onmousedown = function dragMouseDown(e) {
   // remove mouse-move listener on mouse-up (drag is finished now)
   document.onmouseup = () => document.onmousemove = document.onmouseup = null;
 }
+
+
+function openTab1(tabName, button) {
+  // Hide all tab contents
+  const tabContents = document.getElementsByClassName("tab-content");
+  for (var i = 0; i < tabContents.length; i++) {
+    tabContents[i].style.display = "none";
+  }
+
+  // Remove 'selected' class from all buttons
+  var tabButtons = document.getElementsByClassName("tab");
+  for (var i = 0; i < tabButtons.length; i++) {
+    tabButtons[i].classList.remove("selected");
+  }
+
+  // Show the select ed tab content
+  document.getElementById(tabName).style.display = "block";
+
+  // Add 'selected' class to the clicked button
+  button.classList.add("selected");
+
+  localStorage.setItem("lastTab", tabName);
+}
+
+var lastTab = localStorage.getItem("lastTab");
+openTab1(lastTab);
+
+
+function outputCounts(option) {
+  const error = document.getElementById('js-errorCount');
+  const warning = document.getElementById('js-waringCount');
+  const messages = document.getElementById('js-messagesCount');
+
+  let count = 0;
+
+    if (option === 'error') {
+      error.innerHTML = ``;
+      error.innerHTML = count++
+    }
+
+
+}
+
+outputCounts('error');
+outputCounts('error');
