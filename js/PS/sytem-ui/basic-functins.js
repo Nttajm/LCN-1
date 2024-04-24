@@ -49,7 +49,6 @@ function openTab1(tabName, button) {
   document.getElementById(tabName).style.display = "block";
 
   // Add 'selected' class to the clicked button
-  button.classList.add("selected");
 
   localStorage.setItem("lastTab", tabName);
 }
@@ -57,21 +56,22 @@ function openTab1(tabName, button) {
 var lastTab = localStorage.getItem("lastTab");
 openTab1(lastTab);
 
+let count = 0;
 
 function outputCounts(option) {
   const error = document.getElementById('js-errorCount');
   const warning = document.getElementById('js-waringCount');
   const messages = document.getElementById('js-messagesCount');
 
-  let count = 0;
-
-    if (option === 'error') {
-      error.innerHTML = ``;
-      error.innerHTML = count++
-    }
-
-
+  if (option === 'e') {
+    error.innerHTML = ++count;
+  } else if (option === 'w') {
+    warning.innerHTML = ++count;
+  } else if (option === 'm') {
+    messages.innerHTML = ++count;
+  }
 }
 
-outputCounts('error');
-outputCounts('error');
+
+
+
