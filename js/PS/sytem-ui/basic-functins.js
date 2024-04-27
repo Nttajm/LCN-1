@@ -1,4 +1,6 @@
 
+
+
 function toggleDisplay(div) {
   const targetDiv = document.querySelector(`.` + div)
   targetDiv.classList.toggle('dbk')
@@ -32,8 +34,40 @@ slider.onmousedown = function dragMouseDown(e) {
   document.onmouseup = () => document.onmousemove = document.onmouseup = null;
 }
 
+function startLoading(duration, int) {
+  const cont = document.querySelector('.load');
+  const loadingBar = document.getElementById('loading-bar');
+  const interval = int; // Interval in milliseconds
+  const steps = duration / interval;
+  let width = 0;
 
-function openTab1(tabName, button) {
+  const stepWidth = 10 / steps;
+
+  const animate = setInterval(() => {
+    cont.style.display = 'block';
+    width += stepWidth;
+    loadingBar.style.width = `${width}%`;
+
+    if (width >= 20) { // Slow down when reaching 70%
+      clearInterval(animate);
+      const slowInterval = setInterval(() => {
+        width += stepWidth / 2; // Slow down by half
+        loadingBar.style.width = `${width}%`;
+
+        if (width >= 110) { // Finish loading when reaching 100%
+          clearInterval(slowInterval);
+          setTimeout(() => {
+            cont.style.display = 'none'; // Hide the container after animation is over
+          }, interval * 170 ); // Set the delay to be the same as the interval
+        }
+      }, interval * 2);
+    }
+  }, interval);
+}
+
+
+
+function openTab1(tabName) {
   // Hide all tab contents
   const tabContents = document.getElementsByClassName("tab-content");
   for (var i = 0; i < tabContents.length; i++) {
@@ -60,8 +94,6 @@ openTab1(lastTab);
 let countE = 0;
 let countW = 0;
 let countM = 0;
-
-
 
 function outputCounts(option) {
   const error = document.getElementById('js-errorCount');
@@ -128,6 +160,39 @@ sysMessage('200.pass', 'm' );
 
 function print(text) {
   sysMessage(text, 'm');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  let buttonsApps = document.querySelectorAll('.js-app-btn');
+
+  buttonsApps.forEach(button => {
+    const installed = localStorage.getItem(button.id);
+    console.log(button.id)
+    if (installed) {
+      button.innerText = 'Run';
+    }
+  });
+});
+
+function download(program) {
+  const installed = localStorage.getItem(`js-btn-v-${program}`) || '';
+  let button = document.getElementById(`js-btn-v-${program}`)
+
+  if (installed) {
+    button.innerHTML = `Run`
+    runProgram(program);
+  } else {
+    startLoading(120, 20);
+    sysMessage('not made', 'w');
+    button.innerHTML = `Run`
+    localStorage.setItem(`js-btn-v-${program}`, true);
+  }
+
+}
+
+function disable() {
+  const display = document.getElementById('tab3');
+  display.innerHTML = ``;
 }
 
 

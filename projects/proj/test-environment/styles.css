@@ -1,39 +1,97 @@
 body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: black;
+  height: 100vh;
+  margin: 0;
 }
 
-#gameArea {
-  position: relative;
-  width: 800px;
-  height: 400px;
-  background-color: #333;
+.container {
+  text-align: center;
 }
 
-#ball {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border-radius: 50%;
+h1 {
+  margin-bottom: 20px;
 }
 
-#paddleLeft, #paddleRight {
-  position: absolute;
-  width: 20px;
-  height: 100px;
-  background-color: white;
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 40px);
+  grid-gap: 2px;
 }
 
-#paddleLeft {
-  left: 0;
+.cell {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  cursor: pointer;
+  background-color: #ddd;
+  transition: background-color 0.2s;
 }
 
-#paddleRight {
-  right: 0;
+.hidden {
+  background-color: #bbb;
+}
+
+.mine {
+  background-color: #f00;
+  color: #fff;
+}
+
+.num {
+  color: black;
+}
+
+.one {
+  color: blue;
+}
+
+.two {
+  color: green;
+}
+
+.three {
+  color: red;
+}
+
+.four {
+  color: darkblue;
+}
+
+.five {
+  color: darkred;
+}
+
+.six {
+  color: darkgreen;
+}
+
+.seven {
+  color: purple;
+}
+
+.eight {
+  color: darkorange;
+}
+
+#reset {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#reset:hover {
+  background-color: #0056b3;
 }

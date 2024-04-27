@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/ps/ps.css">
     <link rel="stylesheet" href="css/ps/suggestions.css">
     <link rel="stylesheet" href="css/standard.css">
+    <link rel="stylesheet" href="css/ps/apps.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PowerShell</title>
@@ -84,16 +85,16 @@
             <button class="close" onclick="toggleDisplayWdbe('explorer')">X</button>
         </div>
         <div class="tab-buttons">
-            <button class="tab" onclick="openTab1('tab1', this)">
+            <button class="tab" onclick="openTab1('tab1')">
                 Main Directory
             </button>
-            <button class="tab" onclick="openTab1('tab2', this)">
+            <button class="tab" onclick="openTab1('tab2')">
                 Apps
             </button>
-            <button class="tab"  onclick="openTab1('tab3', this)">
+            <button class="tab"  onclick="openTab1('tab3')">
                 Output display
             </button>
-            <button class="tab"  onclick="openTab1('tab4', this)">
+            <button class="tab"  onclick="openTab1('tab4')">
                 System output
             </button>
         </div>
@@ -216,18 +217,21 @@
                     <span id="Javascript"> &lt;&sol;&gt; Javascript</span>
                    </div>
                    <div>
-                    <button class="ps-btn-mini">
-                        Install
-                    </button>
-                    <button class="ps-btn-mini">
-                        Disable
-                    </button>
+                        <button class="ps-btn-mini" onclick="download('snake')"> 
+                            Install
+                        </button>
+                        <button class="ps-btn-mini">
+                            Disable
+                        </button>
                    </div>
                 </div>
             </div>
         </div>
         <div class="tab-content" id="tab3">
-           $> nothing loaded
+            <div class="app-head">
+                --:-- <span class="bold">>_</span>
+            </div>
+            $> nothing loaded
         </div>
         </div>
     </div>
@@ -334,7 +338,7 @@
 
     });;
     </script>
-    <script src="js/ps/sytem-ui/loader.js"></script>
+    <script src="js/ps/sytem-ui/app.js"></script>
     <script src="js/ps/Powershell.js" type="module"></script>
     <script src="js/ps/netstat.js" type="module"></script>
     <script src="js/ps/sessionid.js" type="module"></script>
@@ -346,6 +350,7 @@
     <script type="module" src="js/ps/sytem-ui/messages.js"></script>
     <script src="js/ps/sytem-ui/suggestions.js"></script>
     <script src="js/ps/sytem-ui/basic-functins.js"></script>
+    <script src="js/ps/sytem-ui/fkjsx.js"></script>
 </body>
 </html>
 

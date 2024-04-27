@@ -1,0 +1,96 @@
+
+  #gameArea {
+    position: relative;
+    width: 100% - 30px;
+    height: 50% - 20px;
+    background-color: #333;
+  }
+  
+  #ball {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+  }
+  
+  #paddleLeft, #paddleRight {
+    position: absolute;
+    width: 20px;
+    height: 100px;
+    margin: 10px;
+    background-color: white;
+  }
+  
+  #paddleLeft {
+    left: 0;
+  }
+  
+  #paddleRight {
+    right: 0;
+  }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(16, 30px);
+    grid-gap: px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .cell {
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    border: 1px solid #aaaaaa;
+    background-color: #999;
+    display: inline-block;
+    text-align: center;
+    line-height: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    color: white;
+    font-family: roboto;
+  }
+  
+  .hidden {
+    background-color: #808080;
+  }
+  
+  .mine {
+    background-color: rgb(221, 0, 0);
+    color: #ffffff;
+  }
+
+  .one {
+    color: blue;
+  }
+  
+  .two {
+    color: green;
+  }
+  
+  .three {
+    color: red;
+  }
+  
+  .four {
+    color: darkblue;
+  }
+  
+  .five {
+    color: darkred;
+  }
+  
+  .six {
+    color: darkgreen;
+  }
+  
+  .seven {
+    color: purple;
+  }
+  
+  .eight {
+    color: darkorange;
+  }
+  

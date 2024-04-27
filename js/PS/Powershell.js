@@ -22,7 +22,6 @@ function push(name, type, file) {
     })
 }
 
-push('hi', '2', '');
 
 const rN = Math.random();
 
@@ -1168,13 +1167,3 @@ function theme(theme, color, command) {
 
 
 
-
-const explarray = []
-
-explarray.push({
-    'bluh': 'e22',
-    'thisThatg': 'hi mom'
-});
-
-console.log(explarray);
-console.log(explarray[0].bluh);
