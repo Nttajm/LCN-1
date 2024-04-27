@@ -171,6 +171,8 @@ const loadUserData = () => {
 
 };
 
+
+
 function createNotification(text, option, icon, color) {
     option = option || 'System Error';
     icon = icon || 'error';
@@ -202,7 +204,18 @@ function createNotification(text, option, icon, color) {
     // Append notification to the div with class "notification"
     const notificationContainer = document.querySelector('.notification-container'); // Change this selector to match your actual container
     notificationContainer.appendChild(notificationDiv);
+
+    if (option === 'error') {
+        sysMessage(text, 'e');
+    } else if (text === system.error.syntax) {
+        sysMessage(text, 'e');
+    } else {
+        print(text);
+    }
+
+
 }
+
 
 // Save user data to localStorage
 function saveUserData() {
@@ -443,6 +456,12 @@ inputElement.addEventListener("keydown", function (event) {
                 response = "Session has been reset.";
             } else if (command.toLowerCase().startsWith('npx')) {
                 startLoading(220, 10);
+            } else if (command.toLowerCase().startsWith('print')) {
+                const sec = command.split(" ")
+                print(`${sec[1]}`);
+                response = 'printed'
+                openTab1('tab4');
+
             } else if (command.toLowerCase().startsWith("rand")) {
                 const match = command.match(/\((\d+)-(\d+)\)/);
                 if (match) {
@@ -569,11 +588,15 @@ inputElement.addEventListener("keydown", function (event) {
                 response += `<br> netwrok status: <span class="g"> ${network} </span>`
                 response += `<br> files stored: ${dbArray.length + 1}`
                 response += `<hr>`
-            } else if (command.toLowerCase() === "spam") {
-                const spamParts = command.split(" ") || 70;
-                const spam = parseInt(spamParts[2] || 70);
+            } else if (command.toLowerCase().startsWith('spam')) {
+                const spamParts = command.split(" ");
+                const spam = 70;
+                if (spamParts.length > 2) {
+                    spam = parseInt(spamParts[1])
+                }
                 for (let i = 0; i <spam; i++) {
                     response += `<div>Lorem ipsum dolor sit amet consectet</div>\n`;
+                    sysMessage('Lorem ipsum dolor sit amet consectet', 'm');
                 }     
             } else if (command.toLowerCase().startsWith("npm i")) {
                 npmI = true;

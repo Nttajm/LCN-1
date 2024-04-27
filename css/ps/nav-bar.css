@@ -27,6 +27,18 @@
     --bg-color:  #04028d;
 }
 
+.textColor {
+    color: var(--textColor);
+}
+
+.themeColor {
+    color: var(--theme)
+}
+
+.bold {
+    font-family: 600;
+}
+
 #ie {
     display: none;
 }

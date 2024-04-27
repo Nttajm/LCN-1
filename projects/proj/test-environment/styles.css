@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+}
+
+#gameArea {
+  position: relative;
+  width: 800px;
+  height: 400px;
+  background-color: #333;
+}
+
+#ball {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+}
+
+#paddleLeft, #paddleRight {
+  position: absolute;
+  width: 20px;
+  height: 100px;
+  background-color: white;
+}
+
+#paddleLeft {
+  left: 0;
+}
+
+#paddleRight {
+  right: 0;
+}
