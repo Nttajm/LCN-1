@@ -145,10 +145,10 @@ setInterval(update, 1000 / 60);
 }
 
 function minesweeperGame() {
-    const board = document.getElementById('board');
-const ROWS = 15;
-const COLS = 15;
-const MINES = 26;
+const board = document.getElementById('board');
+const ROWS = 8;
+const COLS = 8;
+const MINES = 12;
 
 let grid = [];
 
