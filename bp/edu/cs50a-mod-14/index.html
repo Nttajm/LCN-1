@@ -205,10 +205,18 @@
   <script>
     function addAfter() {
       const element = document.getElementById('after');
+      const blank = document.querySelector('.blank');
+    
       setTimeout(() => {
-        element.classList.add('fade-ani')
-      }, 1200);
+        blank.classList.add("fadeup-ani");
+      }, 600);
+    
+      setTimeout(() => {
+        element.classList.add('fade-ani');
+      }, 1000);
     }
+    
+    
 
     addAfter();
 
