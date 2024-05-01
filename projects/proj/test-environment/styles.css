@@ -13,10 +13,15 @@ body {
   height: 60px;
   top: 0;
   left: 0;
-  transform: translate(-50%, -50%);
   z-index: 999;
   background-color: red;
   border-radius: 50%;
   pointer-events: none; /* Allow clicks to pass through */
   z-index: 9999; /* Ensure it's on top of other elements */
+}
+
+.all {
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
 }
