@@ -344,17 +344,38 @@ footer div div{
   position: fixed;
   z-index: 999;
   opacity: 1;
-  animation: fadeUp 2.3s ease forwards;
+}
+
+.blank {
+  background-color: rgb(255, 255, 255);
+  z-index: 10;
+  width: 100%;
+  position: absolute;
+  bottom: -90px;
+  height: 800px;
+  animation: fadeUp 1.2s ease forwards;
+}
+
+.fade-ani {
+  animation: fade 1.9s ease forwards;
 }
 
 @keyframes fadeUp {
+  0% {
+    transform: translateY(-113%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade {
   0% {
     opacity: 1;
     transform: translateY(0);
   }
   100% {
     opacity: 0;
-    transform: translateY(-20px);
     display: none;
      /* Adjust this value based on how far you want it to move up */
   }

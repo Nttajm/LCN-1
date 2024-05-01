@@ -7,8 +7,9 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="cover">
+  <div class="cover" id="after">
     <img src="images/U_C-w-a.png" alt="">
+    <div class="blank"></div>
   </div>
   <div class="background"></div>
   <nav>
@@ -202,6 +203,15 @@
   </footer>
 
   <script>
+    function addAfter() {
+      const element = document.getElementById('after');
+      setTimeout(() => {
+        element.classList.add('fade-ani')
+      }, 1200);
+    }
+
+    addAfter();
+
     document.addEventListener('DOMContentLoaded', () => {
       const elements = document.querySelectorAll('.animated-element');
     
