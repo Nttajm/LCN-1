@@ -7,7 +7,6 @@ body {
 
 p, a {
   font-family: 'roboto', arial;
-  color: rgb(189, 189, 189);
   text-decoration: none;
   margin-top: 0px;
   margin-bottom: 0px;
@@ -155,14 +154,10 @@ p, a {
   color: var(--tlkk);
 }
 
-strong { 
-  font-weight: 700;
-  color: rgb(255, 255, 255);
-}
-
 button {
   border: solid;
   border-width: 1.1px;
+  border-style: none;
 }
 
 span a {

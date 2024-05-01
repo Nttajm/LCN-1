@@ -19,7 +19,9 @@ strong {
   height: 25px;
   width: 25px;
   border-radius: 12.5px;
-  
+  backdrop-filter: blur(2px);
+  border: solid 1px rgb(182, 182, 182);
+  background-color: rgba(255, 255, 255, 0.281);
 }
 
 
@@ -31,6 +33,23 @@ strong {
   
 }
 
+.blob {
+  position: absolute;
+  bottom: 0;
+  right: -110px;
+  background-color: rgba(0, 128, 90, 0.692);
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  opacity: 0.6;
+  z-index: -1;
+  filter: blur(120px);
+}
+
+#top {
+  top: -10%;
+  left: -10%;
+}
 .below-discrip {
   margin-left: 30px;
   
@@ -41,7 +60,6 @@ strong {
   margin-left: 30px;
   margin-top: 10px;
   width: 200px;
-
 }
 .more {
   color: gray;
@@ -78,6 +96,10 @@ strong {
   box-shadow: 0px,2px,7px rgba(0, 0, 0, 0.5);
 }
 
+#content {
+  display: none;
+}
+
 .more-content {
   font-weight: 300;
   text-align: center;
@@ -87,3 +109,5 @@ strong {
   line-height: 100px;
   color: rgb(10, 94, 90);
 }
+
+
