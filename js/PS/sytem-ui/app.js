@@ -29,7 +29,7 @@ const appProgram = [
         id: 291,
     },
     {
-      name: 'Japan',
+      name: 'other',
       appHTML: `
       
       `,
@@ -67,8 +67,10 @@ function runProgram(proId) {
         if (proId === app.id) {
             if (app.name === 'other' ) {
               openTab1('tab2');
+            } else {
+              openTab1('tab3');
             }
-            openTab1('tab3');
+            
             display.innerHTML = app.appHTML;
             found = true;
             if (proId === 191) {

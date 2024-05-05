@@ -32,6 +32,7 @@ var suggestions = [
   "db / ",
   "db / i",
   "db / s",
+  "db / a",
   'e /',
   'dis log',
   'r',

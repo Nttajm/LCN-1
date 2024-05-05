@@ -180,6 +180,7 @@ function createNotification(text, option, icon, color) {
     const notificationDiv = document.createElement('div');
     notificationDiv.classList.add('notification');
 
+
     const headDiv = document.createElement('div');
     headDiv.classList.add('n-head', 'fl-ai');
 
@@ -690,6 +691,10 @@ inputElement.addEventListener("keydown", function (event) {
                 } else if (secp === 's') {
                     saveUserData();
                     response = 'saved.'
+                } else if (secp === 'a') {
+                    response = `program ${thrdp}`
+                    download(parseInt(thrdp))
+                    console.log(thrdp)
                 } else if (secp === '') {
                     let userName = userData.name
                     if (!userData.name) {
