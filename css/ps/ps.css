@@ -5,6 +5,44 @@ body {
     padding: 0;
 }
 
+.wallpaper {
+    position: fixed;
+    background-repeat: repeat-y;
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    filter: brightness(0.8);
+}
+
+.js-app-wallp {
+
+}
+
+.js-app-btn {
+    min-width: 50px; 
+}
+
+.blur {
+    background-color: rgba(212, 212, 212, 0.37);
+  backdrop-filter: blur(10px);
+}
+
+.blurOverlay {
+    filter: blur(4px) brightness(0.8);
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-repeat: repeat-y;
+    background-size: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.test {
+    
+}
+
 ::-webkit-scrollbar-thumb {
     background: #0805a5;
 }

@@ -28,6 +28,30 @@ const appProgram = [
         `,
         id: 291,
     },
+    {
+      name: 'Japan',
+      appHTML: `
+      
+      `,
+      type: 'wallpaper',
+      id: 691,
+    },
+    {
+      name: 'other',
+      appHTML: `
+      
+      `,
+      type: 'wallpaper',
+      id: 403,
+    },
+    {
+      name: 'other',
+      appHTML: `
+
+      `,
+      type: 'wallpaper',
+      id: 413,
+    },
 ];
 
 function runProgram(proId) {
@@ -35,7 +59,15 @@ function runProgram(proId) {
     display.innerHTML = ``;
     let found = false;
     appProgram.forEach(app => {
+        if (app.type === 'wallpaper') {
+          if (proId === app.id && app.type === 'wallpaper') {
+            WallpaperCH(proId);
+          }
+        }
         if (proId === app.id) {
+            if (app.name === 'other' ) {
+              openTab1('tab2');
+            }
             openTab1('tab3');
             display.innerHTML = app.appHTML;
             found = true;
@@ -52,9 +84,42 @@ function runProgram(proId) {
     }
 }
 
+function WallpaperCH(number) {
+  let changedElems = document.querySelectorAll('.js-app-wallp');
+  let blurElems = document.querySelectorAll('.js-blurBackground');
+  let wallpaperObjects = {
+    'japan': `/js/ps/assets/cherryblossum.webp`,
+    'new york': `/js/ps/assets/new_york.jpg`,
+    'monte' :  `./projects/proj/inspo-1/assets/wp9197366-dark-hills-wallpapers.jpg`,
+  }
+
+  const wpSize = `cover`;
+  function wall(img) {
+    changedElems.forEach(function(elem) {
+      elem.style.backgroundImage = `url(${img})`;
+      elem.style.backgroundSize = wpSize;
+    });
+    blurElems.forEach(function(elem) {
+      elem.classList.add('blur')
+    });
+  }
+
+  if (number === 691) {
+    wall(wallpaperObjects.japan)
+  }
+  
+  if (number === 403) {
+    wall(wallpaperObjects["new york"])
+  }
+
+  if (number === 413) {
+    wall(wallpaperObjects["monte"])
+  }
+}
+
 
 function pongapp() {
-    const ball = document.getElementById('ball');
+const ball = document.getElementById('ball');
 const paddleLeft = document.getElementById('paddleLeft');
 const paddleRight = document.getElementById('paddleRight');
 const gameArea = document.getElementById('gameArea');
@@ -148,7 +213,7 @@ function minesweeperGame() {
 const board = document.getElementById('board');
 const ROWS = 8;
 const COLS = 8;
-const MINES = 12;
+const MINES = 10;
 
 let grid = [];
 

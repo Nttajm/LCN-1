@@ -40,7 +40,8 @@ var suggestions = [
   'th calm',
   'th night',
   'bitly',
-  't--devlOAD'
+  't--devlOAD',
+  't--et',
 ];
 
     // Function to create autocomplete suggestions

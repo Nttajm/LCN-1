@@ -381,6 +381,10 @@ inputElement.addEventListener("keydown", function (event) {
                 stopwatchInterval = null;
             }
 
+            if (command === "t--et") {
+                localStorage.clear();
+            }
+
             if (command.toLowerCase() === "dis log") {
                 userData = {};
                 dbArray = [];

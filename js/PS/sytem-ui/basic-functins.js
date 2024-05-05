@@ -181,12 +181,14 @@ function download(program) {
   if (installed) {
     button.innerHTML = `Run`
     runProgram(program);
+    sysMessage(`program '${program}' is now running in the output display.`, 'm')
   } else {
     startLoading(120, 20);
     sysMessage('not made', 'w');
     button.innerHTML = `Run`
     localStorage.setItem(`js-btn-v-${program}`, true);
   }
+
 
 }
 

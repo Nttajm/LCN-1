@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Wordle</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Wordle</h1>
+    <div class="word-display" id="word"></div>
+    <div class="guess-row">
+      <input type="text" id="guess-input" maxlength="5" placeholder="Enter your guess">
+      <button onclick="checkGuess()">Submit</button>
+    </div>
+    <div class="result-row" id="result"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
