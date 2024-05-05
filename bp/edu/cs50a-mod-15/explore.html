@@ -16,17 +16,18 @@
     <div class="nav-sec1">
       <img src="images/U_C_b-a.png" alt="img" class="logo">
     </div>
-    <div class="nav-sec2">
+    <div class="nav-sec2 fl-ai g-20">
       <ul>
-        <li>CONTACT</li>
-        <li><a href="about.html">ABOUT</a></li>
         <li><a href="index.html">HOME</a></li>
         <li><a href="explore.html">EXPLORE</a></li>
       </ul>
+      <div class="input-c">
+        <input type="text" placeholder="Search anything..." >
+      </div>
     </div>
   </nav>
 
-  <div class="nav-alt scroll-div">
+  <div class="nav-alt scroll-div dn">
     <nav>
       <div class="nav-sec1">
         <img src="./images/U_C_b-a.png" alt="img" class="logo">
@@ -72,6 +73,12 @@
 
 
   <div class="contain-context">
+    <div class="glass signup fl-r fl-ai g-10">
+  <span>Not signed up yet?</span>
+  <button class="btn">
+    Sign up
+  </button>      
+    </div>
     <div class="dots-container">
       <span class="dot"></span>
       <span class="dot"></span>
@@ -82,28 +89,68 @@
       <div class="fl-r ideas">
         <div class="context">
           <div class="overlay span-sec">
-            <span class="head">Aesthetic decor</span>
+            <span class="head"> B&W Aesthetic</span>
             <span class="sub">ways to boost your creativity</span>
+            <button class="btn">
+              Explore
+            </button>
           </div>
           <img src="./images/pintrest/post/ليو.jpg" alt="context">
         </div>
         <div class="context">
           <div class="overlay span-sec">
-            <span class="head">Aesthetic decor</span>
-            <span class="sub">ways to boost your creativity</span>
+            <span class="head">Outdoor Activities</span>
+            <span class="sub">Things in nature</span>
+            <button class="btn">
+              Explore
+            </button>
           </div>
           <img src="./images/pintrest/post/in-water.jpg" alt="context">
         </div>
         <div class="context">
           <div class="overlay span-sec">
             <span class="head">Aesthetic decor</span>
-            <span class="sub">ways to boost your creativity</span>
+            <span class="sub">room inspo</span>
+            <button class="btn">
+              Explore
+            </button>
           </div>
           <img src="./images/pintrest/post/ast-1.jpg" alt="context">
         </div>
+        <div class="context">
+          <div class="overlay span-sec">
+            <span class="head">Outdoor Activities</span>
+            <span class="sub">summer swim</span>
+            <button class="btn">
+              Explore
+            </button>
+          </div>
+          <img src="./images/pintrest/post/summer swim.jpg" alt="context">
+        </div>
+        <div class="context">
+          <div class="overlay span-sec">
+            <span class="head">Accessories</span>
+            <span class="sub">earings</span>
+            <button class="btn">
+              Explore
+            </button>
+          </div>
+          <img src="./images/pintrest/post/🦋.jpg" alt="context">
+        </div>
+        <div class="context">
+          <div class="overlay span-sec">
+            <span class="head">Nostalgia</span>
+            <span class="sub">2016 memories</span>
+            <button class="btn">
+              Explore
+            </button>
+          </div>
+          <img src="./images/pintrest/post/Kendrick Lamar.jpg" alt="context">
+        </div>
       </div>
       <div class="sug">
-        <div class="suggestions">
+        <!--
+          <div class="suggestions">
           <div class="fl-c ">
             <span class="sub">more ideas</span>
             <span class="head">Nostalgia</span>
@@ -115,13 +162,50 @@
             <img src="images/pintrest/post/download (1).jpg" alt="cont">
           </div>
         </div>
+        -->
       </div>
     </div>
   </div>
-
+  <footer>
+    <div class="col animated-element">
+      <div class="f-head">
+        <span>Refrences</span>
+      </div>
+      <span><a href="http://lcnjoel.com">lcnjoel.com</a></span>
+    </div>
+    <div class="col animated-element">
+      <div class="f-head">
+        <span>Contact</span>
+      </div>
+      <span><a href="contact.html">Contact us</a></span>
+      <div class="f-head">
+        <span>Credits</span>
+      </div>
+      <span><a href="about.html">Joel Mulonde</a></span>
+      <div class="f-head">
+        <span>Attributions</span>
+      </div>
+      <span><a href="about.html">Pintrest</a></span>
+      <span><a href="about.html">Google</a></span>
+      <span><a href="about.html">Webby</a></span>
+      <span><a href="about.html">BASIC/DEPT®</a></span>
+    </div>
+  </footer>
 
 
   <script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+      let buttons = document.querySelectorAll(".btn");
+
+      buttons.forEach(button => {
+        if (button.innerHTML.includes("Explore")) {
+          button.addEventListener("click", function() {
+            window.location.href = "explore.html";
+          });
+        }
+      });
+    });
 
     const imgAdres = [
         {
@@ -207,7 +291,7 @@
         const scrollPosition = window.scrollY;
     
         // You can adjust this value to change when the div appears
-        const triggerPosition = 700; // For example, show div when scrolled 200px down
+        const triggerPosition = 200; // For example, show div when scrolled 200px down
     
         // If the user has scrolled past the trigger position, show the div
         if (scrollPosition > triggerPosition) {

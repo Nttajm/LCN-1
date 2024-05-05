@@ -198,6 +198,18 @@
   </footer>
 
   <script>
+    document.addEventListener("DOMContentLoaded", function() {
+    let buttons = document.querySelectorAll(".btn");
+
+    buttons.forEach(button => {
+      if (button.innerHTML.includes("Explore")) {
+        button.addEventListener("click", function() {
+          window.location.href = "explore.html";
+        });
+      }
+    });
+  });
+  
     function addAfter() {
       const element = document.getElementById('after');
       const blank = document.querySelector('.blank');

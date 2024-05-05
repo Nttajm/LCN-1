@@ -87,6 +87,18 @@ nav {
   border-radius: 20px;
 }
 
+.input-c  input {
+  padding: 10px 15px 10px 15px;
+  width: 125%;
+  outline: #717171;
+  border-radius: 50px;
+  border-style: none;
+  color: white;
+  background: rgba(40, 40, 40, 0.27);
+  backdrop-filter: blur(10.5px);
+  border: 1px solid rgba(185, 185, 185, 0.3);
+}
+
 a {
   text-decoration: none;
   font-style: none;
@@ -96,7 +108,6 @@ a {
 
 .dots-container {
   text-align: center;
-  margin-top: -10px;
   margin-bottom: 10px;
 }
 
@@ -183,7 +194,7 @@ a {
   }
 
   .contain-context {
-    padding-top: 620px;
+    padding-top: 586px;
   }
 
   .con {
@@ -201,11 +212,13 @@ a {
   }
 
   .context {
-    margin: 20px;
-    width: 33%;
+    width: calc(33% - 20px);
     position: relative;
     font-family: roboto;
     color: white;
+    box-sizing: border-box;
+    animation: opacity 2.3s ease forwards;
+    opacity: 0;
   }
 
   :root {
@@ -214,6 +227,8 @@ a {
 
   .ideas {
     width: 1400px;
+    flex-wrap: wrap;
+    gap: 20px;
   }
 
   .sub {
@@ -235,9 +250,22 @@ a {
     filter: brightness(0.7);
   }
 
-  .context img:hover {
+  .context:hover img{
     filter: brightness(0.5);
     transition: all 0.125s;
+  }
+
+  .context:hover .span-sec button {
+    opacity: 1;
+    display: block;
+    bottom: -50px;
+  }
+
+  .span-sec button {
+    position: absolute;
+    bottom: -90px;
+    opacity: 0;
+    transition: all 0.144s;
   }
 
   .span-sec {
@@ -286,10 +314,19 @@ a {
     border-radius: 0px 30px 30px 0px;
   }
 
+  .signup {
+    padding: 5px 5px 5px 30px;
+    box-sizing: border-box;
+    transform: translateY(-22px);
+    color: white;
+    font-weight: 600;
+    font-family: roboto;
+    justify-content: center;
+  }
+
 .scroll-div {
   opacity: 0;
   transition: opacity 0.45s ease;
-  display: none;
 }
 
 .scroll-div.active-c {
@@ -363,6 +400,14 @@ footer div div{
   }
 }
 
+@keyframes opacity {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 
 
 
@@ -373,6 +418,8 @@ footer div div{
 
   :root {
     --devwidth: 1200px;
+    font-size: 16px;
+
   }
 
 }
@@ -390,6 +437,10 @@ footer div div{
     --devwidth: 890px;
   }
 
+  .context {
+    width: calc(50% - 20px);
+  }
+
 }
 
 @media only screen and (max-width : 768px) {
@@ -405,12 +456,16 @@ footer div div{
     --devwidth: 690;
   }
 
+  .context {
+    width: calc(50% - 20px);
+  }
+
   
 }
 
 @media only screen and (max-width : 468px) {
   :root {
-    font-size: 6px;
+    font-size: 10px;
   }
 
   .ideas {
@@ -419,6 +474,28 @@ footer div div{
 
   :root {
     --devwidth: 390px;
+  }
+
+  .nav-sec1 {
+    display: none;
+  }
+
+  .nav-sec2 ul {
+    display: none;
+  }
+
+  .ideas {
+    flex-direction: column;
+  }
+
+  .context {
+    width: 100%;
+  }
+
+  .context {
+    width: calc(100% - 20px);
+    justify-content: center;
+    display: flex;
   }
 
   
