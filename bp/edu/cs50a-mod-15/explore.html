@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U/C connect</title>
+  <link rel="stylesheet" href="explore.css">
+  <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+</head>
+<body>
+  <div class="cover" id="after">
+    <img src="images/U_C-w-a.png" alt="">
+    <div class="blank"></div>
+  </div>
+  <nav>
+    <div class="nav-sec1">
+      <img src="images/U_C_b-a.png" alt="img" class="logo">
+    </div>
+    <div class="nav-sec2">
+      <ul>
+        <li>CONTACT</li>
+        <li><a href="about.html">ABOUT</a></li>
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="explore.html">EXPLORE</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="nav-alt scroll-div">
+    <nav>
+      <div class="nav-sec1">
+        <img src="./images/U_C_b-a.png" alt="img" class="logo">
+      </div>
+      <div class="nav-sec2">
+        <ul>
+          <li>CONTACT</li>
+          <li><a href="about.html">ABOUT</a></li>
+          <li><a href="index.html">HOME</a></li>
+          <li><a href="explore.html">EXPLORE</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div class="slideshow-container">
+    <div class="slide">
+      <img src="./images/pintrest/Good morning ☀️.png" alt="Slide 1">
+      <div class="overlay-img">
+        <span>add to every thing</span>
+        <span>Shop nails</span>
+      </div>
+      <div class="image-overlay"></div>
+    </div>
+    <div class="slide">
+      <img src="./images/pintrest/Follow @mrlukiesmith!.jpg" alt="Slide 2">
+      <div class="overlay-img">
+        <span>add to every thing</span>
+        <span>Shop nails</span>
+      </div>
+      <div class="image-overlay"></div>
+    </div>
+    <div class="slide">
+      <img src="./images/pintrest/Follow @kiwihall15!.png" alt="Slide 3">
+      <div class="overlay-img">
+        <span>add to every thing</span>
+        <span>Shop nails</span>
+      </div>
+      <div class="image-overlay"></div>
+    </div>
+  </div>
+
+  <div class="contain-context">
+    <div class="con">
+      <span class="head">moks</span>
+      <div class="fl-r">
+        <div class="context">
+          <img src="./images/pintrest/Follow @mrlukiesmith!.jpg" alt="context">
+        </div>
+        <div class="context">
+          <img src="./images/pintrest/Follow @mrlukiesmith!.jpg" alt="context">
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script>
+    function addAfter() {
+      const element = document.getElementById('after');
+      const blank = document.querySelector('.blank');
+    
+      setTimeout(() => {
+        blank.classList.add("fadeup-ani");
+      }, 600);
+    
+      setTimeout(() => {
+        element.classList.add('fade-ani');
+      }, 1000);
+    }
+
+    addAfter();
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        let slides = document.querySelectorAll(".slide");
+        let currentSlide = 0;
+        
+        function showSlide() {
+          slides[currentSlide].style.left = "-100%";
+          currentSlide = (currentSlide + 1) % slides.length;
+          slides[currentSlide].style.left = "0";
+        }
+        
+        setInterval(showSlide, 4500); // Change slide every 3 seconds
+      });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const elements = document.querySelectorAll('.animated-element');
+    
+      function checkScroll() {
+        elements.forEach((element) => {
+          const elementPosition = element.getBoundingClientRect().top;
+          const windowHeight = window.innerHeight;
+    
+          if (elementPosition < windowHeight * 0.85) {
+            element.classList.add('active');
+          }
+        });
+      }
+    
+      window.addEventListener('scroll', checkScroll);
+      checkScroll(); 
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const scrollDiv = document.querySelector('.scroll-div');
+    
+      window.addEventListener('scroll', function() {
+        // Calculate how far the user has scrolled
+        const scrollPosition = window.scrollY;
+    
+        // You can adjust this value to change when the div appears
+        const triggerPosition = 700; // For example, show div when scrolled 200px down
+    
+        // If the user has scrolled past the trigger position, show the div
+        if (scrollPosition > triggerPosition) {
+          scrollDiv.classList.add('active-c');
+        } else {
+          // Otherwise, hide the div
+          scrollDiv.classList.remove('active-c');
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
