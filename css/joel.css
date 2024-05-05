@@ -1,0 +1,30 @@
+:root {
+  font-size: 20px;
+}
+
+.cont {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0px 20px 0 20px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+.box {
+  border: solid rgb(179, 179, 179) 1px;
+  padding: 30px;
+  font-family: roboto;
+  font-weight: 600;
+  font-size: 2.5rem;
+  color: #444346;
+}
+
+#js-joel {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 3.5rem;
+  padding-top: 125px;
+}
+
