@@ -5,6 +5,7 @@ body {
   padding: 0;
   margin: 0;
   overflow-x: hidden;
+  margin-bottom: 20px;
 }
 
 :root {
@@ -189,6 +190,9 @@ a {
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex-wrap: wrap;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .h-cont {
@@ -198,9 +202,23 @@ a {
 
   .context {
     margin: 20px;
+    width: 33%;
     position: relative;
     font-family: roboto;
     color: white;
+  }
+
+  :root {
+    --devwidth: 1400px
+  }
+
+  .ideas {
+    width: 1400px;
+  }
+
+  .sub {
+    font-family: roboto;
+    font-weight: 400;
   }
 
   .head {
@@ -210,7 +228,7 @@ a {
   }
 
   .context img {
-    width: 400px;
+    width: 100%;
     height: 400px;
     border-radius: 40px;
     object-fit: cover;
@@ -237,6 +255,35 @@ a {
     transform: translate(-50%, 0%);
     z-index: 3;
     padding: 30px;
+  }
+
+  .suggestions {
+    width: var(--devwidth);
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+ .img-sec {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    height: 250px;
+    width: 100%;
+    gap: 2px;
+  }
+
+  .img-sec img {
+    width: 25%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .img-sec img:first-child {
+    border-radius: 30px 0px 0px 30px;
+  }
+
+  .img-sec img:last-child {
+    border-radius: 0px 30px 30px 0px;
   }
 
 .scroll-div {
@@ -317,13 +364,30 @@ footer div div{
 }
 
 
+
+
 @media only screen and (width > 1200px) {
+  .ideas {
+    width: 1200px;
+  }
+
+  :root {
+    --devwidth: 1200px;
+  }
 
 }
 
 @media only screen and (max-width : 992px) {
   :root {
     font-size: 13px;
+  }
+
+  .ideas {
+    width: 890px;
+  }
+
+  :root {
+    --devwidth: 890px;
   }
 
 }
@@ -333,12 +397,28 @@ footer div div{
     font-size: 10px;
   }
 
+  .ideas {
+    width: 690px;
+  }
+
+  :root {
+    --devwidth: 690;
+  }
+
   
 }
 
 @media only screen and (max-width : 468px) {
   :root {
     font-size: 6px;
+  }
+
+  .ideas {
+    width: 390px;
+  }
+
+  :root {
+    --devwidth: 390px;
   }
 
   
