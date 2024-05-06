@@ -14,7 +14,9 @@
   </div>
   <nav>
     <div class="nav-sec1">
-      <img src="images/U_C_b-a.png" alt="img" class="logo">
+      <a href="index.html">
+        <img src="./images/U_C_b-a.png" alt="img" class="logo">
+      </a>
     </div>
     <div class="nav-sec2 fl-ai g-20">
       <ul>
@@ -202,6 +204,11 @@
         if (button.innerHTML.includes("Explore")) {
           button.addEventListener("click", function() {
             window.location.href = "explore.html";
+          });
+        }
+        if (button.innerHTML.includes("Sign up")) {
+          button.addEventListener("click", function() {
+            window.location.href = "sign-up.html";
           });
         }
       });

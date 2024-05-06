@@ -1,47 +1,62 @@
-/* Basic styles */
-.container {
-  max-width: 600px;
-  margin: 0 auto;
-  text-align: center;
+body {
   font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
 }
 
-.word-display {
-  font-size: 24px;
+.container {
+  max-width: 400px;
+  margin: 50px auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form {
+  text-align: center;
+}
+
+h2 {
   margin-bottom: 20px;
+  color: #333;
 }
 
-.guess-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
+.form-group {
+  margin-bottom: 15px;
 }
 
-.guess-row input[type="text"] {
-  width: 200px;
+input[type="text"],
+input[type="radio"],
+input[type="checkbox"],
+select,
+textarea {
+  width: calc(100% - 20px);
+  margin: 0 auto;
   padding: 10px;
-  margin-right: 10px;
-  border: 2px solid #ddd;
-  border-radius: 4px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 5px;
   font-size: 16px;
 }
 
-.guess-row button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
+select {
+  appearance: none;
+}
+
+button {
+  width: 45%;
+  padding: 10px;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  border-radius: 5px;
+  background-color: #4CAF50;
+  color: #fff;
   font-size: 16px;
+  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.guess-row button:hover {
+button:hover {
   background-color: #45a049;
-}
-
-.result-row {
-  font-size: 18px;
 }

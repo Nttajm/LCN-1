@@ -1,21 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Wordle</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+  }
+
+  form {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  input[type="text"],
+  input[type="radio"],
+  input[type="checkbox"],
+  input[type="submit"],
+  input[type="reset"],
+  select,
+  textarea {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+
+  input[type="submit"],
+  input[type="reset"] {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  input[type="submit"]:hover,
+  input[type="reset"]:hover {
+    background-color: #45a049;
+  }
+
+  select {
+    height: 38px; /* Match input height */
+  }
+
+  textarea {
+    resize: vertical; /* Allow vertical resizing */
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Wordle</h1>
-    <div class="word-display" id="word"></div>
-    <div class="guess-row">
-      <input type="text" id="guess-input" maxlength="5" placeholder="Enter your guess">
-      <button onclick="checkGuess()">Submit</button>
-    </div>
-    <div class="result-row" id="result"></div>
-  </div>
-  <script src="script.js"></script>
+
+<form>
+  <input type="text" placeholder="Username" required>
+  <input type="radio" name="gender" value="male"> Male
+  <input type="radio" name="gender" value="female"> Female
+  <input type="checkbox" name="agree" required> I agree to the terms and conditions
+  <input type="submit" value="Sign Up">
+  <input type="reset" value="Reset">
+  <select>
+    <option value="" disabled selected>Select Country</option>
+    <option value="usa">USA</option>
+    <option value="uk">UK</option>
+    <option value="canada">Canada</option>
+  </select>
+  <textarea placeholder="Enter your address" required></textarea>
+</form>
+
 </body>
 </html>

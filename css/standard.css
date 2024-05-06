@@ -18,6 +18,20 @@ p, a {
   background-color: none;
 }
 
+.pos-cent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pos-cent-r {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .d-btn {
   cursor: disabled;
 }

@@ -14,7 +14,9 @@
   <div class="background"></div>
   <nav>
     <div class="nav-sec1">
-      <img src="./images/U_C_b-a.png" alt="img" class="logo">
+      <a href="index.html">
+        <img src="./images/U_C_b-a.png" alt="img" class="logo">
+      </a>
     </div>
     <div class="nav-sec2">
       <ul>
@@ -197,19 +199,25 @@
     </div>
   </footer>
 
+  <script src="cursor.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-    let buttons = document.querySelectorAll(".btn");
+      let buttons = document.querySelectorAll(".btn");
 
-    buttons.forEach(button => {
-      if (button.innerHTML.includes("Explore")) {
-        button.addEventListener("click", function() {
-          window.location.href = "explore.html";
-        });
-      }
+      buttons.forEach(button => {
+        if (button.innerHTML.includes("Explore")) {
+          button.addEventListener("click", function() {
+            window.location.href = "explore.html";
+          });
+        }
+        if (button.innerHTML.includes("Sign up")) {
+          button.addEventListener("click", function() {
+            window.location.href = "sign-up.html";
+          });
+        }
+      });
     });
-  });
-  
+    
     function addAfter() {
       const element = document.getElementById('after');
       const blank = document.querySelector('.blank');
