@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U/C connect</title>
+  <link rel="stylesheet" href="posts.css">
+  <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+  <div class="cover" id="after">
+    <img src="images/U_C_b-a.png" alt="">
+    <div class="blank"></div>
+  </div>
+  <nav>
+    <div class="nav-sec1">
+      <a href="index.html">
+        <img src="./images/U_C-w-a.png" alt="img" class="logo">
+      </a>
+    </div>
+    <div class="nav-sec2 fl-ai g-20">
+      <ul>
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="explore.html">EXPLORE</a></li>
+      </ul>
+      <div class="input-c">
+        <input type="text" placeholder="Search anything..." >
+      </div>
+    </div>
+  </nav>
+
+  <div class="posts" id="js-posts">
+    <div class="p-col">
+        <img src="images/pintrest/slides/city/Fall in NYC.png" alt="A">
+    </div>
+  </div>
+
+  <footer class="dn">
+    <div class="col animated-element">
+      <div class="f-head">
+        <span>Refrences</span>
+      </div>
+      <span><a href="http://lcnjoel.com">lcnjoel.com</a></span>
+    </div>
+    <div class="col animated-element">
+      <div class="f-head">
+        <span>Contact</span>
+      </div>
+      <span><a href="contact.html">Contact us</a></span>
+      <div class="f-head">
+        <span>Credits</span>
+      </div>
+      <span><a href="about.html">Joel Mulonde</a></span>
+      <div class="f-head">
+        <span>Attributions</span>
+      </div>
+      <span><a href="about.html">Pintrest</a></span>
+      <span><a href="about.html">Google</a></span>
+      <span><a href="about.html">Webby</a></span>
+      <span><a href="about.html">BASIC/DEPT®</a></span>
+    </div>
+  </footer>
+
+<script>
+  const imageSources = [
+  "images/pintrest/slides/jpg/peace.jpg",
+  "images/pintrest/slides/city/Paris.png",
+  "images/pintrest/slides/city/Fall in NYC.png",
+  "images/pintrest/slides/city/missing this.png",
+  "images/pintrest/slides/jpg/nyc💌.jpg",
+  "images/pintrest/slides/city/9a32b233-9af9-42cc-9750-e6217511a4f9.jpg",
+  "images/pintrest/slides/city/9a32b233-9af9-42cc-9750-e6217511a4f9.jpg",
+  "images/pintrest/slides/city/4efb10af-5dd6-4f6c-ad2c-705fbfd214b3.jpg",
+  "images/pintrest/slides/city/5e568071-edf3-4fa2-8e6e-4256c0ef1189.jpg",
+  "images/pintrest/slides/city/677c601b-bdc3-41c0-8e17-f1deeaa96a97.jpg",
+  "images/pintrest/slides/city/b6f51acd-e494-4f2b-af19-2df6222fc681.png",
+  "images/pintrest/slides/city/bce48abe-1130-4bfb-806a-bdb857f4bcda.jpg",
+  "images/pintrest/slides/city/c418eec9-99cc-4779-a0f5-9e837eab9ef0.jpg",
+  "images/pintrest/slides/city/NYC 🪄💭.png",
+  "images/pintrest/slides/city/#nyc #newyork #newyorkcity #ootd #fashion #outfit….jpg",
+  "images/pintrest/slides/city/1dd9a3d4-09e7-46a8-ba08-a6cfd42c82c6.jpg",
+  "images/pintrest/slides/city/7f39914b-0c58-4e04-95cb-aaedbb9ce636.jpg"
+];
+
+function generateHTML(numPcols, numImagesPerPcol) {
+  let html = '<div class="posts">'; // Start the "posts" div
+
+  // Loop through the specified number of "p-col" divs
+  for (let i = 0; i < numPcols; i++) {
+    html += '<div class="p-col">'; // Start a new "p-col" div
+
+    // Loop through the specified number of "img" elements in each "p-col"
+    for (let j = 0; j < numImagesPerPcol; j++) {
+      // Select a random index from the imageSources array
+      const randomIndex = Math.floor(Math.random() * imageSources.length);
+      // Get the random image source from the imageSources array
+      const randomImageSrc = imageSources[randomIndex];
+      html += `<img src="${randomImageSrc}" alt="A">`; // Add an "img" element with the random source
+    }
+
+    html += '</div>'; // Close the "p-col" div
+  }
+
+  html += '</div>'; // Close the "posts" div
+
+  const div = document.getElementById("js-posts")
+  div.innerHTML = html
+}
+
+generateHTML(7, 23);
+
+
+</script>
+</body>
+</html>
