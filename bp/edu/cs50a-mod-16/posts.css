@@ -30,6 +30,7 @@ nav {
   position: fixed;
   background-color: white;
   width: 100%;
+  z-index: 999;
 }
 
 .nav-alt {
@@ -111,17 +112,18 @@ a {
 .posts {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   margin-left: auto;
   margin-right: auto;
-  padding: 100px 30px 30px 20px;
+  padding: 100px 30px 30px 30px;
 }
 
 .p-col {
-  width: calc(14.28% - 30px);
+  width: 200px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 10px;
 }
 
 .p-col img {
@@ -162,10 +164,6 @@ a {
 
 .hover img {
   position: relative;
-}
-
-.hover:hover + .share-sec {
-  display: block;
 }
 
 .hover img:hover {
@@ -257,9 +255,7 @@ footer div div{
 
 
 @media only screen and (width > 1200px) {
-  .ideas {
-    width: 1200px;
-  }
+
 
   :root {
     --devwidth: 1200px;
@@ -274,17 +270,7 @@ footer div div{
     font-size: 13px;
   }
 
-  .ideas {
-    width: 890px;
-  }
 
-  :root {
-    --devwidth: 890px;
-  }
-
-  .context {
-    width: calc(50% - 20px);
-  }
 
 }
 
@@ -305,16 +291,26 @@ footer div div{
     width: calc(50% - 20px);
   }
 
+  .posts { padding: 100px 10px 30px 10px; }
+
+  .p-col img { width: 180px}
+
+  .p-col { width: 190px}
+
+  .nav-sec1 {
+    display: none;
+  }
+
+  .nav-sec2 ul {
+    display: none;
+  }
+
   
 }
 
 @media only screen and (max-width : 468px) {
   :root {
     font-size: 10px;
-  }
-
-  .ideas {
-    width: 390px;
   }
 
   :root {
@@ -329,19 +325,11 @@ footer div div{
     display: none;
   }
 
-  .ideas {
-    flex-direction: column;
-  }
+  .posts { padding: 100px 10px 30px 10px; }
 
-  .context {
-    width: 100%;
-  }
+  .p-col img { width: 180px}
 
-  .context {
-    width: calc(100% - 20px);
-    justify-content: center;
-    display: flex;
-  }
+  .p-col { width: 180px}
 
   
 }

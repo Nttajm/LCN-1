@@ -33,6 +33,22 @@
   <div class="posts" id="js-posts">
     <div class="p-col">
         <img src="images/pintrest/slides/city/Fall in NYC.png" alt="A">
+        <img src="images/pintrest/slides/city/v1 (1).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (2).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (3).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (4).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (5).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (6).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (7).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (8).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (9).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (10).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (12).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (13).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (14).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (15).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (16).jpg" alt="G">
+
     </div>
   </div>
 
@@ -63,6 +79,16 @@
   </footer>
 
 <script>
+
+  function shuffleArray(array) {
+    // Fisher-Yates shuffle algorithm
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+  
   const imageSources = [
   "images/pintrest/slides/jpg/peace.jpg",
   "images/pintrest/slides/city/Paris.png",
@@ -78,38 +104,121 @@
   "images/pintrest/slides/city/bce48abe-1130-4bfb-806a-bdb857f4bcda.jpg",
   "images/pintrest/slides/city/c418eec9-99cc-4779-a0f5-9e837eab9ef0.jpg",
   "images/pintrest/slides/city/NYC 🪄💭.png",
-  "images/pintrest/slides/city/#nyc #newyork #newyorkcity #ootd #fashion #outfit….jpg",
   "images/pintrest/slides/city/1dd9a3d4-09e7-46a8-ba08-a6cfd42c82c6.jpg",
-  "images/pintrest/slides/city/7f39914b-0c58-4e04-95cb-aaedbb9ce636.jpg"
+  "images/pintrest/slides/city/7f39914b-0c58-4e04-95cb-aaedbb9ce636.jpg",
+  "images/pintrest/slides/city/v1 (1).jpg",
+    "images/pintrest/slides/city/v1 (2).jpg",
+    "images/pintrest/slides/city/v1 (3).jpg",
+    "images/pintrest/slides/city/v1 (4).jpg",
+    "images/pintrest/slides/city/v1 (5).jpg",
+    "images/pintrest/slides/city/v1 (6).jpg",
+    "images/pintrest/slides/city/v1 (7).jpg",
+    "images/pintrest/slides/city/v1 (8).jpg",
+    "images/pintrest/slides/city/v1 (9).jpg",
+    "images/pintrest/slides/city/v1 (10).jpg",
+    "images/pintrest/slides/city/v1 (12).jpg",
+    "images/pintrest/slides/city/v1 (13).jpg",
+    "images/pintrest/slides/city/v1 (14).jpg",
+    "images/pintrest/slides/city/v1 (15).jpg",
+    "images/pintrest/slides/city/v1 (16).jpg",
+    "images/pintrest/slides/city/v2 (1).jpg",
+    "images/pintrest/slides/city/v2 (2).jpg",
+    "images/pintrest/slides/city/v2 (3).jpg",
+    "images/pintrest/slides/city/v2 (4).jpg",
+    "images/pintrest/slides/city/v2 (5).jpg",
+    "images/pintrest/slides/city/v2 (6).jpg",
+    "images/pintrest/slides/city/v2 (7).jpg",
+    "images/pintrest/slides/city/v2 (8).jpg",
+    "images/pintrest/slides/city/v2 (9).jpg",
+    "images/pintrest/slides/city/v2 (10).jpg",
+    "images/pintrest/slides/city/v2 (11).jpg",
+    "images/pintrest/slides/city/v2 (12).jpg",
+    "images/pintrest/slides/city/v2 (13).jpg",
+    "images/pintrest/slides/city/v2 (14).jpg",
+    "images/pintrest/slides/city/v2 (15).jpg",
+    "images/pintrest/slides/city/v2 (16).jpg",
+    "images/pintrest/slides/city/v2 (17).jpg",
+    "images/pintrest/slides/city/v3 (1).jpg",
+    "images/pintrest/slides/city/v3 (2).jpg",
+    "images/pintrest/slides/city/v3 (3).jpg",
+    "images/pintrest/slides/city/v3 (5).jpg",
+    "images/pintrest/slides/city/v3 (6).jpg",
+    "images/pintrest/slides/city/v3 (7).jpg",
+    "images/pintrest/slides/city/v3 (8).jpg",
+    "images/pintrest/slides/city/v3 (9).jpg",
+    "images/pintrest/slides/city/v3 (10).jpg",
+    "images/pintrest/slides/city/v3 (11).jpg",
+    "images/pintrest/slides/city/v3 (12).jpg",
+    "images/pintrest/slides/city/v3 (13).jpg",
+    "images/pintrest/slides/city/v3 (14).jpg",
+    "images/pintrest/slides/city/v3 (16).jpg",
+    "images/pintrest/slides/city/v3 (17).jpg",
+    "images/pintrest/slides/city/v3 (18).jpg",
+    "images/pintrest/slides/city/v3 (19).jpg",
+    "images/pintrest/slides/city/v3 (20).jpg",
+    "images/pintrest/slides/city/v3 (21).jpg",
+    "images/pintrest/slides/city/v3 (22).jpg",
+    "images/pintrest/slides/city/v3 (23).jpg",
+    "images/pintrest/slides/city/v3 (24).jpg",
+    "images/pintrest/slides/city/ad (2).jpg",
+    "images/pintrest/slides/city/ad.jpg",
+    "images/pintrest/slides/city/ad.jpg",
+    "images/pintrest/slides/city/ad.jpg",
+    "images/pintrest/slides/city/ad.jpg",
 ];
 
-function generateHTML(numPcols, numImagesPerPcol) {
-  let html = '<div class="posts">'; // Start the "posts" div
-
-  // Loop through the specified number of "p-col" divs
-  for (let i = 0; i < numPcols; i++) {
-    html += '<div class="p-col">'; // Start a new "p-col" div
-
-    // Loop through the specified number of "img" elements in each "p-col"
-    for (let j = 0; j < numImagesPerPcol; j++) {
-      // Select a random index from the imageSources array
-      const randomIndex = Math.floor(Math.random() * imageSources.length);
-      // Get the random image source from the imageSources array
-      const randomImageSrc = imageSources[randomIndex];
-      html += `<img src="${randomImageSrc}" alt="A">`; // Add an "img" element with the random source
+  
+  let shuffledImages = shuffleArray(imageSources); // Shuffle the array initially
+  
+  function generateHTML(numPcols, numImagesPerPcol) {
+    let html = ''; // Start the "posts" div
+  
+    let currentIndex = 0; // Keep track of the current index in the shuffledImages array
+  
+    // Loop through the specified number of "p-col" divs
+    for (let i = 0; i < numPcols; i++) {
+      html += '<div class="p-col">'; // Start a new "p-col" div
+  
+      // Loop through the specified number of "img" elements in each "p-col"
+      for (let j = 0; j < numImagesPerPcol; j++) {
+        // Get the current image source from the shuffledImages array
+        const currentImageSrc = shuffledImages[currentIndex];
+        html += `<img src="${currentImageSrc}" alt="IMGNOTF">`; // Add an "img" element with the current source
+        
+        // Move to the next index or reshuffle if all images have been used
+        currentIndex++;
+        if (currentIndex >= shuffledImages.length) {
+          shuffledImages = shuffleArray(imageSources);
+          currentIndex = 0;
+        }
+      }
+  
+      html += '</div>'; // Close the "p-col" div
     }
-
-    html += '</div>'; // Close the "p-col" div
+      
+    const div = document.getElementById("js-posts")
+    div.innerHTML = html
   }
+  
+  // Example usage:
+  const numPcols = 3;
+  const numImagesPerPcol = 2;
+  const generatedHTML = generateHTML(numPcols, numImagesPerPcol);
+  console.log(generatedHTML); // Output the generated HTML
+  
 
-  html += '</div>'; // Close the "posts" div
+generateHTML(6, 30);
 
-  const div = document.getElementById("js-posts")
-  div.innerHTML = html
+function generateImageSources(number) {
+  const imageSources = [];
+  for (let i = 1; i <= number; i++) {
+      imageSources.push(`images/pintrest/slides/city/v2 (${i}).jpg`);
+  }
+  return imageSources;
 }
 
-generateHTML(7, 23);
-
+// Test the function with a given number, e.g., 5
+console.log(generateImageSources(5));
 
 </script>
 </body>
