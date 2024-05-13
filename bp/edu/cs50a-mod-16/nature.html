@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U/C connect</title>
+  <link rel="stylesheet" href="posts.css">
+  <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+  <div class="cover" id="after">
+    <img src="images/U_C_b-a.png" alt="">
+    <div class="blank"></div>
+  </div>
+  <nav>
+    <div class="nav-sec1">
+      <a href="index.html">
+        <img src="./images/U_C-w-a.png" alt="img" class="logo">
+      </a>
+    </div>
+    <div class="nav-sec2 fl-ai g-20">
+      <ul>
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="explore.html">EXPLORE</a></li>
+      </ul>
+      <div class="input-c">
+        <input type="text" placeholder="Search anything..." >
+      </div>
+    </div>
+  </nav>
+
+  <div class="posts" id="js-posts">
+    <div class="p-col">
+        <img src="images/pintrest/slides/city/Fall in NYC.png" alt="A">
+        <img src="images/pintrest/slides/city/v1 (1).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (2).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (3).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (4).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (5).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (6).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (7).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (8).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (9).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (10).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (12).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (13).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (14).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (15).jpg" alt="G">
+        <img src="images/pintrest/slides/city/v1 (16).jpg" alt="G">
+    </div>
+  </div>
+
+  <footer class="dn">
+    <div class="col animated-element">
+      <div class="f-head">
+        <span>Refrences</span>
+      </div>
+      <span><a href="http://lcnjoel.com">lcnjoel.com</a></span>
+    </div>
+    <div class="col animated-element">
+      <div class="f-head">
+        <span>Contact</span>
+      </div>
+      <span><a href="contact.html">Contact us</a></span>
+      <div class="f-head">
+        <span>Credits</span>
+      </div>
+      <span><a href="about.html">Joel Mulonde</a></span>
+      <div class="f-head">
+        <span>Attributions</span>
+      </div>
+      <span><a href="about.html">Pintrest</a></span>
+      <span><a href="about.html">Google</a></span>
+      <span><a href="about.html">Webby</a></span>
+      <span><a href="about.html">BASIC/DEPT®</a></span>
+    </div>
+  </footer>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const elements = document.querySelectorAll('.animated-element');
+  
+    function checkScroll() {
+      elements.forEach((element) => {
+        const elementPosition = element.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+  
+        if (elementPosition < windowHeight * 0.85) {
+          element.classList.add('active');
+        }
+      });
+    }
+  
+    window.addEventListener('scroll', checkScroll);
+    checkScroll(); 
+  });
+
+  function shuffleArray(array) {
+    // Fisher-Yates shuffle algorithm
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  const imageSources = [
+  "images/pintrest/slides/jpg/peace.jpg",
+  "images/pintrest/slides/nature/n1 (1).jpg",
+  "images/pintrest/slides/nature/n1 (2).jpg",
+  "images/pintrest/slides/nature/n1 (3).jpg",
+  "images/pintrest/slides/nature/n1 (4).jpg",
+  "images/pintrest/slides/nature/n1 (5).jpg",
+  "images/pintrest/slides/nature/n1 (5).jpg", // 6
+  "images/pintrest/slides/nature/n1 (6).jpg",
+  "images/pintrest/slides/nature/n1 (7).jpg",
+  "images/pintrest/slides/nature/n1 (8).jpg",
+  "images/pintrest/slides/nature/n1 (9).jpg",
+  "images/pintrest/slides/nature/n1 (10).jpg",
+  "images/pintrest/slides/nature/n1 (11).jpg",
+  "images/pintrest/slides/nature/n1 (12).jpg",
+  "images/pintrest/slides/nature/n1 (13).jpg",
+  "images/pintrest/slides/nature/n1 (14).jpg",
+  "images/pintrest/slides/nature/n1 (15).jpg",
+  "images/pintrest/slides/nature/n1 (16).jpg",
+  "images/pintrest/slides/nature/n1 (17).jpg",
+  "images/pintrest/slides/nature/n1 (18).jpg",
+  "images/pintrest/slides/nature/n1 (19).jpg",
+  "images/pintrest/slides/nature/n1 (20).jpg",
+  "images/pintrest/slides/nature/n1 (21).jpg",
+  "images/pintrest/slides/nature/n1 (22).jpg",
+  "images/pintrest/slides/nature/n1 (23).jpg",
+  "images/pintrest/slides/nature/n1 (24).jpg",
+  "images/pintrest/slides/nature/n1 (25).jpg",
+  "images/pintrest/slides/nature/n1 (26).jpg",
+  "images/pintrest/slides/nature/n1 (27).jpg",
+  "images/pintrest/slides/nature/n1 (28).jpg",
+  "images/pintrest/slides/nature/n1 (29).jpg",
+  "images/pintrest/slides/nature/n1 (30).jpg",
+  "images/pintrest/slides/nature/n1 (31).jpg",
+  "images/pintrest/slides/nature/n1 (32).jpg",
+  "images/pintrest/slides/nature/n1 (33).jpg",
+  "images/pintrest/slides/nature/n1 (34).jpg",
+  "images/pintrest/slides/nature/n1 (35).jpg",
+  "images/pintrest/slides/nature/n1 (36).jpg",
+  "images/pintrest/slides/nature/n1 (37).jpg",
+  "images/pintrest/slides/nature/n1 (38).jpg",
+  "images/pintrest/slides/nature/n1 (39).jpg",
+  "images/pintrest/slides/nature/n1 (40).jpg",
+  "images/pintrest/slides/nature/n1 (41).jpg",
+  "images/pintrest/slides/nature/n1 (42).jpg",
+  "images/pintrest/slides/nature/n1 (43).jpg",
+  "images/pintrest/slides/nature/n1 (44).jpg",
+  "images/pintrest/slides/nature/n1 (45).jpg",
+  "images/pintrest/slides/nature/n1 (46).jpg",
+  "images/pintrest/slides/nature/n1 (47).jpg",
+  "images/pintrest/slides/nature/n1 (48).jpg",
+  "images/pintrest/slides/nature/n1 (49).jpg",
+  "images/pintrest/slides/nature/n1 (50).jpg",
+  "images/pintrest/slides/nature/n1 (51).jpg",
+  "images/pintrest/slides/nature/n1 (52).jpg",
+  "images/pintrest/slides/nature/n1 (53).jpg",
+  "images/pintrest/slides/nature/n1 (54).jpg",
+  "images/pintrest/slides/nature/n1 (55).jpg",
+  "images/pintrest/slides/nature/n1 (56).jpg",
+  "images/pintrest/slides/nature/n2 (1).jpg",
+  "images/pintrest/slides/nature/n2 (2).jpg",
+  "images/pintrest/slides/nature/n2 (3).jpg",
+  "images/pintrest/slides/nature/n2 (4).jpg",
+  "images/pintrest/slides/nature/n2 (5).jpg",
+  "images/pintrest/slides/nature/n2 (6).jpg",
+  "images/pintrest/slides/nature/n2 (7).jpg",
+  "images/pintrest/slides/nature/n2 (8).jpg",
+  "images/pintrest/slides/nature/n2 (9).jpg",
+  "images/pintrest/slides/nature/n2 (10).jpg",
+  "images/pintrest/slides/nature/n2 (11).jpg",
+  "images/pintrest/slides/nature/n2 (12).jpg",
+  "images/pintrest/slides/nature/n2 (13).jpg",
+  "images/pintrest/slides/nature/n2 (14).jpg",
+  "images/pintrest/slides/nature/n2 (15).jpg",
+  "images/pintrest/slides/nature/n2 (16).jpg",
+  "images/pintrest/slides/nature/n2 (17).jpg",
+  "images/pintrest/slides/nature/n2 (18).jpg",
+  "images/pintrest/slides/nature/n2 (19).jpg",
+  "images/pintrest/slides/nature/n2 (20).jpg",
+  "images/pintrest/slides/nature/n2 (21).jpg",
+  "images/pintrest/slides/nature/n2 (22).jpg",
+  "images/pintrest/slides/nature/n2 (23).jpg",
+  "images/pintrest/slides/nature/n2 (24).jpg",
+  "images/pintrest/slides/nature/n2 (25).jpg",
+  "images/pintrest/slides/nature/n2 (26).jpg",
+  "images/pintrest/slides/nature/n2 (27).jpg",
+  "images/pintrest/slides/nature/n2 (28).jpg",
+  "images/pintrest/slides/nature/n2 (29).jpg",
+  "images/pintrest/slides/nature/n2 (30).jpg",
+  "images/pintrest/slides/nature/n2 (31).jpg",
+  "images/pintrest/slides/nature/n2 (32).jpg",
+  "images/pintrest/slides/nature/n2 (33).jpg",
+  "images/pintrest/slides/nature/n2 (34).jpg",
+  "images/pintrest/slides/nature/n2 (35).jpg",
+  "images/pintrest/slides/nature/n2 (36).jpg",
+  "images/pintrest/slides/nature/n2 (37).jpg",
+  "images/pintrest/slides/nature/n2 (38).jpg",
+  "images/pintrest/slides/nature/n2 (39).jpg",
+  "images/pintrest/slides/nature/n2 (40).jpg",
+  "images/pintrest/slides/nature/n2 (41).jpg",
+  "images/pintrest/slides/nature/n2 (42).jpg",
+  "images/pintrest/slides/nature/n2 (43).jpg",
+  "images/pintrest/slides/nature/n2 (44).jpg",
+  "images/pintrest/slides/nature/n2 (45).jpg",
+  "images/pintrest/slides/nature/n2 (46).jpg",
+  "images/pintrest/slides/nature/n2 (47).jpg",
+  "images/pintrest/slides/nature/n2 (48).jpg",
+  "images/pintrest/slides/nature/n2 (49).jpg",
+  "images/pintrest/slides/nature/n2 (50).jpg",
+  "images/pintrest/slides/nature/n2 (51).jpg",
+  "images/pintrest/slides/nature/n2 (52).jpg",
+  "images/pintrest/slides/nature/n2 (53).jpg",
+  "images/pintrest/slides/nature/n2 (54).jpg",
+  "images/pintrest/slides/nature/n2 (55).jpg",
+  "images/pintrest/slides/nature/n2 (56).jpg",
+  "images/pintrest/slides/nature/n2 (57).jpg",
+  "images/pintrest/slides/nature/n2 (58).jpg",
+  "images/pintrest/slides/nature/n2 (59).jpg",
+  "images/pintrest/slides/nature/n2 (60).jpg",
+  "images/pintrest/slides/nature/n2 (61).jpg",
+  "images/pintrest/slides/nature/n2 (62).jpg",
+  "images/pintrest/slides/nature/n2 (63).jpg",
+  "images/pintrest/slides/nature/n2 (64).jpg",
+  "images/pintrest/slides/nature/n2 (65).jpg",
+];
+
+  
+  let shuffledImages = shuffleArray(imageSources); // Shuffle the array initially
+  
+  function generateHTML(numPcols, numImagesPerPcol) {
+    let html = ''; // Start the "posts" div
+  
+    let currentIndex = 0; // Keep track of the current index in the shuffledImages array
+  
+    // Loop through the specified number of "p-col" divs
+    for (let i = 0; i < numPcols; i++) {
+      html += '<div class="p-col">'; // Start a new "p-col" div
+  
+      // Loop through the specified number of "img" elements in each "p-col"
+      for (let j = 0; j < numImagesPerPcol; j++) {
+        // Get the current image source from the shuffledImages array
+        const currentImageSrc = shuffledImages[currentIndex];
+        html += `<img src="${currentImageSrc}" alt="IMGNOTF" class="animated-element"">`; // Add an "img" element with the current source
+        
+        // Move to the next index or reshuffle if all images have been used
+        currentIndex++;
+        if (currentIndex >= shuffledImages.length) {
+          shuffledImages = shuffleArray(imageSources);
+          currentIndex = 0;
+        }
+      }
+  
+      html += '</div>'; // Close the "p-col" div
+    }
+      
+    const div = document.getElementById("js-posts")
+    div.innerHTML = html
+  }
+  
+console.log(imageSources.length)
+  
+
+generateHTML(6, 93);
+
+
+
+</script>
+</body>
+</html>

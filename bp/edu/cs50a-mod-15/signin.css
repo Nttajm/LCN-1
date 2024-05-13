@@ -97,7 +97,11 @@ nav {
 
 .gradient-div {
     width: 70%;
+<<<<<<< HEAD
     height: 70%;
+=======
+    height: 60%;
+>>>>>>> 2333a0a246d304237dfbe22fd4a8d2d4ba245136
     display: flex;
   }
 

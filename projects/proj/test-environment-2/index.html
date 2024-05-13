@@ -1,71 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign Up</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiple Draggable Windows</title>
+  <style>
+    /* Style the draggable div */
+    .draggableDiv {
+      width: 200px;
+      height: 200px;
+      background-color: #f00;
+      position: absolute;
+      resize: both;
+      overflow: auto;
+    }
 
-  form {
-    max-width: 400px;
-    margin: 0 auto;
-  }
+    /* Style the button */
+    #createWindowBtn {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
 
-  input[type="text"],
-  input[type="radio"],
-  input[type="checkbox"],
-  input[type="submit"],
-  input[type="reset"],
-  select,
-  textarea {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 8px;
-    box-sizing: border-box;
-  }
-
-  input[type="submit"],
-  input[type="reset"] {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-
-  input[type="submit"]:hover,
-  input[type="reset"]:hover {
-    background-color: #45a049;
-  }
-
-  select {
-    height: 38px; /* Match input height */
-  }
-
-  textarea {
-    resize: vertical; /* Allow vertical resizing */
-  }
-</style>
+    span {
+      color: green;
+    }
+  </style>
 </head>
 <body>
 
-<form>
-  <input type="text" placeholder="Username" required>
-  <input type="radio" name="gender" value="male"> Male
-  <input type="radio" name="gender" value="female"> Female
-  <input type="checkbox" name="agree" required> I agree to the terms and conditions
-  <input type="submit" value="Sign Up">
-  <input type="reset" value="Reset">
-  <select>
-    <option value="" disabled selected>Select Country</option>
-    <option value="usa">USA</option>
-    <option value="uk">UK</option>
-    <option value="canada">Canada</option>
-  </select>
-  <textarea placeholder="Enter your address" required></textarea>
-</form>
+<button id="createWindowBtn">Create Draggable Window</button>
+
+<script>
+  // Function to create a draggable window
+  const testText = 'window!'
+  function createDraggableWindow(html) {
+    // Create a new div element
+    var newDiv = document.createElement('div');
+    newDiv.className = 'draggableDiv';
+    newDiv.innerHTML = `<span>${html}</span>`;
+
+    // Set initial position randomly
+    newDiv.style.left = Math.random() * (window.innerWidth - 200) + 'px';
+    newDiv.style.top = Math.random() * (window.innerHeight - 200) + 'px';
+
+    // Append the new div to the body
+    document.body.appendChild(newDiv);
+
+    // Event listener for mouse down on the new div to enable dragging
+    newDiv.addEventListener('mousedown', function(event) {
+      var offsetX = event.clientX - newDiv.offsetLeft;
+      var offsetY = event.clientY - newDiv.offsetTop;
+
+      document.addEventListener('mousemove', moveDiv);
+
+      function moveDiv(event) {
+        var newX = event.clientX - offsetX;
+        var newY = event.clientY - offsetY;
+
+        newDiv.style.left = newX + 'px';
+        newDiv.style.top = newY + 'px';
+      }
+
+      document.addEventListener('mouseup', function() {
+        document.removeEventListener('mousemove', moveDiv);
+      });
+    });
+  }
+
+  // Event listener for button click to create a new draggable window
+  document.getElementById('createWindowBtn').addEventListener('click', createDraggableWindow);
+</script>
 
 </body>
 </html>
