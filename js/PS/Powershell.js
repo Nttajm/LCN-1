@@ -930,9 +930,6 @@ inputElement.addEventListener("keydown", function (event) {
 
 // alternitive ui 
 
-const display = localStorage.getItem('display-e')
-const eCont = document.querySelector('.explorer') 
-
 
 function error() {
     response = system.error.syntax;

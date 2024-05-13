@@ -116,7 +116,7 @@ a {
   gap: 10px;
   margin-left: auto;
   margin-right: auto;
-  padding: 100px 30px 30px 30px;
+  padding: 120px 30px 30px 30px;
 }
 
 .p-col {
@@ -178,11 +178,14 @@ a {
 
 .animated-element {
   opacity: 0; /* Initially hide the element */
-  transition: opacity 1s ease; /* Smooth transition for opacity */
+  transition: all 1s ease; /* Smooth transition for opacity */
+  filter: blur(3px);
 }
 
 .animated-element.active {
   opacity: 1; /* Show the element when active class is applied */
+  filter: blur(0px);
+
 }
 
 footer {
