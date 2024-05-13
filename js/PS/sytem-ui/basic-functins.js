@@ -197,9 +197,196 @@ function disable() {
   display.innerHTML = ``;
 }
 
+const codexHtml = [
+  `<div class="block"></div>
+  <div class="top">
+   <div>
+      <div class="logo">
+          <img src="/images/ps-logo.png" alt="logo">
+    </div>
+    <div class="name"> Powershell</div>
+   </div>
+   <div class="buttons">
+    <button>_</button>
+    <button>X</button>
+   </div>
+  </div>`
+]
 
 
+function createDraggableWindow(ope, img, name, app, fun) {
+  if (!ope === 0) {
+    if (ope === 'ps') {
+      img = '/images/ps-logo.png';
+      name = 'Powershell';
+      app = '';
+    }
+  } else {
+    img
+    name
+    app
+  }
+
+  // Create a new div element
+  var newDiv = document.createElement('div');
+  newDiv.className = 'draggableDiv';
+  newDiv.innerHTML = `
+    <div class="block"></div>
+    <div class="top">
+      <div>
+        <div class="logo">
+          <img src="${img}" alt="logo">
+        </div>
+        <div class="name">${name}</div>
+      </div>
+      <div class="buttons">
+        <button>_</button>
+        <button>X</button>
+      </div>
+    </div>
+    <div class="window-area">
+      ${app}
+    </div>
+  `;
+  
+
+  // Create a draggable area within the top-left corner
+  var draggableArea = newDiv.querySelector('.block');
+
+  // Set initial position randomly
+  newDiv.style.left = Math.random() * (window.innerWidth - 200) + 'px';
+  newDiv.style.top = Math.random() * (window.innerHeight - 200) + 'px';
+
+  // Append the new div to the body
+  document.body.appendChild(newDiv);
+
+  // Variables to store mouse offset
+  var offsetX, offsetY;
+
+  // Event listener for mouse down on the new div to enable dragging
+  draggableArea.addEventListener('mousedown', function(event) {
+    // Calculate the offset between cursor position and div position
+    offsetX = event.clientX - newDiv.offsetLeft;
+    offsetY = event.clientY - newDiv.offsetTop;
+
+    document.addEventListener('mousemove', moveDiv);
+
+    function moveDiv(event) {
+      var newX = event.clientX - offsetX;
+      var newY = event.clientY - offsetY;
+
+      newDiv.style.left = newX + 'px';
+      newDiv.style.top = newY + 'px';
+    }
+
+    document.addEventListener('mouseup', function() {
+      document.removeEventListener('mousemove', moveDiv);
+    });
+  });
+}
 
 
+let windapp = {
+  notes: {
+   html: `
+   <div id="notesContainer">
+   <h1>Notes App</h1>
+   <div id="notes"></div>
+   <button id="addNoteBtn" class="btn-js-wind-app">Add Note</button>
+   <style> 
+   #notesContainer {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .note {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+  }
+
+  .note textarea {
+    width: 100%;
+    height: 100px;
+    resize: vertical;
+  }
+
+  .btn-js-wind-app {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background-color: #0056b3;
+  }
+   `,
+}
+}
+
+function notesWWl()  {
+  var notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+  // Function to render notes
+  function renderNotes() {
+    var notesHtml = '';
+    notes.forEach(function(note, index) {
+      notesHtml += `
+        <div class="note">
+          <textarea id="note_${index}" onchange="updateNote(${index})">${note}</textarea>
+          <button class="btn" onclick="deleteNote(${index})">Delete</button>
+        </div>
+      `;
+    });
+    document.getElementById('notes').innerHTML = notesHtml;
+  }
+
+  // Function to add a new note
+  function addNote() {
+    notes.push('');
+    saveNotes();
+    renderNotes();
+  }
+
+  // Function to delete a note
+  function deleteNote(index) {
+    notes.splice(index, 1);
+    saveNotes();
+    renderNotes();
+  }
+
+  // Function to update a note
+  function updateNote(index) {
+    notes[index] = document.getElementById(`note_${index}`).value;
+    saveNotes();
+  }
+
+  // Function to save notes to local storage
+  function saveNotes() {
+    localStorage.setItem('notes', JSON.stringify(notes));
+  }
+
+  // Event listener for add note button
+  document.getElementById('addNoteBtn').addEventListener('click', addNote);
+
+  // Event listener for storage event to sync notes across tabs
+  window.addEventListener('storage', function(event) {
+    if (event.key === 'notes') {
+      notes = JSON.parse(event.newValue);
+      renderNotes();
+    }
+  });
+
+  // Initial render
+  renderNotes();
+}
+
+// Event listener for button click to create a new draggable window
+createDraggableWindow(0, 'js/ps/assets/notesicon.webp', 'notes', windapp.notes.html, );
 
 

@@ -3,11 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Cursor</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Notes App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    #notesContainer {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .note {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+    }
+
+    .note textarea {
+      width: 100%;
+      height: 100px;
+      resize: vertical;
+    }
+
+    .btn-js-wind-app {
+      padding: 5px 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <div class="cursor"></div>
-  <script src="script.js"></script>
+
+<div id="notesContainer">
+  <h1>Notes App</h1>
+  <div id="notes"></div>
+  <button id="addNoteBtn" class="btn">Add Note</button>
+</div>
+
+<script>
+  // Load notes from local storage
+  var notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+  // Function to render notes
+  function renderNotes() {
+    var notesHtml = '';
+    notes.forEach(function(note, index) {
+      notesHtml += `
+        <div class="note">
+          <textarea id="note_${index}" onchange="updateNote(${index})">${note}</textarea>
+          <button class="btn" onclick="deleteNote(${index})">Delete</button>
+        </div>
+      `;
+    });
+    document.getElementById('notes').innerHTML = notesHtml;
+  }
+
+  // Function to add a new note
+  function addNote() {
+    notes.push('');
+    saveNotes();
+    renderNotes();
+  }
+
+  // Function to delete a note
+  function deleteNote(index) {
+    notes.splice(index, 1);
+    saveNotes();
+    renderNotes();
+  }
+
+  // Function to update a note
+  function updateNote(index) {
+    notes[index] = document.getElementById(`note_${index}`).value;
+    saveNotes();
+  }
+
+  // Function to save notes to local storage
+  function saveNotes() {
+    localStorage.setItem('notes', JSON.stringify(notes));
+  }
+
+  // Event listener for add note button
+  document.getElementById('addNoteBtn').addEventListener('click', addNote);
+
+  // Event listener for storage event to sync notes across tabs
+  window.addEventListener('storage', function(event) {
+    if (event.key === 'notes') {
+      notes = JSON.parse(event.newValue);
+      renderNotes();
+    }
+  });
+
+  // Initial render
+  renderNotes();
+</script>
+
 </body>
 </html>
