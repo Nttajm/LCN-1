@@ -1,6 +1,6 @@
 .cursor {
     cursor: none;
-    position: absolute;
+    position: relative;
     filter: blur(8px);
     opacity: 0.6;
     width: 60px;
@@ -8,7 +8,7 @@
     top: 0;
     left: 0;
     z-index: 999;
-    transform: translate(-50%, 0%);
+    transform: translate(-50%, -50%);
     border-radius: 50%;
     background: rgb(175, 181, 211);
     background: radial-gradient(circle, rgba(63,94,251,1) 0%, rgb(70, 252, 176) 100%);
@@ -17,10 +17,16 @@
   }
   
   .all {
+    position: fixed;
     width: 100vw;
     height: 100vh;
-    z-index: -999;
+    z-index: 999;
     opacity: 0;
     position: absolute;
     cursor: none;
+    pointer-events: none;
+  }
+
+  body {
+    overflow-x: hidden;
   }

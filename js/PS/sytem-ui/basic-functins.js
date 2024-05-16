@@ -96,16 +96,26 @@ let countW = 0;
 let countM = 0;
 
 function outputCounts(option) {
-  const error = document.getElementById('js-errorCount');
-  const warning = document.getElementById('js-waringCount');
-  const messages = document.getElementById('js-messagesCount');
+  // Get all elements with the specified classes
+  const errors = document.getElementsByClassName('js-errorCount');
+  const warnings = document.getElementsByClassName('js-warningCount');
+  const messages = document.getElementsByClassName('js-messagesCount');
 
   if (option === 'e') {
-    error.innerHTML = ++countE;
+    // Loop through each element and update its content
+    for (let i = 0; i < errors.length; i++) {
+      errors[i].innerHTML = ++countE;
+    }
   } else if (option === 'w') {
-    warning.innerHTML = ++countW;
+    // Loop through each element and update its content
+    for (let i = 0; i < warnings.length; i++) {
+      warnings[i].innerHTML = ++countW;
+    }
   } else if (option === 'm') {
-    messages.innerHTML = ++countM;
+    // Loop through each element and update its content
+    for (let i = 0; i < messages.length; i++) {
+      messages[i].innerHTML = ++countM;
+    }
   }
 }
 
@@ -124,13 +134,11 @@ function sysMessage(text, option, phraser) {
   phraser = phraser || 'bm/main/array/user/ ~';
   const sysTime = getCurrentTime();
   const cont = document.getElementById('js-sys-out');
-  let spanClass = `
-    s-o-d
-  `;
+  let spanClass = `s-o-d`;
 
   if (option) {
     if (option === 'e') {
-      outputCounts('e')
+      outputCounts('e')  
       spanClass += `
        stat-error
       `
@@ -213,9 +221,25 @@ const codexHtml = [
   </div>`
 ]
 
+function copy(sourceDivId, type) {
+  let sourceDiv = '';
+  if (type === 'id') {
+    sourceDiv = document.getElementById(sourceDivId);
+  } else if (type === 'class') {
+    sourceDiv = document.getElementsByClassName(sourceDivId)[0];
+  }
+
+  if (sourceDiv !== '') {
+    return sourceDiv.innerHTML;
+  } else {
+    return 'what';
+  }
+}
+
+const sysHtml = copy('sys-output', 'class');
 
 function createDraggableWindow(ope, img, name, app, fun) {
-  if (!ope === 0) {
+  if (ope === 0) {
     if (ope === 'ps') {
       img = '/images/ps-logo.png';
       name = 'Powershell';
@@ -229,7 +253,7 @@ function createDraggableWindow(ope, img, name, app, fun) {
 
   // Create a new div element
   var newDiv = document.createElement('div');
-  newDiv.className = 'draggableDiv';
+  newDiv.className = `draggableDiv app-count-num-${fun}`;
   newDiv.innerHTML = `
     <div class="block"></div>
     <div class="top">
@@ -241,7 +265,7 @@ function createDraggableWindow(ope, img, name, app, fun) {
       </div>
       <div class="buttons">
         <button>_</button>
-        <button>X</button>
+        <button onclick="optionToggle('app-count-num-${fun}', 'dni');">X</button>
       </div>
     </div>
     <div class="window-area">
@@ -285,14 +309,13 @@ function createDraggableWindow(ope, img, name, app, fun) {
   });
 }
 
-
 let windapp = {
   notes: {
    html: `
    <div id="notesContainer">
    <h1>Notes App</h1>
    <div id="notes"></div>
-   <button id="addNoteBtn" class="btn-js-wind-app">Add Note</button>
+   <button id="addNoteBtn" class="btn-js-wind-app" onclick="notesWWl()">Add Note</button>
    <style> 
    #notesContainer {
     max-width: 600px;
@@ -326,8 +349,16 @@ let windapp = {
     background-color: #0056b3;
   }
    `,
+  
+},
+ps: `<div class="window-area amc-ani-ps">
+  <div class="system-ani">
+      Powershell
+  </div>
+</div>`,
 }
-}
+
+
 
 function notesWWl()  {
   var notes = JSON.parse(localStorage.getItem('notes')) || [];
@@ -386,7 +417,51 @@ function notesWWl()  {
   renderNotes();
 }
 
-// Event listener for button click to create a new draggable window
-createDraggableWindow(0, 'js/ps/assets/notesicon.webp', 'notes', windapp.notes.html, );
+function windowApp(app) {
+  if (app === 'notes') {
+    const object1 = {
+       img: 'js/ps/assets/notesicon.webp', 
+       name: 'notes',
+       app:  'hi',
+      };
+    windows.push(object1)
+    windows.push(object1)
+    console.log(object1)
+  }
+  if (app === 'ps') {
+    createDraggableWindow(0, '/images/ps-logo.png', 'Powershell window', windapp.ps, 'green');
+  }
+  if (app === 'sysm') {
+    createDraggableWindow(0, '/images/ps-logo.png', 'System output', copy('sys-output', 'class'), 'Dota');
+  }
+  if (app === 'display') {
+    createDraggableWindow(0, '/images/ps-logo.png', 'System display', copy('tab3', 'id'), 'lmk');
+  }
+}
+
+const windows = [
+  {
+
+  }
+]
+
+
+
+
+
+
+
+windows.forEach(( window, i )=> {
+  createDraggableWindow(0, window.img, window.name, window.app, i+1);
+});
+
+// windowApp('ps');
+// windowApp('sysm');
+
+
+
+
+
+
 
 

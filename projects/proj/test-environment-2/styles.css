@@ -1,62 +1,44 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  margin: 0;
+/* Default styles */
+.menu {
+  display: none;
+  position: absolute;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 100;
+}
+
+.menu ul {
+  list-style-type: none;
   padding: 0;
 }
 
-.container {
-  max-width: 400px;
-  margin: 50px auto;
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+.menu ul li {
+  margin-bottom: 5px;
 }
 
-form {
-  text-align: center;
-}
-
-h2 {
-  margin-bottom: 20px;
+.menu ul li a {
   color: #333;
+  text-decoration: none;
 }
 
-.form-group {
-  margin-bottom: 15px;
+/* Show menu on hover for devices with width >= 768px */
+@media screen and (min-width: 768px) {
+  .toggle-btn:hover + .menu,
+  .menu:hover {
+    display: block;
+  }
 }
 
-input[type="text"],
-input[type="radio"],
-input[type="checkbox"],
-select,
-textarea {
-  width: calc(100% - 20px);
-  margin: 0 auto;
-  padding: 10px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
-}
+/* Show menu when checkbox is checked for devices with width < 768px */
+@media screen and (max-width: 767px) {
+  .toggle-btn {
+    display: block;
+    position: relative;
+    cursor: pointer;
+  }
 
-select {
-  appearance: none;
-}
-
-button {
-  width: 45%;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  background-color: #4CAF50;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #45a049;
+  .toggle-btn:checked + .menu {
+    display: block;
+  }
 }

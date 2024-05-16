@@ -1,80 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multiple Draggable Windows</title>
-  <style>
-    /* Style the draggable div */
-    .draggableDiv {
-      width: 200px;
-      height: 200px;
-      background-color: #f00;
-      position: absolute;
-      resize: both;
-      overflow: auto;
-    }
-
-    /* Style the button */
-    #createWindowBtn {
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-
-    span {
-      color: green;
-    }
-  </style>
-</head>
-<body>
-
-<button id="createWindowBtn">Create Draggable Window</button>
-
-<script>
-  // Function to create a draggable window
-  const testText = 'window!'
-  function createDraggableWindow(html) {
-    // Create a new div element
-    var newDiv = document.createElement('div');
-    newDiv.className = 'draggableDiv';
-    newDiv.innerHTML = `<span>${html}</span>`;
-
-    // Set initial position randomly
-    newDiv.style.left = Math.random() * (window.innerWidth - 200) + 'px';
-    newDiv.style.top = Math.random() * (window.innerHeight - 200) + 'px';
-
-    // Append the new div to the body
-    document.body.appendChild(newDiv);
-
-    // Event listener for mouse down on the new div to enable dragging
-    newDiv.addEventListener('mousedown', function(event) {
-      var offsetX = event.clientX - newDiv.offsetLeft;
-      var offsetY = event.clientY - newDiv.offsetTop;
-
-      document.addEventListener('mousemove', moveDiv);
-
-      function moveDiv(event) {
-        var newX = event.clientX - offsetX;
-        var newY = event.clientY - offsetY;
-
-        newDiv.style.left = newX + 'px';
-        newDiv.style.top = newY + 'px';
-      }
-
-      document.addEventListener('mouseup', function() {
-        document.removeEventListener('mousemove', moveDiv);
-      });
-    });
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Responsive Dropdown Menu</title>
+<style>
+  /* General reset */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
-  // Event listener for button click to create a new draggable window
-  document.getElementById('createWindowBtn').addEventListener('click', createDraggableWindow);
-</script>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+  }
+
+  /* Navigation styling */
+  nav {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .dropdown {
+    display: inline-block;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .dropdown>li {
+    position: relative;
+    padding: 10px;
+    border: 2px solid #ccc;
+    display: inline-block;
+    cursor: pointer;
+  }
+
+  .dropdown>li>a {
+    text-decoration: none;
+    color: #333;
+    display: block;
+  }
+
+  .dropdown>li>ul {
+    list-style-type: none;
+    visibility: hidden;
+    position: absolute;
+    left: 0;
+    width: calc(100% + 100px);
+    background-color: #fff;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    z-index: 1;
+    opacity: 0;
+    top: 40px;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .dropdown>li:hover>ul {
+    visibility: visible;
+    opacity: 1;
+    top: 50px;
+  }
+</style>
+</head>
+
+<body>
+
+<nav>
+  <ul class="dropdown">
+      <li>
+        <a href="#">=</a>
+          <ul>
+              <li><a href="nature.html">Link One</a></li>
+              <li><a href="city.html">Link Two</a></li>
+          </ul>
+      </li>
+  </ul>
+</nav>
 
 </body>
 </html>

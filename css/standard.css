@@ -14,8 +14,7 @@ p, a {
 
 .btn-no-value {
   border-style: none;
-  color: none;
-  background-color: none;
+  background-color: transparent;
 }
 
 .pos-cent {

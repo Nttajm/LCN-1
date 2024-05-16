@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="/css/root.css">
+    <title>COM_SAT</title>
+</head>
+<body>
+    <div class="cont fl-c fl-jsp-c">
+        <div class="sec fl-c">
+            <div class="header-op">
+                <span>NETWORKS AVAILABLE</span>
+                <button onclick="noneClass('cl-1');">
+                    <span class="material-symbols-outlined">
+                        keyboard_arrow_down
+                    </span>
+                </button>
+            </div>
+            <div class="option cl-1">
+                <img src="assets/rss_feed_24dp_FILL0_wght400_GRAD0_opsz24.png" alt="" class="svgitem block-item">
+                <span class="option-txt">
+                    Online - CWE-12
+                </span>
+            </div>
+            <div class="option cl-1">
+                <img src="assets/rss_feed_24dp_FILL0_wght400_GRAD0_opsz24.png" alt="" class="svgitem block-item">
+                <span class="option-txt">
+                    Radio - HTT-14
+                </span>
+            </div>
+        </div>
+        <div class="sec fl-c">
+            <div class="header-op">
+                <span>CHANNELS</span>
+                <button onclick="noneClass('chan-btns');">
+                    <span class="material-symbols-outlined">
+                        keyboard_arrow_down
+                    </span>
+                </button>
+            </div>
+            <div class="chan-btns js-actives">
+                <button>7-80</button>
+                <button>-30-3</button>
+                <button>-30-16</button>
+                <button>-41-16</button>
+                <button>-43-14</button>
+                <button>-43-14</button>
+                <button>-43-14</button>
+                <button>-44-64</button>
+                <button>-227-54</button>
+                <button>-229-51</button>
+            </div>
+        </div>
+        <div class="sec fl-c">
+            <div class="header-op">
+                <span>CONNECTIVITY</span>
+            </div>
+            <div class="bars">
+                <div class="bar" id="bar1"></div>
+                <div class="bar" id="bar2"></div>
+                <div class="bar" id="bar3"></div>
+                <div class="bar" id="bar4"></div>
+            </div>
+        </div>
+        <div class="apply js-actives-only">
+            <button onclick="changeText(arrowUp);">PTT</button>
+            <button onclick="changeText('VOX')">
+                <span class="material-symbols-outlined">
+                    north
+                </span>
+                <span class="material-symbols-outlined">
+                    south
+                </span>
+            </button>
+            <button onclick="changeText(arrowDwn)">Recive</button>
+        </div>
+        <div class="name">
+            <span>Joel M.</span>
+            <span>Local Group</span>
+        </div>
+        <div class="circle">
+            <div class="twp" id="ani-cir"></div>
+            <button class="circle-btn" id="cir" onclick="onOff();">
+                TALK
+            </button>
+        </div>
+    </div>
+<script src="index.js"></script>
+</body>
+</html>

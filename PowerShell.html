@@ -18,7 +18,8 @@
     <title>PowerShell</title>
 </head>
 <body class="thColor">
-    <div class="draggableDiv">
+    <!--
+        <div class="draggableDiv">
         <div class="block"></div>
         <div class="top">
          <div>
@@ -32,10 +33,13 @@
           <button>X</button>
          </div>
         </div>
-        <div class="window-area">
-            
+        <div class="window-area amc-ani-ps">
+            <div class="system-ani">
+                Powershell
+            </div>
         </div>
       </div>
+    -->
     <div class="wallpaper js-app-wallp"></div>
     <div class="container">
         <nav class="nav-bar js-blurBackground">
@@ -203,26 +207,33 @@
                             <span class="material-symbols-outlined stat-error">
                                 error
                             </span>
-                            <span id="js-errorCount">0</span> 
+                            <span class="js-errorCount">0</span> 
                         </div>
                         |
                         <div class="sys-box">
                             <span class="material-symbols-outlined highlight">
                                 warning
                             </span>
-                            <span id="js-waringCount">0</span> 
+                            <span class="js-waringCount">0</span> 
                         </div>
                         |
                         <div class="sys-box">
                             <span class="material-symbols-outlined skyblue">
                                 article
                              </span>
-                            <span id="js-messagesCount">0</span>
+                            <span class="js-messagesCount">0</span>
+                        </div>
+                        <div class="sys-box">
+                            <button class="btn-no-value" onclick="windowApp('sysm');">
+                            <span class="material-symbols-outlined skyblue">
+                                    open_in_new
+                             </span>
+                            </button>
                         </div>
                     </div>
                 </div>
                 <div class="sys-bottom">
-                    <span id="js-sys-out">bm/main/array/user/ ~<span id="outtext"><span class="stat"></span></span></span>
+                    <span id="js-sys-out" class="js-sys-out">bm/main/array/user/ ~<span id="outtext"><span class="stat"></span></span></span>
                 </div>
             </div>
         </div>
@@ -248,6 +259,13 @@
         <div class="tab-content" id="tab3">
             <div class="app-head">
                 --:-- <span class="bold">>_</span>
+                <div class="sys-box">
+                    <button class="btn-no-value" onclick="windowApp('display');">
+                    <span class="material-symbols-outlined skyblue">
+                            open_in_new
+                     </span>
+                    </button>
+                </div>
             </div>
             $> nothing loaded
         </div>

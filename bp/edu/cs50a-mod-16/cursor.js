@@ -7,3 +7,4 @@ const cursor = document.querySelector('.cursor');
       });
 
       // Hide the default cursor
+      cursor.style.position = 'fixed';

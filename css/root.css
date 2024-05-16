@@ -15,6 +15,7 @@
     --highg: rgb(133, 133, 133);
     --ps-gray:  rgb(35, 35, 35);
     --pail-nimb: rgb(141, 150, 172);
+    --border: solid 1px rgb(80, 80, 80);
     --ps-color: #04028d;
     --ps-light:  #0400ee;
   }

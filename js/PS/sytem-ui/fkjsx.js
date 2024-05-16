@@ -76,3 +76,6 @@ apps.forEach((app) => {
 
 // After the loop, update the innerHTML of appCont with the concatenated appHtml
 appCont.innerHTML = appHtml;
+
+
+

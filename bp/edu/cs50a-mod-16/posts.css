@@ -336,3 +336,49 @@ footer div div{
 
   
 }
+
+.dropdown {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  z-index: 10000;
+}
+
+.dropdown>li {
+  position: relative;
+  padding: 10px;
+  border: 2px solid #ccc;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.dropdown>li>a {
+  text-decoration: none;
+  color: #ffffff;
+  display: block;
+}
+
+.dropdown>li>ul {
+  list-style-type: none;
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+  width: calc(100% + 100px);
+  background-color: #525252;
+  margin: 0;
+  padding: 10px;
+  z-index: 1;
+  opacity: 0;
+  top: 40px;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown>li:hover>ul {
+  visibility: visible;
+  opacity: 1;
+  top: 50px;
+}

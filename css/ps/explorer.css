@@ -313,6 +313,12 @@
   padding: 4px;
   box-sizing: border-box;
   color: white;
+  max-height: 34px;
+}
+
+.sys-box button {
+  box-sizing: border-box;
+  max-height: 34px;
 }
 
 .sys-bottom {
@@ -364,6 +370,10 @@
   font-family: roboto;
   border: var(--border);
   box-shadow: 0px 0px 23px 0px rgba(0, 0, 0, 0.549);
+}
+
+.dni {
+  display: none !important;
 }
 
 .top {
@@ -420,4 +430,30 @@
   width: 100%;
   height: 100%;
   padding-top: 32px;
+}
+
+.amc-ani-ps {
+  animation: example 3s forwards;
+}
+
+.system-ani {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  font-size: 2rem;
+  animation: logo-ani 3s forwards;
+}
+
+@keyframes logo-ani {
+  0%   {opacity: 0.4;}
+  25%  {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+@keyframes example {
+  0%   {background-color: rgb(131, 131, 131);}
+  25%  {background-color: rgba(49, 33, 192, 0.473);}
+  100% {background-color: rgba(80, 80, 80, 0);}
 }

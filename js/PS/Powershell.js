@@ -909,6 +909,7 @@ inputElement.addEventListener("keydown", function (event) {
                 commandHistory.shift();
             }
 
+
             responseHistory.push(response);
             if (responseHistory.length > 10) {
                 responseHistory.shift();
@@ -921,7 +922,7 @@ inputElement.addEventListener("keydown", function (event) {
             
 
 
-            outputElement.innerHTML += `<div>user ${userData.name} $ ${command}</div>`;
+            outputElement.innerHTML += `<div>user ${userData.name} $  ${command}</div>`;
             outputElement.innerHTML += `<div>db$ ${response}</div>`;
         });
     }
@@ -937,7 +938,7 @@ function error() {
 }
 function renderLogs() {
     const outputHTML = document.getElementById('e-out');
-    logEntries.forEach((logEntry, index) => {
+    logEntries.forEach((logEntry) => {
          outputHTML.innerHTML += `
          <div class="file fl-ai" id="e-file">
          <span class="material-symbols-outlined">
