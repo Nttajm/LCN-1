@@ -19,17 +19,26 @@ body {
     background-color: rgb(94, 94, 94);
 }
 
+.cont {
+    padding: 0px 10px 0px 10px;
+}
+
 .sec {
     padding: 10px 5px 10px 5px;
-    margin: 10px;
+    margin: 10px 0px 10px 0px;
     background-color: var(--g);
     border: var(--border);
     display: flex;
     font-family: var(--font-rn);
 }
 
+#overflow-sec {
+    max-height: 180px;
+    overflow-y: scroll;
+}
+
 .option {
-    border: var(--border);
+    border: var(--border); 
     padding: 5px;
     font-size: 1.3rem;
     font-weight: 200;
@@ -37,6 +46,8 @@ body {
     gap: 10px;
     align-items: center;
     margin: 5px 0px 5px 0px;
+    background-color: transparent;
+    color: white;
 }
 
 .header-op {
@@ -209,3 +220,50 @@ body {
     }
 
 }
+
+@keyframes fade {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      display: none;
+       /* Adjust this value based on how far you want it to move up */
+    }
+  }
+  
+  
+  @media only screen and (width > 1200px) {
+    .img-sec {
+      display: block;
+    }
+  }
+  
+  @media only screen and (max-width : 992px) {
+    :root {
+      font-size: 13px;
+    }
+  
+    .img-l-sec figure, 
+    .img-l-sec figure img
+    {
+      width: 300px;
+      margin-bottom: 10px;
+    }
+    
+    .img-l-sec {
+      flex-direction: column;
+    }
+    
+  }
+  
+  @media only screen and (max-width : 768px) {
+    :root {
+      font-size: 20px;
+    }
+
+    .header-op span {
+        font-size: .7rem;
+    }
+  }

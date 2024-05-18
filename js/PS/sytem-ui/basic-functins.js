@@ -175,12 +175,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   buttonsApps.forEach(button => {
     const installed = localStorage.getItem(button.id);
-    console.log(button.id)
     if (installed) {
       button.innerText = 'Run';
     }
   });
 });
+
+let availFuns = [];
+
 
 function download(program) {
   const installed = localStorage.getItem(`js-btn-v-${program}`) || '';
@@ -191,13 +193,21 @@ function download(program) {
     runProgram(program);
     sysMessage(`program '${program}' is now running in the output display.`, 'm')
   } else {
-    startLoading(120, 20);
-    sysMessage('not made', 'w');
-    button.innerHTML = `Run`
+    availFuns.push(program);
+    startLoading(110, 9);
+
+    button.classList.add('temporary-class');
+    button.innerHTML = `installing...`
+
+    setTimeout(() => {
+        button.classList.remove('temporary-class');
+        sysMessage('program built in', 'w');
+        button.innerHTML = `Run`
+    }, 4000);
+
+    console.log(availFuns);
     localStorage.setItem(`js-btn-v-${program}`, true);
   }
-
-
 }
 
 function disable() {
@@ -440,16 +450,8 @@ function windowApp(app) {
 }
 
 const windows = [
-  {
-
-  }
+  
 ]
-
-
-
-
-
-
 
 windows.forEach(( window, i )=> {
   createDraggableWindow(0, window.img, window.name, window.app, i+1);
@@ -459,7 +461,14 @@ windows.forEach(( window, i )=> {
 // windowApp('sysm');
 
 
-
+document.getElementById('readClipboardBtn').addEventListener('click', async () => {
+  try {
+      const text = await navigator.clipboard.readText();
+      document.getElementById('key').value = text;
+  } catch (err) {
+      console.error('Failed to read clipboard contents: ', err);
+  }
+});
 
 
 

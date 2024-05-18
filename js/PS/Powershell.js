@@ -239,7 +239,6 @@ function themeColorComps(setColor) {
     const container = document.getElementById('output');
     input.style.color = setColor;
     container.style.color = setColor;
-
 } 
 
 function TextColorComps(setColor) {
@@ -277,6 +276,7 @@ import { network } from './netstat.js';
 import { sessionId } from './sessionid.js';
 import { serverId } from './systeminfo/serlist.js';
 import { psCmsJarg } from './commands/jarg.js';
+
 // import { system } from './sytem-ui/messages.js';
 
 // exports, execept for user data lol.
@@ -1171,6 +1171,98 @@ function theme(theme, color, command) {
     saveUserData();
 }
 
+const inputKey = document.getElementById('key');
+        const keyElemsCrBtn = document.getElementById('js-create-key');
+
+        function encryptText(text, shift) {
+            const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+            const upperAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            shift = 5
+
+            
+            return text.split('').map(char => {
+                if (alphabet.includes(char)) {
+                    let newIndex = (alphabet.indexOf(char) + shift) % alphabet.length;
+                    return alphabet[newIndex];
+                } else if (upperAlphabet.includes(char)) {
+                    let newIndex = (upperAlphabet.indexOf(char) + shift) % upperAlphabet.length;
+                    return upperAlphabet[newIndex];
+                } else {
+                    return char; // Non-alphabet characters remain the same
+                }
+            }).join('');
+        }
+
+        function decryptText(encryptedText, shift) {
+            const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+            const upperAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            
+            return encryptedText.split('').map(char => {
+                if (alphabet.includes(char)) {
+                    let newIndex = (alphabet.indexOf(char) - shift + alphabet.length) % alphabet.length;
+                    return alphabet[newIndex];
+                } else if (upperAlphabet.includes(char)) {
+                    let newIndex = (upperAlphabet.indexOf(char) - shift + upperAlphabet.length) % upperAlphabet.length;
+                    return upperAlphabet[newIndex];
+                } else {
+                    return char; // Non-alphabet characters remain the same
+                }
+            }).join('');
+        }
+
+        function getKey() {
+            let name = userData.name
+            if (!userData.name) {
+                name = 'not_set'
+            }
+
+            const strings = [
+                name, 
+                userData.textColor, 
+                document.body.style.backgroundColor,
+            ];
+
+            const outText = strings.join('-');
+            const checker = `*d/-`;
+            const eText = checker + encryptText(outText, 5);
+            inputKey.value = '';
+            inputKey.value = eText; // Use value instead of innerHTML for input element
+
+            return eText;
+        }
+
+        keyElemsCrBtn.addEventListener('click', getKey);
+
+        function extractBetweenDashes(text) {
+            const results = text.split('-').filter(item => item !== '');
+            return results;
+        }
+
+        function useKey() {
+            const textlmao = `*d-sty_xjy-twfslj-ifwptqnajlwjjs`
+            const keyInput = document.getElementById('key').value;
+            const uncrypKey = decryptText(keyInput, 5);
+            const extractedTexts = extractBetweenDashes(uncrypKey);
+
+           
+            
+            const container = document.getElementById('output');
+
+            userData.name = extractedTexts[1];
+            container.style.color = extractedTexts[2];
+            userData.theme = extractedTexts[3];
+            document.body.style.backgroundColor = extractedTexts[3];
+
+            console.log(uncrypKey)
+
+        }
+
+        const keyElemsUsBtn = document.getElementById('js-usekey')
+        keyElemsUsBtn.addEventListener('click', useKey);
 
 
 
+const text1 = 'hi'
+const text2 = 'green'
+const text3 = 'orange'
+const text4 = 'blue'

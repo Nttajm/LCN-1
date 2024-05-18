@@ -1,27 +1,10 @@
+
+/* Write CSS Here */
 body {
-  margin: 0;
-  overflow: hidden; /* Hide scroll bars */
-  cursor: hidden;
+  text-align: center;
 }
-
-.cursor {
-  cursor: none;
-  position: absolute;
-  filter: blur(8px);
-  opacity: 0.6;
-  width: 60px;
-  height: 60px;
-  top: 0;
-  left: 0;
-  z-index: 999;
-  border-radius: 50%;
-  background: rgb(63,94,251);
-background: radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%);
-  pointer-events: none; /* Allow clicks to pass through */
-}
-
-.all {
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
+.geeks {
+  font-size: 40px;
+  font-weight: bold;
+  color: green;
 }

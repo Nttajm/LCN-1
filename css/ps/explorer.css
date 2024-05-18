@@ -267,6 +267,10 @@
   font-weight: 600;
 }
 
+.sys-info button {
+  background-color: transparent;
+}
+
 .app-head {
   text-align: right;
   padding-right: 10px;
@@ -287,6 +291,7 @@
   background-color: rgb(27, 27, 27);
   margin: 10px;
   border: var(--border);
+  cursor: disabled;
 }
 
 .sys-top {
@@ -314,12 +319,9 @@
   box-sizing: border-box;
   color: white;
   max-height: 34px;
+  background-color: transparent;
 }
 
-.sys-box button {
-  box-sizing: border-box;
-  max-height: 34px;
-}
 
 .sys-bottom {
   padding: 4px;
@@ -444,6 +446,26 @@
   font-weight: 600;
   font-size: 2rem;
   animation: logo-ani 3s forwards;
+}
+
+#key {
+  font-family: var(--font-ps);
+  outline: none;
+  flex-grow: 1;
+}
+
+#key:focus {
+  border: rgb(204, 204, 204) solid 1px;
+}
+
+.sys-info button:hover {
+  box-sizing: border-box;
+  max-height: 34px;
+}
+
+.temporary-class {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 @keyframes logo-ani {

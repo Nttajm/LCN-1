@@ -61,7 +61,8 @@ function changeText(text) {
         aniCir.classList.add('twps-ani');
         cirBtn.classList.remove('active-b');
         cirBtn.classList.remove('js-c-yellow');
-
+    } else if (cirBtn.innerHTML === arrowUp && cirBtn.classList.contains('js-c-yellow')) {
+        aniCir.classList.add('twps-ani');
     } else {
         cirBtn.classList.add('active-b');
         aniCir.classList.remove('twps-ani');
@@ -73,3 +74,37 @@ function onOff() {
         cirBtn.classList.toggle('js-c-yellow');
     }
 }
+
+function renderNetworks() {
+    networks = [
+        'CWE-12',
+        'HTT-16',
+        'ECS-32',
+        'EMS-0',
+        'PARSENT-12',
+        'CCW-18'
+    ]
+
+    const div = document.getElementById('overflow-sec');
+    div.innerHTML = `<div class="header-op js-actives-only">
+    <span>NETWORKS AVAILABLE</span>
+    <button onclick="noneClass('cl-1');">
+        <span class="material-symbols-outlined">
+            keyboard_arrow_down
+        </span>
+    </button>
+   </div>`;
+
+    networks.forEach((net, i)=> {
+        div.innerHTML += `
+         <button class="option cl-1 js-rad-btn-${i + 1}">
+                <img src="assets/rss_feed_24dp_FILL0_wght400_GRAD0_opsz24.png" alt="" class="svgitem block-item">
+                <span class="option-txt">
+                    ${net}
+                </span>
+        </button>
+        `
+    });
+}
+
+renderNetworks()
