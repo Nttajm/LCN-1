@@ -10,6 +10,8 @@ p, a {
   text-decoration: none;
   margin-top: 0px;
   margin-bottom: 0px;
+  font-style: none;
+  color: black;
 }
 
 .btn-no-value {
@@ -174,7 +176,7 @@ button {
 }
 
 span a {
-  color: none;
+  color: white;
 }
 
 .img-1{

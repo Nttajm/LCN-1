@@ -1211,7 +1211,7 @@ const inputKey = document.getElementById('key');
         }
 
         function getKey() {
-            let name = userData.name
+            let name = userData.name;
             if (!userData.name) {
                 name = 'not_set'
             }
@@ -1220,13 +1220,21 @@ const inputKey = document.getElementById('key');
                 name, 
                 userData.textColor, 
                 document.body.style.backgroundColor,
+                'wlmGhttps://wallpapercave.com/wp/wp2078929.jpg'
             ];
+
+            appProgram.forEach((app) => {
+                strings.push('prgL' + app.id);
+            });
 
             const outText = strings.join('-');
             const checker = `*d/-`;
             const eText = checker + encryptText(outText, 5);
             inputKey.value = '';
             inputKey.value = eText; // Use value instead of innerHTML for input element
+
+            console.log(decryptText(eText, 5));
+            console.log(strings)
 
             return eText;
         }
@@ -1243,17 +1251,23 @@ const inputKey = document.getElementById('key');
             const keyInput = document.getElementById('key').value;
             const uncrypKey = decryptText(keyInput, 5);
             const extractedTexts = extractBetweenDashes(uncrypKey);
-
            
-            
-            const container = document.getElementById('output');
-
-            userData.name = extractedTexts[1];
-            container.style.color = extractedTexts[2];
-            userData.theme = extractedTexts[3];
-            document.body.style.backgroundColor = extractedTexts[3];
-
+            userData.name = extractedTexts[0];
+            loadTheme();
+            saveUserData();
+            theme(extractedTexts[2], extractedTexts[1])
             console.log(uncrypKey)
+
+            extractedTexts.forEach(text => {
+                const programNumber = parseInt(text.substring(4)); // Extract number after "prgL"
+                const programText = text.substring(4);;
+                if (text.startsWith("prgL")) {
+                    download(programNumber)
+                }
+                if (text.startsWith('wlmG')) {
+                    wall(programText);
+                }
+            });
 
         }
 

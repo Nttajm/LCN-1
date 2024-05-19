@@ -9,7 +9,7 @@ const apps = [
         gameID: 391,
     },
     {
-        name: 'Pong',
+        name: 'Pong', 
         dis: 'play pong game. Get as many points as you can!',
         type: 'Javascript',
         gameID: 191,
