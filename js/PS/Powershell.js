@@ -1246,17 +1246,23 @@ const inputKey = document.getElementById('key');
             return results;
         }
 
-        function useKey() {
+        function useKey(text) {
             const textlmao = `*d-sty_xjy-twfslj-ifwptqnajlwjjs`
-            const keyInput = document.getElementById('key').value;
+            let keyInput = document.getElementById('key').value;
+            let keyInputText = document.getElementById('key').innerHTML;
             const uncrypKey = decryptText(keyInput, 5);
             const extractedTexts = extractBetweenDashes(uncrypKey);
+
+            if (text) {
+                keyInput = text;
+            }
            
-            userData.name = extractedTexts[0];
+            userData.name = extractedTexts[1];
             loadTheme();
             saveUserData();
-            theme(extractedTexts[2], extractedTexts[1])
+            theme(extractedTexts[3], extractedTexts[2])
             console.log(uncrypKey)
+
 
             extractedTexts.forEach(text => {
                 const programNumber = parseInt(text.substring(4)); // Extract number after "prgL"
@@ -1268,11 +1274,15 @@ const inputKey = document.getElementById('key');
                     wall(programText);
                 }
             });
-
         }
+
+        console.log(userData.keyEn)
+
 
         const keyElemsUsBtn = document.getElementById('js-usekey')
         keyElemsUsBtn.addEventListener('click', useKey);
+
+        
 
 
 

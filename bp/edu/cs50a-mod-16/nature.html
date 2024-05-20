@@ -11,7 +11,7 @@
 </head>
 <body>
   <div class="cover" id="after">
-    <img src="images/U_C_b-a.png" alt="">
+    <img src="images/U_C_b-a.png" alt="logo">
     <div class="blank"></div>
   </div>
   <ul class="dropdown">
@@ -258,7 +258,7 @@
       for (let j = 0; j < numImagesPerPcol; j++) {
         // Get the current image source from the shuffledImages array
         const currentImageSrc = shuffledImages[currentIndex];
-        html += `<img src="${currentImageSrc}" alt="IMGNOTF" class="animated-element"">`; // Add an "img" element with the current source
+        html += `<img src="${currentImageSrc}" alt="IMGNOTF${j + 1}" class="animated-element"">`; // Add an "img" element with the current source
         
         // Move to the next index or reshuffle if all images have been used
         currentIndex++;

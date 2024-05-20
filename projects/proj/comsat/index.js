@@ -63,10 +63,14 @@ function changeText(text) {
         cirBtn.classList.remove('js-c-yellow');
     } else if (cirBtn.innerHTML === arrowUp && cirBtn.classList.contains('js-c-yellow')) {
         aniCir.classList.add('twps-ani');
+    } else if (cirBtn.innerHTML === 'NRD') {
+        cirBtn.classList.add('inactive');
+        aniCir.classList.remove('twps-ani');
     } else {
         cirBtn.classList.add('active-b');
         aniCir.classList.remove('twps-ani');
     }
+
 }
 
 function onOff() {
@@ -108,3 +112,18 @@ function renderNetworks() {
 }
 
 renderNetworks()
+
+function selectedBtns() {
+    const selectedBtns = document.querySelectorAll('.js-btn-selected');
+    if (selectedBtns.length === 0) {
+        changeText('NRD');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    buttonsCl.forEach(button => {
+        button.addEventListener('click', () => {
+            selectedBtns();
+        });
+    });
+});
