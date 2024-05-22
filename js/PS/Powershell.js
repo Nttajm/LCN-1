@@ -6,6 +6,7 @@ let timerInterval;
 
 let stopwatchInterval;
 let stopwatchSeconds = 0;
+let recInterval;
 
 const commandHistory = [];
 let lastCommandIndex = -1;
@@ -590,7 +591,7 @@ inputElement.addEventListener("keydown", function (event) {
                 response += `<br> current system server: ${currentServer}`
                 response += `<br> user of current session: ${userData.name}`
                 response += `<br> netwrok status: <span class="g"> ${network} </span>`
-                response += `<br> files stored: ${dbArray.length + 1}`
+                response += `<br> key: ${getKey()}`
                 response += `<hr>`
             } else if (command.toLowerCase().startsWith('spam')) {
                 const spamParts = command.split(" ");
@@ -710,6 +711,32 @@ inputElement.addEventListener("keydown", function (event) {
                     createNotification(system.error.syntax)
                     response = system.error.syntaxParts
                 }
+            } else if (command.toLowerCase().startsWith("rec ()")) {
+                const parts = command.split(" ");
+                const p1 = parts[2]
+                const p2 = parts[3]
+                const p3 = parts[4]
+
+                if (recInterval) {
+                    clearInterval(recInterval); // Clear any existing interval
+                }
+
+                response = delay(`conntecting with ${p2}...`, 210);
+                response = delay(`verfying ${p1}...`, 710);
+                setInterval(() => {
+                    recInterval = setInterval(() => {
+                        outputElement.innerHTML += `<div>${rec(p1, p2, p3)}</div>`;
+                    }, 1225);
+                }, 1200);
+            
+                // Clear the interval when a new command is entered
+                if (timexInterval) {
+                    clearInterval(timexInterval);
+                }
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+
             } else if (command.toLowerCase() === 'r') {
                 location.reload();
             } else if (command.toLowerCase().startsWith('e /')) {
@@ -901,6 +928,10 @@ inputElement.addEventListener("keydown", function (event) {
                 }
             }  else {
                 response = "Command not recognized"; 
+                if (recInterval) {
+                    clearInterval(recInterval);
+                    recInterval = null; 
+                }
             }
 
             commandHistory.push(command);
@@ -931,6 +962,61 @@ inputElement.addEventListener("keydown", function (event) {
 
 // alternitive ui 
 
+function rec(reciver, sender, play) {
+    const computerJargon = [
+        "P7n_scr1pt executing neu-mx1nks 2 quan-srvr clstr",
+        "Ass3m_code interfacing w/ aug-rntlty nrl im-nts",
+        "K3rnel_mod syncing data flw across qntm-ent nodes",
+        "St4ck_err detected by AI-dr1v anom-dtct sys",
+        "0bj-0rnt prgrmng cls implmntg AI-dr1v 4tnms agents",
+        "Int-rrpt_hndlr prcsg rl-tme data strms fr BCI",
+        "Mchn_cod instrctn optimzing nanobt swrm bhvr",
+        "Bin_tree trvsl algo navg8ing thru qntm hyperspce",
+        "Vrtl_m3m mgmt sys storing cnscus bkps in qntm strg",
+        "Syn_err detected by AI-dr1v cd comprhnsn eng",
+        "Opcde exe by CPU cntrollng nanoscale mol machines",
+        "Excptn_hndlng mech activ8ing qntm err crctn prot",
+        "Rcrsv_fnctn evolving thru gen algs 4 optml prf",
+        "Instr_ptr dirng nanoscale mttr mnipul8n in nanasmblrs",
+        "Big_O nt8n prdctng qntm compxty lndscps",
+        "Grbg_coll rmg obslt qntm info frgmnts",
+        "Shll_scrpt prgrm cntrollng nanorobot swrm bhvr",
+        "Bitws_oprtn mnlpng qntm qubits in superpos states",
+        "Mmry_lk dtctn tool scanng qntm entglmnt netwks 4 anmls",
+        "Hxdcl_repr of qntm encrptn keys xmtd thru qntm chnls",
+        "Dylnk lib adaptng 2 qntm comptr architcts",
+        "Ctrl_flw strctr gding qntm dcion-mkng prcss",
+        "Asmbldr drctv optimzng qntm code synths 4 qntm procssrs",
+        "Chch_crhnce prot mnntng crhnc in qntm entglmnt arrys",
+        "Mlti-thrddng app orcs8ng prlll qntm cmpxtns",
+      ];
+
+  
+      const randomIndex = Math.floor(Math.random() * computerJargon.length);
+      const data = computerJargon[randomIndex];
+    
+      const texts = [
+        `<br>////// MFC ? rec() ${sender}`,
+        `<br> ///Rec _gave% ${sender} : retrieve`,
+        `<br> ///mocw_movq _gave% ${sender} : retrieve ${data}`,
+        `<br> ///mocw_movq _gave% ${sender} : retrieve ${data}`,
+        `<br> ///_movq _gave% ${sender} : retrieve ${data}`,
+        `<br> ///coo_push< _got% ${reciver} : arm:lock ${data}`,
+        `<br> ///coo_push< _got% ${reciver} : arm:lock ${data}`,
+        `<br> ///coo_push< _got% ${reciver} : arm:safe {ray${data}} el { ${data} || ${data} }`,
+        `<br> ///coo_push< _got% ${reciver} : if (got : retrieve == ${sender} : ${reciver}) {sys = ${data}} el { ${data} || ${data} }`,
+        `<br> ///YUl-e< _got% ${reciver} : arm:lock ${data}`,
+      ];
+
+      const rntexts = Math.floor(Math.random() * texts.length)
+      const textout = texts[rntexts];
+    
+      return textout;
+  
+  }
+  
+
+console.log(rec())
 
 function error() {
     response = system.error.syntax;

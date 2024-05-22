@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-let availFuns = [];
+ const availFuns = [];
 
 
 function download(program) {

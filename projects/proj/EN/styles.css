@@ -131,6 +131,8 @@ table {
 
 #name {
     font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
 }
 
 .table-text {
@@ -141,4 +143,20 @@ table {
 
 .data-table #all {
     flex-grow: 1;
+}
+
+:root {
+    --br: 5px solid;
+}
+
+#valid {
+    border-right: var(--br) green;
+}
+
+#mid{
+    border-right: var(--br) rgb(242, 255, 63);
+}
+
+#no {
+    border-right: var(--br) rgb(228, 0, 0);
 }

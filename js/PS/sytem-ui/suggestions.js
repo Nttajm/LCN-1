@@ -155,4 +155,4 @@ var suggestions = [
         });
     }
 
-    autocomplete(document.querySelector(".input"), suggestions);
+    autocomplete(document.querySelector(".input"), suggestions);                                                              
