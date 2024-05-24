@@ -52,7 +52,8 @@ body {
 }
 
 :root {
-    --font-ps: "IBM Plex Mono", monospace;
+    /* --font-ps: "IBM Plex Mono", monospace; */
+    --font-ps: "IBM Plex Mono";
     font-size: 16px;
     --bg-color: #04028d;
     --border: solid 1px rgb(80, 80, 80);

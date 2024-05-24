@@ -713,20 +713,28 @@ inputElement.addEventListener("keydown", function (event) {
                 }
             } else if (command.toLowerCase().startsWith("rec ()")) {
                 const parts = command.split(" ");
-                const p1 = parts[2]
-                const p2 = parts[3]
-                const p3 = parts[4]
+                let p1 = parts[2]
+                let p2 = parts[3]
+                let p3 = parts[4]
 
                 if (recInterval) {
                     clearInterval(recInterval); // Clear any existing interval
                 }
 
-                response = delay(`conntecting with ${p2}...`, 210);
-                response = delay(`verfying ${p1}...`, 710);
-                setInterval(() => {
+                if (!p1) {
+                    p1 = userData.name
+                }
+
+                if (!p2) {
+                    p2 = `rec-admin`;
+                }
+
+                response = delay(`verfying ${p1}...`, 210);
+                response = delay(`conntecting with ${p2}...`, 710);
+                setTimeout(() => {
                     recInterval = setInterval(() => {
                         outputElement.innerHTML += `<div>${rec(p1, p2, p3)}</div>`;
-                    }, 1225);
+                    }, 425);
                 }, 1200);
             
                 // Clear the interval when a new command is entered
@@ -962,7 +970,7 @@ inputElement.addEventListener("keydown", function (event) {
 
 // alternitive ui 
 
-function rec(reciver, sender, play) {
+function rec(whof, fent, play) {
     const computerJargon = [
         "P7n_scr1pt executing neu-mx1nks 2 quan-srvr clstr",
         "Ass3m_code interfacing w/ aug-rntlty nrl im-nts",
@@ -990,6 +998,10 @@ function rec(reciver, sender, play) {
         "Chch_crhnce prot mnntng crhnc in qntm entglmnt arrys",
         "Mlti-thrddng app orcs8ng prlll qntm cmpxtns",
       ];
+
+      const sender = `<span class="highlight u">` + fent + `</span>`
+      const reciver = `<span class="stat u">` + whof + `</span>`
+
 
   
       const randomIndex = Math.floor(Math.random() * computerJargon.length);
