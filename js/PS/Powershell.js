@@ -726,6 +726,7 @@ inputElement.addEventListener("keydown", function (event) {
                 setInterval(() => {
                     recInterval = setInterval(() => {
                         outputElement.innerHTML += `<div>${rec(p1, p2, p3)}</div>`;
+                        clearInterval(recInterval);
                     }, 1225);
                 }, 1200);
             
@@ -950,8 +951,6 @@ inputElement.addEventListener("keydown", function (event) {
                 userData.name = "";
             }
             
-            
-
 
             outputElement.innerHTML += `<div>user ${userData.name} $  ${command}</div>`;
             outputElement.innerHTML += `<div>db$ ${response}</div>`;
@@ -1006,6 +1005,12 @@ function rec(reciver, sender, play) {
         `<br> ///coo_push< _got% ${reciver} : arm:safe {ray${data}} el { ${data} || ${data} }`,
         `<br> ///coo_push< _got% ${reciver} : if (got : retrieve == ${sender} : ${reciver}) {sys = ${data}} el { ${data} || ${data} }`,
         `<br> ///YUl-e< _got% ${reciver} : arm:lock ${data}`,
+        `<br> ///mocw_locq _ret% ${sender} : eurlers('sting') => ${data}`,
+        `<br> ///mocw_locq _ret% ${sender} : fetch* => ${reciver} **data => ${data}`,
+        `<br> ///novit_postion _got% ${reciver} : fetch* => ${sender} **data => ${data}`,
+        `<br> ///novit_render _got% ${reciver} : fetch* => ${sender}.systemCloud() **data => ${data}`,
+        `<br> ///novit_xy_sql _got% ${reciver} : ask* => ${sender} **array => ${data}`,
+        `<br> ///novit_postion _got% ${reciver} : ask* => ${sender} **data => ${data}`,
       ];
 
       const rntexts = Math.floor(Math.random() * texts.length)
