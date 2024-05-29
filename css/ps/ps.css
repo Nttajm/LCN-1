@@ -66,7 +66,7 @@ body {
 }
 
 .purple {
-    color: rgb(104, 23, 179);
+    color: rgb(104, 23, 179)!important;
     opacity: 0.87;
 }
 
@@ -76,7 +76,12 @@ body {
 }
 
 .blue {
-    color: rgb(0, 55, 206);
+    color: rgb(0, 55, 206)!important;
+    opacity: 0.87;
+}
+
+.syan {
+    color: rgb(84, 0, 240)!important;
     opacity: 0.87;
 }
 
@@ -336,7 +341,7 @@ span a {
 }
 
 .stat-error {
-    color: red;
+    color: red !important;
 }
 
 .g {

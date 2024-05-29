@@ -7,6 +7,11 @@ let timerInterval;
 let stopwatchInterval;
 let stopwatchSeconds = 0;
 let recInterval;
+let clearId;
+let isclearing = false;
+
+let isAwaitingPassword = false;
+let password = "";
 
 const commandHistory = [];
 let lastCommandIndex = -1;
@@ -14,6 +19,10 @@ const responseHistory = [];
 let logEntries = [];
 let dbArray = [];
 let react = [];
+let passArray = [
+    'admim',
+    'b..g'
+]
 
 function push(name, type, file) {
     dbArray.push({
@@ -313,6 +322,30 @@ inputElement.addEventListener("keydown", function (event) {
         const fullCommand = inputElement.value;
         inputElement.value = "";
 
+        const hasFolderI = () => {
+            let hasFolder = dbArray.some(item => 
+                item.name.includes('code_access') && item.type === 'python'
+            );
+            return hasFolder;
+        };
+
+        const hasFolder = hasFolderI();
+
+
+
+        if (isAwaitingPassword) {
+            password = fullCommand; // Store the entered password
+            isAwaitingPassword = false;
+            if (hasFolder()) {
+                response = 'ame secured, welcome'
+            } else {
+                response = 'invalid user or password'
+            }
+            return;
+        }
+
+        
+        console.log(hasFolder)
         // v number -- dev-php devs!
         let variable = 'i(0)';
         let variableDefiner = '';
@@ -333,16 +366,16 @@ inputElement.addEventListener("keydown", function (event) {
 
         function delayfun(fun1, delay1, fun2, delay2) {
             setTimeout(() => {
-                response += fun1;
+                return fun1;
             }, delay1);
             setTimeout(() => {
-                fun2
+                return fun2
             }, delay2);
         }
 
         function delaySpan(phrase, time) {
             setTimeout(() => {
-                outputElement.innerHTML += `<span>${phrase}</span>`;
+                return `<span>${phrase}</span>`;
             }, time);
         }
 
@@ -367,7 +400,7 @@ inputElement.addEventListener("keydown", function (event) {
 
         const commands = fullCommand.split(")(");
 
-        commands.forEach((command, index) => {
+         commands.forEach((command, index) => {
             if (!command.trim()) return;
 
             if (timexInterval) {
@@ -713,7 +746,7 @@ inputElement.addEventListener("keydown", function (event) {
                 }
             } else if (command.toLowerCase().startsWith("rec ()")) {
                 const parts = command.split(" ");
-                let p1 = parts[2]
+                let p1 = parts[2] || userData.name;
                 let p2 = parts[3]
                 let p3 = parts[4]
 
@@ -730,21 +763,47 @@ inputElement.addEventListener("keydown", function (event) {
                 }
 
                 response = delay(`verfying ${p1}...`, 210);
-                response = delay(`conntecting with ${p2}...`, 710);
-                setTimeout(() => {
-                    recInterval = setInterval(() => {
-                        outputElement.innerHTML += `<div>${rec(p1, p2, p3)}</div>`;
-                    }, 425);
-                }, 1200);
+
+                if (hasFolder || p2 === 'jota') {
+                       if (!isclearing) {
+                            clearId = setInterval(() => {
+                                outputElement.innerHTML = "";
+                                commandHistory.length = 0;
+                            }, 45000);
+                       }
+
+                        response = delay(`conntecting with ${p2}...`, 710);
+                        setTimeout(() => {
+                            isclearing = true
+                            recInterval = setInterval(() => {
+                                outputElement.innerHTML += `<div>${rec(p1, p2, p3)}</div>`;
+                            }, 430);
+                        }, 1200);
+                } else {
+                    response += delay(`${p1} : <span class"stat-error u">Access denied</span`, 910);
+                    createNotification(system.error.notLoaded);
+                }
             
-                // Clear the interval when a new command is entered
                 if (timexInterval) {
                     clearInterval(timexInterval);
                 }
                 if (timerInterval) {
                     clearInterval(timerInterval);
                 }
-
+            } else if (command.toLowerCase().includes("=(s)>")) {
+                const parts = command.split(" ")
+                if (command.includes('pass') && command.includes('fetch')) {
+                    dbArray.push({
+                        name: parts[2],
+                        type: 'lso',
+                    });
+                    response = `data.parse(source) => ${parts[2]}`
+                } else {
+                    response = "Command not (ent) recognized";
+                }
+            } else if (command.toLowerCase().startsWith('pass')) {
+                isAwaitingPassword = true;
+                response = `<div>Enter password:</div>`;
             } else if (command.toLowerCase() === 'r') {
                 location.reload();
             } else if (command.toLowerCase().startsWith('e /')) {
@@ -935,10 +994,19 @@ inputElement.addEventListener("keydown", function (event) {
                     response += system.error.syntaxParts;
                 }
             }  else {
-                response = "Command not recognized"; 
+                if (recInterval || clearId)  {
+                    response = "Connection terminated";
+                } else {
+                    response = "Command not recognized";
+                }
                 if (recInterval) {
                     clearInterval(recInterval);
-                    recInterval = null; 
+                    recInterval = null;
+                }
+
+                if (clearId) {
+                    clearInterval(clearId);
+                    clearId = null;
                 }
             }
 
@@ -958,8 +1026,6 @@ inputElement.addEventListener("keydown", function (event) {
                 userData.name = "";
             }
             
-            
-
 
             outputElement.innerHTML += `<div>user ${userData.name} $  ${command}</div>`;
             outputElement.innerHTML += `<div>db$ ${response}</div>`;
@@ -1018,6 +1084,30 @@ function rec(whof, fent, play) {
         `<br> ///coo_push< _got% ${reciver} : arm:safe {ray${data}} el { ${data} || ${data} }`,
         `<br> ///coo_push< _got% ${reciver} : if (got : retrieve == ${sender} : ${reciver}) {sys = ${data}} el { ${data} || ${data} }`,
         `<br> ///YUl-e< _got% ${reciver} : arm:lock ${data}`,
+        `<br> ///mocw_locq _ret% ${sender} : eurlers(<span class="blue">union</span>.().serc(co d = **dat => /thisLi.psh(d)) => ${data}`,
+        `<br> ///mocw_locq _ret% ${sender} : fetch* => ${reciver} **data => ${data}`,
+        `<br> ///novit_postion _got% ${reciver} : fetch* => ${sender} **data => ${data}`,
+        `<br> ///novit_render _got% ${reciver} : ${sp('base*', 'syan')} => ${sender}.systemCloud() **data => ${data}`,
+        `<br> ///novit_xy_sql _got% ${reciver} : ask* => ${sender} **array => ${data}`,
+        `<br> ///novit_postion _got% ${reciver} : ask* => ${sender} **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : ask* => encrypt() =>  ${reciver} || (union()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : fetch* => ${sp('lodonK', 'purple')}.${reciver}.array({user.qur, user.pass, user.lvl}) ${sp('.then', 'highlight')} (( => ${sp('co', 'blue')} = **data; => <span class="blue">union</span>.push(co)) =>  ${reciver}.data.fen ${sp('.store()', 'highlight u')} || (union()) : +=  ${sp('.elf', 'purple u')} => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : load* => ${sp('meth', 'purple')}.array({user.qur, user.keys:con.${sp('error', 'stat-error u')} user.lvl}) ${sp('.then', 'highlight')} {{ in imp(=> ${sp('co', 'blue')} => some. == **data => ${sp('.store()', 'highlight u')})} : `,
+        `<br> ///mocw_locq _ret% ${sender} : ${sp('fetch* => rec*', 'syan')} => ${reciver} **data => ${data}`,
+        `<br> ///just_movq _break% ${reciver} : transmit* => secure() => ${reciver} || (aggregate()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _break% ${sender} : retrieve* => ${sp('datastream', 'green')}.${reciver}.array({user.name, user.pass, user.rank}) ${sp('.then', 'highlight')} (( => ${sp('datapoint', 'orange')} = **data; => <span class="orange">aggregate</span>.push(datapoint)) => ${reciver}.data.store ${sp('.save()', 'highlight u')} || (aggregate()) : += ${sp('.elf', 'green u')} => **data => ${data}`,
+        `<br> ///just_movq _break% ${sender} : fetch* => ${sp('config', 'green')}.array({user.info, user.keys:con.${sp('alert', 'stat-error u')} user.rank}) ${sp('.then', 'highlight')} {{ in load(=> ${sp('datapoint', 'orange')} => item. == **data => ${sp('.save()', 'highlight u')})} : `,
+        `<br> ///just_movq _gave% ${sender} : send* => verify() => ${reciver} || (collect()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : load* => ${sp('pipeline', 'yellow')}.${reciver}.array({user.id, user.token, user.level}) ${sp('.then', 'highlight')} (( => ${sp('payload', 'red')} = **data; => <span class="red">collect</span>.push(payload)) => ${reciver}.data.save ${sp('.archive()', 'highlight u')} || (collect()) : += ${sp('.elf', 'yellow u')} => **data => ${data}`,
+        `<br> ///just_movq _gave% ${reciver} : execute* => ${sp('action', 'yellow')}.array({user.command, user.credentials:con.${sp('failure', 'stat-error u')} user.level}) ${sp('.then', 'highlight')} {{ in process(=> ${sp('payload', 'red')} => item. == **data => ${sp('.archive()', 'highlight u')})} : `,
+        `<br> ///just_movq _gave% ${reciver} : calculate* => verify() => ${sender} || (combine()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : dispatch* => retrieve() => ${reciver} || (merge()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : initiate* => decrypt() => ${reciver} || (unify()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : access* => load() => ${reciver} || (fuse()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : launch* => fetch() => ${reciver} || (integrate()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : implement* => deliver() => ${reciver} || (aggregate()) : += .elf => **data => ${data}`,
+        `<br> ///just_movq _gave% ${sender} : scare* => deliver() => ${reciver} || (aggregate()) : += .elf => **data => ${data}`,
+
       ];
 
       const rntexts = Math.floor(Math.random() * texts.length)
@@ -1027,6 +1117,10 @@ function rec(whof, fent, play) {
   
   }
   
+  function sp(inp, nir) {
+    const text = `<span class="${nir}">${inp}</span>`;
+    return text;
+  }
 
 console.log(rec())
 
@@ -1172,6 +1266,7 @@ function renderApps() {
             ${contents('app.js', 'JavaScript-logo')}
             ${contents('utils.js', 'JavaScript-logo')}
             ${contents('locals.js', 'JavaScript-logo')}
+            ${contents('counter.js', 'JavaScript-logo')}
             </div>
             `
         }
@@ -1185,6 +1280,7 @@ function renderApps() {
             ${contents('library.ts', 'typescript')}
             ${contents('app.ts', 'typescript')}
             ${contents('Tran.ts', 'typescript')}
+            ${contents('counter.js', 'JavaScript-logo')}
             </div>
             `
         }
@@ -1193,6 +1289,11 @@ function renderApps() {
         let appName = `React`
 
         if (app.file === 'ang') {
+            appLogo = `angular.png`
+            appName = `Angular`
+        }
+
+        if (app.file === 'genral') {
             appLogo = `angular.png`
             appName = `Angular`
         }
@@ -1250,8 +1351,6 @@ function contents(name, img) {
     `
     return text;
 }
-
-
 
 function theme(theme, color, command) {
     const input = document.getElementById('input');
@@ -1359,8 +1458,6 @@ const inputKey = document.getElementById('key');
             loadTheme();
             saveUserData();
             theme(extractedTexts[3], extractedTexts[2])
-            console.log(uncrypKey)
-
 
             extractedTexts.forEach(text => {
                 const programNumber = parseInt(text.substring(4)); // Extract number after "prgL"
@@ -1374,17 +1471,6 @@ const inputKey = document.getElementById('key');
             });
         }
 
-        console.log(userData.keyEn)
-
-
         const keyElemsUsBtn = document.getElementById('js-usekey')
         keyElemsUsBtn.addEventListener('click', useKey);
 
-        
-
-
-
-const text1 = 'hi'
-const text2 = 'green'
-const text3 = 'orange'
-const text4 = 'blue'
