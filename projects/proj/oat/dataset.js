@@ -20,5 +20,4 @@ const posts = [
   { genre: 'the_swegs', date: '2 days ago', name: 'Mix - Independent music', likes: '923', views: '4.4k', comments: '26' },
   { genre: '', date: '', name: '', likes: '', views: '', comments: '' },
 
-
 ];
