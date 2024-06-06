@@ -12,7 +12,23 @@ const players= [{
     league: 'esp',
     join: 'Jan 2, 2002',
     exp: 'Jun 2, 2017',
-}];
+},
+{
+    number: 10,
+    first: 'Emer',
+    last: 'Jota',
+    team: 'inter-mai',
+    teamName: 'Barcelona',
+    img: true,
+    ucl: 6,
+    ballon: 2,
+    worth: 322,
+    goals: 678,
+    league: '',
+    join: 'Jan 19, 1996',
+    exp: 'Jun 1, 2024',
+}
+];
 
 function renderPlayer() {
     const output = document.getElementById('output')
@@ -34,10 +50,10 @@ function renderPlayer() {
 
         let league = 'ACL'
 
-        if (player.league = 'esp') {
+        if (player.league === 'esp') {
             league = 'LaLiga'
         }
-        output.innerHTML = `
+        output.innerHTML += `
         <section>
             <div class="banner banner-spe">
                 <span id="playerNum">#${player.number}</span>
