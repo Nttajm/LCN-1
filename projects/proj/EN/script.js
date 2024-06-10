@@ -134,7 +134,6 @@ function generateHTML(users) {
                         <div class="row">
                             ${col('AM-CHEACK', bais('CFC', 'LVQ', 0.4), 'cheack', bais('valid', 'mid', 0.7))}
                             ${col('REL', bais('valid', 'mid', 0.4), 'cheack', bais('valid', 'mid', 0.4))}
-
                         </div>
                         </div>
                     </div>
