@@ -1,0 +1,122 @@
+body {
+    background-color: rgb(26, 26, 26);
+}
+:root {
+    font-size: 16px;
+}
+
+nav {
+    color: white;
+    margin: 17px 10px 20px 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.n-top {
+    display: flex;
+    justify-content: space-between;
+    font-family: roboto;
+}
+
+.name {
+    font-weight: 300;
+    font-size: 1.2rem;
+}
+
+#user {
+    font-weight: 600;
+}
+
+.n-mid {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 4px;
+    font-family: roboto;
+
+}
+
+.mile {
+    font-size: 3.1rem;
+    margin-top: 10px;
+    font-family: roboto;
+    font-weight: 500 !important;
+}
+
+.n-mid span {
+    font-weight: 300;
+}
+
+.blob {
+    background-color: rgba(255, 255, 255, 0.328);
+    width: calc(80% - 80px);
+    border-radius: 600px;
+    height: 300px;
+    filter: blur(48.4px);
+    position: absolute;
+    z-index: -1;
+}
+
+.cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.icons {
+    display: flex;
+    gap: 10px;
+}
+
+.icon {
+    background-color: rgba(174, 174, 174, 0.414);
+    padding: 20px;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.icon span {
+    color: rgb(255, 255, 255);
+}
+
+.car {
+    width: calc(100% - 100px);
+}
+
+.other-settings {
+    margin-top: 20px;
+    background-color: rgba(13, 13, 13, 0.259);
+    width: calc(100% - 20px);
+    padding: 15px;
+    font-family: roboto;
+}
+
+.sett {
+    display: flex;
+    color: rgb(122, 122, 122);
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.s-icon span{
+    font-size: 2rem !important;
+}
+
+.info {
+    flex-grow: 1;
+}
+
+.info div:first-child {
+    font-size: 1.2rem;
+    color: rgb(181, 181, 181);
+}
