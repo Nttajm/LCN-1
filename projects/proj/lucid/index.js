@@ -166,7 +166,7 @@ const xHtml = {
         <button class="appleIco-lvl sudo" id="windsheild-rear" onclick="tg('windsheild-rear')">
           <img src="assets/wind-rear.png" alt="" class="apple-icono-img">
         </button>
-        <button class="appleIco-style2" id="recycle" onclick="ch('windsheild-rear', icons.fanOff, icons.fanOn)">
+        <button class="appleIco-style2" id="recycle" onclick="ch('recycle', icons.out, icons.rec)">
           <img src="assets/outside.png" alt="" class="apple-icono-img">
         </button>
         <button class="icon heat" id="h-1" onclick="ch('h-1', icons.hOn, icons.hOff)">
@@ -296,14 +296,10 @@ const icons = {
     heat
     </span>`,
     rec:`
-    <button class="appleIco-style2" id="recycle" onclick="ch('windsheild-rear', icons.rec, icons.out)">
     <img src="assets/inAir.png" alt="" class="apple-icono-img">
-  </button>
     `,
     out: `
-    <button class="appleIco-style2" id="recycle" onclick="ch('windsheild-rear', icons.rec, icons.out)">
-          <img src="assets/outside.png" alt="" class="apple-icono-img">
-    </button>
+    <img src="assets/outside.png" alt="" class="apple-icono-img">
     `
 }
 
