@@ -29,6 +29,8 @@
         });
     });
 
+    
+
     document.addEventListener('DOMContentLoaded', () => {
         const elements = document.querySelectorAll('.animated-element');
       
@@ -49,7 +51,7 @@
         checkScroll(); 
       });
   
-
+/*
       let scrollAmount = 800;
 
 window.addEventListener('wheel', function(event) {
@@ -67,10 +69,11 @@ window.addEventListener('wheel', function(event) {
         behavior: 'smooth'
     });
 });
-
+*/
 const sections = document.querySelectorAll('.cont section');
 const upArr = document.getElementById('js-upArr');
 let currentIndex = 1;
+
 
 
 
@@ -160,7 +163,7 @@ sectionDiv.forEach(section => {
         <div class="tooltag">
           <span>${project.date}</span>
         </div>
-        <div class="img" id="placeholder-img">
+        <div class="img animated-element" id="placeholder-img">
           <img src="${project.img}" alt="${project.dis}" id="js-img-${index}">
           <img class="img-shadow" src="${project.img}">
         </div>
@@ -211,12 +214,14 @@ const projHtml = {
 function closeLayer() {
   layer.classList.toggle('dn')
   layer.innerHTML = '';
+  document.body.style.overflowY = 'auto'
 }
 
 projectDivs.forEach(div => {
   div.addEventListener('click', () => {
     console.log('hello');
     layer.classList.toggle('dn')
+    document.body.style.overflowY = 'hidden'
 
     let textColor = div.dataset.color
     document.documentElement.style.setProperty('--js-layer-textColor', textColor);

@@ -5,6 +5,7 @@ body {
 }
 
 :root {
+  font-size: 16px;
   --croqueta: rgb(93, 93, 93);
   --liner: linear-gradient(to top, rgba(101, 79, 79, 0) 0%, rgb(159, 159, 159) 100%);
 }
@@ -188,6 +189,7 @@ section {
   color: var(--croqueta);
   transform: scale3d(1, 1, 1);
   transition: transform 0.523s;
+  margin-left: 40px;
 }
 
 .project:hover {
@@ -222,7 +224,7 @@ section {
 }
 
 .img {
-  width: 300px;
+  width: 270px;
   aspect-ratio: 14/9;
   margin-bottom: 15px;
   position:relative;
@@ -407,12 +409,12 @@ section {
 
 .js-selected-layer .pre-select {
   display: block;
-  position: absolute;
+  position: fixed;
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 80px;
-  bottom: -260px;
+  bottom: -130%;
   left: 0;
   font-size: 0.89rem;
   color: var(--js-layer-textColor);
@@ -460,7 +462,7 @@ section {
   }
 }
 
-/*
+
 .animated-element {
   opacity: 0; 
   transition: opacity 1s ease; 
@@ -470,6 +472,7 @@ section {
   opacity: 1; 
 }
 
-
-# sourceMappingURL=home_styles.css.map */
+/*
+# sourceMappingURL=home_styles.css.map
+ */
 /*# messi goat*/ 
