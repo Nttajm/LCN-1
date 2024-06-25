@@ -14,6 +14,8 @@ body {
     --lime:  rgb(91, 197, 132);
 }
 
+
+
 .block-item {
     padding: 3px;
     background-color: rgb(94, 94, 94);
@@ -21,6 +23,9 @@ body {
 
 .cont {
     padding: 0px 10px 0px 10px;
+    display: flex;
+    flex-direction: row;
+    flex-direction: row-reverse;
 }
 
 .sec {
@@ -238,15 +243,19 @@ body {
   }
   
   
-  @media only screen and (width > 1200px) {
+  @media only screen and (width >= 1200px) {
     .img-sec {
       display: block;
     }
+    .header-op span {
+        font-size: 0.7rem;
+    }
   }
+
   
   @media only screen and (max-width : 992px) {
     :root {
-      font-size: 13px;
+      font-size: 20px;
     }
   
     .img-l-sec figure, 
@@ -259,15 +268,18 @@ body {
     .img-l-sec {
       flex-direction: column;
     }
+    .header-op span {
+        font-size: 0.7rem;
+    }
     
   }
   
   @media only screen and (max-width : 768px) {
     :root {
-      font-size: 20px;
+      font-size: 22px;
     }
 
     .header-op span {
-        font-size: .7rem;
+        font-size: 0.7rem;
     }
   }
