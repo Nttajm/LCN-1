@@ -245,22 +245,22 @@ const xHtml = {
             lock
           </span>
         </button>
-        <button class="appleIco" id="icon-apple-1" onclick="tg('icon-apple-1')">
+        <button class="appleIco sudo" id="icon-apple-1" onclick="tg('icon-apple-1')">
           <img class="apple-icono-img" src="assets/overhead.png" alt="">
         </button>
-        <button class="appleIco" id="icon-apple-2" onclick="tg('icon-apple-2')">
+        <button class="appleIco sudo" id="icon-apple-2" onclick="tg('icon-apple-2')">
           <img class="apple-icono-img" src="assets/overhead.png" alt="">
         </button>
-        <button class="appleIco" id="icon-apple-3" onclick="tg('icon-apple-3')">
+        <button class="appleIco sudo" id="icon-apple-3" onclick="tg('icon-apple-3')">
           <img class="apple-icono-img" src="assets/headlight.png" alt="">
         </button>
-        <button class="appleIco" id="icon-apple-frunk" onclick="tg('icon-apple-frunk')">
+        <button class="appleIco sudo" id="icon-apple-frunk" onclick="tg('icon-apple-frunk')">
           <img class="apple-icono-img" src="assets/frucnk.png" alt="">
         </button>
-        <button class="appleIco" id="icon-apple-trunk" onclick="tg('icon-apple-trunk')">
+        <button class="appleIco sudo" id="icon-apple-trunk" onclick="tg('icon-apple-trunk')">
           <img class="apple-icono-img" src="assets/trunkOpen.png" alt="">
         </button>
-        <button class="appleIco" id="icon-apple-charge" onclick="tg('icon-apple-charge')">
+        <button class="appleIco sudo" id="icon-apple-charge" onclick="tg('icon-apple-charge')">
           <img class="apple-icono-img" src="assets/charger-side.png" alt="">
         </button>
       </div>
