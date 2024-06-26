@@ -10,9 +10,13 @@ body {
   --liner: linear-gradient(to top, rgba(101, 79, 79, 0) 0%, rgb(159, 159, 159) 100%);
 }
 
+section:first-of-type {
+  margin-bottom: 400px;
+}
+
 section {
   position: relative;
-  margin-bottom: 630px;
+  margin-bottom: 100px;
 }
 
 .visible {
@@ -123,12 +127,14 @@ section {
 }
 
 #foot {
-  transform: rotate(180);
+  position: fixed;
+  bottom: 0;
+  right: 0;
 }
 
 .head {
   font-family: roboto;
-  font-size: 3rem;
+  font-size: 6rem;
   font-weight: 600;
 }
 
@@ -162,14 +168,16 @@ section {
 }
 
 .show-case {
-  width: 100px;
+  width: 70%;
   min-width: 55%;
   animation: mvU 1s ease forwards;
 }
 
 .sec-cont {
-  display: flex;
-  gap: 64px;
+  display: grid; 
+  grid-template-columns: 1fr 1fr 1fr; 
+  grid-template-rows: 1fr 1fr 1fr; 
+  gap: 6% 6%; 
 }
 
 .date {
@@ -183,13 +191,12 @@ section {
 }
 
 .project {
-  width: 50px;
-  width: 25%;
+  width: 100%;
   font-family: roboto;
   color: var(--croqueta);
   transform: scale3d(1, 1, 1);
   transition: transform 0.523s;
-  margin-left: 40px;
+  margin-left: 10px;
 }
 
 .project:hover {
@@ -224,7 +231,7 @@ section {
 }
 
 .img {
-  width: 270px;
+  width: 100%;
   aspect-ratio: 14/9;
   margin-bottom: 15px;
   position:relative;
@@ -309,6 +316,16 @@ section {
   }
 }
 
+@keyframes close {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}
+
 @keyframes mvl {
   0% {
     transform: translateX(10%);
@@ -347,8 +364,13 @@ section {
   z-index: 2;
 }
 
+.off {
+  animation: close 1.14s ease forwards;
+}
+
 .js-selected-layer .project {
   position: absolute;
+  width: 45%;
   top: 40%;
   left: 30%;
   display: flex;
@@ -362,7 +384,7 @@ section {
 }
 
 .js-selected-layer .project .img {
-  width: 800px;
+  width: 150%;
 }
 
 .js-selected-layer .tooltag {
@@ -381,6 +403,26 @@ section {
   flex-direction: column;
   gap: 15px;
   animation: mvl 0.872s ease-out forwards;
+}
+
+.js-selected-layer .in-layer {
+  display: block;
+}
+
+.in-layer {
+  display: none;
+}
+
+.label {
+  color: #313131c5;
+  font-weight: 600;
+  font-size: 2rem;
+  display: inline;
+}
+
+.js-selected-layer
+.label {
+  color: var(--js-layer-textColor);
 }
 
 .js-selected-layer
@@ -409,13 +451,13 @@ section {
 
 .js-selected-layer .pre-select {
   display: block;
-  position: fixed;
+  position: absolute;
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 80px;
-  bottom: -130%;
-  left: 0;
+  bottom: 10%;
+  left: -150px;
   font-size: 0.89rem;
   color: var(--js-layer-textColor);
   font-family: monospace;
@@ -476,3 +518,14 @@ section {
 # sourceMappingURL=home_styles.css.map
  */
 /*# messi goat*/ 
+
+@media only screen and (width > 1200px) {
+  
+}
+
+@media only screen and (max-width : 992px) {
+  :root {
+    font-size: 10px;
+  }
+  
+}

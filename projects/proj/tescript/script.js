@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const keywords = ['co', 'val', 'call', 'const', 'if', 'eli', 'el'];
         const dents = ['=>', '::', 'Elive', '?', 'It', 'as', '..', 'Range'];
         const funs = ['then', 'finally', 'get', 'replace', 'capL', '.some', 'last', 'push', 'await', 'sys.out', 'console', 'out', 'in', 'source', 'parse', 'content', 'sync', 'For', 'includes', 'Mt', 'inverse', 'split', 'try'];
-        const cores = ['fetch', 'affrim', 'imp', 'from', 'VarPOST', 'VarGET'];
+        const cores = ['fetch', 'affirm', 'imp', 'from', 'VarPOST', 'VarGET'];
         const local = ['JSONp', 'JSliveRec', 'seq'];
         const orange = ['url', 'in', 'with', 'guide', 'csv'];
 

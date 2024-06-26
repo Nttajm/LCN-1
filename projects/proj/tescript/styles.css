@@ -27,6 +27,7 @@ h1 {
   line-height: 1.5;
   outline: none;
   color: #71afff;
+  text-shadow: 1px 1px 6px currentColor;
 }
 
 .surround {

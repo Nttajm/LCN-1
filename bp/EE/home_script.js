@@ -39,7 +39,7 @@
             const elementPosition = element.getBoundingClientRect().top;
             const windowHeight = window.innerHeight;
       
-            if (elementPosition < windowHeight * 0.65) {
+            if (elementPosition < windowHeight * 0.95) {
               element.classList.add('active');
             } else {
               element.classList.remove('active');
@@ -94,10 +94,8 @@ function slideB(num) {
   console.log(`on layer ${currentIndex}`)
 };
 
-let sectionDiv = [{
-  date: '5.15.24 - 6.26.24',
-  projects: [
-    {
+/* 
+{
       img: 'bp/EE/assets/hq720 (3).webp',
       date: '6.25.24',
       dis: 'DB ps improvements and patches',
@@ -110,10 +108,74 @@ let sectionDiv = [{
       textColor: 'purple',
     },
     {
-      date: '6.18.24',
+      date: '6.12.24',
       img: 'bp/EE/assets/hq720 (2).webp',
       dis: 'Sytax heiglter for made up programing languege',
       textColor: 'white',
+    },
+    {
+      date: '5.19.24',
+      img: 'bp/EE/assets/spot.webp',
+      dis: 'redisging all of spotify bc why not, today is a bad day',
+      textColor: 'yellow',
+    },
+    */
+
+let sectionDiv = [{
+  date: 'ESSENTIALS',
+  projects: [
+    {
+      date: '11.14.23',
+      img: '/images/ps-logo.jpg',
+      dis: `Use commands to excute different function and more with "powershel.net". NOTE: Is ment to be ran locally*`,
+      textColor: 'white',
+      git: 'https://github.com/Nttajm/LCN-1/tree/main/js/PS',
+      link: 'PowerShell.html',
+      secondary: 'bp/EE/assets/auras/dark-blue.jpg',
+      notes:'DB&M series, Patches and adjustments (6.17.24)',
+      initial: '11.14.23',
+      label: 'PS for LCN'
+    },
+    {
+      date: '6.17.24',
+      img: '/images/bwsearch.net.jpg',
+      dis: `Use commands to excute different function and more with "powershel.net". NOTE: Is ment to be ran locally*`,
+      textColor: 'white',
+      link: 'searchnet.html',
+      notes:'DB&M series, Patches and adjustments (6.17.24)',
+      initial: '11.14.23',
+      label: 'SEARCH LCN'
+
+    },
+    {
+      date: '4.13.24',
+      img: '/bp/edu/cs50a-mod-14/images/uss-b(1).jpg',
+      dis: `Use commands to excute different function and more with "powershel.net". NOTE: Is ment to be ran locally*`,
+      textColor: 'purple',
+      link: 'bp/edu/cs50a-mod-16',
+      secondary: 'bp/EE/assets/auras/pink-cream.webp',
+      notes:'DB&M series, Patches and adjustments (6.17.24)',
+      initial: '11.14.23',
+      label: 'UPLAOD CENTER'
+    },
+    {
+      date: '6.16.24',
+      img: '/images/tescript.png',
+      dis: `Use commands to excute different function and more with "powershel.net". NOTE: Is ment to be ran locally*`,
+      textColor: 'orange',
+      link: 'PowerShell.html',
+      notes:'Not an IDE',
+      initial: '6.12.24',
+    },
+    {
+      date: '6.26.24',
+      img: 'bp/EE/assets/watchP.png',
+      dis: `Use commands to excute different function and more with "powershel.net". NOTE: Is ment to be ran locally*`,
+      textColor: 'black',
+      link: 'PowerShell.html',
+      notes:'Not an IDE',
+      initial: '6.26.24',
+      secondary: 'bp/EE/assets/auras/orange.jpg',
     },
   ]
 },
@@ -157,6 +219,20 @@ sectionDiv.forEach(section => {
 
   let sectionsHtml = '';
   section.projects.forEach((project , index) => {
+
+    if (!project.secondary) {
+      project.secondary = project.img
+    }
+
+    let gitBtn = `
+    
+    `
+
+    if (project.git) {
+      gitBtn = `<button class="link-btn">
+      <a href="${project.git}">Open with Github &nearr;</a>
+    </button>`
+    }
   
     sectionsHtml += `
       <div class="project animated-element .js-event-${index}" data-color="${project.textColor}" id="js_0">
@@ -165,26 +241,27 @@ sectionDiv.forEach(section => {
         </div>
         <div class="img animated-element" id="placeholder-img">
           <img src="${project.img}" alt="${project.dis}" id="js-img-${index}">
-          <img class="img-shadow" src="${project.img}">
+          <img class="img-shadow" src="${project.secondary}">
         </div>
         <div class="text">
-          <span>${project.dis}</span>
+          <div class="label">
+            ${project.label}
+          </div>
+          <span class="in-layer">${project.dis}</span>
           <button class="link-btn">
-              <a href="PowerShell.html">Open &nearr;</a>
+              <a href="${project.link}">Open &nearr;</a>
             </button> 
-            <button class="link-btn">
-              <a href="PowerShell.html">Open with Github &nearr;</a>
-            </button> 
+            ${gitBtn} 
         </div>
         <div class="pre-select">
                 <span>
-                Project Type/Collection: patches, Ps Series 
+                Project Type/Collection: ${project.notes} 
                 </span>
                 <span>
                 dev: Joel Mulonde 
                 </span>
                 <span>
-                Date Created: 10/19/23
+                Date Created: ${project.initial}
                 </span>
                 <span>
                     &copy; Local Community Network 
@@ -212,7 +289,7 @@ const projHtml = {
 }
 
 function closeLayer() {
-  layer.classList.toggle('dn')
+  layer.classList.add('off')
   layer.innerHTML = '';
   document.body.style.overflowY = 'auto'
 }
@@ -220,7 +297,7 @@ function closeLayer() {
 projectDivs.forEach(div => {
   div.addEventListener('click', () => {
     console.log('hello');
-    layer.classList.toggle('dn')
+    layer.classList.remove('off')
     document.body.style.overflowY = 'hidden'
 
     let textColor = div.dataset.color
