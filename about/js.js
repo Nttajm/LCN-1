@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('loader');
     const percentageText = document.getElementById('percent');
-    let percentage = 38;
+    let percentage = 89;
 
     const interval = setInterval(() => {
         if (percentage >= 99) {
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             progressBar.style.width = percentage + '%';
             percentageText.textContent = percentage + '%';
         }
-    }, 60);
+    }, 260);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -68,10 +68,10 @@ setTimeout(() => {
     document.body.style.overflowY = 'auto'
 }, 3680);
 
-animationSeq_add(3500, 'grid-item', 'fadeIn');
-animationSeq_add(3500, 'js-ani-1_semi', 'fadeOut');
-animationSeq_add(3500, 'js-ani-1', 'fadeOut');
-animationSeq_add(3500, 'js-ani-2', 'fadeOut');
+animationSeq_add(3100, 'grid-item', 'fadeIn');
+animationSeq_add(3100, 'js-ani-1_semi', 'fadeOut');
+animationSeq_add(3100, 'js-ani-1', 'fadeOut');
+animationSeq_add(3100, 'js-ani-2', 'fadeOut');
 
 
 function showMessage() {

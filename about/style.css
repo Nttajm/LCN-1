@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Noto+Sans+Mono:wght@100..900&family=Oswald:wght@200..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
 :root {
-  font-size: 28px;
+  font-size: 26px;
   --base-1: "Inconsolata", monospace;
   --base-2: "Merriweather", serif;
   --base-3: "Oswald", sans-serif;
@@ -118,7 +118,7 @@ nav ul li a {
   border-style: dashed;
   border-left: none;
   border-top: none;
-  height: 9rem;
+  height: 7rem;
   transition: all 0.332s ease-out;
   opacity: 0;
   transform: scale(0.96);
@@ -161,7 +161,7 @@ nav ul li a {
 }
 
 .filler span{
-  font-size: 6rem;
+  font-size: 4.5rem;
   min-width: 100%;
   word-wrap: break-word;
 }
@@ -172,7 +172,7 @@ nav ul li a {
 
 @media all and (min-width: 1024px) and (max-width: 1280px) {
   :root {
-    font-size: 22px;
+    font-size: 16px;
   }
  }
 
