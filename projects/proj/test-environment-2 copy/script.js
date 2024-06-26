@@ -1,38 +1,23 @@
-const wordToGuess = "hello";
-let guessesLeft = 6;
+document.addEventListener('DOMContentLoaded', function () {
+  const stickyDiv = document.querySelector('.sticky-div');
+  const container = document.querySelector('.sticky-container');
+  const secondContent = container.nextElementSibling;
+  
+  function onScroll() {
+      const containerRect = container.getBoundingClientRect();
+      const secondContentRect = secondContent.getBoundingClientRect();
 
-function checkGuess() {
-  const guessInput = document.getElementById("guess-input").value.toLowerCase();
-  if (guessInput.length !== 5 || !/^[a-z]+$/.test(guessInput)) {
-    alert("Please enter a 5-letter word containing only lowercase letters.");
-    return;
+      if (containerRect.bottom <= secondContentRect.top) {
+          stickyDiv.style.position = 'absolute';
+          stickyDiv.style.top = 'auto';
+          stickyDiv.style.bottom = '0';
+      } else {
+          stickyDiv.style.position = '-webkit-sticky';
+          stickyDiv.style.position = 'sticky';
+          stickyDiv.style.top = '10px';
+          stickyDiv.style.bottom = 'auto';
+      }
   }
 
-  if (guessInput === wordToGuess) {
-    displayResult("🎉 You guessed the word! 🎉", "green");
-  } else {
-    guessesLeft--;
-    if (guessesLeft === 0) {
-      displayResult("😔 You're out of guesses. The word was 'hello'.", "red");
-    } else {
-      const matches = getMatches(guessInput);
-      displayResult(`Matches: ${matches}`, "yellow");
-    }
-  }
-}
-
-function getMatches(guess) {
-  let count = 0;
-  for (let i = 0; i < guess.length; i++) {
-    if (guess[i] === wordToGuess[i]) {
-      count++;
-    }
-  }
-  return count;
-}
-
-function displayResult(message, color) {
-  const resultElement = document.getElementById("result");
-  resultElement.textContent = message;
-  resultElement.style.color = color;
-}
+  window.addEventListener('scroll', onScroll);
+});

@@ -3,46 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        .slide {
-            display: none;
-        }
-        .visible {
-            display: block;
-        }
-        body {
-            height: 200vh; /* To ensure there's enough space to scroll */
-            margin: 0;
-        }
-    </style>
-    <title>Scroll Divs</title>
+    <title>Sticky Div Example</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="slide">Div 1</div>
-    <div class="slide">Div 2</div>
-    <div class="slide">Div 3</div>
-    <div class="slide">Div 4</div>
-    <div class="slide">Div 5</div>
-
-    <script>
-        const sections = document.querySelectorAll('.slide');
-        let currentIndex = 0;
-
-        sections[currentIndex].classList.add('visible');
-
-        window.addEventListener('scroll', () => {
-            const scrollY = window.scrollY;
-            const windowHeight = window.innerHeight;
-            const scrollThreshold = windowHeight / sections.length;
-            
-            const newIndex = Math.min(Math.floor(scrollY / scrollThreshold), sections.length - 1);
-
-            if (newIndex !== currentIndex) {
-                sections[currentIndex].classList.remove('visible');
-                sections[newIndex].classList.add('visible');
-                currentIndex = newIndex;
-            }
-        });
-    </script>
+    <div class="container">
+        <div class="content">
+            <p>Some content before the sticky div...</p>
+            <!-- Repeat content to create scroll -->
+        </div>
+        <div class="sticky-container">
+            <div class="sticky-div">
+                I am a sticky div!
+            </div>
+        </div>
+        <div class="content">
+            <p>Some content after the sticky div...</p>
+            <!-- Repeat content to create scroll -->
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>

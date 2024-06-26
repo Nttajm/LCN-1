@@ -4,6 +4,10 @@ body {
   background: radial-gradient(circle, rgb(42, 164, 167) 0%, rgb(80, 170, 158) 81%);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   font-size: 16px;
   --croqueta: rgb(93, 93, 93);
@@ -177,7 +181,7 @@ section {
   display: grid; 
   grid-template-columns: 1fr 1fr 1fr; 
   grid-template-rows: 1fr 1fr 1fr; 
-  gap: 6% 6%; 
+  gap: 7% 5%; 
 }
 
 .date {
@@ -418,6 +422,7 @@ section {
   font-weight: 600;
   font-size: 2rem;
   display: inline;
+  animation: ease-out mvU 0.925s forwards;
 }
 
 .js-selected-layer
@@ -495,6 +500,22 @@ section {
   left: 25px;
 }
 
+.side {
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 55%;
+}
+
+.side img {
+  opacity: 0.27;
+  width: 100%;
+}
+
+.side::after {
+  background-image: linear-gradient(to bottom, rgb(255, 255, 255), rgb(187, 6, 6) 50%);
+}
+
 @keyframes js-layer-ani {
   0% {
     opacity: 0;
@@ -513,8 +534,8 @@ section {
 .animated-element.active {
   opacity: 1; 
 }
-
 /*
+
 # sourceMappingURL=home_styles.css.map
  */
 /*# messi goat*/ 

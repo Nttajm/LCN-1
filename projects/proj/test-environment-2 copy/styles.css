@@ -1,44 +1,34 @@
-/* Default styles */
-.menu {
-  display: none;
-  position: absolute;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  padding: 10px;
-  z-index: 100;
-}
-
-.menu ul {
-  list-style-type: none;
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
   padding: 0;
 }
 
-.menu ul li {
-  margin-bottom: 5px;
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
 }
 
-.menu ul li a {
-  color: #333;
-  text-decoration: none;
+.content {
+  width: 100%;
+  height: 1000px; /* Adjust height to create scroll */
+  background-color: #f0f0f0;
+  margin-bottom: 20px;
 }
 
-/* Show menu on hover for devices with width >= 768px */
-@media screen and (min-width: 768px) {
-  .toggle-btn:hover + .menu,
-  .menu:hover {
-    display: block;
-  }
+.sticky-container {
+  position: relative;
+  width: 100%;
 }
 
-/* Show menu when checkbox is checked for devices with width < 768px */
-@media screen and (max-width: 767px) {
-  .toggle-btn {
-    display: block;
-    position: relative;
-    cursor: pointer;
-  }
-
-  .toggle-btn:checked + .menu {
-    display: block;
-  }
+.sticky-div {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  top: 10px; /* Distance from the top of the viewport */
+  background-color: #ffcc00;
+  padding: 10px;
+  width: 100%;
+  text-align: center;
 }

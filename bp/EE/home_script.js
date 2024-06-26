@@ -13,6 +13,8 @@
       document.addEventListener("DOMContentLoaded", function() {
         const spans = document.querySelectorAll(".typing-span");
         spans.forEach(span => {
+          if (span.dataset.delay) {
+            setTimeout(() => {
             const text = span.innerText;
             span.innerText = "";
             let index = 0;
@@ -26,6 +28,23 @@
             }
 
             type();
+            }, span.dataset.delay);
+          } else {
+            const text = span.innerText;
+            span.innerText = "";
+            let index = 0;
+
+            function type() {
+                if (index < text.length) {
+                    span.innerText += text.charAt(index);
+                    index++;
+                    setTimeout(type, 100);
+                }
+            }
+
+            type();
+          }
+            
         });
     });
 
@@ -156,7 +175,8 @@ let sectionDiv = [{
       secondary: 'bp/EE/assets/auras/pink-cream.webp',
       notes:'DB&M series, Patches and adjustments (6.17.24)',
       initial: '11.14.23',
-      label: 'UPLAOD CENTER'
+      label: 'UPLAOD CENTER',
+      side: ''
     },
     {
       date: '6.16.24',
@@ -166,6 +186,7 @@ let sectionDiv = [{
       link: 'PowerShell.html',
       notes:'Not an IDE',
       initial: '6.12.24',
+      label: 'TESCRIPT',
     },
     {
       date: '6.26.24',
@@ -176,7 +197,19 @@ let sectionDiv = [{
       notes:'Not an IDE',
       initial: '6.26.24',
       secondary: 'bp/EE/assets/auras/orange.jpg',
+      label: 'WRK',
     },
+    {
+      date: '6.10.24',
+      img: 'bp/EE/assets/com_sat.jpg',
+      dis: `Use commands to excute different function and more with "powershel.net". NOTE: Is ment to be ran locally*`,
+      textColor: 'white',
+      link: 'PowerShell.html',
+      notes:'ran locally on PS server***',
+      initial: '6.26.24',
+      label: 'COMSAT',
+    },
+    
   ]
 },
 {
@@ -207,8 +240,11 @@ let outputDiv = document.getElementById('output');
 outputDiv.innerHTML = `
 <section class="typed animated-element">
     <div class="head">
-      <span class="typing-span">
+      <span class="typing-span" contenteditable>
         My projects and more.
+      </span>
+      <span class="typing-span" data-delay="600" contenteditable>
+        scroll.
       </span>
       <span class="blinking">|</span>
     </div>
