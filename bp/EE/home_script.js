@@ -156,7 +156,7 @@ let sectionDiv = [{
       secondary: 'bp/EE/assets/auras/pink-cream.webp',
       notes:'DB&M series, Patches and adjustments (6.17.24)',
       initial: '11.14.23',
-      label: 'UPLAOD CENTER'
+      label: 'UPLOAD CENTER'
     },
     {
       date: '6.16.24',
@@ -166,6 +166,7 @@ let sectionDiv = [{
       link: 'PowerShell.html',
       notes:'Not an IDE',
       initial: '6.12.24',
+      label: 'TESCRIPT'
     },
     {
       date: '6.26.24',
@@ -176,6 +177,8 @@ let sectionDiv = [{
       notes:'Not an IDE',
       initial: '6.26.24',
       secondary: 'bp/EE/assets/auras/orange.jpg',
+      label: 'WVRK',
+      side: ''
     },
   ]
 },
