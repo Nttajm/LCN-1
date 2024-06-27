@@ -6,10 +6,11 @@
   --base-2: "Merriweather", serif;
   --base-3: "Oswald", sans-serif;
   --base-4: "Noto Sans Mono", monospace;
+  --bg: rgb(230, 206, 174);
 }
 
 body {
-  background-color: rgb(252, 241, 226);
+  background-color: rgb(230, 206, 174);
   overflow-y: hidden;
 }
 
@@ -17,7 +18,7 @@ nav {
   display: flex;
   position: fixed;
   top: 5px;
-  z-index: 2;
+  z-index: 1;
   width: 100%;
 
 }
@@ -47,6 +48,7 @@ nav ul li a {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  margin-bottom: 600px;
 }
 
 .texts {
@@ -61,7 +63,6 @@ nav ul li a {
 }
 
 .texts-bottom {
-  text-align: right;
   -webkit-text-stroke-width: 2px;
   -webkit-text-stroke-color: rgb(60, 60, 60);
   color: transparent;
@@ -113,6 +114,14 @@ nav ul li a {
   height: 100%;
 }
 
+.grid-item button {
+  background-color: transparent;
+  color: rgb(255, 251, 35);
+  font-size: 1rem;
+  display: none;
+  transition: all 0.332s ease-in-out;
+}
+
 .grid-item {
   border:  rgb(114, 114, 114) 1px;
   border-style: dashed;
@@ -122,6 +131,18 @@ nav ul li a {
   transition: all 0.332s ease-out;
   opacity: 0;
   transform: scale(0.96);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.grid-item:hover {
+  background-color: #d8b78d;
+}
+
+.grid-item:hover button {
+  background-color: black;
+  display: block;
 }
 
 .tank {
@@ -166,18 +187,74 @@ nav ul li a {
   word-wrap: break-word;
 }
 
-.hidden {
-  display: none;
+.message {
+  word-wrap: break-word;
+  transition: all 0.125s ease-in-out fowards;
+  animation: fadeIn 0.6s ease-in forwards;
+  animation: comeDown 0.6s ease-in forwards;
 }
 
+.hidden {
+  animation: fadeOut 0.6s ease-in forwards !important;
+}
+
+#not {
+  background-color: rgb(255, 37, 37);
+  font-family: var(--base-3);
+  position: sticky;
+  z-index: 4;
+  height: 990px;
+}
+
+.list {
+ position: sticky;
+ height: 990px;
+}
+
+#words {
+  background-color: var(--bg);
+  z-index: 6;
+}
+
+#someFun {
+  background-color: #d8b78d;
+  transform: translateY(-50%);
+  position: relative;
+}
+
+#someFun span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#animatedText span{
+  font-size: 10rem;
+  line-height: -8rem;
+}
 @media all and (min-width: 1024px) and (max-width: 1280px) {
   :root {
-    font-size: 16px;
+    font-size: 26px;
   }
  }
 
-@media all and (min-width: 768px) and (max-width: 1024px) { }
+@media all and (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    font-size: 18px;
+  }
+  .grid {
+    grid-template-rows: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0px;
+    height: 100%;
+  }
+ }
 
-@media all and (min-width: 480px) and (max-width: 768px) { }
+@media all and (min-width: 480px) and (max-width: 768px) { 
+  :root {
+    font-size: 12px;
+  }
+}
 
 @media all and (max-width: 480px) { }

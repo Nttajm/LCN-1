@@ -74,3 +74,14 @@
   .fadeIn {
     animation: fadeIn 0.6s ease-in forwards;
   }
+
+  @keyframes comeDown {
+    from {
+        padding-bottom: 10px;
+    }
+
+  }
+  
+  .comeDown {
+    animation: comeDown 0.6s ease-in forwards;
+  }

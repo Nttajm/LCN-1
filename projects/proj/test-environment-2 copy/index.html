@@ -1,27 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sticky Div Example</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 200vh; /* Ensure enough scrollable content */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+  }
+  .parallax {
+    height: 100vh; /* Full viewport height for each section */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  #section1 {
+    background-color: #1abc9c; /* Change background color as needed */
+    color: white;
+  }
+  #section2 {
+    background-color: #3498db; /* Change background color as needed */
+    color: white;
+  }
+  #section3 {
+    background-color: #9b59b6; /* Change background color as needed */
+    color: white;
+  }
+</style>
+<title>Multiple Divs Parallax Effect</title>
 </head>
 <body>
-    <div class="container">
-        <div class="content">
-            <p>Some content before the sticky div...</p>
-            <!-- Repeat content to create scroll -->
-        </div>
-        <div class="sticky-container">
-            <div class="sticky-div">
-                I am a sticky div!
-            </div>
-        </div>
-        <div class="content">
-            <p>Some content after the sticky div...</p>
-            <!-- Repeat content to create scroll -->
-        </div>
-    </div>
-    <script src="script.js"></script>
+  <div class="parallax" id="section1">
+    Section 1
+  </div>
+  <div class="parallax" id="section2">
+    Section 2
+  </div>
+  <div class="parallax" id="section3">
+    Section 3
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
