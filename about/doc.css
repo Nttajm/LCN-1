@@ -80,6 +80,12 @@ article div p {
     flex-direction: column;
 }
 
+.document {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .possible span {
     font-family: var(--base-4);
     font-size: 0.5rem;

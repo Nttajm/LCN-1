@@ -279,6 +279,10 @@ nav ul li a {
   right: -10%;
 }
 
+article:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
 .preview-imgs img {
   width: 100%;
 }
