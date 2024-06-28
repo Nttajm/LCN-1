@@ -1,81 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const progressBar = document.getElementById('loader');
-    const percentageText = document.getElementById('percent');
-    let percentage = 91;
-
-    const interval = setInterval(() => {
-        if (percentage >= 99) {
-            clearInterval(interval);
-        } else {
-            percentage++;
-            progressBar.style.width = percentage + '%';
-            percentageText.textContent = percentage + '%';
-        }
-    }, 160);
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    const words = ["CREATING", "VISIONING", "SUPPORTING", 'INSPIRING'];
-    const wordElement = document.querySelector('.word');
-    let index = 0;
-
-    setInterval(() => {
-        wordElement.style.opacity = 0;
-        setTimeout(() => {
-            index = (index + 1) % words.length;
-            wordElement.textContent = words[index];
-            wordElement.style.opacity = 1;
-        }, 100); // match this duration with the CSS transition duration
-    }, 900); // adjust the interval to control how often words change
-});
-
-
-function animationSeq_remove(time, div, classToRemove) {
-    setTimeout(() => {
-        div.classList.remove(classToRemove);
-    }, time);
-}
-
-function animationSeq_add(time, divE, classToAdd) {
-    setTimeout(() => {
-        let divs = document.querySelectorAll(`.${divE}`);
-        if (divs.length > 0) {
-            divs[0].classList.add(classToAdd);
-        } else {
-            console.log(`No element found with class name: ${divE}`);
-        }
-    }, time);
-}
-
-const firtsAni = 1450
-
-let elems = document.querySelectorAll('.grid-item');
-elems.forEach(element => {
-    setTimeout(() => {
-        element.style.opacity = '1'
-        element.style.transform = 'scale(1)'
-    }, firtsAni);
-})
-
-let itemFills = document.querySelectorAll('.filler');
-itemFills.forEach(element => {
-    setTimeout(() => {
-        element.classList.remove('orgin')
-    }, firtsAni);
-})
-
-
-setTimeout(() => {
-    document.body.style.overflowY = 'auto'
-}, firtsAni);
-
-
-animationSeq_add(firtsAni, 'grid-item', 'fadeIn');
-animationSeq_add(firtsAni, 'js-ani-1_semi', 'fadeOut');
-animationSeq_add(firtsAni, 'js-ani-1', 'fadeOut');
-animationSeq_add(firtsAni, 'js-ani-2', 'fadeOut');
-
 
 
 const messages = document.querySelectorAll('.message');
@@ -246,3 +168,46 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', checkScroll);
     checkScroll(); 
   }
+
+  const jsArrs = document.querySelector('.js-arrs');
+      jsArrs.innerHTML = `
+      <span class="hmu-0">HMU</span>
+      `;
+      let numberOffArr = 430;
+      for (let index = 0; index < numberOffArr; index++) {
+        jsArrs.innerHTML += `
+          <span class="item">&uarr;</span
+        `
+      }
+
+
+
+      document.addEventListener('mousemove', (event) => {
+    document.querySelectorAll('.item').forEach(span => {
+        const rect = span.getBoundingClientRect();
+        const y = event.clientY - rect.top;
+        const x = event.clientX - rect.left;
+
+        if (y < rect.height / 2 && x < rect.width / 2) {
+            span.style.transform = 'rotate(-45deg)';
+        } else if (y < rect.height / 2 && x >= rect.width / 2) {
+            span.style.transform = 'rotate(45deg)';
+        } else if (y >= rect.height / 2 && x < rect.width / 2) {
+            span.style.transform = 'rotate(225deg)';
+        } else if (y >= rect.height / 2 && x >= rect.width / 2) {
+            span.style.transform = 'rotate(-225deg)';
+        } else if (y < rect.height / 2 && Math.abs(x - rect.width / 2) < rect.width / 4) {
+            span.style.transform = 'rotate(0deg)';
+        } else if (y >= rect.height / 2 && Math.abs(x - rect.width / 2) < rect.width / 4) {
+            span.style.transform = 'rotate(180deg)';
+        } else if (x < rect.width / 2 && Math.abs(y - rect.height / 2) < rect.height / 4) {
+            span.style.transform = 'rotate(-90deg)';
+        } else if (x >= rect.width / 2 && Math.abs(y - rect.height / 2) < rect.height / 4) {
+            span.style.transform = 'rotate(90deg)';
+        } else {
+            span.innerHTML = '●'; // Default to ● when directly hovering
+            span.style.transform = 'none';
+        }
+    });
+});
+  

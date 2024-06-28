@@ -22,7 +22,7 @@
   <div class="load">
     <div class="load-sec">
       <div class="semi-circle spin js-ani-1_semi"></div>
-      <span class="js-ani-1" id="percent">80%</span>
+      <span class="js-ani-1" id="percent">91%</span>
       <div class="js-ani-2" id="loader"></div>
     </div>
   </div>
@@ -34,7 +34,7 @@
     <div class="grid-item"></div>
     <div class="grid-item ">
       <span class="message" data-show-time="8100" data-hide-time="8100">
-        I've been dedicating my time to learning both high- and low-level programming languages to build my computer fluency, focusing particularly on Python and C++. While I’ve made some progress, I realize there's still so much more to learn and experience.      </span>
+         programming languages to build my computer fluency, focusing particularly on Python and C++.</span>
     </div>
     <div class="grid-item"></div>
     <div class="grid-item"></div>
@@ -55,7 +55,7 @@
     <div class="grid-item"></div>
     <div class="grid-item">
       <span class="message" data-show-time="8100" data-hide-time="8100"> 
-        Some would say we give brands a Retinol enriched facial. And, while we make them look good, the work we do is much deeper. We nurse the identity
+        Some would say we give brands a Retinol enriched facial. And, while we mak identity
       </span>
       <span class="message" data-show-time="8100" data-hide-time="8100"> 
         well rea is not something i would personally consider
@@ -96,7 +96,7 @@ want to be seen
     <div id="animatedText">Not available for freelance.</div>
   </div>
   <div class="list " id="someFun" data-index="6">
-    <span>SOME ADJECTIVES TO DESCRibE</span>
+    <span>DOCUMENTIONS AND GALLERIES</span>
   </div>
   <div class="list" id="words" data-index="6">
     <div class="porj-word" id="">
@@ -118,8 +118,13 @@ want to be seen
       <div class="dis-sec">
         <img src="assets/previews/spain.avif" alt="pre">
       <span>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quidem fugiat repellendus consequatur veritatis, dicta architecto amet veniam aliquam eligendi, face.
+        Lorem ipsum dolor sit amet cm aliquam eligendi, face.
       </span>
+      </div>
+    </div>
+    <div class="list" id="arrws">
+      <div class="arrows js-arrs">
+        
       </div>
     </div>
   </div>
@@ -150,6 +155,87 @@ want to be seen
   </div>
 </body>
 
-<script defer src="js.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const progressBar = document.getElementById('loader');
+    const percentageText = document.getElementById('percent');
+    let percentage = 91;
+
+    const interval = setInterval(() => {
+        if (percentage >= 99) {
+            clearInterval(interval);
+        } else {
+            percentage++;
+            progressBar.style.width = percentage + '%';
+            percentageText.textContent = percentage + '%';
+        }
+    }, 160);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const words = ["CREATING", "VISIONING", "SUPPORTING", 'INSPIRING'];
+    const wordElement = document.querySelector('.word');
+    let index = 0;
+
+    setInterval(() => {
+        wordElement.style.opacity = 0;
+        setTimeout(() => {
+            index = (index + 1) % words.length;
+            wordElement.textContent = words[index];
+            wordElement.style.opacity = 1;
+        }, 100); // match this duration with the CSS transition duration
+    }, 900); // adjust the interval to control how often words change
+});
+
+
+function animationSeq_remove(time, div, classToRemove) {
+    setTimeout(() => {
+        div.classList.remove(classToRemove);
+    }, time);
+}
+
+function animationSeq_add(time, divE, classToAdd) {
+    setTimeout(() => {
+        let divs = document.querySelectorAll(`.${divE}`);
+        if (divs.length > 0) {
+            divs[0].classList.add(classToAdd);
+        } else {
+            console.log(`No element found with class name: ${divE}`);
+        }
+    }, time);
+}
+
+const firtsAni = 4350
+
+let elems = document.querySelectorAll('.grid-item');
+elems.forEach(element => {
+    setTimeout(() => {
+        element.style.opacity = '1'
+        element.style.transform = 'scale(1)'
+    }, firtsAni);
+})
+
+let itemFills = document.querySelectorAll('.filler');
+itemFills.forEach(element => {
+    setTimeout(() => {
+        element.classList.remove('orgin')
+    }, firtsAni);
+})
+
+
+setTimeout(() => {
+    document.body.style.overflowY = 'auto'
+}, firtsAni);
+
+
+animationSeq_add(firtsAni, 'grid-item', 'fadeIn');
+animationSeq_add(firtsAni, 'js-ani-1_semi', 'fadeOut');
+animationSeq_add(firtsAni, 'js-ani-1', 'fadeOut');
+animationSeq_add(firtsAni, 'js-ani-2', 'fadeOut');
+
+console.log(document.querySelectorAll('.grid-item').length);
+</script>
+<script src="js.js"></script>
 
 </html>

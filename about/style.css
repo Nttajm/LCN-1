@@ -90,7 +90,7 @@ nav ul li a {
 
 #loader {
   background-color: black;
-  width: 100%;
+  width: 91%;
   position: absolute;
   height: 30px;
   bottom: 30px;
@@ -229,9 +229,11 @@ nav ul li a {
 
 #someFun span {
   position: absolute;
-  top: 50%;
+  top: 10%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -10%);
+  font-size: 5rem;
+  font-family: var(--base-4);
 }
 
 #animatedText span{
@@ -247,7 +249,7 @@ nav ul li a {
 .porj-word {
   width: 60%;
   font-size: 4rem;
-  transition: all .125s;
+  transition: all .325s;
   margin-top: 10%;
 }
 
@@ -398,4 +400,35 @@ footer {
 .footLen {
   width: 150px;
   font-size: 0.7rem;
+}
+
+#arrws {
+  background-color: #d8b78d;
+  font-size: 10rem;
+  overflow: hidden;
+}
+
+.js-arrs {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+}
+
+.item { 
+  padding: 5px 10px;
+  box-sizing: border-box;
+  transition: all 0.625s ease-out;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 2rem;
+}
+
+.hmu-0 {
+  word-wrap: break-word;
+  font-size: 100%;
+  grid-row-start: 3;
+   grid-column-start: 1;
+   grid-row-end: 8;
+   grid-column-end: 8;
 }

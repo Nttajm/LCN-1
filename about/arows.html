@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Direction</title>
+    <style>
+        .js-arrs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .item { 
+            padding: 5px 10px;
+            box-sizing: border-box;
+            transition: all 0.625s ease-out;
+        }
+
+        .at90 {
+          transform: rotate(90deg);
+        }
+
+        .at180 {
+          transform: rotate(180deg);
+        }
+
+        .at270 {
+          transform: rotate(-90deg);
+        }
+
+        .at360 {
+          transform: rotate(0deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="js-arrs">
+        <span class="item">&nearr;</span>
+    </div>
+
+    <script>
+      const jsArrs = document.querySelector('.js-arrs');
+      jsArrs.innerHTML = '';
+      let numberOffArr = 300;
+      for (let index = 0; index < numberOffArr; index++) {
+        jsArrs.innerHTML += `
+          <span class="item">&uarr;</span
+        `
+      }
+
+      document.addEventListener('mousemove', (event) => {
+    document.querySelectorAll('.item').forEach(span => {
+        const rect = span.getBoundingClientRect();
+        const y = event.clientY - rect.top;
+        const x = event.clientX - rect.left;
+
+        if (y < rect.height / 2 && x < rect.width / 2) {
+            span.style.transform = 'rotate(-45deg)';
+        } else if (y < rect.height / 2 && x >= rect.width / 2) {
+            span.style.transform = 'rotate(45deg)';
+        } else if (y >= rect.height / 2 && x < rect.width / 2) {
+            span.style.transform = 'rotate(225deg)';
+        } else if (y >= rect.height / 2 && x >= rect.width / 2) {
+            span.style.transform = 'rotate(-225deg)';
+        } else if (y < rect.height / 2 && Math.abs(x - rect.width / 2) < rect.width / 4) {
+            span.style.transform = 'rotate(0deg)';
+        } else if (y >= rect.height / 2 && Math.abs(x - rect.width / 2) < rect.width / 4) {
+            span.style.transform = 'rotate(180deg)';
+        } else if (x < rect.width / 2 && Math.abs(y - rect.height / 2) < rect.height / 4) {
+            span.style.transform = 'rotate(-90deg)';
+        } else if (x >= rect.width / 2 && Math.abs(y - rect.height / 2) < rect.height / 4) {
+            span.style.transform = 'rotate(90deg)';
+        } else {
+            span.innerHTML = '●'; // Default to ● when directly hovering
+            span.style.transform = 'none';
+        }
+    });
+});
+    </script>
+</body>
+</html>
