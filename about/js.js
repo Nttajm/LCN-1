@@ -77,8 +77,6 @@ animationSeq_add(firtsAni, 'js-ani-1', 'fadeOut');
 animationSeq_add(firtsAni, 'js-ani-2', 'fadeOut');
 
 
-; 
-
 
 const messages = document.querySelectorAll('.message');
 
@@ -152,3 +150,99 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('words').style.transform = 'translateY(' + scrollTop * -0.8 + 'px)';
   });
 });
+
+
+const hoverIDives = document.querySelectorAll('.porj-word span');
+console.log(hoverIDives);
+
+const wordsInfo = [
+    {
+        dataName: 'bwi',
+        color: 'green',
+        background: 'black',
+    },
+    {
+        dataName: 'cata',
+        color: 'red',
+        background: 'orange',
+    },
+    {
+        dataName: 'italy',
+        color: 'red',
+        background: 'green',
+    },
+    {
+        dataName: 'anthon',
+        color: 'blue',
+        background: 'orange',
+    },
+    {
+        dataName: 'cupertino',
+        color: 'orange',
+        background: 'blue',
+    },
+];
+
+
+const bgDivWords = document.getElementById('words');
+let defaultBackgroundColor = window.getComputedStyle(bgDivWords).backgroundColor;
+let defaultColor = window.getComputedStyle(bgDivWords).color;
+
+hoverIDives.forEach(element => {
+
+    let definer = element.dataset.pre;
+
+    element.addEventListener("mouseover", (event) => {
+        // Blur all other spans
+        hoverIDives.forEach(span => {
+            if (span !== element) {
+                span.style.filter = "blur(4px)";
+            }
+        });
+
+        // Find and apply styles to bgDivWords
+        const foundWord = wordsInfo.find(word => word.dataName === definer);
+        if (foundWord) {
+            bgDivWords.style.backgroundColor = foundWord.background;
+            bgDivWords.style.color = foundWord.color;
+        } else {
+            console.log(`Word with dataName '${definer}' not found.`);
+        }
+    });
+
+    element.addEventListener("mouseout", (event) => {
+        // Remove blur from all spans
+        hoverIDives.forEach(span => {
+            span.style.filter = "none";
+        });
+
+        // Reset bgDivWords styles to default
+        bgDivWords.style.backgroundColor = defaultBackgroundColor;
+        bgDivWords.style.color = defaultColor;
+    });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    customAni(0.95, 'animated-element', 'active');
+    customAni(0.65, 'js-bluredEle', 'active');
+  });
+
+  function customAni(min, className, config) {
+    const elements = document.querySelectorAll(`.${className}`);
+  
+    function checkScroll() {
+      elements.forEach((element) => {
+        const elementPosition = element.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+  
+        if (elementPosition < windowHeight * min) {
+          element.classList.add(config);
+        } else {
+          element.classList.remove(config);
+        }
+      });
+    }
+  
+    window.addEventListener('scroll', checkScroll);
+    checkScroll(); 
+  }

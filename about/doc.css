@@ -1,0 +1,105 @@
+body {
+    overflow-x: hidden;
+    padding-left: 50px;
+    padding-right: 50px;
+    color: var(--main-color);
+}
+
+.note {
+    font-size: 0.5rem ;
+    text-align: right;
+}
+
+.opener {
+    display: flex;
+    width: 100%;
+    padding: 50px;
+    box-sizing: border-box;
+}
+
+.opener div {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content:center;
+    height: 24rem;
+    font-family: var(--base-2);
+    padding: 10px;
+}
+
+.o-name span:first-child {
+    font-size: 10rem;
+    animation: fadeInUpS 0.6s ease-out forwards !important;
+    animation-delay: 0.65s;
+}
+
+.o-name span:nth-child(2) {
+    padding-top: 40px;
+    font-size: 0.8rem;
+    width: 23rem;
+    font-family: var(--base-1);
+    line-height: 18px;
+    animation: fadeInUpS 0.6s ease-out forwards !important;
+    animation-delay: 0.125s;
+}
+
+.o-date {
+    align-items: flex-end;
+    font-size: 2.4rem;
+    font-family: var(--base-4) !important;
+    animation: fadeInUpS 0.4s ease-out forwards !important;
+    animation-delay: 0.65s;
+}
+
+article:first-child {
+    border-top: 1px solid var(--main-color);
+}
+
+article {
+    padding: 60px 30px 30px 30px;
+    display: flex;
+    gap: 30px;
+    min-height: 500px;
+}
+
+article div {
+    width: 50%;
+    font-family: var(--base-5);
+}
+
+article div p {
+    font-weight: 500;
+    line-height: 25px;
+    font-size: 1.1rem;
+    margin-bottom: 50px;
+}
+
+.possible {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.possible span {
+    font-family: var(--base-4);
+    font-size: 0.5rem;
+    padding-top: 0.7rem;
+    opacity: 0.5;
+}
+
+.possible img{
+    width: 100%;
+}
+
+.js-bluredEle {
+    filter: blur(5px);
+    transition: all 0.325s ;
+    opacity: 0;
+}
+
+.js-bluredEle.js-bluredEle-active {
+    filter: blur(0px);
+    opacity: 1;
+}
+
+

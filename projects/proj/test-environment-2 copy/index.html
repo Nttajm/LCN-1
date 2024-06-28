@@ -3,47 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Scrollbar Example</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    height: 200vh; /* Ensure enough scrollable content */
-    overflow-x: hidden; /* Hide horizontal scrollbar */
-  }
-  .parallax {
-    height: 100vh; /* Full viewport height for each section */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 3rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  }
-  #section1 {
-    background-color: #1abc9c; /* Change background color as needed */
-    color: white;
-  }
-  #section2 {
-    background-color: #3498db; /* Change background color as needed */
-    color: white;
-  }
-  #section3 {
-    background-color: #9b59b6; /* Change background color as needed */
-    color: white;
-  }
+    .container {
+        width: 300px;
+        height: 300px;
+        overflow-y: scroll;
+        position: relative;
+    }
+    .scrollbar {
+        position: absolute;
+        top: 0;
+        right: 50%;
+        width: 3px;
+        background-color: rgb(143, 143, 143);
+        height: 300px;
+        transform: rotate(90deg);
+    }
+    .scrollbar .thumb {
+        width: 100%;
+        height: 100px;
+        position: absolute;
+        background-color: rgb(0, 0, 0);
+        cursor: pointer;
+    }
 </style>
-<title>Multiple Divs Parallax Effect</title>
 </head>
 <body>
-  <div class="parallax" id="section1">
-    Section 1
-  </div>
-  <div class="parallax" id="section2">
-    Section 2
-  </div>
-  <div class="parallax" id="section3">
-    Section 3
-  </div>
 
-  <script src="script.js"></script>
+<div class="container" id="scrollContainer">
+    <!-- Your content here -->
+    <div style="height: 600px;">
+        <!-- Tall content to enable scrolling -->
+    </div>
+</div>
+<div class="scrollbar" id="customScrollbar">
+    <div class="thumb" id="customScrollbarThumb"></div>
+</div>
+
+<script>
+const container = document.getElementById('scrollContainer');
+const scrollbar = document.getElementById('customScrollbar');
+const thumb = document.getElementById('customScrollbarThumb');
+
+// Update scrollbar thumb position based on scroll
+container.addEventListener('scroll', () => {
+    const scrollPercentage = (container.scrollTop / (container.scrollHeight - container.clientHeight)) * 100;
+    const scrollbarHeight = scrollbar.offsetHeight;
+    const thumbHeight = thumb.offsetHeight;
+
+    const thumbPosition = (scrollPercentage * (scrollbarHeight - thumbHeight)) / 100;
+    thumb.style.top = thumbPosition + 'px';
+});
+
+// Adjust container scroll based on thumb click and drag
+let isDragging = false;
+let startPosition = 0;
+
+thumb.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startPosition = e.clientY - thumb.offsetTop;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    e.preventDefault();
+
+    const y = e.clientY - startPosition;
+    const maxScroll = scrollbar.offsetHeight - thumb.offsetHeight;
+
+    // Limit thumb movement within scrollbar
+    const position = Math.min(Math.max(0, y), maxScroll);
+    const percentage = (position / maxScroll) * 100;
+
+    thumb.style.top = position + 'px';
+    container.scrollTop = (percentage / 100) * (container.scrollHeight - container.clientHeight);
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+});
+</script>
+
+
+
 </body>
 </html>
