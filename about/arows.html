@@ -1,81 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cursor Direction</title>
-    <style>
-        .js-arrs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .item { 
-            padding: 5px 10px;
-            box-sizing: border-box;
-            transition: all 0.625s ease-out;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursor Follow Div</title>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
 
-        .at90 {
-          transform: rotate(90deg);
-        }
+    
+    .semi-circl-2 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5rem;
+        height: 2.5rem;
+        background-color: #d8b78d;
+        border-radius: 10rem 10rem 0 0;
+        animation: sligh-rot 0.7s ease infinite;
+    }
 
-        .at180 {
-          transform: rotate(180deg);
-        }
-
-        .at270 {
-          transform: rotate(-90deg);
-        }
-
-        .at360 {
+    @keyframes sligh-rot {
+        0% {
           transform: rotate(0deg);
         }
-    </style>
-</head>
-<body>
-    <div class="js-arrs">
-        <span class="item">&nearr;</span>
-    </div>
-
-    <script>
-      const jsArrs = document.querySelector('.js-arrs');
-      jsArrs.innerHTML = '';
-      let numberOffArr = 300;
-      for (let index = 0; index < numberOffArr; index++) {
-        jsArrs.innerHTML += `
-          <span class="item">&uarr;</span
-        `
+        30% {
+          transform: rotate(170deg);
+        }
+        40% {
+          transform: rotate(180deg);
+        }
+        80% {
+          transform: rotate(270deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
 
-      document.addEventListener('mousemove', (event) => {
-    document.querySelectorAll('.item').forEach(span => {
-        const rect = span.getBoundingClientRect();
-        const y = event.clientY - rect.top;
-        const x = event.clientX - rect.left;
-
-        if (y < rect.height / 2 && x < rect.width / 2) {
-            span.style.transform = 'rotate(-45deg)';
-        } else if (y < rect.height / 2 && x >= rect.width / 2) {
-            span.style.transform = 'rotate(45deg)';
-        } else if (y >= rect.height / 2 && x < rect.width / 2) {
-            span.style.transform = 'rotate(225deg)';
-        } else if (y >= rect.height / 2 && x >= rect.width / 2) {
-            span.style.transform = 'rotate(-225deg)';
-        } else if (y < rect.height / 2 && Math.abs(x - rect.width / 2) < rect.width / 4) {
-            span.style.transform = 'rotate(0deg)';
-        } else if (y >= rect.height / 2 && Math.abs(x - rect.width / 2) < rect.width / 4) {
-            span.style.transform = 'rotate(180deg)';
-        } else if (x < rect.width / 2 && Math.abs(y - rect.height / 2) < rect.height / 4) {
-            span.style.transform = 'rotate(-90deg)';
-        } else if (x >= rect.width / 2 && Math.abs(y - rect.height / 2) < rect.height / 4) {
-            span.style.transform = 'rotate(90deg)';
-        } else {
-            span.innerHTML = '●'; // Default to ● when directly hovering
-            span.style.transform = 'none';
+      @keyframes fadeOutUp {
+        from {
+          opacity: 1;
         }
+      
+        to {
+          opacity: 0;
+          transform: translate3d(0, -100%, 0);
+          display: none;
+        }
+      }
+  </style>
+</head>
+<body>
+  <div id="followDiv">
+    <div class="cover">
+        <div class="semi-circl-2"></div>
+    </div>
+    <img src="assets/galleryAssests/buil.jpg" alt="">
+  </div>
+
+  <script>
+    const followDiv = document.getElementById('followDiv');
+
+    document.addEventListener('mousemove', (e) => {
+      followDiv.style.left = `${e.pageX + 20}px`;
+      followDiv.style.top = `${e.pageY + 20}px`;
     });
-});
-    </script>
+  </script>
 </body>
 </html>

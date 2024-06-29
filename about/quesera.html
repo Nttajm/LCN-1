@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="assets/docs/css/sera.css">
+    <link rel="stylesheet" href="./ani.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WUE</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li>REVISTAS</li>
+            <li>DOCUMENTIONS</li>
+            <li>CATALUNYA</li>
+            <li>JOELM</li>
+        </ul>
+    </nav>
+    <div class="cont-1">
+        <div class="layer-1">
+            <img src="./assets/docs/Ó QUE.svg" alt="" id="ly-1">
+        </div>
+        <div class="layer-2">
+            <img src="./assets/docs/SERA.svg" alt="" id="ly-2">
+            <a class="ac" href="https://www.youtube.com/watch?v=2jXtJxtoRd8&ab_channel=FaniaRecords">
+                <div class="escuchar">
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span> 
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>
+                    <span>ESCUCHAR</span>                 
+                </div>
+            </a>
+        </div>
+
+    </div>
+    <div class="gall">
+        <div class="col" id="c-1">
+            <div class="sec">
+                <span class="title">EL NORTE</span>
+                <img class="img" src="./assets/galleryAssests/daft.jpg" alt="1">
+            </div>
+            <div class="sec" data-bg="skyblue">
+                <img class="img" src="./assets/docs/italia_test.webp" alt="">
+                <span class="title">LOS OJOS</span>
+            </div>
+            <div class="sec" data-bg="gray">
+                <img class="img" src="./assets/galleryAssests/Photo 2016-04-23, 2 38 45 PM.jpg" alt="">
+                <span class="title">LOS OJOS</span>
+            </div>
+        </div>
+        <div class="col" id="c-2">
+            <div class="sec">
+                <span class="title">EL NORTE</span>
+                <img class="img" src="./assets/galleryAssests/1081683410 (1).jpg" alt="">
+            </div>
+            <div class="sec" data-bg="skyblue">
+                <img class="img" src="./assets/docs/1081683410.jpg" alt="">
+                <span class="title">LOS OJOS</span>
+            </div>
+            <div class="sec" data-bg="gray">
+                <img class="img" src="./assets/galleryAssests/Photo 2016-04-23, 2 38 45 PM.jpg" alt="">
+                <span class="title">LOS OJOS</span>
+            </div>
+        </div>
+        <div class="col" id="c-3">
+
+        </div>
+    </div>
+    <script>
+        
+        document.querySelectorAll('.sec')
+            .forEach(function(element) {
+                var bgColor = element.dataset.bg;
+                if (bgColor) {
+                    element.style.backgroundColor = bgColor;
+                }
+            });
+    </script>
+</body>
+</html>

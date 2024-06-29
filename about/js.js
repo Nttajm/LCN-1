@@ -105,7 +105,7 @@ const wordsInfo = [
     },
 ];
 
-
+const cursorDiv = document.getElementById('followDiv')
 const bgDivWords = document.getElementById('words');
 let defaultBackgroundColor = window.getComputedStyle(bgDivWords).backgroundColor;
 let defaultColor = window.getComputedStyle(bgDivWords).color;
@@ -127,6 +127,7 @@ hoverIDives.forEach(element => {
         if (foundWord) {
             bgDivWords.style.backgroundColor = foundWord.background;
             bgDivWords.style.color = foundWord.color;
+            cursorDiv.style.display = 'block !important'
         } else {
             console.log(`Word with dataName '${definer}' not found.`);
         }
@@ -211,3 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
   
+
+const followDiv = document.getElementById('followDiv');
+
+    document.addEventListener('mousemove', (e) => {
+      followDiv.style.left = `${e.pageX + 20}px`;
+      followDiv.style.top = `${e.pageY + 20}px`;
+    });
