@@ -87,18 +87,22 @@ a {
 .cont-1 {
     position: fixed;
     display: grid;
+    z-index: 11;
     width: 100%;
-    height: 100%;
+    height: 800px;
     grid-template-rows: 1fr 1fr;
    grid-template-columns: 1fr 1fr;
 }
 
 .cont-2 {
     position: absolute;
-    height: 300px;
+    width: 100%;
+    margin-top: 110%;
+    height: 100%;
     transform: translateY(-100%);
     z-index: 10;
     background-color: brown;
+    z-index: 12;
 }
 
 .sec {
@@ -112,7 +116,9 @@ a {
     font-size: 4rem !important;
     word-break: break-all;
     font-family: var(--base-5);
-    text-wrap:wrap;
+    text-wrap: wrap;
+    letter-spacing: -9px;
+    font-weight: 600;
 }
 
 .box-live:hover {
@@ -171,6 +177,8 @@ a {
 .sec:hover img {
     opacity: 0 !important;
 }
+
+
 
 @keyframes close {
     from {
