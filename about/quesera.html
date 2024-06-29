@@ -6,9 +6,12 @@
     <link rel="stylesheet" href="assets/docs/css/sera.css">
     <link rel="stylesheet" href="./ani.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WUE</title>
+    <title>OQS</title>
 </head>
 <body>
+    <div class="loader">
+        <img src="./assets/galleryAssests/" alt="">
+    </div>
     <nav>
         <ul>
             <li>REVISTAS</li>
@@ -71,11 +74,11 @@
             </div>
         </div>
         <div class="col" id="c-2">
-            <div class="sec">
-                <span class="title">EL NORTE</span>
-                <img class="img" src="./assets/galleryAssests/1081683410 (1).jpg" alt="">
+            <div class="sec" data-bg="darkgoldenrod">
+                <span class="title">DE AYER</span>
+                <img class="img" src="./assets/galleryAssests/blkman.jpg" alt="blk">
             </div>
-            <div class="sec" data-bg="skyblue">
+            <div class="sec" data-bg="pale">
                 <img class="img" src="./assets/docs/1081683410.jpg" alt="">
                 <span class="title">LOS OJOS</span>
             </div>
@@ -85,7 +88,18 @@
             </div>
         </div>
         <div class="col" id="c-3">
-
+            <div class="sec" data-bg="gray">
+                <span class="title">LOS ANGELES</span>
+                <img class="img" src="./assets/galleryAssests/200812_iE040872.jpeg" alt="blk">
+            </div>
+            <div class="sec" data-bg="skyblue">
+                <img class="img" src="./assets/docs/1081683410.jpg" alt="">
+                <span class="title">LOS OJOS</span>
+            </div>
+            <div class="sec" data-bg="gray">
+                <img class="img" src="./assets/galleryAssests/Photo 2016-04-23, 2 38 45 PM.jpg" alt="">
+                <span class="title">LOS OJOS</span>
+            </div>
         </div>
     </div>
     <script>
@@ -97,6 +111,31 @@
                     element.style.backgroundColor = bgColor;
                 }
             });
+
+            document.addEventListener('DOMContentLoaded', () => {
+    customAni(0.95, 'animated-element', 'active');
+    customAni(0.65, 'img', 'openImg');
+  });
+
+  function customAni(min, className, config) {
+    const elements = document.querySelectorAll(`.${className}`);
+  
+    function checkScroll() {
+      elements.forEach((element) => {
+        const elementPosition = element.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+  
+        if (elementPosition < windowHeight * min) {
+          element.classList.add(config);
+        } else {
+          element.classList.remove(config);
+        }
+      });
+    }
+  
+    window.addEventListener('scroll', checkScroll);
+    checkScroll(); 
+  }
     </script>
 </body>
 </html>

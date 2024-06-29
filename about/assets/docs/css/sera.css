@@ -9,6 +9,7 @@ body {
 nav {
     position: fixed;
     width: 100%;
+    background-color: white;
 }
 
 nav ul {
@@ -96,7 +97,7 @@ a {
     width: 33%;
 }
 #c-3 {
-    width: 10%;
+    width: 42%;
 }
 
 .col {
@@ -119,6 +120,13 @@ a {
     border-right: solid black 5px;
 }
 
+#c-3 .sec{
+    height: 14rem;
+    background-color: brown;
+    border-bottom: solid black 5px;
+    border-right: solid black 5px;
+}
+
 .sec {
     position: relative;
 }
@@ -130,6 +138,16 @@ a {
     transition: all 0.123s;
     z-index: 3;
     position: absolute;
+}
+
+@keyframes uprise {
+    0% {
+
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0px);
+    }
 }
 
 .title {
@@ -176,10 +194,51 @@ a {
     background-color: rgb(33, 169, 193) !important;
 }
 
+
+
 .img:hover {
-    opacity: 0;
+    opacity: 0.1 !important;
 }
 
 .img:hover .title{
     display: block;
+}
+
+@media all and (min-width: 1024px) and (max-width: 1280px) { 
+}
+
+@media all and (min-width: 768px) and (max-width: 1024px) { 
+    #c-1 {
+        width: 50%;
+    }
+    #c-3 {
+        display: none;
+    }
+    #c-2 {
+        width: 50%;
+    }
+}
+
+@media all and (min-width: 480px) and (max-width: 768px) {
+    #c-1 {
+        display: none;
+    }
+    #c-3 {
+        display: none;
+    }
+    #c-2 {
+        width: 100%;
+    }
+ }
+
+@media all and (max-width: 480px) { 
+    #c-1 {
+        display: none;
+    }
+    #c-3 {
+        display: none;
+    }
+    #c-2 {
+        width: 100%;
+    }
 }

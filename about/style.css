@@ -415,6 +415,8 @@ footer {
 .js-arrs {
   display: grid;
   grid-template-columns: repeat(20, 1fr);
+  position: sticky;
+  top: 0;
 }
 
 .item { 
