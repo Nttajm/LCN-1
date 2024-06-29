@@ -1,77 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cursor Follow Div</title>
-  <style>
-    body {
-      height: 100vh;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f0f0f0;
-    }
-
-    
-    .semi-circl-2 {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 5rem;
-        height: 2.5rem;
-        background-color: #d8b78d;
-        border-radius: 10rem 10rem 0 0;
-        animation: sligh-rot 0.7s ease infinite;
-    }
-
-    @keyframes sligh-rot {
-        0% {
-          transform: rotate(0deg);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Animation</title>
+    <style>
+        .typing {
+            font-size: 24px;
+            font-family: 'Courier New', Courier, monospace;
+            border-right: 2px solid;
+            white-space: nowrap;
+            overflow: hidden;
         }
-        30% {
-          transform: rotate(170deg);
-        }
-        40% {
-          transform: rotate(180deg);
-        }
-        80% {
-          transform: rotate(270deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes fadeOutUp {
-        from {
-          opacity: 1;
-        }
-      
-        to {
-          opacity: 0;
-          transform: translate3d(0, -100%, 0);
-          display: none;
-        }
-      }
-  </style>
+    </style>
 </head>
 <body>
-  <div id="followDiv">
-    <div class="cover">
-        <div class="semi-circl-2"></div>
-    </div>
-    <img src="assets/galleryAssests/buil.jpg" alt="">
-  </div>
+    <div class="typing" id="typing"></div>
 
-  <script>
-    const followDiv = document.getElementById('followDiv');
+    <script>
+        const texts = ["Hello, world!", "Welcome to my site.", "Enjoy your stay!"];
+        let count = 0;
+        let index = 0;
+        let currentText = '';
+        let letter = '';
+        let isDeleting = false;
 
-    document.addEventListener('mousemove', (e) => {
-      followDiv.style.left = `${e.pageX + 20}px`;
-      followDiv.style.top = `${e.pageY + 20}px`;
-    });
-  </script>
+        (function type() {
+            if (count === texts.length) {
+                count = 0;
+            }
+            currentText = texts[count];
+
+            if (isDeleting) {
+                letter = currentText.slice(0, --index);
+            } else {
+                letter = currentText.slice(0, ++index);
+            }
+
+            document.querySelector('.typing').textContent = letter;
+
+            let typeSpeed = 200;
+            if (isDeleting) {
+                typeSpeed /= 2;
+            }
+
+            if (!isDeleting && letter.length === currentText.length) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && letter.length === 0) {
+                isDeleting = false;
+                count++;
+                typeSpeed = 500;
+            }
+
+            setTimeout(type, typeSpeed);
+        })();
+    </script>
 </body>
 </html>
