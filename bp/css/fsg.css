@@ -89,7 +89,7 @@ a {
     display: grid;
     z-index: 11;
     width: 100%;
-    height: 800px;
+    height: 100%;
     grid-template-rows: 1fr 1fr;
    grid-template-columns: 1fr 1fr;
 }
@@ -103,6 +103,113 @@ a {
     z-index: 10;
     background-color: brown;
     z-index: 12;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+.col:hover {
+    animation-play-state: paused; 
+}
+
+.col:nth-child(1) {
+    animation: sliL 15s infinite linear;
+    animation-play-state: running;
+}
+
+.col:nth-child(3) {
+    animation: sliR 15s infinite linear;
+    animation-play-state: running;
+}
+
+.what {
+    font-family: poppins;
+    letter-spacing: -4px;
+    font-weight: 600;
+    font-size: 2rem;
+}
+
+@keyframes sliL {
+    from {
+        transform: translateX(0%);
+    }
+    to {
+        transform: translateX(-33%);
+    }
+}
+
+@keyframes sliR {
+    from {
+        transform: translateX(0%);
+    }
+    to {
+        transform: translateX(33%);
+    }
+}
+
+.col {
+    display: flex;
+    
+}
+
+.col:first-child {
+    height: 15rem;
+}
+.col:nth-child(2) {
+    height: 18rem;
+}
+.col:nth-child(3) {
+    height: 15rem;
+}
+
+.item {
+    min-width: 33%;
+    position: relative;
+    border-bottom: solid 2px black;
+    border-right: solid 2px black;
+}
+
+.i-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
+    transition: all 0.323s;
+    z-index: 3;
+    position: absolute;
+}
+
+.i-img:hover {
+    opacity: 0;
+}
+
+
+.i-other {
+    position: absolute;
+    bottom: 10px;
+    left :10px;
+    z-index: 1;
+    width: 30%;
+    font-family: poppins;
+    font-weight: 600;
+    color: white;
+    opacity: 0.8;
+    transition: all 0.153s;
+    font-family: var(--base-3);
+    font-size: 0.6rem;
+}
+
+.i-title {
+    position: absolute;
+    top: 10px;
+    right :10px;
+    z-index: 1;
+    font-family: poppins;
+    font-weight: 600;
+    color: white;
+    transition: all 0.153s;
+    font-family: var(--base-3);
+    font-size: 3rem;
 }
 
 .sec {
@@ -178,7 +285,51 @@ a {
     opacity: 0 !important;
 }
 
+nav {
+    position: fixed;
+    z-index: 100;
+    margin: 0;
+    padding: 0;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
+nav ul {
+    list-style: none;
+    display: flex;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    background-color: blue;
+    padding: 0.6rem;
+    color: white;
+    letter-spacing: -3px;
+    font-family: poppins;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.yeller {
+    display: flex;
+    justify-content: center;
+    background-color: rgb(242, 255, 0);
+    padding: 0.2rem;
+    color: rgb(0, 0, 0);
+    letter-spacing: -3px;
+    font-family: poppins;
+    font-size: 1.4rem;
+    font-weight: 600;
+    opacity: 0;
+    animation: openB 0.234s ease-in forwards;
+    animation-delay: 3.5s;
+}
+
+.scrolled {
+    opacity: 0 !important;
+}
 
 @keyframes close {
     from {
@@ -188,6 +339,17 @@ a {
         opacity: 0;
         filter: blur(10px);
         pointer-events: none;
+    }
+}
+
+@keyframes openB {
+    from {
+        opacity: 0;
+        filter: blur(10px);
+        pointer-events: none;
+    }
+    to {
+        opacity: 1;
     }
 }
 

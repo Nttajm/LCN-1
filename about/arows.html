@@ -3,58 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typing Animation</title>
+    <title>Pause Animation on Hover</title>
     <style>
-        .typing {
-            font-size: 24px;
-            font-family: 'Courier New', Courier, monospace;
-            border-right: 2px solid;
-            white-space: nowrap;
+        .container {
+            display: flex;
             overflow: hidden;
+            width: 100%;
+        }
+        .col {
+            flex: 0 0 100%;
+            text-align: center;
+            background-color: lightblue;
+        }
+        .col:nth-child(1) {
+            animation: sliL 10s infinite linear;
+            animation-play-state: running; /* Set default state */
+        }
+        .col:nth-child(1):hover {
+            animation-play-state: paused; /* Pause on hover */
+        }
+        @keyframes sliL {
+            from {
+                transform: translateX(0%);
+            }
+            to {
+                transform: translateX(-100%);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="typing" id="typing"></div>
-
-    <script>
-        const texts = ["Hello, world!", "Welcome to my site.", "Enjoy your stay!"];
-        let count = 0;
-        let index = 0;
-        let currentText = '';
-        let letter = '';
-        let isDeleting = false;
-
-        (function type() {
-            if (count === texts.length) {
-                count = 0;
-            }
-            currentText = texts[count];
-
-            if (isDeleting) {
-                letter = currentText.slice(0, --index);
-            } else {
-                letter = currentText.slice(0, ++index);
-            }
-
-            document.querySelector('.typing').textContent = letter;
-
-            let typeSpeed = 200;
-            if (isDeleting) {
-                typeSpeed /= 2;
-            }
-
-            if (!isDeleting && letter.length === currentText.length) {
-                typeSpeed = 2000;
-                isDeleting = true;
-            } else if (isDeleting && letter.length === 0) {
-                isDeleting = false;
-                count++;
-                typeSpeed = 500;
-            }
-
-            setTimeout(type, typeSpeed);
-        })();
-    </script>
+    <div class="container">
+        <div class="col">Column 1</div>
+        <div class="col">Column 2</div>
+        <div class="col">Column 3</div>
+    </div>
 </body>
 </html>
