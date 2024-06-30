@@ -138,6 +138,15 @@ a {
     }
 }
 
+@keyframes sliLs {
+    from {
+        transform: translateX(0%);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+
 @keyframes sliR {
     from {
         transform: translateX(0%);
@@ -329,6 +338,25 @@ nav ul li {
 
 .scrolled {
     opacity: 0 !important;
+}
+
+.foot {
+    background-color: white;
+    height: 200px;
+}
+
+.email {
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    font-size: 8rem;
+    display: flex;
+    animation: sliL 10s infinite linear;
+    animation-play-state: running;
+}
+
+.email span {
+    border-bottom: 3px solid black;
+    border-top: 3px solid black;
 }
 
 @keyframes close {
