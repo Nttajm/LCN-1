@@ -120,6 +120,7 @@ a {
 .col:nth-child(3) {
     animation: sliR 15s infinite linear;
     animation-play-state: running;
+    flex-direction: row-reverse;
 }
 
 .what {
@@ -291,6 +292,10 @@ a {
 }
 
 .sec:hover img {
+    opacity: 0 !important;
+}
+
+.sec:hover video {
     opacity: 0 !important;
 }
 
