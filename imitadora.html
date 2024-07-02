@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMITADORA</title>
+    <link rel="shortcut icon" href="/images/imitadorabg.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="/bp/EE/imitadora.css">
+    <link rel="stylesheet" href="/css/standard.css">
+</head>
+<body>
+    <div class="loader">
+        <div class="animation-open">
+            <span>i</span>
+            <span>m</span>
+            <span>i</span>
+            <span>t</span>
+            <span>a</span>
+            <span>d</span>
+            <span>o</span>
+            <span>r</span>
+            <span>a</span>
+        </div>
+    </div>
+
+    <nav>
+        <div class="nav-sec" id="logo">
+            <span>imitadora</span>
+        </div>
+        <div class="nav-sec" id="espanol">
+            <span>LEER EN ESPAÑOL</span>
+        </div>
+    </nav>
+
+    <div class="cont-1">
+        <div class="c-1_info">
+            <div class="top-level">
+                <div class="l-item" id="main-text">
+                    <span>SEE</span>
+                </div>
+                <div class="l-item" id="info-text">
+                    <div class="l_i-">
+                        Finding your creative path or jurney shouldnt be
+                        way you down neither stop you.
+                    </div>
+                    <div>
+                        <div class="l_i-">
+                            what we can do:
+                        </div>
+                        <div class="l_i-">
+                            Bringing like minds to create wonder peices like music 
+                            art, design and more to put to youre full potential and 
+                            get you started on you or buisness creative jurney.
+                        </div>
+                    </div>
+                </div>
+                <div class="l-item" id="main-text">
+                    <span>EVER</span>
+                </div>
+            </div>
+            <div class="bottom-level">
+                <div class="l-item" id="main-text">
+                    <span>CLEAR</span>
+                </div>
+            </div>
+        </div>
+        <div class="imgsec">
+            <img src="images/josephpng.png" alt="">
+        </div>
+    </div>
+    <div class="cont-2">
+        <span class="ani-text">
+            Commentment to what you love and doing the best at it is the most valuable thing you can posses.
+        </span>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const target = document.querySelector('.target');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.intersectionRatio >= 0.05) {
+                        document.body.style.backgroundColor = 'lightblue';
+                    } else {
+                        document.body.style.backgroundColor = '';
+                    }
+                });
+            }, { threshold: [0.55] });
+
+            observer.observe(target);
+        });
+    </script>
+</body>
+</html>

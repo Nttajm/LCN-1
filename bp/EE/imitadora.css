@@ -1,0 +1,255 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+body {
+    background-color: blue;
+    overflow-x: hidden;
+}
+
+:root {
+    font-size: 30px;
+    --b-1: "Roboto Mono", monospace;
+    --b-2: "Poppins", sans-serif;
+    --b-3: "Raleway", sans-serif;
+    --ani-1: 1.6s;
+    --ani-1: 1.9s;
+}
+
+.loader {
+    display: flex;
+    justify-content: center;
+    animation: close 0.4s ease-out forwards;
+    animation-delay: 1.6s; 
+    background-color: white;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+}
+.animation-open {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    overflow: hidden;
+}
+
+.animation-open span {
+    font-family: var(--b-2);
+    font-weight: 700;
+    letter-spacing: -5px;
+    font-size: 4rem;
+    transform: translateY(80%);
+    animation: flyUp 0.9s cubic-bezier(0.22, 0.74, 0.43, 1.05) forwards;
+}
+
+@keyframes flyUp {
+    to {
+        transform: translateY(0%);
+    }
+}
+
+@keyframes close {
+    to {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+@keyframes flyUps {
+    from {
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0%);
+        opacity: 1;
+    }
+}
+
+
+
+.animation-open span:nth-child(1) {
+    animation-delay: 0.13s;
+}
+.animation-open span:nth-child(2) {
+    animation-delay: 0.23s;
+}
+.animation-open span:nth-child(3) {
+    animation-delay: 0.33s;
+}
+.animation-open span:nth-child(4) {
+    animation-delay: 0.43s;
+}
+.animation-open span:nth-child(5) {
+    animation-delay: 0.53s;
+}
+.animation-open span:nth-child(6) {
+    animation-delay: 0.63s;
+}
+.animation-open span:nth-child(7) {
+    animation-delay: 0.73s;
+}
+.animation-open span:nth-child(8) {
+    animation-delay: 0.83s;
+}
+.animation-open span:nth-child(9) {
+    animation-delay: 0.93s;
+}
+
+
+.cont-1 > * {
+    transition: all 0.125s;
+}
+
+
+.cont-1 {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    background-image: url('/images/imitadorabg.jpg');
+    opacity: 0.9;
+    object-fit: cover;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    min-height: 900px;
+}
+
+.c-1_info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: var(--b-2);
+    letter-spacing: -2px;
+    font-weight: 600;
+    padding: 90px;
+}
+
+.top-level {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(-30%);
+    animation: flyUps 1s cubic-bezier(0.22, 0.74, 0.43, 1.05) forwards;
+    animation-delay: 1.9s;
+}
+
+.bottom-level {
+    transform: translateY(-30%);
+    animation: flyUps 1s cubic-bezier(0.22, 0.74, 0.43, 1.05) forwards;
+    animation-delay: 2.1s;
+    opacity: 0;
+}
+
+#main-text {
+    font-size: 10rem;
+}
+
+#info-text {
+    font-size: 0.4rem;
+    height: 100%;
+    max-width: 10rem;
+    letter-spacing: normal;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#info-text div:nth-child(1) {
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+}
+
+.imgsec {
+    position: absolute;
+    top: 30%;
+    left: 20%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    z-index: 998;
+    padding: 10px 50px 0px 50px;
+    transform: translateY(-90%);
+    animation: flyUps 1s cubic-bezier(0.22, 0.74, 0.43, 1.05) forwards;
+    animation-delay: 2.4s;
+}
+
+.imgsec img {
+    width: 100%;
+}
+
+.nav-sec {
+    cursor: pointer;
+}
+
+#logo {
+    font-family: var(--b-2);
+    font-weight: 700;
+    letter-spacing: -3.4px;
+    font-size: 1.3rem;
+}
+
+#espanol {
+    font-family: poppins;
+    border: solid black 1px;
+    border-radius: 50px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 0.8rem;
+    margin-left: 20px;
+    transition: all 0.125s;
+}
+
+#espanol:hover {
+    background-color: white;
+    color: black;
+}
+
+.cont-2 {
+    background-color: aliceblue;
+    min-height: 20rem;
+    padding: 20px 0px 0px 20px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+}
+
+.ani-text {
+    font-family: var(--b-3), Raleway !important;
+    font-size: 2.5rem;
+    width: 80%;
+    margin-top: 120px;
+}
+
+@media all and (width > 1280px) { 
+    :root {
+        font-size: 30px;
+    }
+}
+
+@media all and (min-width: 1024px) and (max-width: 1280px) { 
+    :root {
+        font-size: 20px;
+    }
+ }
+
+@media all and (min-width: 768px) and (max-width: 1024px) { 
+    :root {
+        font-size: 16px;
+    }
+ }
+
+@media all and (min-width: 480px) and (max-width: 768px) { 
+    :root {
+        font-size: 10px;
+    }
+ }
+
+@media all and (max-width: 480px) { }
