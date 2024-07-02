@@ -165,7 +165,6 @@ nav ul li a {
    grid-column-start: 5;
    grid-row-end: 5;
    grid-column-end: 9;
-  
 }
 
 #item-1 {
@@ -175,6 +174,15 @@ nav ul li a {
   grid-column-start: 1;
   grid-row-end: 2;
   grid-column-end: 5;
+}
+
+#item-2 {
+  border: 2px dotted black;
+  background-color: #827ef9; 
+  grid-row-start: 2;
+  grid-column-start: 1;
+  grid-row-end: 2;
+  grid-column-end: 4;
 }
 
 .filler {
@@ -440,7 +448,6 @@ footer {
 }
 
 #followDiv {
-  display: none;
   z-index: 999;
 transition: all 0.125s ease;
 position: absolute;
@@ -448,6 +455,7 @@ width: 200px;
 height: 200px;
 background-color: rgba(255, 0, 0, 0.7);
 pointer-events: none; /* Prevents the div from capturing mouse events */
+  font-family: poppins !important;
 }
 
 #followDiv img {
