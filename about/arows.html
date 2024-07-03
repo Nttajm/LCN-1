@@ -6,74 +6,81 @@
     <title>Scroll Animation</title>
     <style>
         body, html {
+            height: 100%;
             margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
         }
-
         .content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            padding: 20px;
+            height: 1000px; /* for demonstration, to create scroll */
         }
-
-        .section {
-            width: 80%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
+        .sticky-section {
+            position: relative; /* Ensure relative positioning */
+            width: 100%;
+            background-color: #f4f4f4;
+            z-index: 100; /* Ensure it stays above other content */
+        }
+        .sticky-content {
+            padding: 20px;
+            background-color: red;
             color: white;
-            background-color: #3498db;
-            margin: 10px 0;
-            transition: opacity 1s ease-out, transform 1s ease-out;
-            opacity: 0;
-            transform: translateY(100px);
-        }
-
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(100px);
-        }
-
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
+            text-align: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: background-color 0.3s;
         }
     </style>
 </head>
 <body>
     <div class="content">
-        <section class="section">Scroll down to see the animation</section>
-        <section class="section animate-on-scroll">I will animate on scroll</section>
-        <section class="section">Keep scrolling</section>
-        <section class="section animate-on-scroll">I will also animate on scroll</section>
+        <!-- Long content to allow scrolling -->
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+        <!-- Add more content to enable scrolling -->
+    </div>
+    <div class="sticky-section">
+        <div class="sticky-content">Sticky Section</div>
+    </div>
+    <div class="content">
+        <!-- More content to allow scrolling -->
+        <p>More content here...</p>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const sections = document.querySelectorAll('.animate-on-scroll');
-
-            const options = {
-                root: null, // it is the viewport
-                rootMargin: '0px',
-                threshold: 0.1
+        function debounce(func, delay) {
+            let timeoutId;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    func.apply(context, args);
+                }, delay);
             };
-
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        observer.unobserve(entry.target); // stop observing after it becomes visible
-                    }
-                });
-            }, options);
-
-            sections.forEach(section => {
-                observer.observe(section);
-            });
-        });
+        }
+        
+        // Attach debounced scroll event listener
+        window.addEventListener('scroll', debounce(function() {
+            const stickySection = document.querySelector('.sticky-section');
+            const stickyContent = document.querySelector('.sticky-content');
+            const scrollY = window.scrollY;
+            const stickySectionTop = stickySection.offsetTop;
+            const maxScroll = 700; // The distance after which the section stops being fixed
+        
+            if (scrollY >= stickySectionTop && scrollY < stickySectionTop + maxScroll) {
+                stickySection.style.position = 'fixed';
+                stickySection.style.top = '0';
+                stickyContent.style.backgroundColor = 'green';
+            } else if (scrollY >= stickySectionTop + maxScroll) {
+                stickySection.style.position = 'absolute';
+                stickySection.style.top = `${maxScroll}px`;
+                stickyContent.style.backgroundColor = 'blue';
+            } else {
+                stickySection.style.position = 'relative';
+                stickySection.style.top = 'auto';
+                stickyContent.style.backgroundColor = 'red';
+            }
+        }, 100));
     </script>
 </body>
 </html>

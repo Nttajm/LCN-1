@@ -12,14 +12,18 @@ body {
     --b-3: "Raleway", sans-serif;
     --ani-1: 1.6s;
     --ani-1: 1.9s;
+    --lg-3: linear-gradient(270deg, #ffee00,#f1f45c);
+    --lg-2: linear-gradient(270deg, #4e07b2,#1152dc);
+    --lg-1: linear-gradient(270deg, #43b207,#0fb75d);
+
 }
 
 .loader {
     display: flex;
     justify-content: center;
     animation: close 0.4s ease-out forwards;
-    animation-delay: 1.6s; 
-    background-color: white;
+    /* animation-delay: 1.6s; 
+    background-color: white; */
     position: fixed;
     width: 100%;
     height: 100%;
@@ -128,6 +132,7 @@ body {
 .top-level {
     display: flex;
     justify-content: space-between;
+    gap: 1.2rem;
     align-items: center;
     opacity: 0;
     transform: translateY(-30%);
@@ -192,7 +197,7 @@ nav {
 #logo {
     font-family: var(--b-2);
     font-weight: 700;
-    letter-spacing: -2.4px;
+    letter-spacing: -3.4px;
     font-size: 1.3rem;
 }
 
@@ -215,34 +220,310 @@ nav {
 .cont-2 {
     background-color: aliceblue;
     min-height: 20rem;
-    padding: 20px 0px 0px 20px;
     overflow: hidden;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
 
 .ani-text {
     font-family: var(--b-3), Raleway !important;
-    font-size: 2.5rem;
-    width: 80%;
-    margin-top: 120px;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.c_2-flex {
+    width: 70%;
+    display: flex; 
+    flex-direction: column;
+    margin: 250px 0px;
+ }
+
+ .c_2-flex .wr {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+ }
+
+
+ #item-0 {
+    flex: 20%;
+    transform: rotate(-180deg);
+    background: var(--lg-1);
+    background-size: 800% 800%;
+ }
+ #item-1 {
+    flex: 80%;
+ }
+
+ #item-2 {
+    flex: 20%;
+    transform: rotate(270deg);
+    background: var(--lg-2);
+    background-size: 800% 800%;
+ }
+ #item-3 {
+    flex: 20%;
+    background: var(--lg-3);
+    background-size: 800% 800%;
+ }
+
+ #item-4 {
+    flex: 60%;
+ }
+
+ .wr[data-style='1'] > .block {
+    border-radius: 0.3rem;
+ }
+
+ .wr[data-style='2'] > .block {
+    border-radius: 5rem;
+ }
+
+ .wr[data-style='3'] > .block {
+    border-radius: 190px 90px 0px 190px;
+ }
+
+ .wr[data-style='4'] > .block {
+    border-radius: 190px 0px 0px 0px;
+ }
+
+.block {
+    background-color: black;
+    height: 9rem;
+    width: 9rem; /* Add width to make it a block */
+    border-radius: 5rem;
+    transition: all 0.342s;
+    background-size: 800% 800%;
+    animation: textGradientAnimation 10s ease infinite;
+}
+
+.circle {
+    letter-spacing: -0.15rem;
+    font-weight: 600;
+}
+
+.des {
+    font-style:italic;
+    font-weight: 700;
+}
+
+#uni {
+    background: var(--lg-1);
+    background-size: 800% 800%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textGradientAnimation 10s ease infinite;
+}
+
+#com {
+    background: var(--lg-2);
+    background-size: 800% 800%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textGradientAnimation 10s ease infinite;
+}
+
+#best {
+    background: var(--lg-3);
+    background-size: 800% 800%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textGradientAnimation 10s ease infinite;
+}
+
+.rotate {
+    border: solid;
+    width: 100%;
+    font-family: roboto;
+    font-size: 8rem;
+    font-weight: 700;
+    letter-spacing: -0.5rem;
+    display: flex;
+    gap: 0.8rem;
+}
+
+.rot {
+    animation: sliL 15s infinite linear;
+    display: flex;
+    gap: 0.8rem;
+}
+
+.rot span:nth-child(even) {
+    background: linear-gradient(270deg, #73b74f,#c9d127, #ddff03);
+    background-size: 800% 800%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textGradientAnimation 10s ease infinite;
+}
+
+.yeller {
+    background-color: #ddff03;
+    padding: 0.5rem !important;
+    border-radius: 3rem;
+    position: fixed;
+    z-index: 100;
+    margin: 0;
+    padding: 0;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translate(-50%, 150%);
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    opacity: 0.6;
+    transition: all 0.324s ease-out;
+    gap: 8px;
+}
+
+.scrolled {
+    transform: translate(-50%, 0%);
+}
+
+.clicked {
+    border-radius: 0.7rem;
+}
+
+.yeller.clicked {
+    opacity: 1;
+}
+
+.yeller.clicked  img {
+    animation: quickspin 0.342s ease-out forwards;
+}
+
+.clicked .nav-elem {
+    display: block;
+    animation-delay: 0.2s;
+    animation: exp 1.3s ease-out forwards;
+}
+
+.nav-elem:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.nav-elem:nth-child(2) {
+    animation-delay: 0.15;
+}
+
+.nav-elem:nth-child(3) {
+    animation-delay: 0.2;
+}
+
+.nav-elem:nth-child(4) {
+    animation-delay: 0.25;
+}
+
+.nav-elem:nth-child(5) {
+    animation-delay: 0.1;
+}
+
+.imitadora {
+    width: 2rem;
+    object-fit: cover;
+}
+
+.nav-elem {
+    height: 0rem;
+    opacity: 0;
+    display: none;
+    cursor:pointer;
+}
+
+.nav-elem  span {
+    font-family: var(--b-2);
+    font-weight: 600;
+    font-size: 1.3rem;
+    letter-spacing: -0.1rem;
+}
+
+.project {
+    overflow: hidden;
+}
+
+.track {
+    display: flex;
+    animation: sliL 1s forwards ease-out;
+    animation-timeline: view(150px);
+}
+
+.track img {
+    aspect-ratio: 1.618;
+    object-fit: cover;
+    object-position: 20% 50%;
+}
+@keyframes exp {
+    to {
+        height: 100%;
+        opacity: 1;
+    }
+}
+
+@keyframes quickspin {
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+ @keyframes textGradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes sliL {
+    from {
+        transform: translateX(0%);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes rot {
+    from {
+        transform: translateX(0%);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+
+#stop1 {
+    animation: gradientAnimation 10s ease infinite;
+}
+
+#stop2 {
+    animation: gradientAnimation 10s ease infinite;
+    animation-delay: 5s; /* Delay to create the shifting effect */
 }
 
 @media all and (width > 1280px) { 
     :root {
-        font-size: 27px;
+        font-size: 28px;
     }
 }
 
-@media all and (min-width: 1024px) and (max-width: 1280px) { 
+@media all and (min-width: 1124px) and (max-width: 1280px) { 
     :root {
-        font-size: 18px;
+        font-size: 20px;
     }
- }
+}
 
-@media all and (min-width: 768px) and (max-width: 1024px) { 
+@media all and (min-width: 768px) and (max-width: 1124px) { 
     :root {
         font-size: 16px;
+    }
+
+    #info-text {
+        display: none;
     }
  }
 

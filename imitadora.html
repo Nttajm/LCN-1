@@ -33,7 +33,18 @@
             </button>
         </div>
     </nav>
-
+    <div class="yeller">
+        <div class="nav-elem">
+            <span>cataluyna</span>
+       </div>
+       <div class="nav-elem">
+           <span>JOELM</span>
+      </div>
+      <div class="nav-elem">
+         <span>OQS</span>
+        </div>
+        <img class="imitadora" src="images/imitadora.png" alt="">
+    </div>
     <div class="cont-1">
         <div class="c-1_info">
             <div class="top-level">
@@ -66,42 +77,104 @@
             </div>
         </div>
         <div class="imgsec">
-            <img src="images/josephpng.png" alt="">
+            <img src="images/josephpng.png" draggable="false" alt="">
         </div>
     </div>
     <div class="cont-2">
-        <span class="ani-text">
-            Commitment to what you love and giving it your best is the most valuable thing you can possess.
-        </span>
+        <div class="c_2-flex">
+            <div class="wr" data-style="1">
+                <div class="circle block" id="item-0">
+                </div>
+                <span class="ani-text circle" id="item-1">
+
+Started by just a few friends, Imitadora has always aimed to innovate and create <span class="des" id="uni">unique</span> and distinctive projects.
+                </span>
+            </div>
+            <div class="wr" data-style="2">
+                <div class="circle block" id="item-2">
+                </div>
+                <div class="circle block" id="item-3">
+                </div>
+                <span class="ani-text circle" id="item-4">
+                    <span class="des" id="com">Commitment</span> to what you love and giving it your <span class="des" id="best">best</span> is the most valuable thing you can possess.
+                </span>
+            </div>
+        </div>
+        <div class="rotate">
+            <div class="rot">
+                <span>
+                    ●
+                </span>
+                <span>
+                    INFLUENCING
+                </span>
+                <span>
+                    ●
+                </span>
+                <span class="grad">
+                    CREATING
+                </span>
+                <span>
+                    ●
+                </span>
+                <span class="grad">
+                    INSPIRING
+                </span>
+                <span>
+                    ●
+                </span>
+                <span>
+                    INFLUENCING
+                </span>
+                <span>
+                    ●
+                </span>
+                <span class="grad">
+                    CREATING
+                </span>
+                <span>
+                    ●
+                </span>
+                <span class="grad">
+                    INSPIRING
+                </span>
+            </div>
+        </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const target = document.querySelector('.target');
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.intersectionRatio >= 0.05) {
-                        document.body.style.backgroundColor = 'lightblue';
-                    } else {
-                        document.body.style.backgroundColor = '';
-                    }
-                });
-            }, { threshold: [0.55] });
-
-            observer.observe(target);
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            var buttons = document.querySelectorAll('button[data-jslink]');
-
-            buttons.forEach(function (button) {
-                button.addEventListener('click', function () {
-                    var url = button.getAttribute('data-jslink');
-                    window.location.href = url;
-                });
-            });
-        });
-        
-    </script>
+    <div class="projects">
+        <!-- <div class="track">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+        </div>
+        <div class="track">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+        </div>
+        <div class="track">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+        </div>
+        <div class="track">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719922326745-0ba9484d02e2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719921462717-06a2e551d388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" srcset="">
+            <img src="https://images.unsplash.com/photo-1719917525997-5a1be9bf7ce1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3MtZmVlZHwxOXx8fGVufDB8fHx8fA%3D%3D" alt="" srcset="">
+        </div> -->
+    </div>
+    <script src="bp/EE/imitadora.js"></script>
 </body>
 </html>
