@@ -3,40 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pause Animation on Hover</title>
+    <title>Scroll Animation</title>
     <style>
-        .container {
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .content {
             display: flex;
-            overflow: hidden;
-            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .col {
-            flex: 0 0 100%;
-            text-align: center;
-            background-color: lightblue;
+
+        .section {
+            width: 80%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: white;
+            background-color: #3498db;
+            margin: 10px 0;
+            transition: opacity 1s ease-out, transform 1s ease-out;
+            opacity: 0;
+            transform: translateY(100px);
         }
-        .col:nth-child(1) {
-            animation: sliL 10s infinite linear;
-            animation-play-state: running; /* Set default state */
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(100px);
         }
-        .col:nth-child(1):hover {
-            animation-play-state: paused; /* Pause on hover */
-        }
-        @keyframes sliL {
-            from {
-                transform: translateX(0%);
-            }
-            to {
-                transform: translateX(-100%);
-            }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="col">Column 1</div>
-        <div class="col">Column 2</div>
-        <div class="col">Column 3</div>
+    <div class="content">
+        <section class="section">Scroll down to see the animation</section>
+        <section class="section animate-on-scroll">I will animate on scroll</section>
+        <section class="section">Keep scrolling</section>
+        <section class="section animate-on-scroll">I will also animate on scroll</section>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const sections = document.querySelectorAll('.animate-on-scroll');
+
+            const options = {
+                root: null, // it is the viewport
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target); // stop observing after it becomes visible
+                    }
+                });
+            }, options);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
 </body>
 </html>

@@ -192,7 +192,7 @@ nav {
 #logo {
     font-family: var(--b-2);
     font-weight: 700;
-    letter-spacing: -3.4px;
+    letter-spacing: -2.4px;
     font-size: 1.3rem;
 }
 
@@ -230,13 +230,13 @@ nav {
 
 @media all and (width > 1280px) { 
     :root {
-        font-size: 30px;
+        font-size: 27px;
     }
 }
 
 @media all and (min-width: 1024px) and (max-width: 1280px) { 
     :root {
-        font-size: 20px;
+        font-size: 18px;
     }
  }
 
