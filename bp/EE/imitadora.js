@@ -52,13 +52,18 @@ yeller.addEventListener('click', () => {
 })
 
 function changeDataStyle2() {
-    const elements = document.querySelector('.stickyplace');
+    const elements = document.getElementById('js-elem-select-sticky');
     const randomStyle = Math.floor(Math.random() * 4) + 1; // Generates a random number between 1 and 3
     elements.setAttribute('data-setconfigure', randomStyle);
 }
 
 // Set an interval to call the function every 2 seconds (2000 milliseconds)
-setInterval(changeDataStyle2, 2000);
+const intervalID = setInterval(changeDataStyle2, 2000);
+
+function stopChangingStyles() {
+    clearInterval(intervalID);
+    console.log('Interval cleared');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     customAni(0.95, 'animated-element', 'active');
@@ -83,3 +88,85 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', checkScroll);
     checkScroll(); 
   }
+
+  const blobs = document.querySelectorAll('.blob')
+  const htmlTemplate = (projName, projNameSub, info, writer, img, date, text) => `
+    <div class="v-info v-item">
+        <div class="name">
+            <span>${projName}</span>
+            <div class="sub-name">
+                <span>${projNameSub}</span>
+            </div>
+        </div>
+        <div class="v-info-sec">
+            <span>Project Info:</span>
+            <span>${info} (WR.${writer})</span>
+            <span>dev:</span>
+            <span>JOELM</span>
+        </div>
+    </div>
+    <div class="v-mag v-item">
+        <img src="${img}" alt="">
+    </div>
+    <div class="v-nav v-item">
+        <div class="v-top"></div>
+        <div class="v-mid">
+            <div class="date ov">
+                <span>/${date}</span>
+            </div>
+            <div class="v-info-sec2">
+                <span>${text}</span>
+            </div>
+        </div>
+        <div class="v-bottom"></div>
+    </div>
+`;
+
+const htmlIndex = {
+    ldr: htmlTemplate(
+        "Archery and apple",
+        "Lana Del Rey",
+        "Valentine’s Day collection - magazine",
+        "JM",
+        "images/ldreme.webp", // Replace with the actual path to the image
+        "6.30.24", // Replace with the actual date
+        " A feature with Lana Del Rey and Skims. Magazine features albums and documentaion. More can be seen at /documentaions"
+    )
+};
+
+blobs.forEach(elem => {
+    const viewer = document.getElementById('js-elem-select-viewer');
+    const conter = document.getElementById('js-elem-select-cont');
+    elem.addEventListener('click', () => {
+        elem.classList.add('selected');
+        const background = elem.dataset.bg;
+        const textColor = elem.dataset.tx;
+        const elemHtml = elem.dataset.inner;
+        conter.innerHTML = '';
+        stopChangingStyles();
+        if (background) {
+            setTimeout(() => {
+                viewer.classList.add('v-on');
+                viewer.style.color = textColor;
+                viewer.style.backgroundColor = background;
+                if (elemHtml) {
+                    conter.innerHTML = htmlIndex[elemHtml];
+                }
+            }, 700);
+        }
+    });
+});
+
+  function datalevel(className) {
+    document.querySelectorAll(`.${className}`).forEach(function(element) {
+        var bgColor = element.getAttribute('data-bg');
+        var text = element.getAttribute('data-tc');
+
+        if (bgColor) {
+            element.style.backgroundColor = bgColor;
+            element.style.color = text;
+        }
+    });
+}
+
+datalevel('blob');
