@@ -12,9 +12,9 @@ body {
     --b-3: "Raleway", sans-serif;
     --ani-1: 1.6s;
     --ani-1: 1.9s;
-    --lg-3: linear-gradient(270deg, #ffee00,#f1f45c);
+    --lg-3: linear-gradient(270deg, #ffee00,#ffae2c);
     --lg-2: linear-gradient(270deg, #4e07b2,#1152dc);
-    --lg-1: linear-gradient(270deg, #43b207,#0fb75d);
+    --lg-1: linear-gradient(270deg, #43b207,#00e96d);
 
 }
 
@@ -295,7 +295,7 @@ nav {
     border-radius: 5rem;
     transition: all 0.342s;
     background-size: 800% 800%;
-    animation: textGradientAnimation 10s ease infinite;
+    animation: textGradientAnimation 4s ease infinite;
 }
 
 .circle {
@@ -507,7 +507,7 @@ nav {
 
 @media all and (width > 1280px) { 
     :root {
-        font-size: 28px;
+        font-size: 25px;
     }
 }
 
