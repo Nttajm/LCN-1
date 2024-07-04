@@ -530,11 +530,73 @@ nav {
     opacity: 1; /* Show the element when active class is applied */
   }
 
+
   .animated-element.ani-text.active {
     line-height: 45px;
     transition: all 0.342s;
     opacity: 1; /* Show the element when active class is applied */
   }
+
+  #b-1 {
+    width: 9%;
+    height: 60%;
+    background-color: #ff6666; /* Example color */
+}
+
+#b-2 {
+    width: 18%;
+    height: 90%;
+    background-color: #66ff66; /* Example color */
+}
+
+#b-3 {
+    width: 12%;
+    height: 95%;
+    background-color: #6666ff; /* Example color */
+}
+
+#b-4 {
+    width: 8%;
+    height: 73%;
+    background-color: #ffcc66; /* Example color */
+}
+
+#b-5 {
+    width: 12%;
+    height: 81%;
+    background-color: #66ccff; /* Example color */
+}
+
+#b-6 {
+    width: 11%;
+    height: 60%;
+    background-color: #cc66ff; /* Example color */
+}
+
+
+.stickyplace[data-setconfigure='1'] {
+}
+
+.stickyplace[data-setconfigure='1'] .blob {
+    border-radius: 5rem;
+    transform: translateY(10%);
+}
+
+.stickyplace[data-setconfigure='2'] .blob:nth-child(even) {
+    border-radius: 190px 90px 0px 190px;
+}
+
+.stickyplace[data-setconfigure='2'] .blob:nth-child(odd) {
+    border-radius: 0px 190px 0px 190px;
+}
+
+.stickyplace[data-setconfigure='3'] .blob:nth-child(even) {
+    height: 10rem;
+}
+
+.stickyplace[data-setconfigure='3'] .blob:nth-child(odd) {
+    width: 20%;
+}
 
 @media all and (width > 1280px) { 
     :root {
