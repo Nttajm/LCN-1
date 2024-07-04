@@ -505,7 +505,7 @@ nav {
     animation-delay: 5s; /* Delay to create the shifting effect */
 }
 
-.projects {
+.projects { 
     background-color: #00e96d;
     min-height: 1000px;
     display: flex;
