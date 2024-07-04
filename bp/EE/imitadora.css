@@ -230,6 +230,7 @@ nav {
     font-family: var(--b-3), Raleway !important;
     font-size: 2rem;
     font-weight: 700;
+    line-height: 60px;
 }
 
 .c_2-flex {
@@ -301,6 +302,7 @@ nav {
 .circle {
     letter-spacing: -0.15rem;
     font-weight: 600;
+    transition: all 0.342s;
 }
 
 .des {
@@ -505,7 +507,7 @@ nav {
     animation-delay: 5s; /* Delay to create the shifting effect */
 }
 
-.projects { 
+.projects {
     background-color: #00e96d;
     min-height: 1000px;
     display: flex;
@@ -515,36 +517,27 @@ nav {
     overflow: hidden;
 }
 
-.stickyplace {
-    padding: 20px;
-    height: 15rem;
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-    width: 89.9%;
+.animated-element {  
+    opacity: 0; /* Initially hide the element */
+  }
+
+  .animated-element.active {
     transition: all 0.342s;
-}
+    opacity: 1; /* Show the element when active class is applied */
+  }
+  
+  .animated-element.blok.active {
+    opacity: 1; /* Show the element when active class is applied */
+  }
 
-@keyframes scaler {
-    from {
-        transform: scale(20);
-    }
-    to {
-        transform: scale(1);
-    }
-}
 
-.blob {
+  .animated-element.ani-text.active {
+    line-height: 45px;
     transition: all 0.342s;
-}
+    opacity: 1; /* Show the element when active class is applied */
+  }
 
-#b-1 {
-    width: 9%;
-    height: 60%;
-    background-color: #ff6666; /* Example color */
-}
-
-#b-155 {
+  #b-1 {
     width: 9%;
     height: 60%;
     background-color: #ff6666; /* Example color */
@@ -607,13 +600,7 @@ nav {
 
 @media all and (width > 1280px) { 
     :root {
-        font-size: 30px;
-    }
-}
-
-@media all and (width < 1280px) { 
-    :root {
-        font-size: 26px;
+        font-size: 25px;
     }
 }
 
@@ -635,7 +622,7 @@ nav {
 
 @media all and (min-width: 480px) and (max-width: 768px) { 
     :root {
-        font-size: 1px;
+        font-size: 10px;
     }
  }
 
