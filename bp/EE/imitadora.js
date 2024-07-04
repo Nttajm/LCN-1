@@ -50,3 +50,13 @@ const yeller = document.querySelector('.yeller')
 yeller.addEventListener('click', () => {
     yeller.classList.toggle('clicked')
 })
+
+function changeDataStyle2() {
+    const elements = document.querySelector('.stickyplace');
+    const randomStyle = Math.floor(Math.random() * 4) + 1; // Generates a random number between 1 and 3
+    elements.setAttribute('data-setconfigure', randomStyle);
+}
+
+// Set an interval to call the function every 2 seconds (2000 milliseconds)
+setInterval(changeDataStyle2, 2000);
+
