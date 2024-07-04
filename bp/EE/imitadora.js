@@ -60,3 +60,26 @@ function changeDataStyle2() {
 // Set an interval to call the function every 2 seconds (2000 milliseconds)
 setInterval(changeDataStyle2, 2000);
 
+document.addEventListener('DOMContentLoaded', () => {
+    customAni(0.95, 'animated-element', 'active');
+    customAni(0.75, 'js-bluredEle', 'js-bluredEle-active');
+  });
+
+  function customAni(min, className, config) {
+    const elements = document.querySelectorAll(`.${className}`);
+  
+    function checkScroll() {
+      elements.forEach((element) => {
+        const elementPosition = element.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+        if (elementPosition < windowHeight * min) {
+          element.classList.add(config);
+        } else {
+          element.classList.remove(config);
+        }
+      });
+    }
+  
+    window.addEventListener('scroll', checkScroll);
+    checkScroll(); 
+  }

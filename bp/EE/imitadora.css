@@ -230,6 +230,7 @@ nav {
     font-family: var(--b-3), Raleway !important;
     font-size: 2rem;
     font-weight: 700;
+    line-height: 60px;
 }
 
 .c_2-flex {
@@ -301,6 +302,7 @@ nav {
 .circle {
     letter-spacing: -0.15rem;
     font-weight: 600;
+    transition: all 0.342s;
 }
 
 .des {
@@ -505,109 +507,38 @@ nav {
     animation-delay: 5s; /* Delay to create the shifting effect */
 }
 
-.projects {
-    background-color: #00e96d;
-    min-height: 1000px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
+.js-bluredEle {
+    filter: blur(5px);
+    opacity: 0;
 }
 
-.stickyplace {
-    padding: 20px;
-    height: 15rem;
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-    width: 89.9%;
+.js-bluredEle.js-bluredEle-active {
+    filter: blur(0px);
+    opacity: 1;
+}
+
+.animated-element {  
+    opacity: 0; /* Initially hide the element */
+  }
+
+  .animated-element.active {
     transition: all 0.342s;
-}
+    opacity: 1; /* Show the element when active class is applied */
+  }
+  
+  .animated-element.blok.active {
+    opacity: 1; /* Show the element when active class is applied */
+  }
 
-@keyframes scaler {
-    from {
-        transform: scale(20);
-    }
-    to {
-        transform: scale(1);
-    }
-}
-
-.blob {
+  .animated-element.ani-text.active {
+    line-height: 45px;
     transition: all 0.342s;
-}
-
-#b-1 {
-    width: 9%;
-    height: 60%;
-    background-color: #ff6666; /* Example color */
-}
-
-#b-2 {
-    width: 18%;
-    height: 90%;
-    background-color: #66ff66; /* Example color */
-}
-
-#b-3 {
-    width: 12%;
-    height: 95%;
-    background-color: #6666ff; /* Example color */
-}
-
-#b-4 {
-    width: 8%;
-    height: 73%;
-    background-color: #ffcc66; /* Example color */
-}
-
-#b-5 {
-    width: 12%;
-    height: 81%;
-    background-color: #66ccff; /* Example color */
-}
-
-#b-6 {
-    width: 11%;
-    height: 60%;
-    background-color: #cc66ff; /* Example color */
-}
-
-
-.stickyplace[data-setconfigure='1'] {
-}
-
-.stickyplace[data-setconfigure='1'] .blob {
-    border-radius: 5rem;
-    transform: translateY(10%);
-}
-
-.stickyplace[data-setconfigure='2'] .blob:nth-child(even) {
-    border-radius: 190px 90px 0px 190px;
-}
-
-.stickyplace[data-setconfigure='2'] .blob:nth-child(odd) {
-    border-radius: 0px 190px 0px 190px;
-}
-
-.stickyplace[data-setconfigure='3'] .blob:nth-child(even) {
-    height: 10rem;
-}
-
-.stickyplace[data-setconfigure='3'] .blob:nth-child(odd) {
-    width: 20%;
-}
+    opacity: 1; /* Show the element when active class is applied */
+  }
 
 @media all and (width > 1280px) { 
     :root {
-        font-size: 30px;
-    }
-}
-
-@media all and (width < 1280px) { 
-    :root {
-        font-size: 26px;
+        font-size: 25px;
     }
 }
 
@@ -629,7 +560,7 @@ nav {
 
 @media all and (min-width: 480px) and (max-width: 768px) { 
     :root {
-        font-size: 1px;
+        font-size: 10px;
     }
  }
 

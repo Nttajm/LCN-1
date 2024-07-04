@@ -333,7 +333,7 @@ a {
   opacity: 1;
 }
 
-.animated-element {
+.animated-element {  
   opacity: 0; /* Initially hide the element */
   transition: opacity 1s ease; /* Smooth transition for opacity */
 }
