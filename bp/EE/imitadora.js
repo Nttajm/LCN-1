@@ -131,8 +131,18 @@ const htmlIndex = {
         "images/ldreme.webp", // Replace with the actual path to the image
         "6.30.24", // Replace with the actual date
         " A feature with Lana Del Rey and Skims. Magazine features albums and documentaion. More can be seen at /documentaions"
-    )
+    ),
+    ana: htmlTemplate(
+        "LOVELY",
+        "Ana De Armas",
+        "Valentine’s Day collection - magazine",
+        "JM",
+        "images/ada-imitador.jpg_large", // Replace with the actual path to the image
+        "7.1.23", // Replace with the actual date
+        " A feature with Lana Del Rey and Skims. Magazine features albums and documentaion. More can be seen at /documentaions"
+    ),
 };
+
 
 blobs.forEach(elem => {
     const viewer = document.getElementById('js-elem-select-viewer');

@@ -581,7 +581,7 @@ nav {
   #b-1 {
     width: 9%;
     height: 60%;
-    background-color: #ff6666; /* Example color */
+    background-color: #b4b4b4; /* Example color */
 }
 
 #b-2 {
@@ -648,8 +648,9 @@ nav {
 }
 
 .selected {
-    transition: 1s;
-    transform: scale(20);
+    transition: 2s;
+    transform: scale(25);
+    width: 10rem;
     border-radius: 0.5rem;
 }
 
@@ -661,8 +662,28 @@ nav {
     pointer-events: none;
     display: none;
     background-color: rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
+    color: rgb(80, 21, 218);
+    overflow-y: scroll;
 }
+
+::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #089d00d3;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #88888800;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #55555500;
+  }
 
 .cont {
     display: flex;
@@ -796,8 +817,11 @@ nav {
 .viewer.v-on .cont {
 }
 
-.stickyplace[data-setconfigure='4'] .blob {
-    
+.stickyplace[data-setconfigure='6'] .blob {
+    border-radius: 100%;
+    transform: translateY(-10%);
+    height: 6rem;
+    width: 6rem;
 }
 
 .stickyplace[data-setconfigure='4'] .blob:nth-child(1) {
