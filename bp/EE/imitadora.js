@@ -1,18 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const target = document.querySelector('.target');
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.intersectionRatio >= 0.05) {
-                document.body.style.backgroundColor = 'lightblue';
-            } else {
-                document.body.style.backgroundColor = '';
-            }
-        });
-    }, { threshold: [0.55] });
-
-    observer.observe(target);
-});
 
 document.addEventListener('DOMContentLoaded', function () {
     var buttons = document.querySelectorAll('button[data-jslink]');
@@ -89,92 +75,252 @@ document.addEventListener('DOMContentLoaded', () => {
     checkScroll(); 
   }
 
-  const blobs = document.querySelectorAll('.blob')
-  const htmlTemplate = (projName, projNameSub, info, writer, img, date, text) => `
-    <div class="v-info v-item">
-        <div class="name">
-            <span>${projName}</span>
-            <div class="sub-name">
-                <span>${projNameSub}</span>
-            </div>
-        </div>
-        <div class="v-info-sec">
-            <span>Project Info:</span>
-            <span>${info} (WR.${writer})</span>
-            <span>dev:</span>
-            <span>JOELM</span>
-        </div>
-    </div>
-    <div class="v-mag v-item">
-        <img src="${img}" alt="">
-    </div>
-    <div class="v-nav v-item">
-        <div class="v-top"></div>
-        <div class="v-mid">
-            <div class="date ov">
-                <span>/${date}</span>
-            </div>
-            <div class="v-info-sec2">
-                <span>${text}</span>
-            </div>
-        </div>
-        <div class="v-bottom"></div>
-    </div>
-`;
 
-const htmlIndex = {
-    ldr: htmlTemplate(
-        "Archery and apple",
-        "Lana Del Rey",
-        "Valentine’s Day collection - magazine",
-        "JM",
-        "images/ldreme.webp", // Replace with the actual path to the image
-        "6.30.24", // Replace with the actual date
-        " A feature with Lana Del Rey and Skims. Magazine features albums and documentaion. More can be seen at /documentaions"
-    ),
-    ana: htmlTemplate(
-        "LOVELY",
-        "Ana De Armas",
-        "Valentine’s Day collection - magazine",
-        "JM",
-        "images/ada-imitador.jpg_large", // Replace with the actual path to the image
-        "7.1.23", // Replace with the actual date
-        " A feature with Lana Del Rey and Skims. Magazine features albums and documentaion. More can be seen at /documentaions"
-    ),
-};
-
-
-blobs.forEach(elem => {
-    const viewer = document.getElementById('js-elem-select-viewer');
-    const conter = document.getElementById('js-elem-select-cont');
-    elem.addEventListener('click', () => {
-        elem.classList.add('selected');
-        const background = elem.dataset.bg;
-        const textColor = elem.dataset.tx;
-        const elemHtml = elem.dataset.inner;
-        conter.innerHTML = '';
-        stopChangingStyles();
-        if (background) {
-            setTimeout(() => {
-                viewer.classList.add('v-on');
-                viewer.style.color = textColor;
-                viewer.style.backgroundColor = background;
-                if (elemHtml) {
-                    conter.innerHTML = htmlIndex[elemHtml];
-                }
-            }, 700);
+  const projectHTml = [
+    {
+        id: 'lana',
+        background: 'rgb(123, 0, 0)',
+        textColor: 'rgb(220, 207, 140)',
+         projName: "Archery and apple",
+         projNameSub: "Lana Del Rey",
+         info: "Valentine’s Day collection & L.D.R - magazine",
+         writer: "JM",
+         img: "images/ldreme.webp", // Replace with the actual path to the image
+         date:"6.30.24", // Replace with the actual date
+         text:" A feature with Lana Del Rey and Skims. Magazine features albums and documentaion. More can be seen at /Magazine",
+         extra: [
+            {
+                extraText: `
+                    The ”ROPE QUEEN” — and the new face of skims. 
+                    The face of OQS and skims talk about Normal F**king Rockwell in her own words
+                `,
+                img: 'images/mag-lana-1.jpg',
+                changer: 'rgb(123, 0, 0)',
+                textColor: 'rgb(220, 207, 140)',
+            },
+            {
+                extraText: `
+                Did You Know That There's a Tunnel Under Ocean 
+    Blvd is the ninth studio album by American singer-
+    songwriter and record producer Lana Del Rey. 
+    Released on March 24, 2023, by Interscope 
+    and Polydor Records, the album features production
+     by Del Rey, Mike Hermosa, Jack Antonoff,
+     Drew Erickson, Zach Dawes, and Benji.
+                `,
+                img: 'images/mag-3.jpg',
+                changer: 'black',
+                textColor: 'white',
+            }
+         ],
+        },
+    {
+        id: 'ana',
+        background: 'rgb(121, 121, 121)',
+        textColor: 'white',
+         projName: "B&W x OQS",
+         projNameSub: "Ana De Armas",
+         info: "B&W Collection featuring Ana De Armas",
+         writer: "JM",
+         img: "images/ada-imitador.jpg_large", // Replace with the actual path to the image
+         date:"7.2.23", // Replace with the actual date
+         text:" A feature with Lana Del Rey and Skims. Magazine features albums and documentaion. More can be seen at /Gallary",
+         extra: [
+            {
+                extraText: `
+                    The ”ROPE QUEEN” — and the new face of skims. 
+                    The face of OQS and skims talk about Normal F**king Rockwell in her own words
+                `,
+                img: 'images/mag-ana-2.jpg',
+                changer: 'rgb(121, 121, 121)',
+                textColor: 'white',
+            },
+            {
+                extraText: `
+                Did You Know That There's a Tunnel Under Ocean 
+    Blvd is the ninth studio album by American singer-
+    songwriter and record producer Lana Del Rey. 
+    Released on March 24, 2023, by Interscope 
+    and Polydor Records, the album features production
+     by Del Rey, Mike Hermosa, Jack Antonoff,
+     Drew Erickson, Zach Dawes, and Benji.
+                `,
+                img: 'images/mag-3.jpg',
+                changer: 'black',
+                textColor: 'white',
+            }
+         ],
         }
-    });
-});
+];
 
-  function datalevel(className) {
+const blobs = document.querySelectorAll('.blob')
+const viewer = document.getElementById('js-elem-select-viewer');
+
+viewer.innerHTML = ''
+projectHTml.forEach(proj => {
+    let extraHtml = '';
+    if (proj.extra) {
+        proj.extra.forEach(ex => {
+            extraHtml += `
+            <div class="cont js-ch" id="show-case" data-bg="${ex.changer}" data-tx="${ex.textColor}">
+            <div class="v-info v-item">        
+                <div class="v-info-sec">
+                    <span>
+                        Project Info:
+                    </span>
+                    <span>
+                        Gallery / magazine - NBA SERIES (WR.JM)
+                    </span>
+                    <span>
+                        dev:
+                    </span>
+                    <span>
+                        JOELM
+                    </span>
+                </div>
+            </div>
+            <div class="v-mag v-item">
+                <img src="${ex.img}" alt="">
+            </div>
+            <div class="v-nav v-item">
+                <div class="v-top"></div>
+                <div class="v-mid">
+                    <div class="v-info-sec2">
+                        <span>
+                        ${ex.extraText}
+                        </span>
+                    </div>
+                </div>
+                <div class="v-bottom"></div>
+            </div>
+        </div>
+            `
+        })
+    }
+    viewer.innerHTML += 
+    `
+<div class="cont js-ch" id="${proj.id}" data-bg="${proj.background}" data-tx="${proj.textColor}" data-id="${proj.id}">
+<div class="v-info v-item">
+    <div class="name">
+        <span>${proj.projName}</span>
+        <div class="sub-name">
+            <span>${proj.projNameSub}</span>
+        </div>
+    </div>
+    <div class="v-info-sec">
+        <span>Project Info:</span>
+        <span>${proj.info} (WR.${proj.writer})</span>
+        <span>dev:</span>
+        <span>JOELM</span>
+    </div>
+</div>
+<div class="v-mag v-item">
+    <img src="${proj.img}" alt="">
+</div>
+<div class="v-nav v-item">
+    <div class="v-top"></div>
+    <div class="v-mid">
+        <div class="date ov">
+            <span>/${proj.date}</span>
+        </div>
+        <div class="v-info-sec2">
+            <span>${proj.text}</span>
+        </div>
+    </div>
+    <div class="v-bottom"></div>
+</div>
+</div>
+${extraHtml}
+`
+});
+    
+
+    const changers = document.querySelectorAll('.js-ch');
+    console.log(changers)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const changerColor = entry.target.dataset.bg;
+                    const textColor = entry.target.dataset.tx;
+                    viewer.style.backgroundColor = changerColor;
+                    viewer.style.color = textColor;
+                }
+            });
+        }, {
+            threshold: 0.45
+        });
+
+        changers.forEach(element => {
+            observer.observe(element);
+
+        });
+
+
+
+
+        // blobs.forEach(elem => {
+        //     elem.addEventListener('click', () => {
+        //         elem.classList.add('selected');
+        //         const background = elem.dataset.bg;
+        //         const textColor = elem.dataset.tx;
+        //         const idScoller = elem.dataset.id;
+        
+        //         scrollToSection(idScoller);  // Use the correct function to scroll
+        //         stopChangingStyles();
+        
+        //         if (background) {
+        //             setTimeout(() => {
+        //                 viewer.classList.add('v-on');
+        //                 viewer.style.color = textColor;
+        //                 viewer.style.backgroundColor = background;
+        //             }, 700);
+        //         }
+        //     });
+        // });
+        
+        // // Function to scroll to a specific section within the viewer
+        // function scrollToSection(sectionId) {
+        //     const section = document.getElementById(sectionId);  // Find the section by id
+        //     if (section) {
+        //         section.scrollIntoView({ behavior: 'smooth' });
+        //     }
+        // }
+
+        blobs.forEach(elem => {
+            elem.addEventListener('click', () => {
+                elem.classList.add('selected');
+                const background = elem.dataset.bg;
+                const textColor = elem.dataset.tx;
+                const idScroller = elem.dataset.id;
+
+                scrollToSection(idScroller);  // Use the correct function to scroll
+                stopChangingStyles();
+
+                if (background) {
+                    setTimeout(() => {
+                        viewer.classList.add('v-on');
+                        viewer.style.color = textColor;
+                        viewer.style.backgroundColor = background;
+                    }, 700);
+                }
+            });
+        });
+
+        // Function to scroll to a specific section within the viewer
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);  // Find the section by id
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+function datalevel(className) {
     document.querySelectorAll(`.${className}`).forEach(function(element) {
         var bgColor = element.getAttribute('data-bg');
-        var text = element.getAttribute('data-tc');
-
+        var txc = element.getAttribute('data-tc');
         if (bgColor) {
             element.style.backgroundColor = bgColor;
-            element.style.color = text;
+            element.style.color = txc;
         }
     });
 }

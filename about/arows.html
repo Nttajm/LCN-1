@@ -2,41 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Scroll to Section</title>
     <style>
-        section {
-            height: 800px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
+        #container {
+            height: 500px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
         }
-
-        section:nth-child(1) {
-            background-color: aqua;
-        }
-
-        section:nth-child(2) {
-            background-color: rgb(42, 54, 145);
-        }
-
-        section:nth-child(2) span {
-            position: sticky;
-            top: 0;
-            left: 0;
-            height: 300px;
-            background-color: red;
-        }
-
-        section:nth-child(3) {
-            background-color: rgb(145, 66, 159);
+        .section {
+            height: 200px;
+            margin: 20px 0;
+            background-color: #f0f0f0;
         }
     </style>
 </head>
 <body>
-    <section><span>hello</span></section>
-    <section><span>hello</span></section>
-    <section><span>hello</span></section>
+    <div id="container">
+        <div id="section1" class="section">Section 1</div>
+        <div id="section2" class="section">Section 2</div>
+        <div id="section3" class="section">Section 3</div>
+        <div id="section4" class="section">Section 4</div>
+    </div>
+    <button onclick="scrollToSection('section3')">Scroll to Section 3</button>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>

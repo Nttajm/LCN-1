@@ -24,8 +24,8 @@ body {
     display: flex;
     justify-content: center;
     animation: close 0.4s ease-out forwards;
-    /* animation-delay: 1.6s; 
-    background-color: white; */
+    animation-delay: 1.6s; 
+    background-color: white;
     position: fixed;
     width: 100%;
     height: 100%;
@@ -572,7 +572,8 @@ nav {
   }
 
 
-  .animated-element.ani-text.active {
+  .animated-element.ani-text.active,
+   .animated-element.v-info-sec2.active {
     line-height: 45px;
     transition: all 0.342s;
     opacity: 1; /* Show the element when active class is applied */
@@ -661,9 +662,10 @@ nav {
     z-index: 2;
     pointer-events: none;
     display: none;
-    background-color: rgb(0, 0, 0);
-    color: rgb(80, 21, 218);
+    background-color: rgb(161, 161, 161);
+    color: rgb(220, 207, 140);
     overflow-y: scroll;
+    transition: all 0.342s;
 }
 
 ::-webkit-scrollbar {
@@ -685,12 +687,62 @@ nav {
     background: #55555500;
   }
 
-.cont {
+  .cont {
     display: flex;
-    height: 50rem;
+    min-height: 40rem;
     opacity: 0;
     animation: open 1s ease-out forwards;
     position: relative;
+    margin-bottom: 3rem;
+}
+
+#show-case .v-nav{
+    display: flex;
+}
+
+#show-case {
+    align-items: center;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+#show-case .v-mag img {
+    top: 50%;
+    width: 80%;
+    object-position: 0px 235px;
+    animation: imgParall linear  forwards;
+    animation-timeline: view();
+    animation-range-end: 30%;
+}
+
+@keyframes imgParall {
+    0% {
+        object-position: 0px 105px;
+    }
+    100% {
+        object-position: 0px 0px;
+    }
+}
+
+#show-case:nth-child(even) {
+    flex-direction: row-reverse;
+}
+
+#show-case:nth-child(even) .v-nav{
+    align-items: flex-start;
+    justify-content: flex-end
+}
+
+#show-case .v-info {
+    flex: 20%;
+    align-items: center;
+    opacity: 0;
+}
+
+#show-case .v-info {
+    flex: 20%;
 }
 
 .v-info {
@@ -812,9 +864,6 @@ nav {
 .viewer.v-on   {
     display: block;
     pointer-events: all;
-}
-
-.viewer.v-on .cont {
 }
 
 .stickyplace[data-setconfigure='6'] .blob {
