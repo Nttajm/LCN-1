@@ -145,6 +145,59 @@ nav ul li a {
   justify-content: space-between;
 }
 
+#video .grid-item {
+  border:  rgba(91, 91, 91, 0) 1px;
+  border-style: none;
+  border-left: none;
+  border-top: none;
+  height: 7rem;
+  transition: all 0.332s ease-out;
+  opacity: 0;
+  transform: scale(1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.video-item-1 {
+  display: none;
+   grid-row-start: 3;
+   grid-column-start: 2;
+   grid-row-end: 4;
+   grid-column-end: 4;
+}
+
+.video-item-2 {
+  background-color: #AB79DD; 
+   grid-row-start: 1;
+   grid-column-start: 6;
+
+   grid-row-end: 3;
+   grid-column-end: 7;
+}
+
+.overlay-i {
+  opacity: 0;
+  transition: all 0.342s;
+}
+
+.overlay-i video,
+ .overlay-i img {
+  height: 100%;
+  width: 100%;
+  object-position: 0px 45px;
+  object-fit: cover;
+  animation: parrel ease forwards 0.92s;
+  animation-delay: 3.51s;
+  transition: all 0.342s;
+}
+
+@keyframes parrel {
+  to {
+    object-position: 0px 0px;
+  }
+}
+
 .grid-item:hover {
   background-color: #d8b78d;
 }
@@ -451,6 +504,7 @@ footer {
   z-index: 999;
 transition: all 0.125s ease;
 position: absolute;
+display: none;
 width: 200px;
 height: 200px;
 background-color: rgba(255, 0, 0, 0.7);

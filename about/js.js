@@ -1,4 +1,81 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const progressBar = document.getElementById('loader');
+    const percentageText = document.getElementById('percent');
+    let percentage = 91;
 
+    const interval = setInterval(() => {
+        if (percentage >= 99) {
+            clearInterval(interval);
+        } else {
+            percentage++;
+            progressBar.style.width = percentage + '%';
+            percentageText.textContent = percentage + '%';
+        }
+    }, 160);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const words = ["CREATING", "VISIONING", "SUPPORTING", 'INSPIRING'];
+    const wordElement = document.querySelector('.word');
+    let index = 0;
+
+    setInterval(() => {
+        wordElement.style.opacity = 0;
+        setTimeout(() => {
+            index = (index + 1) % words.length;
+            wordElement.textContent = words[index];
+            wordElement.style.opacity = 1;
+        }, 100); // match this duration with the CSS transition duration
+    }, 900); // adjust the interval to control how often words change
+});
+
+
+function animationSeq_remove(time, div, classToRemove) {
+    setTimeout(() => {
+        div.classList.remove(classToRemove);
+    }, time);
+}
+
+function animationSeq_add(time, divE, classToAdd) {
+    setTimeout(() => {
+        let divs = document.querySelectorAll(`.${divE}`);
+        divs.forEach(elems => {
+            elems.classList.add(classToAdd);
+        })
+    }, time);
+}
+
+const firtsAni = 4350
+
+let elems = document.querySelectorAll('.grid-item');
+elems.forEach(element => {
+    setTimeout(() => {
+        element.style.opacity = '1'
+        element.style.transform = 'scale(1)'
+    }, firtsAni);
+})
+
+let itemFills = document.querySelectorAll('.filler');
+itemFills.forEach(element => {
+    setTimeout(() => {
+        element.classList.remove('orgin')
+    }, firtsAni);
+})
+
+
+setTimeout(() => {
+    document.body.style.overflowY = 'auto'
+}, firtsAni);
+
+
+animationSeq_add(firtsAni, 'grid-item', 'fadeIn');
+animationSeq_add(firtsAni, 'overlay-i', 'fadeIn');
+animationSeq_add(firtsAni, 'js-ani-1_semi', 'fadeOut');
+animationSeq_add(firtsAni, 'js-ani-1', 'fadeOut');
+animationSeq_add(firtsAni, 'js-ani-2', 'fadeOut');
+
+console.log(document.querySelectorAll('.grid-item').length);
 
 const messages = document.querySelectorAll('.message');
 
@@ -23,6 +100,24 @@ messages.forEach(message => {
         setTimeout(repeat, getRandomInterval());
     }, getRandomInterval());
 });
+
+function toggleDivVisibility(div, showDuration) {
+    const myDiv = document.querySelector(`.${div}`);
+    const hideDuration = Math.floor(Math.random() * (14000 - 10000 + 1)) + 10000; // Hide for 10-14 seconds
+
+    myDiv.classList.toggle('hidden');
+
+    setTimeout(() => {
+        myDiv.classList.toggle('hidden')
+        setTimeout(() => toggleDivVisibility(div, showDuration), hideDuration);
+    }, showDuration);
+}
+
+setTimeout(() => {
+    toggleDivVisibility('video-item-1', 3000);
+    toggleDivVisibility('video-item-2', 3000);
+}, firtsAni);
+
 
 const animatedText = document.getElementById('animatedText');
         const text = animatedText.innerText;
@@ -219,3 +314,30 @@ const followDiv = document.getElementById('followDiv');
       followDiv.style.left = `${e.pageX + 20}px`;
       followDiv.style.top = `${e.pageY + 20}px`;
     });
+
+
+const numberOfitem = 26;
+let gridHtml = ''
+
+for (let i = 0; i < numberOfitem; i++) {
+    gridHtml += `
+        <div class="grid-item"></div>
+    `
+}
+
+const videos = [
+   '/images/fsg/An9I_cGUmQUwAGffQ0Yw2o9qxUdMezB9Eu_lu7F09qT8XuQYXJog9Qcflk6KMFhoCox6begvVGN2I4vZeQmHVPk.mp4',
+   '/images/fsg/plugman-video.mp4'
+];
+
+const videoGrid = document.getElementById('video');
+videoGrid.innerHTML = `${gridHtml}`;
+
+videos.forEach((vid, index) => {
+    videoGrid.innerHTML += 
+    `
+    <div class="grid-item overlay-i hidden video-item-${index + 1}">
+        <video src="${vid}" autoplay muted loop></video>
+    </div>
+    `
+});

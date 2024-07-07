@@ -63,11 +63,8 @@
     <div class="grid-item"></div>
     <div class="grid-item"></div>
     <div class="grid-item">
-      <span class="message" data-show-time="8100" data-hide-time="8100"> 
-        Some would say we give brands a Retinol enriched facial. And, while we mak identity
-      </span>
-      <span class="message" data-show-time="8100" data-hide-time="8100"> 
-        well rea is not something i would personally consider
+      <span id="section-80" data-show-time="8100" data-hide-time="8100"> 
+        I never intended to become a web designer; I got inspired and hooked. This led me to the world of web development, where I realized I could use my skills to support my community and express my creativity. I do it purely for the joy of helping others, not for money.
       </span>
     </div>
     <div class="grid-item">
@@ -101,6 +98,9 @@ want to be seen
     <div class="grid-item"></div>
     <div class="grid-item"></div>
   </div>
+  <div class="grid" id="video">
+    <video src="/images/fsg/plugman-video.mp4" autoplay mute loop></video>
+  </div>
   <div class="list " id="not">
     <div id="animatedText">Not available for freelance.</div>
   </div>
@@ -109,8 +109,10 @@ want to be seen
   </div>
   <div class="list" id="words" data-index="6">
     <div class="porj-word" id="">
+      <span>IMITADORA</span>
       <span data-pre="bwi">BUWI</span>
-      <span data-pre="cata">CATALUNYA
+      <span data-pre="cata">
+        CATALUNYA
       </span>
       <span data-pre="italy">
         <a href="document/italy.html">ITALY</a>
@@ -122,7 +124,6 @@ want to be seen
         <a href="quesera.html">O QUE SERA</a>
       </span>
       <span>LCN</span>
-      <span>千葉市</span>
     </div>
     <div class="displayer dn">
       <div class="dis-sec">
@@ -166,85 +167,7 @@ want to be seen
 </body>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const progressBar = document.getElementById('loader');
-    const percentageText = document.getElementById('percent');
-    let percentage = 91;
-
-    const interval = setInterval(() => {
-        if (percentage >= 99) {
-            clearInterval(interval);
-        } else {
-            percentage++;
-            progressBar.style.width = percentage + '%';
-            percentageText.textContent = percentage + '%';
-        }
-    }, 160);
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    const words = ["CREATING", "VISIONING", "SUPPORTING", 'INSPIRING'];
-    const wordElement = document.querySelector('.word');
-    let index = 0;
-
-    setInterval(() => {
-        wordElement.style.opacity = 0;
-        setTimeout(() => {
-            index = (index + 1) % words.length;
-            wordElement.textContent = words[index];
-            wordElement.style.opacity = 1;
-        }, 100); // match this duration with the CSS transition duration
-    }, 900); // adjust the interval to control how often words change
-});
-
-
-function animationSeq_remove(time, div, classToRemove) {
-    setTimeout(() => {
-        div.classList.remove(classToRemove);
-    }, time);
-}
-
-function animationSeq_add(time, divE, classToAdd) {
-    setTimeout(() => {
-        let divs = document.querySelectorAll(`.${divE}`);
-        if (divs.length > 0) {
-            divs[0].classList.add(classToAdd);
-        } else {
-            console.log(`No element found with class name: ${divE}`);
-        }
-    }, time);
-}
-
-const firtsAni = 4350
-
-let elems = document.querySelectorAll('.grid-item');
-elems.forEach(element => {
-    setTimeout(() => {
-        element.style.opacity = '1'
-        element.style.transform = 'scale(1)'
-    }, firtsAni);
-})
-
-let itemFills = document.querySelectorAll('.filler');
-itemFills.forEach(element => {
-    setTimeout(() => {
-        element.classList.remove('orgin')
-    }, firtsAni);
-})
-
-
-setTimeout(() => {
-    document.body.style.overflowY = 'auto'
-}, firtsAni);
-
-
-animationSeq_add(firtsAni, 'grid-item', 'fadeIn');
-animationSeq_add(firtsAni, 'js-ani-1_semi', 'fadeOut');
-animationSeq_add(firtsAni, 'js-ani-1', 'fadeOut');
-animationSeq_add(firtsAni, 'js-ani-2', 'fadeOut');
-
-console.log(document.querySelectorAll('.grid-item').length);
+  
 </script>
 <script src="js.js"></script>
 
