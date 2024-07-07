@@ -181,6 +181,13 @@ button {
   border-style: none;
 }
 
+ul, li {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+
 .img-1{
   margin-right: 10px;
   margin-left: 5px;
@@ -204,4 +211,14 @@ button {
   --idle: rgb(246, 160, 0);
   --active:  rgb(131, 206, 20);
   --notetext:  #808ea1;
+}
+
+.stand_er-invert {
+  filter: invert();
+}
+
+.stand_er-place {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
