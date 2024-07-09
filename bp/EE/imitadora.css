@@ -49,6 +49,7 @@ body {
     animation: flyUp 0.9s cubic-bezier(0.22, 0.74, 0.43, 1.05) forwards;
 }
 
+
 @keyframes flyUp {
     to {
         transform: translateY(0%);
@@ -81,6 +82,12 @@ body {
     to {
         transform: translateY(0%);
         opacity: 1;
+    }
+}
+
+@keyframes scrollingD {
+    to {
+        object-position: 0px 300px;
     }
 }
 

@@ -7,9 +7,27 @@ body {
 }
 
 ::selection {
-    background-color: rgba(0, 0, 255, 0);
-    backdrop-filter: invert();
+    background-color: bisque;
+    color: black;
 }
+
+#redirect-message {
+    position: fixed;
+    height: 100vh;
+    width: 0vw;
+    background-color: rgb(0, 0, 0);
+    color: white;
+    z-index: 1000;
+    animation: link 1s forwards;
+    display: none;
+}
+
+@keyframes link {
+    to {
+        width: 100vw;
+    }
+}
+
 
 :root {
     font-size: 26px;
@@ -27,7 +45,7 @@ body {
     background-color: black;
     overflow: hidden;
     animation: test 0.6s ease-out forwards;
-    animation-delay: 2s; 
+    animation-delay: 1.9s; 
 }
 
 @keyframes test {
@@ -77,10 +95,21 @@ body {
 }
 
 .cont-1 {
+    width: 100%;
+    height: 150vh;
+    position: relative;
+}
+
+.sticky {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
 }
 
 .vid {
-    height: 100%;
+    height: 100vh;
     width: 100%;
     position: absolute;
     z-index: -1;
@@ -90,6 +119,14 @@ body {
     height: 100%;
     width: 100%;
     object-fit: cover;
+    animation: parr linear forwards;
+    animation-timeline: scroll();
+}
+
+@keyframes parr {
+    to {
+        object-position: 0px -50px;
+    }
 }
 
 .aero-logo {
@@ -108,6 +145,8 @@ body {
     font-family: var(--b-2);
     background: linear-gradient(0deg, rgba(255,255,255,0) 0%, rgba(124,126,126,0.31976540616246496) 55%, rgba(46,50,49,0.8407738095238095) 100%);
 }
+
+
 
 .nav-item {
     display: flex;
@@ -164,21 +203,136 @@ body {
     padding: 3px;
     cursor: pointer;
     transition: all 0.342s;
+    font-size: 0.8rem;
 }
 
 #video-list li:hover {
     background-color: rgba(240, 248, 255, 0);
     backdrop-filter: invert();
+    font-size: 1rem;
 }
 
 .highlight {
     background-color: rgba(240, 248, 255, 0);
     backdrop-filter: invert();
-    font-size: 1.1rem;
+    font-size: 1.2rem !important;
+}
+
+.cont-3 {
+    height: 50vh;
+    background-color: rgb(0, 0, 0);
+    padding: 30px;
+}
+
+.bl {
+    color: black;
+}
+
+.forth {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 30px;
+}
+
+.f-header {
+    font-family: var(--b-1);
+    font-weight: 700;
+    font-size: 7rem;
+    letter-spacing: -0.5rem;
+}
+
+.subhead {
+    font-size: 4.5rem;
+    font-weight: 100;
+    font-family: var(--b-1);
+}
+
+.f-i {
+    display: flex;
+    flex-direction: column;
+}
+
+#sub {
+    font-family: var(--b-2);
+    font-weight: 300;
+    font-size: 0.6rem;
+    letter-spacing: normal;
+    align-self: flex-end;
+}
+
+.cont-4 {
+    height: 100vh;
+    background-color: rgb(0, 0, 0);
+}
+
+.work-sec {
+    display: flex;
+    overflow: hidden;
+    height: 25rem;
+    margin: 4rem 0rem;
+}
+
+.work {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 
+a {
+    font-style: none;
+    text-decoration: none;
+    color: white;
+}
 
+.text {
+    font-family: var(--b-2);
+    line-height: -10px;
+    font-size: 0.6rem;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-weight: 300;
+
+}
+
+#work-grow {
+    flex-grow: 2;
+}
+
+.text a, .text span {
+    max-width: 30%;
+}
+
+.work:nth-child(even) {
+    flex-direction: column-reverse;
+}
+
+.work img, .work video {
+    aspect-ratio: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-sec {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.red {
+    background-color: red;
+    width: 100%;
+    height: 100%;
+}
+
+.img-sec video, .img-sec img{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 
 @keyframes flyDwn {
   to {
