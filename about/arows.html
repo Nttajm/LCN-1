@@ -1,96 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sequential Video Player</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        video {
-            width: 80%;
-            max-width: 800px;
-            margin-bottom: 20px;
-        }
-        #video-info {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        ol {
-            list-style-type: decimal;
-            padding-left: 0;
-        }
-        li {
-            list-style-position: inside;
-            padding: 5px 0;
-            cursor: pointer;
-        }
-        .highlight {
-            background-color: #ffff99;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Locomotive Scroll Example</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .scroll-container {
+      overflow: hidden;
+    }
+    .section {
+      height: 100vh;
+      padding: 20px;
+      background-color: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
 </head>
 <body>
-    <h1>Sequential Video Player</h1>
-    <div id="video-info">
-        <ol id="video-list">
-            <li>Example Video 1</li>
-            <li>Example Video 2</li>
-            <li>Example Video 3</li>
-        </ol>
+  <div class="scroll-container" data-scroll-container>
+    <div class="section" data-scroll-section>
+      <h1 data-scroll data-scroll-speed="2">Section 1</h1>
+      <p>Content for section 1</p>
     </div>
-    <video id="videoPlayer" controls>
-        <source src="video1.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const videoPlayer = document.getElementById('videoPlayer');
-            const videoList = document.getElementById('video-list').getElementsByTagName('li');
+    <div class="section" data-scroll-section>
+      <h1 data-scroll data-scroll-speed="2">Section 2</h1>
+      <p>Content for section 2</p>
+    </div>
+    <!-- Add more sections as needed -->
+  </div>
 
-            const videos = [
-                { src: 'video1.mp4', title: 'Example Video 1' },
-                { src: 'video2.mp4', title: 'Example Video 2' },
-                { src: 'video3.mp4', title: 'Example Video 3' }
-            ];
-
-            let currentVideoIndex = 0;
-
-            function loadVideo(index) {
-                videoPlayer.src = videos[index].src;
-                highlightCurrentVideo(index);
-                videoPlayer.load();
-                videoPlayer.play();
-            }
-
-            function highlightCurrentVideo(index) {
-                for (let i = 0; i < videoList.length; i++) {
-                    videoList[i].classList.remove('highlight');
-                }
-                videoList[index].classList.add('highlight');
-            }
-
-            videoPlayer.addEventListener('ended', function() {
-                currentVideoIndex++;
-                if (currentVideoIndex < videos.length) {
-                    loadVideo(currentVideoIndex);
-                } else {
-                    // Optionally handle the end of the playlist
-                }
-            });
-
-            for (let i = 0; i < videoList.length; i++) {
-                videoList[i].addEventListener('click', function() {
-                    currentVideoIndex = i;
-                    loadVideo(currentVideoIndex);
-                });
-            }
-
-            loadVideo(currentVideoIndex);
-        });
-    </script>
+  <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const scroll = new LocomotiveScroll({
+        el: document.querySelector('[data-scroll-container]'),
+        smooth: true
+      });
+    });
+  </script>
 </body>
 </html>

@@ -222,3 +222,13 @@ ul, li {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.stand_er-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.stand_er-scroll {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

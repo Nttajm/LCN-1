@@ -1,54 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="/bp/EE/aero.css">
-    <link rel="stylesheet" href="/bp/EE/aero-doc.css">
-    <link rel="stylesheet" href="/css/standard.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIKE | Musiala</title>
+    <link rel="stylesheet" href="/bp/EE/aero.css">
+    <link rel="stylesheet" href="/bp/EE/aero-doc.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.css">
 </head>
 <body>
     <div id="redirect-message-li"></div>
-    <div class="d-cont-1">
-        <div class="d-vid">
-            <video id="d-videoPlayer" autoplay loop>
-                <source src="/images/aero/seq-aero-6.mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-        <div class="vid-info">
-            <div class="heads">
-                <span>
-                    ATTACKERS TO SPECTATORS
-                </span>
-                <span>
-                    
-                </span>
+    <div class="d-cont-1" data-scroll-container>
+        <div class="scroller" data-scroll-container>
+            <div class="d-vid">
+                <video id="d-videoPlayer" autoplay loop>
+                    <source src="/images/aero/seq-aero-6.mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
-            <div class="d-info">
-                <div class="forth f-header">
-                    <div class="f-i" id="sub">
-                        <span class="action">
-                            cleint: NIKE FOOTBAL | Musiala
-                        </span>
-                        <span class="action">
-                            type: Commercial
-                        </span>
-
-                    </div>
-                    <div class="f-i" id="sub"></div>
-                    <div class="f-i" id="sub"></div>
-                    <div class="f-i" id="sub">
-                        <span>
-                            #NikeTiempo #NikeFootball #Tiempo
-                            Jamal Musiala Eure Verteidiger sind meine Zuschauer. 
-                            
-                        </span>
+            <div class="vid-info">
+                <div class="heads">
+                    <span>ATTACKERS TO SPECTATORS</span>
+                </div>
+                <div class="d-info">
+                    <div class="forth f-header">
+                        <div class="f-i" id="sub">
+                            <span class="action">client: NIKE FOOTBALL | Musiala</span>
+                            <span class="action">type: Commercial</span>
+                        </div>
+                        <div class="f-i" id="sub"></div>
+                        <div class="f-i" id="sub"></div>
+                        <div class="f-i" id="sub">
+                            <span>#NikeTiempo #NikeFootball #Tiempo Jamal Musiala Eure Verteidiger sind meine Zuschauer.</span>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="level stand_er-scroll" data-scroll-container>
+                dffffffffffffffffffff
+                orem
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam delectus, consequuntur assumenda amet possimus eos eligendi maiores reprehenderit eius, quasi impedit cum. Dicta in alias est corporis illum atque mollitia.
+            </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scroll = new LocomotiveScroll({
+              el: document.querySelector('[data-scroll-container]'),
+              smooth: true
+            });
+          });
+        const scrollContainer = document.querySelector('.d-cont-1');
+
+        scrollContainer.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            scrollContainer.scrollLeft += event.deltaY;
+        });
+        var element = document.querySelector('.d-cont-1');
+
+        element.addEventListener('wheel', function(event) {
+            if (event.deltaMode === event.DOM_DELTA_PIXEL) {
+                var scrollAmount = event.deltaY * 20; // Increase scroll speed by multiplying the deltaY value
+            } else if (event.deltaMode === event.DOM_DELTA_LINE) {
+                var scrollAmount = event.deltaY * 80; // Increase scroll speed by multiplying the deltaY value
+            } else if (event.deltaMode === event.DOM_DELTA_PAGE) {
+                var scrollAmount = event.delta2 * element.clientHeight;
+            }
+
+            element.scrollTop += scrollAmount;
+
+            event.preventDefault();
+        }, { passive: false });
+        document.addEventListener('DOMContentLoaded', function () {
+            const scroll = new LocomotiveScroll({
+                el: document.querySelector('[data-scroll-container]'),
+                smooth: true
+            });
+        });
+    </script>
 </body>
 </html>
