@@ -534,7 +534,7 @@ nav {
 
 
 .projects { 
-    background-color: #00e96d;
+    background-color: #dedede;
     min-height: 1000px;
     display: flex;
     justify-content: center;
@@ -644,8 +644,9 @@ nav {
     height: 10rem;
 }
 
-.stickyplace[data-setconfigure='3'] .blob:nth-child(odd) {
-    width: 20%;
+.stickyplace[data-setconfigure='6'] .blob:nth-child(odd) {
+    border-radius: 2rem;
+    transform: translateY(10%);
 }
 
 .selected {

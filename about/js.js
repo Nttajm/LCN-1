@@ -109,8 +109,7 @@ function toggleDivVisibility(div, showDuration) {
 
     setTimeout(() => {
         myDiv.classList.toggle('hidden')
-        setTimeout(() => toggleDivVisibility(div, showDuration), hideDuration);
-    }, showDuration);
+    }, hideDuration);
 }
 
 setTimeout(() => {
