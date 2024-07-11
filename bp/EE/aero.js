@@ -67,4 +67,4 @@ document.addEventListener('DOMContentLoaded', function () {
             }, delay);
         });
     });
-});
+}, 1900);

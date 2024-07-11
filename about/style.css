@@ -46,8 +46,10 @@ a {
 .nav-level {
   padding-left: 30vh;
 }
-
-.side-nav {
+.load {
+  position: relative;
+  z-index: 999;
+  width: 100%;
   display: flex;
   flex-direction: column;
   font-size: 1.6rem;

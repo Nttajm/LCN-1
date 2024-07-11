@@ -111,14 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 img: 'images/mag-3.jpg',
                 changer: 'black',
                 textColor: 'white',
-            },
-            {
-                extraText: `
-                Born to Die is the second and debut major-label studio album by American singer-songwriter, and record producer Lana Del Rey. It was released on January 27, 2012, through Interscope Records and Polydor Records. 
-                `,
-                img: 'images/lana-mag-4.jpg',
-                changer: 'orange',
-                textColor: 'purple',
             }
          ],
         },
@@ -309,7 +301,7 @@ ${extraHtml}
                         viewer.classList.add('v-on');
                         viewer.style.color = textColor;
                         viewer.style.backgroundColor = background;
-                    }, 700);
+                    }, 900);
                 }
             });
         });
