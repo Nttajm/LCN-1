@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { src: 'images/aero/seq-aero-football.mp4', title: 'Nike x AERO Fitness' },
         { src: 'images/aero/seq-aero-2.mp4', title: 'Example Video 2' },
         { src: 'images/aero/seq-aero-3.mp4', title: 'Example Video 3' },
+        { src: 'images/aero/seq-aero-7-t.mp4', title: 'Example Video 3' },
         { src: 'images/aero/seq-aero-4.mp4', title: 'Example Video 3' },
         { src: 'images/aero/seq-aero-5.mp4', title: 'Example Video 3' },
 
