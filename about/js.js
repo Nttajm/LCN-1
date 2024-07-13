@@ -11,6 +11,88 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
   });
 
+  document.addEventListener('DOMContentLoaded', () => {
+    const spans = document.querySelectorAll('.animated-span');
+
+    spans.forEach(span => {
+        const originalText = span.textContent;
+        let revealedIndices = [];
+        let interval;
+
+        function getRandomIndices(length) {
+            let indices = [];
+            while (indices.length < 1 && revealedIndices.length < length) {
+                let index = Math.floor(Math.random() * length);
+                if (!revealedIndices.includes(index)) {
+                    indices.push(index);
+                    revealedIndices.push(index);
+                }
+            }
+            return indices;
+        }
+
+        const chars = originalText.split('');
+        const length = chars.length;
+        const replacementChar = '*';
+        const replacementRatio = 0.5; // 50% of the characters will be replaced with '*'
+        const speed = Math.max(6, Math.floor(600 / length)); // proportional speed calculation
+
+        revealedIndices = [];
+        let initialText = chars.map((char, index) => Math.random() < replacementRatio ? replacementChar : char);
+        span.textContent = initialText.join('');
+
+        interval = setInterval(() => {
+            if (revealedIndices.length >= length) {
+                clearInterval(interval);
+                return;
+            }
+
+            const indices = getRandomIndices(length);
+            indices.forEach(index => {
+                initialText[index] = chars[index];
+            });
+
+            span.textContent = initialText.join('');
+        }, speed);
+    });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const targetDivs = document.querySelectorAll('.target-div');
+  const highlightClass = 'selected';
+
+  function toggleClass(event) {
+      targetDivs.forEach(div => {
+          if (div === event.target) {
+              div.classList.toggle(highlightClass);
+          } else {
+              div.classList.remove(highlightClass);
+          }
+      });
+  }
+
+  document.addEventListener('click', toggleClass);
+});
+
+  // -- jm logo that expands like buena suerte 
+
+//   function addClassOnScroll(element, className, pix) {
+//     window.addEventListener('scroll', function() {
+//         if (window.scrollY >= pix) {
+//             element.classList.add(className);
+//         } else {
+//             element.classList.remove(className);
+//         }
+//     });
+// }
+
+// // Usage example
+// document.addEventListener('DOMContentLoaded', function() {
+//     var targetElement = document.querySelector('.your-element-selector');
+//     addClassOnScroll(targetElement, 'your-class-name');
+// });
+
+
 //       document.addEventListener('mousemove', (event) => {
 //     document.querySelectorAll('.item').forEach(span => {
 //         const rect = span.getBoundingClientRect();
