@@ -3,93 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sequential Video Player</title>
+    <title>Character Animation</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        video {
-            width: 80%;
-            max-width: 800px;
-            margin-bottom: 20px;
-        }
-        #video-info {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        ol {
-            list-style-type: decimal;
-            padding-left: 0;
-        }
-        li {
-            list-style-position: inside;
-            padding: 5px 0;
+        .animated-span {
+            display: inline-block;
             cursor: pointer;
-        }
-        .highlight {
-            background-color: #ffff99;
         }
     </style>
 </head>
 <body>
-    <h1>Sequential Video Player</h1>
-    <div id="video-info">
-        <ol id="video-list">
-            <li>Example Video 1</li>
-            <li>Example Video 2</li>
-            <li>Example Video 3</li>
-        </ol>
-    </div>
-    <video id="videoPlayer" controls>
-        <source src="video1.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    <span class="animated-span">Hover over this text! 
+      Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis 
+    </span>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const videoPlayer = document.getElementById('videoPlayer');
-            const videoList = document.getElementById('video-list').getElementsByTagName('li');
+        document.addEventListener('DOMContentLoaded', () => {
+            const span = document.querySelector('.animated-span');
+            const originalText = span.textContent;
+            let revealedIndices = [];
+            let interval;
 
-            const videos = [
-                { src: 'video1.mp4', title: 'Example Video 1' },
-                { src: 'video2.mp4', title: 'Example Video 2' },
-                { src: 'video3.mp4', title: 'Example Video 3' }
-            ];
-
-            let currentVideoIndex = 0;
-
-            function loadVideo(index) {
-                videoPlayer.src = videos[index].src;
-                highlightCurrentVideo(index);
-                videoPlayer.load();
-                videoPlayer.play();
+            function getRandomIndices(length) {
+                let indices = [];
+                while (indices.length < 2 && revealedIndices.length < length) {
+                    let index = Math.floor(Math.random() * length);
+                    if (!revealedIndices.includes(index)) {
+                        indices.push(index);
+                        revealedIndices.push(index);
+                    }
+                }
+                return indices;
             }
 
-            function highlightCurrentVideo(index) {
-                for (let i = 0; i < videoList.length; i++) {
-                    videoList[i].classList.remove('highlight');
-                }
-                videoList[index].classList.add('highlight');
-            }
+            span.addEventListener('mouseenter', () => {
+                const chars = originalText.split('');
+                span.textContent = '-'.repeat(chars.length);
+                revealedIndices = [];
 
-            videoPlayer.addEventListener('ended', function() {
-                currentVideoIndex++;
-                if (currentVideoIndex < videos.length) {
-                    loadVideo(currentVideoIndex);
-                } else {
-                    // Optionally handle the end of the playlist
-                }
+                interval = setInterval(() => {
+                    if (revealedIndices.length >= chars.length) {
+                        clearInterval(interval);
+                        return;
+                    }
+
+                    const indices = getRandomIndices(chars.length);
+                    const spanText = span.textContent.split('');
+                    indices.forEach(index => {
+                        spanText[index] = chars[index];
+                    });
+
+                    span.textContent = spanText.join('');
+                }, 10); // Adjust the interval speed as needed
             });
 
-            for (let i = 0; i < videoList.length; i++) {
-                videoList[i].addEventListener('click', function() {
-                    currentVideoIndex = i;
-                    loadVideo(currentVideoIndex);
-                });
-            }
-
-            loadVideo(currentVideoIndex);
+            span.addEventListener('mouseleave', () => {
+                clearInterval(interval);
+                span.textContent = originalText;
+                revealedIndices = [];
+            });
         });
     </script>
 </body>

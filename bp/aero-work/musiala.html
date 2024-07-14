@@ -1,54 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="/bp/EE/aero.css">
-    <link rel="stylesheet" href="/bp/EE/aero-doc.css">
-    <link rel="stylesheet" href="/css/standard.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIKE | Musiala</title>
+    <link rel="stylesheet" href="/bp/EE/aero.css">
+    <link rel="stylesheet" href="/bp/EE/aero-doc.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.css">
+    <style>
+        body {
+            background-color: rgb(2, 2, 2);
+            color: white;
+            overflow-y: hidden;
+        }
+
+        .d-cont-1 {
+            position: fixed;
+            height: 100vh;
+            width: 100%;
+            overflow-x: scroll;
+            overflow-y: hidden;
+        }
+
+        .d-vid {
+            height: 100vh;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .vid-info {
+            display: flex;
+            flex-direction: column;
+            max-width: 30vw;
+            position: fixed;
+            bottom: 3rem;
+            left: 2rem;
+        }
+
+        #redirect-message-li {
+            position: fixed;
+            height: 100vh;
+            width: 100vw;
+            background-color: rgb(0, 0, 0);
+            color: white;
+            z-index: 1000;
+            animation: link-in 0.6s forwards linear;
+        }
+
+        .level {
+            position: absolute;
+            height: 100vh;
+            width: 100vw;
+            margin-left: 100%;
+            background-color: brown; 
+            overflow-y: hidden;
+        }
+
+        .scroller {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            overflow-y: hidden;
+        }
+
+        @keyframes link-in {
+            to {
+                transform: translateX(100vw);
+            }
+        }
+
+        video {
+            animation: vid forwards linear;
+            animation-delay: 2s;
+        }
+
+        @keyframes vid {
+            from {
+                opacity: 0;
+                display: none;
+            }
+            to {
+                opacity: 1;
+                display: block;
+            }
+        }
+
+        .heads {
+            font-family: var(--b-1);
+            font-weight: 600;
+            font-size: 2rem;
+            display: flex;
+            flex-direction: column;
+            mix-blend-mode: difference;
+        }
+    </style>
 </head>
 <body>
     <div id="redirect-message-li"></div>
-    <div class="d-cont-1">
-        <div class="d-vid">
-            <video id="d-videoPlayer" autoplay loop>
-                <source src="/images/aero/seq-aero-6.mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-        <div class="vid-info">
-            <div class="heads">
-                <span>
-                    ATTACKERS TO SPECTATORS
-                </span>
-                <span>
-                    
-                </span>
+    <div class="d-cont-1 stand_er-scroll" data-scroll-container>
+        <div class="scroller">
+            <div class="d-vid">
+                <video id="d-videoPlayer" autoplay loop>
+                    <source src="/images/aero/seq-aero-6.mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
-            <div class="d-info">
-                <div class="forth f-header">
-                    <div class="f-i" id="sub">
-                        <span class="action">
-                            cleint: NIKE FOOTBAL | Musiala
-                        </span>
-                        <span class="action">
-                            type: Commercial
-                        </span>
-
-                    </div>
-                    <div class="f-i" id="sub"></div>
-                    <div class="f-i" id="sub"></div>
-                    <div class="f-i" id="sub">
-                        <span>
-                            #NikeTiempo #NikeFootball #Tiempo
-                            Jamal Musiala Eure Verteidiger sind meine Zuschauer. 
-                            
-                        </span>
+            <div class="vid-info">
+                <div class="heads">
+                    <span>ATTACKERS TO SPECTATORS</span>
+                </div>
+                <div class="d-info">
+                    <div class="forth f-header">
+                        <div class="f-i" id="sub">
+                            <span class="action">client: NIKE FOOTBALL | Musiala</span>
+                            <span class="action">type: Commercial</span>
+                        </div>
+                        <div class="f-i" id="sub"></div>
+                        <div class="f-i" id="sub"></div>
+                        <div class="f-i" id="sub">
+                            <span>#NikeTiempo #NikeFootball #Tiempo Jamal Musiala Eure Verteidiger sind meine Zuschauer.</span>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="level stand_er-scroll">
+                dffffffffffffffffffff
+                orem
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam delectus, consequuntur assumenda amet possimus eos eligendi maiores reprehenderit eius, quasi impedit cum. Dicta in alias est corporis illum atque mollitia.
+            </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.js"></script>
+    <script src="/bp/EE/aero-doc.js"></script>
 </body>
 </html>

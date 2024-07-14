@@ -6,9 +6,24 @@ body {
     overflow-x: hidden;
 }
 
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
 ::selection {
     background-color: bisque;
     color: black;
+}
+
+.scoller-i {
+    overflow-y: scroll;
+    background-color: black;
 }
 
 #redirect-message {
@@ -39,7 +54,7 @@ body {
 
 .loader {
     position: fixed;
-    height: 100%;
+    height: 100vh;
     width: 100%;
     z-index: 999;
     background-color: black;
@@ -261,7 +276,6 @@ body {
 }
 
 .cont-4 {
-    height: 100vh;
     background-color: rgb(0, 0, 0);
 }
 
@@ -333,6 +347,36 @@ a {
     top: 0;
     left: 0;
 }
+
+.cont-5 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: black;
+    margin-top: 50vh;
+}
+
+.c-5 {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    gap: 3rem;
+}
+
+.c-5 span:first-child {
+    font-family: var(--b-2);
+    font-size: 0.9rem;
+}
+
+.c-5 span:nth-child(2) {
+    text-align: right;
+    font-family: var(--b-3);
+    font-size: 7rem;
+    line-break: none;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 
 @keyframes flyDwn {
   to {
