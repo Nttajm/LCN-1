@@ -9,7 +9,7 @@
   --base-4: "Noto Sans Mono", monospace;
   --base-5: "Poppins", sans-serif;
   --base-6: "Playfair Display", serif;
-  --bg: rgb(230, 206, 174);
+  --bg: rgb(231, 231, 231);
   --main-color: rgb(0, 0, 0) !important;
 }
 
@@ -410,6 +410,7 @@ html {
 .long {
   border-top: dashed 1px gray;
   width: 100%;
+  position: relative;
 }
 
 .date {
@@ -482,7 +483,13 @@ html {
   right: -.2rem;
 }
 
-
+.plus {
+  position: absolute;
+  left: 10%;
+  transform: translateY(-51%);
+  background-color: var(--bg);
+  padding: 0.3rem;
+}
 
 @keyframes openS {
   from {

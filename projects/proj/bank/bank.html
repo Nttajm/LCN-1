@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Banking Game</h1>
+    <div id="accounts"></div>
+    <button id="addAccount">Add New Account</button>
+    <div id="actions">
+        <h2>Actions</h2>
+        <div id="addMoneyForm">
+            <h3>Add Money</h3>
+            <label for="accountSelect">Select Account:</label>
+            <select id="accountSelect"></select>
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount">
+            <button id="addMoney">Add Money</button>
+        </div>
+        <div id="transferMoneyForm">
+            <h3>Transfer Money</h3>
+            <label for="fromAccount">From:</label>
+            <select id="fromAccount"></select>
+            <label for="toAccount">To:</label>
+            <select id="toAccount"></select>
+            <label for="transferAmount">Amount:</label>
+            <input type="number" id="transferAmount">
+            <button id="transferMoney">Transfer Money</button>
+        </div>
+        <div id="buyItemsForm">
+            <h3>Buy Items</h3>
+            <label for="itemSelect">Select Item:</label>
+            <select id="itemSelect">
+                <option value="burger">Burger ($10)</option>
+                <option value="pizza">Pizza ($20)</option>
+                <option value="rent">Rent ($2,500)</option>
+            </select>
+            <label for="buyAccount">Select Account:</label>
+            <select id="buyAccount"></select>
+            <button id="buyItem">Buy Item</button>
+        </div>
+        <div id="renameAccountForm">
+            <h3>Rename Account</h3>
+            <label for="renameAccountSelect">Select Account:</label>
+            <select id="renameAccountSelect"></select>
+            <label for="newAccountName">New Account Name:</label>
+            <input type="text" id="newAccountName">
+            <button id="renameAccount">Rename Account</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
