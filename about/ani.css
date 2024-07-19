@@ -141,3 +141,7 @@
   .comeDown {
     animation: comeDown 0.6s ease-in forwards;
   }
+
+  /* .side-nav .bun:nth-child(1) {
+    transform: translateY(-50%);
+  } */

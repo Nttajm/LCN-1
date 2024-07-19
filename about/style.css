@@ -243,7 +243,8 @@ html {
   position: absolute;
   top: 3rem;
   left: 3rem;
-  font-family: var(--base-4);
+  font-family: var(--base-3);
+  font-size: 3rem;
 }
 
 .work {
@@ -344,10 +345,7 @@ html {
   opacity: 1 ;
   position: absolute;
   left: 50%;
-  filter: blur(6px);
-  opacity: 0;
   transition: all 0.334s;
-  display: block;
 }
 
 .img-sec {
@@ -355,7 +353,6 @@ html {
   left: 50%;
   filter: blur(6px);
   opacity: 0;
-  display: none;
   transition: all 0.334s;
 }
 
@@ -475,7 +472,7 @@ html {
 
 @media all and (min-width: 480px) and (max-width: 768px) { 
   :root {
-    font-size: 12px;
+    font-size: 10px;
   }
 }
 
