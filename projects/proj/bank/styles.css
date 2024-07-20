@@ -1,5 +1,32 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Inter", sans-serif;
+  background-color: rgb(223, 223, 223);
+}
+
+.cont {
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80vw;
+  justify-content: center;
+}
+
+.main {
+  flex: 40%;
+}
+
+.side {
+  flex: 30%;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+}
+
+:root {
+  font-size: 26px;
+  --border: solid 1px gray;
 }
 
 #accounts {
@@ -7,9 +34,20 @@ body {
 }
 
 .account {
-  border: 1px solid #ccc;
-  padding: 10px;
+  border: var(--border);
   margin-bottom: 10px;
+  background-color: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  margin: 0.6rem;
+}
+
+h4 {
+  padding-left: 20px;
+  margin-bottom: 7px;
+  font-weight: 400;
+  font-size: 0.7rem;
 }
 
 #actions {
@@ -19,4 +57,138 @@ body {
 label {
   display: block;
   margin-top: 10px;
+  color: rgb(60, 60, 60);
+  font-weight: 400;
+  font-size: 0.8rem;
+  padding-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.top {
+  border-bottom: var(--border);
+  padding: 0.5rem;
+  font-weight: 600;
+  color: rgb(0, 13, 250);
+  text-transform: uppercase;
+}
+
+.bal {
+  padding-left: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.3rem;
+}
+
+.bal span:first-child {
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.bal span:nth-child(2) {
+  font-size: .7rem;
+  font-weight: 500;
+}
+
+.account ul {
+  padding-left: 20px;
+  padding-bottom: 10px;
+}
+
+.account ul li{
+  font-size: 0.7rem;
+  font-family: monospace;
+  border-bottom: var(--border);
+  padding: 10px 1px;
+}
+
+.account ul li:last-child{
+  font-size: 0.7rem;
+  font-family: monospace;
+  border-bottom: none;
+}
+
+input {
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.sec {
+  border: var(--border);
+  margin-bottom: 10px;
+  background-color: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  margin: 0.6rem;
+  padding: 0.5rem;
+  gap: 8px;
+}
+
+.item {
+  font-style: italic;
+}
+
+button {
+  padding: 10px;
+  border-radius: 5px;
+  color: white;
+  background-color: rgb(45, 119, 255);
+}
+
+select {
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  outline: blue;
+  border: var(--border);
+  border-radius: 6px;
+}
+
+ul {
+  list-style: none;
+}
+
+.stock-sec {
+  background-color: white;
+  border: var(--border);
+  border-radius: 20px;
+  padding: 1rem;
+}
+
+.stock-name {
+  font-size: 2rem;
+  font-weight: 600;
+
+}
+
+.shares {
+  font-size: 0.7rem;
+  color: rgb(75, 75, 75);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+}
+
+.percent {
+  background-color: rgba(159, 159, 159, 0.42);
+  margin: 0.6rem;
+  padding: 0.4rem;
+  border-radius: 8px;
+}
+
+.current-price {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.green {
+  background-color: rgba(52, 255, 52, 0.237);
+}
+
+.red {
+  background-color: rgba(255, 69, 52, 0.237);
 }
