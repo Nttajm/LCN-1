@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     let accountCounter = 0;
+
+    let profitLossHistory = JSON.parse(localStorage.getItem('profitLossHistory')) || [];
+
+    const profitLossList = document.getElementById('profitLossList');
     const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
     const stocks = JSON.parse(localStorage.getItem('stocks')) || {};
     const storedStockPrices = JSON.parse(localStorage.getItem('stockPrices')) || {};
@@ -23,12 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "Stock Q": 14000,
         "Stock R": 15000,
         "Stock S": 16000,
-        "Stock T": 17000,
-        "Stock U": 18000,
-        "Stock V": 19000,
-        "Stock W": 20000,
-        "Stock X": 25000,
-        "Stock Y": 29000,
+        "Stock T": 27000,
+        "Stock U": 408000,
+        "Stock V": 79000,
+        "Stock W": 900000,
+        "Stock X": 145000,
+        "Stock Y": 499000,
     };
     const stockSelect = document.getElementById('stockSelect');
     const sellStockSelect = document.getElementById('sellStockSelect');
@@ -81,6 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAccounts();
             renderStocks();
             updatePortfolioTotal();
+            saveProfitLossHistory();
+
         } else {
             alert('Insufficient funds to buy this stock.');
         }
@@ -123,6 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAccounts();
             renderStocks();
             updatePortfolioTotal();
+            saveProfitLossHistory();
+
         } else {
             alert('Insufficient shares to sell.');
         }
@@ -188,20 +196,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateStockPrices() {
+        const minPrice = 0.01;
+        const maxPrice = 1000;
+    
+        // Factors for randomness and trends
+        const baseVolatility = 0.02; // Base volatility for general fluctuation
+        const longTermTrend = 0.0012; // Long-term upward trend
+    
+        // Market conditions (news impact)
+        const newsImpact = (Math.random() - 0.5) * 0.05; // Periodic news impact
+    
+        // Seasonal trends (e.g., quarterly earnings)
+        const time = new Date();
+        const month = time.getMonth();
+        const seasonFactor = Math.sin((month / 12) * 2 * Math.PI) * 0.02; // Seasonal effect based on month
+    
         for (const stock in stockPrices) {
             const currentPrice = stockPrices[stock];
-            const trend = 0.0001; // Gradual increase
-            let percentChange = (Math.random() - 0.5) * 0.05; // Between -2.5% and 2.5%
-            percentChange = Math.min(Math.max(percentChange, -0.02), 0.02); // Limit the range
-            const changeAmount = currentPrice * percentChange + trend; // Gradual increase
-            stockPrices[stock] = Math.max(currentPrice + changeAmount, 0.01); // Ensure price doesn't drop below $0.01
+            const stockVolatility = baseVolatility + (Math.random() * 0.01); // Different volatility per stock
+    
+            // Simulate random market movement with spikes and trends
+            const trendComponent = longTermTrend * currentPrice; // Apply long-term market trend
+            let percentChange = (Math.random() - 0.5) * stockVolatility; // Market fluctuation
+            percentChange = Math.min(Math.max(percentChange, -stockVolatility), stockVolatility); // Limit volatility range
+    
+            // Simulate occasional significant spikes or drops
+            if (Math.random() < 0.05) { // 5% chance of a significant spike or drop
+                percentChange += (Math.random() - 0.5) * 0.1; // Significant change in price
+            }
+    
+            // Apply news impact and seasonal trends
+            percentChange += newsImpact;
+            percentChange += seasonFactor;
+    
+            // Calculate change amount and update stock price
+            const changeAmount = currentPrice * percentChange + trendComponent;
+            const newPrice = Math.max(minPrice, Math.min(currentPrice + changeAmount, maxPrice)); // Ensure price is within bounds
+    
+            stockPrices[stock] = newPrice;
         }
+    
+        // Render and save updated stock prices
         renderStocks();
         saveStockPrices();
         updatePortfolioTotal();
     }
 
-    setInterval(updateStockPrices, 2290);
+    setInterval(updateStockPrices, 490);
 
     function renderAccounts() {
         const accountsDiv = document.getElementById('accounts');
@@ -218,6 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // localStorage.clear(); 
+
     function updateAccountSelects() {
         const selects = [investAccountSelect, sellAccountSelect];
         selects.forEach(select => {
@@ -230,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
 
     function renderStocks() {
         const stockListDiv = document.getElementById('stockList');
@@ -262,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stockListDiv.appendChild(stockDiv);
         }
     }
+
     function updatePortfolioTotal() {
         let totalValue = 0;
         for (const stock in stocks) {
@@ -270,8 +315,69 @@ document.addEventListener('DOMContentLoaded', () => {
         portfolioTotalElement.textContent = `Total Portfolio Value: $${totalValue.toFixed(2)}`;
     }
 
+
+    sellForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const stock = sellForm.stock.value;
+        const shares = parseInt(sellForm.shares.value);
+        const sellAccountId = parseInt(sellForm.account.value);
+    
+        if (stocks[stock] && stocks[stock].shares >= shares) {
+            const boughtPrice = stocks[stock].purchases.reduce((total, purchase) => total + purchase.price * purchase.shares, 0) / stocks[stock].shares;
+            const soldPrice = stockPrices[stock];
+            
+            stocks[stock].shares -= shares;
+            accounts[sellAccountId].balance += soldPrice * shares;
+    
+            recordProfitLoss(stock, shares, boughtPrice, soldPrice);
+    
+            if (stocks[stock].shares === 0) {
+                delete stocks[stock];
+            }
+    
+            saveAccounts();
+            saveStocks();
+            renderAccounts();
+            renderStocks();
+            saveProfitLossHistory();
+
+        } else {
+            alert("Not enough shares to sell or stock does not exist.");
+        }
+    });
+
+    function recordProfitLoss(stock, shares, boughtPrice, soldPrice) {
+        const profitLoss = (soldPrice - boughtPrice) * shares;
+        const record = {
+            stock,
+            shares,
+            boughtPrice,
+            soldPrice,
+            profitLoss,
+            date: new Date().toLocaleString()
+        };
+        console.log('Recording profit/loss:', record); // Debug log
+        profitLossHistory.push(record);
+        saveProfitLossHistory();
+        renderProfitLossHistory();
+    }
+    renderProfitLossHistory();
+
+    function renderProfitLossHistory() {
+        profitLossList.innerHTML = '';
+        profitLossHistory.forEach(entry => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `${entry.date}: Sold ${entry.shares} shares of ${entry.stock} bought at $${entry.boughtPrice.toFixed(2)} for $${entry.soldPrice.toFixed(2)} each. Profit/Loss: $${entry.profitLoss.toFixed(2)}`;
+            profitLossList.appendChild(listItem);
+        });
+    }
+
     function saveAccounts() {
         localStorage.setItem('accounts', JSON.stringify(accounts));
+    }
+
+    function saveProfitLossHistory() {
+        localStorage.setItem('profitLossHistory', JSON.stringify(profitLossHistory));
     }
 
     function saveStocks() {
@@ -286,4 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccounts();
     updateAccountSelects();
     renderStocks();
+    renderProfitLossHistory();
+
 });

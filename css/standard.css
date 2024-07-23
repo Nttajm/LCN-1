@@ -14,6 +14,10 @@ body {
   padding: 0;
 }
 
+a {
+  color: inherit;
+}
+
 p, a {
   font-family: 'roboto', arial;
   text-decoration: none;

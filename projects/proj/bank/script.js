@@ -89,6 +89,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function formatNumberWithCommas(number) {
+        return number.toLocaleString();
+    }
+
+    // function renderAccounts() {
+    //     const accountsDiv = document.getElementById('accounts');
+    //     accountsDiv.innerHTML = '';
+    //     accounts.forEach(account => {
+    //         const accountDiv = document.createElement('div');
+    //         accountDiv.className = 'account';
+    //         accountDiv.innerHTML = `
+    //             <span class="top">${account.name}</span>
+    //              <div class='ac-cont'>
+    //              <div class='bal'>
+    //                 <span>$${formatNumberWithCommas(account.balance)}</span>
+    //                 <span>Available Balance</span>
+    //              </div>
+    //             <h4>Transaction History</h4>
+    //             <ul class='scroller'>${account.history.map(item => `<li>${item}</li>`).join('')}</ul>
+    //              </div>
+    //         `;
+    //         accountsDiv.appendChild(accountDiv);
+    //     });
+    // }
+
     function renderAccounts() {
         const accountsDiv = document.getElementById('accounts');
         accountsDiv.innerHTML = '';
@@ -99,11 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="top">${account.name}</span>
                  <div class='ac-cont'>
                  <div class='bal'>
-                    <span>$${account.balance.toFixed(2)}</span>
+                    <span>$${formatNumberWithCommas(account.balance)}</span>
                     <span>Available Balance</span>
                  </div>
                 <h4>Transaction History</h4>
-                <ul>${account.history.map(item => `<li>${item}</li>`).join('')}</ul>
+                <ul class='scroller'>${account.history.map(item => `<li>${item}</li>`).join('')}</ul>
                  </div>
             `;
             accountsDiv.appendChild(accountDiv);
