@@ -342,6 +342,10 @@ ul {
   color: green;
 }
 
+.stat-er {
+  color: rgb(163, 0, 0);
+}
+
 .stat-bg {
   background-color: green;
 }
@@ -392,6 +396,9 @@ ul {
   background-image: url(/images/iphone-wall.jpg);
   height: 100%;
   width: 100%;
-  
+}
+
+.bl {
+  font-weight: 600;
 }
 
