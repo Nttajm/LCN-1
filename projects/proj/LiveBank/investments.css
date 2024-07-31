@@ -1,0 +1,91 @@
+.news {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    position: relative;
+}
+
+.news ul {
+    width: 50%;
+}
+
+.news ul li {
+    border-bottom: solid 1px blue ;
+}
+
+.market-turner {
+    text-transform: uppercase;
+    font-family: monospace;
+    font-weight: 300;
+    overflow: hidden;
+}
+
+.market-turner ul {
+    display: flex;
+    animation: moving 20s linear infinite;
+}
+
+@keyframes moving {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.market-turner ul li{
+    flex-grow: 1;
+    padding: 0.5rem;
+    border-right: 1px solid #000;
+    font-size: 0.8rem;
+}
+
+.d {
+    background-color: rgba(165, 42, 42, 0.438);
+}
+
+.up {
+    background-color: rgba(42, 165, 155, 0.438);
+}
+
+.m {
+    background-color: rgba(153, 165, 42, 0.438);
+}
+
+
+
+.big-news img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 16/9;
+}
+
+.big-news {
+    position: relative;
+    width: 50%;
+}
+
+.gradiant-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(138,171,216,0) 51%);
+    z-index: 1;
+    top: 0;
+    left: 0;
+}
+
+.big-news span {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-family: poppins;
+    font-weight: 600;
+    padding: 0.7rem;
+    z-index: 3;
+    color: white;
+}
