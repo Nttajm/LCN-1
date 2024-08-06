@@ -1,0 +1,142 @@
+
+
+.news {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    position: relative;
+}
+
+.news ul {
+    width: 50%;
+}
+
+.news ul li {
+    border-bottom: solid 1px blue ;
+    padding: 0.1rem;
+}
+
+.market-turner {
+    text-transform: uppercase;
+    font-family: monospace;
+    font-weight: 300;
+    overflow: hidden;
+}
+
+.market-turner ul {
+    display: flex;
+    animation: moving 20s linear infinite;
+}
+
+@keyframes moving {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.market-turner ul li{
+    flex-grow: 1;
+    padding: 0.5rem;
+    border-right: 1px solid #000;
+    font-size: 0.8rem;
+}
+
+.js-portfolioDisplay {
+    font-size: 1.5rem !important;
+    font-weight: 600;
+}
+
+
+.big-news img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 16/9;
+}
+
+.big-news {
+    position: relative;
+    width: 50%;
+}
+
+.gradiant-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(138,171,216,0) 51%);
+    z-index: 1;
+    top: 0;
+    left: 0;
+}
+
+.big-news span {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-family: poppins;
+    font-weight: 600;
+    padding: 0.7rem;
+    z-index: 3;
+    color: white;
+}
+
+.bold {
+    font-weight: 600;
+}
+
+.title {
+    font-size: 1.6rem;
+    text-align: center;
+}
+
+.w-l {
+    background-color: rgb(233, 235, 246);
+    font-size: 1.3rem !important;
+}
+
+.w-l.title {
+    font-size: 1rem;
+}
+
+.win-lose {
+    width: 100%;
+}
+
+.mov-sec {
+    width: 50%;
+}
+
+.mov-sec ul, .mov-sec div, .mov-sec ul li {
+    border: solid 1px rgba(0, 0, 255, 0.459);
+}
+
+.mov-sec ul li {
+    padding: 0.2rem;
+}
+
+.movers {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+}
+
+.mover {
+    display: flex;
+    flex-direction: column;
+    min-width: 100%;
+}
+
+.win-lose {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px;
+    text-transform: uppercase;
+}

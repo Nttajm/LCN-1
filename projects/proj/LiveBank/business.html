@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="investments.css">
+    <link rel="stylesheet" href="business.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business</title>
+</head>
+<body>
+    <div class="cont">
+        <div class="mid-cont">
+            <div class="nav">
+                <ul>
+                    <li><a href="../index.html">Accounts</a></li>
+                    <li>Investments</li>
+                    <li  class="selected">Buisness</li>
+                </ul>
+            </div>
+            <div class="logo i-v">
+                <div class="logo-imgs">
+                    <img src="/images/bank/live-bank-logos-w.png" alt="logo" class="logo">
+                </div>
+                <div class="accountPicker">
+                    <select name="account" id="accountSelecter">
+                        <option value="f">Account ...001</option>
+                    </select>
+                    <div class="portolioValue">
+                        <span>Portfolio Value</span>
+                        <span>$0.00</span>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="business-grid">
+                <div class="business">
+                    <div class="business-top fl-r">
+                        <div class="chart fl-c fl-ai">
+                            <canvas id="myChart"></canvas>
+                            <span class="sub sub-6">Overall 29</span>
+                        </div>
+                        <!-- <img src="/images/bank/suit-case.png" alt="" class="icon"> -->
+                        <div class="details">
+                            <div class="details-1">
+                                <div class="title">
+                                    <div class="title-text">
+                                        <span>Part-Time Job</span>
+                                        <span>Type: Job</span>
+                                    </div>
+                                </div>
+                                <div class="employees fl-r fl-ai">
+                                    <img src="/images/bank/person.png" alt="" class="person">
+                                    <span class="sub">1</span>
+                                </div>
+                                <div class="income-div">
+                                   <div class="income-text">
+                                    <span class="sub stand_er-capitalize">income</span>
+                                    <span class="income it bold green">+$28,345.23</span>
+                                   </div>
+                                </div>
+                                <div class="income-div">
+                                    <div class="income-text">
+                                     <span class="sub stand_er-capitalize">Expenses</span>
+                                     <span class="income it bold red">-$9.12</span>
+                                    </div>
+                                 </div>
+                                <div class="busines-btns">
+                                    <button class="btn">WORK (30sec)</button>
+                                    <!-- <button class="btn alt-btn">ASSISTANT (90sec)</button> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="business-bottom"></div>
+                </div>
+                <div class="business">
+                    <div class="business-top fl-r">
+                        <div class="chart">
+                            <canvas id="myChart"></canvas>
+                        </div>
+                        <!-- <img src="/images/bank/suit-case.png" alt="" class="icon"> -->
+                        <div class="details">
+                            <div class="details-1">
+                                <div class="title">
+                                    <div class="title-text">
+                                        <span>Part-Time Job</span>
+                                        <span>Type: Job</span>
+                                    </div>
+                                </div>
+                                <div class="employees"></div>
+                                <div class="income-div">
+                                   <div class="income-text">
+                                    <span class="sub stand_er-capitalize">income</span>
+                                    <span class="income it bold green">+$345</span>
+                                   </div>
+                                </div>
+                                <div class="income-div">
+                                    <div class="income-text">
+                                     <span class="sub stand_er-capitalize">Expenses</span>
+                                     <span class="income it bold red">+$19</span>
+                                    </div>
+                                 </div>
+                                <div class="busines-btns">
+                                    <button class="btn">WORK (30sec)</button>
+                                    <!-- <button class="btn alt-btn">ASSISTANT (90sec)</button> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="business-bottom"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+<script src="js/business-2.js"></script>
+</html>

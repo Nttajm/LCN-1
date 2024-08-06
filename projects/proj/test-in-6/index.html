@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Chart</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        #chartContainer {
+            width: 80%;
+            height: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Load Chart.js Financial Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial/dist/chartjs-chart-financial.min.js"></script>
+    
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const data = [
+            { x: new Date('2021-01-01'), o: 100, h: 110, l: 90, c: 105 },
+            { x: new Date('2021-01-02'), o: 105, h: 115, l: 100, c: 110 },
+            { x: new Date('2021-01-03'), o: 110, h: 120, l: 105, c: 115 },
+            { x: new Date('2021-01-04'), o: 115, h: 125, l: 110, c: 120 },
+            { x: new Date('2021-01-05'), o: 120, h: 130, l: 115, c: 125 }
+        ];
+
+        new Chart(ctx, {
+            type: 'candlestick',
+            data: {
+                datasets: [{
+                    label: 'Stock Price',
+                    data: data,
+                    borderColor: 'rgb(75, 192, 192)',
+                    color: {
+                        up: 'rgb(80, 160, 115)',
+                        down: 'rgb(215, 85, 85)',
+                        unchanged: 'rgb(90, 90, 90)'
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
