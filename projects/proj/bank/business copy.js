@@ -12,10 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return number.toLocaleString();
     }
 
+
+
     function saveAccounts() {
         localStorage.setItem('accounts', JSON.stringify(accounts)); 
     }
-    
 
     function renderAccounts() {
         const accountsDiv = document.getElementById('accounts');
@@ -32,13 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <h4>Transaction History</h4>
                 </div>
-                <div id="shops-${account.id}" class="shops-container"></div> <!-- Container for the account's businesses -->
             `;
             accountsDiv.appendChild(accountDiv);
         });
     }
 
-    renderAccounts()
+    updateAccountSelects()
+    
 
     function updateAccountSelects() {
         const businessAccountSelect = document.getElementById('businessAccountSelect');
@@ -50,8 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
             businessAccountSelect.appendChild(option);
         });
     }
-
-    updateAccountSelects();
 
     function buyBusiness(accountId, businessType) {
         const account = accounts.find(acc => acc.id === parseInt(accountId));
@@ -72,9 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 typeShop: business.typeShop,
                 totalEarnings: 0 // Initialize total earnings
             });
+
+            console.log(business.typeShop)
             saveAccounts();
             renderAccounts();
-            renderBusinesses();
+            renderBusinesses(account);
             startBusiness(account, account.businesses.length - 1);
         } else {
             alert('Insufficient funds to buy this business.');
@@ -88,39 +89,40 @@ document.addEventListener('DOMContentLoaded', () => {
             account.balance += business.profit;
             saveAccounts();
             renderAccounts();
-            renderBusinesses();
+            renderBusinesses(account);
         }, business.interval);
     }
 
-    function renderBusinesses() {
-        accounts.forEach(account => {
-            const shopsDiv = document.getElementById(`shops-${account.id}`);
-            shopsDiv.classList.add('shops');
-            shopsDiv.innerHTML = '';
-            account.businesses.forEach((business, index) => {
-                const businessDiv = document.createElement('div');
-                businessDiv.className = `shop bui ${business.typeShop}`;
-                businessDiv.innerHTML = `
-                    <span class="multi">${business.upgradeMultiplier}x</span>
-                    <div class="shop-top fl-c">
-                        <span class="name">${business.type} #${index + 1}</span>
-                        <span class="sub">Type: ${business.type}</span>
-                        <span class="stat">Income: +$${formatNumberWithCommas(business.profit)}</span>
-                        <span>Employees: ${business.currentEmployees}/${business.employees}</span>
-                    </div>
-                    <div class="shop-top">
-                        <button class="red" onclick="fireEmployee(${account.id}, ${index})">FIRE -1</button>
-                        <button class="stat-bg stand_er" onclick="hireEmployee(${account.id}, ${index})" ${business.currentEmployees >= business.employees ? 'disabled' : ''}>HIRE</button>
-                    </div>
-                    <div class="shop-top">
-                        <button class="" onclick="upgradeBusiness(${account.id}, ${index})">UPGRADE ($${formatNumberWithCommas(business.upgradeCost)})</button>
-                    </div>
-                    <div class="shop-top">Total earnings: $${formatNumberWithCommas(business.totalEarnings)}</div>
-                `;
-                shopsDiv.appendChild(businessDiv);
-            });
+
+   
+    function renderBusinesses(account) {
+        const shopsDiv = document.getElementById('shops');
+        shopsDiv.innerHTML = '';
+        account.businesses.forEach((business, index) => {
+            const businessDiv = document.createElement('div');
+            businessDiv.className = `shop bui ${business.typeShop}`;
+            businessDiv.innerHTML = `
+                <span class="multi">${business.upgradeMultiplier}x</span>
+                <div class="shop-top fl-c">
+                    <span class="name">${business.type} #${index + 1}</span>
+                    <span class="sub">Type: ${business.type}</span>
+                    <span class="stat">Income: +$${formatNumberWithCommas(business.profit)}</span>
+                    <span>Employees: ${business.currentEmployees}/${business.employees}</span>
+                </div>
+                <div class="shop-top">
+                    <button class="red" onclick="fireEmployee(${account.id}, ${index})">FIRE -1</button>
+                    <button class="stat-bg stand_er" onclick="hireEmployee(${account.id}, ${index})" ${business.currentEmployees >= business.employees ? 'disabled' : ''}>HIRE</button>
+                </div>
+                <div class="shop-top">
+                    <button class="" onclick="upgradeBusiness(${account.id}, ${index})">UPGRADE ($${formatNumberWithCommas(business.upgradeCost)})</button>
+                </div>
+                <div class="shop-top">($${formatNumberWithCommas(business.totalEarnings)})</div>
+            `;
+            shopsDiv.appendChild(businessDiv);
         });
     }
+
+
     
     window.hireEmployee = function(accountId, businessIndex) {
         const account = accounts.find(acc => acc.id === parseInt(accountId));
@@ -129,10 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
             business.currentEmployees++;
             business.profit *= 1.10;
             saveAccounts();
-            renderBusinesses();
+            renderBusinesses(account);
         }
     }
-    
+
     window.fireEmployee = function(accountId, businessIndex) {
         const account = accounts.find(acc => acc.id === parseInt(accountId));
         const business = account.businesses[businessIndex];
@@ -140,10 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
             business.currentEmployees--;
             business.profit *= 0.90;
             saveAccounts();
-            renderBusinesses();
+            renderBusinesses(account);
         }
     }
-    
+
     window.upgradeBusiness = function(accountId, businessIndex) {
         const account = accounts.find(acc => acc.id === parseInt(accountId));
         const business = account.businesses[businessIndex];
@@ -154,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             business.employees = Math.floor(business.employees * 1.75);
             business.currentEmployees = business.employees;
             saveAccounts();
-            renderBusinesses();
+            renderBusinesses(account);
         } else {
             alert('Insufficient funds to upgrade this business.');
         }
@@ -183,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     accounts.forEach(account => {
         if (account.businesses) {
             account.businesses.forEach((_, index) => startBusiness(account, index));
-            renderBusinesses();
+            renderBusinesses(account);
         }
     });
 
