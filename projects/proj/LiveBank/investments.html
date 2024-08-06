@@ -9,23 +9,45 @@
     <title>Investments</title>
 </head>
 <body>
+    <div class="options">
+        <div class="mail icono option-item">
+            <img src="/images/bank/mail.webp" alt="">
+        </div>
+        <!-- <div class="settings icono option-item">
+            <img src="/images/bank/settin gs.png" alt="">
+        </div> -->
+    </div>
     <div class="cont">
         <div class="mid-cont">
             <div class="nav">
                 <ul>
-                    <li>Accounts</li>
+                    <li><a href="index.html">Accounts</a></li>
                     <li class="selected">Investments</li>
                     <li>Buisness</li>
                 </ul>
             </div>
-            <div class="logo">
-                <img src="/images/bank/live-bank-logos-w.png" alt="logo" class="logo">
+            <div class="logo i-v">
+                <div class="logo-imgs">
+                    <img src="/images/bank/live-bank-logos-w.png" alt="logo" class="logo">
                 <img src="/images/bank/live-bank-logos-ex.png" alt="" srcset="">
+                </div>
+                <div class="accountPicker">
+                    <select name="account" id="accountSelecter">
+                        <option value="f">Account ...001</option>
+                    </select>
+                    <div class="portolioValue">
+                        <span>Portfolio Value</span>
+                        <span class="js-portfolioDisplay">$0.00</span>
+                        <span class="sub-6 it js-moneyDisplay">$0.00</span>
+                    </div>
+                </div>
             </div>
             <div class="nav">
                 <ul>
                     <li class="selected">News</li>
                     <li>Markets</li>
+                    <li>Trade</li>
+                    <li>WIZdaq</li>
                 </ul>
             </div>
             <div class="market-turner">
@@ -40,7 +62,7 @@
                     <li class="up">CNC -3.7%</li>
                     <li class="up">CRT(li) 6.2%</li>
                     <li class="d">MSSL -6.1%</li>
-                    <li class="up">CRT(li) 6.2%</li>
+                    <li class="up">CRT(li) 5.5%</li>
                     <li class="d">MSSL -6.1%</li>
                     <li class="up">CRT(li) 6.2%</li>
                     <li class="d">MSSL -6.1%</li>
@@ -58,18 +80,48 @@
             <div class="content" id="content">
                 <div class="news">
                     <div class="big-news">
-                        <img src="/images/bank/news-imges/rand (1).jpg" alt="bn">
+                        <img src="/images/bank/news-imges/rand (2).jpg" alt="bn">
                         <div class="gradiant-overlay"></div>
                         <span>MSSL stock drops over 6% after results fall short in latest AI disappointment</span>
                     </div>
                     <ul>
                         <li>AXLO tanks 11% after Q3 reports</li>
                         <li>LLO pulls new clothing line that may be the thing.</li>
+                        <li>Investers say NNO wont get anywhere next year after the scandle</li>
+                        <li>CRT Hires New CEO and has great plans for the company</li>
+                        <li>MIL lays off 2,000 workers</li>
+                        <li>OOP sees consolidated revenues grow 6.2%</li>
                     </ul>
                 </div>
-
+                <div class="movers">
+                    <div class="mover">
+                        <span class=" it title bold">Top Movers</span>
+                        <div class="win-lose">
+                            <div class="mov-sec">
+                                <div class="title  w-l">
+                                     winners
+                                </div>
+                                <ul>
+                                    <li class="up">oop 60.2% | 459.62 (134.29)</li>
+                                    <li class="up">VVL 6.2% | 119.12 (14.39)</li>
+                                    <li class="up">CRT(li) 6.2% | 93.11 (5.01)</li>
+                                </ul>
+                            </div>
+                            <div class="mov-sec">
+                                <div class="title  w-l">
+                                     losers
+                                </div>
+                                <ul>
+                                    <li class="d">oop 6.2%</li>
+                                    <li class="d">VVL 6.2%</li>
+                                    <li class="d">CRT(li) 6.2%</li>
+                                </ul>
+                            </div>
+                        </div>
+                </div>
             </div>
         </div>
     </div>
 </body>
+<script src="./js/global.js"></script>
 </html>

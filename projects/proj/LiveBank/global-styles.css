@@ -1,7 +1,143 @@
 body {
     overflow-x: none;
     repeat: no-repeat;
-    font-family: roboto;
+    font-family: inter;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+}
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+th {
+    background-color: #f2f2f2;
+}
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.alt-btn {
+    background-color: rgb(214, 117, 7);
+}
+
+.d {
+    background-color: rgba(165, 42, 42, 0.438);
+    color: rgb(140, 8, 8);
+}
+
+.up {
+    background-color: rgba(42, 165, 155, 0.438);
+    color: rgb(53, 133, 53);
+}
+
+.up::before {
+    content: '▲';
+}
+
+.d::before {
+    content: '▼';
+}
+
+.m {
+    background-color: rgba(153, 165, 42, 0.438);
+}
+
+
+.stat {
+    background-color: green;
+}
+
+.green{
+    color: green;
+}
+
+.red {
+    color: rgb(177, 0, 0);
+}
+
+.sub-6 {
+    font-size: 0.6rem;
+}
+
+.sub-5 {
+    font-size: 0.5rem;
+}
+
+.sub-4 {
+    font-size: 0.4rem;
+}
+
+.sub-3 {
+    font-size: 0.3rem;
+}
+
+.sub-2 {
+    font-size: 0.2rem;
+}
+
+.sub-1 {
+    font-size: 0.1rem;
+}
+
+
+.stat-err {
+    background-color: rgb(181, 8, 8);
+}
+
+.cards {
+    display: flex;
+    max-width: 8rem;
+    gap: .1rem;
+    flex-wrap: wrap;
+}
+
+.cards img {
+    width: 3rem;
+    border-radius: 6%;
+}
+
+
+.i-v.logo {
+    background-color: rgb(27, 97, 183);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo-imgs {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.accountPicker {
+    width: 6.3rem;
+    margin-right: 2.5rem;
+}
+
+.portolioValue {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: rgb(233, 239, 255);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.268) 0%, rgba(138,171,216,0) 59%);
+}
+
+.portolioValue span:nth-child(1) {
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.portolioValue span:nth-child(2) {
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
 .notif {
@@ -74,6 +210,48 @@ body {
     background-color: rgb(27, 97, 183);    
 }
 
+.icono {
+    position: relative;
+}
+
+.icono img  {
+    width: 100%;
+    object-fit: cover;
+}
+
+.notificationIcon {
+    position: absolute;
+    background-color: rgb(209, 55, 27);
+    color: white;
+    border-radius: 50%;
+    width: 1rem;
+    height: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0rem;
+    right: 0rem;
+    transform: scale(0.8);
+}
+
+
+
+.options {
+    position: absolute;
+    top: 0.3rem;
+    left: 0.3rem;
+    z-index: 999;
+    width: 10vw;
+    /* display: flex; */
+    display: none;
+}
+
+.option-item {
+    width: 2rem;
+    height: 2rem;
+    background-color: rgba(59, 86, 85, 0.5);
+}
+
 .logo {
     background-color: rgb(27, 97, 183); 
     display: flex;  
@@ -107,21 +285,39 @@ body {
     background-color: rgb(233, 235, 246);
 }
 
-input {
+input, select {
     padding: 10px;
-    border: 1px solid rgba(27, 97, 183, 0.54);
+    border: 1px solid rgba(27, 97, 183, 0.187);
     border-radius: 5px;
     font-size: 0.7rem;
 }
 
+select {
+    width: 100%;
+    font-weight: 600;
+}
 button {
     padding: 10px;
     border: 1px solid rgba(27, 97, 183, 0.54);
-    border-radius: 5px;
     font-size: 0.7rem;
     background-color: rgb(27, 97, 183);
     color: white;
     cursor: pointer;
+    transition: 0.125s;
+}
+
+.person {
+    width: 34px !important;
+    height: 34px !important;
+    opacity: 0.9;
+}
+
+button:hover {
+    background-color: rgb(19, 63, 117);
+}
+
+.sub {
+    color: rgba(11, 22, 92, 0.496);
 }
 
 #acc-sec {
@@ -133,6 +329,7 @@ button {
     flex-direction: column;
     border: solid 3px rgba(27, 97, 183, 0.54);
     width: 100%;
+    margin-bottom: 1rem;
 }
 
 .top {
@@ -152,6 +349,29 @@ button {
 
 .acc-name {
     font-style: italic;
+}
+
+.des {
+    font-weight: 400;
+    font-size: 0.5rem;
+}
+
+#transfer {
+    display: flex;
+    flex-direction: column !important;
+    align-items: flex-start;
+    gap: 0.3rem;
+}
+
+.w100 {
+    width: 80% !important;
+}
+
+
+
+label {
+    color: gray;
+    font-size: 0.7rem;
 }
 
 .balance {

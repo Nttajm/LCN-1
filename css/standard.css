@@ -30,6 +30,7 @@ p, a {
   border: none;
   border-style: none;
   background-color: transparent;
+  color: inherit;
 }
 
 .pos-cent {
@@ -129,6 +130,11 @@ p, a {
 .fl-ai {
   display: flex;
   align-items: center !important;
+}
+
+.fl-bl {
+  display: flex !important;
+  align-items: baseline !important;
 }
 
 .fl-jsp-c {
@@ -240,6 +246,14 @@ ul, li {
   scrollbar-width: none;  /* Firefox */
 }
 
-.stander_er-cap {
+.stand_er-upper {
   text-transform: uppercase;
+}
+
+.stand_er-lower {
+  text-transform: lowercase;
+}
+
+.stand_er-capitalize {
+  text-transform: capitalize;
 }
