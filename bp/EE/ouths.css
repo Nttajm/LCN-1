@@ -1,0 +1,138 @@
+body {
+    background-color: rgb(7, 31, 92);
+}
+
+:root {
+    font-size: 20px;
+    --main-bg:  rgb(7, 31, 92);
+    --secondary-bg: rgb(26, 26, 74);
+    --lime:  rgb(44, 214, 121)
+}
+
+.cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+}
+
+.multi-tag {
+    background-color:var(--secondary-bg);
+    width: 100%;
+    color: white;
+    padding: 0.3rem;
+    border-radius: 10px;
+    font-weight: 600;
+    margin: 0.6rem 0rem;
+    padding: .6rem .3rem;  
+    display: flex;
+    border: solid 1px var(--lime);
+    box-sizing: border-box;
+    font-family: roboto;
+    gap: 0.5rem;
+}
+
+.multi-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background-color: var(--lime);
+    border-radius: 0.2rem;
+    font-family: roboto;
+    padding: 0.2rem;
+}
+
+.bet {
+    border: solid lime 1px;
+    border-radius: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(26, 26, 74);
+    color: white;
+    font-family: inter;
+    position: relative;
+    margin: 1rem 0rem;
+}
+
+.multi {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-weight: 500;
+}
+
+.multi.r:nth-child(2) {
+    left: 1.5rem;
+    color: var(--lime);
+}
+
+.name {
+    margin: 1rem 0rem;
+    font-weight: 300;
+}
+
+.bold {
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.for {
+    background-color: gray;
+    width: 100%;
+    text-align: center;
+    padding: 0.3rem;
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+
+.for span:first-child {
+    color: rgb(44, 214, 121);
+    font-weight: 600;
+}
+
+.for span:last-child {
+    color: rgba(255, 255, 255, 0.824);
+    font-weight: 300;
+}
+
+.game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.button-sec {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.2rem;
+}
+
+.btn {
+    padding: 0.2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 0.3rem;
+}
+
+.game-img {
+    width: 30%;
+    margin-top: 2rem;
+}
+
+.green-btn {
+    background-color: rgb(44, 214, 121);
+    color: white;
+}
+
+.red-btn {
+    background-color: rgb(214, 44, 44);
+    color: white;
+}
+
+.blue-btn {
+    background-color: rgb(44, 44, 214);
+    color: white;
+}
