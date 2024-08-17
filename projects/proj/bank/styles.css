@@ -327,10 +327,11 @@ ul {
   font-weight: 600;
 }
 
-#shops {
+.shops {
   flex-direction: row !important;
   gap: 0.8rem;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .shop span:first-child{
@@ -350,11 +351,24 @@ ul {
   background-color: green;
 }
 
+.multi {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-family: monospace;
+  font-style: italic;
+  font-size: 0.7rem !important;
+}
+
 .stand_er-disabled {
   cursor: not-allowed !important;
   pointer-events: none !important;
   background-color: rgb(131, 131, 131) !important;
   color: rgba(255, 255, 255, 0.617) !important;
+}
+
+.corner-shop {
+  background-color: rgb(231, 169, 122);
 }
 
 .sub {
@@ -366,6 +380,7 @@ ul {
   width: 14rem;
   align-items: flex-start;
   gap: 0.1rem;
+  position: relative;
 }
 
 .phone {
@@ -373,6 +388,7 @@ ul {
   bottom: 1rem;
   right: 1rem;
   width: 10rem;
+  display: none;
 }
 
 .iphone {
@@ -402,3 +418,6 @@ ul {
   font-weight: 600;
 }
 
+.lem-shop {
+  background-color: rgb(255, 255, 123);
+}
