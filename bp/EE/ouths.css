@@ -16,6 +16,35 @@ body {
     padding: 1rem;
 }
 
+.nav {
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.collapse {
+    animation: collapse .6s ease forwards;
+}
+
+@keyframes collapse {
+
+    100% {
+        height: 0px !important;
+        opacity: 0;
+        font-size: 0px;
+        padding: 0px;
+
+    }
+}
+
+.bal {
+    color: white;
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-family: roboto;
+}
+
 .multi-tag {
     background-color:var(--secondary-bg);
     width: 100%;
@@ -30,6 +59,7 @@ body {
     box-sizing: border-box;
     font-family: roboto;
     gap: 0.5rem;
+    align-items: center;
 }
 
 .multi-title {
@@ -54,6 +84,16 @@ body {
     font-family: inter;
     position: relative;
     margin: 1rem 0rem;
+}
+
+.sub {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.486);
+}
+
+.ended {
+    background-color: rgba(44, 44, 44, 0.809);
+    opacity: 0.8;
 }
 
 .multi {
@@ -135,4 +175,18 @@ body {
 .blue-btn {
     background-color: rgb(44, 44, 214);
     color: white;
+}
+
+.cashout {
+    position: fixed;
+    bottom: 1.2rem;
+    right: 1.2rem;
+    background-color: var(--lime);
+    padding: 0.6rem;
+    z-index: 999;
+    border-radius: 0.6rem;
+}
+
+.inactive  {
+    background-color: gray !important;
 }
