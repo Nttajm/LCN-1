@@ -1,26 +1,26 @@
-export let bets = JSON.parse(localStorage.getItem('bets')) || [
+export let bets = [
     {
         sport: "soccer",
         details: [
             {
-                typeBet: "Passes Attempted",
+                typeBet: "Goals",
                 against: "Celtic",
-                time: "8-10-2024 00:00",
+                time: "8-20-2024 14:00",
                 idl: `1s`,
                 bet: "20",
-                cash: 5,
-                betStatus: 'over',
-                result: "under",
+                cash: 90,
+                betStatus: '',
+                result: "",
                 status: "",
             },
             {
-                typeBet: "Passes Attempted",
+                typeBet: "Goals",
                 against: "Celtic",
                 time: "8-19-2024 22:00",
                 idl: `2s`,
-                bet: "20",
-                cash: 15,
-                betStatus: 'over',
+                bet: "2.5",
+                cash: 75,
+                betStatus: '',
                 result: "under",
                 status: "",
             },
