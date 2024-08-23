@@ -8,6 +8,7 @@
 
 .business {
     display: flex;
+    flex-direction: column;
     background-color: rgb(233, 235, 246);
     margin: 10px;
     border: dashed 3px rgb(120, 136, 228);
@@ -53,8 +54,39 @@
     color: gray;
 }
 
+.load-div {
+    background-color: rgba(128, 128, 128, 0.279);
+}
+
 .loader {
-    background-color: red;
-    width: 100%;
-    height: 20px;
+    background-color: rgb(183, 182, 182);
+    width: 10%;
+    height: 10px;
+}
+
+.upgrades-div-title {
+    background-color: rgb(27, 97, 183);
+    color: rgb(221, 221, 221);
+    padding: 0.2rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.upgrade {
+    border: solid 3px rgba(27, 97, 183, 0.54);
+    margin: 5px;
+    padding: 0.1rem;
+    display: flex;
+}
+
+.upgrade div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 50%;
+}
+
+.upgrade button {
+    margin: 3px;
 }

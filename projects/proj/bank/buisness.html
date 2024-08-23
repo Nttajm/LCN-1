@@ -19,11 +19,34 @@
     </div>
     <div id="accounts"></div>
     <div id="businesses"></div>
-    <div id="shops" class="sec"></div>
+    <div id="shops" class="sec">
+        <!-- <div class="shop bui lem-shop">
+            <div class="shop-top fl-c">
+                <span class="name">${business.type} #${index + 1}</span>
+                <span class="sub">Type: ${business.type}</span>
+                <span class="stat">Income: 2</span>
+                <span>Employees: 1</span>
+            </div>
+            <span class="multi">xsss</span>
+            <div class="shop-top">
+                <button class="red" onclick="fireEmployee(${account.id}, ${index})">FIRE -1</button>
+                <button class="stat-bg stand_er" onclick="hireEmployee(${account.id}, ${index})" ${business.currentEmployees >= business.employees ? 'disabled' : ''}>HIRE</button>
+            </div>
+            <div class="shop-top">
+                <button class="" onclick="upgradeBusiness(${account.id}, ${index})">UPGRADE ($${formatNumberWithCommas(business.upgradeCost)})</button>
+            </div>
+            <div class="shop-top">($${formatNumberWithCommas(business.totalEarnings)})</div>
+        </div> -->
+    </div>
 
     <div class="sec">
         <select id="businessAccountSelect"></select>
         <div class="bui-sec">
+            <div class="bui">
+                <span>lemonade</span>
+                <span class="stat">$7/int</span>
+                <button id="buyShop-lemon">Buy Shop ($500)</button>
+            </div>
             <div class="bui">
                 <span>Simple corner shop</span>
                 <span class="stat">$32/int</span>
