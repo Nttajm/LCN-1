@@ -113,7 +113,7 @@ tr:nth-child(even) {
 .logo-imgs {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 1rem;
 }
 
 .accountPicker {
@@ -125,7 +125,7 @@ tr:nth-child(even) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 0.5rem;
     color: rgb(233, 239, 255);
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.268) 0%, rgba(138,171,216,0) 59%);
 }
@@ -195,12 +195,12 @@ tr:nth-child(even) {
 
 .nav ul {
     display: flex;
-    gap: 10px;
+    gap: 0.5rem;
     background-color: rgba(89, 80, 80, 0.418);
 }
 
 .nav ul li {
-    padding: 10px;
+    padding: 0.5rem;
     cursor: pointer;
     font-weight: 500;
     color: white;
@@ -266,8 +266,8 @@ tr:nth-child(even) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    padding: 20px;
+    gap: 1rem;
+    padding: 1rem;
 }
 
 .message {
@@ -275,7 +275,7 @@ tr:nth-child(even) {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 1rem;
     margin-top: 1rem;
     margin-bottom: 1rem;
     width: 60%;
@@ -386,6 +386,9 @@ label {
     font-size: 1.5rem;
     font-weight: 500;
 }
+.chart {
+    width: 90%;
+}
 
 .in-out {
     display: flex;
@@ -416,3 +419,32 @@ label {
     font-size: 0.5rem;
     text-align: right;
 }
+
+
+@media all and (width > 1280px) { 
+    :root {
+        font-size: 20px;
+    }
+}
+
+@media all and (min-width: 1124px) and (max-width: 1280px) { 
+    :root {
+        font-size: 20px;
+    }
+}
+
+@media all and (min-width: 768px) and (max-width: 1124px) { 
+    :root {
+        font-size: 16px;
+    }
+
+    #info-text {
+        display: none;
+    }
+ }
+
+@media all and (min-width: 480px) and (max-width: 768px) { 
+    :root {
+        font-size: 10px;
+    }
+ }

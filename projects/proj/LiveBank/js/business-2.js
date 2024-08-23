@@ -1,8 +1,8 @@
 const data = {
     labels: ['HR', 'TRANSPORTAION', 'GAIN', 'EXPIRENCE', 'STRATEGY'],
       datasets: [{
-        label: 'XP',
-        data: [14, 23, 16, 15, 19],
+        label: 'LEVEL',
+        data: [5, 2, 3, 10, 3],
         backgroundColor: [
             'rgb(255, 99, 132)',
             'rgb(54, 162, 235)',

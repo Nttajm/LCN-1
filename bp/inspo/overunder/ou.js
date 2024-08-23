@@ -20,10 +20,15 @@ bets.forEach(bet => {
   container.innerHTML += `
     <div class="bet">
       <span>${bet.name}</span>
-      <div class="button-sec">
-        <button>over</button>
-        <button>under</button>
+      <div class="button-sec" id="btn-${bet.id}">
+        <button class="over">over</button>
+        <button class="under">under</button>
       </div>
     </div>
   `
+
+  const overBtn = document.querySelector(`.button-sec #btn-${bet.id}`)
+  const underBtn = document.querySelector(`.button-sec #btn-${bet.id}`)
+
+
 });
