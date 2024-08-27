@@ -1,54 +1,47 @@
+import { soccerBets } from './bets.js';
+import { basketballBets } from './bets.js';
+
 let balance = 0;
 const balanceOutput = document.querySelector('.balance');
 let container = document.querySelector('.sec'); 
 const multi = 1;
 
+const options = document.querySelectorAll('.sport-option');
+
+// Function to remove 'selected' class from all divs
+function clearSelection() {
+    options.forEach(div => div.classList.remove('selected'));
+}
+
+// Add event listeners to each div
+options.forEach(div => {
+    div.addEventListener('click', function() {
+        clearSelection(); // Clear previous selection
+        this.classList.add('selected'); // Add 'selected' class to clicked div
+        filterBets(); // Re-filter bets based on the selected option
+        renderBets(); // Re-render bets after filtering
+    });
+});
+
+// const choosebetElement = document.querySelector('.choosebet');
+// let choosebet = 
+
 // localStorage.removeItem('userBets');
 
 balanceOutput.innerHTML = '';
 balanceOutput.insertAdjacentHTML('beforeend', `<span>$${balance}</span>`);
-
-
 const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
-const bets = [
-  {
-    sport: 'soccer',
-    techTeam: 'Tech High Soccer (F)',
-    against: 'Real Madrid',
-    id: '3s',
-    amount: .5,
-    typeBet: 'Goals',
-    status: '',
-    option: '',
-    result: '',
-    price: 20,
-  },
-  {
-    sport: 'soccer',
-    techTeam: 'Tech High Soccer (F)',
-    against: 'Middle Town',
-    id: '2s',
-    amount: 1.5,
-    typeBet: 'Goals',
-    status: 'ended',
-    option: '',
-    result: 'under',
-    price: 20,
-  },
-  {
-    sport: 'soccer',
-    techTeam: 'Tech High Soccer (F)',
-    against: 'Celtic',
-    id: '1s',
-    amount: 2.5,
-    typeBet: 'Goals',
-    status: 'ended',
-    option: 'under',
-    result: 'under',
-    price: 75,
-  },
-];
+let allBets = [...soccerBets, ...basketballBets];
+let bets = filterBets();
+let reward = [];
+
+function filterBets() {
+  const selectedBetElem = document.querySelector('.sport-option.selected'); // Get the currently selected sport
+  const selectedSport = selectedBetElem ? selectedBetElem.textContent.toLowerCase() : '';
+  return allBets.filter(bet => bet.sport === selectedSport);
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
   updateButtons();
@@ -56,20 +49,28 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function checkBetsAndUpdateBalance() {
-  balance = 0; // Reset balance calculation
-  bets.forEach(bet => {
-    if (bet.result) {
-      const userBet = userBets.find(uBet => uBet.matchingBet === bet.id);
-      if (userBet && userBet.option === bet.result) {
-        balance += bet.price;
+  balance = 0; // No 'let' here, update the global variable
+  userBets.forEach(userBet => {
+    const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
+    if (matchingBet) {
+      // Check if the user's option matches the bet result
+      if (matchingBet.result === userBet.option) {
+        balance += matchingBet.price;
+      } else if (matchingBet.result !== userBet.option && (matchingBet.result === 'over' || matchingBet.result === 'under')) {
+        balance -= matchingBet.price;
       }
+      // No need to check for an empty result because it doesn't change the balance
     }
   });
+  // Update the UI with the new balance
+  balanceOutput.innerHTML = `<span>$${balance}</span>`;
 }
-
-checkBetsAndUpdateBalance()
+checkBetsAndUpdateBalance();
 
 function renderBets() {
+  bets = filterBets(); // Re-filter bets based on the currently selected option
+
+  checkBetsAndUpdateBalance();
   container.innerHTML = '';
 
   bets.forEach(bet => {
@@ -81,6 +82,8 @@ function renderBets() {
 
     if (bet.sport === 'soccer') { 
       imgType = '/bp/EE/assets/ouths/soccerball.png';
+    } else if (bet.sport === 'basketball') {
+      imgType = '/bp/EE/assets/ouths/basketball.webp';
     }
 
     const userBet = userBets.find(uBet => uBet.matchingBet === bet.id);
@@ -128,6 +131,7 @@ function renderBets() {
         <div class="button-sec" id="btn-${bet.id}">
           ${buttonsHtml}
         </div>
+        <span class="">${formatDateTime(bet.date)}</span>
         <span class="bold">${additionalText}</span>
       </div>
     `);
@@ -160,7 +164,6 @@ function updateButtons() {
   userBets.forEach(userBet => { 
     const overBtn = document.querySelector(`#btn-${userBet.matchingBet} .over`);
     const underBtn = document.querySelector(`#btn-${userBet.matchingBet} .under`);
-    console.log(overBtn, underBtn);
 
     if (overBtn && underBtn) {
       if (userBet.option === 'over') {
@@ -196,6 +199,47 @@ function updateUserBet(betId, option) {
   // Re-render the bets
   renderBets();
 }
+
+function formatDateTime(dateTimeStr) {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  // Split the input date string into date and time
+  let [datePart, timePart] = dateTimeStr.split(" ");
+  
+  // Split the date and time into components
+  let [month, day] = datePart.split("-");
+  let [hours, minutes] = timePart.split(":");
+  
+  // Convert to 12-hour format
+  let period = "am";
+  hours = parseInt(hours, 10);
+  if (hours >= 12) {
+      period = "pm";
+      if (hours > 12) {
+          hours -= 12;
+      }
+  } else if (hours === 0) {
+      hours = 12;
+  }
+  
+  // Handle the "th", "st", "nd", "rd" suffix for the day
+  let daySuffix;
+  if (day === "1" || day === "21" || day === "31") {
+      daySuffix = "st";
+  } else if (day === "2" || day === "22") {
+      daySuffix = "nd";
+  } else if (day === "3" || day === "23") {
+      daySuffix = "rd";
+  } else {
+      daySuffix = "th";
+  }
+  
+  // Format the final string
+  let formattedDateTime = `${months[month - 1]} ${parseInt(day, 10)}${daySuffix} ${hours}:${minutes}${period}`;
+  
+  return formattedDateTime;
+}
+
 // Initial rendering of bets
 renderBets();
 console.log(userBets);

@@ -3,23 +3,89 @@ body {
     padding: 0.4rem !important;
 }
 
+button:active {
+    background-color: gray;
+    color: white;
+}
+
+button {
+    cursor: pointer !important;
+}
+
 :root {
     font-size: 20px;
     --main-bg:  rgb(7, 31, 92);
     --secondary-bg: rgb(26, 26, 74);
+    --3-bg: rgb(44, 44, 141);
     --lime:  rgb(44, 214, 121)
 }
 
 .sec {
     font-family: roboto !important;
 }
+
 .nav {
     color: white;
     display: flex;
     justify-content: space-between;
     width: 100%;
+    align-items: center;
+    padding: 0.5rem;
+    box-sizing: border-box  ;
 }
 
+.sports {
+    display: flex;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    font-family: roboto;
+}
+
+.sports span {
+    cursor: pointer;
+    background-color: var(--3-bg);
+    padding: 0.2rem;
+    border-radius: 0.3rem;
+}
+
+.selected {
+    background-color: var(--lime) !important;
+    color: white;
+}
+
+.bal {
+    color: white;
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-family: roboto;
+}
+
+.multi-tag {
+    background-color:var(--secondary-bg);
+    width: 100%;
+    color: white;
+    padding: 0.3rem;
+    border-radius: 10px;
+    font-weight: 600;
+    margin: 0.6rem 0rem;
+    padding: .6rem .3rem;  
+    display: flex;
+    border: solid 1px var(--lime);
+    box-sizing: border-box;
+    font-family: roboto;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.multi-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background-color: var(--lime);
+    border-radius: 0.2rem;
+    font-family: roboto;
+    padding: 0.2rem;
+}
 
 .bet {
     border: solid lime 1px;
@@ -66,7 +132,7 @@ body {
 }
 
 .game-img {
-    width: 30%;
+    width: 7rem;
     margin-top: 2rem;
 }
 
