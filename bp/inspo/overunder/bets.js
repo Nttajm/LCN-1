@@ -1,22 +1,9 @@
 export const soccerBets  = [
     {
-        sport: 'soccer',
-        techTeam: 'Tech High Soccer (VG)',
-        against: 'Rancho',
-        id: '4s',
-        amount: .5,
-        typeBet: 'Goals',
-        status: '',
-        option: '', // dont mess with this
-        result: '',
-        price: 145,
-        date: '8-29 11:00',
-      },
-    {
       sport: 'soccer',
       techTeam: 'Tech High Soccer (VG)',
-      against: 'Real Madrid',
-      id: '3s',
+      against: 'Credo',
+      id: '5s',
       amount: .5,
       typeBet: 'Goals',
       status: '',
@@ -57,7 +44,7 @@ export const soccerBets  = [
     {
         sport: 'basketball',
         techTeam: 'Tech High Basketball (VB)',
-        against: 'Celtic',
+        against: 'Victory Christian Academy',
         id: '1b',
         amount: 42.5,
         typeBet: 'Points',
