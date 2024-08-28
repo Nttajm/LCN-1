@@ -1,5 +1,6 @@
 import { soccerBets } from './bets.js';
 import { basketballBets } from './bets.js';
+import { volleyballBets } from './bets.js';
 
 let balance = 0;
 const balanceOutput = document.querySelector('.balance');
@@ -32,7 +33,7 @@ balanceOutput.innerHTML = '';
 balanceOutput.insertAdjacentHTML('beforeend', `<span>$${balance}</span>`);
 const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
-let allBets = [...soccerBets, ...basketballBets];
+let allBets = [...soccerBets, ...basketballBets, ...volleyballBets];
 let bets = filterBets();
 let reward = [];
 
@@ -84,7 +85,7 @@ function renderBets() {
       imgType = '/bp/EE/assets/ouths/soccerball.png';
     } else if (bet.sport === 'basketball') {
       imgType = '/bp/EE/assets/ouths/basketball.webp';
-    }
+    } 
 
     const userBet = userBets.find(uBet => uBet.matchingBet === bet.id);
 
