@@ -85,7 +85,9 @@ function renderBets() {
       imgType = '/bp/EE/assets/ouths/soccerball.png';
     } else if (bet.sport === 'basketball') {
       imgType = '/bp/EE/assets/ouths/basketball.webp';
-    } 
+    }  else if (bet.sport === 'volleyball') {
+      imgType = '/bp/EE/assets/ouths/volleyball.png';
+    }
 
     const userBet = userBets.find(uBet => uBet.matchingBet === bet.id);
 
