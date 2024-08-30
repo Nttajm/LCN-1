@@ -116,7 +116,7 @@ export const soccerBets  = [
     id: '1v',
     amount: .5,
     typeBet: 'Set(s)',
-    status: '',
+    status: 'ended',
     option: '',
     result: '',
     price: 20,
