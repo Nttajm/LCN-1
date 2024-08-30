@@ -95,16 +95,31 @@ export const soccerBets  = [
       },
   ]
 
-  export const volleyballBets = [{
+  export const volleyballBets = [
+    {
+      sport: 'volleyball',
+      techTeam: 'Tech High Volleyball (VG)',
+      against: 'Anderson Valley Volleyball',
+      id: '2v',
+      amount: 1.5,
+      typeBet: 'Set(s)',
+      status: '',
+      option: '',
+      result: '',
+      price: 20,
+      date: '8-28 19:30',
+    },
+    {
     sport: 'volleyball',
     techTeam: 'Tech High Volleyball (VG)',
     against: 'Rio lindo Adventist Academy',
     id: '1v',
     amount: .5,
     typeBet: 'Set(s)',
-    status: 'ended',
+    status: '',
     option: '',
     result: '',
     price: 20,
     date: '8-28 18:00',
-  },];
+  },
+];
