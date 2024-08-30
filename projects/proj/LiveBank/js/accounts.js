@@ -4,6 +4,8 @@ let hiddenStates = localStorage.getItem('hiddenStates') ? JSON.parse(localStorag
 
 const contentDiv = document.getElementById('content');
 
+let creditScore = 0; 
+
 
 function saveHiddenStates() {
     localStorage.setItem('hiddenStates', JSON.stringify(hiddenStates));

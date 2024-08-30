@@ -6,9 +6,9 @@ export const soccerBets  = [
       id: '5s',
       amount: .5,
       typeBet: 'Goals',
-      status: '',
+      status: 'ended',
       option: '', // dont mess with this
-      result: '',
+      result: 'over',
       price: 145,
       date: '8-28 18:00',
     },
