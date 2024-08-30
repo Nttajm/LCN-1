@@ -199,6 +199,7 @@ button {
 
   .collapse {
     animation: collapse .6s ease forwards;
+    pointer-events: none;
 }
 
 @keyframes collapse {
