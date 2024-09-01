@@ -3,6 +3,10 @@ body {
     padding: 0.4rem !important;
 }
 
+a {
+    color: inherit;
+}
+
 button:active {
     background-color: gray;
     color: white;
@@ -17,17 +21,24 @@ button {
     --main-bg:  rgb(7, 31, 92);
     --secondary-bg: rgb(26, 26, 74);
     --3-bg: rgb(44, 44, 141);
-    --lime:  rgb(44, 214, 121)
+    --lime:  rgb(44, 214, 121);
+    --red: rgb(214, 44, 44); 
 }
 
 .sec {
     font-family: roboto !important;
 }
 
+.sub {
+    font-size: 0.5rem;
+    font-family: roboto;
+    opacity: 0.4;
+}
+
 .nav {
     color: white;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     width: 100%;
     align-items: center;
     padding: 0.5rem;
@@ -87,19 +98,24 @@ button {
     padding: 0.2rem;
 }
 
-.bet {
+.card {
     border: solid lime 1px;
     border-radius: 1rem;
-    display: flex;
-    gap: 0.5rem;
     padding: 0.6rem;
-    flex-direction: column;
-    align-items: center;
     background-color: rgb(26, 26, 74);
     color: white;
     font-family: inter;
-    position: relative;
     margin: 1rem 0rem;
+}
+
+.bet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: inter;
+    position: relative;
+    gap: 0.5rem;
+    width: calc(100% - 2rem);
 }
 
 .ended , .ongoing {
@@ -120,9 +136,27 @@ button {
     color: var(--lime);
 }
 
+.nav-top {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+
+.img-sec  img{
+    width: 10rem;
+}
+
   .money {
     font-weight: 600;
-    font-size: 2rem;
+    font-size: 1.5rem;
+    font-family: inter;
+    font-style: italic;
+    color: var(--lime);
+  }
+
+  .negative {
+    color: rgb(214, 44, 44) !important;
   }
 
   .game {
@@ -202,6 +236,38 @@ button {
     pointer-events: none;
 }
 
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    background-color: var(--3-bg);
+
+    display: flex;
+    justify-content: space-around;
+    font-family: inter;
+    color: white;
+    padding: 0.3rem;
+}
+
+.bn-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.3rem;
+    padding: 0.3rem;
+    cursor: pointer;
+}
+
+.bn-item.sel {
+    border-bottom: solid 3px var(--lime);
+}
+
+.icon {
+    width: 1.6rem;
+}
+
 @keyframes collapse {
 
     100% {
@@ -264,6 +330,7 @@ button {
 
 @media all and (max-width: 480px) { 
 
-    .sec {
+    .bet {
+        width: calc(100% - 2rem);
     }
  }

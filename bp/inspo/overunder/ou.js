@@ -7,6 +7,10 @@ const balanceOutput = document.querySelector('.balance');
 let container = document.querySelector('.sec'); 
 const multi = 1;
 
+const balanceElem = document.querySelector('.balance');
+
+
+
 const options = document.querySelectorAll('.sport-option');
 
 // Function to remove 'selected' class from all divs
@@ -31,9 +35,9 @@ options.forEach(div => {
 
 balanceOutput.innerHTML = '';
 balanceOutput.insertAdjacentHTML('beforeend', `<span>$${balance}</span>`);
-const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
+export const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
-let allBets = [...soccerBets, ...basketballBets, ...volleyballBets];
+export let allBets = [...soccerBets, ...basketballBets, ...volleyballBets];
 let bets = filterBets();
 let reward = [];
 
@@ -67,6 +71,12 @@ function checkBetsAndUpdateBalance() {
   balanceOutput.innerHTML = `<span>$${balance}</span>`;
 }
 checkBetsAndUpdateBalance();
+
+if (balance < 0) {
+  balanceElem.classList.add('negative');
+} else {
+  balanceElem.classList.remove('negative');
+}
 
 function renderBets() {
   bets = filterBets(); // Re-filter bets based on the currently selected option
@@ -117,7 +127,7 @@ function renderBets() {
     }
 
     container.insertAdjacentHTML('beforeend', `
-      <div class="bet ${betClass}">
+      <div class="bet ${betClass} card">
             <span class="multi it">${multi}x</span>
             <span class="multi it r">$${bet.price}</span>
             <div class="game">
@@ -247,3 +257,30 @@ function formatDateTime(dateTimeStr) {
 renderBets();
 console.log(userBets);
 console.log(bets);
+
+
+function generateRandomString() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  const length = 8;
+
+  for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters[randomIndex];
+  }
+
+  return result;
+}
+
+
+let playerId = localStorage.getItem('playerId') || '';
+const randomString = generateRandomString();
+const playerIdElem = document.querySelector('.player-id');
+
+if (!playerId) {
+  playerId = randomString;
+  localStorage.setItem('playerId', playerId);
+}
+
+playerIdElem.innerHTML = playerId;
+
