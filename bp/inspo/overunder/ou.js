@@ -101,7 +101,7 @@ function renderBets() {
 
     const userBet = userBets.find(uBet => uBet.matchingBet === bet.id);
 
-    if (bet.status === 'ended') {
+    if (bet.status === 'ended' || bet.result) {
       betClass = 'ended';
     } else if (bet.status === 'ongoing') { 
       betClass = 'ongoing';

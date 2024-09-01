@@ -28,6 +28,9 @@ button {
 .sec {
     font-family: roboto !important;
     padding-bottom: 4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .sub {
@@ -256,8 +259,9 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     padding: 0.3rem;
+    font-weight: 600;
     cursor: pointer;
 }
 
