@@ -7,7 +7,7 @@ divLinkers.forEach(div => {
 }
 );
 
- export function formatDateTime(dateTimeStr) {
+export function formatDateTime(dateTimeStr) {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
     // Split the input date string into date and time
