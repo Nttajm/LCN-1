@@ -1,9 +1,9 @@
-import { soccerBets } from "./bets.js";
+import { schoolBets, soccerBets } from "./bets.js";
 import { basketballBets } from "./bets.js";
 import { volleyballBets } from "./bets.js";
 import { formatDateTime } from "./global.js";
 
-const allBets = [...soccerBets, ...basketballBets, ...volleyballBets];
+const allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets];
 const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
 let balance = 0;
