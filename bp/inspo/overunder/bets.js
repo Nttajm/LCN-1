@@ -216,9 +216,9 @@ export const schoolBets = [
     price: 20,
     against: 'Mr weaver',
     typeBet: 'crashout',
-    status: '',
+    status: 'ended',
     option: '',
-    result: '',
+    result: 'over',
     amount: .5,
   },
 ]
