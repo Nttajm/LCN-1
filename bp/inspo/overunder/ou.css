@@ -16,6 +16,15 @@ button {
     cursor: pointer !important;
 }
 
+input {
+    padding: 0.3rem;
+    border-radius: 0.3rem;
+    border: none;
+    background-color:rgb(44, 44, 128);
+    color: white;
+    font-family: inter;
+}
+
 :root {
     font-size: 20px;
     --main-bg:  rgb(7, 31, 92);
@@ -23,6 +32,10 @@ button {
     --3-bg: rgb(44, 44, 141);
     --lime:  rgb(44, 214, 121);
     --red: rgb(214, 44, 44); 
+}
+
+.op-5 {
+    opacity: 0.5;
 }
 
 .sec {

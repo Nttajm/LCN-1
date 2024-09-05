@@ -9,7 +9,7 @@ export const soccerBets  = [
     status: '',
     option: '',
     result: '',
-    price: 60,
+    price: 90,
     date: '9-11 16:30',
   },
   {
