@@ -1,6 +1,7 @@
 body {
     background-color: rgb(7, 31, 92);
     padding: 0.4rem !important;
+    overflow-x: hidden;
 }
 
 a {
@@ -65,6 +66,7 @@ input {
 .sports {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
     font-weight: 600;
     font-size: 1.2rem;
     font-family: roboto;
