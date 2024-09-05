@@ -140,7 +140,7 @@ export const soccerBets  = [
       techTeam: 'Tech High Volleyball (VG)',
       against: 'Elsie Allen ',
       id: '3v',
-      amount: 1.5,
+      amount: .5,
       typeBet: 'Set(s)',
       status: '',
       option: '',
@@ -178,6 +178,29 @@ export const soccerBets  = [
 
 export const schoolBets = [
   {
+    id: '3sh',
+    sport: 'school',
+    price: 15,
+    against: 'Kevin Bai',
+    typeBet: 'Airballs',
+    status: '',
+    option: '',
+    result: '',
+    amount: 11.5,
+  },
+  {
+    id: '2sh',
+    sport: 'school',
+    price: 15,
+    against: '6th per. Geomentry',
+    typeBet: 'class avg.',
+    status: '',
+    option: '',
+    result: '',
+    amount: 88.5,
+  },
+  {
+    id: '1sh',
     sport: 'school',
     price: 20,
     against: 'Mr weaver',
@@ -185,6 +208,6 @@ export const schoolBets = [
     status: '',
     option: '',
     result: '',
-    amount: 2.5,
-  }
+    amount: .5,
+  },
 ]
