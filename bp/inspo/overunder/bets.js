@@ -185,6 +185,6 @@ export const schoolBets = [
     status: '',
     option: '',
     result: '',
-    amount: .5,
+    amount: 2.5,
   }
 ]
