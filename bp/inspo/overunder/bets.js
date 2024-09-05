@@ -140,7 +140,7 @@ export const soccerBets  = [
       techTeam: 'Tech High Volleyball (VG)',
       against: 'Elsie Allen ',
       id: '3v',
-      amount: .5,
+      amount: 1.5,
       typeBet: 'Set(s)',
       status: '',
       option: '',
