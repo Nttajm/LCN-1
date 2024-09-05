@@ -185,7 +185,7 @@ export const schoolBets = [
     typeBet: '3-points',
     status: '',
     option: '',
-    result: '',
+    result: 'under',
     amount: 2.5,
   },
   {
@@ -196,7 +196,7 @@ export const schoolBets = [
     typeBet: 'Airballs',
     status: '',
     option: '',
-    result: '',
+    result: 'under',
     amount: 11.5,
   },
   {
