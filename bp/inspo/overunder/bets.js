@@ -103,7 +103,7 @@ export const soccerBets  = [
         status: 'ended',
         option: '',
         result: 'over',
-        price: 40,
+        price: 70,
         date: '1-11 18:30',
       },
       {
@@ -145,7 +145,7 @@ export const soccerBets  = [
       status: '',
       option: '',
       result: '',
-      price: 40,
+      price: 70,
       date: '9-5 18:00',
     },
     {
@@ -175,3 +175,16 @@ export const soccerBets  = [
     date: '8-28 18:00',
   },
 ];
+
+export const schoolBets = [
+  {
+    sport: 'school',
+    price: 20,
+    against: 'Mr weaver',
+    typeBet: 'crashout',
+    status: '',
+    option: '',
+    result: '',
+    amount: .5,
+  }
+]

@@ -1,6 +1,7 @@
 import { soccerBets } from './bets.js';
 import { basketballBets } from './bets.js';
 import { volleyballBets } from './bets.js';
+import { schoolBets } from "./bets.js";
 
 let balance = 0;
 const balanceOutput = document.querySelector('.balance');
@@ -37,7 +38,7 @@ balanceOutput.innerHTML = '';
 balanceOutput.insertAdjacentHTML('beforeend', `<span>$${balance}</span>`);
 export const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
-export let allBets = [...soccerBets, ...basketballBets, ...volleyballBets];
+export let allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets];
 let bets = filterBets();
 let reward = [];
 
@@ -126,7 +127,8 @@ function renderBets() {
       }
     }
 
-    container.insertAdjacentHTML('beforeend', `
+    if (bet.sport != 'school') {
+      container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card">
             <span class="multi it">${multi}x</span>
             <span class="multi it r">$${bet.price}</span>
@@ -148,6 +150,27 @@ function renderBets() {
         <span class="bold">${additionalText}</span>
       </div>
     `);
+    } else if (bet.sport === 'school') {
+      container.insertAdjacentHTML('beforeend', `
+      <div class="bet ${betClass} card">
+            <span class="multi it">${multi}x</span>
+            <span class="multi it r">$${bet.price}</span>
+            <div class="game">
+                <div class="name">
+                    <span>${bet.against}</span>
+                </div>
+            </div>
+          <div class="for">
+            <span>${bet.amount}</span>
+             <span>${bet.typeBet}</span>
+          </div>
+        <div class="button-sec" id="btn-${bet.id}">
+          ${buttonsHtml}
+        </div>
+        <span class="bold">${additionalText}</span>
+      </div>
+    `);
+    }
 
     // Select the buttons within the current context
     const overBtn = container.querySelector(`#btn-${bet.id} .over`);
