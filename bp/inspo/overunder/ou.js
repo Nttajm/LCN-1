@@ -146,7 +146,7 @@ function renderBets() {
         <div class="button-sec" id="btn-${bet.id}">
           ${buttonsHtml}
         </div>
-        <span class="">${formatDateTime(bet.date)}</span>
+        <span class="">${ bet.date ? formatDateTime(bet.date) : '' }</span>
         <span class="bold">${additionalText}</span>
       </div>
     `);

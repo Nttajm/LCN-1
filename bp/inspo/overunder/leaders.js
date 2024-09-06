@@ -104,7 +104,7 @@ function decryptNumbers(encrypted) {
 
 const gameCodeElem = document.querySelector('.js-gameCode');
 const encrypted = encryptNumbers(balance.toString(), 5);
-const decrypted = decryptNumbers(encrypted);
+const decrypted = decryptNumbers('01-92*6');
 gameCodeElem.value = encrypted;
 
 console.log("Encrypted:", encrypted);

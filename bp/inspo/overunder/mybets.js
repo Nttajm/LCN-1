@@ -1,4 +1,5 @@
-import { schoolBets, soccerBets } from "./bets.js";
+import {  soccerBets } from "./bets.js";
+import {  schoolBets } from "./bets.js";
 import { basketballBets } from "./bets.js";
 import { volleyballBets } from "./bets.js";
 import { formatDateTime } from "./global.js";
@@ -41,6 +42,7 @@ function getWinLosses() {
     winAmountOutput.innerHTML = `$${winAmount}`;
     lossAmountOutput.innerHTML = `-$${lossAmount}`;
 }
+console.log(allBets)
 
 getWinLosses();
 
