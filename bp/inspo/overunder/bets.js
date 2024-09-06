@@ -178,6 +178,17 @@ export const soccerBets  = [
 
 export const schoolBets = [
   {
+    id: '5sh',
+    sport: 'school',
+    price: 15,
+    against: 'Kevin Bai',
+    typeBet: 'shots taken',
+    status: '',
+    option: '',
+    result: 'under',
+    amount: 13.5,
+  },
+  {
     id: '4sh',
     sport: 'school',
     price: 15,
