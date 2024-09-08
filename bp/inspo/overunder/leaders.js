@@ -163,6 +163,7 @@ const leadersBefore = [
     },
 
 ];
+
 const leadersSorted = leadersBefore.sort((a, b) => getBalance(b) - getBalance(a));
 
 // Helper function to get the balance (same as before)
