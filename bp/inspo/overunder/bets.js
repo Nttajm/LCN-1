@@ -11,6 +11,7 @@ export const soccerBets  = [
     result: '',
     price: 90,
     date: '9-11 16:30',
+    info: 'home',
   },
   {
     sport: 'soccer',
@@ -103,7 +104,7 @@ export const soccerBets  = [
         status: 'ended',
         option: '',
         result: 'over',
-        price: 70,
+        price: 40,
         date: '1-11 18:30',
       },
       {
@@ -175,7 +176,6 @@ export const soccerBets  = [
     date: '8-28 18:00',
   },
 ];
-
 export const schoolBets = [
   {
     id: '4sh',
@@ -221,4 +221,18 @@ export const schoolBets = [
     result: 'over',
     amount: .5,
   },
+]
+
+const moneyBets = [
+    {
+      id: '1mm',
+      sport: 'money',
+      price: 25,
+      against: 'daily 25',
+      typeBet: 'money glicth',
+      status: 'ended',
+      option: '',
+      result: 'over',
+      amount: .5,
+    },
 ]
