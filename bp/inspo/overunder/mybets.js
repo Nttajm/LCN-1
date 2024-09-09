@@ -78,6 +78,8 @@ function loadMybets() {
                 imgType = '/bp/EE/assets/ouths/basketball.webp';
             } else if (matchingBet.sport === 'volleyball') {
                 imgType = '/bp/EE/assets/ouths/volleyball.png';
+            } else if (matchingBet.sport === 'school') {
+                imgType = '/bp/EE/assets/ouths/school.png';
             }
 
             let yourBet = '<span class="yourBet">You lose</span>';
@@ -105,7 +107,7 @@ function loadMybets() {
                         <div class="bet-info">
                             <span>${matchingBet.techTeam} vs ${matchingBet.against}</span>
                             ${yourBet}
-                            <span>${formatDateTime(matchingBet.date)}</span>
+                            <span>${ matchingBet.date ? formatDateTime(matchingBet.date) : '' }</span>
                         </div>
                         <div class="bet-status" id="over">
                             <span>${matchingBet.amount}</span>
@@ -123,7 +125,7 @@ function loadMybets() {
                         <div class="bet-info">
                             <span>${matchingBet.techTeam} vs ${matchingBet.against}</span>
                             ${yourBet}
-                            <span>${formatDateTime(matchingBet.date)}</span>
+                            <span>${matchingBet.date ? formatDateTime(matchingBet.date) : ''}</span>
                         </div>
                         <div class="bet-status" id="over">
                             <span>${matchingBet.amount}</span>
