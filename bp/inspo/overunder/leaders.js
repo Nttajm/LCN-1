@@ -161,6 +161,10 @@ const leadersBefore = [
         name: 'Neeraj',
         gameCode: '41-3101-92*8',
     },
+    {
+        name: 'joshyy',
+        balance: -15,
+    },
 
 ];
 
