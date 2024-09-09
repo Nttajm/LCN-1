@@ -139,6 +139,19 @@ export const soccerBets  = [
     {
       sport: 'volleyball',
       techTeam: 'Tech High Volleyball (VG)',
+      against: 'Victory Christian Academy',
+      id: '4v',
+      amount: 1.5,
+      typeBet: 'Set(s)',
+      status: '',
+      option: '',
+      result: '',
+      price: 90,
+      date: '9-9 18:00',
+    },
+    {
+      sport: 'volleyball',
+      techTeam: 'Tech High Volleyball (VG)',
       against: 'Elsie Allen ',
       id: '3v',
       amount: .5,
@@ -220,6 +233,7 @@ export const schoolBets = [
     option: '',
     result: 'over',
     amount: .5,
+    info: 'daily',
   },
 ]
 
@@ -230,7 +244,7 @@ const moneyBets = [
       price: 25,
       against: 'daily 25',
       typeBet: 'money glicth',
-      status: 'ended',
+      status: '',
       option: '',
       result: 'over',
       amount: .5,

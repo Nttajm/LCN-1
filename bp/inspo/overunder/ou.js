@@ -133,7 +133,7 @@ function renderBets() {
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card">
-            <span class="multi it">${multi}x</span>
+            <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
             <div class="game">
                 <img src="${imgType}" class="game-img" alt="">
@@ -156,7 +156,7 @@ function renderBets() {
     } else if (bet.sport === 'school') {
       container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card">
-            <span class="multi it">${multi}x</span>
+      <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
             <div class="game">
                 <div class="name">
@@ -311,37 +311,10 @@ if (!playerId) {
 playerIdElem.innerHTML = playerId;
 
 
-function checkDailyReward() {
-  const now = new Date().getTime(); // Get the current time in milliseconds
-  const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  
-  // If userData.lastClaim doesn't exist or it's been more than 24 hours since the last claim
-  if (!userData.lastClaim || (now - userData.lastClaim >= claimInterval)) {
-      document.getElementById('.dailyReward').style.display = 'block'; // Show the reward
-  }
-}
-
 function claimReward() {
-  const now = new Date().getTime(); // Current time
-  
-  // Update userData with the last claim time
-  userData.lastClaim = now;
-  
-  // Save to localStorage
-  localStorage.setItem('userData', JSON.stringify(userData));
-  
-  // Hide the reward div after claiming
-  document.getElementById('dailyReward').style.display = 'none';
-
   userBets.push({
-    matchingBet: '1mm',
+    matchingBet:'1mm',
     option: 'over'
-  });
-  }
-
-// Event listener for the "Claim" button
-document.getElementById('claimBtn').addEventListener('click', claimReward);
-
-// Check for the daily reward on page load
-checkDailyReward();
+  })
+}
 
