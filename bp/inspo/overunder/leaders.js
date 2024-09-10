@@ -135,15 +135,15 @@ const leadersBefore = [
     },
     {
         name: 'T-dubbies',
-        balance: 0,
+        balance: 90,
     },
     {
         name: 'nosirraH Matticola',
-        balance: -170,
+        balance: -60,
     },
     {
         name: 'JoelM',
-        balance: -370,
+        balance: -260,
     },
     {
         name: '0ping Joel',
@@ -151,7 +151,7 @@ const leadersBefore = [
     },
     {
         name: 'nathan',
-        balance: 200,
+        balance: -200,
     },
     {
         name: 'joel_alt-2',
@@ -167,10 +167,8 @@ const leadersBefore = [
     },
     {
         name: 'RiceRanger',
-        balance: 0,
+        balance: 90,
     },
-
-
 ];
 
 const leadersSorted = leadersBefore.sort((a, b) => getBalance(b) - getBalance(a));
