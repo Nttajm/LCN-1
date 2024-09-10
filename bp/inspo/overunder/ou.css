@@ -292,6 +292,51 @@ input {
     width: 1.6rem;
 }
 
+.settings-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.74);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 0.5rem;
+    animation: open .2s ease forwards;
+    color: white;
+    font-family: inter;
+    gap: 0.5rem;
+}
+
+.dne {
+    display: none ;
+}
+
+.dbe {
+    display: block !important;
+}
+
+.settings {
+    display: flex;
+    flex-direction: column;
+}
+
+.setting {
+    background-color: var(--secondary-bg);
+    padding: 0.5rem;
+}
+
+@keyframes open {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
 @keyframes collapse {
 
     100% {

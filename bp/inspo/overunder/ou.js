@@ -311,37 +311,88 @@ if (!playerId) {
 playerIdElem.innerHTML = playerId;
 
 
-function checkDailyReward() {
-  const now = new Date().getTime(); // Get the current time in milliseconds
-  const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+// function checkDailyReward() {
+//   const now = new Date().getTime(); // Get the current time in milliseconds
+//   const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   
-  // If userData.lastClaim doesn't exist or it's been more than 24 hours since the last claim
-  if (!userData.lastClaim || (now - userData.lastClaim >= claimInterval)) {
-      document.getElementById('.dailyReward').style.display = 'block'; // Show the reward
+//   // If userData.lastClaim doesn't exist or it's been more than 24 hours since the last claim
+//   if (!userData.lastClaim || (now - userData.lastClaim >= claimInterval)) {
+//       document.getElementById('.dailyReward').style.display = 'block'; // Show the reward
+//   }
+// }
+
+// function claimReward() {
+//   const now = new Date().getTime(); // Current time
+  
+//   // Update userData with the last claim time
+//   userData.lastClaim = now;
+  
+//   // Save to localStorage
+//   localStorage.setItem('userData', JSON.stringify(userData));
+  
+//   // Hide the reward div after claiming
+//   document.getElementById('dailyReward').style.display = 'none';
+
+//   userBets.push({
+//     matchingBet: '1mm',
+//     option: 'over'
+//   });
+//   }
+
+// // Event listener for the "Claim" button
+// document.getElementById('claimBtn').addEventListener('click', claimReward);
+
+// // Check for the daily reward on page load
+// checkDailyReward();
+
+
+
+function pushUserbet() {
+  const matchingBetInput = document.getElementById('matchingBet-input');
+  const optionInput = document.getElementById('option-input');
+
+  const matchingBet = matchingBetInput.value;
+  const option = optionInput.value;
+
+  if (!matchingBet || !option) {
+      alert('Please fill out both fields');
+      return;
+  } else {
+      userBets.push({
+          matchingBet,
+          option
+      });
+
+      localStorage.setItem('userBets', JSON.stringify(userBets));
+      renderBets();
   }
+
+  matchingBetInput.value = '';
+  optionInput.value = '';
+  
+  console.log(userBets);
+
+  checkBetsAndUpdateBalance();
 }
 
-function claimReward() {
-  const now = new Date().getTime(); // Current time
-  
-  // Update userData with the last claim time
-  userData.lastClaim = now;
-  
-  // Save to localStorage
-  localStorage.setItem('userData', JSON.stringify(userData));
-  
-  // Hide the reward div after claiming
-  document.getElementById('dailyReward').style.display = 'none';
+const pushUserbetBtn = document.getElementById('pushUserbetBtn');
+pushUserbetBtn.addEventListener('click', pushUserbet);
 
-  userBets.push({
-    matchingBet: '1mm',
-    option: 'over'
-  });
-  }
 
-// Event listener for the "Claim" button
-document.getElementById('claimBtn').addEventListener('click', claimReward);
+// function userBetsToString() {
+//   return userBets.map(userBet => `**${userBet.matchingBet} - ${userBet.option}`).join('');
+// }
 
-// Check for the daily reward on page load
-checkDailyReward();
+// console.log(userBetsToString());
 
+// const stringBets = userBetsToString();
+
+// function stringToUserBets(text) {
+//   return text.split('**').filter(Boolean).map(line => {
+//       const [matchingBet, option] = line.split(' - ').map(str => str.trim());
+//       return { matchingBet, option };
+//   });
+// }
+
+// const restoredUserBets = stringToUserBets(stringBets);
+// console.log(restoredUserBets);

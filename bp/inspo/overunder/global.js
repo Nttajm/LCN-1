@@ -2,8 +2,7 @@ const divLinkers = document.querySelectorAll('div[data-linker]');
 divLinkers.forEach(div => {
     div.addEventListener('click', function() {
         window.location.href = this ? this.getAttribute('data-linker') : '';
-    }
-    );
+    });
 }
 );
 
@@ -46,3 +45,18 @@ export function formatDateTime(dateTimeStr) {
     
     return formattedDateTime;
   }
+
+  const allrevels = document.querySelectorAll('[data-revel]');
+
+  if (allrevels) {
+    allrevels.forEach(revel => {
+        revel.addEventListener('click', function() {
+            const target = document.getElementById(this.getAttribute('data-revel'));
+            target.classList.toggle('dn');
+        }
+        );
+    }
+    );    
+  }
+
+

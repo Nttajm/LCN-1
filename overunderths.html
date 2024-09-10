@@ -9,13 +9,41 @@
   <link rel="stylesheet" href="css/standard.css">
 </head>
 <body>
+  <div class="settings-screen dn" id="js-revel-set">
+    <div class="setting" data-revel="js-revel-set">
+      <span class="s-title">&lsaquo; Back</span>
+    </div>
+    <div class="setting">
+      <span class="s-title" data-revel="s-1">Admin Controlls</span>
+      <div class="content dn" id="s-1">
+        <input type="text" placeholder="matchingbet" id="matchingBet-input">
+        <input type="text" placeholder="betstatus" id="option-input">
+        <button id="pushUserbetBtn">push</button>
+      </div>
+    </div>
+  </div>
   <div class="nav">
     <div class="nav-top">
       <div class="img-sec">
         <img src="bp/EE/assets/ouths/ou-logo-white.png" alt="logo">
       </div>
+     <div class="log fl-r g-10 fl-ai">
       <span class="balance money">$uh oh...</span>
+      <div class="settings-div" data-revel="js-revel-set">
+        <img src="bp/EE/assets/ouths/settings.png" alt="" class="icon">
+      </div>
+     </div>
     </div>
+    <!-- <div class="multi-tag js-d-25 " id="dailyReward">
+    <div class="log fl-ai g-10">
+      <span>Enter your so your data can be saved!</span>
+      <input type="text" placeholder="username">
+      <button class="multi-title" id="">
+          Enter
+      </button>
+    </div>
+
+  </div> -->
     <div class="sports">
       <span class="selected sport-option">Soccer</span>
       <span class="sport-option">Basketball</span>
@@ -30,13 +58,14 @@
     </span>
 
   </div>
-  <div class="awards dn">
-    <div class="multi-tag js-d-25" id="dailyReward">
+  <div class="awards">
+    <div class="multi-tag js-d-25 dn" id="dailyReward">
         <button class="multi-title" id="claimBtn">
             Claim
         </button>
         <span>Claim your daily $25 reward</span>
     </div>
+
   </div>
   <div class="sec">
   

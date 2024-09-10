@@ -103,7 +103,10 @@ function decryptNumbers(encrypted) {
 
 
 const gameCodeElem = document.querySelector('.js-gameCode');
-gameCodeElem.value = encryptNumbers(balance.toString());
+
+if (gameCodeElem) {
+    gameCodeElem.value = encryptNumbers(balance.toString());
+}
 
 
 
