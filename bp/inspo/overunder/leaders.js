@@ -111,7 +111,7 @@ const leadersAmount = 5;
 const leadersBefore = [
     {
         name: 'KINGranchy__',
-        balance: 415,
+        balance: 505,
     },
     {
         name: 'Evan',
