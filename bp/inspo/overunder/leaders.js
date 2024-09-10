@@ -165,6 +165,11 @@ const leadersBefore = [
         name: 'joshyy',
         balance: -15,
     },
+    {
+        name: 'RiceRanger',
+        balance: 0,
+    },
+
 
 ];
 
