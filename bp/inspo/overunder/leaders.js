@@ -103,6 +103,8 @@ function decryptNumbers(encrypted) {
 
 
 const gameCodeElem = document.querySelector('.js-gameCode');
+gameCodeElem.value = encryptNumbers(balance.toString());
+
 
 
 let showTop7 = true;
