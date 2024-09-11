@@ -169,6 +169,10 @@ const leadersBefore = [
         name: 'RiceRanger',
         balance: 90,
     },
+    {
+        name: 'Jordan_',
+        balance: 10,
+    },
 ];
 
 const leadersSorted = leadersBefore.sort((a, b) => getBalance(b) - getBalance(a));
