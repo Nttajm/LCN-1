@@ -103,7 +103,7 @@ function decryptNumbers(encrypted) {
 
 
 const gameCodeElem = document.querySelector('.js-gameCode');
-
+gameCodeElem.value = decryptNumbers(balance)
 
 let showTop7 = true;
 const leadersAmount = 5;
