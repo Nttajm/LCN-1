@@ -230,7 +230,6 @@ const leadersBefore = [
         balance: 10,
     },
     {
-    
         name: 'Cassiopeia'
         balance: -60,
     },
