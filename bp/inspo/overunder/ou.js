@@ -133,7 +133,7 @@ function renderBets() {
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card">
-            <span class="multi it">${multi}x</span>
+            <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
             <div class="game">
                 <img src="${imgType}" class="game-img" alt="">
@@ -156,7 +156,7 @@ function renderBets() {
     } else if (bet.sport === 'school') {
       container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card">
-            <span class="multi it">${multi}x</span>
+      <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
             <div class="game">
                 <div class="name">
