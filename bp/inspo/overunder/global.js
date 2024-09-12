@@ -59,4 +59,14 @@ export function formatDateTime(dateTimeStr) {
     );    
   }
 
+  const clearAllBtn = document.getElementById('clearAllBtn');
+
+  if (clearAllBtn) {
+clearAllBtn.addEventListener('click', function() {
+    localStorage.clear();
+    window.location.reload();    
+  }
+    );
+    }
+
 

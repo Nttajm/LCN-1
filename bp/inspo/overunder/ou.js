@@ -379,6 +379,86 @@ const pushUserbetBtn = document.getElementById('pushUserbetBtn');
 pushUserbetBtn.addEventListener('click', pushUserbet);
 
 
+function saveData() {
+  localStorage.setItem('userData', JSON.stringify(userData));
+}
+
+const userInfoElem = document.getElementById('userInfo');
+
+function displayUserInfo() {
+  if (!userData.username) {
+    userInfoElem.innerHTML = `
+      <div class="log g-10 userForm">
+        <span>Enter your name so your data can be saved!</span>
+        <div class="userForm-i g-10">
+        <input type="text" placeholder="username" id="user">
+        <button class="multi-title" id="enterUser">
+            Enter
+        </button>
+        </div>
+      </div>
+    `;
+    // Set the event listener after rendering the button
+    const enterUserBtn = document.getElementById('enterUser');
+    enterUserBtn.addEventListener('click', function() {
+      const username = document.getElementById('user').value;
+      userData.username = username;
+      saveData();
+      displayUserInfo();
+    });
+  } else {
+    userInfoElem.innerHTML = `
+      <div class="log fl-ai g-10 ">
+        <span>Welcome, ${userData.username}!</span>
+        <button class="selected" id="reqest-leader">
+            Request leaderboard
+        </button>
+      </div>
+    `;
+    const requestLeaderBtn = document.getElementById('reqest-leader');
+    requestLeaderBtn.addEventListener('click', postLeader);
+  }
+}
+
+
+
+console.log(userData);
+displayUserInfo();
+
+function postLeader() {
+  const username = userData.username; // Replace this with your actual username
+const gameCode = balance; // Replace this with your actual game code
+
+// Data to send
+const formData = {
+    username: username,
+    gameCode: gameCode,
+};
+
+// Sending the POST request
+fetch('https://formspree.io/f/mnnarzjk', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+})
+.then(response => {
+    if (response.ok) {
+        console.log('Form submitted successfully!');
+        // Handle success
+    } else {
+        console.error('Error submitting the form.');
+        // Handle failure
+    }
+})
+.catch(error => {
+    console.error('There was a problem with the fetch operation:', error);
+});
+window.location.href = 'https://bp/inspo/overunder/leaders.html';
+
+}
+
 // function userBetsToString() {
 //   return userBets.map(userBet => `**${userBet.matchingBet} - ${userBet.option}`).join('');
 // }

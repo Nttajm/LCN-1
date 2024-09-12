@@ -1,6 +1,19 @@
 export const soccerBets  = [
   {
     sport: 'soccer',
+    techTeam: 'Tech High Soccer (VG)',
+    against: 'Middle Town',
+    id: '6s',
+    amount: .5,
+    typeBet: 'Goals',
+    status: '',
+    option: '',
+    result: '',
+    price: 20,
+    date: '9-17 15:30',
+  },
+  {
+    sport: 'soccer',
     techTeam: 'Tech High Soccer (VB)',
     against: 'Mendocino',
     id: '9s',
@@ -26,19 +39,7 @@ export const soccerBets  = [
     price: 200,
     date: '9-6 16:30',
   },
-  {
-    sport: 'soccer',
-    techTeam: 'Tech High Soccer (VG)',
-    against: 'Middle Town',
-    id: '6s',
-    amount: .5,
-    typeBet: 'Goals',
-    status: '',
-    option: '',
-    result: '',
-    price: 20,
-    date: '9-17 15:30',
-  },
+
     {
       sport: 'soccer',
       techTeam: 'Tech High Soccer (VB)',

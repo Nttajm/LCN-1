@@ -2,6 +2,9 @@ import { soccerBets } from "./bets.js";
 import { basketballBets } from "./bets.js";
 import { volleyballBets } from "./bets.js";
 
+let userData = JSON.parse(localStorage.getItem('userData')) || {};
+
+
 const allBets = [...soccerBets, ...basketballBets, ...volleyballBets];
 const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
@@ -99,7 +102,42 @@ function decryptNumbers(encrypted) {
     return decrypted;
 }
 
+const requestLeaderBtn = document.getElementById('reqest-leader');
+requestLeaderBtn.addEventListener('click', postLeader);
 
+function postLeader() {
+    const username = userData.username; // Replace this with your actual username
+  const gameCode = balance; // Replace this with your actual game code
+  
+  // Data to send
+  const formData = {
+      username: username,
+      gameCode: gameCode,
+  };
+  
+  // Sending the POST request
+  fetch('https://formspree.io/f/mnnarzjk', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+  })
+  .then(response => {
+      if (response.ok) {
+          console.log('Form submitted successfully!');
+          // Handle success
+      } else {
+          console.error('Error submitting the form.');
+          // Handle failure
+      }
+  })
+  .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+  });
+
+  window.location.href = 'https://bp/inspo/overunder/leaders.html';
+  }
 
 
 const gameCodeElem = document.querySelector('.js-gameCode');
@@ -107,8 +145,9 @@ const gameCodeElem = document.querySelector('.js-gameCode');
 if (gameCodeElem) {
     gameCodeElem.value = encryptNumbers(balance.toString());
 }
-
-
+      
+const upstat = document.getElementById('upstat');     
+upstat.innerHTML = `<span>9/11 11:59PM</span>`;                
 
 let showTop7 = true;
 const leadersAmount = 5;
@@ -116,7 +155,7 @@ const leadersAmount = 5;
 const leadersBefore = [
     {
         name: 'KINGranchy__',
-        balance: 505,
+        balance: 595,
     },
     {
         name: 'Evan',
@@ -141,6 +180,10 @@ const leadersBefore = [
     {
         name: 'T-dubbies',
         balance: 90,
+    },
+    {
+        name: 'coolMathGames',
+        balance: 110,
     },
     {
         name: 'nosirraH Matticola',
@@ -169,6 +212,14 @@ const leadersBefore = [
     {
         name: 'joshyy',
         balance: -15,
+    },
+    {
+        name: 'day1oroneday_ah_joel!',
+        balance: 90,
+    },
+    {
+        name: '707ty',
+        balance: -30,
     },
     {
         name: 'RiceRanger',
@@ -231,3 +282,4 @@ renderLeaders(leadersSorted.slice(0, leadersAmount));
 // Add event listener to toggle button
 const toggleBtn = document.getElementById('toggleLeadersBtn');
 toggleBtn.addEventListener('click', toggleLeaders);
+

@@ -132,6 +132,12 @@ p, a {
   align-items: center !important;
 }
 
+.fl-st {
+  display: flex;
+  align-items: stretch !important;
+}
+
+
 .fl-bl {
   display: flex !important;
   align-items: baseline !important;
