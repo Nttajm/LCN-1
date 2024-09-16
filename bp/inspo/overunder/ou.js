@@ -311,10 +311,168 @@ if (!playerId) {
 playerIdElem.innerHTML = playerId;
 
 
-function claimReward() {
-  userBets.push({
-    matchingBet:'1mm',
-    option: 'over'
-  })
+// function checkDailyReward() {
+//   const now = new Date().getTime(); // Get the current time in milliseconds
+//   const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  
+//   // If userData.lastClaim doesn't exist or it's been more than 24 hours since the last claim
+//   if (!userData.lastClaim || (now - userData.lastClaim >= claimInterval)) {
+//       document.getElementById('.dailyReward').style.display = 'block'; // Show the reward
+//   }
+// }
+
+// function claimReward() {
+//   const now = new Date().getTime(); // Current time
+  
+//   // Update userData with the last claim time
+//   userData.lastClaim = now;
+  
+//   // Save to localStorage
+//   localStorage.setItem('userData', JSON.stringify(userData));
+  
+//   // Hide the reward div after claiming
+//   document.getElementById('dailyReward').style.display = 'none';
+
+//   userBets.push({
+//     matchingBet: '1mm',
+//     option: 'over'
+//   });
+//   }
+
+// // Event listener for the "Claim" button
+// document.getElementById('claimBtn').addEventListener('click', claimReward);
+
+// // Check for the daily reward on page load
+// checkDailyReward();
+
+
+
+function pushUserbet() {
+  const matchingBetInput = document.getElementById('matchingBet-input');
+  const optionInput = document.getElementById('option-input');
+
+  const matchingBet = matchingBetInput.value;
+  const option = optionInput.value;
+
+  if (!matchingBet || !option) {
+      alert('Please fill out both fields');
+      return;
+  } else {
+      userBets.push({
+          matchingBet,
+          option
+      });
+
+      localStorage.setItem('userBets', JSON.stringify(userBets));
+      renderBets();
+  }
+
+  matchingBetInput.value = '';
+  optionInput.value = '';
+  
+  console.log(userBets);
+
+  checkBetsAndUpdateBalance();
 }
 
+const pushUserbetBtn = document.getElementById('pushUserbetBtn');
+pushUserbetBtn.addEventListener('click', pushUserbet);
+
+
+function saveData() {
+  localStorage.setItem('userData', JSON.stringify(userData));
+}
+
+const userInfoElem = document.getElementById('userInfo');
+
+function displayUserInfo() {
+  if (!userData.username) {
+    userInfoElem.innerHTML = `
+      <div class="log g-10 userForm">
+        <span>Enter your name so your data can be saved!</span>
+        <div class="userForm-i g-10">
+        <input type="text" placeholder="username" id="user">
+        <button class="multi-title" id="enterUser">
+            Enter
+        </button>
+        </div>
+      </div>
+    `;
+    // Set the event listener after rendering the button
+    const enterUserBtn = document.getElementById('enterUser');
+    enterUserBtn.addEventListener('click', function() {
+      const username = document.getElementById('user').value;
+      userData.username = username;
+      saveData();
+      displayUserInfo();
+    });
+  } else {
+    userInfoElem.innerHTML = `
+      <div class="log fl-ai g-10 ">
+        <span>Welcome, ${userData.username}!</span>
+        <button class="selected" id="reqest-leader">
+            Request leaderboard
+        </button>
+      </div>
+    `;
+    const requestLeaderBtn = document.getElementById('reqest-leader');
+    requestLeaderBtn.addEventListener('click', postLeader);
+  }
+}
+
+
+
+console.log(userData);
+displayUserInfo();
+
+function postLeader() {
+  const username = userData.username; // Replace this with your actual username
+const gameCode = balance; // Replace this with your actual game code
+
+// Data to send
+const formData = {
+    username: username,
+    gameCode: gameCode,
+};
+
+// Sending the POST request
+fetch('https://formspree.io/f/mnnarzjk', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+})
+.then(response => {
+    if (response.ok) {
+        console.log('Form submitted successfully!');
+        // Handle success
+    } else {
+        console.error('Error submitting the form.');
+        // Handle failure
+    }
+})
+.catch(error => {
+    console.error('There was a problem with the fetch operation:', error);
+});
+window.location.href = 'https://bp/inspo/overunder/leaders.html';
+
+}
+
+// function userBetsToString() {
+//   return userBets.map(userBet => `**${userBet.matchingBet} - ${userBet.option}`).join('');
+// }
+
+// console.log(userBetsToString());
+
+// const stringBets = userBetsToString();
+
+// function stringToUserBets(text) {
+//   return text.split('**').filter(Boolean).map(line => {
+//       const [matchingBet, option] = line.split(' - ').map(str => str.trim());
+//       return { matchingBet, option };
+//   });
+// }
+
+// const restoredUserBets = stringToUserBets(stringBets);
+// console.log(restoredUserBets);

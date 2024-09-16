@@ -38,6 +38,64 @@ input {
     opacity: 0.5;
 }
 
+.fn-1 {
+    font-size: 0.1rem !important;
+}
+
+.fn-2 {
+    font-size: 0.2rem !important;
+}
+
+.fn-3 {
+    font-size: 0.3rem !important;
+}
+
+.fn-5 {
+    font-size: 0.5rem !important;
+}
+
+.fn-6 {
+    font-size: 0.6rem !important;
+}
+
+.fn-7 {
+    font-size: 0.7rem !important;
+}
+
+.fn-8 {
+    font-size: 0.8rem !important;
+}
+
+
+.smi {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.activeSince {
+    display: flex;
+    flex-direction: column;
+}
+
+.activeSince span {
+    font-size: 0.7rem;
+    opacity: 0.5;
+}
+
+.userForm {
+    display: flex;
+    flex-direction: column;
+    font-family: inter;
+    border-radius: 0.3rem;
+    padding: 0.2rem;
+}
+
+.userForm-i {
+    display: flex;
+    align-items: stretch;
+}
+
 .add-info {
     background-color: rgba(255, 0, 0, 0.479) !important;
     padding: 0.2rem;
@@ -297,6 +355,51 @@ input {
 
 .icon {
     width: 1.6rem;
+}
+
+.settings-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.74);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 0.5rem;
+    animation: open .2s ease forwards;
+    color: white;
+    font-family: inter;
+    gap: 0.5rem;
+}
+
+.dne {
+    display: none ;
+}
+
+.dbe {
+    display: block !important;
+}
+
+.settings {
+    display: flex;
+    flex-direction: column;
+}
+
+.setting {
+    background-color: var(--secondary-bg);
+    padding: 0.5rem;
+}
+
+@keyframes open {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 @keyframes collapse {
