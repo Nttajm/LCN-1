@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    #chart-container {
+      width: 600px;
+      margin: 20px auto;
+    }
+    button {
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart-container">
+    <canvas id="myChart"></canvas>
+  </div>
+  <div style="text-align: center;">
+    <button onclick="showDataset(0)">Show Dataset 1</button>
+    <button onclick="showDataset(1)">Show Dataset 2</button>
+  </div>
+
+  <script >
+    // Function to create the chart config dynamically
+function createChartConfig(datasets, options = genericOptions) {
+    const maxDataLength = Math.max(...datasets.map(dataset => dataset.data.length)); // Get the longest data length
+    const labels = Array.from({ length: maxDataLength }, (_, i) => i + 1); // Create labels based on number of data points
+  
+    return {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets.map(dataset => ({
+          label: dataset.label,
+          data: dataset.data,
+          borderColor: dataset.borderColor || 'rgb(75, 192, 192)',
+          borderDash: dataset.borderDash || [], // Simple solid or dashed lines
+          spanGaps: dataset.spanGaps || true // Optional spanGaps control
+        }))
+      },
+      options: options
+    };
+  }
+  
+  // Example datasets
+  const datasets = [
+    {
+      label: 'Dataset 1',
+      data: [65, 59, NaN, 48, 56, 57, 40],
+      borderColor: 'rgb(75, 192, 192)',
+      spanGaps: true
+    },
+    {
+      label: 'Dataset 2',
+      data: [30, 45, 70, NaN, 80, 50],
+      borderColor: 'rgb(192, 75, 192)',
+      spanGaps: false
+    }
+  ];
+  
+  // Default chart options
+  const genericOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+      }
+    }
+  };
+  
+  // Global chart variable
+  let chart;
+  
+  // Function to initialize the chart with a specific dataset
+  function showDataset(index) {
+    const config = createChartConfig([datasets[index]]); // Only pass the selected dataset
+    if (chart) {
+      chart.destroy(); // Destroy the previous chart instance if it exists
+    }
+    chart = new Chart(document.getElementById('myChart'), config); // Create a new chart with the selected dataset
+  }
+  
+  // Initialize the chart with the first dataset by default
+  window.onload = function() {
+    showDataset(0);
+  };
+  
+  </script>
+</body>
+</html>

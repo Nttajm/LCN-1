@@ -1,3 +1,4 @@
+
 export const soccerBets  = [
   {
     sport: 'soccer',
@@ -251,3 +252,6 @@ const moneyBets = [
       amount: .5,
     },
 ]
+
+export let allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets];
+export let userBets = localStorage.getItem('userBets') ? JSON.parse(localStorage.getItem('userBets')) : [];

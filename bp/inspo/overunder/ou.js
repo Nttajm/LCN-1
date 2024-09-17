@@ -2,6 +2,7 @@ import { soccerBets } from './bets.js';
 import { basketballBets } from './bets.js';
 import { volleyballBets } from './bets.js';
 import { schoolBets } from "./bets.js";
+import { checkBetsAndUpdateBalance, displayUserInfo } from './global.js';
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
 
@@ -57,24 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderBets();
 });
 
-function checkBetsAndUpdateBalance() {
-  balance = 0; // No 'let' here, update the global variable
-  userBets.forEach(userBet => {
-    const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
-    if (matchingBet) {
-      // Check if the user's option matches the bet result
-      if (matchingBet.result === userBet.option) {
-        balance += matchingBet.price;
-      } else if (matchingBet.result !== userBet.option && (matchingBet.result === 'over' || matchingBet.result === 'under')) {
-        balance -= matchingBet.price;
-      }
-      // No need to check for an empty result because it doesn't change the balance
-    }
-  });
-  // Update the UI with the new balance
-  balanceOutput.innerHTML = `<span>$${balance}</span>`;
-}
-checkBetsAndUpdateBalance();
 
 if (balance < 0) {
   balanceElem.classList.add('negative');
@@ -379,51 +362,12 @@ const pushUserbetBtn = document.getElementById('pushUserbetBtn');
 pushUserbetBtn.addEventListener('click', pushUserbet);
 
 
-function saveData() {
+export function saveData() {
   localStorage.setItem('userData', JSON.stringify(userData));
 }
 
-const userInfoElem = document.getElementById('userInfo');
-
-function displayUserInfo() {
-  if (!userData.username) {
-    userInfoElem.innerHTML = `
-      <div class="log g-10 userForm">
-        <span>Enter your name so your data can be saved!</span>
-        <div class="userForm-i g-10">
-        <input type="text" placeholder="username" id="user">
-        <button class="multi-title" id="enterUser">
-            Enter
-        </button>
-        </div>
-      </div>
-    `;
-    // Set the event listener after rendering the button
-    const enterUserBtn = document.getElementById('enterUser');
-    enterUserBtn.addEventListener('click', function() {
-      const username = document.getElementById('user').value;
-      userData.username = username;
-      saveData();
-      displayUserInfo();
-    });
-  } else {
-    userInfoElem.innerHTML = `
-      <div class="log fl-ai g-10 ">
-        <span>Welcome, ${userData.username}!</span>
-        <button class="selected" id="reqest-leader">
-            Request leaderboard
-        </button>
-      </div>
-    `;
-    const requestLeaderBtn = document.getElementById('reqest-leader');
-    requestLeaderBtn.addEventListener('click', postLeader);
-  }
-}
-
-
-
-console.log(userData);
 displayUserInfo();
+
 
 function postLeader() {
   const username = userData.username; // Replace this with your actual username
@@ -476,3 +420,5 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 
 // const restoredUserBets = stringToUserBets(stringBets);
 // console.log(restoredUserBets);
+
+

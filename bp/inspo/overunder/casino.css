@@ -1,0 +1,24 @@
+.s {
+    padding-bottom: 2rem;
+}
+
+.spinnywheel {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    background-color: var(--secondary-bg);
+    padding: 0.5rem;
+    font-size: 2rem;
+    text-transform: capitalize;
+}
+
+.wheel-cont {
+    width: calc(100% - 2rem);
+}
+
+.wheel img {
+    width: 100%;
+    height: auto;
+}

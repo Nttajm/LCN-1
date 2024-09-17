@@ -26,7 +26,7 @@ input {
 }
 
 :root {
-    font-size: 20px;
+    font-size: 18px;
     --main-bg:  rgb(7, 31, 92);
     --secondary-bg: rgb(26, 26, 74);
     --3-bg: rgb(44, 44, 141);
@@ -66,6 +66,10 @@ input {
     font-size: 0.8rem !important;
 }
 
+.rank-1 {
+    color: gray !important;
+}
+
 
 .smi {
     display: flex;
@@ -100,6 +104,25 @@ input {
     background-color: rgba(255, 0, 0, 0.479) !important;
     padding: 0.2rem;
     border-radius: 0.3rem;
+}
+
+.stats-main {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem !important;
+}
+
+.stats {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.stat span {
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-style: italic;
+    color:rgb(44, 123, 214);
 }
 
 .sec {
