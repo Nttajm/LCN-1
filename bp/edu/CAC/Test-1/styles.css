@@ -33,7 +33,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: solid gray 1px;
   padding: 10px;
   border-radius: 10px;
 }
@@ -72,6 +71,7 @@ body {
   font-family: roboto;
   display: flex;
   gap: 0.3rem;
+  font-size: 0.5rem;
 }
 
 .tag {

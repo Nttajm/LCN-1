@@ -422,3 +422,24 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 // console.log(restoredUserBets);
 
 
+const targetDate = new Date('September 24, 2024 00:00:00').getTime();
+
+    // Update the countdown every second
+    const countdown = setInterval(() => {
+        const now = new Date().getTime(); // Get the current time
+        const timeRemaining = targetDate - now; // Calculate the time difference
+
+        if (timeRemaining > 0) {
+            // Calculate days, hours, minutes, and seconds
+            const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+            // Display the countdown
+            document.getElementById("countdown").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        } else {
+            clearInterval(countdown); // Stop the countdown when the target date is reached
+            document.getElementById("countdown").innerHTML = "Countdown over!";
+        }
+    }, 1000);
