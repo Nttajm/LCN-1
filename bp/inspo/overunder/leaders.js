@@ -147,7 +147,7 @@ if (gameCodeElem) {
 }
       
 const upstat = document.getElementById('upstat');     
-upstat.innerHTML = `<span>9/11 11:59PM</span>`;                
+upstat.innerHTML = `<span>9/12 11:51AM</span>`;                
 
 let showTop7 = true;
 const leadersAmount = 5;
@@ -228,6 +228,10 @@ const leadersBefore = [
     {
         name: 'Jordan_',
         balance: 10,
+    },
+    {
+        name: 'Cassiopeia'
+        balance: -60,
     },
 ];
 
