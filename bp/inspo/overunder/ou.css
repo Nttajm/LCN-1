@@ -25,6 +25,13 @@ input {
     font-family: inter;
 }
 
+.sepa {
+    width: 100%;
+    height: 3px;
+    background-color: rgba(128, 128, 128, 0.459);
+    margin: 0.5rem 0rem;
+}
+
 :root {
     font-size: 18px;
     --main-bg:  rgb(7, 31, 92);

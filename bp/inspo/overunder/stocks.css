@@ -1,0 +1,137 @@
+#winners {
+    display: flex;
+    padding: 0.9rem;
+    overflow: hidden;
+}
+
+@keyframes slideToleft {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.coin-sec {
+    display: flex;
+    gap: 0.5rem;
+    animation: slideToleft 10s linear infinite;
+}
+
+.coin {
+    display: flex;
+    align-items: center;
+    margin-right: 0.3rem;
+    background-color: var(--3-bg);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.symbol {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+    background-color: var(--lime);
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+}
+
+.prices {
+    display: flex;
+    flex-direction: column;
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.up {
+    color: var(--lime);
+
+}
+
+.up::after {
+    content: "▲";
+}
+
+.down {
+    color: var(--red);
+}
+
+.down::after {
+    content: "▼";
+}
+
+.des {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem;
+}
+
+.stk-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.stk-prices {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    align-items: center;
+}
+
+.stk-price {
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+.perc {
+    background-color: var(--lime);
+    padding: 0.2rem;
+    border-radius: 0.3rem;
+}
+
+.buysell {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.buy {
+    background-color: var(--lime);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.sell {
+    background-color: var(--red);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.times {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.times span {
+    background-color: var(--3-bg);
+    padding: 0.2rem;
+    border-radius: 0.3rem;
+    width: 100%;
+}
