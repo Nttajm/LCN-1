@@ -232,6 +232,14 @@ ul, li {
   --notetext:  #808ea1;
 }
 
+.op-n {
+  opacity: 0;
+}
+
+.wi-100 {
+  width: 100%;
+}
+
 .stand_er-invert {
   filter: invert();
 }

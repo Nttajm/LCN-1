@@ -24,6 +24,10 @@ input {
     font-family: inter;
 }
 
+.light-text {
+    font-weight: 400;
+}
+
 .sepa {
     width: 100%;
     height: 3px;
@@ -384,6 +388,10 @@ input {
 
 .icon {
     width: 1.6rem;
+}
+
+.icon-x {
+    width: 2.3rem;
 }
 
 .settings-screen {
