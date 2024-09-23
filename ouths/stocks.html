@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="/css/standard.css">
 </head>
 <body>
+    <div class="message">
+    </div>
     <div class="settings-screen dn" id="js-revel-set">
         <div class="setting" data-revel="js-revel-set">
           <span class="s-title">&lsaquo; Back</span>
@@ -46,15 +48,42 @@
           </div>
           <div class="stats" id="js-stats">
             <div class="stat fl-ai">
-              <span>3</span>
+              <span>342</span>
               <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
             </div>
             <div class="stat fl-ai">
-              <span class="rank-1">800</span>
+              <span class="rank-1">9800</span>
               <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
             </div>
-            <span class="balance money">$70</span>
+            <span class="balance money">$22,070</span>
           </div>
+        </div>
+        <div class="multi-tag fl-c">
+            <div class="poertfolio fl-r fl-ai g-10">
+                <span>Portfolio: </span>
+                <span class="box">$1,021</span>
+            </div>
+            <div class="sepa"></div>
+            <div class="bought fl-r">
+                <div class="coin">
+                    <div class="symbol">
+                        <span>TRR</span>
+                    </div>
+                    <div class="prices">
+                        <span class="price">-$145.12</span>
+                        <span class="">10 @ $15.23</span>
+                    </div>
+                </div>
+                <div class="coin">
+                    <div class="symbol">
+                        <span>LUS</span>
+                    </div>
+                    <div class="prices">
+                        <span class="price">$1.12</span>
+                        <span class="">40 @ $0.28</span>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="multi-tag" id="winners">
             <div class="coin-sec">
@@ -277,27 +306,32 @@
             </div>
         </div>
         <div class="sports">
-            <span class="selected sport-option">Sports</span>
-            <span class="sport-option">Teachers</span>
+            <span class="selected sport-option-2" data-see="sports">Sports</span>
+            <span class="sport-option-2" data-see="teachers">Teachers</span>
+            <span class="sport-option-2" data-see="students">student Made</span>
         </div>
         <div class="sepa"></div>
-        <div class="sports">
-            <span class="selected sport-option">(VBS) Boys Soccer</span>
-            <span class="sport-option">(VGS) Girls Soccer</span>
-            <span class="sport-option">(VGV)VolleyBall</span>
+        <div class="sports" id="sports-pickers">
+            <span class="selected sport-option" data-write="soccer">(SCR)Soccer</span>
+            <span class="sport-option" data-write="volleyball" >(VOL)Volleyball</span>
+            <span class="sport-option">(XC) Cross Country</span>
         </div>
         <div class="des multi-tag">
-            <span class="stk-title">
+            <span class="stk-title" id="js-symbol">
                 VBS
             </span>
+            <div class="based-on">
+                <span class="op-5" id="js-name"></span>
+                <span class="mini-box" id="js-based">Over and unders</span>
+            </div>
             <div class="stk-prices">
-                <span class="stk-price">
+                <span class="stk-price" id="js-price">
                     $50.22
                 </span>
-                <span class="perc">
+                <span class="perc" id="js-up">
                     9.12%
                 </span>
-                <span class="perc-money up">
+                <span class="perc-money" id="js-money">
                     $4.22
                 </span>
             </div>
@@ -305,54 +339,17 @@
             <canvas id="myLineChart" width="400" height="200"></canvas>
             <div class="buysell">
                 <div class="times">
-                    <span class="selected">1x</span>
-                    <span>3x</span>
-                    <span>5x</span>
-                    <span>10x</span>
+                    <span class="selected" data-amount="1">1x</span>
+                    <span data-amount="3">3x</span>
+                    <span data-amount="5">5x</span>
+                    <span data-amount="10">10x</span>
                 </div>
-                <button class="buy">Buy</button>
+                <button class="buy" id="buy">Buy</button>
                 <button class="sell">Sell</button>
             </div>
         </div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/bp/inspo/overunder/stocks.js" type="module"></script>
 
-<script>
-    const ctx = document.getElementById('myLineChart').getContext('2d');
-  
-    // Sample data for the line chart
-    const data = {
-      labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-      datasets: [{
-        label: 'Monthly Sales',
-        data: [65, 59, 80, 81, 56, 65],  // Example data points
-        fill: false,  // No fill under the line
-        borderColor: 'rgba(75, 192, 192, 1)',  // Line color
-        tension: 0.1  // Smooth curve line
-      }]
-    };
-  
-    // Create the line chart
-    new Chart(ctx, {
-      type: 'line',  // Specify the chart type
-      data: data,
-      options: {
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Months'
-            }
-          },
-          y: {
-            title: {
-              display: true,
-              text: 'Sales'
-            }
-          }
-        }
-      }
-    });
-  </script>
-  
 </html>

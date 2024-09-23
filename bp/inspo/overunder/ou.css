@@ -24,6 +24,65 @@ input {
     font-family: inter;
 }
 
+.message {
+    background-color: rgba(173, 216, 230, 0.938);
+    color: rgb(59, 59, 59);
+    position: fixed;
+    padding: 0.5rem;
+    top: 0;
+    width: calc(100%);
+    z-index: 999;
+    animation: close 3s ease forwards;
+    animation-delay: 3s;
+    display: none;
+}
+
+@keyframes close {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        display: none;
+    }
+}
+
+.error {
+    background-color: rgba(255, 0, 0, 0.76);
+    color: white;
+}
+
+.box {
+    background-color: var(--lime);
+    border-radius: 0.3rem;
+    padding: 0.2rem;
+}
+
+.activity {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3rem;
+    position: relative;
+    background-color: gray;
+    overflow: hidden;
+    border-radius: 1.3rem;
+    margin: 0.5rem 0rem;
+    width: 100%;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    font-size: 1.3rem;
+    font-family: inter;
+    font-weight: 600;
+    color: white;
+}
+
+.ac-ou {
+    background: rgb(50,189,205);
+background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
+}
+
 .light-text {
     font-weight: 400;
 }
@@ -42,6 +101,14 @@ input {
     --3-bg: rgb(44, 44, 141);
     --lime:  rgb(44, 214, 121);
     --red: rgb(214, 44, 44); 
+}
+
+.weup {
+    background-color: var(--lime);
+}
+
+.wedown {
+    background-color: var(--red);
 }
 
 .op-5 {
@@ -210,6 +277,10 @@ input {
     border-radius: 0.2rem;
     font-family: roboto;
     padding: 0.2rem;
+}
+
+.multi-title-xl {
+    font-size: 2rem;
 }
 
 .card {

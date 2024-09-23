@@ -1,152 +1,183 @@
 import { allBets, userBets } from './bets.js';
-import { saveData } from './ou.js';``
-let balance = 0;
+
+export let balanceAdder = parseFloat(localStorage.getItem('balanceAdder')) || 0;
+export function balanceAdderFun (adder, add) {
+  if (add = 'add') {
+    balanceAdder += adder;
+  } else if (add = 'sub') {
+    balanceAdder -= adder;
+  }
+  localStorage.setItem('balanceAdder', adder);
+}
+
+
+
+export function message(message, type) {
+  type = type || '';
+    const statusMessageElement = document.querySelector('.message');
+    if (statusMessageElement) {
+      statusMessageElement.style.display = 'block';
+      statusMessageElement.innerHTML = `<span>${message}</span>`;
+    }
+
+    if (type === 'error') {
+        statusMessageElement.classList.add('error');
+    }
+
+}
 
 
 const divLinkers = document.querySelectorAll('div[data-linker]');
 divLinkers.forEach(div => {
     div.addEventListener('click', function() {
-        window.location.href = this ? this.getAttribute('data-linker') : '';
+        const link = this.getAttribute('data-linker');
+        if (link) window.location.href = link;
     });
-}
-);
+});
 
 const userData = JSON.parse(localStorage.getItem('userData')) || {};
- export function formatDateTime(dateTimeStr) {
+
+// Function to format date and time
+export function formatDateTime(dateTimeStr) {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
-    // Split the input date string into date and time
-    let [datePart, timePart] = dateTimeStr.split(" ");
-    
-    // Split the date and time into components
-    let [month, day] = datePart.split("-");
+    const [datePart, timePart] = dateTimeStr.split(" ");
+    const [month, day] = datePart.split("-");
     let [hours, minutes] = timePart.split(":");
-    
+
     // Convert to 12-hour format
     let period = "am";
     hours = parseInt(hours, 10);
     if (hours >= 12) {
         period = "pm";
-        if (hours > 12) {
-            hours -= 12;
-        }
+        if (hours > 12) hours -= 12;
     } else if (hours === 0) {
         hours = 12;
     }
-    
-    // Handle the "th", "st", "nd", "rd" suffix for the day
-    let daySuffix;
-    if (day === "1" || day === "21" || day === "31") {
-        daySuffix = "st";
-    } else if (day === "2" || day === "22") {
-        daySuffix = "nd";
-    } else if (day === "3" || day === "23") {
-        daySuffix = "rd";
-    } else {
-        daySuffix = "th";
+
+    // Determine day suffix
+    const dayInt = parseInt(day, 10);
+    const daySuffix = (dayInt === 1 || dayInt === 21 || dayInt === 31) ? 'st' :
+                      (dayInt === 2 || dayInt === 22) ? 'nd' :
+                      (dayInt === 3 || dayInt === 23) ? 'rd' : 'th';
+
+    return `${months[month - 1]} ${dayInt}${daySuffix} ${hours}:${minutes}${period}`;
+}
+
+// Toggle elements with revel attribute
+document.addEventListener('click', (e) => {
+    if (e.target.matches('[data-revel]')) {
+        const target = document.getElementById(e.target.getAttribute('data-revel'));
+        if (target) target.classList.toggle('dn');
     }
-    
-    // Format the final string
-    let formattedDateTime = `${months[month - 1]} ${parseInt(day, 10)}${daySuffix} ${hours}:${minutes}${period}`;
-    
-    return formattedDateTime;
-  }
+});
 
-  const allrevels = document.querySelectorAll('[data-revel]');
+// Clear all data and reload the page
+const clearAllBtn = document.getElementById('clearAllBtn');
+if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', () => {
+        localStorage.clear();
+        window.location.reload();
+    });
+}
 
-  if (allrevels) {
-    allrevels.forEach(revel => {
-        revel.addEventListener('click', function() {
-            const target = document.getElementById(this.getAttribute('data-revel'));
-            target.classList.toggle('dn');
+// Check bets and update balance
+export function checkBetsAndUpdateBalance() {
+    let balance = 0;
+    userBets.forEach(userBet => {
+        const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
+        if (matchingBet) {
+            balance += (matchingBet.result === userBet.option) ? matchingBet.price : 
+                       (['over', 'under'].includes(matchingBet.result)) ? -matchingBet.price : 0;
         }
-        );
-    }
-    );    
-  }
+    });
+    updateBalanceUI(balance + balanceAdder);
+}
+checkBetsAndUpdateBalance();
 
-  const clearAllBtn = document.getElementById('clearAllBtn');
-
-  if (clearAllBtn) {
-clearAllBtn.addEventListener('click', function() {
-    localStorage.clear();
-    window.location.reload();    
-  }
-    );
-    }
-
-
-    export function checkBetsAndUpdateBalance() {
-        balance = 0; // No 'let' here, update the global variable
-        userBets.forEach(userBet => {
-          const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
-          if (matchingBet) {
-            // Check if the user's option matches the bet result
-            if (matchingBet.result === userBet.option) {
-              balance += matchingBet.price;
-            } else if (matchingBet.result !== userBet.option && (matchingBet.result === 'over' || matchingBet.result === 'under')) {
-              balance -= matchingBet.price;
-            }
-            // No need to check for an empty result because it doesn't change the balance
-          }
-        });
-        // Update the UI with the new balance
+export function checkBetsAndUpdateBalanceReturner() {
+  let balance = 0;
+  userBets.forEach(userBet => {
+      const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
+      if (matchingBet) {
+          balance += (matchingBet.result === userBet.option) ? matchingBet.price : 
+                     (['over', 'under'].includes(matchingBet.result)) ? -matchingBet.price : 0;
       }
-      checkBetsAndUpdateBalance();
+  });
+  return balance + balanceAdder;
+}
 
-    
+// Update the balance in the UI
+function updateBalanceUI(balance) {
+    const balanceElem = document.querySelector('.balance.money');
+    if (balanceElem) balanceElem.textContent = `$${balance}`;
+}
+
+// Display user info
+export function displayUserInfo() {
     const userInfoElem = document.getElementById('userInfo');
+    const usernameElem = document.getElementById('username');
 
-
-    export function displayUserInfo() {
-        if (!userData.username) {
-            if (userInfoElem) {
-                userInfoElem.innerHTML = `
-                    <div class="log g-10 userForm">
+    if (!userData.username) {
+        if (userInfoElem) {
+            userInfoElem.innerHTML = `
+                <div class="log g-10 userForm">
                     <span>Enter your name so your data can be saved!</span>
                     <div class="userForm-i g-10">
-                    <input type="text" placeholder="username" id="user">
-                    <button class="multi-title" id="enterUser">
-                        Enter
-                    </button>
+                        <input type="text" placeholder="username" id="user">
+                        <button class="multi-title" id="enterUser">Enter</button>
                     </div>
-                    </div>
-                `;
-                const enterUserBtn = document.getElementById('enterUser');
-                enterUserBtn.addEventListener('click', function() {
-                    const username = document.getElementById('user').value;
+                </div>
+            `;
+            document.getElementById('enterUser').addEventListener('click', () => {
+                const username = document.getElementById('user').value;
+                if (username) {
                     userData.username = username;
                     saveData();
                     displayUserInfo();
-                });
-            }
-      
-          const username = document.getElementById('username');
-          username.innerHTML = '???';
-      
-          // Set the event listener after rendering the butto
-        } else {
-          if (userInfoElem) {
-            userInfoElem.classList.add('dn');
-          }
-          const username = document.getElementById('username');
-          username.innerHTML = userData.username
+                }
+            });
         }
-        const statsDiv = document.getElementById('js-stats');
-          statsDiv.innerHTML = `
-            <div class="stat fl-ai">
-                <span>${userData.keys}</span>
-                <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
-              </div>
-              <div class="stat fl-ai">
-                <span class="rank-1">${userData.rank}</span>
-                <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
-              </div>
-              <span class="balance money">$${balance}</span>
-          `;
+        if (usernameElem) usernameElem.textContent = '???';
+    } else {
+        if (userInfoElem) userInfoElem.classList.add('dn');
+        if (usernameElem) usernameElem.textContent = userData.username;
+    }
 
-      }
-      
-      
-      console.log(userData);
-      displayUserInfo();
+    updateStatsUI();
+}
+
+// Update user stats UI
+function updateStatsUI() {
+    const statsDiv = document.getElementById('js-stats');
+    if (statsDiv) {
+        statsDiv.innerHTML = `
+            <div class="stat fl-ai">
+                <span>${userData.keys || 0}</span>
+                <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+            </div>
+            <div class="stat fl-ai">
+                <span class="rank-1">${userData.rank || ''}</span>
+                <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
+            </div>
+            <span class="balance money">$0</span>
+        `;
+    }
+}
+
+// Save user data to local storage
+export function saveData() {
+    localStorage.setItem('userData', JSON.stringify(userData));
+    localStorage.setItem('balanceAdder', balanceAdder);
+    gameSave('user', userData);
+}
+
+export function gameSave(name, detail) {
+    let gameData = JSON.parse(localStorage.getItem('gameData')) || []; 
+    let time = new Date().getTime();
+    gameData.push({name, detail, time});
+}
+
+
+
+console.log(userData);
+displayUserInfo();

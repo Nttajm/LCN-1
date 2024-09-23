@@ -67,7 +67,7 @@ function loadMybets() {
 
     const selectedSport = document.querySelector('.sport-option.selected')?.textContent.toLowerCase();
 
-    userBets.forEach(userBet => {
+    userBets.reverse().forEach(userBet => {
         const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
         if (matchingBet) {
             let imgType = 'https://via.placeholder.com/50';
