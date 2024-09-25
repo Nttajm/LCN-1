@@ -1,15 +1,16 @@
-import { soccerBets } from './bets.js';
-import { basketballBets } from './bets.js';
-import { volleyballBets } from './bets.js';
-import { schoolBets } from "./bets.js";
-import { checkBetsAndUpdateBalance } from './global.js'; 
-import { checkBetsAndUpdateBalanceReturner } from './global.js';
-import { message } from './global.js';
-import { balanceAdder } from './global.js';
-import { saveData } from './global.js';
-import { gameSave } from './global.js';
-import { displayUserInfo } from './global.js';
-import { balanceAdderFun } from './global.js';
+import { soccerBets, basketballBets, volleyballBets, schoolBets } from './bets.js';
+import {
+    checkBetsAndUpdateBalance,
+    checkBetsAndUpdateBalanceReturner,
+    message,
+    balanceAdder,
+    saveData,
+    gameSave,
+    displayUserInfo,
+    balanceAdderFun,
+    updateBalanceUI,
+    userData,
+} from './global.js';
 
 function _(id) {
     return document.getElementById(id);
@@ -91,6 +92,8 @@ function writeStock(typeBet) {
 
     // Check if it's manual stock data (array of numbers) or sports bet data (array of objects)
     if (Array.isArray(typeBet) && typeof typeBet[0] === 'number') {
+        const lastPrice = typeBet[typeBet.length - 1];
+
         // It's manual stock data
         let stock = stockManual.find(stock => stock.data === typeBet);
         let basedOn = stock.basedOn;
@@ -99,11 +102,10 @@ function writeStock(typeBet) {
 
         const priceHtml = _('js-price');
         const averagePrice = (typeBet.reduce((sum, price) => sum + price, 0) / typeBet.length).toFixed(2);
-        priceHtml.innerHTML = '$' + averagePrice;
+        priceHtml.innerHTML = lastPrice.toFixed(2);
 
         _('js-based').innerHTML = basedOn;
 
-        const lastPrice = typeBet[typeBet.length - 1];
         const firstPrice = typeBet[0];
 
         const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
@@ -336,20 +338,35 @@ buyAmountSeletes.forEach(span => {
 });
 
 
+userData.userStocks = [];
+
 function buy() {
     let currentPrice = parseFloat(_('js-price').textContent.slice(1));
     let currentMoney = checkBetsAndUpdateBalanceReturner();
+    let stockName = _('js-name').textContent;
 
     if (currentMoney >= currentPrice * buyAmount) {
-        let newMoney = currentMoney - currentPrice * buyAmount;
+        let newMoney =  currentPrice * buyAmount;
         balanceAdderFun(newMoney, 'sub');
-        displayUserInfo();
-        message(`You bought ${buyAmount} stocks for $${(currentPrice * buyAmount).toFixed(2)} of ${_('js-name').textContent}`, '');
-        saveData();
-        gameSave('stock', `User bought ${buyAmount} stocks for $${(currentPrice * buyAmount).toFixed(2)} of ${_('js-name').textContent}`);
+        updateBalanceUI(currentMoney - newMoney);
+        message(`You bought ${buyAmount} stocks for $${(currentPrice * buyAmount).toFixed(2)} of ${stockName}`, '');
+        gameSave('stock', `User bought ${buyAmount} stocks for $${(currentPrice * buyAmount).toFixed(2)} of ${stockName}`);
+
+        // Check if the stock is already in the user's array
+        let stock = userData.userStocks.find(s => s.name === stockName);
+        if (stock) {
+            stock.amount += parseInt(buyAmount);
+        } else {
+            userData.userStocks.push({ name: stockName, amount: parseInt(buyAmount) });
+        }
     } else {
         message('You do not have enough money to buy this stock', 'error');
     }
+    saveData();
+    console.log(userData.userStocks);
+    displayUserInfo();
+
 }
 
 _('buy').addEventListener('click', buy);
+
