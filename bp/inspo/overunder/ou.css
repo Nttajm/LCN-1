@@ -95,7 +95,7 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
 }
 
 :root {
-    font-size: 18px;
+    font-size: 17px;
     --main-bg:  rgb(7, 31, 92);
     --secondary-bg: rgb(17, 17, 59);
     --3-bg: rgb(44, 44, 141);
@@ -231,6 +231,7 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
 .sports {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
     font-weight: 600;
     font-size: 1.2rem;
     font-family: roboto;
@@ -477,18 +478,37 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     font-weight: 300;
 }
 
-.button-sec {
+/* .button-sec {
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: 0.2rem;
+} */
+
+.button-sec {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 0.2rem;
 }
 
-.btn, button {
+.button-sec button {
+    width: 100%;
+}
+
+/* .btn, button {
     padding: 0.2rem;
     font-weight: 600;
     font-size: 1rem;
     border-radius: 0.3rem;
+} */
+
+.btn, button {
+    padding: 0.3rem;
+    font-weight: 600;
+    font-size: 1.5rem;
+    border-radius: 0.3rem;
+    font-style: italic;
 }
 
 .over {
@@ -507,8 +527,13 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
   }
 
 
-  .collapse {
+  /* .collapse {
     animation: collapse .6s ease forwards;
+    pointer-events: none;
+} */
+
+.collapse {
+    animation: full .6s ease forwards;
     pointer-events: none;
 }
 
@@ -598,6 +623,17 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
 
     100% {
         height: 0;
+        opacity: 0;
+        font-size: 0px ;
+        padding: 0px;
+
+    }
+}
+
+@keyframes full {
+
+    100% {
+        width: 0;
         opacity: 0;
         font-size: 0px ;
         padding: 0px;
