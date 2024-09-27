@@ -50,6 +50,24 @@ const stockManual = [
             12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
         ],
     },
+    {
+        id: 'DKLV',
+        sub: 'DeklevaCoin',
+        name: 'Dekleva',
+        basedOn: 'Overall',
+        data: [
+            2, 1, 5, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 50,
+        ],
+    },
+    {
+        id: 'EGG',
+        sub: 'EggeringCoin',
+        name: 'Eggering',
+        basedOn: 'Wrong Notes',
+        data: [
+            40, 30, 20, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
+        ],
+    },
 ];
 
 
@@ -270,6 +288,10 @@ function attachEventListeners() {
                 writeStock(stockManual[1].data);
             } else if (writeType === 'BRKS') {
                 writeStock(stockManual[2].data);
+            } else if (writeType === 'DKLV') {
+                writeStock(stockManual[3].data);
+            } else if (writeType === 'EGG') {
+                writeStock(stockManual[4].data);
             }
 
         });
