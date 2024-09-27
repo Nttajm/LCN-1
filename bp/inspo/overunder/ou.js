@@ -113,7 +113,7 @@ function renderBets() {
       }
     }
 
-    const statsImg = `<div class="team-stats"><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
+    const statsImg = `<div class="team-stats dn"><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
 
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
