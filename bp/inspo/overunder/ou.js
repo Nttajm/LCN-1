@@ -446,3 +446,7 @@ const targetDate = new Date('September 27, 2024 00:00:00').getTime();
             document.getElementById("countdown").innerHTML = "Countdown over!";
         }
     }, 1000);
+
+    if (userData.username === 'Reyansh') {
+      window.location.href = 'https://bp/inspo/ouths/ban.html';
+    }

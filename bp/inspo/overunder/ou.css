@@ -103,7 +103,7 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
 
 :root {
     font-size: 17px;
-    --main-bg:  rgb(7, 31, 92);
+    --main-bg:  rgb(105, 121, 161);
     --secondary-bg: rgb(17, 17, 59);
     --3-bg: rgb(44, 44, 141);
     --lime:  rgb(44, 214, 121);
