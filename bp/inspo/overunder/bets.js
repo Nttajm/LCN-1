@@ -11,7 +11,7 @@ export const soccerBets  = [
     option: '',
     result: '',
     price: 320,
-    date: '9-17 15:30',
+    date: '9-27 18:30',
   },
   {
     sport: 'soccer',
