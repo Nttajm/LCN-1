@@ -113,11 +113,12 @@ function renderBets() {
       }
     }
 
-    const statsImg = `<div class="team-stats dn"><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
+    const statsImg = `<div class="team-stats"><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
+
 
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
-      <div class="bet ${betClass} card">
+      <div class="bet ${betClass} card ">
             <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
                     ${!bet.result ? statsImg : ''}
@@ -450,3 +451,13 @@ const targetDate = new Date('September 27, 2024 00:00:00').getTime();
     if (userData.username === 'Reyansh') {
       window.location.href = 'https://bp/inspo/ouths/ban.html';
     }
+
+    const parlayButtons = $('.mode');
+
+    parlayButtons.on('click', function() {
+        parlayButtons.removeClass('on');
+        $(this).addClass('on');
+    } );
+
+
+

@@ -103,6 +103,7 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
 
 :root {
     font-size: 17px;
+    --gray-border:  rgb(81, 81, 81);
     --main-bg:  rgb(105, 121, 161);
     --secondary-bg: rgb(17, 17, 59);
     --3-bg: rgb(44, 44, 141);
@@ -584,8 +585,26 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
 }
 
 .parlayAdd {
-    border: solid 5px var(--lime);
+    border: solid 5px var(--lime) !important;
     box-sizing: border-box;
+}
+
+.waiting {
+    animation: awaiting 2s infinite;
+}
+
+@keyframes awaiting {
+    0% {
+       border: solid 5px var(--lime) !important;
+    }
+
+    50% {
+        border: solid 5px var(--gray-border) !important;
+    }
+
+    100% {
+        border: solid 5px var(--lime) !important;
+    }
 }
 
 .team-stats {
@@ -669,6 +688,29 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
 .setting {
     background-color: var(--secondary-bg);
     padding: 0.5rem;
+}
+
+.team-stats-display {
+    background-color: rgba(36, 39, 147, 0.348);
+    position: fixed;
+    transition: all 0.3s ease;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-family: inter;
+}
+
+.team-stats-display .card {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes open {
@@ -797,8 +839,9 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
  }
 
  .beta-eddition img {
-    width: 80%;
- }
+    width: 80%; 
+    margin: auto 0;
+}
 
     @keyframes fadeOut {
         0% {
