@@ -1,10 +1,10 @@
 const boardSize = 5;
-const mineCount = 8;
+const mineCount = 6;
 let board = [];
 let gameOver = false;
 let clicked = 0;
 const playmessage = $('.caniplay');
-let betAmount = 50;
+let betAmount = 10000000;
 
 
 const gameBoardElement = document.getElementById('game-board');
