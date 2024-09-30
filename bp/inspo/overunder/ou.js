@@ -113,7 +113,9 @@ function renderBets() {
       }
     }
 
-    const statsImg = `<div class="team-stats dn"><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
+    const statsImg = `<div class="team-stats" data-teamStat='${bet.teamStat ? bet.teamStat : '' }'><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
+    
+
 
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
@@ -425,7 +427,7 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 // console.log(restoredUserBets);
 
 
-const targetDate = new Date('September 27, 2024 00:00:00').getTime();
+const targetDate = new Date('September 30, 2024 00:00:00').getTime();
 
     // Update the countdown every second
     const countdown = setInterval(() => {

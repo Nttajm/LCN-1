@@ -8,8 +8,28 @@
     <link rel="stylesheet" href="/css/standard.css">
     <link rel="stylesheet" href="/bp/inspo/overunder/mines.css">
     <link rel="stylesheet" href="/bp/inspo/overunder/ou.css">
+    <link rel="stylesheet" href="./casino.css">
 </head>
 <body>
+  <div class="caniplay fallDown">
+    <div class="card">
+      <div class="title">
+        GEMS
+      </div>
+      <div class="stats-i">
+        <div class="stat fl-ai">
+          <span>3</span>
+          <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+        </div>
+      </div>
+      <div class="obj">
+        <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+        <img src="/bp/EE/assets/ouths/icons/arr.png" alt="">
+        <img src="/bp/EE/assets/ouths/icons/heart(5).png" alt="" class="icon-hearts">
+      </div>
+      <button class="icon-xl" id="play">Play</button>
+    </div>
+  </div>
     <div class="nav">
         <div class="nav-top">
           <div class="img-sec">
@@ -17,7 +37,6 @@
           </div>
          <div class="log fl-r g-10 fl-ai">
           <div class="settings-div" data-revel="js-revel-set">
-            <img src="bp/EE/assets/ouths/settings.png" alt="" class="icon">
           </div>
          </div>
         </div>
@@ -43,23 +62,32 @@
             <div class="stats-i fl-ai">
                 <span>💣 -$14</span>
                 <span class="fl-ai"><img src="/bp/EE/assets/ouths/g.png" alt="" class="icon"> $6</span>
+                <img src="/bp/EE/assets/ouths/icons/heart(1).png" alt="" class="icon-hearts">
             </div>
+        </div>
+        <div class="sports" id="timers">
+          
         </div>
         <div id="game-board"></div>
         <p id="status-message"></p>
     </div>
-    <button class="wi-100">Cash Out (4 gems)</button>
+    <button class="wi-100 disabled" id="cashout">Cash Out (4 gems)</button>
     <div class="multi-tag">
         <div class="fl-r g-10">
-            <input type="text" placeholder="Bet amount">
+            <input type="text" placeholder="Bet amount ($10 defult)">
             <div class="gem-amount">
-                <div class="times">1.5x</div>
-                <div class="times">2x</div>
+                <div class="times">Bet</div>
+                <div class="times">risk</div>
             </div>
         </div>
-        <button id="reset-button" class="">Reset Game</button>
+        <button id="reset-button" class="dn">Reset Game</button>
     </div>
 
-    <script src="script.js"></script>
+    <script
+  src="https://code.jquery.com/jquery-3.7.1.js"
+  integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+  crossorigin="anonymous"></script>
+  <script src="gems.js"></script>
+  <script src="/bp/inspo/overunder/global.js" type="module"></script>
 </body>
 </html>

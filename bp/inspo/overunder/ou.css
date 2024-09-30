@@ -25,6 +25,13 @@ input {
     font-family: inter;
 }
 
+.disabled {
+    background-color: gray !important;
+    color: white !important;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .linker, a {
     color: var(--lime);
     font-size: inherit;
@@ -97,6 +104,13 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
 .sepa {
     width: 100%;
     height: 3px;
+    background-color: rgba(128, 128, 128, 0.459);
+    margin: 0.5rem 0rem;
+}
+
+.sepa-v {
+    height: 100%;
+    width: 3px;
     background-color: rgba(128, 128, 128, 0.459);
     margin: 0.5rem 0rem;
 }
@@ -423,6 +437,7 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     position: relative;
     gap: 0.5rem;
     width: calc(100% - 2rem);
+    overflow: hidden;
 }
 
 .ended , .ongoing {
@@ -825,4 +840,40 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     text-align: center;
     font-family: var(--f-1); 
     border-radius: 0.4rem;   
+}
+
+.ts-div {
+    width: 100%;
+    height: 100%;
+    transform: scale(1.1);
+    display: flex;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(39, 16, 102, 0.918);
+    z-index: 999;
+}
+
+.ts {
+    font-weight: 600;
+    color: white;
+    font-family: var(--f-1);
+    background-color: var(--3-bg);
+    padding: 1.5rem;
+    border-radius: 0.8rem;
+    display: flex;
+    gap: 0.5rem;
+    font-weight: 400;
+}
+
+.ts-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.ts-overall {
+    font-size: 1.5rem;
+    font-weight: 600;
 }
