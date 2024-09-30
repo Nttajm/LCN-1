@@ -449,7 +449,7 @@ const targetDate = new Date('October 1, 2024 09:30:00').getTime();
         }
     }, 1000);
 
-    if (userData.username === 'Reyansh') {
+    if (userData.username === '') {
       window.location.href = 'https://bp/inspo/ouths/ban.html';
     }
 
