@@ -4,7 +4,7 @@ let board = [];
 let gameOver = false;
 let clicked = 0;
 const playmessage = $('.caniplay');
-let betAmount = 10000000;
+let betAmount = 10;
 
 
 const gameBoardElement = document.getElementById('game-board');

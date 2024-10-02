@@ -120,7 +120,7 @@ function renderBets() {
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card ">
-            <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
+            // <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
                     ${!bet.result ? statsImg : ''}
             <div class="game">
