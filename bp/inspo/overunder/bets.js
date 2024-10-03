@@ -4,7 +4,7 @@ export const soccerBets  = [
     sport: 'soccer',
     techTeam: 'Tech High Soccer (VB)',
     against: 'Point Arena Soccer',
-    id: '15s',
+    id: '16s',
     amount: 1.5,
     typeBet: 'Goals',
     status: 'ended',
