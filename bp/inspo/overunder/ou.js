@@ -426,7 +426,6 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 // const restoredUserBets = stringToUserBets(stringBets);
 // console.log(restoredUserBets);
 
-
 const targetDate = new Date('October 8, 2024 10:30:00').getTime();
 
     // Update the countdown every second
@@ -448,10 +447,6 @@ const targetDate = new Date('October 8, 2024 10:30:00').getTime();
             document.getElementById("countdown").innerHTML = "Countdown over!";
         }
     }, 1000);
-
-    if (userData.username === 'Reyansh') {
-      window.location.href = 'https://bp/inspo/ouths/ban.html';
-    }
 
     const parlayButtons = $('.mode');
 
