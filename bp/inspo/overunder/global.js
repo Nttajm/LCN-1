@@ -90,7 +90,8 @@ export function checkBetsAndUpdateBalance() {
                        (['over', 'under'].includes(matchingBet.result)) ? -matchingBet.price : 0;
         }
     });
-    updateBalanceUI(balance + balanceAdder);
+    // updateBalanceUI(balance + balanceAdder);
+    updateBalanceUI(balance);
 }
 checkBetsAndUpdateBalance();
 
@@ -103,7 +104,9 @@ export function checkBetsAndUpdateBalanceReturner() {
                      (['over', 'under'].includes(matchingBet.result)) ? -matchingBet.price : 0;
       }
   });
+//   return balance + balanceAdder;
   return balance + balanceAdder;
+
 }
 
 // Update the balance in the UI
