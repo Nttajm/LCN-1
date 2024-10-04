@@ -47,21 +47,28 @@ function getWinLossRation() {
 
 
   console.log(getWinLossRation());
-
   function ranker() {
     let ratio = getWinLossRation();
     let rank = 0;
-    if (ratio >= 0.2) {
-        rank = 500;
-    } else if (ratio >= 0.5) {
-        rank = 800;
-    } else if (ratio >= 0.7) {
-        rank = 1000;
-    } else if (ratio >= 0.9) {
-        rank = 1500;
-    } else {
-        rank = 0;
+    const rankThresholds = [
+      { threshold: 3, rank: 10000 },
+      { threshold: 2, rank: 5000 },
+      { threshold: 1.9, rank: 3000 },
+      { threshold: 1.6, rank: 2500 },
+      { threshold: 0.9, rank: 1500 },
+      { threshold: 0.7, rank: 1000 },
+      { threshold: 0.5, rank: 800 },
+      { threshold: 0.2, rank: 500 },
+      { threshold: 0, rank: 0 }
+    ];
+
+    for (let i = 0; i < rankThresholds.length; i++) {
+      if (ratio >= rankThresholds[i].threshold) {
+        rank = rankThresholds[i].rank;
+        break;
+      }
     }
+
     userData.rank = rank;
     save();
   }

@@ -1,15 +1,14 @@
 import { soccerBets, basketballBets, volleyballBets, schoolBets } from './bets.js';
 import {
     checkBetsAndUpdateBalance,
-    checkBetsAndUpdateBalanceReturner,
     message,
-    balanceAdder,
     saveData,
     gameSave,
     displayUserInfo,
-    balanceAdderFun,
-    updateBalanceUI,
     userData,
+    updateBalanceUI,
+    balanceAdder,
+    updateBalanceAdder,
 } from './global.js';
 
 function _(id) {
@@ -29,7 +28,16 @@ const stockManual = [
         name: 'Torre',
         basedOn: 'Test Scores and Moods',
         data: [
-            30, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 98,
+        ],
+    },
+    {
+        id: 'MYY',
+        sub: 'myCoin',
+        name: 'Mylander',
+        basedOn: 'Overall',
+        data: [
+            20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 123,
         ],
     },
     {
@@ -119,7 +127,7 @@ function writeStock(typeBet) {
         _('js-name').innerHTML = stock.name;
 
         const priceHtml = _('js-price');
-        const averagePrice = (typeBet.reduce((sum, price) => sum + price, 0) / typeBet.length).toFixed(2);
+        // const averagePrice = (typeBet.reduce((sum, price) => sum + price, 0) / typeBet.length).toFixed(2);
         priceHtml.innerHTML = lastPrice.toFixed(2);
 
         _('js-based').innerHTML = basedOn;
@@ -284,14 +292,16 @@ function attachEventListeners() {
                 writeStock(schoolBets);
             } else if (writeType === 'TRR') {
                 writeStock(stockManual[0].data);
-            } else if (writeType === 'WVR') {
+            } else if (writeType === 'MYY') {
                 writeStock(stockManual[1].data);
-            } else if (writeType === 'BRKS') {
+            } else if (writeType === 'WVR') {
                 writeStock(stockManual[2].data);
-            } else if (writeType === 'DKLV') {
+            } else if (writeType === 'BRKS') {
                 writeStock(stockManual[3].data);
-            } else if (writeType === 'EGG') {
+            } else if (writeType === 'DKLV') {
                 writeStock(stockManual[4].data);
+            } else if (writeType === 'EGG') {
+                writeStock(stockManual[5].data);
             }
 
         });
@@ -360,35 +370,141 @@ buyAmountSeletes.forEach(span => {
 });
 
 
-userData.userStocks = [];
+userData.userStocks = localStorage.getItem('userStocks') ? JSON.parse(localStorage.getItem('userStocks')) : [];
+function loadUserData() {
+    const savedData = localStorage.getItem('userData');
+    if (savedData) {
+        userData.userStocks = JSON.parse(savedData).userStocks || [];
+    }
+}
 
+loadUserData();
+
+// Save userData to localStorage
+function saveUserData() {
+    localStorage.setItem('userData', JSON.stringify(userData));
+}
+
+// Display stocks
+const stockDiv = document.getElementById('js-stock');
+
+function displayUserStocks() {
+    stockDiv.innerHTML = ''; // Clear the stockDiv before adding stocks
+
+    userData.userStocks.forEach(stock => {
+        if (stock.amount > 0) {
+            let lastPrice;
+
+            // Check if the stock is a manual stock
+            let manualStock = stockManual.find(s => s.name === stock.name);
+            if (manualStock) {
+                lastPrice = manualStock.data[manualStock.data.length - 1];
+            } else {
+                // Handle stocks from calcStock
+                switch (stock.name) {
+                    case 'Soccer':
+                        lastPrice = calcStock(soccerBets)[calcStock(soccerBets).length - 1]; // Example function call for soccer stocks
+                        break;
+                    case 'Volleyball':
+                        lastPrice = calcStock(volleyballBets)[calcStock(volleyballBets).length - 1]; // Example function call for volleyball stocks
+                        break;
+                    case 'anotherStockName':
+                        lastPrice = calcStock(anotherBets); // Replace with your actual function and variable
+                        break;
+                    // Add more cases for other stocks
+                    default:
+                        lastPrice = 0; // Default if no matching case
+                }
+            }
+
+            // Display the stock information
+            stockDiv.innerHTML += `
+                <div class="coin">
+                    <div class="symbol">
+                        <span>${stock.name.substring(0, 3).toUpperCase()}</span>
+                    </div>
+                    <div class="prices">
+                        <span class="price">$${lastPrice}</span>
+                        <span>${stock.amount} ${(stock.amount > 1 ? 'shares' : 'share')}</span>
+                    </div>
+                </div>
+            `;
+        }
+        // <span>${stock.amount} @ $${(lastPrice / stock.amount).toFixed(2)}</span>
+
+    });
+}
+
+
+displayUserStocks();
+
+// Update displayUserStocks whenever user buys or sells
 function buy() {
     let currentPrice = parseFloat(_('js-price').textContent.slice(1));
-    let currentMoney = checkBetsAndUpdateBalanceReturner();
+    let currentMoney = checkBetsAndUpdateBalance();
     let stockName = _('js-name').textContent;
 
     if (currentMoney >= currentPrice * buyAmount) {
-        let newMoney =  currentPrice * buyAmount;
-        balanceAdderFun(newMoney, 'sub');
-        updateBalanceUI(currentMoney - newMoney);
-        message(`You bought ${buyAmount} stocks for $${(currentPrice * buyAmount).toFixed(2)} of ${stockName}`, '');
-        gameSave('stock', `User bought ${buyAmount} stocks for $${(currentPrice * buyAmount).toFixed(2)} of ${stockName}`);
+        let newMoney = currentPrice * buyAmount;
+        message(`You bought ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`, '');
+        gameSave('stock', `User bought ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`);
 
-        // Check if the stock is already in the user's array
+        // Update balance and balanceAdder
+        updateBalanceUI(currentMoney - newMoney);
+        updateBalanceAdder(balanceAdder - newMoney);
+
+        // Update user stocks
         let stock = userData.userStocks.find(s => s.name === stockName);
         if (stock) {
             stock.amount += parseInt(buyAmount);
         } else {
             userData.userStocks.push({ name: stockName, amount: parseInt(buyAmount) });
         }
+
+        // Save updated data
+        saveUserData();
+
+        // Update stock display
+        displayUserStocks();
     } else {
         message('You do not have enough money to buy this stock', 'error');
     }
-    saveData();
-    console.log(userData.userStocks);
-    displayUserInfo();
-
 }
 
-_('buy').addEventListener('click', buy);
+function sell() {
+    let currentPrice = parseFloat(_('js-price').textContent.slice(1));
+    let currentMoney = checkBetsAndUpdateBalance();
+    let stockName = _('js-name').textContent;
 
+    let stock = userData.userStocks.find(s => s.name === stockName);
+    if (stock) {
+        if (stock.amount >= buyAmount) {
+            let newMoney = currentPrice * buyAmount;
+            message(`You sold ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`, '');
+            gameSave('stock', `User sold ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`);
+
+            // Update balance and balanceAdder
+            updateBalanceUI(currentMoney + newMoney);
+            updateBalanceAdder(balanceAdder + newMoney);
+
+            stock.amount -= parseInt(buyAmount);
+            if (stock.amount === 0) {
+                userData.userStocks = userData.userStocks.filter(s => s.name !== stockName);
+            }
+
+            // Save updated data
+            saveUserData();
+
+            // Update stock display
+            displayUserStocks();
+        } else {
+            message(`You do not have enough ${stockName} stocks to sell`, 'error');
+        }
+    } else {
+        message(`You do not have any ${stockName} stocks to sell`, 'error');
+    }
+}
+
+// Attach event listeners
+_('buy').addEventListener('click', buy);
+_('sell').addEventListener('click', sell);

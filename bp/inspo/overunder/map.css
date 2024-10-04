@@ -1,0 +1,74 @@
+body {
+    background: radial-gradient(circle, rgba(7,0,117,1) 0%, rgba(0,21,61,1) 100%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.grid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0.2;
+}
+
+.items {
+    font-family: roboto;
+    font-size: 1.3rem;
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1.6rem;
+    width: 100vw;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5rem;
+    margin-left: auto 0;
+    margin-right: auto 0;
+}
+
+.items div  {
+    background-color: rgba(86, 86, 121, 0.315);
+    padding: 0.6rem;
+    border-radius: 0.3rem;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    width: calc(40% - 0.8rem);
+    align-content: flex-end;
+    height: 10rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.items div img {
+    width: 100%;
+    opacity: 0.5;
+    transition: 0.5s;
+    filter: blur(5px);
+}
+
+.items span {
+    text-decoration: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    border-radius: 0.7rem;
+}
+
+.Casino {
+    background: radial-gradient(circle, rgb(0, 117, 82) 0%, rgba(0,21,61,1) 100%);
+}
+
+.Marketplace {
+    background: radial-gradient(circle, rgb(160, 41, 41) 0%, rgb(3, 30, 82) 100%);
+}
+
+.bank {
+    background: radial-gradient(circle, rgba(99, 35, 99, 0.582) 0%, rgb(25, 48, 90) 100%);
+}

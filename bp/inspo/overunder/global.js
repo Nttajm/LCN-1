@@ -2,14 +2,7 @@ import { allBets, userBets } from './bets.js';
 
 export let balanceAdder = parseFloat(localStorage.getItem('balanceAdder')) || 0;
 
-export function balanceAdderFun(adder, add) {
-  if (add === 'add') {
-    balanceAdder += adder;
-  } else if (add === 'sub') {
-    balanceAdder -= adder;
-  }
-  localStorage.setItem('balanceAdder', balanceAdder);
-}
+
 
 
 export function message(message, type) {
@@ -80,6 +73,11 @@ if (clearAllBtn) {
     });
 }
 
+export function updateBalanceAdder(newBalanceAdder) {
+    balanceAdder = newBalanceAdder;
+    localStorage.setItem('balanceAdder', balanceAdder);
+}
+
 // Check bets and update balance
 export function checkBetsAndUpdateBalance() {
     let balance = 0;
@@ -91,28 +89,15 @@ export function checkBetsAndUpdateBalance() {
         }
     });
     // updateBalanceUI(balance + balanceAdder);
-    updateBalanceUI(balance);
-}
-checkBetsAndUpdateBalance();
-
-export function checkBetsAndUpdateBalanceReturner() {
-  let balance = 0;
-  userBets.forEach(userBet => {
-      const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
-      if (matchingBet) {
-          balance += (matchingBet.result === userBet.option) ? matchingBet.price : 
-                     (['over', 'under'].includes(matchingBet.result)) ? -matchingBet.price : 0;
-      }
-  });
-//   return balance + balanceAdder;
-  return balance + balanceAdder;
-
+    updateBalanceUI(balance + balanceAdder);
+    return balance + balanceAdder;
 }
 
 // Update the balance in the UI
 export function updateBalanceUI(balance) {
     const balanceElem = document.querySelector('.balance.money');
-    if (balanceElem) balanceElem.textContent = `$${balance}`;
+    if (balanceElem) balanceElem.textContent = `$${balance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+    saveData();
 }
 
 // Display user info
@@ -162,7 +147,7 @@ function updateStatsUI() {
                 <span class="rank-1">${userData.rank || ''}</span>
                 <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
             </div>
-            <span class="balance money">$${checkBetsAndUpdateBalanceReturner()}</span>
+            <span class="balance money">$${checkBetsAndUpdateBalance()}</span>
         `;
     }
 }
@@ -171,16 +156,17 @@ function updateStatsUI() {
 export function saveData() {
     localStorage.setItem('userData', JSON.stringify(userData));
     localStorage.setItem('balanceAdder', balanceAdder);
-    gameSave('user', userData);
+    let time = new Date().toLocaleString();
+    gameSave('user', {time, checkBetsAndUpdateBalance});
 }
 
 export function gameSave(name, detail) {
     let gameData = JSON.parse(localStorage.getItem('gameData')) || []; 
-    let time = new Date().getTime();
+    let time = new Date().toLocaleString(); // Format the time as a readable string
     gameData.push({name, detail, time});
+    localStorage.setItem('gameData', JSON.stringify(gameData));
 }
 
 
 
 console.log(userData);
-displayUserInfo();

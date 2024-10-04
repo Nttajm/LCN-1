@@ -135,3 +135,9 @@
     border-radius: 0.3rem;
     width: 100%;
 }
+
+#js-stock {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
