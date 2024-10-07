@@ -2,7 +2,13 @@ import { allBets, userBets } from './bets.js';
 
 export let balanceAdder = parseFloat(localStorage.getItem('balanceAdder')) || 0;
 
+export function uiAndBalance(newCash) {
+    let currentMoney = checkBetsAndUpdateBalance();
+    currentMoney += newCash;
 
+    updateBalanceAdder(currentMoney);
+    updateBalanceUI(currentMoney);
+}
 
 
 export function message(message, type) {
@@ -170,3 +176,36 @@ export function gameSave(name, detail) {
 
 
 console.log(userData);
+
+// alll something else from here.......
+
+
+export function initializeGame() {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (!userData.gameLives) {
+        userData = {
+            gameLives: 5,
+            keysToSubtract: 0,
+        }
+        saveData();
+    } else {
+        userData.keys += userData.keysToSubtract;
+        saveData();
+    }
+}
+
+export function heartReturner(option) {
+    let hearts = '';
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (!option) {
+        for (let i = 0; i < userData.gameLives; i++) {
+            hearts += '❤️';
+        }
+        return hearts;
+    } else {
+        for (let i = 0; i < option; i++) {
+            hearts += '❤️';
+        }
+        return hearts;
+    }
+}

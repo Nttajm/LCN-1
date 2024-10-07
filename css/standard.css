@@ -271,3 +271,11 @@ ul, li {
 .stand_er-capitalize {
   text-transform: capitalize;
 }
+
+.stand_er-reverse-txt {
+  text-transform: reverse;
+}
+
+.stand_er-reverse-item {
+  transform: rotate3d(0, 1, 0, 180deg);
+}
