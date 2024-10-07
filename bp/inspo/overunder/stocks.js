@@ -28,7 +28,7 @@ const stockManual = [
         name: 'Torre',
         basedOn: 'Test Scores and Moods',
         data: [
-            30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 98,
+            30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10,
         ],
     },
     {
@@ -37,7 +37,7 @@ const stockManual = [
         name: 'Mylander',
         basedOn: 'Overall',
         data: [
-            20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 123,
+            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60,
         ],
     },
     {
@@ -46,7 +46,7 @@ const stockManual = [
         name: 'Weaver',
         basedOn: 'Crash outs',
         data: [
-             8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 121,8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 121,
+          4, 5, 16, 5, 7, 3,  18.5, 9, 8, 6, 3, 5
         ],
     },
     {
