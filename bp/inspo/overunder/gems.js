@@ -6,6 +6,21 @@ let clicked = 0;
 const playmessage = $('.caniplay');
 let betAmount = 10;
 
+import {
+    checkBetsAndUpdateBalance,
+    message,
+    saveData,
+    gameSave,
+    displayUserInfo,
+    userData,
+    updateBalanceUI,
+    balanceAdder,
+    updateBalanceAdder,
+    uiAndBalance,
+} from './global.js';
+
+checkBetsAndUpdateBalance();
+
 
 const gameBoardElement = document.getElementById('game-board');
 const statusMessageElement = document.getElementById('status-message');
@@ -101,6 +116,8 @@ function revealTile(x, y) {
       <button class="icon-xl" id="playAgin">Play Again</button>
     </div>
             `);
+
+        
     } else {
         statusMessageElement.textContent = "You're safe!";
         renderBoard();
@@ -163,6 +180,9 @@ function cashOut() {
     revealAllTiles();
     cashOutBtn.classList.add('disabled');
     playAgain();
+
+    uiAndBalance(finalMultiplier * betAmount);
+
 }
 
 function play() {
@@ -196,3 +216,4 @@ const playBtn = document.getElementById('play');
 playBtn.addEventListener('click', play);
 
 playmessage.addClass('fallDown');
+
