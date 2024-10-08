@@ -115,7 +115,7 @@ let chartInstance = null;  // Global variable to store the chart instance
 
 function writeStock(typeBet) {
     const ctx = document.getElementById('myLineChart').getContext('2d');
-
+    typeBet = typeBet.reverse()
     // Check if it's manual stock data (array of numbers) or sports bet data (array of objects)
     if (Array.isArray(typeBet) && typeof typeBet[0] === 'number') {
         const lastPrice = typeBet[typeBet.length - 1];
@@ -329,7 +329,6 @@ mainPicks.forEach(div => {
             pickers.innerHTML = `
                 <span class="selected sport-option" data-write="soccer">(SCR)Soccer</span>
                 <span class="sport-option" data-write="volleyball">(VOL)Volleyball</span>
-                <span class="sport-option">(XC) Cross Country</span>
             `;
         } else if (showtype === 'teachers') {
             stockManual.forEach(stock => {
@@ -387,6 +386,7 @@ function saveUserData() {
 
 // Display stocks
 const stockDiv = document.getElementById('js-stock');
+const portfolioDiv = document.getElementById('portfolio');
 
 function displayUserStocks() {
     stockDiv.innerHTML = ''; // Clear the stockDiv before adding stocks
@@ -433,10 +433,24 @@ function displayUserStocks() {
         // <span>${stock.amount} @ $${(lastPrice / stock.amount).toFixed(2)}</span>
 
     });
+    displayPortfolio();
+
 }
 
+function displayPortfolio() {
+    portfolioDiv.innerHTML = '';
+    let portfolioValue = 0;
+    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+    userData.userStocks.forEach(stock => {
+        portfolioValue += stock.amount * lastPrice;
+        portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+    });
+}
 
 displayUserStocks();
+
+
+
 
 // Update displayUserStocks whenever user buys or sells
 function buy() {
