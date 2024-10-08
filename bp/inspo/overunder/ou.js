@@ -426,7 +426,7 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 // const restoredUserBets = stringToUserBets(stringBets);
 // console.log(restoredUserBets);
 
-const targetDate = new Date('October 8, 2024 12:30:00').getTime();
+const targetDate = new Date('October 11, 2024 12:30:00').getTime();
 
     // Update the countdown every second
     const countdown = setInterval(() => {
