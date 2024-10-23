@@ -17,7 +17,7 @@ export const soccerBets  = [
     sport: 'soccer',
     techTeam: 'Tech High Soccer (VG)',
     against: 'Calistoga',
-    id: '18s',
+    id: '19s',
     amount: 2.5,
     typeBet: 'Goals',
     status: '',
