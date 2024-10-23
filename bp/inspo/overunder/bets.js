@@ -2,7 +2,7 @@
 export const soccerBets  = [
   {
     sport: 'soccer',
-    techTeam: 'Tech High Soccer (VG)',
+    techTeam: 'Tech High Soccer (VB)',
     against: 'Sanoma Academy',
     id: '18s',
     amount: .5,
