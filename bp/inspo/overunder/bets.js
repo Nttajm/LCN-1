@@ -22,7 +22,7 @@ export const soccerBets  = [
     typeBet: 'Goals',
     status: '',
     option: '',
-    result: '',
+    result: 'under',
     price: 250,
     date: '10-23 16:30',
   }, 
