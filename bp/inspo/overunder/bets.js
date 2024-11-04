@@ -1,6 +1,20 @@
 
 export const soccerBets  = [
+   
    {
+    sport: 'soccer',
+    techTeam: 'Trump * over',
+    against: 'Kamala * under',
+    id: '22s',
+    amount: .5,
+    typeBet: 'Vote',
+    status: '',
+    option: '',
+    result: '',
+    price: 1200,
+    date: '11-5 16:30',
+  }, 
+  {
     sport: 'soccer',
     techTeam: 'Tech High Soccer (VG)',
     against: 'RCP',
