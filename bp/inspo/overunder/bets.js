@@ -1,5 +1,18 @@
 
 export const soccerBets  = [
+  {
+    sport: 'soccer',
+    techTeam: 'Tech High Soccer (VG)',
+    against: `St. Bernard's`,
+    id: '23s',
+    amount: 1.5,
+    typeBet: 'Goals',
+    status: '',
+    option: '',
+    result: '',
+    price: 600,
+    date: '11-8 14:30',
+  }, 
    
    {
     sport: 'soccer',
@@ -8,7 +21,7 @@ export const soccerBets  = [
     id: '22s',
     amount: .5,
     typeBet: 'Vote',
-    status: '',
+    status: 'ended',
     option: '',
     result: 'over',
     price: 1200,
@@ -23,7 +36,7 @@ export const soccerBets  = [
     typeBet: 'Goals',
     status: '',
     option: '',
-    result: '',
+    result: 'over',
     price: 500,
     date: '10-30 16:30',
   }, 
@@ -36,7 +49,7 @@ export const soccerBets  = [
     typeBet: 'Goals',
     status: '',
     option: '',
-    result: '',
+    result: 'under',
     price: 500,
     date: '10-30 16:30',
   }, 

@@ -1,6 +1,7 @@
 import { soccerBets } from "./bets.js";
 import { basketballBets } from "./bets.js";
 import { volleyballBets } from "./bets.js";
+import { usersCollection } from "./firebaseconfig.js";
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
 
@@ -230,7 +231,7 @@ const leadersBefore = [
         balance: 10,
     },
     {
-        name: 'Cassiopeia'
+        name: 'Cassiopeia',
         balance: -60,
     },
 ];
@@ -238,14 +239,26 @@ const leadersBefore = [
 const leadersSorted = leadersBefore.sort((a, b) => getBalance(b) - getBalance(a));
 
 // Helper function to get the balance (same as before)
-function getBalance(leader) {
-    if (leader.balance !== undefined) {
-        return leader.balance;
-    } else if (leader.gameCode) {
-        const decryptedCode = decryptNumbers(leader.gameCode);
-        return parseInt(decryptedCode, 10) || 0; // Default to 0 if decryption fails
-    }
-    return 0; // Default if neither is available
+// function getBalance(leader) {
+//     if (leader.balance !== undefined) {
+//         return leader.balance;
+//     } else if (leader.gameCode) {
+//         const decryptedCode = decryptNumbers(leader.gameCode);
+//         return parseInt(decryptedCode, 10) || 0; // Default to 0 if decryption fails
+//     }
+//     return 0; // Default if neither is available
+// }
+
+function getBalance(bets) {
+    let balance = 0;
+    bets.forEach(bet => {
+        if (bet.result === bet.option) {
+            balance += bet.price;
+        } else if (bet.result !== bet.option && (bet.result === 'over' || bet.result === 'under')) {
+            balance -= bet.price;
+        }
+    });
+    return balance;
 }
 
 // Function to render the leaders in the DOM
@@ -266,22 +279,24 @@ function renderLeaders(leaders) {
 }
 
 // Function to toggle between top 7 and all leaders
-function toggleLeaders() {
-    if (showTop7) {
-        // Show all leaders
-        renderLeaders(leadersSorted);
-        toggleBtn.textContent = `show top ${leadersAmount}`;
-    } else {
-        // Show top 5 leaders
-        renderLeaders(leadersSorted.slice(0, leadersAmount));
-        toggleBtn.textContent = "Show All Leaders";
-    }
-    // Toggle the state
-    showTop7 = !showTop7;
-}
+// function toggleLeaders() {
+//     if (showTop7) {
+//         // Show all leaders
+//         renderLeaders(leadersSorted);
+//         toggleBtn.textContent = `show top ${leadersAmount}`;
+//     } else {
+//         // Show top 5 leaders
+//         renderLeaders(leadersSorted.slice(0, leadersAmount));
+//         toggleBtn.textContent = "Show All Leaders";
+//     }
+//     // Toggle the state
+//     showTop7 = !showTop7;
+// }
 
 // Initial render (show top 5 by default)
-renderLeaders(leadersSorted.slice(0, leadersAmount));
+// renderLeaders(usersCollection);
+
+console.log(usersCollection);
 
 // Add event listener to toggle button
 const toggleBtn = document.getElementById('toggleLeadersBtn');

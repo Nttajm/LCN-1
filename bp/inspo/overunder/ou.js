@@ -575,7 +575,37 @@ document.addEventListener('DOMContentLoaded', () => {
   handleSeeParlaysDiv();
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const dailyBtn = document.querySelector('#daily-25');
 
+  // Function to handle daily reward logic
+  const handleDailyReward = () => {
+    const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
+    const newBalance = balanceAdder + 25;
+    localStorage.setItem('balanceAdder', newBalance);
+
+    // Update userData with a timestamp and store it in localStorage
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    userData.dailyTime = new Date().getTime();
+    localStorage.setItem('userData', JSON.stringify(userData));
+
+    // Disable the button and call updateFb to sync changes
+    dailyBtn.disabled = true;
+    updateFb();
+  };
+
+  // Initial setup to check if daily reward can be claimed
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const now = new Date().getTime();
+  const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+  if (userData.dailyTime && (now - userData.dailyTime < claimInterval)) {
+    dailyBtn.disabled = true;
+  } else {
+    dailyBtn.disabled = false;
+    dailyBtn.addEventListener('click', handleDailyReward);
+  }
+});
 
 
 

@@ -11,6 +11,10 @@ import {
     updateBalanceAdder,
 } from './global.js';
 
+import { updateFb } from './firebaseconfig.js';
+
+updateFb();
+
 function _(id) {
     return document.getElementById(id);
 }
@@ -37,7 +41,7 @@ const stockManual = [
         name: 'Mylander',
         basedOn: 'Overall',
         data: [
-            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60,
+            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60, 900,
         ],
     },
     {
@@ -118,10 +122,13 @@ function writeStock(typeBet) {
     typeBet = typeBet.reverse()
     // Check if it's manual stock data (array of numbers) or sports bet data (array of objects)
     if (Array.isArray(typeBet) && typeof typeBet[0] === 'number') {
-        const lastPrice = typeBet[typeBet.length - 1];
+        typeBet.reverse(); // Reverse the order of the array
+
+        var lastPrice = typeBet[typeBet.length - 1];
 
         // It's manual stock data
-        let stock = stockManual.find(stock => stock.data === typeBet);
+        let stockI = stockManual.find(stock => stock.data === typeBet);
+        let stock = stockI;
         let basedOn = stock.basedOn;
         _('js-symbol').innerHTML = stock.id;
         _('js-name').innerHTML = stock.name;
@@ -437,26 +444,29 @@ function displayUserStocks() {
 
 }
 
-// function displayPortfolio() {
-//     portfolioDiv.innerHTML = '';
-//     let portfolioValue = 0;
-//     portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
-//     userData.userStocks.forEach(stock => {
-//         portfolioValue += stock.amount * lastPrice;
-//         portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
-//     });
-// }
+function displayPortfolio() {
+    portfolioDiv.innerHTML = '';
+    let portfolioValue = 0;
+    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+    userData.userStocks.forEach(stock => {
+        portfolioValue += stock.amount * lastPrice;
+        portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+    });
+}
 
 displayUserStocks();
 
-
+const usernameDiv = document.getElementById('username');
+usernameDiv.innerHTML = userData.username || '???';
 
 
 // Update displayUserStocks whenever user buys or sells
 function buy() {
-    let currentPrice = parseFloat(_('js-price').textContent.slice(1));
+    let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
     let currentMoney = checkBetsAndUpdateBalance();
     let stockName = _('js-name').textContent;
+
+    console.log(currentPrice, currentMoney, stockName);
 
     if (currentMoney >= currentPrice * buyAmount) {
         let newMoney = currentPrice * buyAmount;
@@ -483,10 +493,12 @@ function buy() {
     } else {
         message('You do not have enough money to buy this stock', 'error');
     }
+
+    updateFb();
 }
 
 function sell() {
-    let currentPrice = parseFloat(_('js-price').textContent.slice(1));
+    let currentPrice = parseFloat(_('js-price').textContent);
     let currentMoney = checkBetsAndUpdateBalance();
     let stockName = _('js-name').textContent;
 
@@ -514,6 +526,7 @@ function sell() {
         } else {
             message(`You do not have enough ${stockName} stocks to sell`, 'error');
         }
+        updateFb();
     } else {
         message(`You do not have any ${stockName} stocks to sell`, 'error');
     }

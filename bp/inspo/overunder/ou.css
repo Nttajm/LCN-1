@@ -1091,3 +1091,22 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     font-size: 2rem;
     width: 100%;
 }
+
+.profile {
+    display: ;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--f-1);
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+    background-color: var(--3-bg);
+    color: white;
+}
+
+.profile img {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 100px;
+}

@@ -21,17 +21,18 @@
 </div>
 <div class="card">
   <div class="smi">
-    <button class="selected" id="reqest-leader">Request leaderboard</button>
+    <!-- <button class="selected">Want to be on the leaderboard? sign in with your google account</button> -->
     <div class="activeSince">
-      <span>Update status,</span>
-      <span id="upstat">9/11 11:59PM</span>
+      <span>Must be signed in with google to apear on the home page</span>
+      <!-- <span>Update status,</span>
+      <span id="upstat">9/11 11:59PM</span> -->
     </div>
   </div>
 </div>
 <div class="cont">
     <div class="card" id="leader-cont1">
       <div id="js-leaders"></div>
-      <button id="toggleLeadersBtn">Show All Leaders</button>
+      <!-- <button id="toggleLeadersBtn">Show All Leaders</button> -->
     </div>
     <div class="card op-5 dn">
         <div class="text">
@@ -57,22 +58,28 @@
     </div>
 </div>
     
-  <div class="bottom-nav">
-    <div class="bn-item " data-linker="overunderths.html">
-      <img src="bp/EE/assets/ouths/icono (2).png" alt="" class="icon">
-      <span>OU</span>
-    </div>
-    <div class="bn-item" data-linker="mybets.html">
-      <img src="bp/EE/assets/ouths/icono (1).png" alt="" class="icon">
-      <span>Mybets</span>
-    </div>
-    <div class="bn-item sel" data-linker="leaders.html">
-      <img src="bp/EE/assets/ouths/icono (3).png" alt="" class="icon">
-      <span>Leaders</span>
-    </div>
+<div class="bottom-nav">
+  <div class="bn-item " data-linker="overunderths.html">
+    <img src="bp/EE/assets/ouths/icono (2).png" alt="" class="icon">
+    <span>OU</span>
   </div>
+  <div class="bn-item " data-linker="mybets.html">
+    <img src="bp/EE/assets/ouths/icono (1).png" alt="" class="icon">
+    <span>Mybets</span>
+  </div>
+  <div class="bn-item" data-linker="ouths/map.html">
+    <img src="bp/EE/assets/ouths/icono (4).png" alt="" class="icon">
+    <span>Map</span>
+  </div>
+  <div class="bn-item sel" data-linker="leaders.html">
+    <img src="bp/EE/assets/ouths/icono (3).png" alt="" class="icon">
+    <span>Leaders</span>
+  </div>
+</div>
 </body>
 <script src="bp/inspo/overunder/global.js" type="module"></script>
-<script src="bp/inspo/overunder/leaders.js" type="module"></script>
+<!-- <script src="bp/inspo/overunder/leaders.js" type="module"></script> -->
+<script src="bp/inspo/overunder/leaders-firebase.js" type="module"></script>
+
 
 </html>
