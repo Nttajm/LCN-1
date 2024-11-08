@@ -7,7 +7,7 @@ export const soccerBets  = [
     id: '23s',
     amount: 1.5,
     typeBet: 'Goals',
-    status: '',
+    status: 'ended',
     option: '',
     result: '',
     price: 600,
