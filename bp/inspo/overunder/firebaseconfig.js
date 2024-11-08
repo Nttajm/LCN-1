@@ -3,18 +3,22 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-
 const firebaseConfig = {
   apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
-  authDomain: "127.0.0.1",
+  authDomain: "overunder-ths.firebaseapp.com",
   projectId: "overunder-ths",
-  storageBucket: "overunder-ths.appspot.com",
+  storageBucket: "overunder-ths.firebasestorage.app",
   messagingSenderId: "690530120785",
   appId: "1:690530120785:web:36dc297cb517ac76cb7470",
   measurementId: "G-Q30T39R8VY"
 };
 
-// Initialize Firebase
+// Retrieve user data from localStorage or set default values
+const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
+const userBets = JSON.parse(localStorage.getItem('userBets') || '[]');
+
+// Initialize Firebase services
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth();
@@ -23,26 +27,30 @@ const db = getFirestore(app);
 // Reference to the Google sign-in button
 const loginBtn = document.querySelector('.googleButton');
 
-// Set up the Google provider and sign-in event
+// Handle Google sign-in
 loginBtn.addEventListener('click', async () => {
   const provider = new GoogleAuthProvider();
-
+  
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Check if user exists in Firestore
+    // Reference the user's document in Firestore
     const userRef = doc(db, 'users', user.uid);
     const docSnap = await getDoc(userRef);
 
-    // If user does not exist, create a new document in the 'users' collection
+    // If the user doesn't exist in Firestore, create a new document
     if (!docSnap.exists()) {
       await setDoc(userRef, {
         uid: user.uid,
         name: user.displayName,
         email: user.email,
         profilePicture: user.photoURL,
-        createdAt: new Date()
+        createdAt: new Date(),
+        balanceAdder: balanceAdder,
+        ...userData,   // Spread existing user data properties from localStorage
+        tripleABets: userBets,
+
       });
       console.log("New user created in Firestore");
     } else {
@@ -52,3 +60,106 @@ loginBtn.addEventListener('click', async () => {
     console.error("Error signing in with Google:", error);
   }
 });
+
+// Check if the user is already logged in
+auth.onAuthStateChanged(async (user) => {
+  const googleDiv = document.querySelector('#google-auth-div');
+
+  if (user) {
+    googleDiv.style.display = 'none';  // Hide sign-in button if user is signed in
+
+    // Fetch user data from Firestore
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        // Store user data in localStorage
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('userBets', JSON.stringify(userData.tripleABets) || '[]');
+        localStorage.setItem('balanceAdder', userData.balanceAdder);
+      } else {
+        console.log("No such document!");
+      }
+    } catch (error) {
+      console.error("Error retrieving user data:", error);
+    }
+  } else {
+    googleDiv.style.display = 'block';  // Show sign-in button if no user is signed in
+  }
+});
+
+// Reference to the sign-out button
+const signOutBtn = document.querySelector('.signOutButton');
+
+// Handle sign-out event
+signOutBtn.addEventListener('click', async () => {
+  try {
+    await auth.signOut();
+    console.log("User signed out successfully");
+
+    // Reset UI and clear localStorage
+    document.querySelector('#google-auth-div').style.display = 'block';
+    localStorage.removeItem('userData');
+    localStorage.removeItem('balanceAdder');
+    localStorage.removeItem('userBets');
+  } catch (error) {
+    console.error("Error signing out:", error);
+  }
+});
+
+// Helper function to update user data in Firestore and localStorage
+async function getFb() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userRef = doc(db, 'users', user.uid);
+  try {
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      localStorage.setItem('userData', JSON.stringify(userData));
+      localStorage.setItem('balanceAdder', userData.balanceAdder);
+      localStorage.setItem('userBets', JSON.stringify(userData.tripleABets) || '[]');
+    } else {
+      console.log("No such document!");
+    }
+  } catch (error) {
+    console.error("Error updating user data:", error);
+  }
+}
+
+getFb();
+
+export async function updateFb() {
+  const user = auth.currentUser;
+  
+  if (!user) {
+    console.error("User not signed in");
+    return;
+  }
+
+  // Retrieve the latest data from localStorage
+  const latestUserData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const latestBalanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
+  const latestUserBets = JSON.parse(localStorage.getItem('userBets') || '[]');
+  
+  const userRef = doc(db, 'users', user.uid);
+
+  try {
+    await setDoc(userRef, {
+      uid: user.uid,
+      name: user.displayName,
+      email: user.email,
+      profilePicture: user.photoURL,
+      createdAt: new Date(),
+      balanceAdder: latestBalanceAdder,
+      ...latestUserData,
+      tripleABets: latestUserBets
+    }, { merge: true });  // Use merge to update fields without overwriting the whole document
+
+    console.log("User data updated in Firestore");
+  } catch (error) {
+    console.error("Error updating user data in Firestore:", error);
+  }
+}

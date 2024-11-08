@@ -3,13 +3,14 @@ import { basketballBets } from './bets.js';
 import { volleyballBets } from './bets.js';
 import { schoolBets } from "./bets.js";
 import { checkBetsAndUpdateBalance, displayUserInfo } from './global.js';
+import { updateFb } from './firebaseconfig.js';
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
 
 let balance = 0;
 const balanceOutput = document.querySelector('.balance');
 let container = document.querySelector('.sec'); 
-const multi = 1;
+const multi = 2.5;
 
 
 const balanceElem = document.querySelector('.balance');
@@ -119,7 +120,7 @@ function renderBets() {
 
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
-      <div class="bet ${betClass} card ">
+      <div class="bet ${betClass} card " data-meta="${bet.id}">
            <span class="multi it dn ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
                     ${!bet.result ? statsImg : ''}
@@ -143,7 +144,7 @@ function renderBets() {
     `);
     } else if (bet.sport === 'school') {
       container.insertAdjacentHTML('beforeend', `
-      <div class="bet ${betClass} card">
+      <div class="bet ${betClass} card" data-meta="${bet.id}">
       <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
             <span class="multi it r">$${bet.price}</span>
             <div class="game">
@@ -172,6 +173,7 @@ function renderBets() {
       overBtn.addEventListener('click', () => {
         console.log('Over button clicked');
         updateUserBet(bet.id, 'over');
+        updateFb();
       });
     }
     
@@ -179,6 +181,7 @@ function renderBets() {
       underBtn.addEventListener('click', () => {
         console.log('Under button clicked');
         updateUserBet(bet.id, 'under');
+        updateFb();
       });
     }
   });
@@ -426,38 +429,157 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 // const restoredUserBets = stringToUserBets(stringBets);
 // console.log(restoredUserBets);
 
-const targetDate = new Date('October 11, 2024 12:30:00').getTime();
+// const targetDate = new Date('October 11, 2024 12:30:00').getTime();
 
-    // Update the countdown every second
-    const countdown = setInterval(() => {
-        const now = new Date().getTime(); // Get the current time
-        const timeRemaining = targetDate - now; // Calculate the time difference
+//     // Update the countdown every second
+//     const countdown = setInterval(() => {
+//         const now = new Date().getTime(); // Get the current time
+//         const timeRemaining = targetDate - now; // Calculate the time difference
 
-        if (timeRemaining > 0) {
-            // Calculate days, hours, minutes, and seconds
-            const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+//         if (timeRemaining > 0) {
+//             // Calculate days, hours, minutes, and seconds
+//             const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+//             const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+//             const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+//             const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
 
-            // Display the countdown
-            document.getElementById("countdown").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+//             // Display the countdown
+//             document.getElementById("countdown").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+//         } else {
+//             clearInterval(countdown); // Stop the countdown when the target date is reached
+//             document.getElementById("countdown").innerHTML = "Countdown over!";
+//         }
+//     }, 1000);
+
+document.addEventListener('DOMContentLoaded', () => {
+  let currentParlays = 0;
+
+  const parlayButtons = document.querySelectorAll('.mode');
+  const betDivs = document.querySelectorAll('.bet');
+  const parlayInfo = document.querySelector('.parlays-cont');
+  const seeParlays = document.querySelector('.see-parlays'); 
+  const seeParlaysDiv = document.querySelector('.allParlays-cont');
+  let seeParlaysDivState = false;
+
+  // Function to update parlay info display
+  function updateParlayInfoDisplay() {
+    if (parlayButtons[0].classList.contains('on')) {
+      parlayInfo.style.display = 'block';
+      if (seeParlays) {
+        if (currentParlays > 1) {
+          seeParlays.innerHTML = `See ${currentParlays} parlays selected`;
+          seeParlays.classList.remove('disabled');
         } else {
-            clearInterval(countdown); // Stop the countdown when the target date is reached
-            document.getElementById("countdown").innerHTML = "Countdown over!";
+          seeParlays.innerHTML = 'Select at least 2 parlays';
+          seeParlays.classList.add('disabled');
         }
-    }, 1000);
+      }
+    } else {
+      parlayInfo.style.display = 'none';
+    }
+  }
 
-    const parlayButtons = $('.mode');
+  // Toggle visibility of allParlays-cont and update content
+  function handleSeeParlaysDiv() {
+    if (seeParlaysDiv) {
+      seeParlaysDiv.style.display = seeParlaysDivState ? 'flex' : 'none';
+      
+      if (seeParlaysDivState) {
+        const pinfo = document.querySelector('.info-section');
+        pinfo.innerHTML = `
+          <h1>Your Parlays</h1>
+          ${showParlays()}
+        `;
+      }
+    }
+  }
 
-    parlayButtons.on('click', function() {
-        parlayButtons.removeClass('on');
-        $(this).addClass('on');
-    } );
+  // Function to generate HTML for selected parlays
+  function showParlays() {
+    const selectedBets = document.querySelectorAll('.bet.parlay.selected');
+    let html = '';
+
+    var parlayPayout = 0;
+
+
+    selectedBets.forEach(bet => {
+      const betId = bet.getAttribute('data-meta');
+      const matchingBet = bets.find(b => b.id === betId);
+      if (matchingBet) {
+        html += `
+          <div class="unaparlay">
+            <div class="layer-1">
+              <span class="typeSport">${matchingBet.sport}</span>
+              <span class="who">${matchingBet.techTeam} vs ${matchingBet.against}</span>
+              <span class="amount ${matchingBet.option}">${matchingBet.amount}</span>
+            </div>
+            <div class="layer-2">
+              <span>Payout = $${matchingBet.price}</span>
+            </div>
+          </div>
+        `;
+
+        parlayPayout += matchingBet.price * multi;
+        
+      }
+    });
+
+    return html || '<p>No parlays selected</p>';
+  }
+
+  // Add click event to seeParlays
+  if (seeParlays) {
+    seeParlays.addEventListener('click', () => {
+      if (currentParlays > 1) { // Only allow toggle if enough parlays are selected
+        seeParlaysDivState = !seeParlaysDivState;
+        handleSeeParlaysDiv();
+      }
+    });
+  }
+
+  // Update selected parlay count
+  function updateSelectedParlays() {
+    currentParlays = document.querySelectorAll('.bet.parlay.selected').length;
+    updateParlayInfoDisplay();
+  }
+
+  // Toggle parlay mode for each button and update display
+  parlayButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      button.classList.toggle('on');
+      betDivs.forEach(div => {
+        if (!div.classList.contains('ended')) {
+          div.classList.toggle('parlay');
+        }
+      });
+
+      if (!button.classList.contains('on')) {
+        betDivs.forEach(div => div.classList.remove('selected'));
+        currentParlays = 0;
+      }
+      
+      updateParlayInfoDisplay();
+    });
+  });
+
+  // Toggle selected class on bet divs and update parlay count
+  betDivs.forEach(div => {
+    div.addEventListener('click', () => {
+      if (div.classList.contains('parlay')) {
+        div.classList.toggle('selected');
+        updateSelectedParlays();
+      }
+    });
+  });
+
+  // Initial display setup
+  updateParlayInfoDisplay();
+  handleSeeParlaysDiv();
+});
+
 
 
 
 
 
     const loginbtn = document.querySelector('.googleButton');
-    

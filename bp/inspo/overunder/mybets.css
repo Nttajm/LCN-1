@@ -11,11 +11,6 @@
     gap: 0.6rem;
 }
 
-.gwl-div {
-    width: calc(100% - 3rem);
-    display: flex;
-    justify-content: center;
-}
 
 .sec-payouts {
     display: flex;
@@ -194,7 +189,9 @@ color: rgb(255, 255, 255);
 
 @media all and (min-width: 1124px) and (max-width: 1280px) { 
     #Mybets {
-        width: calc(33% - 2rem) !important;
+        width: calc(50% - 2rem) !important;
+        margin: 0.7rem;
+
     }
 
     .sec-payout {
