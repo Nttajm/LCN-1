@@ -14,8 +14,6 @@ const multi = 1;
 
 const balanceElem = document.querySelector('.balance');
 
-
-
 const options = document.querySelectorAll('.sport-option');
 
 // Function to remove 'selected' class from all divs

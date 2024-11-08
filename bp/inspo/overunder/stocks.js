@@ -437,15 +437,15 @@ function displayUserStocks() {
 
 }
 
-function displayPortfolio() {
-    portfolioDiv.innerHTML = '';
-    let portfolioValue = 0;
-    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
-    userData.userStocks.forEach(stock => {
-        portfolioValue += stock.amount * lastPrice;
-        portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
-    });
-}
+// function displayPortfolio() {
+//     portfolioDiv.innerHTML = '';
+//     let portfolioValue = 0;
+//     portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+//     userData.userStocks.forEach(stock => {
+//         portfolioValue += stock.amount * lastPrice;
+//         portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+//     });
+// }
 
 displayUserStocks();
 

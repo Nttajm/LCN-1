@@ -9,26 +9,37 @@
     <link rel="stylesheet" href="/bp/inspo/overunder/map.css">
 </head>
 <body>
-    <img src="../bp/EE/assets/ouths/graph-paper-grid-png-4.png" alt="" class="grid">
-
+    <img src="../bp/EE/assets/ouths/gta-paper-grid-png-4.png" alt="" class="grid">
+    <div class="card">
+        
+    </div>
     <div class="items">
-        <div class="invest">
+        <div class="invest linkthing" data-link="stocks.html">
             <span class="linker">Investments</span>
+            <img src="/bp/EE/assets/ouths/stock.png" alt="">
         </div>
-        <div class="Casino">
+        <div class="Casino linkthing" data-link="casino.html">
             <span class="linker">Casino</span>
 
             <img src="/bp/EE/assets/ouths/pngtree-many-exquisite-diamonds-png-image_9099718.png" alt="">
         </div>
-        <div class="Marketplace">
+        <div class="Marketplace linkthing" data-link="marketplace.html">
             <span class="linker">Marketplace</span>
+            <img src="/bp/EE/assets/ouths/mark.png" alt="">
         </div>
         <div class="bank">
-            <span class="linker">Bank</span>
+            <span class="linker linkthing" data-link="bank.html">Bank</span>
         </div>
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="/bp/inspo/overunder/marketplace.js"></script>
-
+<script>
+    const allLinkthings = document.querySelectorAll('.linkthing');
+allLinkthings.forEach(element => {
+    element.addEventListener('click', (event) => {
+        const link = element.dataset.link;
+        window.location.href = link;
+    });
+});
+</script>
 </html>

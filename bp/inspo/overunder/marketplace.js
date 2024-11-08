@@ -38,3 +38,4 @@ marketplace.forEach((item) => {
             </div>
     `;
 });
+

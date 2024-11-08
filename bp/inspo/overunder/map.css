@@ -24,7 +24,6 @@ body {
     width: 100vw;
     justify-content: center;
     align-items: center;
-    margin-top: 5rem;
     margin-left: auto 0;
     margin-right: auto 0;
 }
@@ -71,4 +70,8 @@ body {
 
 .bank {
     background: radial-gradient(circle, rgba(99, 35, 99, 0.582) 0%, rgb(25, 48, 90) 100%);
+}
+
+.card {
+    margin: 1rem;
 }
