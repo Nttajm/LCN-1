@@ -5,6 +5,12 @@ import { schoolBets } from "./bets.js";
 import { checkBetsAndUpdateBalance, displayUserInfo } from './global.js';
 import { updateFb } from './firebaseconfig.js';
 
+
+setInterval(() => {
+  updateFb();
+}, 5000);
+
+
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
 
 let balance = 0;
