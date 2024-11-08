@@ -158,19 +158,18 @@ function updateStatsUI() {
     }
 }
 
-// Save user data to local storage
 export function saveData() {
     localStorage.setItem('userData', JSON.stringify(userData));
     localStorage.setItem('balanceAdder', balanceAdder);
     let time = new Date().toLocaleString();
-    gameSave('user', {time, checkBetsAndUpdateBalance});
+    // gameSave('user', {time, checkBetsAndUpdateBalance});
 }
 
 export function gameSave(name, detail) {
     let gameData = JSON.parse(localStorage.getItem('gameData')) || []; 
     let time = new Date().toLocaleString(); // Format the time as a readable string
     gameData.push({name, detail, time});
-    localStorage.setItem('gameData', JSON.stringify(gameData));
+    // localStorage.setItem('gameData', JSON.stringify(gameData));
 }
 
 
