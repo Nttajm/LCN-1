@@ -6,9 +6,8 @@ import { checkBetsAndUpdateBalance, displayUserInfo } from './global.js';
 import { updateFb } from './firebaseconfig.js';
 
 
-setInterval(() => {
-  updateFb();
-}, 5000);
+
+
 
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
@@ -617,3 +616,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const loginbtn = document.querySelector('.googleButton');
+
+
+    function addBet(bet, option) {
+      userBets.push({ matchingBet: bet, option });
+      localStorage.setItem('userBets', JSON.stringify(userBets));
+      renderBets();
+      updateFb();
+    }
+
+    addBet('219s', 'over');  
+
+
+

@@ -147,7 +147,6 @@ async function getFb() {
   }
 }
 
-getFb();
 
 export async function updateFb() {
   const user = auth.currentUser;
@@ -175,7 +174,6 @@ export async function updateFb() {
       balanceAdder: latestBalanceAdder,
       ...latestUserData,
       tripleABets: latestUserBets,
-      userStocks: userData.userStocks,
       userBets: userData.userBets,
       username: userData.username,
     }, { merge: true });  // Use merge to update fields without overwriting the whole document
