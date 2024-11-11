@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+body { 
+    background-color: #f1f1f1;
+}
+.conter {
+    padding: 10px !important;
+    width: 100%;
+}
+
+
+:root {
+    --ff: 'DM Serif Text', serif;
+    --ff2: 'Fredoka', sans-serif;
+    --ff3: 'Merriweather Sans', sans-serif;
+    --ff4: 'Playfair Display', serif;
+    --ff5: 'Poppins', sans-serif;
+    --ff6: 'Oswald', sans-serif;
+    --ff7: 'Pacifico', cursive;
+    --ff8: 'Pirata One', cursive;
+    --ff9: 'Doto', sans-serif;
+    --ff10: 'Neuton', serif;
+}
+
+.bold {
+    font-weight: 700;
+    font-family: var(--ff5);
+}
+
+.fansy-1 {
+    font-family: var(--ff4);
+    font-weight: 700;
+}
+
+.fansy-2 {
+    font-family: var(--ff7);
+    font-weight: 700;
+}
+
+.fansy-3 {
+    font-family: var(--ff8);
+    font-weight: 700;
+}
+
+.fansy-4 {
+    font-family: var(--ff9);
+    font-weight: 700;
+}
+
+.fansy-5 {
+    font-family: var(--ff10);
+    font-weight: 700;
+}
+
+.first {
+    font-family: "Merriweather Sans", serif;
+    font-size: 3.3rem;
+    font-weight: 600;
+
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+
+    margin-top: 1rem;
+}
+
+.before-after:not(:first-child) {
+    margin-top: -1rem;
+}
+
+.before-after {
+    overflow: hidden;
+    position: relative;
+    height: 3.9rem;
+}
+
+.before-after span {
+    position: absolute;
+    bottom: -3.7rem;
+    animation: reset 1s var(--ges) forwards;
+}
+
+
+
+#b-1 {
+    animation-delay: .1s;
+}
+
+#b-2 {
+    animation-delay: .2s;
+}
+
+.p-open {
+
+    animation: openBlur 0.5s ease-in-out forwards;
+    filter: blur(5px);
+    opacity: 0;
+    transform: translate(0, 30px);
+}
+
+.scroll {
+    font-family: var(--ff6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.hr {
+    width: 100%;
+    height: 2px;
+    background-color: #38325f;
+}
+
+.scroll#special {
+    margin-top: 5rem;
+}
+
+@keyframes openBlur {
+    to {
+        filter: blur(0);
+        opacity: 1;
+        transform: translate(0);
+    }
+}
+
+@keyframes reset {
+    to {
+        bottom: 0;
+    }
+}
+
+
+.opacity {
+    opacity: 0;
+}
+
+p {
+    font-family: "poppins", serif;
+    font-size: 1.3rem;
+    letter-spacing: -0.1rem;
+    font-weight: 400;
+    margin-top: 1rem;
+
+}
+
+.doc {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.doc h3 {
+    font-family: var(--ff5);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: 2rem;
+}
+
+.doc p {
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+
+.cont {
+    height: fit-content !important;
+}
+
+@media (max-width: 575.98px) {
+}
+
+@media (min-width: 0px) and (max-width: 767.98px) {
+    p {
+        width: 60%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    /* Styles for medium devices */
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    /* Styles for large devices */
+}
+
+@media (min-width: 1200px) {
+    /* Styles for extra large devices */
+}

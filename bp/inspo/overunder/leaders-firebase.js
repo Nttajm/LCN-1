@@ -68,6 +68,11 @@ async function renderLeaders() {
         leaders.forEach((leader, index) => {
             const leaderDiv = document.createElement('div');
             leaderDiv.classList.add('leader');
+            if (leader.leaderStyle === 'lebron') {
+                leaderDiv.classList.add('lebron');
+            } else if (leader.leaderStyle === 'messi') {
+                leaderDiv.classList.add('messi');
+            }
             leaderDiv.innerHTML = `
                 <span class="leader-rank">${index + 1}</span>
                 <span class="leader-name">${leader.username || 'Unknown'}</span>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="aboutus.css">
+    <link rel="stylesheet" href="doc.css">
+</head>
+<body>
+    <div class="cont">
+        <nav>
+            <div class="nav-cont">
+                <a href="/html/index.html" class="logo">
+                    <img src="/images/logo-long-long.png" alt="CTWC">
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/html/index.html">Home</a></li>
+                    <li><a href="/html/leaderboard.html">About us</a></li>
+                    <li><a href="/html/rules.html">Get in touch</a></li>
+                    <li><a href="projects.html">Donate</a></li>
+                </ul>
+                <div class="menu">
+                    <img src="/images/menu.svg" alt="">
+                </div>
+                <ul class="other-links">
+                    <li><a href="/html/index.html">Home</a></li>
+                    <li><a href="/html/leaderboard.html">About us</a></li>
+                    <li><a href="/html/rules.html">Get in touch</a></li>
+                    <li><a href="projects.html">Donate</a></li>
+                </ul>
+                <div class="close" id="close-1">x</div>
+            </div>
+        </nav>
+        <div class="navBuffer"></div>
+        <div class="conter">
+            <div class="first">
+                <div class="before-after">
+                    <span id="b-1">
+                        About
+                    </span>
+                </div>
+                <div class="before-after">
+                    <span id="b-2">
+                        Us
+                    </span>
+                </div>
+            </div>
+            <p data-animation-delay="0.8s" class="p-open">
+                Calvary Temple Worship Centre <span class="bold">started in 2004</span> in the suburb of <span class="bold">Mbale</span> town in a Muslim 
+            community of <span class="bold">Namakwekwe</span>. The church began  with <span class="bold">7 people</span> and now 
+            grown to a membership of <span class="bold">1200+ congregants.</span>
+            <span class="readmore" data-rm-target="PREAMBLE">
+                read more
+            </span>
+            </p>
+
+            <p data-rm="PREAMBLE">
+                Later as a way of expanding our reach into the 
+                community, which could not just be done at church level, we were mandated to register our 
+                ministry in the name of Champion Evangelistic Ministry International which was successful 
+                done in 2010. The registration is as well a requirement of government to permit church 
+                operations beyond the church building. The ministry is fully registered and hosted at Calvary 
+                Temple worship Centre, main base in Mbale. 
+            </p>
+        </div>
+        <div class="scroll p-open" data-animation-delay="3s" id="special">
+            <span>scroll for more</span>
+            <div class="hr"></div>
+        </div>
+        <div class="doc">
+            <div class="text">
+                <h3>Mission</h3>
+                <p>Our mission is to be a community of loving disciples, bold in faith, strong in character and global in vision</p>
+            </div>
+            <div class="img-sec">
+                <img src="/images/ctwc-cover-2.jpg" alt="">
+            </div>
+        </div>
+    </div>
+</body>
+<script src="script.js"></script>
+<script>
+document.querySelectorAll('[data-animation-delay]').forEach(element => {
+    const delay = element.getAttribute('data-animation-delay');
+    element.style.setProperty('animation-delay', delay, 'important');
+});
+
+
+document.querySelector('.readmore').addEventListener('click', function() {
+    const target = this.getAttribute('data-rm-target');
+    const p = document.querySelector(`p[data-rm="${target}"]`);
+    p.classList.toggle('read-more-text');
+    this.textContent = p.classList.contains('read-more-text') ? 'read less' : 'read more';
+});
+</script>
+</html>

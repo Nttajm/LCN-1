@@ -4,6 +4,8 @@ import { volleyballBets } from './bets.js';
 import { schoolBets } from "./bets.js";
 import { checkBetsAndUpdateBalance, displayUserInfo } from './global.js';
 import { updateFb } from './firebaseconfig.js';
+import { getFb } from './firebaseconfig.js';
+import { formatDateTime } from './global.js';
 
 
 
@@ -233,45 +235,45 @@ function updateUserBet(betId, option) {
   renderBets();
 }
 
-function formatDateTime(dateTimeStr) {
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// function formatDateTime(dateTimeStr) {
+//   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   
-  // Split the input date string into date and time
-  let [datePart, timePart] = dateTimeStr.split(" ");
+//   // Split the input date string into date and time
+//   let [datePart, timePart] = dateTimeStr.split(" ");
   
-  // Split the date and time into components
-  let [month, day] = datePart.split("-");
-  let [hours, minutes] = timePart.split(":");
+//   // Split the date and time into components
+//   let [month, day] = datePart.split("-");
+//   let [hours, minutes] = timePart.split(":");
   
-  // Convert to 12-hour format
-  let period = "am";
-  hours = parseInt(hours, 10);
-  if (hours >= 12) {
-      period = "pm";
-      if (hours > 12) {
-          hours -= 12;
-      }
-  } else if (hours === 0) {
-      hours = 12;
-  }
+//   // Convert to 12-hour format
+//   let period = "am";
+//   hours = parseInt(hours, 10);
+//   if (hours >= 12) {
+//       period = "pm";
+//       if (hours > 12) {
+//           hours -= 12;
+//       }
+//   } else if (hours === 0) {
+//       hours = 12;
+//   }
   
-  // Handle the "th", "st", "nd", "rd" suffix for the day
-  let daySuffix;
-  if (day === "1" || day === "21" || day === "31") {
-      daySuffix = "st";
-  } else if (day === "2" || day === "22") {
-      daySuffix = "nd";
-  } else if (day === "3" || day === "23") {
-      daySuffix = "rd";
-  } else {
-      daySuffix = "th";
-  }
+//   // Handle the "th", "st", "nd", "rd" suffix for the day
+//   let daySuffix;
+//   if (day === "1" || day === "21" || day === "31") {
+//       daySuffix = "st";
+//   } else if (day === "2" || day === "22") {
+//       daySuffix = "nd";
+//   } else if (day === "3" || day === "23") {
+//       daySuffix = "rd";
+//   } else {
+//       daySuffix = "th";
+//   }
   
-  // Format the final string
-  let formattedDateTime = `${months[month - 1]} ${parseInt(day, 10)}${daySuffix} ${hours}:${minutes}${period}`;
+//   // Format the final string
+//   let formattedDateTime = `${months[month - 1]} ${parseInt(day, 10)}${daySuffix} ${hours}:${minutes}${period}`;
   
-  return formattedDateTime;
-}
+//   return formattedDateTime;
+// }
 
 // Initial rendering of bets
 renderBets();
@@ -583,6 +585,15 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
   const dailyBtn = document.querySelector('#daily-25');
 
+  // Function to format remaining time
+  const formatRemainingTime = (milliseconds) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
   // Function to handle daily reward logic
   const handleDailyReward = () => {
     const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
@@ -597,6 +608,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Disable the button and call updateFb to sync changes
     dailyBtn.disabled = true;
     updateFb();
+
+    // Start countdown
+    startCountdown();
+  };
+
+  // Countdown function to update the button's innerHTML with remaining time
+  const startCountdown = () => {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const now = new Date().getTime();
+    const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const remainingTime = userData.dailyTime + claimInterval - now;
+
+    if (remainingTime > 0) {
+      dailyBtn.innerHTML = `Time remaining: ${formatRemainingTime(remainingTime)}`;
+      const countdownInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const newRemainingTime = userData.dailyTime + claimInterval - now;
+
+        if (newRemainingTime <= 0) {
+          clearInterval(countdownInterval);
+          dailyBtn.disabled = false;
+          dailyBtn.innerHTML = "Claim Daily Reward";
+          dailyBtn.addEventListener('click', handleDailyReward);
+        } else {
+          dailyBtn.innerHTML = `${formatRemainingTime(newRemainingTime)}`;
+        }
+      }, 1000);
+    }
   };
 
   // Initial setup to check if daily reward can be claimed
@@ -606,6 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (userData.dailyTime && (now - userData.dailyTime < claimInterval)) {
     dailyBtn.disabled = true;
+    startCountdown();
   } else {
     dailyBtn.disabled = false;
     dailyBtn.addEventListener('click', handleDailyReward);
@@ -615,17 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
     const loginbtn = document.querySelector('.googleButton');
 
-
-    function addBet(bet, option) {
-      userBets.push({ matchingBet: bet, option });
-      localStorage.setItem('userBets', JSON.stringify(userBets));
-      renderBets();
-      updateFb();
-    }
-
-    addBet('219s', 'over');  
+    getFb();
 
 
 

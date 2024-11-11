@@ -1,7 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
@@ -55,7 +57,7 @@ if (loginBtn) {
         });
         console.log("New user created in Firestore");
       } else {
-        console.log("User already exists in Firestore");
+        getFb();
       }
     } catch (error) {
       console.error("Error signing in with Google:", error);
@@ -117,28 +119,34 @@ if (signOutBtn) {
   });
 }
 
+const profileDiv = document.querySelector('.profile');
 // Helper function to update user data in Firestore and localStorage
-async function getFb() {
+export async function getFb() {
   const user = auth.currentUser;
-
-  const profilePicture = user.photoURL || 'https://via.placeholder.com/150';
-  const profileDiv = document.querySelector('.profile');
-  const profileImg = document.querySelector('#google-auth-pfp');
-
+  const profileImg = document.querySelector('#google-auth-pfp');  
   if (!user) {
     return;
   }
-
-  profileDiv.style.display = 'flex';
 
   const userRef = doc(db, 'users', user.uid);
   try {
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
       const userData = docSnap.data();
+      const profilePicture = userData.profilePicture || 'https://via.placeholder.com/150';
+      
+      console.log(profilePicture)
+      
+      if (profileImg) {
+        console.log("Setting profile image source:", profilePicture);  // Debugging log
+        profileImg.src = profilePicture;
+      } else {
+        console.error("Profile image element not found");  // Debugging log
+      }
+
       localStorage.setItem('userData', JSON.stringify(userData));
       localStorage.setItem('balanceAdder', userData.balanceAdder);
-      localStorage.setItem('userBets', JSON.stringify(userData.tripleABets) || '[]');
+      localStorage.setItem('userBets', JSON.stringify(userData.tripleABets || []));
     } else {
       console.log("No such document!");
     }
@@ -146,6 +154,23 @@ async function getFb() {
     console.error("Error updating user data:", error);
   }
 }
+
+// different handling for auth state change
+
+onAuthStateChanged(auth, (user) => {
+
+  const googleDiv = document.querySelector('#google-auth-div');
+
+  if (user) {
+    profileDiv.style.display = 'flex';
+    googleDiv.style.display = 'none'; 
+
+  } else {
+    console.error("No user is signed in");
+    profileDiv.style.display = 'none';
+    googleDiv.style.display = 'block';
+  }
+});
 
 
 export async function updateFb() {
@@ -165,18 +190,23 @@ export async function updateFb() {
   const userRef = doc(db, 'users', user.uid);
 
   try {
-    await setDoc(userRef, {
-      uid: user.uid,
-      name: user.displayName,
-      email: user.email,
-      profilePicture: user.photoURL,
-      createdAt: new Date(),
-      balanceAdder: latestBalanceAdder,
-      ...latestUserData,
-      tripleABets: latestUserBets,
-      userBets: userData.userBets,
-      username: userData.username,
-    }, { merge: true });  // Use merge to update fields without overwriting the whole document
+    await setDoc(
+      userRef,
+      {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        profilePicture: user.photoURL,
+        createdAt: new Date(),
+        balanceAdder: latestBalanceAdder,
+        dailyTime: userData.dailyTime ?? null,  // Set to null if undefined
+        tripleABets: latestUserBets,
+        userBets: userData.userBets ?? null,  // Set to null if undefined
+        username: userData.username ?? null,   // Set to null if undefined
+        hasUpdated: true,
+      },
+      { merge: true }
+    );  // Use merge to update fields without overwriting the whole document
 
     console.log("User data updated in Firestore");
   } catch (error) {
@@ -184,8 +214,9 @@ export async function updateFb() {
   }
 }
 
-updateFb();
 
+
+getFb();
 
 // Export the user's data collection
 // export const usersCollection = db.collection('users');
