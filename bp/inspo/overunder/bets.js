@@ -39,7 +39,7 @@ export const soccerBets  = [
     status: '',
     option: '',
     result: 'over',
-    price: 500,
+    price: 200,
     date: '10-30 16:30',
   }, 
    {
@@ -52,7 +52,7 @@ export const soccerBets  = [
     status: '',
     option: '',
     result: 'under',
-    price: 500,
+    price: 200,
     date: '10-30 16:30',
   }, 
   {

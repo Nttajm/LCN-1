@@ -2,14 +2,15 @@ import { soccerBets } from './bets.js';
 import { basketballBets } from './bets.js';
 import { volleyballBets } from './bets.js';
 import { schoolBets } from "./bets.js";
-import { checkBetsAndUpdateBalance, displayUserInfo } from './global.js';
+import { 
+  checkBetsAndUpdateBalance, 
+  displayUserInfo,
+  updateBalanceUI,
+  updateBalanceAdder,
+} from './global.js';
 import { updateFb } from './firebaseconfig.js';
 import { getFb } from './firebaseconfig.js';
 import { formatDateTime } from './global.js';
-
-
-
-
 
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
@@ -306,43 +307,6 @@ if (!playerId) {
 
 playerIdElem.innerHTML = playerId;
 
-
-// function checkDailyReward() {
-//   const now = new Date().getTime(); // Get the current time in milliseconds
-//   const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  
-//   // If userData.lastClaim doesn't exist or it's been more than 24 hours since the last claim
-//   if (!userData.lastClaim || (now - userData.lastClaim >= claimInterval)) {
-//       document.getElementById('.dailyReward').style.display = 'block'; // Show the reward
-//   }
-// }
-
-// function claimReward() {
-//   const now = new Date().getTime(); // Current time
-  
-//   // Update userData with the last claim time
-//   userData.lastClaim = now;
-  
-//   // Save to localStorage
-//   localStorage.setItem('userData', JSON.stringify(userData));
-  
-//   // Hide the reward div after claiming
-//   document.getElementById('dailyReward').style.display = 'none';
-
-//   userBets.push({
-//     matchingBet: '1mm',
-//     option: 'over'
-//   });
-//   }
-
-// // Event listener for the "Claim" button
-// document.getElementById('claimBtn').addEventListener('click', claimReward);
-
-// // Check for the daily reward on page load
-// checkDailyReward();
-
-
-
 function pushUserbet() {
   const matchingBetInput = document.getElementById('matchingBet-input');
   const optionInput = document.getElementById('option-input');
@@ -609,9 +573,18 @@ document.addEventListener('DOMContentLoaded', () => {
     dailyBtn.disabled = true;
     updateFb();
 
+    saveData()
+
     // Start countdown
     startCountdown();
+
+    let currentMoney = checkBetsAndUpdateBalance();
+
+    updateBalanceUI(currentMoney);
+    updateBalanceAdder(currentMoney);
   };
+
+
 
   // Countdown function to update the button's innerHTML with remaining time
   const startCountdown = () => {
@@ -660,6 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginbtn = document.querySelector('.googleButton');
 
     getFb();
+    updateFb();
 
 
 

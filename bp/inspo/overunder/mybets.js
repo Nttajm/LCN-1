@@ -40,7 +40,7 @@ function getWinLosses() {
     winsOutput.innerHTML = `${wins}`;
     lossesOutput.innerHTML = `${losses}`;
     winAmountOutput.innerHTML = `$${winAmount}`;
-    lossAmountOutput.innerHTML = `-$${lossAmount}`;
+    lossAmountOutput.innerHTML = `$${lossAmount}`;
 }
 console.log(allBets)
 

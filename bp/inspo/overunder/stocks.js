@@ -11,7 +11,7 @@ import {
     updateBalanceAdder,
 } from './global.js';
 
-import { updateFb } from './firebaseconfig.js';
+import { updateFb, getFb } from './firebaseconfig.js';
 
 updateFb();
 
@@ -21,9 +21,10 @@ function _(id) {
 
 function cl(classelem) {
     return document.getElementsByClassName(classelem);
-}
+} 
 
 checkBetsAndUpdateBalance();
+getFb();
 
 const stockManual = [
     {
@@ -32,7 +33,7 @@ const stockManual = [
         name: 'Torre',
         basedOn: 'Test Scores and Moods',
         data: [
-            30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10,
+            30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21,
         ],
     },
     {
@@ -41,7 +42,7 @@ const stockManual = [
         name: 'Mylander',
         basedOn: 'Overall',
         data: [
-            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60, 900,
+            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60, 12,
         ],
     },
     {
@@ -50,7 +51,7 @@ const stockManual = [
         name: 'Weaver',
         basedOn: 'Crash outs',
         data: [
-          4, 5, 16, 5, 7, 3,  18.5, 9, 8, 6, 3, 5
+          4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 
         ],
     },
     {
@@ -447,6 +448,7 @@ function displayUserStocks() {
 function displayPortfolio() {
     portfolioDiv.innerHTML = '';
     let portfolioValue = 0;
+    let lastPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
     portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
     userData.userStocks.forEach(stock => {
         portfolioValue += stock.amount * lastPrice;
@@ -490,11 +492,11 @@ function buy() {
 
         // Update stock display
         displayUserStocks();
+        updateFb();
     } else {
         message('You do not have enough money to buy this stock', 'error');
     }
 
-    updateFb();
 }
 
 function sell() {
@@ -523,14 +525,15 @@ function sell() {
 
             // Update stock display
             displayUserStocks();
+            updateFb();
         } else {
             message(`You do not have enough ${stockName} stocks to sell`, 'error');
         }
-        updateFb();
     } else {
         message(`You do not have any ${stockName} stocks to sell`, 'error');
     }
 }
+
 
 // Attach event listeners
 _('buy').addEventListener('click', buy);

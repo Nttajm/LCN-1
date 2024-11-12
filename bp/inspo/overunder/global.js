@@ -1,4 +1,5 @@
 import { allBets, userBets } from './bets.js';
+import { updateFb } from './firebaseconfig.js';
 
 export let balanceAdder = parseFloat(localStorage.getItem('balanceAdder')) || 0;
 
@@ -84,6 +85,8 @@ export function updateBalanceAdder(newBalanceAdder) {
     localStorage.setItem('balanceAdder', balanceAdder);
 }
 
+
+
 // Check bets and update balance
 export function checkBetsAndUpdateBalance() {
     let balance = 0;
@@ -128,6 +131,7 @@ export function displayUserInfo() {
                     userData.username = username;
                     saveData();
                     displayUserInfo();
+                    updateFb();
                 }
             });
         }

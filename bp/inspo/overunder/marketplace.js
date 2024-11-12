@@ -1,3 +1,5 @@
+import { balanceAdder } from "./global";
+
 const marketplace = [
     {
         name: 'Arizona',
@@ -23,7 +25,7 @@ const marketplaceDiv = document.querySelector('.market-sec');
 marketplaceDiv.innerHTML = '';
 marketplace.forEach((item) => {
     marketplaceDiv.innerHTML += `
-            <div class="card market-item">
+            <div class="card market-item" data-item-price="${item.price}">
                 <div class="is"></div>
                 <div class="img-sec-i">
                     <img src="/bp/EE/assets/ouths/${item.img}" alt="logo">
@@ -39,3 +41,16 @@ marketplace.forEach((item) => {
     `;
 });
 
+const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
+
+const marketItems = document.querySelectorAll('.market-item');
+marketItems.forEach((item) => {
+    item.addEventListener('click', () => {
+        const price = parseInt(item.getAttribute('data-item-price'));
+        if (balance >= price) {
+            balance -= price;
+            updateBalanceUI(balance);
+            updateBalanceAdder(balanceAdder - price);
+        }
+    });
+});
