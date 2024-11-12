@@ -53,6 +53,7 @@ if (loginBtn) {
           balanceAdder: balanceAdder,
           ...userData,   // Spread existing user data properties from localStorage
           tripleABets: userBets,
+
         });
         console.log("New user created in Firestore");
       } else {
@@ -108,6 +109,8 @@ if (signOutBtn) {
       localStorage.removeItem('userData');
       localStorage.removeItem('balanceAdder');
       localStorage.removeItem('userBets');
+      localStorage.removeItem('gameData');
+
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -141,6 +144,7 @@ export async function getFb() {
       localStorage.setItem('userData', JSON.stringify(userData));
       localStorage.setItem('balanceAdder', userData.balanceAdder);
       localStorage.setItem('userBets', JSON.stringify(userData.tripleABets || []));
+      localStorage.setItem('gameData', JSON.stringify(userData.gameData || {}));
     } else {
       console.log("No such document!");
     }
@@ -192,6 +196,7 @@ export async function updateFb() {
         hasUpdated: true,
         version: 'FB: 1.9.8',
         userStocks: latestUserData.userStocks ?? 'blud',  // Set to null if undefined
+        gameData: latestUserData.gameData ?? null,  // Set to null if undefined
       },
       { merge: true }
     );  // Use merge to update fields without overwriting the whole document

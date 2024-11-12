@@ -1,4 +1,4 @@
-import { balanceAdder } from "./global";
+// import { balanceAdder } from "./global";
 
 const marketplace = [
     {
@@ -40,8 +40,6 @@ marketplace.forEach((item) => {
             </div>
     `;
 });
-
-const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
 
 const marketItems = document.querySelectorAll('.market-item');
 marketItems.forEach((item) => {

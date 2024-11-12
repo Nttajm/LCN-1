@@ -1,5 +1,5 @@
 const boardSize = 5;
-const mineCount = 6;
+let mineCount = 8;
 let board = [];
 let gameOver = false;
 let clicked = 0;
@@ -8,7 +8,6 @@ let betAmount = 10;
 
 import {
     checkBetsAndUpdateBalance,
-    message,
     saveData,
     gameSave,
     displayUserInfo,
@@ -17,10 +16,24 @@ import {
     balanceAdder,
     updateBalanceAdder,
     uiAndBalance,
+    gameData,
+    heartReturner,
+    aWin,
 } from './global.js';
 
-checkBetsAndUpdateBalance();
 
+
+checkBetsAndUpdateBalance();
+displayUserInfo();
+
+if (!gameData.gems) {
+    gameData.gems = {
+        lives: 5,
+    }
+    localStorage.setItem('gameData', JSON.stringify(gameData));
+}
+
+let currentGameLives = gameData.gems.lives;
 
 const gameBoardElement = document.getElementById('game-board');
 const statusMessageElement = document.getElementById('status-message');
@@ -93,8 +106,8 @@ function revealTile(x, y) {
     board[x][y].revealed = true;
     if (board[x][y].mine) {
         gameOver = true;
-        const finalMultiplier = calculateFinalMultiplier();
         statusMessageElement.textContent = `Game Over! You hit a mine!`;
+        loose();
         revealAllTiles();
         playmessage.addClass('fallDown');
         playmessage.removeClass('goUp');
@@ -105,7 +118,7 @@ function revealTile(x, y) {
       </div>
       <div class="stats-i">
         <div class="stat fl-ai">
-          <span>3</span>
+          <span></span>
           <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
         </div>
         <span class="stat">left</span>
@@ -147,8 +160,12 @@ const timers = document.getElementById('timers');
 const cashOutBtn = document.getElementById('cashout');
 
 function addMulti() {
-    multi += 0.1;
-    multi = parseFloat(multi.toFixed(1)); // Ensure one decimal place
+    if (mineCount === 5)  {
+        multi += 0.1;
+    } else if (mineCount === 8) {
+        multi += 0.15;
+    }
+    multi = parseFloat(multi.toFixed(2)); // Ensure one decimal place
     // Add new multiplier span
     const newSpan = document.createElement('span');
     newSpan.classList.add('timer');
@@ -168,6 +185,12 @@ function addMulti() {
 
     // Add 'selected' class to the latest span
     newSpan.classList.add('selected');
+}
+
+function resetMulti() {
+    multi = 1;
+    timers.innerHTML = '';
+    cashOutBtn.innerHTML = `Cash Out (4 gems) ($${(multi * betAmount).toFixed(2)})`;
 }
 
 function calculateFinalMultiplier() {
@@ -217,3 +240,62 @@ playBtn.addEventListener('click', play);
 
 playmessage.addClass('fallDown');
 
+const changeBetBtn = document.getElementById('changeBetBtn');
+changeBetBtn.addEventListener('click', () => {
+    const betInput = document.getElementById('betAmountInput');
+    const newBetAmount = parseFloat(betInput.value);
+    if (!isNaN(newBetAmount) && newBetAmount > 0) {
+        betAmount = newBetAmount;
+        betInput.classList.remove('stat-error-border');
+        refresh();
+        createBoard();
+    } else {
+        betInput.classList.add('stat-error-border');
+    }
+});
+
+function refresh() {
+    const finalMultiplier = calculateFinalMultiplier();
+    cashOutBtn.innerHTML = `Cash Out (4 gems) ($${(finalMultiplier * betAmount).toFixed(2)})`;
+}
+
+function currentAmount() {
+    const finalMultiplier = calculateFinalMultiplier();
+    return finalMultiplier * betAmount;
+}
+
+const riskSelect = document.getElementById('risk-select');
+riskSelect.addEventListener('change', (event) => {
+    mineCount = parseInt(event.target.value, 10);
+    createBoard();
+    resetMulti();
+});
+
+function loose() {
+    gameData.gems.lives--;
+    currentGameLives = gameData.gems.lives;
+    saveData();
+    displayHearts();
+    if (gameData.gems.lives > 0) {
+        if (!userData.keysAdder) {
+            userData.keysAdder = 0;
+        } else {
+            userData.keysAdder--;
+            saveData();
+            console.log('no keys adder');
+            if (userData.keysAdder > 0) {
+                gameData.gems.lives = 5;
+                saveData();
+            }
+        }
+    }
+}
+
+
+
+function displayHearts() {
+    const heartsSpan = document.getElementById('hearts');
+    heartsSpan.textContent = currentGameLives > 0 ? heartReturner(currentGameLives) : '💔💔💔💔💔';
+}
+
+displayHearts();

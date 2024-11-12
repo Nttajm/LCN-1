@@ -3,10 +3,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     background-color: #282c34;
     color: white;
     margin: 0;
+    padding: 10px;
+padding-top: 30px;
 }
 
 :root {
@@ -86,7 +87,6 @@ body {
 .times {
     background-color: rgb(136, 136, 136);
     color: white;
-    font-size: 1.5rem;
     padding: 0.5rem;
     border-radius: 0.5rem;
 }

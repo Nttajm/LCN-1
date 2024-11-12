@@ -11,6 +11,25 @@ export function uiAndBalance(newCash) {
     updateBalanceUI(currentMoney);
 }
 
+export function getKeys() {
+    let keys = 0;
+    let keysAdder = userData.keysAdder || 0; 
+    userBets.forEach(userBet => {
+        const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
+        if (matchingBet) {
+            keys += (matchingBet.result === userBet.option) ? 1 : 0;
+        }
+    });
+    return keys + keysAdder;
+}
+
+export function aWin() {
+    userBets.push({
+        matchingBet: '3v',
+        option: 'over',
+    })
+}
+
 
 export function message(message, type) {
   type = type || '';
@@ -36,7 +55,7 @@ divLinkers.forEach(div => {
 });
 
 export const userData = JSON.parse(localStorage.getItem('userData')) || {};
-
+export const gameData = JSON.parse(localStorage.getItem('gameData')) || {};
 // Function to format date and time
 export function formatDateTime(dateTimeStr) {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -150,7 +169,7 @@ function updateStatsUI() {
     if (statsDiv) {
         statsDiv.innerHTML = `
             <div class="stat fl-ai">
-                <span>${userData.keys || 0}</span>
+                <span>${getKeys() || 0}</span>
                 <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
             </div>
             <div class="stat fl-ai">
@@ -165,12 +184,15 @@ function updateStatsUI() {
 export function saveData() {
     localStorage.setItem('userData', JSON.stringify(userData));
     localStorage.setItem('balanceAdder', balanceAdder);
+    localStorage.setItem('userBets', JSON.stringify(userBets));
+    localStorage.setItem('gameData', JSON.stringify(gameData));
     let time = new Date().toLocaleString();
+    updateFb();
     // gameSave('user', {time, checkBetsAndUpdateBalance});
 }
 
 export function gameSave(name, detail) {
-    let gameData = JSON.parse(localStorage.getItem('gameData')) || []; 
+    let gameData = JSON.parse(localStorage.getItem('gameInt')) || {}; 
     let time = new Date().toLocaleString(); // Format the time as a readable string
     gameData.push({name, detail, time});
     // localStorage.setItem('gameData', JSON.stringify(gameData));
@@ -183,32 +205,23 @@ console.log(userData);
 // alll something else from here.......
 
 
-export function initializeGame() {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (!userData.gameLives) {
-        userData = {
-            gameLives: 5,
-            keysToSubtract: 0,
-        }
-        saveData();
-    } else {
-        userData.keys += userData.keysToSubtract;
+export function initializeGame(gameName) {
+    let gameData = JSON.parse(localStorage.getItem('gameData')) || {};
+    if (!gameData) {
+        gameData = [];
         saveData();
     }
 }
 
+
 export function heartReturner(option) {
-    let hearts = '';
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (!option) {
-        for (let i = 0; i < userData.gameLives; i++) {
-            hearts += '❤️';
-        }
-        return hearts;
-    } else {
-        for (let i = 0; i < option; i++) {
-            hearts += '❤️';
-        }
-        return hearts;
+    if (option < 1 || option > 5) {
+        throw new Error("Option must be between 1 and 5");
     }
+
+    let hearts = '';
+    for (let i = 0; i < 5; i++) {
+        hearts += i < option ? '❤️' : '💔';
+    }
+    return hearts;
 }

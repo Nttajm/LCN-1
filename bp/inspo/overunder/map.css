@@ -35,7 +35,7 @@ body {
     margin-right: auto 0;
 }
 
-.items div  {
+.mi  {
     background-color: rgba(86, 86, 121, 0.315);
     padding: 0.6rem;
     border-radius: 0.3rem;
@@ -46,6 +46,17 @@ body {
     height: 10rem;
     overflow: hidden;
     position: relative;
+}
+
+.R .overlay-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    border-radius: 0.7rem;
 }
 
 .items div img {

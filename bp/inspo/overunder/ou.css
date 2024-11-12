@@ -222,6 +222,10 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
     padding: 0.8rem !important;
 }
 
+.stat-error-border {
+    border: solid 2px red;
+}
+
 .stats {
     display: flex;
     gap: 0.5rem;
@@ -805,7 +809,7 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     }
 
     :root {
-        font-size: 27px;
+        font-size: 20px;
     }
 
 }
@@ -849,12 +853,23 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
         flex-wrap: wrap;
         gap: 0.7rem;
     }
+    :root {
+        font-size: 20px;
+    }
  }
 
 @media all and (max-width: 480px) { 
 
     .bet {
         width: calc(100% - 2rem);
+    }
+
+    :root {
+        font-size: 16px;
+    }
+
+    :root {
+        --avg-size: 3.7rem;
     }
  }
 
@@ -914,13 +929,14 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     }
 
 .R {
-    position: relative;
+    position: relative !important;
+    pointer-events: none;
 }
 .overlay-message {
-    background-color: rgba(54, 98, 33, 0.647);
+    background-color: rgba(54, 98, 33, 0.647) !important;
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1095,7 +1111,7 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
 }
 
 .profile {
-    display: ;
+    display: none;
     gap: 0.5rem;
     align-items: center;
     justify-content: center;
