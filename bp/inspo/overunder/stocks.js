@@ -43,9 +43,9 @@ const stockManual = [
         id: 'MYY',
         sub: 'myCoin',
         name: 'Mylander',
-        basedOn: 'Overall',
+        basedOn: 'Taking phones',
         data: [
-            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60, 12,
+            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60, 12, 19,
         ],
     },
     {
@@ -75,15 +75,16 @@ const stockManual = [
             12, 14, 15, 16, 11, 8, 5, 7, 10, 11,
         ],
     },
-    // {
-    //     id: 'DKLV',
-    //     sub: 'DeklevaCoin',
-    //     name: 'Dekleva',
-    //     basedOn: 'Overall',
-    //     data: [
-    //         2, 1, 5, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 50,
-    //     ],
-    // },
+    {
+        id: 'RPH',
+        sub: 'RaphCoin',
+        name: 'Raphael',
+        basedOn: '3s made',
+        data: [
+            10, 15, 13,
+        ],
+    },
+
     // {
     //     id: 'EGG',
     //     sub: 'EggeringCoin',
