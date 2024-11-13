@@ -45,7 +45,7 @@ const stockManual = [
         name: 'Mylander',
         basedOn: 'Taking phones',
         data: [
-            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60, 12, 19,
+            20, 30, 40, 20, 25, 43, 36, 32, 35, 50, 60, 12, 19, 28
         ],
     },
     {
