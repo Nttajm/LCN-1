@@ -32,17 +32,23 @@ export function aWin() {
 
 
 export function message(message, type) {
-  type = type || '';
-    const statusMessageElement = document.querySelector('.message');
+    type = type || '';
+    const statusMessageElement = document.querySelector('.message-cont');
     if (statusMessageElement) {
-      statusMessageElement.style.display = 'block';
-      statusMessageElement.innerHTML = `<span>${message}</span>`;
+        statusMessageElement.style.display = 'block';
+        statusMessageElement.innerHTML = `
+        <div class="message ${type}">
+            <span>${message}</span>
+        </div>
+        `;
+        if (type === 'error') {
+            statusMessageElement.classList.add('error');
+        }
+        setTimeout(() => {
+            statusMessageElement.style.display = 'none';
+            statusMessageElement.classList.remove('error');
+        }, 6000); // Hide message after 3 seconds
     }
-
-    if (type === 'error') {
-        statusMessageElement.classList.add('error');
-    }
-
 }
 
 
@@ -191,12 +197,12 @@ export function saveData() {
     // gameSave('user', {time, checkBetsAndUpdateBalance});
 }
 
-export function gameSave(name, detail) {
-    let gameData = JSON.parse(localStorage.getItem('gameInt')) || {}; 
-    let time = new Date().toLocaleString(); // Format the time as a readable string
-    gameData.push({name, detail, time});
-    // localStorage.setItem('gameData', JSON.stringify(gameData));
-}
+// export function gameSave(name, detail) {
+//     let gameData = JSON.parse(localStorage.getItem('gameInt')) || {}; 
+//     let time = new Date().toLocaleString(); // Format the time as a readable string
+//     gameData.push({name, detail, time});
+//     // localStorage.setItem('gameData', JSON.stringify(gameData));
+// }
 
 
 

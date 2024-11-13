@@ -3,7 +3,6 @@ import {
     checkBetsAndUpdateBalance,
     message,
     saveData,
-    gameSave,
     displayUserInfo,
     userData,
     updateBalanceUI,
@@ -13,6 +12,7 @@ import {
 
 import { updateFb, getFb } from './firebaseconfig.js';
 
+getFb();
 updateFb();
 
 function _(id) {
@@ -23,19 +23,22 @@ function cl(classelem) {
     return document.getElementsByClassName(classelem);
 } 
 
+const usrnamediv = _('username');
+usrnamediv.innerHTML = userData.username || '???';
+
 checkBetsAndUpdateBalance();
 getFb();
 
 const stockManual = [
-    {
-        id: 'TRR',
-        sub: 'TorreCoin',
-        name: 'Torre',
-        basedOn: 'Test Scores and Moods',
-        data: [
-            30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21,
-        ],
-    },
+    // {
+    //     id: 'TRR',
+    //     sub: 'TorreCoin',
+    //     name: 'Torre',
+    //     basedOn: 'Test Scores and Moods',
+    //     data: [
+    //         30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21,
+    //     ],
+    // },
     {
         id: 'MYY',
         sub: 'myCoin',
@@ -63,25 +66,39 @@ const stockManual = [
             12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
         ],
     },
-    {
-        id: 'DKLV',
-        sub: 'DeklevaCoin',
-        name: 'Dekleva',
-        basedOn: 'Overall',
-        data: [
-            2, 1, 5, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 50,
-        ],
-    },
-    {
-        id: 'EGG',
-        sub: 'EggeringCoin',
-        name: 'Eggering',
-        basedOn: 'Wrong Notes',
-        data: [
-            40, 30, 20, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
-        ],
-    },
+    // {
+    //     id: 'DKLV',
+    //     sub: 'DeklevaCoin',
+    //     name: 'Dekleva',
+    //     basedOn: 'Overall',
+    //     data: [
+    //         2, 1, 5, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 50,
+    //     ],
+    // },
+    // {
+    //     id: 'EGG',
+    //     sub: 'EggeringCoin',
+    //     name: 'Eggering',
+    //     basedOn: 'Wrong Notes',
+    //     data: [
+    //         40, 30, 20, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
+    //     ],
+    // },
 ];
+
+function getLastPrice(stockName) {
+    switch (stockName) {
+        case 'Soccer':
+            return calcStock(soccerBets)[calcStock(soccerBets).length - 1];
+        case 'Volleyball':
+            return calcStock(volleyballBets)[calcStock(volleyballBets).length - 1];
+        case 'anotherStockName':
+            return calcStock(anotherBets);
+        default:
+            return 0;
+    }
+}
+
 
 
 function getAveragePrice(bets) {
@@ -290,26 +307,20 @@ function attachEventListeners() {
             const writeType = div.dataset.write;
             clearSelection(); // Clear previous selection for all .sport-option elements
             div.classList.add('selected'); // Add 'selected' class to clicked div
-            if (writeType === 'soccer') {
-                writeStock(soccerBets);
-            } else if (writeType === 'basketball') {
-                writeStock(basketballBets);
-            } else if (writeType === 'volleyball') {
-                writeStock(volleyballBets);
-            } else if (writeType === 'school') {
-                writeStock(schoolBets);
-            } else if (writeType === 'TRR') {
-                writeStock(stockManual[0].data);
-            } else if (writeType === 'MYY') {
-                writeStock(stockManual[1].data);
-            } else if (writeType === 'WVR') {
-                writeStock(stockManual[2].data);
-            } else if (writeType === 'BRKS') {
-                writeStock(stockManual[3].data);
-            } else if (writeType === 'DKLV') {
-                writeStock(stockManual[4].data);
-            } else if (writeType === 'EGG') {
-                writeStock(stockManual[5].data);
+            const sportsBets = {
+                soccer: soccerBets,
+                basketball: basketballBets,
+                volleyball: volleyballBets,
+                school: schoolBets
+            };
+
+            if (sportsBets[writeType]) {
+                writeStock(sportsBets[writeType]);
+            } else {
+                const stock = stockManual.find(stock => stock.id === writeType);
+                if (stock) {
+                    writeStock(stock.data);
+                }
             }
 
         });
@@ -399,6 +410,11 @@ const portfolioDiv = document.getElementById('portfolio');
 function displayUserStocks() {
     stockDiv.innerHTML = ''; // Clear the stockDiv before adding stocks
 
+    if (userData.userStocks.length === 0) {
+        stockDiv.innerHTML += '<span>You do not have any stocks</span>';
+        return;
+    } 
+
     userData.userStocks.forEach(stock => {
         if (stock.amount > 0) {
             let lastPrice;
@@ -408,21 +424,7 @@ function displayUserStocks() {
             if (manualStock) {
                 lastPrice = manualStock.data[manualStock.data.length - 1];
             } else {
-                // Handle stocks from calcStock
-                switch (stock.name) {
-                    case 'Soccer':
-                        lastPrice = calcStock(soccerBets)[calcStock(soccerBets).length - 1]; // Example function call for soccer stocks
-                        break;
-                    case 'Volleyball':
-                        lastPrice = calcStock(volleyballBets)[calcStock(volleyballBets).length - 1]; // Example function call for volleyball stocks
-                        break;
-                    case 'anotherStockName':
-                        lastPrice = calcStock(anotherBets); // Replace with your actual function and variable
-                        break;
-                    // Add more cases for other stocks
-                    default:
-                        lastPrice = 0; // Default if no matching case
-                }
+                lastPrice = getLastPrice(stock.name);
             }
 
             // Display the stock information
@@ -438,23 +440,30 @@ function displayUserStocks() {
                 </div>
             `;
         }
-        // <span>${stock.amount} @ $${(lastPrice / stock.amount).toFixed(2)}</span>
+    }); // Close the forEach loop
 
-    });
+    // Call displayPortfolio after the loop
     displayPortfolio();
-
 }
+
 
 function displayPortfolio() {
     portfolioDiv.innerHTML = '';
     let portfolioValue = 0;
-    let lastPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
-    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
     userData.userStocks.forEach(stock => {
+        let lastPrice;
+        let manualStock = stockManual.find(s => s.name === stock.name);
+        if (manualStock) {
+            lastPrice = manualStock.data[manualStock.data.length - 1];
+        } else {
+
+        lastPrice = getLastPrice(stock.name);
+        }
         portfolioValue += stock.amount * lastPrice;
-        portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
     });
+    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
 }
+
 
 displayUserStocks();
 
@@ -462,24 +471,22 @@ const usernameDiv = document.getElementById('username');
 usernameDiv.innerHTML = userData.username || '???';
 
 
-// Update displayUserStocks whenever user buys or sells
+
 function buy() {
     let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
     let currentMoney = checkBetsAndUpdateBalance();
     let stockName = _('js-name').textContent;
 
-    console.log(currentPrice, currentMoney, stockName);
+    console.log("Buying:", currentPrice, currentMoney, stockName);
 
-    if (currentMoney >= currentPrice * buyAmount) {
-        let newMoney = currentPrice * buyAmount;
-        message(`You bought ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`, '');
-        gameSave('stock', `User bought ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`);
+    let totalCost = currentPrice * buyAmount;
+    if (currentMoney >= totalCost) {
+        message(`You bought ${buyAmount} shares of ${stockName} for $${totalCost.toFixed(2)}!`, '');
 
-        // Update balance and balanceAdder
-        updateBalanceUI(currentMoney - newMoney);
-        updateBalanceAdder(balanceAdder - newMoney);
+        // Update balance and data
+        updateBalanceUI(currentMoney - totalCost);
+        updateBalanceAdder(balanceAdder - totalCost);
 
-        // Update user stocks
         let stock = userData.userStocks.find(s => s.name === stockName);
         if (stock) {
             stock.amount += parseInt(buyAmount);
@@ -487,53 +494,43 @@ function buy() {
             userData.userStocks.push({ name: stockName, amount: parseInt(buyAmount) });
         }
 
-        // Save updated data
         saveUserData();
-
-        // Update stock display
         displayUserStocks();
+        displayPortfolio();
         updateFb();
     } else {
-        message('You do not have enough money to buy this stock', 'error');
+        message('Insufficient funds to complete purchase', 'error');
     }
-
 }
 
 function sell() {
-    let currentPrice = parseFloat(_('js-price').textContent);
-    let currentMoney = checkBetsAndUpdateBalance();
+    let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
     let stockName = _('js-name').textContent;
 
     let stock = userData.userStocks.find(s => s.name === stockName);
-    if (stock) {
-        if (stock.amount >= buyAmount) {
-            let newMoney = currentPrice * buyAmount;
-            message(`You sold ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`, '');
-            gameSave('stock', `User sold ${buyAmount} stocks for $${newMoney.toFixed(2)} of ${stockName}`);
+    if (stock && stock.amount >= buyAmount) {
+        let totalRevenue = currentPrice * buyAmount;
 
-            // Update balance and balanceAdder
-            updateBalanceUI(currentMoney + newMoney);
-            updateBalanceAdder(balanceAdder + newMoney);
+        message(`Sold ${buyAmount} shares of ${stockName} for $${totalRevenue.toFixed(2)}`, '');
 
-            stock.amount -= parseInt(buyAmount);
-            if (stock.amount === 0) {
-                userData.userStocks = userData.userStocks.filter(s => s.name !== stockName);
-            }
+        // Update balance and data
+        updateBalanceUI(checkBetsAndUpdateBalance() + totalRevenue);
+        updateBalanceAdder(balanceAdder + totalRevenue);
 
-            // Save updated data
-            saveUserData();
-
-            // Update stock display
-            displayUserStocks();
-            updateFb();
-        } else {
-            message(`You do not have enough ${stockName} stocks to sell`, 'error');
+        stock.amount -= parseInt(buyAmount);
+        if (stock.amount === 0) {
+            // Remove stock if amount is zero
+            userData.userStocks = userData.userStocks.filter(s => s.name !== stockName);
         }
+
+        saveUserData();
+        displayUserStocks();
+        displayPortfolio();
+        updateFb();
     } else {
-        message(`You do not have any ${stockName} stocks to sell`, 'error');
+        message('Insufficient shares to complete sale', 'error');
     }
 }
-
 
 // Attach event listeners
 _('buy').addEventListener('click', buy);

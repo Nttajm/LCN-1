@@ -46,17 +46,21 @@ input {
     text-decoration: underline;
 }
 
-.message {
-    background-color: rgba(173, 216, 230, 0.938);
-    color: rgb(59, 59, 59);
+.message-cont {
     position: fixed;
-    padding: 0.5rem;
     top: 0;
     width: calc(100%);
     z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    background-color: rgba(173, 216, 230, 0.938);
+    padding: 0.5rem;
+    color: rgb(59, 59, 59);
     animation: close 3s ease forwards;
     animation-delay: 3s;
-    display: none;
 }
 
 @keyframes close {
