@@ -280,6 +280,7 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
     padding: 1rem;
     border-radius: 0.5rem;
     box-sizing: border-box;
+    margin-bottom: 0.7rem;
 }
 
 .sports span {

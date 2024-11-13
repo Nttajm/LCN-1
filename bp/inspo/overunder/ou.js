@@ -12,6 +12,9 @@ import { updateFb } from './firebaseconfig.js';
 import { getFb } from './firebaseconfig.js';
 import { formatDateTime } from './global.js';
 
+updateFb();
+getFb();
+
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
 
@@ -24,10 +27,15 @@ const multi = 2.5;
 const balanceElem = document.querySelector('.balance');
 
 const options = document.querySelectorAll('.sport-option');
+const teamOptions = document.querySelectorAll('.team-option');
 
 // Function to remove 'selected' class from all divs
 function clearSelection() {
     options.forEach(div => div.classList.remove('selected'));
+}
+
+function clearTeamSelection() {
+    teamOptions.forEach(div => div.classList.remove('selected'));
 }
 
 // Add event listeners to each div
@@ -36,6 +44,15 @@ options.forEach(div => {
         clearSelection(); // Clear previous selection
         this.classList.add('selected'); // Add 'selected' class to clicked div
         filterBets(); // Re-filter bets based on the selected option
+        renderBets(); // Re-render bets after filtering
+    });
+});
+
+teamOptions.forEach(div => {
+    div.addEventListener('click', function() {
+        clearTeamSelection(); // Clear previous selection
+        this.classList.add('selected'); // Add 'selected' class to clicked div
+        filterTeamBets(); // Re-filter bets based on the selected option
         renderBets(); // Re-render bets after filtering
     });
 });
@@ -54,10 +71,22 @@ let bets = filterBets();
 let reward = [];
 
 function filterBets() {
-  const selectedBetElem = document.querySelector('.sport-option.selected'); // Get the currently selected sport
+  const selectedBetElem = document.querySelector('.sport-option.selected');// Get the currently selected sport
   const selectedSport = selectedBetElem ? selectedBetElem.textContent.toLowerCase() : '';
   return allBets.filter(bet => bet.sport === selectedSport);
+
+  console.log(selectedSport);
 }
+
+function filterTeamBets() {
+  const selectedTeamElem = document.querySelector('.team-option.selected');
+  const team = selectedTeamElem.dataset.option;
+  if (selectedTeamElem) {
+    return allBets = allBets.filter(bet => bet.sport === team);
+  } else {
+    allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets];
+  }
+} 
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -120,9 +149,8 @@ function renderBets() {
       }
     }
 
-    const statsImg = `<div class="team-stats" data-teamStat='${bet.teamStat ? bet.teamStat : '' }'><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
-    
-
+    // const statsImg = `<div class="team-stats" data-teamStat='${bet.teamStat ? bet.teamStat : '' }'><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
+    const statsImg = ``;
 
     if (bet.sport != 'school') {
       container.insertAdjacentHTML('beforeend', `
@@ -149,6 +177,26 @@ function renderBets() {
       </div>
     `);
     } else if (bet.sport === 'school') {
+      container.insertAdjacentHTML('beforeend', `
+      <div class="bet ${betClass} card" data-meta="${bet.id}">
+      <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
+            <span class="multi it r">$${bet.price}</span>
+            <div class="game">
+                <div class="name">
+                    <span>${bet.against}</span>
+                </div>
+            </div>
+          <div class="for">
+            <span>${bet.amount}</span>
+             <span>${bet.typeBet}</span>
+          </div>
+        <div class="button-sec" id="btn-${bet.id}">
+          ${buttonsHtml}
+        </div>
+        <span class="bold">${additionalText}</span>
+      </div>
+    `);
+    } else if (bet.sport === 'basketball-player') {
       container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card" data-meta="${bet.id}">
       <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
@@ -565,25 +613,20 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('balanceAdder', newBalance);
 
     // Update userData with a timestamp and store it in localStorage
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     userData.dailyTime = new Date().getTime();
     localStorage.setItem('userData', JSON.stringify(userData));
 
     // Disable the button and call updateFb to sync changes
     dailyBtn.disabled = true;
     updateFb();
+    getFb();
 
     saveData()
 
     // Start countdown
     startCountdown();
 
-    let currentMoney = checkBetsAndUpdateBalance();
-
-    updateBalanceUI(currentMoney);
-    updateBalanceAdder(currentMoney);
   };
-
 
 
   // Countdown function to update the button's innerHTML with remaining time
@@ -632,8 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loginbtn = document.querySelector('.googleButton');
 
-    getFb();
-    updateFb();
+
 
 
 

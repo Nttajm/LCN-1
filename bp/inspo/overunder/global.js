@@ -52,6 +52,15 @@ export function message(message, type) {
 }
 
 
+export function gameSave(name, detail) {
+    let gameData = JSON.parse(localStorage.getItem('gameInt')) || {}; 
+    let time = new Date().toLocaleString(); // Format the time as a readable string
+    gameData.push({name, detail, time});
+    // localStorage.setItem('gameData', JSON.stringify(gameData));
+}
+
+
+
 const divLinkers = document.querySelectorAll('div[data-linker]');
 divLinkers.forEach(div => {
     div.addEventListener('click', function() {

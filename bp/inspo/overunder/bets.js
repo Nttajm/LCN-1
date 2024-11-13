@@ -1,7 +1,5 @@
 
 export const soccerBets  = [
-
-   
   {
     sport: 'soccer',
     techTeam: 'Tech High Soccer (VG)',
@@ -266,6 +264,20 @@ export const soccerBets  = [
       date: '8-16 16:30',
     },
   ];
+
+export const basketballPlayers = [
+    {
+      name: 'Jordan H.',
+      for: '11b',
+      id: '1bp',
+      amount: 2.5,
+      typeBet: 'Points',
+      status: '',
+      option: '',
+      result: '',
+      sport: 'basketball-player',
+    }
+];
 
  export const basketballBets = [
     {
