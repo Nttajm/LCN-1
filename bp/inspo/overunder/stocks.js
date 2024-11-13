@@ -29,7 +29,7 @@ usrnamediv.innerHTML = userData.username || '???';
 checkBetsAndUpdateBalance();
 getFb();
 
-const stockManual = [
+const stockManual = [ 
     // {
     //     id: 'TRR',
     //     sub: 'TorreCoin',
@@ -63,7 +63,16 @@ const stockManual = [
         name: 'Burks',
         basedOn: 'Yapping',
         data: [
-            12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
+            12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 50,
+        ],
+    },
+    {
+        id: 'MTT',
+        sub: 'matCoin',
+        name: 'Matt Ortiz',
+        basedOn: 'YELLING',
+        data: [
+            12, 14, 15, 16, 11, 8, 5, 7, 10, 11,
         ],
     },
     // {
@@ -348,6 +357,8 @@ mainPicks.forEach(div => {
             pickers.innerHTML = `
                 <span class="selected sport-option" data-write="soccer">(SCR)Soccer</span>
                 <span class="sport-option" data-write="volleyball">(VOL)Volleyball</span>
+                <span class="sport-option" data-write="basketball">(BKB) Basketball</span>
+
             `;
         } else if (showtype === 'teachers') {
             stockManual.forEach(stock => {
