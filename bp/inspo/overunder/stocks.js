@@ -63,7 +63,7 @@ const stockManual = [
         name: 'Burks',
         basedOn: 'Yapping',
         data: [
-            12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 50,
+            12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 85,
         ],
     },
     {
@@ -357,7 +357,7 @@ mainPicks.forEach(div => {
             pickers.innerHTML = `
                 <span class="selected sport-option" data-write="soccer">(SCR)Soccer</span>
                 <span class="sport-option" data-write="volleyball">(VOL)Volleyball</span>
-                <span class="sport-option" data-write="basketball">(BKB) Basketball</span>
+                <span class="sport-option dn" data-write="basketball">(BKB) Basketball</span>
 
             `;
         } else if (showtype === 'teachers') {
