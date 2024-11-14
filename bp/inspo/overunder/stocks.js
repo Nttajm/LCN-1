@@ -52,7 +52,7 @@ const stockManual = [
         id: 'WVR',
         sub: 'WeaverCoin',
         name: 'Weaver',
-        basedOn: 'Crash outs',
+        basedOn: 'Anger',
         data: [
           4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 2.3, 2
         ],
