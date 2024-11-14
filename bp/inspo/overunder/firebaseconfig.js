@@ -196,7 +196,6 @@ export async function updateFb() {
         username: latestUserData.username ?? null,   // Set to null if undefined
         hasUpdated: true,
         version: 'FB: 1.9.8',
-        userStocks: latestUserData.userStocks ?? 'blud',  // Set to null if undefined
         userStocks: latestUserData.userStocks ?? [],  // Set to null if undefined
         gameData: latestUserData.gameData ?? null,  // Set to null if undefined
       },

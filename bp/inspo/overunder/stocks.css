@@ -141,3 +141,24 @@
     flex-wrap: wrap;
     gap: 0.5rem;
 }
+
+.leader-port {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    width: 100%;
+}
+
+.leaders-sec {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, auto);
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.leader {
+    display: block !important;
+}
+

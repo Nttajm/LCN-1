@@ -45,8 +45,6 @@ function getBalance(bets) {
 // Reference to the 'users' collection in Firestore
 const usersCollectionRef = collection(db, 'users');
 
-console.log(usersCollectionRef)
-
 // Fetch and render leaderboard data
 async function renderLeaders() {
     const leaderElem = document.getElementById('js-leaders');
@@ -72,6 +70,8 @@ async function renderLeaders() {
                 leaderDiv.classList.add('lebron');
             } else if (leader.leaderStyle === 'messi') {
                 leaderDiv.classList.add('messi');
+            }  else if (leader.leaderStyle === 'kanye') {
+                leaderDiv.classList.add('kanye');
             }
             leaderDiv.innerHTML = `
                 <span class="leader-rank">${index + 1}</span>

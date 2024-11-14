@@ -1142,21 +1142,26 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
 .leader.lebron {
     background: url(/bp/EE/assets/ouths/453223518_1228565591633172_5488051257223547212_n.jpg) no-repeat !important;
     background-position: 50% 59% !important;
-    color: rgb(169, 166, 211) !important;
-    padding: 0.5rem !important;
+
     border-radius: 0.3rem;
     font-family: var(--f-1);
-    font-size: 1.1rem;
     font-weight: 600;
 }
 
 .messi {
     background: url(/bp/EE/assets/ouths/messi.webp) no-repeat !important;
     background-position: 50% 35% !important;
-    color: white !important;
-    padding: 0.5rem !important;
+
     border-radius: 0.3rem;
     font-family: var(--f-1);
-    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.kanye {
+    background: url(/bp/EE/assets/ouths/ye.webp) no-repeat !important;
+    background-position: 50% 28% !important;
+
+    border-radius: 0.3rem;
+    font-family: var(--f-1);
     font-weight: 600;
 }

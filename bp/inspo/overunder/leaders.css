@@ -18,6 +18,19 @@
     font-weight: 700;
 }
 
+.leader-name {
+    color: white;
+    font-weight: 700;
+    background-color: rgba(0, 0, 0, 0.356);
+    padding: 3px;
+    border-radius: 0.3rem;
+}
+
+.leader-balance {
+    background-color: rgba(0, 0, 0, 0.356);
+    padding: 3px;
+}
+
 .leader:first-child {
     background: rgb(196,183,102);
 background: linear-gradient(0deg, rgba(196,183,102,1) 0%, rgba(255,175,0,1) 100%);

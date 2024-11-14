@@ -65,7 +65,7 @@ teamOptions.forEach(div => {
 
 balanceOutput.innerHTML = '';
 balanceOutput.insertAdjacentHTML('beforeend', `<span>$${balance}</span>`);
-export const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
+const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
 
 let bets = filterBets();
@@ -245,19 +245,14 @@ function renderBets() {
     // Add event listeners to the buttons
     if (overBtn && !overBtn.disabled) {
       overBtn.addEventListener('click', () => {
-        console.log('Over button clicked');
         updateUserBet(bet.id, 'over');
-        updateFb();
-        saveData();
+
       });
     }
     
     if (underBtn && !underBtn.disabled) {
       underBtn.addEventListener('click', () => {
-        console.log('Under button clicked');
         updateUserBet(bet.id, 'under');
-        updateFb();
-        saveData();
       });
     }
   });
@@ -288,13 +283,11 @@ function updateUserBet(betId, option) {
   if (existingBet) {
     // Update the existing bet
     existingBet.option = option;
+
   } else {
     // Add a new bet to userBets
     userBets.push({ matchingBet: betId, option: option });
   }
-
-  // Save userBets to localStorage
-  localStorage.setItem('userBets', JSON.stringify(userBets));
 
   // Update the corresponding bet in the bets array
   const matchingBet = bets.find(bet => bet.id === betId);
@@ -302,51 +295,17 @@ function updateUserBet(betId, option) {
     matchingBet.option = option;
   }
 
+  // Save userBets to localStorage
+  localStorage.setItem('userBets', JSON.stringify(userBets));
+
   // Re-render the bets
-  renderBets();
+
+  updateFb();
+  saveData();
+  updateButtons();
 }
 
-// function formatDateTime(dateTimeStr) {
-//   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  
-//   // Split the input date string into date and time
-//   let [datePart, timePart] = dateTimeStr.split(" ");
-  
-//   // Split the date and time into components
-//   let [month, day] = datePart.split("-");
-//   let [hours, minutes] = timePart.split(":");
-  
-//   // Convert to 12-hour format
-//   let period = "am";
-//   hours = parseInt(hours, 10);
-//   if (hours >= 12) {
-//       period = "pm";
-//       if (hours > 12) {
-//           hours -= 12;
-//       }
-//   } else if (hours === 0) {
-//       hours = 12;
-//   }
-  
-//   // Handle the "th", "st", "nd", "rd" suffix for the day
-//   let daySuffix;
-//   if (day === "1" || day === "21" || day === "31") {
-//       daySuffix = "st";
-//   } else if (day === "2" || day === "22") {
-//       daySuffix = "nd";
-//   } else if (day === "3" || day === "23") {
-//       daySuffix = "rd";
-//   } else {
-//       daySuffix = "th";
-//   }
-  
-//   // Format the final string
-//   let formattedDateTime = `${months[month - 1]} ${parseInt(day, 10)}${daySuffix} ${hours}:${minutes}${period}`;
-  
-//   return formattedDateTime;
-// }
 
-// Initial rendering of bets
 renderBets();
 console.log(userBets);
 console.log(bets);
@@ -450,45 +409,6 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 
 }
 
-// function userBetsToString() {
-//   return userBets.map(userBet => `**${userBet.matchingBet} - ${userBet.option}`).join('');
-// }
-
-// console.log(userBetsToString());
-
-// const stringBets = userBetsToString();
-
-// function stringToUserBets(text) {
-//   return text.split('**').filter(Boolean).map(line => {
-//       const [matchingBet, option] = line.split(' - ').map(str => str.trim());
-//       return { matchingBet, option };
-//   });
-// }
-
-// const restoredUserBets = stringToUserBets(stringBets);
-// console.log(restoredUserBets);
-
-// const targetDate = new Date('October 11, 2024 12:30:00').getTime();
-
-//     // Update the countdown every second
-//     const countdown = setInterval(() => {
-//         const now = new Date().getTime(); // Get the current time
-//         const timeRemaining = targetDate - now; // Calculate the time difference
-
-//         if (timeRemaining > 0) {
-//             // Calculate days, hours, minutes, and seconds
-//             const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
-//             const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-//             const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-//             const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-
-//             // Display the countdown
-//             document.getElementById("countdown").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-//         } else {
-//             clearInterval(countdown); // Stop the countdown when the target date is reached
-//             document.getElementById("countdown").innerHTML = "Countdown over!";
-//         }
-//     }, 1000);
 
 document.addEventListener('DOMContentLoaded', () => {
   let currentParlays = 0;
@@ -502,19 +422,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Function to update parlay info display
   function updateParlayInfoDisplay() {
-    if (parlayButtons[0].classList.contains('on')) {
-      parlayInfo.style.display = 'block';
-      if (seeParlays) {
-        if (currentParlays > 1) {
-          seeParlays.innerHTML = `See ${currentParlays} parlays selected`;
-          seeParlays.classList.remove('disabled');
-        } else {
-          seeParlays.innerHTML = 'Select at least 2 parlays';
-          seeParlays.classList.add('disabled');
+    if (parlayInfo) {
+      if (parlayButtons[0].classList.contains('on')) {
+        parlayInfo.style.display = 'block';
+        if (seeParlays) {
+          if (currentParlays > 1) {
+            seeParlays.innerHTML = `See ${currentParlays} parlays selected`;
+            seeParlays.classList.remove('disabled');
+          } else {
+            seeParlays.innerHTML = 'Select at least 2 parlays';
+            seeParlays.classList.add('disabled');
+          }
         }
+      } else {
+        parlayInfo.style.display = 'none';
       }
-    } else {
-      parlayInfo.style.display = 'none';
     }
   }
 
