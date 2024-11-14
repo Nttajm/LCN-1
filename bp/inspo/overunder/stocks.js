@@ -89,7 +89,7 @@ const stockManual = [
         id: 'FRE',
         sub: 'FbCoin',
         name: 'FreeBairn',
-        basedOn: 'Taking phones',
+        basedOn: 'Stories',
         data: [
             10, 11, 13, 9, 8,
         ],
