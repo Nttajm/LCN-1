@@ -559,12 +559,10 @@ _('buy').addEventListener('click', buy);
 _('sell').addEventListener('click', sell);
 
 
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
 
 const firebaseConfig = {
     apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
@@ -574,16 +572,15 @@ const firebaseConfig = {
     messagingSenderId: "690530120785",
     appId: "1:690530120785:web:36dc297cb517ac76cb7470",
     measurementId: "G-Q30T39R8VY"
-  };
-  
-  // Initialize Firebase services
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+};
 
-  const usersCollectionRef = collection(db, 'users');
+// Initialize Firebase services
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
+const usersCollectionRef = collection(db, 'users');
 
 renderLeaders();
 async function renderLeaders() {
@@ -600,7 +597,7 @@ async function renderLeaders() {
             let portfolioValueA = 0;
             let portfolioValueB = 0;
 
-            if (a.userStocks) {
+            if (Array.isArray(a.userStocks)) {
                 a.userStocks.forEach(stock => {
                     let lastPrice;
                     let manualStock = stockManual.find(s => s.name === stock.name);
@@ -613,7 +610,7 @@ async function renderLeaders() {
                 });
             }
 
-            if (b.userStocks) {
+            if (Array.isArray(b.userStocks)) {
                 b.userStocks.forEach(stock => {
                     let lastPrice;
                     let manualStock = stockManual.find(s => s.name === stock.name);
@@ -631,7 +628,7 @@ async function renderLeaders() {
 
         // Render each leader after sorting
         leaders.slice(0, 6).forEach((leader, index) => {
-            if (leader.userStocks) {
+            if (Array.isArray(leader.userStocks)) {
                 let portfolioValue = 0;
 
                 leader.userStocks.forEach(stock => {
