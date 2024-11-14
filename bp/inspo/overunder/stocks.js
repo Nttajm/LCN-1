@@ -54,7 +54,7 @@ const stockManual = [
         name: 'Weaver',
         basedOn: 'Crash outs',
         data: [
-          4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 
+          4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 2.3
         ],
     },
     {
