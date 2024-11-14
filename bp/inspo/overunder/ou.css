@@ -869,6 +869,11 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
         width: calc(100% - 2rem);
     }
 
+    .playerCard.bet {
+        width: calc(50% - 2rem);
+    }
+
+
     :root {
         font-size: 16px;
     }

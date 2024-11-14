@@ -52,9 +52,9 @@ const stockManual = [
         id: 'WVR',
         sub: 'WeaverCoin',
         name: 'Weaver',
-        basedOn: 'Crash outs',
+        basedOn: 'Anger',
         data: [
-          4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 
+           16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 2.5
         ],
     },
     {
@@ -63,7 +63,7 @@ const stockManual = [
         name: 'Burks',
         basedOn: 'Yapping',
         data: [
-            12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 85, 87,
+             5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 85, 87,
         ],
     },
     {
@@ -547,3 +547,5 @@ function sell() {
 // Attach event listeners
 _('buy').addEventListener('click', buy);
 _('sell').addEventListener('click', sell);
+
+

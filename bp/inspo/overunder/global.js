@@ -30,6 +30,9 @@ export function aWin() {
     })
 }
 
+export function matchingBetData(bet, from) {
+    return from.find(b => b.id === bet);
+}
 
 export function message(message, type) {
     type = type || '';

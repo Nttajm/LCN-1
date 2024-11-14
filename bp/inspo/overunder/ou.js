@@ -1,12 +1,13 @@
-import { soccerBets } from './bets.js';
-import { basketballBets } from './bets.js';
-import { volleyballBets } from './bets.js';
-import { schoolBets } from "./bets.js";
+
+import { allBets, unfilteredAllBets } from './bets.js';
+
+
 import { 
   checkBetsAndUpdateBalance, 
   displayUserInfo,
   updateBalanceUI,
   updateBalanceAdder,
+  matchingBetData,
 } from './global.js';
 import { updateFb } from './firebaseconfig.js';
 import { getFb } from './firebaseconfig.js';
@@ -52,7 +53,7 @@ teamOptions.forEach(div => {
     div.addEventListener('click', function() {
         clearTeamSelection(); // Clear previous selection
         this.classList.add('selected'); // Add 'selected' class to clicked div
-        filterTeamBets(); // Re-filter bets based on the selected option
+        filterBets(); // Re-filter bets based on the selected option
         renderBets(); // Re-render bets after filtering
     });
 });
@@ -66,27 +67,27 @@ balanceOutput.innerHTML = '';
 balanceOutput.insertAdjacentHTML('beforeend', `<span>$${balance}</span>`);
 export const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 
-export let allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets];
+
 let bets = filterBets();
 let reward = [];
 
 function filterBets() {
-  const selectedBetElem = document.querySelector('.sport-option.selected');// Get the currently selected sport
-  const selectedSport = selectedBetElem ? selectedBetElem.textContent.toLowerCase() : '';
-  return allBets.filter(bet => bet.sport === selectedSport);
-
-  console.log(selectedSport);
-}
-
-function filterTeamBets() {
+  const selectedBetElem = document.querySelector('.sport-option.selected');
   const selectedTeamElem = document.querySelector('.team-option.selected');
-  const team = selectedTeamElem.dataset.option;
-  if (selectedTeamElem) {
-    return allBets = allBets.filter(bet => bet.sport === team);
-  } else {
-    allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets];
+
+  const selectedSport = selectedBetElem?.textContent.toLowerCase() || 's';
+  const selectedTeam = selectedTeamElem?.textContent.toLowerCase() || '';
+  const filterType = selectedTeamElem?.dataset.option || '';
+
+  if (selectedTeam === 'team' || selectedTeam !== 'players') {
+
+    return allBets.filter(bet => bet.sport === selectedSport);
+
   }
-} 
+
+  console.log(filterType)
+  return allBets.filter(bet => bet.sport === filterType);
+}
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -114,12 +115,16 @@ function renderBets() {
     let imgType = 'https://via.placeholder.com/50';
     let additionalText = '';
 
+    const teamSelDiv = document.getElementById('teamselector')
+
     if (bet.sport === 'soccer') { 
       imgType = '/bp/EE/assets/ouths/soccerball.png';
     } else if (bet.sport === 'basketball') {
       imgType = '/bp/EE/assets/ouths/basketball.webp';
     }  else if (bet.sport === 'volleyball') {
       imgType = '/bp/EE/assets/ouths/volleyball.png';
+    } else if (bet.sport === 'basketball-player') {
+      imgType = '/bp/EE/assets/ouths/school.png';
     }
 
     const userBet = userBets.find(uBet => uBet.matchingBet === bet.id);
@@ -131,6 +136,13 @@ function renderBets() {
       additionalText = 'Ongoing'; 
     }
 
+  
+    if (bet.forGame) {
+      var matching = unfilteredAllBets.find(b => b.id === bet.forGame);
+      } else {
+        var matching = bet; 
+      }
+
     if (bet.option) {
       if (bet.option === 'over') {
         buttonsHtml = `<button class="over">over</button>
@@ -141,7 +153,7 @@ function renderBets() {
       }
     }
 
-    if (bet.result) {
+    if (bet.result || matching.result) {
       if (bet.result === 'over') {
         buttonsHtml = `<button class="over" disabled> Was over</button>`;
       } else if (bet.result === 'under') {
@@ -152,7 +164,7 @@ function renderBets() {
     // const statsImg = `<div class="team-stats" data-teamStat='${bet.teamStat ? bet.teamStat : '' }'><img src="/bp/EE/assets/ouths/stats.png" alt="" class="icon op-5"></div>`;
     const statsImg = ``;
 
-    if (bet.sport != 'school') {
+    if (bet.sport != 'school' && bet.sport != 'basketball-player') {
       container.insertAdjacentHTML('beforeend', `
       <div class="bet ${betClass} card " data-meta="${bet.id}">
            <span class="multi it dn ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
@@ -197,25 +209,33 @@ function renderBets() {
       </div>
     `);
     } else if (bet.sport === 'basketball-player') {
+      const matchingbetClass = matching.status ? matching.status : '';
+
       container.insertAdjacentHTML('beforeend', `
-      <div class="bet ${betClass} card" data-meta="${bet.id}">
-      <span class="multi it ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
-            <span class="multi it r">$${bet.price}</span>
-            <div class="game">
-                <div class="name">
-                    <span>${bet.against}</span>
-                </div>
+        <div class="bet playerCard ${matchingbetClass} card " data-meta="${bet.id}">
+             <span class="multi it dn ${bet.info ? 'bet-info-i' : ''} ">${bet.info ? bet.info : '' }</span>
+              <span class="multi it r">$${bet.price}</span>
+                      ${!bet.result ? statsImg : ''}
+              <div class="game">
+                  <img src="${imgType}" class="game-img" alt="">
+                  <div class="name">
+                      <span class="bold">${bet.name}</span>
+                  </div>
+              </div>
+              <div class="for">
+               <span>@ ${matching.against}</span>
             </div>
-          <div class="for">
-            <span>${bet.amount}</span>
-             <span>${bet.typeBet}</span>
+            <div class="for">
+              <span>${bet.amount}</span>
+               <span>${bet.typeBet}</span>
+            </div>
+          <div class="button-sec" id="btn-${bet.id}">
+            ${buttonsHtml}
           </div>
-        <div class="button-sec" id="btn-${bet.id}">
-          ${buttonsHtml}
+          <span class="">${ matching.date ? formatDateTime(matching.date) : '' }</span>
+          <span class="bold">${additionalText}</span>
         </div>
-        <span class="bold">${additionalText}</span>
-      </div>
-    `);
+      `);
     }
 
     // Select the buttons within the current context
@@ -228,6 +248,7 @@ function renderBets() {
         console.log('Over button clicked');
         updateUserBet(bet.id, 'over');
         updateFb();
+        saveData();
       });
     }
     
@@ -236,6 +257,7 @@ function renderBets() {
         console.log('Under button clicked');
         updateUserBet(bet.id, 'under');
         updateFb();
+        saveData();
       });
     }
   });
@@ -671,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
+getFb();
 
     const loginbtn = document.querySelector('.googleButton');
 

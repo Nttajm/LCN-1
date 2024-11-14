@@ -1,4 +1,71 @@
+export const basketballPlayers = [
+    {
+      name: 'Jordan H.',
+      forGame: '16b',
+      id: '1bp',
+      amount: 4.5,
+      price: 50,
+      typeBet: 'Points + Rebounds',
+      sport: 'basketball-player',
+      result: '',
+      option: '',
+    }
+];
 
+ export const basketballBets = [
+  {
+    sport: 'basketball',
+    techTeam: 'Tech High Basketball (VB)',
+    against: 'St. Helena',
+    id: '16b',
+    amount: 42.5,
+    typeBet: 'Points',
+    status: '',
+    option: '',
+    result: '',
+    price: 680,
+    date: '11-19 19:30',
+  },
+    {
+        sport: 'basketball',
+        techTeam: 'Tech High Basketball (VB)',
+        against: 'Victory Christian Academy',
+        id: '10b',
+        amount: 42.5,
+        typeBet: 'Points',
+        status: 'ended',
+        option: '',
+        result: 'over',
+        price: 40,
+        date: '1-11 18:30',
+      },
+      {
+        sport: 'basketball',
+        techTeam: 'Tech High Basketball (VB)',
+        against: 'Credo',
+        id: '9b',
+        amount: 30.5,
+        typeBet: 'Points',
+        status: 'ended',
+        option: '',
+        result: 'under',
+        price: 40,
+        date: '11-15 18:30',
+      },
+      {
+        sport: 'basketball',
+        techTeam: 'Tech High Basketball (VB)',
+        against: 'Roseland Collegiate Prep',
+        id: '8b',
+        amount: 30.5,
+        typeBet: 'Points',
+        status: 'ended',
+        option: '',
+        result: 'over',
+        price: 40,
+        date: '11-15 18:30',
+      },
+  ]
 export const soccerBets  = [
   {
     sport: 'soccer',
@@ -265,61 +332,6 @@ export const soccerBets  = [
     },
   ];
 
-export const basketballPlayers = [
-    {
-      name: 'Jordan H.',
-      for: '11b',
-      id: '1bp',
-      amount: 2.5,
-      typeBet: 'Points',
-      status: '',
-      option: '',
-      result: '',
-      sport: 'basketball-player',
-    }
-];
-
- export const basketballBets = [
-    {
-        sport: 'basketball',
-        techTeam: 'Tech High Basketball (VB)',
-        against: 'Victory Christian Academy',
-        id: '10b',
-        amount: 42.5,
-        typeBet: 'Points',
-        status: 'ended',
-        option: '',
-        result: 'over',
-        price: 40,
-        date: '1-11 18:30',
-      },
-      {
-        sport: 'basketball',
-        techTeam: 'Tech High Basketball (VB)',
-        against: 'Credo',
-        id: '9b',
-        amount: 30.5,
-        typeBet: 'Points',
-        status: 'ended',
-        option: '',
-        result: 'under',
-        price: 40,
-        date: '11-15 18:30',
-      },
-      {
-        sport: 'basketball',
-        techTeam: 'Tech High Basketball (VB)',
-        against: 'Roseland Collegiate Prep',
-        id: '8b',
-        amount: 30.5,
-        typeBet: 'Points',
-        status: 'ended',
-        option: '',
-        result: 'over',
-        price: 40,
-        date: '11-15 18:30',
-      },
-  ]
 
   export const volleyballBets = [
     {
@@ -437,5 +449,6 @@ const moneyBets = [
     },
 ]
 
-export let allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets];
+export let allBets = [...soccerBets, ...basketballBets, ...volleyballBets, ...schoolBets, ...basketballPlayers];
 export let userBets = localStorage.getItem('userBets') ? JSON.parse(localStorage.getItem('userBets')) : [];
+export let unfilteredAllBets = allBets;
