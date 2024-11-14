@@ -72,7 +72,7 @@ const stockManual = [
         name: 'Matt Ortiz',
         basedOn: 'YELLING',
         data: [
-            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27
+            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27, 41
         ],
     },
     {
