@@ -547,3 +547,119 @@ function sell() {
 // Attach event listeners
 _('buy').addEventListener('click', buy);
 _('sell').addEventListener('click', sell);
+
+
+
+
+
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
+    authDomain: "overunder-ths.firebaseapp.com",
+    projectId: "overunder-ths",
+    storageBucket: "overunder-ths.firebasestorage.app",
+    messagingSenderId: "690530120785",
+    appId: "1:690530120785:web:36dc297cb517ac76cb7470",
+    measurementId: "G-Q30T39R8VY"
+  };
+  
+  // Initialize Firebase services
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const usersCollectionRef = collection(db, 'users');
+
+
+renderLeaders();
+async function renderLeaders() {
+    const leaderElem = document.querySelector('.leaders-sec');
+    leaderElem.innerHTML = '<div class="loading">Loading...</div>'; // Show loading message
+
+    try {
+        // Get all documents in the 'users' collection
+        const querySnapshot = await getDocs(usersCollectionRef);
+        const leaders = querySnapshot.docs.map(doc => doc.data());
+
+        // Sort leaders by portfolio value in descending order
+        leaders.sort((a, b) => {
+            let portfolioValueA = 0;
+            let portfolioValueB = 0;
+
+            if (a.userStocks) {
+                a.userStocks.forEach(stock => {
+                    let lastPrice;
+                    let manualStock = stockManual.find(s => s.name === stock.name);
+                    if (manualStock) {
+                        lastPrice = manualStock.data[manualStock.data.length - 1];
+                    } else {
+                        lastPrice = getLastPrice(stock.name);
+                    }
+                    portfolioValueA += stock.amount * lastPrice;
+                });
+            }
+
+            if (b.userStocks) {
+                b.userStocks.forEach(stock => {
+                    let lastPrice;
+                    let manualStock = stockManual.find(s => s.name === stock.name);
+                    if (manualStock) {
+                        lastPrice = manualStock.data[manualStock.data.length - 1];
+                    } else {
+                        lastPrice = getLastPrice(stock.name);
+                    }
+                    portfolioValueB += stock.amount * lastPrice;
+                });
+            }
+
+            return portfolioValueB - portfolioValueA;
+        });
+
+        // Clear loading message
+        leaderElem.innerHTML = '';
+
+        // Render each leader after sorting
+        leaders.slice(0, 6).forEach((leader, index) => {
+            if (leader.userStocks) {
+                let portfolioValue = 0;
+
+                leader.userStocks.forEach(stock => {
+                    let lastPrice;
+                    let manualStock = stockManual.find(s => s.name === stock.name);
+                    if (manualStock) {
+                        lastPrice = manualStock.data[manualStock.data.length - 1];
+                    } else {
+                        lastPrice = getLastPrice(stock.name);
+                    }
+                    portfolioValue += stock.amount * lastPrice;
+                });
+
+                const leaderDiv = document.createElement('div');
+                leaderDiv.classList.add('leader');
+                if (leader.leaderStyle === 'lebron') {
+                    leaderDiv.classList.add('lebron');
+                } else if (leader.leaderStyle === 'messi') {
+                    leaderDiv.classList.add('messi');
+                } else if (leader.leaderStyle === 'kanye') {
+                    leaderDiv.classList.add('kanye');
+                }
+                leaderDiv.innerHTML = `
+                    <span class="leader-rank">${index + 1}</span>
+                    <span class="leader-name">${leader.username || 'Unknown'}</span>
+                    <span class="leader-balance">${portfolioValue.toFixed(2)}</span>
+                `;
+                leaderElem.appendChild(leaderDiv);
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching leaderboard data:", error);
+        leaderElem.innerHTML = '<div class="error">Error loading leaderboard data</div>';
+    }
+}
