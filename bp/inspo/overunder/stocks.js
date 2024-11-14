@@ -85,15 +85,25 @@ const stockManual = [
         ],
     },
 
-    // {
-    //     id: 'EGG',
-    //     sub: 'EggeringCoin',
-    //     name: 'Eggering',
-    //     basedOn: 'Wrong Notes',
-    //     data: [
-    //         40, 30, 20, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
-    //     ],
-    // },
+    {
+        id: 'FRE',
+        sub: 'FbCoin',
+        name: 'FreeBairn',
+        basedOn: 'Taking phones',
+        data: [
+            10, 11, 13, 9, 8,
+        ],
+    },
+
+    {
+        id: 'EGG',
+        sub: 'EggeringCoin',
+        name: 'Eggering',
+        basedOn: 'Wrong Notes',
+        data: [
+            40, 30, 20, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
+        ],
+    },
 ];
 
 function getLastPrice(stockName) {
