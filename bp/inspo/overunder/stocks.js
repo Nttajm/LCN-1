@@ -206,7 +206,7 @@ function writeStock(typeBet) {
                     x: {
                         title: {
                             display: true,
-                            text: 'Days'
+                            text: ''
                         }
                     },
                     y: {
