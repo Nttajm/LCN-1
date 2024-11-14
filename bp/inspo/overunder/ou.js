@@ -305,6 +305,13 @@ function updateUserBet(betId, option) {
   updateButtons();
 }
 
+function placeProfile() {
+  const pfpImg = document.getElementById('google-auth-pfp')
+  const url = userData.profilePicture;
+  pfpImg.src = url;
+}
+
+placeProfile();
 
 renderBets();
 console.log(userBets);

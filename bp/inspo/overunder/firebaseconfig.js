@@ -133,14 +133,6 @@ export async function getFb() {
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
       const userData = docSnap.data();
-      const profilePicture = userData.profilePicture || 'https://via.placeholder.com/150';
-
-      if (profileImg) {
-        console.log("Setting profile image source:", profilePicture);  // Debugging log
-        profileImg.src = profilePicture;
-      } else {
-        console.error("Profile image element not found");  // Debugging log
-      }
 
       localStorage.setItem('userData', JSON.stringify(userData));
       localStorage.setItem('balanceAdder', userData.balanceAdder);
