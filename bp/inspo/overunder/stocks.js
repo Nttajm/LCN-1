@@ -30,22 +30,22 @@ checkBetsAndUpdateBalance();
 getFb();
 
 const stockManual = [ 
-    // {
-    //     id: 'TRR',
-    //     sub: 'TorreCoin',
-    //     name: 'Torre',
-    //     basedOn: 'Test Scores and Moods',
-    //     data: [
-    //         30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21,
-    //     ],
-    // },
+    {
+         id: 'TRR',
+         sub: 'TorreCoin',
+         name: 'Torre',
+         basedOn: 'Test Scores and Moods',
+         data: [
+             30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21,
+         ],
+     },
     {
         id: 'MYY',
         sub: 'myCoin',
         name: 'Mylander',
         basedOn: 'Taking phones',
         data: [
-             20, 25, 43, 36, 32, 35, 50, 60, 12, 19, 28, 34, 54, 67, 87, 125, 142
+             20, 25, 43, 36, 32, 35, 50, 60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176,
         ],
     },
     {
@@ -54,7 +54,7 @@ const stockManual = [
         name: 'Weaver',
         basedOn: 'Crash outs',
         data: [
-          4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 2.3
+          4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 2.3, 2
         ],
     },
     {
@@ -91,17 +91,7 @@ const stockManual = [
         name: 'FreeBairn',
         basedOn: 'Stories',
         data: [
-            10, 11, 13, 9, 8,
-        ],
-    },
-
-    {
-        id: 'EGG',
-        sub: 'EggeringCoin',
-        name: 'Eggering',
-        basedOn: 'Wrong Notes',
-        data: [
-            40, 30, 20, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70,
+            10, 11, 13, 9, 8, 21, 24
         ],
     },
 ];
