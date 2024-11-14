@@ -550,9 +550,6 @@ _('sell').addEventListener('click', sell);
 
 
 
-
-
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -581,7 +578,7 @@ const firebaseConfig = {
 renderLeaders();
 async function renderLeaders() {
     const leaderElem = document.querySelector('.leaders-sec');
-    leaderElem.innerHTML = '<div class="loading">Loading...</div>'; // Show loading message
+    leaderElem.innerHTML = ''; // Clear current leaders
 
     try {
         // Get all documents in the 'users' collection
@@ -622,9 +619,6 @@ async function renderLeaders() {
             return portfolioValueB - portfolioValueA;
         });
 
-        // Clear loading message
-        leaderElem.innerHTML = '';
-
         // Render each leader after sorting
         leaders.slice(0, 6).forEach((leader, index) => {
             if (leader.userStocks) {
@@ -660,6 +654,5 @@ async function renderLeaders() {
         });
     } catch (error) {
         console.error("Error fetching leaderboard data:", error);
-        leaderElem.innerHTML = '<div class="error">Error loading leaderboard data</div>';
     }
 }
