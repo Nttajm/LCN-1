@@ -1,10 +1,21 @@
 export const basketballPlayers = [
+  {
+    name: 'Josh Pine',
+    forGame: '16b',
+    id: '2bp',
+    amount: 3.5,
+    price: 50,
+    typeBet: '3 + attempts',
+    sport: 'basketball-player',
+    result: '',
+    option: '',
+  },
     {
       name: 'Jordan H.',
       forGame: '16b',
       id: '1bp',
       amount: 4.5,
-      price: 50,
+      price: 70,
       typeBet: 'Points + Rebounds',
       sport: 'basketball-player',
       result: '',
