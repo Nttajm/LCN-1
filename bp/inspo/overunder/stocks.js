@@ -45,16 +45,16 @@ const stockManual = [
         name: 'Mylander',
         basedOn: 'Taking phones',
         data: [
-             20, 25, 43, 36, 32, 35, 50, 60, 12, 19, 28, 34
+             20, 25, 43, 36, 32, 35, 50, 60, 12, 19, 28, 34, 54, 67, 87
         ],
     },
     {
         id: 'WVR',
         sub: 'WeaverCoin',
         name: 'Weaver',
-        basedOn: 'Anger',
+        basedOn: 'Crash outs',
         data: [
-           16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 2.5
+          4, 5, 16, 5, 7, 10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 
         ],
     },
     {
@@ -63,7 +63,7 @@ const stockManual = [
         name: 'Burks',
         basedOn: 'Yapping',
         data: [
-             5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 85, 87,
+            12, 15, 10, 8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 85, 87,
         ],
     },
     {
@@ -72,7 +72,7 @@ const stockManual = [
         name: 'Matt Ortiz',
         basedOn: 'YELLING',
         data: [
-            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 21
+            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15
         ],
     },
     {
@@ -547,111 +547,3 @@ function sell() {
 // Attach event listeners
 _('buy').addEventListener('click', buy);
 _('sell').addEventListener('click', sell);
-
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
-    authDomain: "overunder-ths.firebaseapp.com",
-    projectId: "overunder-ths",
-    storageBucket: "overunder-ths.firebasestorage.app",
-    messagingSenderId: "690530120785",
-    appId: "1:690530120785:web:36dc297cb517ac76cb7470",
-    measurementId: "G-Q30T39R8VY"
-  };
-  
-  // Initialize Firebase services
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const usersCollectionRef = collection(db, 'users');
-
-
-renderLeaders();
-async function renderLeaders() {
-    const leaderElem = document.querySelector('.leaders-sec');
-    leaderElem.innerHTML = ''; // Clear current leaders
-
-    try {
-        // Get all documents in the 'users' collection
-        const querySnapshot = await getDocs(usersCollectionRef);
-        const leaders = querySnapshot.docs.map(doc => doc.data());
-
-        // Sort leaders by portfolio value in descending order
-        leaders.sort((a, b) => {
-            let portfolioValueA = 0;
-            let portfolioValueB = 0;
-
-            if (a.userStocks) {
-                a.userStocks.forEach(stock => {
-                    let lastPrice;
-                    let manualStock = stockManual.find(s => s.name === stock.name);
-                    if (manualStock) {
-                        lastPrice = manualStock.data[manualStock.data.length - 1];
-                    } else {
-                        lastPrice = getLastPrice(stock.name);
-                    }
-                    portfolioValueA += stock.amount * lastPrice;
-                });
-            }
-
-            if (b.userStocks) {
-                b.userStocks.forEach(stock => {
-                    let lastPrice;
-                    let manualStock = stockManual.find(s => s.name === stock.name);
-                    if (manualStock) {
-                        lastPrice = manualStock.data[manualStock.data.length - 1];
-                    } else {
-                        lastPrice = getLastPrice(stock.name);
-                    }
-                    portfolioValueB += stock.amount * lastPrice;
-                });
-            }
-
-            return portfolioValueB - portfolioValueA;
-        });
-
-        // Render each leader after sorting
-        leaders.slice(0, 6).forEach((leader, index) => {
-            if (leader.userStocks) {
-                let portfolioValue = 0;
-
-                leader.userStocks.forEach(stock => {
-                    let lastPrice;
-                    let manualStock = stockManual.find(s => s.name === stock.name);
-                    if (manualStock) {
-                        lastPrice = manualStock.data[manualStock.data.length - 1];
-                    } else {
-                        lastPrice = getLastPrice(stock.name);
-                    }
-                    portfolioValue += stock.amount * lastPrice;
-                });
-
-                const leaderDiv = document.createElement('div');
-                leaderDiv.classList.add('leader');
-                if (leader.leaderStyle === 'lebron') {
-                    leaderDiv.classList.add('lebron');
-                } else if (leader.leaderStyle === 'messi') {
-                    leaderDiv.classList.add('messi');
-                } else if (leader.leaderStyle === 'kanye') {
-                    leaderDiv.classList.add('kanye');
-                }
-                leaderDiv.innerHTML = `
-                    <span class="leader-rank">${index + 1}</span>
-                    <span class="leader-name">${leader.username || 'Unknown'}</span>
-                    <span class="leader-balance">${portfolioValue.toFixed(2)}</span>
-                `;
-                leaderElem.appendChild(leaderDiv);
-            }
-        });
-    } catch (error) {
-        console.error("Error fetching leaderboard data:", error);
-    }
-}
