@@ -33,7 +33,7 @@ balanceElem.textContent = `$${checkBetsAndUpdateBalance()}`;
 const marketplace = [
     {
         name: 'Arizona',
-        price: 1,
+        price: 16000,
         left: '5/6',
         img: 'mk-arizona.jpg'
     },
