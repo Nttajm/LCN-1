@@ -15,7 +15,7 @@ export const stockManual = [
          name: 'Torre',
          basedOn: 'Test Scores and Moods',
          data: [
-             30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21,
+             30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21, 46
          ],
      },
     {
