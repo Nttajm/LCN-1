@@ -7,6 +7,7 @@ export const stockManual = [
          data: [
              43, 53, 104, 121, 99, 87, 106, 122, 132, 176,
          ],
+    }, 
      
     {
          id: 'TRR',
