@@ -70,7 +70,7 @@ export const stockManual = [
         name: 'FreeBairn',
         basedOn: 'Stories',
         data: [
-            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43,
+            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62
         ],
     },
 ];
