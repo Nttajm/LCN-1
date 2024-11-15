@@ -31,7 +31,7 @@ export const stockManual = [
         id: 'WVR',
         sub: 'WeaverCoin',
         name: 'Weaver',
-        basedOn: 'Mood',
+        basedOn: 'sarcasm',
         data: [
           10,  18.5, 9, 8, 6, 3, 5, 2, 1, 3, 2.3, 2, 3.5, 4.2, 4.6
         ],
