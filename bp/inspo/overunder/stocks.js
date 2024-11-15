@@ -626,3 +626,7 @@ async function displayShareAmount() {
         spanspan.innerHTML = '';
     }
 }
+
+function displayTopOwners() {
+
+}
