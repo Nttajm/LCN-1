@@ -61,3 +61,23 @@
     border-radius: 0.4rem;
     min-width: 60%;
 }
+
+.buyForm {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--5-bg);
+    padding: 3rem;
+    border-radius: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-family: var(--f-1);
+}
+
+.buyForm form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}

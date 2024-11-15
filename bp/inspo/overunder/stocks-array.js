@@ -14,7 +14,7 @@ export const stockManual = [
         name: 'Mylander',
         basedOn: 'Taking phones',
         data: [
-             32, 35, 50, 60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176,163, 189,
+            60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176, 163, 189,
         ],
     },
     {
@@ -64,3 +64,25 @@ export const stockManual = [
         ],
     },
 ];
+
+export const stockIndexes = [
+    {
+        id: 'MTMY',
+        sub: 'MTMY',
+        name: 'Mylander and Matt Ortiz',
+        basedOn: ['Raphael', 'Weaver' ],
+        data: [
+            10, 15, 13,
+        ],
+    },
+
+    {
+        id: 'FRE',
+        sub: 'FbCoin',
+        name: 'FreeBairn',
+        basedOn: 'Stories',
+        data: [
+            10, 11, 13, 9, 8, 21, 24
+        ],
+    },
+  ];
