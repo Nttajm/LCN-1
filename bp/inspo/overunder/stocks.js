@@ -14,6 +14,10 @@ import { stockManual } from './stocks-array.js';
 
 import { updateFb, getFb } from './firebaseconfig.js';
 
+if (userData.ban) {
+    window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+}
+
 getFb();
 updateFb();
 

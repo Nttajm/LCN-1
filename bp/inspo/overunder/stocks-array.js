@@ -42,7 +42,7 @@ export const stockManual = [
         name: 'Burks',
         basedOn: 'Yapping',
         data: [
-             8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 85, 87, 93,96, 101, 85, 94, 99, 71, 88
+             8, 7, 5, 6, 8, 9, 10, 12, 14, 56, 70, 61, 85, 87, 93,96, 101, 85, 94, 99, 71, 88, 101,
         ],
     },
     {
@@ -63,14 +63,13 @@ export const stockManual = [
             10, 15, 13, 24, 19, 12,
         ],
     },
-
     {
         id: 'FRE',
         sub: 'FbCoin',
         name: 'FreeBairn',
         basedOn: 'Stories',
         data: [
-            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62, 54
+            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62, 54, 70,
         ],
     },
     {
@@ -79,7 +78,7 @@ export const stockManual = [
         name: 'Zwing Coin',
         basedOn: 'Stories + yapping',
         data: [
-            9, 10, 6, 8, 9,
+            9, 10, 6, 8, 9, 12,
         ],
     },
 ];

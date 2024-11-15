@@ -17,6 +17,10 @@ const firebaseConfig = {
   measurementId: "G-Q30T39R8VY"
 };
 
+if (userData.ban) {
+  window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+}
+
 // Retrieve user data from localStorage or set default values
 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
@@ -193,6 +197,7 @@ export async function updateFb() {
         userStocks: latestUserData.userStocks ?? [],  // Set to null if undefined
         gameData: latestUserData.gameData ?? null,  // Set to null if undefined
         orders: latestUserData.orders ?? [],  // Set to null if undefined
+        ban: latestUserData.ban ?? false,
       },
       { merge: true }
     );  // Use merge to update fields without overwriting the whole document
