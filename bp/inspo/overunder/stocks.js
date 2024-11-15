@@ -83,7 +83,9 @@ let chartInstance = null;  // Global variable to store the chart instance
 
 
 function writeStock(typeBet) {
-    displayShareAmount();
+    setTimeout(() => {
+        displayShareAmount();
+    }, 100);
     const ctx = document.getElementById('myLineChart').getContext('2d');
     typeBet = typeBet.reverse()
     // Check if it's manual stock data (array of numbers) or sports bet data (array of objects)
@@ -424,6 +426,7 @@ usernameDiv.innerHTML = userData.username || '???';
 
 
 function buy() {
+    displayShareAmount()
     let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
     let currentMoney = checkBetsAndUpdateBalance();
     let stockName = _('js-name').textContent;
@@ -455,6 +458,7 @@ function buy() {
 }
 
 function sell() {
+    displayShareAmount()
     let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
     let stockName = _('js-name').textContent;
 
@@ -595,7 +599,7 @@ async function renderLeaders() {
 
 
 
-async function displayShareAmount() {
+async function displayShareAmount() { 
     let stockName = _('js-name').textContent;
     let totalShares = 0;
     const sharesSpan = _('js-shares');
@@ -622,5 +626,3 @@ async function displayShareAmount() {
         spanspan.innerHTML = '';
     }
 }
-
-displayShareAmount();
