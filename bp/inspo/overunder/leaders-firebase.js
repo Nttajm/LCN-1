@@ -48,7 +48,7 @@ const usersCollectionRef = collection(db, 'users');
 // Fetch and render leaderboard data
 async function renderLeaders() {
     const leaderElem = document.getElementById('js-leaders');
-    leaderElem.innerHTML = ''; // Clear current leaders
+    leaderElem.innerHTML = 'Loading...'; // Show loading message
 
     try {
         // Get all documents in the 'users' collection
@@ -61,6 +61,9 @@ async function renderLeaders() {
             const balanceB = getBalance(b.tripleABets || []) + (b.balanceAdder || 0);
             return balanceB - balanceA; // Sort in descending order
         });
+
+        // Clear loading message
+        leaderElem.innerHTML = '';
 
         // Render each leader after sorting
         leaders.forEach((leader, index) => {
@@ -76,13 +79,14 @@ async function renderLeaders() {
             leaderDiv.innerHTML = `
                 <span class="leader-rank">${index + 1}</span>
                 <span class="leader-name">${leader.username || 'Unknown'}</span>
-                <span class="leader-balance">$${getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)}</span>
+                <span class="leader-balance">$${(getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)).toFixed(1)}</span>
             `;
             leaderElem.appendChild(leaderDiv);
 
         });
     } catch (error) {
         console.error("Error fetching leaderboard data:", error);
+        leaderElem.innerHTML = 'Error loading data'; // Show error message
     }
 }
 

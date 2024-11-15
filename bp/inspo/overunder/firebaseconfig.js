@@ -145,7 +145,7 @@ export async function getFb() {
     console.error("Error updating user data:", error);
   }
 }
-
+const dailyDiv = document.getElementById('daily-reward')
 // different handling for auth state change
 onAuthStateChanged(auth, (user) => {
   const googleDiv = document.querySelector('#google-auth-div');
@@ -153,10 +153,12 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
       profileDiv.style.display = 'flex';
       googleDiv.style.display = 'none';
+      dailyDiv.style.display = 'flex'
     } else {
       console.error("No user is signed in");
       profileDiv.style.display = 'none';
       googleDiv.style.display = 'block';
+      dailyDiv.style.display = 'none'
     }
   }
 });
