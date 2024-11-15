@@ -83,6 +83,7 @@ let chartInstance = null;  // Global variable to store the chart instance
 
 
 function writeStock(typeBet) {
+    displayShareAmount();
     const ctx = document.getElementById('myLineChart').getContext('2d');
     typeBet = typeBet.reverse()
     // Check if it's manual stock data (array of numbers) or sports bet data (array of objects)
@@ -251,6 +252,7 @@ function attachEventListeners() {
     
     newOptionals.forEach(div => {
         div.addEventListener('click', function () {
+            displayShareAmount();
             const writeType = div.dataset.write;
             clearSelection(); // Clear previous selection for all .sport-option elements
             div.classList.add('selected'); // Add 'selected' class to clicked div
@@ -590,3 +592,35 @@ async function renderLeaders() {
         console.error("Error fetching leaderboard data:", error);
     }
 }
+
+
+
+async function displayShareAmount() {
+    let stockName = _('js-name').textContent;
+    let totalShares = 0;
+    const sharesSpan = _('js-shares');
+    sharesSpan.innerHTML = '';
+
+    try {
+        const querySnapshot = await getDocs(usersCollectionRef);
+        const leaders = querySnapshot.docs.map(doc => doc.data());
+
+        leaders.forEach(leader => {
+            if (Array.isArray(leader.userStocks)) {
+                leader.userStocks.forEach(stock => {
+                    if (stock.name === stockName) {
+                        totalShares += stock.amount;
+                    }
+                });
+            }
+        });
+
+        console.log(`Total shares of ${stockName} held by leaders: ${totalShares}`);
+        sharesSpan.innerHTML = totalShares;
+    } catch (error) {
+        console.error("Error fetching share amounts:", error);
+        spanspan.innerHTML = '';
+    }
+}
+
+displayShareAmount();
