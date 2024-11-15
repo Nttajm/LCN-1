@@ -24,7 +24,7 @@ export const stockManual = [
         name: 'Mylander',
         basedOn: 'Taking phones',
         data: [
-            60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176, 163, 189, 151, 121, 109, 96
+            60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176, 163, 189, 151, 121, 109, 96, 71
         ],
     },
     {
@@ -51,7 +51,7 @@ export const stockManual = [
         name: 'Matt Ortiz',
         basedOn: 'YELLING',
         data: [
-            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27, 41, 48, 30,37, 
+            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27, 41, 48, 30,37, 31, 29
         ],
     },
     {
@@ -60,7 +60,7 @@ export const stockManual = [
         name: 'Raphael',
         basedOn: '3s made',
         data: [
-            10, 15, 13, 24, 19,
+            10, 15, 13, 24, 19, 12,
         ],
     },
 
@@ -71,6 +71,15 @@ export const stockManual = [
         basedOn: 'Stories',
         data: [
             10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62, 54
+        ],
+    },
+    {
+        id: 'ZC',
+        sub: 'ZCoin',
+        name: 'Zwing Coin',
+        basedOn: 'Stories + yapping',
+        data: [
+            9, 10, 6, 8, 9,
         ],
     },
 ];
