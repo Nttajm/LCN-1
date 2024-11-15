@@ -24,7 +24,7 @@ export const stockManual = [
         name: 'Mylander',
         basedOn: 'Taking phones',
         data: [
-            60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176, 163, 189,
+            60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176, 163, 189, 151
         ],
     },
     {
