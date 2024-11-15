@@ -5,7 +5,7 @@ export const stockManual = [
          name: 'Over Under',
          basedOn: 'over under in genral',
          data: [
-             43, 53, 104, 121, 99, 87, 106, 122, 132, 145, 190, 150, 134
+             43, 53, 104, 121, 99, 87, 106, 122, 132, 145, 190, 150, 134, 166,
          ],
     }, 
      
@@ -51,7 +51,7 @@ export const stockManual = [
         name: 'Matt Ortiz',
         basedOn: 'YELLING',
         data: [
-            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27, 41, 48, 30,37, 31, 29, 60,
+            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27, 41, 48, 30,37, 31, 29, 60, 66,
         ],
     },
     {
@@ -69,7 +69,7 @@ export const stockManual = [
         name: 'FreeBairn',
         basedOn: 'Stories',
         data: [
-            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62, 54, 68,
+            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62, 54, 68, 73,
         ],
     },
     {
@@ -78,7 +78,7 @@ export const stockManual = [
         name: 'Zwing Coin',
         basedOn: 'Stories + yapping',
         data: [
-            9, 10, 6, 8, 9, 13
+            9, 10, 6, 8, 9, 13, 7,
         ],
     },
 ];
