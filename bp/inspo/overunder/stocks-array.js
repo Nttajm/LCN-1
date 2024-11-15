@@ -1,4 +1,13 @@
 export const stockManual = [ 
+     {
+         id: 'OUC',
+         sub: 'OUCoin',
+         name: 'Over Under',
+         basedOn: 'over under in genral',
+         data: [
+             43, 53, 104, 121, 99, 87, 106, 122, 132, 176,
+         ],
+     
     {
          id: 'TRR',
          sub: 'TorreCoin',
