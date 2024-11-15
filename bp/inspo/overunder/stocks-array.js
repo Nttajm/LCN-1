@@ -60,7 +60,7 @@ export const stockManual = [
         name: 'Raphael',
         basedOn: '3s made',
         data: [
-            10, 15, 13, 24,
+            10, 15, 13, 24, 19,
         ],
     },
 
