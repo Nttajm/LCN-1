@@ -78,7 +78,7 @@ export const stockManual = [
         name: 'Zwing Coin',
         basedOn: 'Stories + yapping',
         data: [
-            9, 10, 6, 8, 9, 13, 7,
+            9, 10, 6, 8, 9, 13, 7, 16
         ],
     },
 ];
