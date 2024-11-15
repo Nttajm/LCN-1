@@ -163,6 +163,9 @@ form.addEventListener('submit', async (e) => {
     } else {
         alert("Insufficient balance to purchase this item.");
     }
+
+    form.reset();
+    location.reload();
 });
 
 const cancelBtn = document.getElementById('cancel');
