@@ -69,8 +69,26 @@
     flex-direction: column;
     align-items: flex-start;
     padding: 0.5rem;
+    position: relative;
 }
 
+.held-shares {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-size: 1.5rem;
+    background-color: rgb(114, 114, 168);
+    padding: 0.6rem;
+    border-radius: 1.3rem;
+    display: flex;
+    align-items: center;
+}
+
+.held-shares img {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.3rem;
+}
 .stk-title {
     font-size: 2.5rem;
     font-weight: 600;

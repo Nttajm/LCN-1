@@ -45,14 +45,6 @@
             <span id="username">DEV</span>
           </div>
           <div class="stats" id="js-stats">
-            <div class="stat fl-ai">
-              <span>3</span>
-              <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
-            </div>
-            <div class="stat fl-ai">
-              <span class="rank-1">800</span>
-              <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
-            </div>
             <span class="balance money">$70</span>
           </div>
         </div>
@@ -60,12 +52,14 @@
             
         </div>
 
-        <div class="buyForm">
+        <div class="buyForm dn">
           <h2>Order Details</h2>
-          <form class="form">
-            <input type="text" placeholder="name" id="buyerName">
-            <input type="text" placeholder="when is the best time to give this to you?" id="discription">
+          <form class="form" id="firebasePush">
+            <input type="text" name="name" placeholder="name, real name please" id="buyerName">
+            <input type="text" name="dispcription" placeholder="when is the best time to give this to you?" id="discription">
             <button id="buyBtn" type="submit">purchase</button>
+            <button id="cancel" type="button">cancel</button>
+
           </form>
         </div>
         

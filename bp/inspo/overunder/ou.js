@@ -560,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Function to handle daily reward logic
   const handleDailyReward = () => {
     const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
-    const newBalance = balanceAdder + 25;
+    const newBalance = balanceAdder + 100;
     localStorage.setItem('balanceAdder', newBalance);
 
     // Update userData with a timestamp and store it in localStorage

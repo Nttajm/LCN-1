@@ -192,6 +192,7 @@ export async function updateFb() {
         version: 'FB: 1.9.8',
         userStocks: latestUserData.userStocks ?? [],  // Set to null if undefined
         gameData: latestUserData.gameData ?? null,  // Set to null if undefined
+        orders: latestUserData.orders ?? [],  // Set to null if undefined
       },
       { merge: true }
     );  // Use merge to update fields without overwriting the whole document
