@@ -643,7 +643,7 @@ async function renderLeaders() {
                 }
                 leaderDiv.innerHTML = `
                     <span class="leader-rank">${index + 1}</span>
-                    <span class="leader-name">${leader.username || 'Unknown'}</span>
+                    <span class="leader-name">${leader.username || leader.name}</span>
                     <span class="leader-balance">${portfolioValue.toFixed(2)}</span>
                 `;
                 leaderElem.appendChild(leaderDiv);

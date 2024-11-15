@@ -78,7 +78,7 @@ async function renderLeaders() {
             }
             leaderDiv.innerHTML = `
                 <span class="leader-rank">${index + 1}</span>
-                <span class="leader-name">${leader.username || 'Unknown'}</span>
+                <span class="leader-name">${leader.username || leader.name}</span>
                 <span class="leader-balance">$${(getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)).toFixed(1)}</span>
             `;
             leaderElem.appendChild(leaderDiv);
