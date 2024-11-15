@@ -5,7 +5,7 @@ export const stockManual = [
          name: 'Over Under',
          basedOn: 'over under in genral',
          data: [
-             43, 53, 104, 121, 99, 87, 106, 122, 132, 145, 190, 150
+             43, 53, 104, 121, 99, 87, 106, 122, 132, 145, 190, 150, 134
          ],
     }, 
      
@@ -15,7 +15,7 @@ export const stockManual = [
          name: 'Torre',
          basedOn: 'Test Scores and Moods',
          data: [
-             30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21, 46, 32
+             30, 23, 2, 4, 5, 10, 15, 3, 34, 12, 2, 10, 13, 21, 46, 32, 40
          ],
      },
     {
@@ -24,7 +24,7 @@ export const stockManual = [
         name: 'Mylander',
         basedOn: 'Taking phones',
         data: [
-            60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176, 163, 189, 151, 121, 109, 96, 71
+            60, 12, 19, 28, 34, 54, 67, 87, 125, 142, 176, 163, 189, 151, 121, 109, 96, 72, 66,
         ],
     },
     {
@@ -33,7 +33,7 @@ export const stockManual = [
         name: 'Weaver',
         basedOn: 'sarcasm',
         data: [
-          1, 3, 2.3, 2, 3.5, 4.2, 4.6, 5.1, 7.5, 6, 9.5, 8, 7, 5, 8, 12, 6, 5.2
+          1, 3, 2.3, 2, 3.5, 4.2, 4.6, 5.1, 7.5, 6, 9.5, 8, 7, 5, 8, 12, 6, 5.2, 4.8
         ],
     },
     {
@@ -51,7 +51,7 @@ export const stockManual = [
         name: 'Matt Ortiz',
         basedOn: 'YELLING',
         data: [
-            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27, 41, 48, 30,37, 31, 29
+            12, 14, 15, 16, 11, 8, 5, 7, 10, 11, 15, 27, 41, 48, 30,37, 31, 29, 60,
         ],
     },
     {
@@ -60,7 +60,7 @@ export const stockManual = [
         name: 'Raphael',
         basedOn: '3s made',
         data: [
-            10, 15, 13, 24, 19, 12,
+            10, 15, 13, 24, 19, 12, 8,
         ],
     },
     {
@@ -69,7 +69,7 @@ export const stockManual = [
         name: 'FreeBairn',
         basedOn: 'Stories',
         data: [
-            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62, 54, 70,
+            10, 11, 13, 9, 8, 21, 24, 27, 34, 52, 43, 62, 54, 68,
         ],
     },
     {
@@ -78,7 +78,7 @@ export const stockManual = [
         name: 'Zwing Coin',
         basedOn: 'Stories + yapping',
         data: [
-            9, 10, 6, 8, 9, 12,
+            9, 10, 6, 8, 9, 13
         ],
     },
 ];

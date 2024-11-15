@@ -17,14 +17,15 @@ const firebaseConfig = {
   measurementId: "G-Q30T39R8VY"
 };
 
-if (userData.ban) {
-  window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
-}
 
 // Retrieve user data from localStorage or set default values
 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
 const userBets = JSON.parse(localStorage.getItem('userBets') || '[]');
+
+if (userData.ban) {
+  window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+}
 
 // Initialize Firebase services
 const app = initializeApp(firebaseConfig);
