@@ -554,7 +554,7 @@ async function renderLeaders() {
         });
 
         // Render each leader after sorting
-        leaders.slice(0, 6).forEach((leader, index) => {
+        leaders.slice(0, 9).forEach((leader, index) => {
             if (Array.isArray(leader.userStocks)) {
                 let portfolioValue = 0;
 
