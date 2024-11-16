@@ -148,20 +148,14 @@ body {
 }
 
 
-#alert .disc {
-    position: absolute;
-    bottom: 0;
-    right: 50%;
-    text-align: center;
-    background-color: rgb(125, 240, 131);
-    color: white;
-    padding: 0.2rem;
-    border-radius: 0.3rem;
-    font-size: 0.7rem;
-    transform: translateX(50%);
+#alert  {
+    display: flex;
+    height: 6rem;
+    gap: 1rem;
 }
 
-.disc {
-    color: rgb(0, 0, 0) !important;
-}
+#alert img {
+    height: 6rem;
+    width: 7rem;
 
+}

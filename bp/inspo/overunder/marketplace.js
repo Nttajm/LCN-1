@@ -28,12 +28,12 @@ const usrnamediv = document.getElementById('username');
 usrnamediv.innerHTML = userData.username || '???';
 
 const balanceElem = document.querySelector('.balance.money');
-balanceElem.textContent = `$${checkBetsAndUpdateBalance()}`;
+balanceElem.textContent = `$${checkBetsAndUpdateBalance().toFixed(2)}`;
 
 const marketplace = [
     {
         name: 'Arizona',
-        price: 16000,
+        price: 1,
         left: '5/6',
         img: 'mk-arizona.jpg'
     },
@@ -44,20 +44,26 @@ const marketplace = [
         img: 'leaderstyle.png'
     },
     {
-        name: '$100 gift card',
-        price: 60000,
+        name: '$25 gift card',
+        price: 50000,
         left: '1/1',
         img: 'mk-100.jpg'
     },
     {
         name: 'Pumpkin Spice Latte',
-        price: 12000,
+        price: 33120,
         left: '3/3',
         img: 'mk-starbucks.jpg'
     },
     {
         name: 'Smoken Bowls',
         price: 16500,
+        left: '1/1',
+        img: 'smoken.jpg'
+    },
+    {
+        name: 'Make your own coin',
+        price: 25000,
         left: '1/1',
         img: 'smoken.jpg'
     },

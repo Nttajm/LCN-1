@@ -12,7 +12,7 @@ export function uiAndBalance(newCash) {
 }
 
 export function getKeys() {
-    let keys = 0;
+    let keys = 3;
     let keysAdder = userData.keysAdder || 0; 
     userBets.forEach(userBet => {
         const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
