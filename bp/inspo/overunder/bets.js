@@ -26,6 +26,19 @@ export const basketballPlayers = [
  export const basketballBets = [
   {
     sport: 'basketball',
+    techTeam: 'Mike T.',
+    against: 'Jake P.',
+    id: '17b',
+    amount: 0.5,
+    typeBet: 'win',
+    status: '',
+    option: '',
+    result: '',
+    price: 1280,
+    date: '11-15 19:30',
+  },
+  {
+    sport: 'basketball',
     techTeam: 'Tech High Basketball (VB)',
     against: 'St. Helena',
     id: '16b',

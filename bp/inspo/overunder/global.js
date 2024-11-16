@@ -246,12 +246,12 @@ export function heartReturner(option) {
     return hearts;
 }
 
-if (userData.ban) {
-    window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
-  }
+// if (userData.ban) {
+//     window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+//   }
   
-  const betatesters = ['joelm', 'lizzy', 'WildS', 'Tking'];
+//   const betatesters = ['joelm', 'lizzy', 'WildS', 'Tking'];
   
-  if (!(userData.username && betatesters.includes(userData.username))) {
-      window.location.href = 'https://lcnjoel.com/ouths/info.html';
-  }
+//   if (!(userData.username && betatesters.includes(userData.username))) {
+//       window.location.href = 'https://lcnjoel.com/ouths/info.html';
+//   }

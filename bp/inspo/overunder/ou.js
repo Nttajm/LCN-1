@@ -119,12 +119,14 @@ function renderBets() {
 
     if (bet.sport === 'soccer') { 
       imgType = '/bp/EE/assets/ouths/soccerball.png';
-    } else if (bet.sport === 'basketball') {
+    } else if (bet.sport === 'basketball' && !(bet.techTeam === 'Mike T.')) {
       imgType = '/bp/EE/assets/ouths/basketball.webp';
     }  else if (bet.sport === 'volleyball') {
       imgType = '/bp/EE/assets/ouths/volleyball.png';
     } else if (bet.sport === 'basketball-player') {
       imgType = '/bp/EE/assets/ouths/school.png';
+    } else if (bet.techTeam === 'Mike T.') {
+      imgType = '/bp/EE/assets/ouths/boxing-3.webp';
     }
 
     const userBet = userBets.find(uBet => uBet.matchingBet === bet.id);
@@ -158,6 +160,16 @@ function renderBets() {
         buttonsHtml = `<button class="over" disabled> Was over</button>`;
       } else if (bet.result === 'under') {
         buttonsHtml = `<button class="under" disabled>Was under</button>`;
+      }
+    }
+
+    if (bet.techTeam === 'Mike T.') {
+      buttonsHtml = `<button class="over">Jake</button>
+      <button class="under">Mike T.</button>`;
+      if (bet.result === 'over') {
+        buttonsHtml = `<button class="over" disabled>Was Jake</button>`;
+      } else if (bet.result === 'under') {
+        buttonsHtml = `<button class="under" disabled>Was Mike T.</button>`;
       }
     }
 
