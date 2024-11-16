@@ -14,6 +14,10 @@ import { stockManual } from './stocks-array.js';
 
 import { updateFb, getFb } from './firebaseconfig.js';
 
+if (userData.ban) {
+    window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+}
+
 getFb();
 updateFb();
 
@@ -560,7 +564,7 @@ async function renderLeaders() {
         });
 
         // Render each leader after sorting
-        leaders.slice(0, 9).forEach((leader, index) => {
+        leaders.slice(0, 12).forEach((leader, index) => {
             if (Array.isArray(leader.userStocks)) {
                 let portfolioValue = 0;
 
@@ -586,7 +590,7 @@ async function renderLeaders() {
                 }
                 leaderDiv.innerHTML = `
                     <span class="leader-rank">${index + 1}</span>
-                    <span class="leader-name">${leader.username || 'Unknown'}</span>
+                    <span class="leader-name">${leader.username || leader.name}</span>
                     <span class="leader-balance">${portfolioValue.toFixed(2)}</span>
                 `;
                 leaderElem.appendChild(leaderDiv);
@@ -625,4 +629,8 @@ async function displayShareAmount() {
         console.error("Error fetching share amounts:", error);
         spanspan.innerHTML = '';
     }
+}
+
+function displayTopOwners() {
+
 }

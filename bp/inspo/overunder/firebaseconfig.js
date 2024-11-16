@@ -17,10 +17,15 @@ const firebaseConfig = {
   measurementId: "G-Q30T39R8VY"
 };
 
+
 // Retrieve user data from localStorage or set default values
 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
 const userBets = JSON.parse(localStorage.getItem('userBets') || '[]');
+
+if (userData.ban) {
+  window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+}
 
 // Initialize Firebase services
 const app = initializeApp(firebaseConfig);
@@ -193,6 +198,7 @@ export async function updateFb() {
         userStocks: latestUserData.userStocks ?? [],  // Set to null if undefined
         gameData: latestUserData.gameData ?? null,  // Set to null if undefined
         orders: latestUserData.orders ?? [],  // Set to null if undefined
+        ban: latestUserData.ban ?? false,
       },
       { merge: true }
     );  // Use merge to update fields without overwriting the whole document
