@@ -33,7 +33,7 @@ export const basketballPlayers = [
     typeBet: 'win',
     status: 'ended',
     option: '',
-    result: 'under',
+    result: 'over',
     price: 1280,
     date: '11-15 19:30',
   },
