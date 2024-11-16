@@ -23,15 +23,14 @@ const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
 const userBets = JSON.parse(localStorage.getItem('userBets') || '[]');
 
-// if (userData.ban) {
-//   window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
-// }
-
-// const betatesters = ['joelm', 'lizzy', 'WildS', 'Tking', ''];
-
-// if (!(userData.username && betatesters.includes(userData.username))) {
-//     window.location.href = 'https://lcnjoel.com/ouths/info.html';
-// }
+if (userData.ban) {
+     window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+   }
+     const betatesters = ['joelm', 'lizzy', 'WildS', 'Tking'];
+  
+  if (!(userData.username && betatesters.includes(userData.username))) {
+       window.location.href = 'https://lcnjoel.com/ouths/info.html';
+   }
 
 // Initialize Firebase services
 const app = initializeApp(firebaseConfig);
