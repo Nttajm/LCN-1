@@ -34,7 +34,7 @@ export const basketballPlayers = [
     status: 'ended',
     option: '',
     result: 'over',
-    price: 1280,
+    price: 650,
     date: '11-15 19:30',
   },
   {
