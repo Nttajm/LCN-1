@@ -631,6 +631,49 @@ async function displayShareAmount() {
     }
 }
 
-function displayTopOwners() {
+async function displayLargestStocks() {
+    const mostshared = document.getElementById('most-shared');
+    mostshared.innerHTML = '';
 
+    try {
+        const querySnapshot = await getDocs(usersCollectionRef);
+        const leaders = querySnapshot.docs.map(doc => doc.data());
+
+        const stockCounts = {};
+
+        leaders.forEach(leader => {
+            if (Array.isArray(leader.userStocks)) {
+                leader.userStocks.forEach(stock => {
+                    if (!stockCounts[stock.name]) {
+                        stockCounts[stock.name] = 0;
+                    }
+                    stockCounts[stock.name] += stock.amount;
+                });
+            }
+        });
+
+        const sortedStocks = Object.entries(stockCounts).sort((a, b) => b[1] - a[1]);
+
+        sortedStocks.slice(0, 4).forEach(([stockName, totalShares]) => {
+            const stockDiv = document.createElement('div');
+            stockDiv.classList.add('coin');
+            stockDiv.innerHTML = `
+                    <div class="prices">
+                        <div class="">
+                            <img src="/bp/EE/assets/ouths/shares.png" alt="" class="icono-2">
+                            <span id="js-sharesd">${totalShares}</span>
+                        </div>
+                    </div>
+                    <div class="symbol">
+                        <span>${stockName.substring(0, 3).toUpperCase()}</span>
+                    </div>
+            `;
+            mostshared.appendChild(stockDiv);
+        });
+    } catch (error) {
+        console.error("Error fetching share amounts:", error);
+        mostshared.innerHTML = 'Error fetching data';
+    }
 }
+
+displayLargestStocks();

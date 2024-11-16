@@ -320,6 +320,21 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
     align-items: center;
 }
 
+.multi-tag-2 {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-weight: 600;
+    font-size: 1.2rem;
+    font-family: roboto;
+    width: 100%;
+    background-color: var(--secondary-bg);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-sizing: border-box;
+    margin-bottom: 0.7rem;
+}
+
 .multi-title {
     font-size: 1.5rem;
     font-weight: 700;
