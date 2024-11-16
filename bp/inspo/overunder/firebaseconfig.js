@@ -27,9 +27,9 @@ if (userData.ban) {
   window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
 }
 
-const betatesters = ['joelm', 'lizzy'];
+const betatesters = ['joelm', 'lizzy', 'WildS'];
 
-if (!userData.username && betatesters.includes(userData.username)) {
+if (!(userData.username && betatesters.includes(userData.username))) {
     window.location.href = 'https://lcnjoel.com/ouths/info.html';
 }
 
