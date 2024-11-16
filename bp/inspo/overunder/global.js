@@ -75,11 +75,6 @@ divLinkers.forEach(div => {
 export const userData = JSON.parse(localStorage.getItem('userData')) || {};
 export const gameData = JSON.parse(localStorage.getItem('gameData')) || {};
 
-const betatesters = ['joelm', 'lizzy'];
-
-if (!userData.username && betatesters.includes(userData.username)) {
-    window.location.href = 'https://lcnjoel.com/ouths/info.html';
-}
 
 // Function to format date and time
 export function formatDateTime(dateTimeStr) {

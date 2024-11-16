@@ -27,6 +27,12 @@ if (userData.ban) {
   window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
 }
 
+const betatesters = ['joelm', 'lizzy'];
+
+if (!userData.username && betatesters.includes(userData.username)) {
+    window.location.href = 'https://lcnjoel.com/ouths/info.html';
+}
+
 // Initialize Firebase services
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
