@@ -64,7 +64,6 @@ if (loginBtn) {
           balanceAdder: balanceAdder,
           ...userData,   // Spread existing user data properties from localStorage
           tripleABets: userBets,
-
         });
         console.log("New user created in Firestore");
       } else {

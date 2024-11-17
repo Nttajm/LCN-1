@@ -16,6 +16,16 @@ import { formatDateTime } from './global.js';
 updateFb();
 getFb();
 
+const hackersMessage = localStorage.getItem('reallyDude') || '';
+if (!hackersMessage) {
+  localStorage.setItem('reallyDude', 'Please do not edit the code or mess with the game, youre only not making it fun for anyone and being an ahole and will be on the boo list');
+}
+
+const iKnow = localStorage.getItem('iKnow') || '';
+if (!iKnow) {
+  localStorage.setItem('Additonally...', 'I know theres ways to fix this but I dont have the time to do it bc of school, so please dont mess with the game');
+}
+
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
 

@@ -160,7 +160,9 @@ form.addEventListener('submit', async (e) => {
             item: itemSelected,
             price: itemPrice,
             date: new Date().toDateString(),
+            fBrefrence: docData.id,
         });
+        
         saveData();
 
         // Hide the form after submission

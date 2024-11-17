@@ -876,6 +876,21 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     :root {
         font-size: 20px;
     }
+
+    .news-section {
+        display: flex;
+        flex-direction: column !important;
+        gap: 1rem;
+        justify-content: space-between;
+    }
+
+    .news-cont .news {
+        width: fit-content;
+    }
+
+    .news-section :root {
+        font-size: 18px !important;
+    }
  }
 
 @media all and (max-width: 480px) { 
