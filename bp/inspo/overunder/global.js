@@ -248,8 +248,8 @@ export function heartReturner(option) {
 if (userData.ban) {
      window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
    }
-//      const betatesters = ['joelm', 'lizzy', 'WildS', 'TKing', 'BetaTester27'];
+     const betatesters = ['joelm', 'lizzy', 'WildS', 'TKing', 'BetaTester27'];
   
-//   if (!(userData.username && betatesters.includes(userData.username))) {
-//        window.location.href = 'https://lcnjoel.com/ouths/info.html';
-//    }
+  if (!(userData.username && betatesters.includes(userData.username))) {
+       window.location.href = 'https://lcnjoel.com/ouths/info.html';
+   }

@@ -26,11 +26,11 @@ const userBets = JSON.parse(localStorage.getItem('userBets') || '[]');
 if (userData.ban) {
      window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
    }
-  // const betatesters = ['joelm', 'lizzy', 'WildS', 'TKing', 'BetaTester27', 'BetaTester49'];
+  const betatesters = ['joelm', 'lizzy', 'WildS', 'TKing', 'BetaTester27', 'BetaTester49'];
   
-  // if (!(userData.username && betatesters.includes(userData.username))) {
-  //      window.location.href = 'https://lcnjoel.com/ouths/info.html';
-  //  }
+  if (!(userData.username && betatesters.includes(userData.username))) {
+       window.location.href = 'https://lcnjoel.com/ouths/info.html';
+   }
 
 // Initialize Firebase services
 const app = initializeApp(firebaseConfig);
