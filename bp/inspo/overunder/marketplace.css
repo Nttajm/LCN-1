@@ -81,3 +81,37 @@
     flex-direction: column;
     gap: 0.6rem;
 }
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem;
+    border-radius: 0.4rem;
+    background-color: var(--5-bg);
+}
+
+.orders-sec {
+    display: flex;
+    flex-direction: row;
+    gap: 0.6rem;
+}
+
+.order-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 0.4rem;
+}
+
+.order-item.pending {
+    background-color: rgb(202, 178, 72) !important;
+}
+
+.order-item.accepted {
+    background-color: rgb(72, 202, 72) !important;
+}
+
+.order-item.declined {
+    background-color: rgb(202, 72, 72) !important;
+}

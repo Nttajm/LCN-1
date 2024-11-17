@@ -10,6 +10,31 @@ import {
     updateBalanceAdder,
 } from './global.js';
 
+const globalSto = 0.0003;
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
+    authDomain: "overunder-ths.firebaseapp.com",
+    projectId: "overunder-ths",
+    storageBucket: "overunder-ths.firebasestorage.app",
+    messagingSenderId: "690530120785",
+    appId: "1:690530120785:web:36dc297cb517ac76cb7470",
+    measurementId: "G-Q30T39R8VY"
+};
+
+// Initialize Firebase services
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const usersCollectionRef = collection(db, 'users');
+
 import { stockManual } from './stocks-array.js';
 
 import { updateFb, getFb } from './firebaseconfig.js';
@@ -97,6 +122,7 @@ function writeStock(typeBet) {
         typeBet.reverse(); // Reverse the order of the array
 
         var lastPrice = typeBet[typeBet.length - 1];
+        var priceWshares;
 
         // It's manual stock data
         let stockI = stockManual.find(stock => stock.data === typeBet);
@@ -107,7 +133,13 @@ function writeStock(typeBet) {
 
         const priceHtml = _('js-price');
         // const averagePrice = (typeBet.reduce((sum, price) => sum + price, 0) / typeBet.length).toFixed(2);
-        priceHtml.innerHTML = lastPrice.toFixed(2);
+        displayShareAmount().then(shareAmount => {
+            let shareSub;
+            shareSub = (lastPrice * shareAmount * globalSto).toFixed(2);
+            priceWshares = (lastPrice + parseFloat(shareSub)).toFixed(2);
+            priceHtml.innerHTML = '$' + priceWshares;
+        });
+
 
         _('js-based').innerHTML = basedOn;
 
@@ -131,36 +163,48 @@ function writeStock(typeBet) {
         }
 
         // Create chart with manual stock data
-        const data = {
-            labels: typeBet.map((_, index) => `${index + 1}`),
-            datasets: [{
+        displayShareAmount().then(shareAmount => {
+            let shareSub;
+            shareSub = (lastPrice * shareAmount * globalSto).toFixed(2);
+            priceWshares = (lastPrice + parseFloat(shareSub)).toFixed(2);
+
+            const data = {
+                labels: typeBet.map((_, index) => `${index + 1}`),
+                datasets: [{
                 label: 'Manual Stock Prices',
                 data: typeBet,
                 fill: false,
                 borderColor: 'rgba(75, 192, 192, 1)',
                 tension: 0.1
-            }]
-        };
+                }]
+            };
 
-        chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: data,
-            options: {
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                ...data,
+                datasets: [{
+                    ...data.datasets[0],
+                    data: [...data.datasets[0].data.slice(0, -1), priceWshares]
+                }]
+                },
+                options: {
                 scales: {
                     x: {
-                        title: {
-                            display: true,
-                            text: ''
-                        }
+                    title: {
+                        display: true,
+                        text: ''
+                    }
                     },
                     y: {
-                        title: {
-                            display: true,
-                            text: 'Stock Price'
-                        }
+                    title: {
+                        display: true,
+                        text: 'Stock Price'
+                    }
                     }
                 }
-            }
+                }
+            });
         });
 
     } else {
@@ -430,8 +474,10 @@ usernameDiv.innerHTML = userData.username || '???';
 
 
 function buy() {
+    updatePriceWsharesElem();
     displayShareAmount()
     let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
+
     let currentMoney = checkBetsAndUpdateBalance();
     let stockName = _('js-name').textContent;
 
@@ -462,13 +508,15 @@ function buy() {
 }
 
 function sell() {
+    updatePriceWsharesElem();
     displayShareAmount()
-    let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
     let stockName = _('js-name').textContent;
+    let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
 
     let stock = userData.userStocks.find(s => s.name === stockName);
     if (stock && stock.amount >= buyAmount) {
         let totalRevenue = currentPrice * buyAmount;
+        console.log(currentPrice)
 
         message(`Sold ${buyAmount} shares of ${stockName} for $${totalRevenue.toFixed(2)}`, '');
 
@@ -496,28 +544,6 @@ _('buy').addEventListener('click', buy);
 _('sell').addEventListener('click', sell);
 
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
-    authDomain: "overunder-ths.firebaseapp.com",
-    projectId: "overunder-ths",
-    storageBucket: "overunder-ths.firebasestorage.app",
-    messagingSenderId: "690530120785",
-    appId: "1:690530120785:web:36dc297cb517ac76cb7470",
-    measurementId: "G-Q30T39R8VY"
-};
-
-// Initialize Firebase services
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const usersCollectionRef = collection(db, 'users');
 
 renderLeaders();
 async function renderLeaders() {
@@ -601,13 +627,22 @@ async function renderLeaders() {
     }
 }
 
-
+function updatePriceWsharesElem() {
+    const priceWsharesElem = _('js-price');
+    const lastPrice = parseFloat(priceWsharesElem.textContent.replace(/[^0-9.-]+/g, ''));
+    displayShareAmount().then(shareAmount => {
+        let shareSub;
+        shareSub = (lastPrice * shareAmount * globalSto).toFixed(2);
+        priceWsharesElem.innerHTML = '$' + (lastPrice + parseFloat(shareSub)).toFixed(2);
+    });
+}
 
 async function displayShareAmount() { 
     let stockName = _('js-name').textContent;
     let totalShares = 0;
     const sharesSpan = _('js-shares');
     sharesSpan.innerHTML = '';
+    
 
     try {
         const querySnapshot = await getDocs(usersCollectionRef);
@@ -623,8 +658,8 @@ async function displayShareAmount() {
             }
         });
 
-        console.log(`Total shares of ${stockName} held by leaders: ${totalShares}`);
         sharesSpan.innerHTML = totalShares;
+        return totalShares;
     } catch (error) {
         console.error("Error fetching share amounts:", error);
         spanspan.innerHTML = '';

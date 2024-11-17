@@ -18,6 +18,7 @@ getFb();
 
 const hackersMessage = localStorage.getItem('reallyDude') || '';
 if (!hackersMessage) {
+  
   localStorage.setItem('reallyDude', 'Please do not edit the code or mess with the game, youre only not making it fun for anyone and being an ahole and will be on the boo list');
 }
 

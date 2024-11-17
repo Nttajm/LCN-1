@@ -40,18 +40,24 @@ const marketplace = [
     {
         name: 'Leader Board style',
         price: 700,
-        left: '3/3',
+        left: 'infinit',
         img: 'leaderstyle.png'
     },
     {
+        name: 'Leader Board Gif',
+        price: 1200,
+        left: 'infinit',
+        img: 'lebrongif.gif'
+    },
+    {
         name: '$25 gift card',
-        price: 50000,
+        price: 70000,
         left: '1/1',
-        img: 'mk-100.jpg'
+        img: 'mk-25.avif'
     },
     {
         name: 'Pumpkin Spice Latte',
-        price: 33120,
+        price: 12000,
         left: '3/3',
         img: 'mk-starbucks.jpg'
     },
@@ -65,7 +71,7 @@ const marketplace = [
         name: 'Make your own coin',
         price: 25000,
         left: '1/1',
-        img: 'smoken.jpg'
+        img: 'coin-own.png'
     },
 ]
 function renderItems() {
@@ -110,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (name === 'Leader Board style') {
                     showForm(name, 'url or describe image.');
                 } else {
-                    showForm(name, 'Enter your shipping address.');
+                    showForm(name, 'when is the best time to deliver? (during school)');
                 }
             } else {
                 alert("Insufficient balance to purchase this item.");
@@ -162,7 +168,7 @@ form.addEventListener('submit', async (e) => {
             date: new Date().toDateString(),
             fBrefrence: docData.id,
         });
-        
+
         saveData();
 
         // Hide the form after submission
@@ -180,3 +186,41 @@ const cancelBtn = document.getElementById('cancel');
 cancelBtn.addEventListener('click', () => {
     document.querySelector('.buyForm').classList.add('dn');
 });
+
+
+
+
+    async function showMyOrders() {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        const userId = userData.uid;
+        const ordersRef = collection(db, 'orders');
+        const ordersSnapshot = await getDocs(ordersRef);
+        const orders = ordersSnapshot.docs.filter(doc => doc.data().userId === userId);
+
+        const ordersDiv = document.querySelector('.orders-sec');
+        ordersDiv.innerHTML = '';
+
+        if (orders.length === 0) {
+            ordersDiv.innerHTML = '<h3>You have no orders</h3>';
+        } else {
+            orders.forEach(orderDoc => {
+                const order = orderDoc.data();
+                ordersDiv.innerHTML += `
+                    <div class="order-item ${order.orderStatus || 'pending'}">
+                    <img src="/bp/EE/assets/ouths/${getMatchingImg(order.item)}" alt="${getMatchingImg(order.item)}">
+                    <span>${order.orderStatus || 'Pending'}</span>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    function getMatchingImg(item) {
+        const matchedItem = marketplace.find(i => i.name === item);
+        if (matchedItem) {
+            return matchedItem.img; // Return the image file name
+        }
+        return ''; // Return an empty string if no match is found
+    }
+
+    showMyOrders();
