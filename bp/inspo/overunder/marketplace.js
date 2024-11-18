@@ -61,7 +61,7 @@ const marketplace = [
         customShowForm: 'url or describe image, color other'
     },
     {
-        name: 'Leader Board style',
+        name: 'Leader Board style 3d',
         price: 1500,
         left: 'infinit',
         img: 'leaderstyle.png',
