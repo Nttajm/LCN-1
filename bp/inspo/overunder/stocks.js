@@ -917,7 +917,7 @@ async function displayTopShareHolders() {
             const querySnapshot = await getDocs(usersCollectionRef);
             const users = querySnapshot.docs.map(doc => doc.data());
 
-            const twentyMinutesAgo = new Date(Date.now() - 1 * 60 * 1000);
+            const twentyMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
             users.forEach(user => {
                 if (user.createdAt && new Date(user.createdAt.toDate()) >= twentyMinutesAgo) {
