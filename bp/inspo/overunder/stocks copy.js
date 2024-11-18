@@ -8,52 +8,30 @@ import {
     updateBalanceUI,
     balanceAdder,
     updateBalanceAdder,
-    openSite
 } from './global.js';
 
-import { checkIfisBanned, antiC } from "./firebaseconfig.js";
-
-checkIfisBanned();
-antiC();    
-openSite()
-
-// userData.userStocks = []
-// saveData();
+import { checkIfisBanned } from "./firebaseconfig.js";
 
 const indexes = [
     {
-        name: 'MTMY',
-        data: combineStocksAverage('Matt Ortiz', 'Mylander'),
-        sub: 'MATMYL',
-        id: 'MTMY',
-        basedOn: `Matt Ortiz and Mylander`,
-    },
-    {
-        name: 'RPTR',
-        data: combineStocksAverage('Raphael', 'Torre'),
-        sub: 'RPTR',
-        id: 'RPTR',
-        basedOn: `Raphael and Torre`,
-    },
-    {
-        name: 'FRZE',
-        data: combineStocksAverage('FreeBairn', 'Zwing Coin'),
-        sub: 'FRZE',
-        id: 'FRZE',
-        basedOn: `Story tellers`,
-    },
-    {
-        name: 'BRZE',
-        data: combineStocksAverage('Burks', 'Zwing Coin'),
-        sub: 'BRZE',
-        id: 'BRZE',
-        basedOn: `Yapfest`,
-    },
+    name: 'MTMY',
+    data: combineStocksAverage('Matt Ortiz', 'Mylander'),
+    sub: 'MATMYL',
+    id: 'MTMY',
+    basedOn: `Matt Ortiz and Mylander`,
+},
+{
+    name: 'RPT',
+    data: combineStocksAverage('Raphael', 'Torre'),
+    sub: 'MATMYL',
+    id: 'RAPTOR',
+    basedOn: `Matt Ortiz and Mylander`,
+},
 
-];
+]
 
 
-const globalSto = 0.00011;
+const globalSto = 0.00025;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
@@ -81,16 +59,12 @@ const usersCollectionRef = collection(db, 'users');
 import { stockManual } from './stocks-array.js';
 
 import { updateFb, getFb } from './firebaseconfig.js';
-import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 if (userData.ban) {
     window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
 }
 
 getFb();
-
-let currentSelectedStock;
-
 
 
 function combineStocksAverage(stock1, stock2) {
@@ -177,7 +151,6 @@ function writeStock(typeBet) {
         displayShareAmount();
         displayTopShareHolders();
     }, 100);
-    currentSelectedStock = typeBet;
     const ctx = document.getElementById('myLineChart').getContext('2d');
     typeBet = typeBet.reverse()
     // Check if it's manual stock data (array of numbers) or sports bet data (array of objects)
@@ -503,17 +476,8 @@ function displayUserStocks() {
             if (manualStock) {
                 lastPrice = manualStock.data[manualStock.data.length - 1];
             } else {
-                let indexStock = indexes.find(index => index.name === stock.name);
-                if (indexStock) {
-                    lastPrice = indexStock.data[indexStock.data.length - 1];
-                } else {
-                    lastPrice = getLastPrice(stock.name);
-                }
+                lastPrice = getLastPrice(stock.name);
             }
-
-            // Calculate the price with shares influence
-            let shareSub = (lastPrice * stock.amount * globalSto).toFixed(2);
-            let priceWshares = (lastPrice + parseFloat(shareSub)).toFixed(2);
 
             // Display the stock information
             stockDiv.innerHTML += `
@@ -522,7 +486,7 @@ function displayUserStocks() {
                         <span>${stock.name.substring(0, 3).toUpperCase()}</span>
                     </div>
                     <div class="prices">
-                        <span class="price">$${priceWshares}</span>
+                        <span class="price">$${lastPrice}</span>
                         <span>${stock.amount} ${(stock.amount > 1 ? 'shares' : 'share')}</span>
                     </div>
                 </div>
@@ -541,13 +505,11 @@ function displayPortfolio() {
     userData.userStocks.forEach(stock => {
         let lastPrice;
         let manualStock = stockManual.find(s => s.name === stock.name);
-        let indexStock = indexes.find(index => index.name === stock.name);
         if (manualStock) {
             lastPrice = manualStock.data[manualStock.data.length - 1];
-        } else if (indexStock) {
-            lastPrice = indexStock.data[indexStock.data.length - 1];
         } else {
-            lastPrice = getLastPrice(stock.name);
+
+        lastPrice = getLastPrice(stock.name);
         }
         portfolioValue += stock.amount * lastPrice;
     });
@@ -565,7 +527,6 @@ usernameDiv.innerHTML = userData.username || '???';
 function buy() {
     updatePriceWsharesElem();
     displayShareAmount()
-    writeStock(currentSelectedStock);
     let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
 
     let currentMoney = checkBetsAndUpdateBalance();
@@ -576,7 +537,7 @@ function buy() {
     let totalCost = currentPrice * buyAmount;
     if (currentMoney >= totalCost) {
         message(`You bought ${buyAmount} shares of ${stockName} for $${totalCost.toFixed(2)}!`, '');
-        antiC(`stock buy`, ` ${stockName} ${buyAmount} shares for $${totalCost.toFixed(2)}`);
+
         // Update balance and data
         updateBalanceUI(currentMoney - totalCost);
         updateBalanceAdder(balanceAdder - totalCost);
@@ -600,7 +561,6 @@ function buy() {
 function sell() {
     updatePriceWsharesElem();
     displayShareAmount()
-    writeStock(currentSelectedStock);
     let stockName = _('js-name').textContent;
     let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
 
@@ -609,10 +569,8 @@ function sell() {
         let totalRevenue = currentPrice * buyAmount;
         console.log(currentPrice)
 
-
-
         message(`Sold ${buyAmount} shares of ${stockName} for $${totalRevenue.toFixed(2)}`, '');
-        antiC(`stock sell`, ` ${stockName} ${buyAmount} shares for $${totalRevenue.toFixed(2)}`);
+
         // Update balance and data
         updateBalanceUI(checkBetsAndUpdateBalance() + totalRevenue);
         updateBalanceAdder(balanceAdder + totalRevenue);
@@ -657,11 +615,8 @@ async function renderLeaders() {
                 a.userStocks.forEach(stock => {
                     let lastPrice;
                     let manualStock = stockManual.find(s => s.name === stock.name);
-                    let indexStock = indexes.find(index => index.name === stock.name);
                     if (manualStock) {
                         lastPrice = manualStock.data[manualStock.data.length - 1];
-                    } else if (indexStock) {
-                        lastPrice = indexStock.data[indexStock.data.length - 1];
                     } else {
                         lastPrice = getLastPrice(stock.name);
                     }
@@ -673,11 +628,8 @@ async function renderLeaders() {
                 b.userStocks.forEach(stock => {
                     let lastPrice;
                     let manualStock = stockManual.find(s => s.name === stock.name);
-                    let indexStock = indexes.find(index => index.name === stock.name);
                     if (manualStock) {
                         lastPrice = manualStock.data[manualStock.data.length - 1];
-                    } else if (indexStock) {
-                        lastPrice = indexStock.data[indexStock.data.length - 1];
                     } else {
                         lastPrice = getLastPrice(stock.name);
                     }
@@ -696,11 +648,8 @@ async function renderLeaders() {
                 leader.userStocks.forEach(stock => {
                     let lastPrice;
                     let manualStock = stockManual.find(s => s.name === stock.name);
-                    let indexStock = indexes.find(index => index.name === stock.name);
                     if (manualStock) {
                         lastPrice = manualStock.data[manualStock.data.length - 1];
-                    } else if (indexStock) {
-                        lastPrice = indexStock.data[indexStock.data.length - 1];
                     } else {
                         lastPrice = getLastPrice(stock.name);
                     }
@@ -709,11 +658,12 @@ async function renderLeaders() {
 
                 const leaderDiv = document.createElement('div');
                 leaderDiv.classList.add('leader');
-                if (leader.leaderStyle) {
-                    const styles = leader.leaderStyle.split(' ');
-                    styles.forEach(style => {
-                        leaderDiv.classList.add(style);
-                    });
+                if (leader.leaderStyle === 'lebron') {
+                    leaderDiv.classList.add('lebron');
+                } else if (leader.leaderStyle === 'messi') {
+                    leaderDiv.classList.add('messi');
+                } else if (leader.leaderStyle === 'kanye') {
+                    leaderDiv.classList.add('kanye');
                 }
                 leaderDiv.innerHTML = `
                     <span class="leader-rank">${index + 1}</span>
@@ -728,17 +678,14 @@ async function renderLeaders() {
     }
 }
 
-async function updatePriceWsharesElem() {
+function updatePriceWsharesElem() {
     const priceWsharesElem = _('js-price');
     const lastPrice = parseFloat(priceWsharesElem.textContent.replace(/[^0-9.-]+/g, ''));
-    try {
-        const shareAmount = await displayShareAmount();
-        const shareSub = (lastPrice * shareAmount * globalSto).toFixed(2);
-        const newPrice = lastPrice + parseFloat(shareSub);
-        priceWsharesElem.innerHTML = '$' + newPrice.toFixed(2);
-    } catch (error) {
-        console.error("Error updating price with shares:", error);
-    }
+    displayShareAmount().then(shareAmount => {
+        let shareSub;
+        shareSub = (lastPrice * shareAmount * globalSto).toFixed(2);
+        priceWsharesElem.innerHTML = '$' + (lastPrice + parseFloat(shareSub)).toFixed(2);
+    });
 }
 
 async function displayShareAmount() { 
@@ -769,39 +716,6 @@ async function displayShareAmount() {
         spanspan.innerHTML = '';
     }
 }
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-}
-
-const debouncedDisplayUserStocks = debounce(displayUserStocks, 300);
-const debouncedDisplayPortfolio = debounce(displayPortfolio, 300);
-const debouncedDisplayLargestStocks = debounce(displayLargestStocks, 300);
-const debouncedDisplayTopShareHolders = debounce(displayTopShareHolders, 300);
-const debouncedRenderLeaders = debounce(renderLeaders, 300);
-const debouncedWriteStock = debounce(writeStock, 300);
-const debouncegetCurrentOnlineUsers = debounce(getCurrentOnlineUsers, 300);
-
-function subscribeToUserStocks() {
-    onSnapshot(usersCollectionRef, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-            if (change.type === "added" || change.type === "modified" || change.type === "removed") {
-                debouncedDisplayUserStocks();
-                debouncedDisplayPortfolio();
-                debouncedDisplayLargestStocks();
-                debouncedDisplayTopShareHolders();
-                debouncedRenderLeaders();
-                debouncedWriteStock(currentSelectedStock);
-                debouncegetCurrentOnlineUsers();
-            }
-        });
-    });
-}
-
-subscribeToUserStocks();
 
 async function displayLargestStocks() {
     const mostshared = document.getElementById('most-shared');
@@ -848,7 +762,6 @@ async function displayLargestStocks() {
     }
 }
 
-
 displayLargestStocks();
 async function displayTopShareHolders() {
     const topShareHoldersDiv = document.getElementById('top-shareholders');
@@ -867,7 +780,7 @@ async function displayTopShareHolders() {
                 leader.userStocks.forEach(stock => {
                     if (stock.name === stockName) {
                         totalShares += stock.amount;
-                        shareHolders.push({ username: leader.username || leader.name, amount: stock.amount, leaderStyle: leader.leaderStyle });
+                        shareHolders.push({ username: leader.username || leader.name, amount: stock.amount });
                     }
                 });
             }
@@ -891,47 +804,17 @@ async function displayTopShareHolders() {
                 });
             }
 
-
             holderDiv.innerHTML = `
             <span class="leader-rank">${index + 1}</span>
             <span class="leader-name">${holder.username}</span>
             <span class="leader-percentage">${holder.percentage}%</span>
             `;
             topShareHoldersDiv.appendChild(holderDiv);
-
-            let totalPeople = shareHolders.length;
-            _('js-people').innerHTML = totalPeople;
         });
     } catch (error) {
         console.error("Error fetching share amounts:", error);
         topShareHoldersDiv.innerHTML = 'Error fetching data';
     }
 }
-
-
-    async function getCurrentOnlineUsers() {
-        const onlineUsersElem = document.getElementById('js-online');
-        let onlineTotal = 0;
-
-        try {
-            const querySnapshot = await getDocs(usersCollectionRef);
-            const users = querySnapshot.docs.map(doc => doc.data());
-
-            const twentyMinutesAgo = new Date(Date.now() - 1 * 60 * 1000);
-
-            users.forEach(user => {
-                if (user.createdAt && new Date(user.createdAt.toDate()) >= twentyMinutesAgo) {
-                    onlineTotal++;
-                }
-            });
-
-            onlineUsersElem.innerHTML = onlineTotal;
-        } catch (error) {
-            console.error("Error fetching online users:", error);
-            onlineUsersElem.innerHTML = 'Error fetching data';
-        }
-    }
-
-    getCurrentOnlineUsers();
 
 

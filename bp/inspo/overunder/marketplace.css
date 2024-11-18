@@ -57,7 +57,7 @@
     color: white;
     padding: 0.5rem;
     text-align: center;
-    font-size: 1rem;
+    font-size: 0.7rem;
     border-radius: 0.4rem;
     min-width: 60%;
 }
@@ -95,6 +95,7 @@
     display: flex;
     flex-direction: row;
     gap: 0.6rem;
+    flex-wrap: wrap;
 }
 
 .order-item img {
@@ -114,4 +115,60 @@
 
 .order-item.declined {
     background-color: rgb(202, 72, 72) !important;
+}
+
+.proof-cont {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.proof-cont img {
+    width: calc(33% - 0.6rem);
+    height: 400px;
+    object-fit: cover;
+    border-radius: 0.4rem;
+}
+
+.sold-out-item {
+    position: relative;
+}
+
+.sold-out {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.596);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+    font-size: 1.5rem;
+    z-index: 4;
+    width: 100%;
+    text-align: center;
+    height: 100%;   
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.real {
+    position: absolute;
+    z-index: 3;
+    top: 0.3rem;
+    right: 0.3rem;
+    background-color: var(--3-bg);
+    color: rgb(194, 140, 255);
+    padding: 0.2rem;
+    border-radius: 0.3rem;
+}
+
+.real-item .price {
+    color: rgb(194, 140, 255);
+}
+
+@media (min-width: 1200px) {
+    .market-item.card {
+        width: calc(33.33% - 0.6rem);
+    }
 }

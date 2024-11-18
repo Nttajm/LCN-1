@@ -3,8 +3,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+import { openSite } from "./global.js";
+openSite();
 
 // Firebase configuration
 const firebaseConfig = {
@@ -23,14 +26,6 @@ const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
 const userBets = JSON.parse(localStorage.getItem('userBets') || '[]');
 
-if (userData.ban) {
-     window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
-   }
-  const betatesters = ['joelm', 'lizzy', 'WildS', 'TKing', 'BetaTester27', 'BetaTester49'];
-  
-  if (!(userData.username && betatesters.includes(userData.username))) {
-       window.location.href = 'https://lcnjoel.com/ouths/info.html';
-   }
 
 // Initialize Firebase services
 const app = initializeApp(firebaseConfig);
@@ -136,6 +131,7 @@ const profileDiv = document.querySelector('.profile');
 export async function getFb() {
   const user = auth.currentUser;
   const profileImg = document.querySelector('#google-auth-pfp');
+  checkIfisBanned();
   if (!user) {
     return;
   }
@@ -145,7 +141,10 @@ export async function getFb() {
     if (docSnap.exists()) {
       const userData = docSnap.data();
 
-      localStorage.setItem('userData', JSON.stringify(userData));
+      // Do not save fbban into localStorage
+      const { FBban, ...userDataWithoutFbban } = userData;
+
+      localStorage.setItem('userData', JSON.stringify(userDataWithoutFbban));
       localStorage.setItem('balanceAdder', userData.balanceAdder);
       localStorage.setItem('userBets', JSON.stringify(userData.tripleABets || []));
       localStorage.setItem('gameData', JSON.stringify(userData.gameData || {}));
@@ -261,4 +260,95 @@ export function updateBalanceAdderFB(newBalance) {
 
 function isUserSignedIn() {
   return !!auth.currentUser;
+}
+
+
+export async function checkIfisBanned() {
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const user = userData;
+
+  if (userData.balanceAdder > 70000) {
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await setDoc(userRef, {
+        balanceAdder: 'omg',
+        dailyTime: null,
+        tripleABets: [],
+        userBets: null,
+        username: null,
+        hasUpdated: false,
+        version: '',
+        userStocks: [],
+        gameData: null,
+        orders: [],
+        ban: true,
+      }, { merge: true });
+      window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+    } catch (error) {
+      console.error("Error retrieving user data:", error);
+    }
+  }
+
+  const userRef = doc(db, 'users', user.uid);
+
+  try {
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      const userDataI = docSnap.data();
+      if (userDataI.FBban) {
+        await setDoc(userRef, {
+          balanceAdder: 0,
+          dailyTime: null,
+          tripleABets: [],
+          userBets: null,
+          username: null,
+          hasUpdated: false,
+          version: '',
+          userStocks: [],
+          gameData: null,
+          orders: [],
+          ban: true,
+        }, { merge: true });
+        window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+      }
+    } else {
+      console.log("No such document!");
+    }
+  } catch (error) {
+    console.error("Error retrieving user data:", error);
+  }
+}
+
+
+checkIfisBanned()
+
+if (userData.FBban) {
+localStorage.removeItem('userData');
+const { FBban, email } = userData;
+localStorage.setItem('userData', JSON.stringify({ FBban, email }));
+  window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+}
+
+export function antiC(name, description) {
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const userUid = userData.uid;
+
+  // Set default values if parameters are not provided
+  const currentUrl = window.location.href;
+  const finalName = name !== undefined ? name : `URL: ${currentUrl}`;
+  const finalDescription = description !== undefined ? description : `Time: ${new Date().toISOString()}`;
+
+  // Reference to the 'antiC' collection within the user's document
+  const userAntiCRef = collection(db, 'users', userUid, 'antiC');
+
+  try {
+    // Add a new document with unique ID in the 'antiC' collection
+    addDoc(userAntiCRef, {
+      name: finalName,
+      description: finalDescription,
+    });
+    console.log("New AntiC entry added successfully");
+  } catch (error) {
+    console.error("Error adding new AntiC entry:", error);
+  }
 }

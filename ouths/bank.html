@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank Loan Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="game-container">
+    <h1>Bank Loan Game</h1>
+    <div class="balance">
+      <p>Balance: $<span id="balance">1000</span></p>
+    </div>
+    <div class="loan-section">
+      <label for="loan-amount">Loan Amount:</label>
+      <input type="number" id="loan-amount" min="1" placeholder="Enter loan amount">
+      <button id="take-loan-btn">Take Loan</button>
+    </div>
+    <div class="loan-info">
+      <p>Loan Due In: <span id="loan-timer">1:00:00</span></p>
+      <p>Loan Amount: $<span id="loan-amount-display">0</span></p>
+    </div>
+    <div class="repayment-section">
+      <label for="repayment-amount">Repayment Amount:</label>
+      <input type="number" id="repayment-amount" min="1" placeholder="Enter repayment amount">
+      <button id="pay-loan-btn">Pay Loan</button>
+    </div>
+    <div class="message">
+      <p id="game-message"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

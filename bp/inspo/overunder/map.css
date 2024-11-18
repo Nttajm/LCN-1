@@ -102,7 +102,6 @@ body {
     flex-direction: row;
     gap: 1rem;
     width: 100%;
-    justify-content: space-between
 }
 
 .news {
@@ -152,10 +151,47 @@ body {
     display: flex;
     height: 6rem;
     gap: 1rem;
+    width: calc(100% - 1rem);
+    justify-content: space-between;
+}
+
+#alert .disc {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
 }
 
 #alert img {
     height: 6rem;
     width: 7rem;
 
+}
+
+.boo {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    max-width: 50rem;
+}
+
+.boo-disc {
+    font-size: 0.95rem;
+}
+
+.boos {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.booer {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    background-color: rgba(214, 201, 13, 0.5);
+    width: 10rem;
+    padding: 0.5rem;
+    border-radius: 0.3rem;
 }

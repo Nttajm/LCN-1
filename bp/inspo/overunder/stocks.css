@@ -199,3 +199,45 @@
     justify-content: space-between;
     width: calc(50% - 1.8rem);
 }
+
+.online {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    padding: 1rem;
+}
+
+.onlineUsers {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+
+.onlineDot-cont {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--lime);
+    animation: blink 1.6s linear infinite;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

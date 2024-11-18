@@ -1,5 +1,7 @@
 import { allBets, userBets } from './bets.js';
 import { updateFb } from './firebaseconfig.js';
+import { checkIfisBanned } from "./firebaseconfig.js";
+
 
 export let balanceAdder = parseFloat(localStorage.getItem('balanceAdder')) || 0;
 
@@ -10,6 +12,7 @@ export function uiAndBalance(newCash) {
     updateBalanceAdder(currentMoney);
     updateBalanceUI(currentMoney);
 }
+
 
 export function getKeys() {
     let keys = 3;
@@ -128,6 +131,7 @@ export function updateBalanceAdder(newBalanceAdder) {
 
 // Check bets and update balance
 export function checkBetsAndUpdateBalance() {
+    checkIfisBanned()
     let balance = 0;
     userBets.forEach(userBet => {
         const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
@@ -245,11 +249,20 @@ export function heartReturner(option) {
     }
     return hearts;
 }
-if (userData.ban) {
-     window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
-   }
-     const betatesters = ['joelm', 'lizzy', 'WildS', 'TKing', 'BetaTester27'];
-  
-  if (!(userData.username && betatesters.includes(userData.username))) {
-       window.location.href = 'https://lcnjoel.com/ouths/info.html';
-   }
+ 
+
+
+
+
+export function openSite() {
+    const openSiteAt = 'November 18, 2024 9:20:01 AM';
+    const targetDate = new Date(openSiteAt);
+    const currentTime = new Date();
+    const currentUrl = window.location.href;
+
+    if (currentTime < targetDate && !currentUrl.includes('allmost.html')) {
+        window.location.href = 'ouths/allmost.html';
+    }
+
+    return openSiteAt;
+}

@@ -24,62 +24,112 @@ const db = getFirestore(app);
 
 import { checkBetsAndUpdateBalance, userData, saveData, updateBalanceUI, updateBalanceAdder } from "./global.js";
 
+import { antiC, checkIfisBanned } from "./firebaseconfig.js";
+
+checkIfisBanned();
 const usrnamediv = document.getElementById('username');
 usrnamediv.innerHTML = userData.username || '???';
-
 const balanceElem = document.querySelector('.balance.money');
 balanceElem.textContent = `$${checkBetsAndUpdateBalance().toFixed(2)}`;
-
 const marketplace = [
     {
         name: 'Arizona',
-        price: 1,
-        left: '5/6',
+        price: 3800,
+        left: '4',
         img: 'mk-arizona.jpg'
+    },
+    {
+        name: 'Overunder starter pack: $800 + Free style + 40 free shares',
+        price: 5,
+        left: '2 per day',
+        img: 'ou-logo-white.png',
+        real: true,
+        customShowForm: 'meet joel or any moderator.'
+    },
+    {
+        name: 'Glow in the dark',
+        price: 1000,
+        left: '4',
+        img: 'glow.png',
+        customShowForm: 'url or describe image, color other'
     },
     {
         name: 'Leader Board style',
         price: 700,
         left: 'infinit',
-        img: 'leaderstyle.png'
+        img: 'leaderstyle.png',
+        customShowForm: 'url or describe image, color other'
+    },
+    {
+        name: 'Leader Board style',
+        price: 1500,
+        left: 'infinit',
+        img: 'leaderstyle.png',
+        customShowForm: 'url or describe image, color other'
+    },
+    {
+        name: 'Leader Board style',
+        price: 9100,
+        left: 'infinit',
+        img: 'spinning.png',
+        customShowForm: 'url or describe image, color other'
     },
     {
         name: 'Leader Board Gif',
         price: 1200,
         left: 'infinit',
-        img: 'lebrongif.gif'
+        img: 'lebrongif.gif',
+        customShowForm: 'url or describe image, color other'
     },
     {
         name: '$25 gift card',
         price: 70000,
-        left: '1/1',
+        left: '1',
         img: 'mk-25.avif'
     },
     {
         name: 'Pumpkin Spice Latte',
         price: 12000,
-        left: '3/3',
+        left: '2',
         img: 'mk-starbucks.jpg'
     },
     {
         name: 'Smoken Bowls',
         price: 16500,
-        left: '1/1',
+        left: '2',
         img: 'smoken.jpg'
     },
     {
         name: 'Make your own coin',
         price: 25000,
-        left: '1/1',
+        left: '1',
         img: 'coin-own.png'
     },
-]
+];
+
 function renderItems() {
     const marketplaceDiv = document.querySelector('.market-sec');
     marketplaceDiv.innerHTML = '';
+
+    if (marketplace.length === 0) {
+        marketplaceDiv.innerHTML = '<h3>There are no items in the marketplace.</h3>';
+    }
+
     marketplace.forEach((item) => {
+        let soldOutHtml = ``;
+        let realHtml = ``;
+
+        if (item.left === 'out') {
+            soldOutHtml = `<span class="sold-out">${item.name} is all sold out :(</span>`;
+        }
+
+        if (item.real) {
+            realHtml = `<span class="real">Real Money</span>`;
+        }
         marketplaceDiv.innerHTML += `
-            <div class="card market-item" data-item-price="${item.price}" data-id="${item.name}">
+            <div class="card market-item ${soldOutHtml ? 'sold-out-item' : ''}${realHtml ? 'sold-out-item real-item' : ''} " data-item-price="${item.price}" data-id="${item.name}">
+                ${soldOutHtml}
+                ${realHtml}
                 <div class="is"></div>
                 <div class="img-sec-i">
                     <img src="/bp/EE/assets/ouths/${item.img}" alt="logo">
@@ -109,15 +159,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = item.getAttribute('data-id');
 
         item.querySelector('button').addEventListener('click', () => {
+            antiC(`purchase`, `${name} for $${price}`);
             itemSelected = name;
             itemPrice = price;
             const balance = checkBetsAndUpdateBalance();
             if (balance >= itemPrice) {
-                if (name === 'Leader Board style') {
-                    showForm(name, 'url or describe image.');
-                } else {
-                    showForm(name, 'when is the best time to deliver? (during school)');
-                }
+                const selectedItem = marketplace.find(i => i.name === name);
+                let formPlaceholder = selectedItem.customShowForm || 'when is the best time to deliver? (during school)';
+                showForm(name, formPlaceholder);
             } else {
                 alert("Insufficient balance to purchase this item.");
             }
@@ -142,6 +191,7 @@ form.addEventListener('submit', async (e) => {
 
     const balance = checkBetsAndUpdateBalance();
     if (balance >= itemPrice) {
+
         const newBalance = balance - itemPrice;
         updateBalanceUI(newBalance);
         updateBalanceAdder(newBalance);
@@ -171,20 +221,22 @@ form.addEventListener('submit', async (e) => {
 
         saveData();
 
-        // Hide the form after submission
-        formDiv.classList.add('dn');
-        alert(`Successfully purchased ${itemSelected}!`);
+        // Close the form after submission
+        document.querySelector('.buyForm').classList.add('dn');
+        
+        // Reload the page
+        location.reload();
+
     } else {
         alert("Insufficient balance to purchase this item.");
     }
 
     form.reset();
-    location.reload();
 });
-
 const cancelBtn = document.getElementById('cancel');
 cancelBtn.addEventListener('click', () => {
     document.querySelector('.buyForm').classList.add('dn');
+    antiC(`cancel`, `cancel`);
 });
 
 
@@ -195,7 +247,10 @@ cancelBtn.addEventListener('click', () => {
         const userId = userData.uid;
         const ordersRef = collection(db, 'orders');
         const ordersSnapshot = await getDocs(ordersRef);
-        const orders = ordersSnapshot.docs.filter(doc => doc.data().userId === userId);
+        const orders = ordersSnapshot.docs
+            .filter(doc => doc.data().userId === userId)
+            .sort((a, b) => b.data().date - a.data().date) // Sort by date descending
+            .slice(0, 5); // Limit to 5 latest orders
 
         const ordersDiv = document.querySelector('.orders-sec');
         ordersDiv.innerHTML = '';

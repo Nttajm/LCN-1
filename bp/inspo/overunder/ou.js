@@ -1,7 +1,9 @@
 
 import { allBets, unfilteredAllBets } from './bets.js';
+import { checkIfisBanned, antiC } from "./firebaseconfig.js";
 
 
+checkIfisBanned();
 import { 
   checkBetsAndUpdateBalance, 
   displayUserInfo,
@@ -15,6 +17,8 @@ import { formatDateTime } from './global.js';
 
 updateFb();
 getFb();
+antiC();
+
 
 const hackersMessage = localStorage.getItem('reallyDude') || '';
 if (!hackersMessage) {
@@ -269,13 +273,15 @@ function renderBets() {
     if (overBtn && !overBtn.disabled) {
       overBtn.addEventListener('click', () => {
         updateUserBet(bet.id, 'over');
+        antiC(bet.id, 'over');
 
       });
     }
     
     if (underBtn && !underBtn.disabled) {
       underBtn.addEventListener('click', () => {
-        updateUserBet(bet.id, 'under');
+        updateUserBet(bet.id, 'under')
+        antiC(bet.id, 'under');
       });
     }
   });
@@ -583,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Function to handle daily reward logic
   const handleDailyReward = () => {
     const balanceAdder = parseFloat(localStorage.getItem('balanceAdder') || '0');
-    const newBalance = balanceAdder + 100;
+    const newBalance = balanceAdder + 25;
     localStorage.setItem('balanceAdder', newBalance);
 
     // Update userData with a timestamp and store it in localStorage
@@ -646,8 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 getFb();
-
-    const loginbtn = document.querySelector('.googleButton');
+const loginbtn = document.querySelector('.googleButton');
 
 
 

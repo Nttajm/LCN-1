@@ -69,13 +69,17 @@ async function renderLeaders() {
         leaders.forEach((leader, index) => {
             const leaderDiv = document.createElement('div');
             leaderDiv.classList.add('leader');
-            if (leader.leaderStyle === 'lebron') {
-                leaderDiv.classList.add('lebron');
-            } else if (leader.leaderStyle === 'messi') {
-                leaderDiv.classList.add('messi');
-            }  else if (leader.leaderStyle === 'kanye') {
-                leaderDiv.classList.add('kanye');
+            if (leader.FBban || leader.ban) {
+                return
             }
+
+            if (leader.leaderStyle) {
+                const styles = leader.leaderStyle.split(' ');
+                styles.forEach(style => {
+                    leaderDiv.classList.add(style);
+                });
+            }
+
             leaderDiv.innerHTML = `
                 <span class="leader-rank">${index + 1}</span>
                 <span class="leader-name">${leader.username || leader.name}</span>

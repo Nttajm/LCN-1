@@ -4,8 +4,9 @@ import { volleyballBets } from "./bets.js";
 import { usersCollection } from "./firebaseconfig.js";
 
 let userData = JSON.parse(localStorage.getItem('userData')) || {};
+import { checkIfisBanned } from "./firebaseconfig.js";
 
-
+checkIfisBanned()
 const allBets = [...soccerBets, ...basketballBets, ...volleyballBets];
 const userBets = JSON.parse(localStorage.getItem('userBets')) || [];
 

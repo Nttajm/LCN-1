@@ -253,7 +253,7 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
 }
 
 .sub {
-    font-size: 0.5rem;
+    font-size: 0.7rem;
     font-family: roboto;
     opacity: 0.4;
 }
@@ -850,11 +850,31 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
         transform: translateY(-50%); ;
     }
 
+    .news-section {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .news {
+        width: fit-content;
+    }
+
 }
 
 @media all and (min-width: 1124px) and (max-width: 1280px) { 
     .bet {
         width: calc(33% - 2rem);
+    }
+
+    .news-section {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .news {
+        width: fit-content;
     }
 
     .sec {
@@ -885,6 +905,16 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
 @media all and (min-width: 768px) and (max-width: 1124px) { 
     .bet {
         width: calc(50% - 2rem);
+    }
+
+    .news-section {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .news {
+        width: fit-content;
     }
 
     .sec {
@@ -943,11 +973,26 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     :root {
         --avg-size: 3.7rem;
     }
+
+    .news-section {
+        display: flex;
+        flex-direction: column !important;
+        gap: 1rem;
+        justify-content: space-between;
+    }
+
+    .news-cont .news {
+        width: fit-content;
+    }
+
+    .news-section :root {
+        font-size: 18px !important;
+    }
  }
 
  .beta-eddition {
     /* background-color: var(--3-bg); */
-    background-image: url(/bp/EE/assets/ouths/november.png);
+    background-image: url(/bp/EE/assets/ouths/thanksg.jpg);
     width: 100%;
     height: 100vh;
     display: flex;
@@ -1211,9 +1256,25 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
 }
 
 .messi {
-    background: url(/bp/EE/assets/ouths/messi.webp) no-repeat !important;
-    background-position: 50% 35% !important;
+    background: url(/bp/EE/assets/ouths/messi.gif) no-repeat !important;
+    background-position: 50% 59% !important;
+    border-radius: 0.3rem;
+    font-family: var(--f-1);
+    font-weight: 600;
+}
 
+.bird{
+    background: url(/bp/EE/assets/ouths/bird.gif) no-repeat !important;
+    background-position: 50% 59% !important;
+    border-radius: 0.3rem;
+    font-family: var(--f-1);
+    font-weight: 600;
+}
+
+.teddy {
+    background: url(/bp/EE/assets/ouths/teddy.jpg) no-repeat !important;
+    background-size: 50% !important;
+    background-position: 50% 59% !important;
     border-radius: 0.3rem;
     font-family: var(--f-1);
     font-weight: 600;
@@ -1227,3 +1288,162 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     font-family: var(--f-1);
     font-weight: 600;
 }
+
+.curry {
+    background: url(/bp/EE/assets/ouths/curry.webp) no-repeat !important;
+    background-position: 20% 35% !important;
+
+    border-radius: 0.3rem;
+    font-family: var(--f-1);
+    font-weight: 600;
+}
+
+.glow {
+    animation: glowingGreenBorder 3s infinite;
+}
+
+
+.rot {
+    animation: spin3d 3s infinite;
+}
+
+@keyframes spin3d {
+    0% {
+        transform: rotateY(0deg);
+    }
+
+    50% {
+        transform: rotateY(180deg);
+    }
+
+    100% {
+        transform: rotateY(360deg);
+    }
+}
+.rotate-3d {
+    animation: rotate3d 3s infinite;
+}
+
+@keyframes rotate3d {
+    0% {
+        transform: rotate3d(1, 1, 0, 0deg);
+    }
+    50% {
+        transform: rotate3d(1, 1, 0, 180deg);
+    }
+    100% {
+        transform: rotate3d(1, 1, 0, 360deg);
+    }
+}
+@keyframes glowingGreenBorder {
+    0% {
+        box-shadow: 0 0 10px var(--lime), 0 0 20px var(--lime), 0 0 30px var(--lime);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 20px var(--6-bg), 0 0 30px var(--6-bg), 0 0 40px var(--6-bg);
+        transform: scale(1.01);
+    }
+
+    100% {
+        box-shadow: 0 0 10px var(--5-bg), 0 0 20px var(--5-bg), 0 0 30px var(--5-bg);
+        transform: scale(1);
+    }
+}
+
+/* .spin {
+    animation: spin 2s linear infinite;
+} */
+
+@keyframes spin {
+    0% {
+        box-shadow: 0 0 10px var(--lime), 0 0 20px var(--lime), 0 0 30px var(--lime);
+        transform: rotate(0deg);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--6-bg), 0 0 30px var(--6-bg), 0 0 40px var(--6-bg);
+        transform: rotate(180deg);
+    }
+    100% {
+        box-shadow: 0 0 10px var(--5-bg), 0 0 20px var(--5-bg), 0 0 30px var(--5-bg);
+        transform: rotate(360deg);
+    }
+}
+
+.glow-on {
+    color: #fff;
+    background: #111;
+    cursor: pointer;
+    position: relative;
+    z-index: 0;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    animation: glowing 5s linear infinite;
+    opacity: 1;
+    transition: opacity .3s ease-in-out;
+}
+
+
+
+@keyframes glowing {
+    0% { background-position: 0 0; }
+    50% { background-position: 400% 0; }
+    100% { background-position: 0 0; }
+}
+
+.shake {
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) infinite;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+.rp1 {
+    background: url(/bp/EE/assets/ouths/rp1.gif) no-repeat !important;
+    background-position: 20% 35% !important;
+
+    border-radius: 0.3rem;
+    font-family: var(--f-1);
+    font-weight: 600;
+}
+
+
+@keyframes shake {
+    10%, 90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+
+    20%, 80% {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    30%, 50%, 70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+
+    40%, 60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
+
+    .coolEffect {
+        animation: coolEffect 2.5s linear infinite;
+        
+    }
+
+    @keyframes coolEffect {
+        0%, 100% {
+            transform: perspective(75em) rotateX(18deg) rotateY(0deg);
+            box-shadow: rgba(22, 31, 39, 0.42) 0px 60px 123px -25px, rgba(19, 26, 32, 0.08) 0px 35px 75px -35px;
+            border-radius: 10px;
+            border: 1px solid rgb(213, 220, 226);
+        }
+        50% {
+            transform: perspective(75em) rotateX(-18deg) rotateY(10deg);
+            box-shadow: rgba(22, 31, 39, 0.42) 0px 30px 61px -12px, rgba(19, 26, 32, 0.08) 0px 17px 37px -17px;
+            border-radius: 20px;
+            border: 1px solid rgb(184, 194, 204);
+        }
+    }

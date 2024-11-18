@@ -11,6 +11,7 @@ import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, arrayUnion, 
             measurementId: "G-Q30T39R8VY"
         };
 
+
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -69,12 +70,21 @@ import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, arrayUnion, 
             const stockInput = stockElement.querySelector('.input-number');
             const numberToAdd = parseFloat(stockInput.value);
             if (isNaN(numberToAdd)) return; // Ignore if the input is not a valid number
-
+        
             const stockRef = doc(stocksSubCollectionRef, stockId);
+            
+            // Directly update the stock's DOM instead of re-fetching all stocks
             await updateDoc(stockRef, {
                 data: arrayUnion(numberToAdd) // Adds the number to the stock's 'data' array
             });
-            renderStocks(); // Re-render to reflect the new data
+        
+            // Update DOM with the new number
+            const numbersElement = stockElement.querySelector('.numbers');
+            const updatedNumbers = numbersElement.textContent.split(', ');
+            updatedNumbers.push(numberToAdd);
+            numbersElement.textContent = updatedNumbers.join(', ');
+        
+            // Optionally, you can periodically call renderStocks() to refresh the entire list
         }
 
         // Remove a stock from the database
