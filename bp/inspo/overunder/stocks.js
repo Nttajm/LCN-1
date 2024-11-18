@@ -53,7 +53,7 @@ const indexes = [
 ];
 
 
-const globalSto = 0.0006;
+const globalSto = 0.0003;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
@@ -917,7 +917,7 @@ async function displayTopShareHolders() {
             const querySnapshot = await getDocs(usersCollectionRef);
             const users = querySnapshot.docs.map(doc => doc.data());
 
-            const twentyMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            const twentyMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
 
             users.forEach(user => {
                 if (user.createdAt && new Date(user.createdAt.toDate()) >= twentyMinutesAgo) {
