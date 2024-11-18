@@ -783,7 +783,7 @@ const debouncedDisplayLargestStocks = debounce(displayLargestStocks, 300);
 const debouncedDisplayTopShareHolders = debounce(displayTopShareHolders, 300);
 const debouncedRenderLeaders = debounce(renderLeaders, 300);
 const debouncedWriteStock = debounce(writeStock, 300);
-const debouncegetCurrentOnlineUsers = debounce(getCurrentOnlineUsers, 300);
+const debouncegetCurrentOnlineUsers = debounce(getCurrentOnlineUsers, 2300);
 
 function subscribeToUserStocks() {
     onSnapshot(usersCollectionRef, (snapshot) => {
