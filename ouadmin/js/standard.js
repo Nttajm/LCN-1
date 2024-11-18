@@ -22,7 +22,7 @@ const auth = getAuth();
 const db = getFirestore(app);
 
 const userData = JSON.parse(localStorage.getItem('userData'));
-const adminsEmails = ['joelmulonde81@gmail.com', 'nlfjoelalt@gmail.com', 'jordan.herrera@crpusd.org'];
+const adminsEmails = ['joelmulonde81@gmail.com', 'nlfjoelalt@gmail.com', 'jordan.herrera@crpusd.org', 'harrison.matticola@crpusd.org'];                   
 
 if (userData) {
     const userRef = doc(db, 'users', userData.uid);
