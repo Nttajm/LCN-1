@@ -255,14 +255,5 @@ export function heartReturner(option) {
 
 
 export function openSite() {
-    const openSiteAt = 'November 18, 2024 9:20:01 AM';
-    const targetDate = new Date(openSiteAt);
-    const currentTime = new Date();
-    const currentUrl = window.location.href;
-
-    if (currentTime < targetDate && !currentUrl.includes('allmost.html')) {
-        window.location.href = 'ouths/allmost.html';
-    }
-
-    return openSiteAt;
+    return
 }
