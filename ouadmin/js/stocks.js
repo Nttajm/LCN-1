@@ -126,7 +126,7 @@ import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, arrayUnion, 
                     name: stock.name,
                     basedOn: stock.basedOn,
                     isStudentOwned: stock.isStudentOwned || false,
-                    data: (stock.data || []).slice(-13) // Ensure data field exists, if not, return empty array and get the latest 13 items
+                    data: (stock.data || []).slice(-7) // Ensure data field exists, if not, return empty array and get the latest 13 items
                 };
             });
         
