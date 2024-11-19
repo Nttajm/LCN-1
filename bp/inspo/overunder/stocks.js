@@ -53,7 +53,7 @@ const indexes = [
 ];
 
 
-const globalSto = 0.0003;
+const globalSto = 0.0001;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
@@ -206,8 +206,17 @@ function writeStock(typeBet) {
             priceHtml.innerHTML = '$' + priceWshares;
         });
 
+        const studentSpan = document.querySelector('.studentOwned');
+        studentSpan.style.display = 'none';
+
+        if (stock.isStudentOwned) {
+            studentSpan.style.display = 'block';
+        }
+
 
         _('js-based').innerHTML = basedOn;
+
+        
 
         const firstPrice = typeBet[0];
 
@@ -486,52 +495,72 @@ function saveUserData() {
 const stockDiv = document.getElementById('js-stock');
 const portfolioDiv = document.getElementById('portfolio');
 
-function displayUserStocks() {
+async function displayUserStocks() {
     stockDiv.innerHTML = ''; // Clear the stockDiv before adding stocks
 
     if (userData.userStocks.length === 0) {
         stockDiv.innerHTML += '<span>You do not have any stocks</span>';
         return;
-    } 
+    }
 
-    userData.userStocks.forEach(stock => {
-        if (stock.amount > 0) {
-            let lastPrice;
+    try {
+        const querySnapshot = await getDocs(usersCollectionRef);
+        const users = querySnapshot.docs.map(doc => doc.data());
 
-            // Check if the stock is a manual stock
-            let manualStock = stockManual.find(s => s.name === stock.name);
-            if (manualStock) {
-                lastPrice = manualStock.data[manualStock.data.length - 1];
-            } else {
-                let indexStock = indexes.find(index => index.name === stock.name);
-                if (indexStock) {
-                    lastPrice = indexStock.data[indexStock.data.length - 1];
+        userData.userStocks.forEach(stock => {
+            if (stock.amount > 0) {
+                let lastPrice;
+
+                // Check if the stock is a manual stock
+                let manualStock = stockManual.find(s => s.name === stock.name);
+                if (manualStock) {
+                    lastPrice = manualStock.data[manualStock.data.length - 1];
                 } else {
-                    lastPrice = getLastPrice(stock.name);
+                    let indexStock = indexes.find(index => index.name === stock.name);
+                    if (indexStock) {
+                        lastPrice = indexStock.data[indexStock.data.length - 1];
+                    } else {
+                        lastPrice = getLastPrice(stock.name);
+                    }
                 }
+
+                // Calculate the total shares for the stock across all users
+                let totalShares = 0;
+                users.forEach(user => {
+                    if (Array.isArray(user.userStocks)) {
+                        user.userStocks.forEach(userStock => {
+                            if (userStock.name === stock.name) {
+                                totalShares += userStock.amount;
+                            }
+                        });
+                    }
+                });
+
+                // Calculate the price with shares influence
+                let shareSub = (lastPrice * totalShares * globalSto).toFixed(2);
+                let priceWshares = (parseFloat(lastPrice) + parseFloat(shareSub)).toFixed(2);
+
+                // Display the stock information
+                stockDiv.innerHTML += `
+                    <div class="coin">
+                        <div class="symbol">
+                            <span>${stock.name.substring(0, 3).toUpperCase()}</span>
+                        </div>
+                        <div class="prices">
+                            <span class="price">$${priceWshares}</span>
+                            <span>${stock.amount} ${(stock.amount > 1 ? 'shares' : 'share')}</span>
+                        </div>
+                    </div>
+                `;
             }
+        }); // Close the forEach loop
 
-            // Calculate the price with shares influence
-            let shareSub = (lastPrice * stock.amount * globalSto).toFixed(2);
-            let priceWshares = (lastPrice + parseFloat(shareSub)).toFixed(2);
-
-            // Display the stock information
-            stockDiv.innerHTML += `
-                <div class="coin">
-                    <div class="symbol">
-                        <span>${stock.name.substring(0, 3).toUpperCase()}</span>
-                    </div>
-                    <div class="prices">
-                        <span class="price">$${priceWshares}</span>
-                        <span>${stock.amount} ${(stock.amount > 1 ? 'shares' : 'share')}</span>
-                    </div>
-                </div>
-            `;
-        }
-    }); // Close the forEach loop
-
-    // Call displayPortfolio after the loop
-    displayPortfolio();
+        // Call displayPortfolio after the loop
+        displayPortfolio();
+    } catch (error) {
+        console.error("Error fetching user stocks:", error);
+        stockDiv.innerHTML = 'Error fetching data';
+    }
 }
 
 
@@ -549,7 +578,18 @@ function displayPortfolio() {
         } else {
             lastPrice = getLastPrice(stock.name);
         }
-        portfolioValue += stock.amount * lastPrice;
+
+        // Get total shares for the stock
+        let totalShares = 0;
+        userData.userStocks.forEach(s => {
+            if (s.name === stock.name) {
+                totalShares += s.amount;
+            }
+        });
+
+        let shareSub = (lastPrice * totalShares * globalSto).toFixed(2);
+        let priceWshares = (lastPrice + parseFloat(shareSub)).toFixed(2);
+        portfolioValue += stock.amount * priceWshares;
     });
     portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
 }
@@ -777,12 +817,12 @@ function debounce(func, wait) {
     };
 }
 
-const debouncedDisplayUserStocks = debounce(displayUserStocks, 300);
-const debouncedDisplayPortfolio = debounce(displayPortfolio, 300);
-const debouncedDisplayLargestStocks = debounce(displayLargestStocks, 300);
-const debouncedDisplayTopShareHolders = debounce(displayTopShareHolders, 300);
-const debouncedRenderLeaders = debounce(renderLeaders, 300);
-const debouncedWriteStock = debounce(writeStock, 300);
+const debouncedDisplayUserStocks = debounce(displayUserStocks, 1300);
+const debouncedDisplayPortfolio = debounce(displayPortfolio, 1300);
+const debouncedDisplayLargestStocks = debounce(displayLargestStocks, 1300);
+const debouncedDisplayTopShareHolders = debounce(displayTopShareHolders, 1300);
+const debouncedRenderLeaders = debounce(renderLeaders, 1300);
+const debouncedWriteStock = debounce(writeStock, 2300);
 const debouncegetCurrentOnlineUsers = debounce(getCurrentOnlineUsers, 2300);
 
 function subscribeToUserStocks() {
@@ -917,7 +957,7 @@ async function displayTopShareHolders() {
             const querySnapshot = await getDocs(usersCollectionRef);
             const users = querySnapshot.docs.map(doc => doc.data());
 
-            const twentyMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+            const twentyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000);
 
             users.forEach(user => {
                 if (user.createdAt && new Date(user.createdAt.toDate()) >= twentyMinutesAgo) {

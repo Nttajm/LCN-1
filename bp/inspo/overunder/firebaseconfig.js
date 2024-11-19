@@ -346,6 +346,7 @@ export function antiC(name, description) {
     addDoc(userAntiCRef, {
       name: finalName,
       description: finalDescription,
+      date : new Date().toISOString(),
     });
     console.log("New AntiC entry added successfully");
   } catch (error) {

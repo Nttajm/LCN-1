@@ -95,6 +95,20 @@
     height: 1.5rem;
 }
 
+.studentOwned {
+    display: none;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: goldenrod;
+    padding: 0.2rem;
+    border-radius: 0.5rem;
+}
+
 .stk-title {
     font-size: 2.5rem;
     font-weight: 600;

@@ -35,21 +35,20 @@ const marketplace = [
     {
         name: 'Arizona',
         price: 3800,
-        left: '4',
+        left: '1',
         img: 'mk-arizona.jpg'
     },
     {
         name: 'Overunder starter pack: $800 + Free style + 40 free shares',
         price: 5,
-        left: '2 per day',
+        left: 'out',
         img: 'ou-logo-white.png',
-        real: true,
         customShowForm: 'meet joel or any moderator.'
     },
     {
         name: 'Glow in the dark',
         price: 1000,
-        left: '4',
+        left: 'infinit',
         img: 'glow.png',
         customShowForm: 'url or describe image, color other'
     },
@@ -64,7 +63,7 @@ const marketplace = [
         name: 'Leader Board style 3d',
         price: 1500,
         left: 'infinit',
-        img: 'leaderstyle.png',
+        img: '3d.png',
         customShowForm: 'url or describe image, color other'
     },
     {
