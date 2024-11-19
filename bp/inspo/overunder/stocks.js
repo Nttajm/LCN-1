@@ -615,6 +615,9 @@ function buy() {
 
     let totalCost = currentPrice * buyAmount;
     if (currentMoney >= totalCost) {
+        updatePriceWsharesElem();
+        displayShareAmount()
+        writeStock(currentSelectedStock);
         message(`You bought ${buyAmount} shares of ${stockName} for $${totalCost.toFixed(2)}!`, '');
         antiC(`stock buy`, ` ${stockName} ${buyAmount} shares for $${totalCost.toFixed(2)}`);
         // Update balance and data
@@ -638,14 +641,15 @@ function buy() {
 }
 
 function sell() {
-    updatePriceWsharesElem();
-    displayShareAmount()
-    writeStock(currentSelectedStock);
+
     let stockName = _('js-name').textContent;
     let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
 
     let stock = userData.userStocks.find(s => s.name === stockName);
     if (stock && stock.amount >= buyAmount) {
+        updatePriceWsharesElem();
+        displayShareAmount()
+        writeStock(currentSelectedStock);
         let totalRevenue = currentPrice * buyAmount;
         console.log(currentPrice)
 
