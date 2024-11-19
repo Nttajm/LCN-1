@@ -60,6 +60,13 @@ const marketplace = [
         customShowForm: 'url or describe image, color other'
     },
     {
+        name: 'Any custom Leader Board style',
+        price: 3600,
+        left: 'infinit',
+        img: 'leaderstyle.png',
+        customShowForm: 'url or describe image, color other'
+    },
+    {
         name: 'Leader Board style 3d',
         price: 1500,
         left: 'infinit',

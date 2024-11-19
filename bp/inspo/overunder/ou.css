@@ -1289,6 +1289,14 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     font-weight: 600;
 }
 
+.peter {
+    background: url(/bp/EE/assets/ouths/peter.gif) no-repeat !important;
+    background-position: 50% 59% !important;
+    border-radius: 0.3rem;
+    font-family: var(--f-1);
+    font-weight: 600;
+}
+
 .teddy {
     background: url(/bp/EE/assets/ouths/teddy.jpg) no-repeat !important;
     background-size: 50% !important;
@@ -1484,6 +1492,90 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
             border-radius: 20px;
             border: 1px solid rgb(184, 194, 204);
         }
+    }
+
+    .coolEffect2 {
+        animation: coolEffect2 6s linear infinite;
+    }
+
+    @keyframes coolEffect2 {
+        0% {
+            transform: perspective(550px) rotateX(5deg) rotateY(0deg) skew(1deg, 1deg) scale(1);
+            box-shadow: rgba(22, 31, 39, 0.5) 0px 50px 100px -10px, rgba(19, 26, 32, 0.3) 0px 25px 50px -15px;
+            border: 2px solid rgba(133, 42, 218, 0.6);
+        }
+        25% {
+            transform: perspective(500px) rotateX(-8deg) rotateY(6deg) skew(1deg, 1deg) scale(1.05);
+            box-shadow: rgba(22, 31, 39, 0.5) 0px 30px 60px -10px, rgba(19, 26, 32, 0.2) 0px 20px 40px -15px;
+            border: 2px solid rgba(29, 96, 163, 0.7);
+        }
+        50% {
+            transform: perspective(550px) rotateX(8deg) rotateY(-6deg) skew(-1deg, 1deg) scale(1.1);
+            box-shadow: rgba(22, 31, 39, 0.6) 0px 50px 100px -20px, rgba(19, 26, 32, 0.3) 0px 25px 50px -15px;
+            border: 2px solid rgba(133, 42, 218, 0.8);
+        }
+        75% {
+            transform: perspective(500px) rotateX(-5deg) rotateY(3deg) skew(1deg, -1deg) scale(1.05);
+            box-shadow: rgba(22, 31, 39, 0.5) 0px 30px 60px -10px, rgba(19, 26, 32, 0.25) 0px 20px 40px -10px;
+            border: 2px solid rgba(29, 96, 163, 0.6);
+        }
+        100% {
+            transform: perspective(550px) rotateX(5deg) rotateY(0deg) skew(1deg, 1deg) scale(1);
+            box-shadow: rgba(22, 31, 39, 0.5) 0px 50px 100px -10px, rgba(19, 26, 32, 0.3) 0px 25px 50px -15px;
+            border: 2px solid rgba(133, 42, 218, 0.6);
+        }
+    }
+    
+    @keyframes rainbowText {
+        0% { color: #7b2f8a !important; } /* Red */
+        14% { color: #3ea7c7 !important; } /* Orange */
+        28% { color: #0077ff !important; } /* Yellow */
+        42% { color: #463dbe !important; } /* Green */
+        57% { color: #0000ff !important; } /* Blue */
+        71% { color: #4b0082 !important; } /* Indigo */
+        85% { color: #8b00ff !important; } /* Violet */
+        100% { color: #32ad93 !important; } /* Red */
+    }
+
+    .rainbow {
+        animation: rainbowText 5s linear infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes slideIn {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(0); }
+    }
+
+    .hellokitty {
+        background: url(/bp/EE/assets/ouths/hellokitty.gif) no-repeat !important;
+        background-position: 50% 59% !important;
+        background-size: 80%;
+        border-radius: 0.3rem;
+        font-family: var(--f-1);
+        font-weight: 600;
+    }
+
+    .slide-in {
+        animation: slideIn 1s ease-out;
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .rotate {
+        animation: rotate 3s linear infinite;
     }
 
 
