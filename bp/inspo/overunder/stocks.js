@@ -53,12 +53,12 @@ const indexes = [
 ];
 
 
-const globalSto = 0.0001;
+const globalSto = 0.0002;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
@@ -364,6 +364,7 @@ function writeStock(typeBet) {
 
 writeStock(soccerBets);
 
+
 const optionals = document.querySelectorAll('.sport-option');
 
 function clearSelection() {
@@ -599,8 +600,65 @@ displayUserStocks();
 
 const usernameDiv = document.getElementById('username');
 usernameDiv.innerHTML = userData.username || '???';
+const livesharesCollectionRef = collection(db, 'liveshares');
+let lastDisplayedTimestamp = Date.now();
 
+async function postliveshare(name, amount, type) {
+    try {
+        const newShare = {
+            name: name,
+            amount: amount,
+            type: type,
+            date: new Date(),
+            username: userData.username.length > 9 ? userData.username.substring(0, 9) + '...' : userData.username
+        };
+        await addDoc(livesharesCollectionRef, newShare);
+        console.log('Live share posted successfully');
+    } catch (error) {
+        console.error('Error posting live share:', error);
+    }
+}
 
+function displayliveshares() {
+    const livesharesDiv = document.getElementById('liveshares');
+
+    onSnapshot(livesharesCollectionRef, (snapshot) => {
+        snapshot.docChanges().forEach(change => {
+            if (change.type === "added") {
+                const share = change.doc.data();
+                const shareDate = share.date.seconds * 1000;
+                const now = Date.now();
+
+                // Display only if this share was created in the last 10 seconds
+                // and it hasn't been displayed yet based on last displayed timestamp
+                if (shareDate >= now - 10000 && shareDate > lastDisplayedTimestamp) {
+                    lastDisplayedTimestamp = shareDate; // Update last displayed timestamp
+
+                    // Create a new div for the share and add animations
+                    const shareDiv = document.createElement('div');
+                    shareDiv.classList.add('liver', 'fade-in'); // Initial fade-in animation
+                    shareDiv.innerHTML = `
+                        <span class="name">${share.username}</span>
+                        <div class="liver-info ${share.type}">${share.amount} - ${share.name}</div>
+                    `;
+
+                    // Prepend the new share div to the container (for reverse order)
+                    livesharesDiv.prepend(shareDiv);
+
+                    // After 10 seconds, start fading out and remove the share div
+                    setTimeout(() => {
+                        shareDiv.classList.add('fade-out'); // Start fade-out animation
+                        setTimeout(() => {
+                            shareDiv.remove(); // Remove element after fade-out completes
+                        }, 1000); // Adjust to match fade-out animation duration
+                    }, 10000); // Display duration of 10 seconds
+                }
+            }
+        });
+    });
+}
+
+displayliveshares();
 
 function buy() {
     updatePriceWsharesElem();
@@ -615,6 +673,7 @@ function buy() {
 
     let totalCost = currentPrice * buyAmount;
     if (currentMoney >= totalCost) {
+        displayliveshares();
         updatePriceWsharesElem();
         displayShareAmount()
         writeStock(currentSelectedStock);
@@ -631,6 +690,7 @@ function buy() {
             userData.userStocks.push({ name: stockName, amount: parseInt(buyAmount) });
         }
 
+        postliveshare(stockName, buyAmount, 'buy');
         saveUserData();
         displayUserStocks();
         displayPortfolio();
@@ -647,6 +707,7 @@ function sell() {
 
     let stock = userData.userStocks.find(s => s.name === stockName);
     if (stock && stock.amount >= buyAmount) {
+        displayliveshares();
         updatePriceWsharesElem();
         displayShareAmount()
         writeStock(currentSelectedStock);
@@ -667,6 +728,7 @@ function sell() {
             userData.userStocks = userData.userStocks.filter(s => s.name !== stockName);
         }
 
+        postliveshare(stockName, buyAmount, 'sell');
         saveUserData();
         displayUserStocks();
         displayPortfolio();
@@ -683,6 +745,8 @@ _('sell').addEventListener('click', sell);
 
 
 renderLeaders();
+let showMore = false;
+
 async function renderLeaders() {
     const leaderElem = document.querySelector('.leaders-sec');
     leaderElem.innerHTML = ''; // Clear current leaders
@@ -733,7 +797,8 @@ async function renderLeaders() {
         });
 
         // Render each leader after sorting
-        leaders.slice(0, 12).forEach((leader, index) => {
+        const leadersToShow = showMore ? leaders.slice(0, 23) : leaders.slice(0, 14);
+        leadersToShow.forEach((leader, index) => {
             if (Array.isArray(leader.userStocks)) {
                 let portfolioValue = 0;
 
@@ -767,6 +832,16 @@ async function renderLeaders() {
                 leaderElem.appendChild(leaderDiv);
             }
         });
+
+        // Add "See More" button
+        const seeMoreButton = document.createElement('button');
+        seeMoreButton.textContent = showMore ? 'See Less' : 'See More';
+        seeMoreButton.addEventListener('click', () => {
+            showMore = !showMore;
+            renderLeaders();
+        });
+        leaderElem.appendChild(seeMoreButton);
+
     } catch (error) {
         console.error("Error fetching leaderboard data:", error);
     }
@@ -821,13 +896,14 @@ function debounce(func, wait) {
     };
 }
 
-const debouncedDisplayUserStocks = debounce(displayUserStocks, 1300);
-const debouncedDisplayPortfolio = debounce(displayPortfolio, 1300);
-const debouncedDisplayLargestStocks = debounce(displayLargestStocks, 1300);
-const debouncedDisplayTopShareHolders = debounce(displayTopShareHolders, 1300);
-const debouncedRenderLeaders = debounce(renderLeaders, 1300);
+const debouncedDisplayUserStocks = debounce(displayUserStocks, 2300);
+const debouncedDisplayPortfolio = debounce(displayPortfolio, 2300);
+const debouncedDisplayLargestStocks = debounce(displayLargestStocks, 2300);
+const debouncedDisplayTopShareHolders = debounce(displayTopShareHolders, 2300);
+const debouncedRenderLeaders = debounce(renderLeaders, 2300);
 const debouncedWriteStock = debounce(writeStock, 2300);
 const debouncegetCurrentOnlineUsers = debounce(getCurrentOnlineUsers, 2300);
+const debounceddisplayliveshares = debounce(displayliveshares, 2300);
 
 function subscribeToUserStocks() {
     onSnapshot(usersCollectionRef, (snapshot) => {
@@ -840,6 +916,7 @@ function subscribeToUserStocks() {
                 debouncedRenderLeaders();
                 debouncedWriteStock(currentSelectedStock);
                 debouncegetCurrentOnlineUsers();
+                debounceddisplayliveshares();
             }
         });
     });
@@ -979,3 +1056,11 @@ async function displayTopShareHolders() {
     getCurrentOnlineUsers();
 
 
+    const allToggles = document.querySelectorAll('#js-toggle');
+
+    allToggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const target = document.getElementById(this.dataset.target);
+            if (target) target.classList.toggle('dn');
+        });
+    });

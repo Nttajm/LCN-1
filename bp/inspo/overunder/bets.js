@@ -24,19 +24,7 @@ export const basketballPlayers = [
 ];
 
  export const basketballBets = [
-  {
-    sport: 'basketball',
-    techTeam: 'Mike T.',
-    against: 'Jake P.',
-    id: '17b',
-    amount: 0.5,
-    typeBet: 'win',
-    status: 'ended',
-    option: '',
-    result: 'over',
-    price: 350,
-    date: '11-15 19:30',
-  },
+
   {
     sport: 'basketball',
     techTeam: 'Tech High Basketball (VB)',
@@ -49,6 +37,19 @@ export const basketballPlayers = [
     result: 'under',
     price: 680,
     date: '11-19 19:30',
+  },
+  {
+    sport: 'basketball',
+    techTeam: 'Mike T.',
+    against: 'Jake P.',
+    id: '17b',
+    amount: 0.5,
+    typeBet: 'win',
+    status: 'ended',
+    option: '',
+    result: 'over',
+    price: 350,
+    date: '11-15 19:30',
   },
     {
         sport: 'basketball',

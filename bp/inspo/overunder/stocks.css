@@ -242,6 +242,41 @@
     animation: blink 1.6s linear infinite;
 }
 
+.lievshares {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    padding: .5rem !important;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.liver {
+    background-color: var(--3-bg);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    min-width: 120px;
+    max-height: 120px;
+
+}
+
+.liver .name {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+
+.liver-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem !important;
+    font-size: 0.8rem !important;
+}
+
+
+
 @keyframes blink {
     0% {
         opacity: 0;
@@ -254,4 +289,36 @@
     100% {
         opacity: 0;
     }
+}
+
+/* Fade-in and slide-up for new entries */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        filter: blur(15px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* Fade-out animation to make entries disappear smoothly */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        filter: blur(0);
+    }
+    to {
+        opacity: 0;
+        filter: blur(15px);
+    }
+}
+
+.fade-in {
+    animation: fadeInUp 0.4s ease-in-out;
+}
+
+.fade-out {
+    animation: fadeOut 0.4s ease-in-out;
 }

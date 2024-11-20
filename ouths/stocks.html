@@ -58,7 +58,7 @@
                       <span class="rank-1">9800</span>
                       <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
                     </div> -->
-                    <span class="balance money">$22,070</span>
+                    <span class="balance money">$loading...</span>
                   </div>
                 </div>
                 <div class="multi-tag online">
@@ -72,17 +72,31 @@
                     </div>
                 </div>
                 <div class="toratio">
-                    <span>6500 shares = 1% stock controll</span>
+                    <span>4000 shares = 1% stock controll</span>
                 </div>
                 <span class="sub">
                     This is an arbitrary value the helps keep the stock market in check. The more shares you have the more control you have over the stock market.
                 </span>
-                <div class="multi-tag leader-port">
+                <div class="multi-tag leader-port R2">
+                    <button id="js-toggle" data-target="toport">toggle view</button>
                     <h3>Top portfolios</h3>
-                    <div class="leaders-sec fl-cl">
+                    <div class="leaders-sec fl-cl" id="toport">
                     </div>
                 </div>
-                <div class="multi-tag fl-c">
+                <div class="multi-tag fl-c R2">
+                    <button id="js-toggle" data-target="liveshares">toggle view</button>
+
+                    <div class="fl-r g-10 fl-ai">
+                        <span>Live shares</span>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="sepa"></div>
+                    <div class="lievshares fl-r" id="liveshares">
+
+                    </div>
+                </div>
+                <div class="multi-tag fl-c R2">
+                    <button id="js-toggle" data-target="js-stock">toggle view</button>
                     <div class="poertfolio fl-r fl-ai g-10 ">
                         <span>Portfolio: </span>
                         <span class="box" id="portfolio"></span>
@@ -92,7 +106,8 @@
                         
                     </div>
                 </div>
-                <div class="multi-tag-2 fl-c">
+                <div class="multi-tag-2 fl-c R2">
+                    <button id="js-toggle" data-target="most-shared">toggle view</button>
                     <h3>Most Shared Stocks</h3>
                     <div class="mostShared" id="most-shared">
                         <div class="coin">
@@ -145,13 +160,14 @@
                 <span class="sub">All teachers and students were asked before being placed on this site.</span>
                 <div class="sports">
                     <span class="selected sport-option-2" data-see="sports">Sports</span>
-                    <span class="sport-option-2" data-see="teachers">Teachers/Student Made</span>
-                    <span class="sport-option-2" data-see="indexes">Indexes</span>
+                    <span class=" sport-option-2" data-see="teachers">Teachers/Student Made</span>
+                    <span class="sport-option-2 disabled" data-see="indexes">Indexes</span>
                 </div>
                 <div class="sepa"></div>
                 <div class="sports" id="sports-pickers">
                     <span class="selected sport-option" data-write="soccer">(SCR)Soccer</span>
-                    <span class="sport-option" data-write="volleyball" >(VOL)Volleyball</span>
+                    <span class=" sport-option" data-write="volleyball" >(VOL)Volleyball</span>
+                    <span class=" sport-option disabled" data-write="basketball" >(BAS)Basketball</span>
                 </div>
                 <div class="multi-tag fl-c stockInfo">
                     <div class="people-a fl-r fl-ai g-10">
