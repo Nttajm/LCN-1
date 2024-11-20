@@ -1014,10 +1014,9 @@ async function displayTopShareHolders() {
 
 
             holderDiv.innerHTML = `
-              <span class="leader-name">${holder.username.length > 12 ? holder.username.substring(0, 12) + '...' : holder.username}</span>
-
-            <span class="leader-
-            <span class="leader-name">${holder.username}</span>
+            
+            <span class="leader-rank">${index + 1}</span>
+            <span class="leader-name">${holder.username.length > 12 ? holder.username.substring(0, 12) + '...' : holder.username}</span>
             <span class="leader-percentage">${holder.percentage}%</span>
             `;
             topShareHoldersDiv.appendChild(holderDiv);
