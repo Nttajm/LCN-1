@@ -218,7 +218,7 @@ function writeStock(typeBet) {
 
         
 
-        const firstPrice = typeBet.length - 7;
+        const firstPrice = typeBet[typeBet.length - 7];
 
         const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
         _('js-up').innerHTML = (percentChange >= 0 ? '+' : '') + percentChange.toFixed(2) + '%';
