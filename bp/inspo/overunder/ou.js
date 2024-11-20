@@ -259,7 +259,7 @@ function renderBets() {
           <div class="button-sec" id="btn-${bet.id}">
             ${buttonsHtml}
           </div>
-          <span class="">${ matching.date ? formatDateTime(matching.date) : '' }</span>
+          <span class="">${ bet.result ? formatDateTime(matching.date) : 'pending' }</span>
           <span class="bold">${additionalText}</span>
         </div>
       `);
