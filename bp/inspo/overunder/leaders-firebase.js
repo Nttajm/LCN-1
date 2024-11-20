@@ -80,10 +80,14 @@ async function renderLeaders() {
                                 });
                         }
 
+                        const displayName = (leader.username || leader.name).length > 17 ? 
+                                        (leader.username || leader.name).substring(0, 17) + '...' : 
+                                        (leader.username || leader.name);
+
                         leaderDiv.innerHTML = `
-                                <span class="leader-rank">${index + 1}</span>
-                                <span class="leader-name">${leader.username || leader.name}</span>
-                                <span class="leader-balance">$${(getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)).toFixed(1)}</span>
+                                        <span class="leader-rank">${index + 1}</span>
+                                        <span class="leader-name">${displayName}</span>
+                                        <span class="leader-balance">$${(getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)).toFixed(1)}</span>
                         `;
                         leaderElem.appendChild(leaderDiv);
 

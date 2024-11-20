@@ -826,7 +826,7 @@ async function renderLeaders() {
                 }
                 leaderDiv.innerHTML = `
                     <span class="leader-rank">${index + 1}</span>
-                    <span class="leader-name">${leader.username || leader.name}</span>
+                    <span class="leader-name">${(leader.username || leader.name).length > 9 ? (leader.username || leader.name).substring(0, 9) + '...' : (leader.username || leader.name)}</span>
                     <span class="leader-balance">${portfolioValue.toFixed(2)}</span>
                 `;
                 leaderElem.appendChild(leaderDiv);
@@ -1014,7 +1014,9 @@ async function displayTopShareHolders() {
 
 
             holderDiv.innerHTML = `
-            <span class="leader-rank">${index + 1}</span>
+              <span class="leader-name">${holder.username.length > 12 ? holder.username.substring(0, 12) + '...' : holder.username}</span>
+
+            <span class="leader-
             <span class="leader-name">${holder.username}</span>
             <span class="leader-percentage">${holder.percentage}%</span>
             `;
