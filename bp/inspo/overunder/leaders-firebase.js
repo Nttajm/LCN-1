@@ -80,10 +80,10 @@ async function renderLeaders() {
                                 });
                         }
 
-                        const displayName = (leader.username || leader.name).length > 17 ? 
-                                        (leader.username || leader.name).substring(0, 17) + '...' : 
-                                        (leader.username || leader.name);
-
+                        const displayName = (leader.username || leader.name || 'Unknown').length > 17 
+                        ? (leader.username || leader.name || 'Unknown').substring(0, 17) + '...' 
+                        : (leader.username || leader.name || 'Unknown');
+                    
                         leaderDiv.innerHTML = `
                                         <span class="leader-rank">${index + 1}</span>
                                         <span class="leader-name">${displayName}</span>
