@@ -1174,6 +1174,9 @@ async function displayTopShareHolders() {
                 stockData.slice(0, winloseam).forEach(stock => {
                     const winnerDiv = document.createElement('div');
                     winnerDiv.classList.add('winner');
+                    let shareSub = (stock.lastPrice * stock.totalShares * globalSto).toFixed(2);
+                    let priceWshares = (parseFloat(stock.lastPrice) + parseFloat(shareSub)).toFixed(2);
+
                     winnerDiv.innerHTML = `
                         <div class="stock-info">
                             <span class="stock-name ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.name.substring(0, 3).toUpperCase()}</span>
@@ -1185,7 +1188,7 @@ async function displayTopShareHolders() {
                                 <span>shares: ${stock.totalShares}</span>
                             </div>
                             <div class="statsAlt">
-                                <span class="stock-price">$${stock.lastPrice}</span>
+                                <span class="stock-price">$${priceWshares}</span>
                             </div>
                         </div>
                     `;
@@ -1241,6 +1244,9 @@ async function displayTopShareHolders() {
             stockData.slice(0, winloseam).forEach(stock => {
                 const loserDiv = document.createElement('div');
                 loserDiv.classList.add('looser');
+                let shareSub = (stock.lastPrice * stock.totalShares * globalSto).toFixed(2);
+                let priceWshares = (parseFloat(stock.lastPrice) + parseFloat(shareSub)).toFixed(2);
+
                 loserDiv.innerHTML = `
                     <div class="stock-info">
                         <span class="stock-name ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.name.substring(0, 3).toUpperCase()}</span>
@@ -1252,7 +1258,7 @@ async function displayTopShareHolders() {
                             <span>shares: ${stock.totalShares}</span>
                         </div>
                         <div class="statsAlt">
-                            <span class="stock-price">$${stock.lastPrice}</span>
+                            <span class="stock-price">$${priceWshares}</span>
                         </div>
                     </div>
                 `;
