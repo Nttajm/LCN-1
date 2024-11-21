@@ -1066,3 +1066,53 @@ async function displayTopShareHolders() {
             if (target) target.classList.toggle('dn');
         });
     });
+
+
+    function checkRefund() {
+        const refundDiv = document.getElementById('js-refund');
+        refundDiv.style.display = 'none';
+        const refundList = [
+            {
+                name: ' jacob khoury',
+                for: 1.97,
+            }
+        ];
+
+        if (userData.userStocks.some(stock => refundList.some(refund => refund.name.toLowerCase() === stock.name.toLowerCase()))) {
+            refundDiv.style.display = 'block';
+        }
+    }
+
+    checkRefund();
+
+    const refundButton = document.getElementById('refund');
+    refundButton.addEventListener('click', function() {
+        const refundDiv = document.getElementById('js-refund');
+        refundDiv.style.display = 'none';
+
+        const refundList = [
+            {
+                name: ' jacob khoury',
+                for: 1.97,
+            }
+        ];
+
+        let totalRefund = 0;
+
+        userData.userStocks.forEach(stock => {
+            const refund = refundList.find(refund => refund.name.toLowerCase() === stock.name.toLowerCase());
+            if (refund) {
+                totalRefund += refund.for * stock.amount;
+            }
+        });
+
+        if (totalRefund > 0) {
+            updateBalanceUI(checkBetsAndUpdateBalance() + totalRefund);
+            updateBalanceAdder(balanceAdder + totalRefund);
+            message(`Refund processed successfully. You received $${totalRefund.toFixed(2)}`, '');
+            saveUserData();
+            updateFb();
+        } else {
+            message('No refund available', 'error');
+        }
+    });

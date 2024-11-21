@@ -41,7 +41,7 @@ const marketplace = [
     {
         name: 'Overunder starter pack: $800 + Free style + 40 free shares',
         price: 5,
-        left: 'out',
+        left: '',
         img: 'ou-logo-white.png',
         customShowForm: 'meet joel or any moderator.'
     },
@@ -102,13 +102,13 @@ const marketplace = [
     {
         name: 'Smoken Bowls',
         price: 16500,
-        left: '2',
+        left: 'out',
         img: 'smoken.jpg'
     },
     {
         name: 'Make your own coin',
         price: 25000,
-        left: '1',
+        left: 'out',
         img: 'coin-own.png'
     },
 ];

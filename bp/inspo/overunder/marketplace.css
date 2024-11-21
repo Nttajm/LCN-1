@@ -122,11 +122,16 @@
     gap: 0.6rem;
 }
 
+.proof-imgs {
+    width: 100%;
+    display: flex;
+}
+
 .proof-cont img {
-    width: calc(33% - 0.6rem);
     height: 400px;
     object-fit: cover;
     border-radius: 0.4rem;
+    margin-left: 0.4rem;
 }
 
 .sold-out-item {
