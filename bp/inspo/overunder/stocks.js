@@ -53,7 +53,7 @@ const indexes = [
 ];
 
 
-const globalSto = 0.0002;
+const globalSto = 0.0004;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
@@ -904,6 +904,10 @@ const debouncedRenderLeaders = debounce(renderLeaders, 2300);
 const debouncedWriteStock = debounce(writeStock, 2300);
 const debouncegetCurrentOnlineUsers = debounce(getCurrentOnlineUsers, 2300);
 const debounceddisplayliveshares = debounce(displayliveshares, 2300);
+const debounceddisplayWinners = debounce(displayWinners, 100);
+const debounceddisplayLosers = debounce(displayLosers, 100);
+
+
 
 function subscribeToUserStocks() {
     onSnapshot(usersCollectionRef, (snapshot) => {
@@ -917,6 +921,8 @@ function subscribeToUserStocks() {
                 debouncedWriteStock(currentSelectedStock);
                 debouncegetCurrentOnlineUsers();
                 debounceddisplayliveshares();
+                debounceddisplayWinners();
+                debounceddisplayLosers();
             }
         });
     });
@@ -1116,3 +1122,278 @@ async function displayTopShareHolders() {
             message('No refund available', 'error');
         }
     });
+
+    let winloseam = 3;
+
+    const seeMoreButton = document.getElementById('see-more-winlos');
+    seeMoreButton.addEventListener('click', () => {
+        winloseam = winloseam === 3 ? 6 : 3;
+        seeMoreButton.textContent = winloseam === 3 ? 'See More' : 'See Less';
+        displayWinners();
+        displayLosers();
+    });
+    
+
+        async function displayWinners() {
+            const winnersDiv = document.getElementById('js-winners');
+            winnersDiv.innerHTML = '';
+
+            try {
+                const querySnapshot = await getDocs(usersCollectionRef);
+                const users = querySnapshot.docs.map(doc => doc.data());
+
+                const stockData = stockManual.map(stock => {
+                    const lastPrice = stock.data[stock.data.length - 1];
+                    const firstPrice = stock.data[stock.data.length - 3];
+                    const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
+
+                    let totalShares = 0;
+                    users.forEach(user => {
+                        if (Array.isArray(user.userStocks)) {
+                            user.userStocks.forEach(userStock => {
+                                if (userStock.name === stock.name) {
+                                    totalShares += userStock.amount;
+                                }
+                            });
+                        }
+                    });
+
+                    const marketCap = (lastPrice * totalShares).toFixed(2);
+
+                    return {
+                        name: stock.name,
+                        percentChange: percentChange.toFixed(2),
+                        lastPrice: lastPrice.toFixed(2),
+                        totalShares: totalShares,
+                        marketCap: marketCap
+                    };
+                });
+
+                stockData.sort((a, b) => b.percentChange - a.percentChange);
+
+                stockData.slice(0, winloseam).forEach(stock => {
+                    const winnerDiv = document.createElement('div');
+                    winnerDiv.classList.add('winner');
+                    winnerDiv.innerHTML = `
+                        <div class="stock-info">
+                            <span class="stock-name ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.name.substring(0, 3).toUpperCase()}</span>
+                            <span class="stock-percent ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.percentChange >= 0 ? '+' : ''}${stock.percentChange}%</span>
+                        </div>
+                        <div class="stats-cont">
+                            <div class="statsAlt">
+                                <span>mkt cap: $${(stock.marketCap / 1000).toFixed(1)}k</span>
+                                <span>shares: ${stock.totalShares}</span>
+                            </div>
+                            <div class="statsAlt">
+                                <span class="stock-price">$${stock.lastPrice}</span>
+                            </div>
+                        </div>
+                    `;
+                    winnersDiv.appendChild(winnerDiv);
+                });
+            } catch (error) {
+                console.error("Error fetching winners data:", error);
+                winnersDiv.innerHTML = 'Error fetching data';
+            }
+        }
+
+        displayWinners();
+    
+
+
+    async function displayLosers() {
+        const losersDiv = document.getElementById('js-losers');
+        losersDiv.innerHTML = '';
+
+        try {
+            const querySnapshot = await getDocs(usersCollectionRef);
+            const users = querySnapshot.docs.map(doc => doc.data());
+
+            const stockData = stockManual.map(stock => {
+                const lastPrice = stock.data[stock.data.length - 1];
+                const firstPrice = stock.data[stock.data.length - 3];
+                const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
+
+                let totalShares = 0;
+                users.forEach(user => {
+                    if (Array.isArray(user.userStocks)) {
+                        user.userStocks.forEach(userStock => {
+                            if (userStock.name === stock.name) {
+                                totalShares += userStock.amount;
+                            }
+                        });
+                    }
+                });
+
+                const marketCap = (lastPrice * totalShares).toFixed(2);
+
+                return {
+                    name: stock.name,
+                    percentChange: percentChange.toFixed(2),
+                    lastPrice: lastPrice.toFixed(2),
+                    totalShares: totalShares,
+                    marketCap: marketCap
+                };
+            });
+
+            stockData.sort((a, b) => a.percentChange - b.percentChange);
+
+            stockData.slice(0, winloseam).forEach(stock => {
+                const loserDiv = document.createElement('div');
+                loserDiv.classList.add('looser');
+                loserDiv.innerHTML = `
+                    <div class="stock-info">
+                        <span class="stock-name ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.name.substring(0, 3).toUpperCase()}</span>
+                        <span class="stock-percent ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.percentChange >= 0 ? '+' : ''}${stock.percentChange}%</span>
+                    </div>
+                    <div class="stats-cont">
+                        <div class="statsAlt">
+                            <span>mkt cap: $${(stock.marketCap / 1000).toFixed(1)}k</span>
+                            <span>shares: ${stock.totalShares}</span>
+                        </div>
+                        <div class="statsAlt">
+                            <span class="stock-price">$${stock.lastPrice}</span>
+                        </div>
+                    </div>
+                `;
+                losersDiv.appendChild(loserDiv);
+            });
+        } catch (error) {
+            console.error("Error fetching losers data:", error);
+            losersDiv.innerHTML = 'Error fetching data';
+        }
+    }
+
+
+    // function displayWinners() {
+    //     async function displayWinners() {
+    //         const winnersDiv = document.getElementById('js-winners');
+    //         winnersDiv.innerHTML = '';
+
+    //         try {
+    //             const querySnapshot = await getDocs(usersCollectionRef);
+    //             const users = querySnapshot.docs.map(doc => doc.data());
+
+    //             const stockData = indexes.concat(stockManual).map(stock => {
+    //                 const lastPrice = stock.data[stock.data.length - 1];
+    //                 const firstPrice = stock.data[stock.data.length - 3];
+    //                 const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
+
+    //                 let totalShares = 0;
+    //                 users.forEach(user => {
+    //                     if (Array.isArray(user.userStocks)) {
+    //                         user.userStocks.forEach(userStock => {
+    //                             if (userStock.name === stock.name) {
+    //                                 totalShares += userStock.amount;
+    //                             }
+    //                         });
+    //                     }
+    //                 });
+
+    //                 const marketCap = (lastPrice * totalShares).toFixed(2);
+
+    //                 return {
+    //                     name: stock.name,
+    //                     percentChange: percentChange.toFixed(2),
+    //                     lastPrice: lastPrice.toFixed(2),
+    //                     totalShares: totalShares,
+    //                     marketCap: marketCap
+    //                 };
+    //             });
+
+    //             stockData.sort((a, b) => b.percentChange - a.percentChange);
+
+    //             stockData.slice(0, winloseam).forEach(stock => {
+    //                 const winnerDiv = document.createElement('div');
+    //                 winnerDiv.classList.add('winner');
+    //                 winnerDiv.innerHTML = `
+    //                     <div class="stock-info">
+    //                         <span class="stock-name ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.name.substring(0, 3).toUpperCase()}</span>
+    //                         <span class="stock-percent ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.percentChange >= 0 ? '+' : ''}${stock.percentChange}%</span>
+    //                     </div>
+    //                     <div class="stats-cont">
+    //                         <div class="statsAlt">
+    //                             <span>mkt cap: $${(stock.marketCap / 1000).toFixed(1)}k</span>
+    //                             <span>shares: ${stock.totalShares}</span>
+    //                         </div>
+    //                         <div class="statsAlt">
+    //                             <span class="stock-price">$${stock.lastPrice}</span>
+    //                         </div>
+    //                     </div>
+    //                 `;
+    //                 winnersDiv.appendChild(winnerDiv);
+    //             });
+    //         } catch (error) {
+    //             console.error("Error fetching winners data:", error);
+    //             winnersDiv.innerHTML = 'Error fetching data';
+    //         }
+    //     }
+
+    //     displayWinners();
+    // }
+
+    // displayWinners();
+
+    //     async function displayLosers() {
+    //         const losersDiv = document.getElementById('js-losers');
+    //         losersDiv.innerHTML = '';
+    
+    //         try {
+    //             const querySnapshot = await getDocs(usersCollectionRef);
+    //             const users = querySnapshot.docs.map(doc => doc.data());
+    
+    //             const stockData = indexes.concat(stockManual).map(stock => {
+    //                 const lastPrice = stock.data[stock.data.length - 1];
+    //                 const firstPrice = stock.data[stock.data.length - 3];
+    //                 const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
+    
+    //                 let totalShares = 0;
+    //                 users.forEach(user => {
+    //                     if (Array.isArray(user.userStocks)) {
+    //                         user.userStocks.forEach(userStock => {
+    //                             if (userStock.name === stock.name) {
+    //                                 totalShares += userStock.amount;
+    //                             }
+    //                         });
+    //                     }
+    //                 });
+    
+    //                 const marketCap = (lastPrice * totalShares).toFixed(2);
+    
+    //                 return {
+    //                     name: stock.name,
+    //                     percentChange: percentChange.toFixed(2),
+    //                     lastPrice: lastPrice.toFixed(2),
+    //                     totalShares: totalShares,
+    //                     marketCap: marketCap
+    //                 };
+    //             });
+    
+    //             stockData.sort((a, b) => a.percentChange - b.percentChange);
+    
+    //             stockData.slice(0, winloseam).forEach(stock => {
+    //                 const loserDiv = document.createElement('div');
+    //                 loserDiv.classList.add('looser');
+    //                 loserDiv.innerHTML = `
+    //                     <div class="stock-info">
+    //                         <span class="stock-name ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.name.substring(0, 3).toUpperCase()}</span>
+    //                         <span class="stock-percent ${stock.percentChange >= 0 ? 'buy' : 'sell'}">${stock.percentChange >= 0 ? '+' : ''}${stock.percentChange}%</span>
+    //                     </div>
+    //                     <div class="stats-cont">
+    //                         <div class="statsAlt">
+    //                             <span>mkt cap: $${(stock.marketCap / 1000).toFixed(1)}k</span>
+    //                             <span>shares: ${stock.totalShares}</span>
+    //                         </div>
+    //                         <div class="statsAlt">
+    //                             <span class="stock-price">$${stock.lastPrice}</span>
+    //                         </div>
+    //                     </div>
+    //                 `;
+    //                 losersDiv.appendChild(loserDiv);
+    //             });
+    //         } catch (error) {
+    //             console.error("Error fetching losers data:", error);
+    //             losersDiv.innerHTML = 'Error fetching data';
+    //         }
+    //     }
+

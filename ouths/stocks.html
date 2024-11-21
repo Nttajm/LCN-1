@@ -72,7 +72,7 @@
                     </div>
                 </div>
                 <div class="toratio">
-                    <span>4000 shares = 1% stock controll</span>
+                    <span>2000 shares = 1% stock controll</span>
                 </div>
                 <span class="sub">
                     This is an arbitrary value the helps keep the stock market in check. The more shares you have the more control you have over the stock market.
@@ -102,14 +102,14 @@
                         <span class="box" id="portfolio"></span>
                     </div>
                     <div class="sepa"></div>
-                    <div class="bought fl-r" id="js-stock">
+                    <div class="bought fl-r dn" id="js-stock">
                         
                     </div>
                 </div>
                 <div class="multi-tag-2 fl-c R2">
                     <button id="js-toggle" data-target="most-shared">toggle view</button>
                     <h3>Most Shared Stocks</h3>
-                    <div class="mostShared" id="most-shared">
+                    <div class="mostShared dn" id="most-shared">
                         <div class="coin">
                             <div class="prices">
                                 <div class="">
@@ -155,6 +155,48 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class=" multi-tag fl-c ">
+                    <h3>Winners and losers (last 3 stocks)</h3>
+                    <div class="sepa"></div>
+                    <div class="winners-loosers">
+                        <div class="wins win-loose" id="js-winners">
+                            <div class="winner" id="js-winners">
+                                <div class="stock-info">
+                                    <span class="stock-name buy">Loading...</span>
+                                    <span class="stock-perent buy">Loading...</span>
+                                </div>
+                                <div class="stats-cont">
+                                    <div class="statsAlt">
+                                        <span>mkt cap: Loading...</span>
+                                        <span>shares: Loading...</span>
+                                    </div>
+                                    <div class="statsAlt">
+                                        <span class="stock-price">Loading...</span>
+                                    </div>
+                                </div>                                                                                                                          
+                            </div>
+                        </div>
+                        <div class="loosers win-loose" id="js-losers">
+                            <div class="looser">
+                                <div class="stock-info">
+                                    <span class="stock-name sell">Loading...</span>
+                                    <span class="stock-perent sell">Loading...</span>
+                                </div>
+                                <div class="stats-cont">
+                                    <div class="statsAlt">
+                                        <span>Loading...</span>
+                                        <span>shares: Loading...</span>
+                                    </div>
+                                    <div class="statsAlt">
+                                        <span class="stock-price">Loading...</span>
+                                    </div>
+                                </div>                                                                                                                          
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <button id="see-more-winlos">See more</button>
                 </div>
                 <div class="refund multi-tag fl-c fl-ai dn" id="js-refund">
                     <span>Refund For JA</span>

@@ -140,6 +140,7 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
     --f-1: inter;
 }
 
+
 .weup {
     background-color: var(--lime);
 }

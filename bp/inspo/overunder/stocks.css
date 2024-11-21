@@ -322,3 +322,70 @@
 .fade-out {
     animation: fadeOut 0.4s ease-in-out forwards;
 }
+
+
+.winners-loosers {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.win-loose {
+    background-color: var(--3-bg);
+    padding: 0.5rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.winner, .looser {
+    background-color: aliceblue;
+    color: black;
+    padding: 0.1rem;
+    border-radius: 0.5rem;
+}
+
+.winner {
+    background-color: rgb(184, 255, 169);
+}
+
+.looser {
+    background-color: rgb(255, 169, 169);
+}
+
+.stock-info {
+    font-size: 1.2rem;
+    display: flex;
+    gap: 0.2rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.2rem;
+}
+
+.stock-price {
+    font-size: 1.1rem;
+}
+
+.stats-cont {
+    display: flex;
+    gap: 0.2rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.1rem;
+}
+
+.statsAlt {
+    display: flex;
+    gap: 0.2rem;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.1rem;
+    font-size: 0.7rem;
+    flex-direction: column;
+    
+}
