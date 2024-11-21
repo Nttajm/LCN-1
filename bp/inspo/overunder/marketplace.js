@@ -107,8 +107,8 @@ const marketplace = [
     },
     {
         name: 'Make your own coin',
-        price: 25000,
-        left: 'out',
+        price: 50000,
+        left: 'infinit',
         img: 'coin-own.png'
     },
 ];

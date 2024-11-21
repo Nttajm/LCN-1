@@ -316,9 +316,9 @@
 }
 
 .fade-in {
-    animation: fadeInUp 0.4s ease-in-out;
+    animation: fadeInUp 0.4s ease-in-out forwards;
 }
 
 .fade-out {
-    animation: fadeOut 0.4s ease-in-out;
+    animation: fadeOut 0.4s ease-in-out forwards;
 }

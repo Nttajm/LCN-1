@@ -218,7 +218,7 @@ function writeStock(typeBet) {
 
         
 
-        const firstPrice = typeBet[0];
+        const firstPrice = typeBet[typeBet.length - 7];
 
         const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
         _('js-up').innerHTML = (percentChange >= 0 ? '+' : '') + percentChange.toFixed(2) + '%';
@@ -1014,10 +1014,9 @@ async function displayTopShareHolders() {
 
 
             holderDiv.innerHTML = `
-              <span class="leader-name">${holder.username.length > 12 ? holder.username.substring(0, 12) + '...' : holder.username}</span>
-
-            <span class="leader-
-            <span class="leader-name">${holder.username}</span>
+            
+            <span class="leader-rank">${index + 1}</span>
+            <span class="leader-name">${holder.username.length > 12 ? holder.username.substring(0, 12) + '...' : holder.username}</span>
             <span class="leader-percentage">${holder.percentage}%</span>
             `;
             topShareHoldersDiv.appendChild(holderDiv);
