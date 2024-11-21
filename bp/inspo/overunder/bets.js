@@ -7,7 +7,7 @@ export const basketballPlayers = [
     price: 50,
     typeBet: '3 + attempts',
     sport: 'basketball-player',
-    result: '',
+    result: 'under',
     option: '',
   },
     {
@@ -18,7 +18,7 @@ export const basketballPlayers = [
       price: 70,
       typeBet: 'Points + Rebounds',
       sport: 'basketball-player',
-      result: '',
+      result: 'under',
       option: '',
     }
 ];
