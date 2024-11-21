@@ -346,6 +346,10 @@ background: linear-gradient(86deg, rgb(46, 226, 85) 0%, rgb(255, 94, 0) 100%);
     margin-bottom: 0.7rem;
 }
 
+.w-100i {
+    width: 100% !important;
+}
+
 .multi-title {
     font-size: 1.5rem;
     font-weight: 700;
@@ -1458,7 +1462,14 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     font-weight: 600;
 }
 
-
+.thanos {
+    background: url(/bp/EE/assets/ouths/thanosgif.gif) no-repeat !important;
+    background-position: 50% 29% !important;
+    background-size: 90% !important;
+    border-radius: 0.3rem;
+    font-family: var(--f-1);
+    font-weight: 600;
+}
 
 .rp1 {
     background: url(/bp/EE/assets/ouths/rp1.gif) no-repeat !important;
