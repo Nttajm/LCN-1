@@ -1111,6 +1111,7 @@ async function displayTopShareHolders() {
             message(`Refund processed successfully. You received $${totalRefund.toFixed(2)}`, '');
             saveUserData();
             updateFb();
+            
         } else {
             message('No refund available', 'error');
         }
