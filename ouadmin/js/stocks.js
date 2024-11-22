@@ -1,138 +1,145 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
-            authDomain: "overunder-ths.firebaseapp.com",
-            projectId: "overunder-ths",
-            storageBucket: "overunder-ths.firebasestorage.app",
-            messagingSenderId: "690530120785",
-            appId: "1:690530120785:web:36dc297cb517ac76cb7470",
-            measurementId: "G-Q30T39R8VY"
-        };
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc,
+    getDocs,
+    collection,
+    updateDoc,
+    arrayUnion,
+    arrayRemove
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
+    authDomain: "overunder-ths.firebaseapp.com",
+    projectId: "overunder-ths",
+    storageBucket: "overunder-ths.firebasestorage.app",
+    messagingSenderId: "690530120785",
+    appId: "1:690530120785:web:36dc297cb517ac76cb7470",
+    measurementId: "G-Q30T39R8VY"
+};
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-        // Reference to the stocks collection (sub-collection under DWqS1ePzNP7QhulUdyxl)
-        const stocksDocRef = doc(db, 'stocks', 'DWqS1ePzNP7QhulUdyxl');
-        const stocksSubCollectionRef = collection(stocksDocRef, 'stocks');
+// Firestore references
+const stocksRef = collection(db, 'stocks', 'DWqS1ePzNP7QhulUdyxl', 'stocks');
 
-        async function renderStocks() {
-            const querySnapshot = await getDocs(stocksSubCollectionRef);
-            const stocksContainer = document.querySelector('.stocks');
-            stocksContainer.innerHTML = ''; // Clear existing stock data
+// Render stocks in DOM
+async function renderStocks() {
+    const querySnapshot = await getDocs(stocksRef);
+    const stocksContainer = document.querySelector('.stocks');
+    stocksContainer.innerHTML = ''; // Clear current DOM
 
-            querySnapshot.forEach((doc) => {
-                const stock = doc.data();
-                const stockElement = document.createElement('div');
-                stockElement.classList.add('stock', 'multi-tag-2');
-                stockElement.setAttribute('data-id', doc.id);  // Add stock document ID as a custom attribute
-                stockElement.innerHTML = `
-                    <span class="stock-name">${stock.name}</span>
-                    <div class="sepa"></div>
-                    <div class="fl-c">
-                        <div>
-                            <span>Price: </span><span class="stock-price">$${stock.price}</span>
-                        </div>
-                        <div class="numbers">${stock.data.join(', ')}</div>
-                        <div class="buttons">
-                            <input type="number" class="input-number" placeholder="Add number">
-                            <button class="add-btn">Add Number</button>
-                            <button class="remove-btn">Remove</button>
-                        </div>
-                    </div>
-                `;
-                stocksContainer.appendChild(stockElement);
-            });
+    querySnapshot.forEach((doc) => {
+        const stock = doc.data();
+        const stockElement = document.createElement('div');
+        stockElement.classList.add('stock', 'multi-tag-2');
+        stockElement.setAttribute('data-id', doc.id);
 
-            // Attach event listeners after rendering the stocks
-            document.querySelectorAll('.add-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const stockId = e.target.closest('.stock').getAttribute('data-id');
-                    addNumber(stockId);
-                });
-            });
+        stockElement.innerHTML = `
+            <span class="stock-name">${stock.name}</span>
+            <div class="sepa"></div>
+            <div class="fl-c">
+                <div>
+                    <span>Price: </span><span class="stock-price">$${stock.price}</span>
+                </div>
+                <div class="numbers">${(stock.data || []).join(', ')}</div>
+                <div class="buttons">
+                    <input type="number" class="input-number" placeholder="Add number">
+                    <button class="add-btn">Add Number</button>
+                    <button class="remove-btn">Remove Last</button>
+                </div>
+            </div>
+        `;
+        stocksContainer.appendChild(stockElement);
+    });
 
-            document.querySelectorAll('.remove-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const stockId = e.target.closest('.stock').getAttribute('data-id');
-                    removeStock(stockId);
-                });
-            });
-        }
+    attachEventListeners();
+}
 
-        // Add a number to a stock's data array
-        async function addNumber(stockId) {
-            const stockElement = document.querySelector(`.stock[data-id="${stockId}"]`);
-            const stockInput = stockElement.querySelector('.input-number');
-            const numberToAdd = parseFloat(stockInput.value);
-            if (isNaN(numberToAdd)) return; // Ignore if the input is not a valid number
-        
-            const stockRef = doc(stocksSubCollectionRef, stockId);
-            
-            // Directly update the stock's DOM instead of re-fetching all stocks
-            await updateDoc(stockRef, {
-                data: arrayUnion(numberToAdd) // Adds the number to the stock's 'data' array
-            });
-        
-            // Update DOM with the new number
-            const numbersElement = stockElement.querySelector('.numbers');
-            const updatedNumbers = numbersElement.textContent.split(', ');
-            updatedNumbers.push(numberToAdd);
-            numbersElement.textContent = updatedNumbers.join(', ');
-        
-            // Optionally, you can periodically call renderStocks() to refresh the entire list
-        }
+// Attach event listeners
+function attachEventListeners() {
+    document.querySelectorAll('.add-btn').forEach((button) => {
+        button.addEventListener('click', async (e) => {
+            const stockId = e.target.closest('.stock').getAttribute('data-id');
+            const stockElement = e.target.closest('.stock');
+            const input = stockElement.querySelector('.input-number');
+            const numberToAdd = parseFloat(input.value);
 
-        // Remove a stock from the database
-        async function removeStock(stockId) {
-            const stockRef = doc(stocksSubCollectionRef, stockId);
-        
-            // Fetch the current stock data
-            const stockDoc = await getDoc(stockRef);
-            const stockData = stockDoc.data();
-        
-            if (stockData && stockData.data.length > 0) {
-                // Remove the last number from the stock's data array
-                const updatedData = stockData.data.slice(0, -1);  // Remove the last element
-        
-                // Update the stock's data array in Firestore
-                await updateDoc(stockRef, {
-                    data: updatedData
-                });
-        
-                // Re-render the stocks to reflect the updated data
-                renderStocks();
+            if (isNaN(numberToAdd)) {
+                alert('Please enter a valid number.');
+                return;
             }
-        }
 
-        // Fetch and display stocks when the page loads
-        window.onload = renderStocks;
+            await addNumber(stockId, numberToAdd);
+            input.value = ''; // Clear input
+        });
+    });
 
+    document.querySelectorAll('.remove-btn').forEach((button) => {
+        button.addEventListener('click', async (e) => {
+            const stockId = e.target.closest('.stock').getAttribute('data-id');
+            await removeLastNumber(stockId);
+        });
+    });
+}
 
-        async function getStocksData() {
-            const stocksRef = collection(db, 'stocks', 'DWqS1ePzNP7QhulUdyxl', 'stocks');
-            const querySnapshot = await getDocs(stocksRef);
-        
-            // Map the fetched documents into a simplified array format
-            const stocksArray = querySnapshot.docs.map(doc => {
-                const stock = doc.data();
-                return {
-                    id: doc.id,
-                    sub: stock.sub,
-                    name: stock.name,
-                    basedOn: stock.basedOn,
-                    isStudentOwned: stock.isStudentOwned || false,
-                    data: (stock.data || []).slice(-7) // Ensure data field exists, if not, return empty array and get the latest 13 items
-                };
-            });
-        
-            return stocksArray;
-        }
+// Add a number to a stock's data array
+async function addNumber(stockId, numberToAdd) {
+    const stockRef = doc(stocksRef, stockId);
+    await updateDoc(stockRef, {
+        data: arrayUnion(numberToAdd),
+    });
 
-        console.log(await getStocksData());
+    // Update DOM immediately without re-fetching
+    const stockElement = document.querySelector(`.stock[data-id="${stockId}"]`);
+    const numbersElement = stockElement.querySelector('.numbers');
+    const updatedNumbers = numbersElement.textContent.split(', ').filter(Boolean);
+    updatedNumbers.push(numberToAdd);
+    numbersElement.textContent = updatedNumbers.join(', ');
+}
 
-        export const mstock = await getStocksData();
+// Remove the last number from a stock's data array
+async function removeLastNumber(stockId) {
+    const stockRef = doc(stocksRef, stockId);
+    const stockDoc = await getDoc(stockRef);
+
+    if (!stockDoc.exists()) return;
+
+    const stockData = stockDoc.data();
+    const updatedData = (stockData.data || []).slice(0, -1);
+
+    await updateDoc(stockRef, { data: updatedData });
+
+    // Update DOM immediately
+    const stockElement = document.querySelector(`.stock[data-id="${stockId}"]`);
+    const numbersElement = stockElement.querySelector('.numbers');
+    numbersElement.textContent = updatedData.join(', ');
+}
+
+// Fetch stocks data for debugging and export
+async function getStocksData() {
+    try {
+        const querySnapshot = await getDocs(stocksRef);
+        return querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            data: (doc.data().data || []).slice(-7), // Get the latest 7 items
+        }));
+    } catch (error) {
+        console.error("Error fetching stocks:", error);
+        return [];
+    }
+}
+
+// Export stocks data
+export const mstock = await getStocksData();
+
+// Fetch and display stocks on load
+window.onload = renderStocks;
+renderStocks();

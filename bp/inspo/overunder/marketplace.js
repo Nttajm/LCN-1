@@ -34,7 +34,7 @@ balanceElem.textContent = `$${checkBetsAndUpdateBalance().toFixed(2)}`;
 const marketplace = [
     {
         name: 'Arizona',
-        price: 6800,
+        price: 3800,
         left: '1',
         img: 'mk-arizona.jpg'
     },
@@ -43,7 +43,8 @@ const marketplace = [
         price: 5,
         left: '',
         img: 'ou-logo-white.png',
-        customShowForm: 'meet joel or any moderator.'
+        customShowForm: 'meet joel or any moderator.',
+        real: true
     },
     {
         name: 'Glow in the dark',
@@ -90,13 +91,13 @@ const marketplace = [
     {
         name: '$25 gift card',
         price: 70000,
-        left: '1',
+        left: 'out',
         img: 'mk-25.avif'
     },
     {
         name: 'Pumpkin Spice Latte',
         price: 12000,
-        left: '2',
+        left: 'out',
         img: 'mk-starbucks.jpg'
     },
     {
@@ -108,7 +109,7 @@ const marketplace = [
     {
         name: 'Make your own coin',
         price: 50000,
-        left: 'infinit',
+        left: 'out',
         img: 'coin-own.png'
     },
 ];
