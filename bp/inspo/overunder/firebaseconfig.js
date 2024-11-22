@@ -267,7 +267,7 @@ export async function checkIfisBanned() {
   const userData = JSON.parse(localStorage.getItem('userData') || '{}');
   const user = userData;
 
-  if (userData.balanceAdder > 120000) {
+  if (userData.balanceAdder > 200000) {
     const userRef = doc(db, 'users', user.uid);
     try {
       await setDoc(userRef, {
