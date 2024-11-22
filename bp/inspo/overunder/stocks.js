@@ -1012,11 +1012,13 @@ async function displayTopShareHolders() {
             holderDiv.classList.add('leader');
 
             if (holder.leaderStyle) {
-                const styles = holder.leaderStyle.split(' ');
+                const styles = holder.leaderStyle.split(' ').filter(style => style.trim() !== '');
                 styles.forEach(style => {
                     holderDiv.classList.add(style);
                 });
             }
+
+        
 
 
             holderDiv.innerHTML = `
