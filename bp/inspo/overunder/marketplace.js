@@ -34,12 +34,12 @@ balanceElem.textContent = `$${checkBetsAndUpdateBalance().toFixed(2)}`;
 const marketplace = [
     {
         name: 'Arizona',
-        price: 3800,
+        price: 6800,
         left: '1',
         img: 'mk-arizona.jpg'
     },
     {
-        name: 'Overunder starter pack: $800 + Free style + 40 free shares',
+        name: 'Overunder starter pack: $3800 + Free style',
         price: 5,
         left: '',
         img: 'ou-logo-white.png',
