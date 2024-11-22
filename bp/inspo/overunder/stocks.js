@@ -819,7 +819,7 @@ async function renderLeaders() {
                 const leaderDiv = document.createElement('div');
                 leaderDiv.classList.add('leader');
                 if (leader.leaderStyle) {
-                    const styles = leader.leaderStyle.split(' ');
+                    const styles = leader.leaderStyle.split(' ').filter(style => style.trim() !== '');
                     styles.forEach(style => {
                         leaderDiv.classList.add(style);
                     });
