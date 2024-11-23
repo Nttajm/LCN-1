@@ -5,4 +5,3 @@ if (!(userData.username && betatesters.includes(userData.username))) {
      window.location.href = 'https://lcnjoel.com/ouths/info.html';
  }
 
- 

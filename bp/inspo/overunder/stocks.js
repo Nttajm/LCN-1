@@ -53,7 +53,7 @@ const indexes = [
 ];
 
 
-const globalSto = 0.0004;
+const globalSto = 0.0002;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
