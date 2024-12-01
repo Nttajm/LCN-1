@@ -29,6 +29,8 @@ import { initGame, getGameLives, looseLife } from './casinoconfig.js';
 
 await initGame('gems');
 
+getFb();
+
 checkBetsAndUpdateBalance();
 await updateStatsUI();
 displayUserInfo();
