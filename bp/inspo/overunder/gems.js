@@ -73,7 +73,7 @@ function createBoard() {
     renderBoard();
 }
 
-function renderBoard() {
+async function renderBoard() {
     gameBoardElement.innerHTML = '';
     for (let i = 0; i < boardSize; i++) {
         for (let j = 0; j < boardSize; j++) {
@@ -89,6 +89,7 @@ function renderBoard() {
                     `;
                 }
             }
+
 
             tileElement.addEventListener('click', () => {
                 if (!board[i][j].revealed) {
@@ -306,11 +307,17 @@ displayHearts();
 async function isabletoplay() {
     const balance = checkBetsAndUpdateBalance();
     const currentKeys = await getKeys();
+
+    const eachTile = document.querySelectorAll('.tile');
     let haskeys = currentKeys > 0;
     if (balance > 0 && haskeys) {
         playBtn.classList.remove('disabled');
     } else {
         playBtn.classList.add('disabled');
+        eachTile.forEach(tile => {
+            tile.classList.add('disabled-tile');
+
+        });
     }
 
     return balance > 0 && haskeys;

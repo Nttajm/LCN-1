@@ -120,7 +120,6 @@ onSnapshot(offlineQuery, (snapshot) => {
     // Display the first batch of users
     displayUsers();
 });
-
 function displayUsers() {
     // Determine the slice of users to display
     const usersToDisplay = allOfflineUsers.slice(usersDisplayed, usersDisplayed + usersPerPage);
