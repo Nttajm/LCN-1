@@ -33,6 +33,9 @@
  .pixel-art {
     image-rendering: pixelated;
  }
+ .c {
+   background-image: url("https://assets.codepen.io/21542/CameraDemoMap.png");
+ }
  
  .frame {
     /* This is just for Pen decoration */

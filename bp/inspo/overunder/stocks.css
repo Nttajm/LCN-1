@@ -228,19 +228,6 @@
 }
 
 
-.onlineDot-cont {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background-color: var(--lime);
-    animation: blink 1.6s linear infinite;
-}
 
 .lievshares {
     display: flex;
@@ -277,19 +264,7 @@
 
 
 
-@keyframes blink {
-    0% {
-        opacity: 0;
-    }
 
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
-}
 
 /* Fade-in and slide-up for new entries */
 @keyframes fadeInUp {
@@ -388,4 +363,15 @@
     font-size: 0.7rem;
     flex-direction: column;
     
+}
+
+#portfolio {
+    font-size: 3rem;
+    letter-spacing: -0.2rem;
+    color: rgba(187, 211, 233, 0.76);
+}
+
+.portfolio-cont span:nth-child(2) {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.438);
 }

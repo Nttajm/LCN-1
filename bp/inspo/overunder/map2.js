@@ -1,135 +1,115 @@
-var character = document.querySelector(".character");
-var map = document.querySelector(".map");
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getAnalytics,  } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-//start in the middle of the map
-var x = 90;
-var y = 34;
-var held_directions = []; //State of which arrow keys we are holding down
-var speed = 1; //How fast the character moves in pixels per frame
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-const placeCharacter = () => {
-   
-   var pixelSize = parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')
-   );
-   
-   const held_direction = held_directions[0];
-   if (held_direction) {
-      if (held_direction === directions.right) {x += speed;}
-      if (held_direction === directions.left) {x -= speed;}
-      if (held_direction === directions.down) {y += speed;}
-      if (held_direction === directions.up) {y -= speed;}
-      character.setAttribute("facing", held_direction);
-   }
-   character.setAttribute("walking", held_direction ? "true" : "false");
-   
-   //Limits (gives the illusion of walls)
-   var leftLimit = -8;
-   var rightLimit = (16 * 11)+8;
-   var topLimit = -8 + 32;
-   var bottomLimit = (16 * 7);
-   if (x < leftLimit) { x = leftLimit; }
-   if (x > rightLimit) { x = rightLimit; }
-   if (y < topLimit) { y = topLimit; }
-   if (y > bottomLimit) { y = bottomLimit; }
-   
-   
-   var camera_left = pixelSize * 66;
-   var camera_top = pixelSize * 42;
-   
-   map.style.transform = `translate3d( ${-x*pixelSize+camera_left}px, ${-y*pixelSize+camera_top}px, 0 )`;
-   character.style.transform = `translate3d( ${x*pixelSize}px, ${y*pixelSize}px, 0 )`;  
-}
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+   apiKey: "AIzaSyDkPsE0uD-1_V5_QfM-RhtaIviQlINW2DA",
+   authDomain: "lcntests.firebaseapp.com",
+   databaseURL: "https://lcntests-default-rtdb.firebaseio.com",
+   projectId: "lcntests",
+   storageBucket: "lcntests.firebasestorage.app",
+   messagingSenderId: "665856876392",
+   appId: "1:665856876392:web:c6274b52a9e90c3d6400dd",
+   measurementId: "G-1D5Z4GYNMT"
+ };
 
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+   const db = getDatabase(app)
 
-//Set up the game loop
-const step = () => {
-   placeCharacter();
-   window.requestAnimationFrame(() => {
-      step();
-   })
-}
-step(); //kick off the first step!
+    // Elements
+    // Select necessary DOM elements
+const character = document.querySelector('.character');
+const dpadButtons = document.querySelectorAll('.dpad-button');
+const gameArea = document.querySelector('.game-area');
 
-
-
-/* Direction key state */
+// Directions and corresponding deltas for movement
 const directions = {
-   up: "up",
-   down: "down",
-   left: "left",
-   right: "right",
-}
-const keys = {
-   38: directions.up,
-   37: directions.left,
-   39: directions.right,
-   40: directions.down,
-}
-document.addEventListener("keydown", (e) => {
-   var dir = keys[e.which];
-   if (dir && held_directions.indexOf(dir) === -1) {
-      held_directions.unshift(dir)
-   }
-})
+    up: { x: 0, y: -1 },
+    down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 },
+    right: { x: 1, y: 0 },
+};
 
-document.addEventListener("keyup", (e) => {
-   var dir = keys[e.which];
-   var index = held_directions.indexOf(dir);
-   if (index > -1) {
-      held_directions.splice(index, 1)
-   }
+// State to manage all players
+const players = {
+    player1: { x: 0, y: 0, facing: 'down', walking: false },
+    player2: { x: 3, y: 3, facing: 'down', walking: false },
+    // Add more players as needed
+};
+
+// Function to create player elements in the DOM
+function createPlayerElement(playerId) {
+    const player = document.createElement('div');
+    player.classList.add('character');
+    player.setAttribute('id', playerId);
+    gameArea.appendChild(player);
+}
+
+// Function to update all player positions
+function updatePlayers() {
+    for (const playerId in players) {
+        const playerData = players[playerId];
+        const playerElement = document.querySelector(`#${playerId}`);
+
+        // Update attributes and position
+        playerElement.setAttribute('facing', playerData.facing);
+        playerElement.setAttribute('walking', playerData.walking ? 'true' : 'false');
+        playerElement.style.transform = `translate(${playerData.x * 32}px, ${playerData.y * 32}px)`;
+    }
+}
+
+// Function to move a specific player
+function movePlayer(playerId, direction) {
+    const playerData = players[playerId];
+    const delta = directions[direction];
+
+    if (!delta) return; // Ignore invalid directions
+
+    // Update player position and state
+    playerData.x += delta.x;
+    playerData.y += delta.y;
+    playerData.facing = direction;
+    playerData.walking = true;
+
+    updatePlayers();
+
+    // Stop walking animation after a short delay
+    setTimeout(() => {
+        playerData.walking = false;
+        updatePlayers();
+    }, 200);
+}
+
+// Add keyboard controls for player1 (example setup)
+document.addEventListener('keydown', (event) => {
+    const keyMap = {
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        ArrowLeft: 'left',
+        ArrowRight: 'right',
+    };
+    const direction = keyMap[event.key];
+    if (direction) movePlayer('player1', direction);
 });
 
+// Add keyboard controls for player2 (example WASD setup)
+document.addEventListener('keydown', (event) => {
+    const keyMap = {
+        w: 'up',
+        s: 'down',
+        a: 'left',
+        d: 'right',
+    };
+    const direction = keyMap[event.key.toLowerCase()];
+    if (direction) movePlayer('player2', direction);
+});
 
-
-/* BONUS! Dpad functionality for mouse and touch */
-var isPressed = false;
-const removePressedAll = () => {
-   document.querySelectorAll(".dpad-button").forEach(d => {
-      d.classList.remove("pressed")
-   })
-}
-document.body.addEventListener("mousedown", () => {
-   console.log('mouse is down')
-   isPressed = true;
-})
-document.body.addEventListener("mouseup", () => {
-   console.log('mouse is up')
-   isPressed = false;
-   held_directions = [];
-   removePressedAll();
-})
-const handleDpadPress = (direction, click) => {   
-   if (click) {
-      isPressed = true;
-   }
-   held_directions = (isPressed) ? [direction] : []
-   
-   if (isPressed) {
-      removePressedAll();
-      document.querySelector(".dpad-"+direction).classList.add("pressed");
-   }
-}
-//Bind a ton of events for the dpad
-document.querySelector(".dpad-left").addEventListener("touchstart", (e) => handleDpadPress(directions.left, true));
-document.querySelector(".dpad-up").addEventListener("touchstart", (e) => handleDpadPress(directions.up, true));
-document.querySelector(".dpad-right").addEventListener("touchstart", (e) => handleDpadPress(directions.right, true));
-document.querySelector(".dpad-down").addEventListener("touchstart", (e) => handleDpadPress(directions.down, true));
-
-document.querySelector(".dpad-left").addEventListener("mousedown", (e) => handleDpadPress(directions.left, true));
-document.querySelector(".dpad-up").addEventListener("mousedown", (e) => handleDpadPress(directions.up, true));
-document.querySelector(".dpad-right").addEventListener("mousedown", (e) => handleDpadPress(directions.right, true));
-document.querySelector(".dpad-down").addEventListener("mousedown", (e) => handleDpadPress(directions.down, true));
-
-document.querySelector(".dpad-left").addEventListener("mouseover", (e) => handleDpadPress(directions.left));
-document.querySelector(".dpad-up").addEventListener("mouseover", (e) => handleDpadPress(directions.up));
-document.querySelector(".dpad-right").addEventListener("mouseover", (e) => handleDpadPress(directions.right));
-document.querySelector(".dpad-down").addEventListener("mouseover", (e) => handleDpadPress(directions.down));
-
-
-
-
-
-
-
+// Initialize players
+Object.keys(players).forEach(createPlayerElement);
+updatePlayers();
