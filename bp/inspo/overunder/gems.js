@@ -293,7 +293,7 @@ async function loose() {
     displayHearts();
     updateFb();
     updateStatsUI();
-    uiAndBalance(finalMultiplier * betAmount * -1);
+    uiAndBalance((finalMultiplier * betAmount * -1).toFixed(2))
 }
 
 function displayHearts() {
