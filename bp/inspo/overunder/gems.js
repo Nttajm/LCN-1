@@ -285,6 +285,7 @@ riskSelect.addEventListener('change', (event) => {
     resetMulti();
 });
 
+
 async function loose() {
     const finalMultiplier = calculateFinalMultiplier();
     await saveData();
@@ -293,6 +294,7 @@ async function loose() {
     displayHearts();
     updateFb();
     updateStatsUI();
+    resetMulti()
     uiAndBalance((finalMultiplier * betAmount * -1).toFixed(2))
 }
 
@@ -318,7 +320,6 @@ async function isabletoplay() {
         playBtn.classList.add('disabled');
         eachTile.forEach(tile => {
             tile.classList.add('disabled-tile');
-
         });
     }
 
