@@ -35,18 +35,6 @@ const db = getFirestore(app);
 const authGlobal = onAuthStateChanged(auth, (user) => { return user; });
 
 
-// export async function everything() {
-//   onAuthStateChanged(auth, async (user) => {
-//     if (user) {
-//       await initRank();
-//       await initKeys();
-//       await calculateRankOnAntiC();
-//       await updateFb();
-//       await getFb();
-//     }
-//   });
-// }
-
 
 calculateRankOnAntiC();
 
@@ -243,6 +231,12 @@ async function calculateRankOnAntiC() {
 
     // Define thresholds and corresponding ranks
     const rankThresholds = [
+      { threshold: 5500, rank: 4500 },
+      { threshold: 5100, rank: 4000 },
+      { threshold: 4800, rank: 3500 },
+      { threshold: 4200, rank: 3000 },
+      { threshold: 3900, rank: 2500 },
+      { threshold: 3300, rank: 2000 },
       { threshold: 3000, rank: 1500 },
       { threshold: 2700, rank: 1200 },
       { threshold: 2000, rank: 800 },
@@ -334,12 +328,11 @@ const profileDiv = document.querySelector('.profile');
 // Helper function to update user data in Firestore and localStorage
 export async function getFb() {
   onAuthStateChanged(auth, async (user) => {
-    const profileImg = document.querySelector('#google-auth-pfp');
-  checkIfisBanned();
+
   if (!user) {
     console.error("User not signed in -- getFb");
     return;
-  }
+  }   
 
   updateStatsUI();
   const userRef = doc(db, 'users', user.uid);
@@ -363,6 +356,9 @@ export async function getFb() {
   }
   });
 }
+
+
+
 const dailyDiv = document.getElementById('daily-reward')
 // different handling for auth state change
 onAuthStateChanged(auth, () => {
@@ -479,26 +475,26 @@ function isUserSignedIn() {
 export async function checkIfisBanned() {
 
 
-setInterval(await checkLoans, 2000);
+setInterval(await checkLoans, 6000);
   const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
-  const betatesters = [
-    'joelmulonde81@gmail.com',
-    'nlfjoelalt@gmail.com',
-    `ironiclly.vf@gmail.com`,
-    `joel.mulonde@crpusd.org`,
-    'jordan.herrera@crpusd.org',
-    'harrison.matticola@crpusd.org',
-    'acebrodhunludke@gmail.com',
-    'dagan.prusky@crpusd.org',
-    'lucca.chen@crpusd.org',    
-    `d.angeleshernandez@crpusd.org`,
-  ]
-  const currentUserEmail =  userData.email;
+  // const betatesters = [
+  //   'joelmulonde81@gmail.com',
+  //   'nlfjoelalt@gmail.com',
+  //   `ironiclly.vf@gmail.com`,
+  //   `joel.mulonde@crpusd.org`,
+  //   'jordan.herrera@crpusd.org',
+  //   'harrison.matticola@crpusd.org',
+  //   'acebrodhunludke@gmail.com',
+  //   'dagan.prusky@crpusd.org',
+  //   'lucca.chen@crpusd.org',    
+  //   `d.angeleshernandez@crpusd.org`,
+  // ]
+  // const currentUserEmail =  userData.email;
 
-  if (!betatesters.includes(currentUserEmail)) {
-    window.location.href = 'https://lcnjoel.com/ouths/info.html';
-  }
+  // if (!betatesters.includes(currentUserEmail)) {
+  //   window.location.href = 'https://lcnjoel.com/ouths/info.html';
+  // }
 
   onAuthStateChanged(auth, async (user) => {
   if (!user.uid) {

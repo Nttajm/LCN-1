@@ -22,7 +22,7 @@ export async function getKeys() {
     userBets.forEach(userBet => {
         const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
         if (matchingBet) {
-            keys += (matchingBet.result === userBet.option) ? 1 : 0;
+            keys += (matchingBet.result === userBet.option) ? 3 : 0;
         }
     });
     return keys + await getFirebaseKeys();

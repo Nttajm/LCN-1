@@ -11,12 +11,11 @@ import {
   matchingBetData,
   uiAndBalance,
 } from './global.js';
-import { updateFb } from './firebaseconfig.js';
-import { getFb, addKeys } from './firebaseconfig.js';
+import { getFb, updateFb } from './firebaseconfig.js';
 import { formatDateTime, saveData } from './global.js';
 
 antiC();
- getFb();
+
 
 const hackersMessage = localStorage.getItem('reallyDude') || '';
 if (!hackersMessage) {
@@ -30,9 +29,9 @@ if (!iKnow) {
 }
 
 
-let userData = JSON.parse(localStorage.getItem('userData')) || {};
+const userData = JSON.parse(localStorage.getItem('userData')) || {};
 
-let balance = 0;
+let balance = checkBetsAndUpdateBalance();
 const balanceOutput = document.querySelector('.balance');
 let container = document.querySelector('.sec'); 
 const multi = 2.5;
@@ -117,7 +116,6 @@ if (balance < 0) {
 
 function renderBets() {
   bets = filterBets(); // Re-filter bets based on the currently selected option
-
   checkBetsAndUpdateBalance();
   container.innerHTML = '';
 
@@ -439,133 +437,133 @@ window.location.href = 'https://bp/inspo/overunder/leaders.html';
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
-  let currentParlays = 0;
+// document.addEventListener('DOMContentLoaded', () => {
+//   let currentParlays = 0;
 
-  const parlayButtons = document.querySelectorAll('.mode');
-  const betDivs = document.querySelectorAll('.bet');
-  const parlayInfo = document.querySelector('.parlays-cont');
-  const seeParlays = document.querySelector('.see-parlays'); 
-  const seeParlaysDiv = document.querySelector('.allParlays-cont');
-  let seeParlaysDivState = false;
+//   const parlayButtons = document.querySelectorAll('.mode');
+//   const betDivs = document.querySelectorAll('.bet');
+//   const parlayInfo = document.querySelector('.parlays-cont');
+//   const seeParlays = document.querySelector('.see-parlays'); 
+//   const seeParlaysDiv = document.querySelector('.allParlays-cont');
+//   let seeParlaysDivState = false;
 
-  // Function to update parlay info display
-  function updateParlayInfoDisplay() {
-    if (parlayInfo) {
-      if (parlayButtons[0].classList.contains('on')) {
-        parlayInfo.style.display = 'block';
-        if (seeParlays) {
-          if (currentParlays > 1) {
-            seeParlays.innerHTML = `See ${currentParlays} parlays selected`;
-            seeParlays.classList.remove('disabled');
-          } else {
-            seeParlays.innerHTML = 'Select at least 2 parlays';
-            seeParlays.classList.add('disabled');
-          }
-        }
-      } else {
-        parlayInfo.style.display = 'none';
-      }
-    }
-  }
+//   // Function to update parlay info display
+//   function updateParlayInfoDisplay() {
+//     if (parlayInfo) {
+//       if (parlayButtons[0].classList.contains('on')) {
+//         parlayInfo.style.display = 'block';
+//         if (seeParlays) {
+//           if (currentParlays > 1) {
+//             seeParlays.innerHTML = `See ${currentParlays} parlays selected`;
+//             seeParlays.classList.remove('disabled');
+//           } else {
+//             seeParlays.innerHTML = 'Select at least 2 parlays';
+//             seeParlays.classList.add('disabled');
+//           }
+//         }
+//       } else {
+//         parlayInfo.style.display = 'none';
+//       }
+//     }
+//   }
 
-  // Toggle visibility of allParlays-cont and update content
-  function handleSeeParlaysDiv() {
-    if (seeParlaysDiv) {
-      seeParlaysDiv.style.display = seeParlaysDivState ? 'flex' : 'none';
+//   // Toggle visibility of allParlays-cont and update content
+//   function handleSeeParlaysDiv() {
+//     if (seeParlaysDiv) {
+//       seeParlaysDiv.style.display = seeParlaysDivState ? 'flex' : 'none';
       
-      if (seeParlaysDivState) {
-        const pinfo = document.querySelector('.info-section');
-        pinfo.innerHTML = `
-          <h1>Your Parlays</h1>
-          ${showParlays()}
-        `;
-      }
-    }
-  }
+//       if (seeParlaysDivState) {
+//         const pinfo = document.querySelector('.info-section');
+//         pinfo.innerHTML = `
+//           <h1>Your Parlays</h1>
+//           ${showParlays()}
+//         `;
+//       }
+//     }
+//   }
 
-  // Function to generate HTML for selected parlays
-  function showParlays() {
-    const selectedBets = document.querySelectorAll('.bet.parlay.selected');
-    let html = '';
+//   // Function to generate HTML for selected parlays
+//   function showParlays() {
+//     const selectedBets = document.querySelectorAll('.bet.parlay.selected');
+//     let html = '';
 
-    var parlayPayout = 0;
+//     var parlayPayout = 0;
 
 
-    selectedBets.forEach(bet => {
-      const betId = bet.getAttribute('data-meta');
-      const matchingBet = bets.find(b => b.id === betId);
-      if (matchingBet) {
-        html += `
-          <div class="unaparlay">
-            <div class="layer-1">
-              <span class="typeSport">${matchingBet.sport}</span>
-              <span class="who">${matchingBet.techTeam} vs ${matchingBet.against}</span>
-              <span class="amount ${matchingBet.option}">${matchingBet.amount}</span>
-            </div>
-            <div class="layer-2">
-              <span>Payout = $${matchingBet.price}</span>
-            </div>
-          </div>
-        `;
+//     selectedBets.forEach(bet => {
+//       const betId = bet.getAttribute('data-meta');
+//       const matchingBet = bets.find(b => b.id === betId);
+//       if (matchingBet) {
+//         html += `
+//           <div class="unaparlay">
+//             <div class="layer-1">
+//               <span class="typeSport">${matchingBet.sport}</span>
+//               <span class="who">${matchingBet.techTeam} vs ${matchingBet.against}</span>
+//               <span class="amount ${matchingBet.option}">${matchingBet.amount}</span>
+//             </div>
+//             <div class="layer-2">
+//               <span>Payout = $${matchingBet.price}</span>
+//             </div>
+//           </div>
+//         `;
 
-        parlayPayout += matchingBet.price * multi;
+//         parlayPayout += matchingBet.price * multi;
         
-      }
-    });
+//       }
+//     });
 
-    return html || '<p>No parlays selected</p>';
-  }
+//     return html || '<p>No parlays selected</p>';
+//   }
 
-  // Add click event to seeParlays
-  if (seeParlays) {
-    seeParlays.addEventListener('click', () => {
-      if (currentParlays > 1) { // Only allow toggle if enough parlays are selected
-        seeParlaysDivState = !seeParlaysDivState;
-        handleSeeParlaysDiv();
-      }
-    });
-  }
+//   // Add click event to seeParlays
+//   if (seeParlays) {
+//     seeParlays.addEventListener('click', () => {
+//       if (currentParlays > 1) { // Only allow toggle if enough parlays are selected
+//         seeParlaysDivState = !seeParlaysDivState;
+//         handleSeeParlaysDiv();
+//       }
+//     });
+//   }
 
-  // Update selected parlay count
-  function updateSelectedParlays() {
-    currentParlays = document.querySelectorAll('.bet.parlay.selected').length;
-    updateParlayInfoDisplay();
-  }
+//   // Update selected parlay count
+//   function updateSelectedParlays() {
+//     currentParlays = document.querySelectorAll('.bet.parlay.selected').length;
+//     updateParlayInfoDisplay();
+//   }
 
-  // Toggle parlay mode for each button and update display
-  parlayButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      button.classList.toggle('on');
-      betDivs.forEach(div => {
-        if (!div.classList.contains('ended')) {
-          div.classList.toggle('parlay');
-        }
-      });
+//   // Toggle parlay mode for each button and update display
+//   parlayButtons.forEach(button => {
+//     button.addEventListener('click', () => {
+//       button.classList.toggle('on');
+//       betDivs.forEach(div => {
+//         if (!div.classList.contains('ended')) {
+//           div.classList.toggle('parlay');
+//         }
+//       });
 
-      if (!button.classList.contains('on')) {
-        betDivs.forEach(div => div.classList.remove('selected'));
-        currentParlays = 0;
-      }
+//       if (!button.classList.contains('on')) {
+//         betDivs.forEach(div => div.classList.remove('selected'));
+//         currentParlays = 0;
+//       }
       
-      updateParlayInfoDisplay();
-    });
-  });
+//       updateParlayInfoDisplay();
+//     });
+//   });
 
-  // Toggle selected class on bet divs and update parlay count
-  betDivs.forEach(div => {
-    div.addEventListener('click', () => {
-      if (div.classList.contains('parlay')) {
-        div.classList.toggle('selected');
-        updateSelectedParlays();
-      }
-    });
-  });
+//   // Toggle selected class on bet divs and update parlay count
+//   betDivs.forEach(div => {
+//     div.addEventListener('click', () => {
+//       if (div.classList.contains('parlay')) {
+//         div.classList.toggle('selected');
+//         updateSelectedParlays();
+//       }
+//     });
+//   });
 
-  // Initial display setup
-  updateParlayInfoDisplay();
-  handleSeeParlaysDiv();
-});
+//   // Initial display setup
+//   updateParlayInfoDisplay();
+//   handleSeeParlaysDiv();
+// });
 window.addEventListener('load', () => {
   const dailyBtn = document.querySelector('#daily-25');
   const frozen = document.querySelector('.frozen');
@@ -596,10 +594,9 @@ window.addEventListener('load', () => {
     // Start countdown
     startCountdown();
   };
-
+  
   // Countdown function to update the button's innerHTML with remaining time
   const startCountdown = () => {
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const now = new Date().getTime();
     const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
     const remainingTime = userData.dailyTime + claimInterval - now;
@@ -625,7 +622,6 @@ window.addEventListener('load', () => {
   };
 
   // Initial setup to check if daily reward can be claimed
-  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
   const now = new Date().getTime();
   const claimInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
@@ -638,13 +634,6 @@ window.addEventListener('load', () => {
   }
 });
 
-
-
-
-
-const loginbtn = document.querySelector('.googleButton');
-
-
-
-
-
+setTimeout( async () => {
+  await getFb();
+} , 110);
