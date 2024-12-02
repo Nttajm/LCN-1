@@ -12,6 +12,8 @@ import {
 } from './global.js';
 
 import { checkIfisBanned, antiC } from "./firebaseconfig.js";
+import { stockManual, indexes, globalSto } from './stocks-array.js';
+
 
 checkIfisBanned();
 antiC();    
@@ -20,40 +22,6 @@ openSite()
 // userData.userStocks = []
 // saveData();
 
-const indexes = [
-    {
-        name: 'MTMY',
-        data: combineStocksAverage('Matt Ortiz', 'Mylander'),
-        sub: 'MATMYL',
-        id: 'MTMY',
-        basedOn: `Matt Ortiz and Mylander`,
-    },
-    {
-        name: 'RPTR',
-        data: combineStocksAverage('Raphael', 'Torre'),
-        sub: 'RPTR',
-        id: 'RPTR',
-        basedOn: `Raphael and Torre`,
-    },
-    {
-        name: 'FRZE',
-        data: combineStocksAverage('FreeBairn', 'Zwing Coin'),
-        sub: 'FRZE',
-        id: 'FRZE',
-        basedOn: `Story tellers`,
-    },
-    {
-        name: 'BRZE',
-        data: combineStocksAverage('Burks', 'Zwing Coin'),
-        sub: 'BRZE',
-        id: 'BRZE',
-        basedOn: `Yapfest`,
-    },
-
-];
-
-
-const globalSto = 0.0002;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
@@ -78,7 +46,6 @@ const db = getFirestore(app);
 
 const usersCollectionRef = collection(db, 'users');
 
-import { stockManual } from './stocks-array.js';
 
 import { updateFb, getFb } from './firebaseconfig.js';
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -92,21 +59,6 @@ getFb();
 let currentSelectedStock;
 
 
-
-function combineStocksAverage(stock1, stock2) {
-    const stock1Data = stockManual.find(stock => stock.name === stock1);
-    const stock2Data = stockManual.find(stock => stock.name === stock2);
-    if (stock1Data && stock2Data) {
-        const combinedData = stock1Data.data.map((value, index) => {
-            return (value + stock2Data.data[index]) / 2;
-        });
-        return combinedData;
-    } else {
-        throw new Error('One or both stocks not found');
-    }
-}
-
-
 function _(id) {
     return document.getElementById(id);
 }
@@ -116,14 +68,16 @@ function cl(classelem) {
 } 
 
 const usrnamediv = _('username');
-usrnamediv.innerHTML = userData.username || '???';
+if (usrnamediv) {
+    usrnamediv.innerHTML = userData.username || '???';
+}
 
 checkBetsAndUpdateBalance();
 getFb();
 
 
 
-function getLastPrice(stockName) {
+export function getLastPrice(stockName) {
     switch (stockName) {
         case 'Soccer':
             return calcStock(soccerBets)[calcStock(soccerBets).length - 1];
@@ -147,7 +101,7 @@ function getAveragePrice(bets) {
 }
 
 
-function calcStock(typeBet) {
+export function calcStock(typeBet) {
     let stockAdder = getAveragePrice(typeBet) * 0.2;
     let stockSubtracter = getAveragePrice(typeBet) * -0.1;
     let averagePrice = parseFloat(getAveragePrice(typeBet)); // Convert string to number
@@ -178,7 +132,12 @@ function writeStock(typeBet) {
         displayTopShareHolders();
     }, 100);
     currentSelectedStock = typeBet;
-    const ctx = document.getElementById('myLineChart').getContext('2d');
+    const chartElement = document.getElementById('myLineChart');
+    if (!chartElement) {
+        return;
+    }
+    const ctx = chartElement.getContext('2d');
+
     typeBet = typeBet.reverse()
     // Check if it's manual stock data (array of numbers) or sports bet data (array of objects)
     if (Array.isArray(typeBet) && typeof typeBet[0] === 'number') {
@@ -218,7 +177,7 @@ function writeStock(typeBet) {
 
         
 
-        const firstPrice = typeBet[typeBet.length - 7];
+        const firstPrice = typeBet[typeBet.length - 11];
 
         const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
         _('js-up').innerHTML = (percentChange >= 0 ? '+' : '') + percentChange.toFixed(2) + '%';
@@ -466,7 +425,6 @@ buyAmountSeletes.forEach(span => {
         clearSelection3();
         span.classList.add('selected');
         buyAmount = span.dataset.amount;
-        console.log(buyAmount);
     });
 });
 
@@ -554,7 +512,7 @@ async function displayUserStocks() {
                     </div>
                 `;
             }
-        }); // Close the forEach loop
+        }); // Close the forEach loop 
 
         // Call displayPortfolio after the loop
         displayPortfolio();
@@ -592,14 +550,16 @@ function displayPortfolio() {
         let priceWshares = (lastPrice + parseFloat(shareSub)).toFixed(2);
         portfolioValue += stock.amount * priceWshares;
     });
-    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+    portfolioDiv.innerHTML = `$${portfolioValue}`;
 }
 
 
 displayUserStocks();
 
 const usernameDiv = document.getElementById('username');
-usernameDiv.innerHTML = userData.username || '???';
+if (usernameDiv) {
+    usernameDiv.innerHTML = userData.username || '???';
+}
 const livesharesCollectionRef = collection(db, 'liveshares');
 let lastDisplayedTimestamp = Date.now();
 
@@ -738,7 +698,41 @@ function sell() {
     }
 }
 
-// Attach event listeners
+
+function buyMax() {
+    let currentPrice = parseFloat(_('js-price').textContent.replace(/[^0-9.-]+/g, ''));
+    let currentMoney = checkBetsAndUpdateBalance();
+    let stockName = _('js-name').textContent;
+
+    let maxBuyAmount = Math.floor(currentMoney / currentPrice);
+    if (maxBuyAmount > 0) {
+        let originalBuyAmount = buyAmount;
+        buyAmount = maxBuyAmount;
+        buy();
+        buyAmount = originalBuyAmount;
+    } else {
+        message('Insufficient funds to complete purchase', 'error');
+    }
+}
+
+function sellMax() {
+    updatePriceWsharesElem();
+    displayShareAmount();
+    writeStock(currentSelectedStock);
+    let stockName = _('js-name').textContent;
+    let stock = userData.userStocks.find(s => s.name === stockName);
+    if (stock && stock.amount > 0) {
+        let originalBuyAmount = buyAmount;
+        buyAmount = stock.amount;
+        sell();
+        buyAmount = originalBuyAmount;
+    } else {
+        message('Insufficient shares to complete sale', 'error');
+    }
+}
+
+_('buy-max').addEventListener('click', buyMax);
+_('sell-max').addEventListener('click', sellMax);
 _('buy').addEventListener('click', buy);
 _('sell').addEventListener('click', sell);
 
@@ -749,6 +743,7 @@ let showMore = false;
 
 async function renderLeaders() {
     const leaderElem = document.querySelector('.leaders-sec');
+
     leaderElem.innerHTML = ''; // Clear current leaders
 
     try {
@@ -979,7 +974,9 @@ async function displayLargestStocks() {
 displayLargestStocks();
 async function displayTopShareHolders() {
     const topShareHoldersDiv = document.getElementById('top-shareholders');
-    topShareHoldersDiv.innerHTML = '';
+    if (topShareHoldersDiv) {
+        topShareHoldersDiv.innerHTML = '';
+    }
 
     let stockName = _('js-name').textContent;
     let totalShares = 0;

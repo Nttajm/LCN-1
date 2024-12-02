@@ -129,3 +129,7 @@ padding-top: 30px;
     font-size: 1.3rem;
     font-weight: 600;
 }
+
+.img-sec {
+    position: absolute;
+}

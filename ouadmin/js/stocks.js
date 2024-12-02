@@ -33,7 +33,9 @@ const stocksRef = collection(db, 'stocks', 'DWqS1ePzNP7QhulUdyxl', 'stocks');
 async function renderStocks() {
     const querySnapshot = await getDocs(stocksRef);
     const stocksContainer = document.querySelector('.stocks');
-    stocksContainer.innerHTML = ''; // Clear current DOM
+    if (!stocksContainer) return;
+    // Clear current DOM
+    
 
     querySnapshot.forEach((doc) => {
         const stock = doc.data();
@@ -129,10 +131,10 @@ async function getStocksData() {
         return querySnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-            data: (doc.data().data || []).slice(-7), // Get the latest 7 items
+            data: (doc.data().data || []).slice(-13), // Get the latest 7 items
         }));
     } catch (error) {
-        console.error("Error fetching stocks:", error);
+        console.error("Error fetching stocks --getstocks:", error);
         return [];
     }
 }

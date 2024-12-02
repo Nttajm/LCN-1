@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="/bp/inspo/overunder/map.css">
 </head>
 <body>
+    <div class="snow">
+        <img src="/bp/EE/assets/ouths/snow02.gif" alt="">
+      </div>
     <div class="conter">
         <img src="../bp/EE/assets/ouths/graph-paper-grid-png-4.png" alt="" class="grid">
     <div class="news-cont card gwl-div">
@@ -18,16 +21,16 @@
                 <span class="disc">
                     BUY stuff from the marketplace!!!
                 </span>
-                <img src="/bp/EE/assets/ouths//proof-3.JPG" alt="alert">
+                <img src="/bp/EE/assets/ouths/proof-4.JPG" alt="alert">
             </div>
-
             <div class="news" id="alert">
                 <span class="disc">
-                    Vote for what feutures you want after thanksgiving in the discord.
+                    Rank up by interacting with the OU site, and earn 3 keys each time you win a bet.
                 </span>
-                <a href="https://discord.gg/gbETWndS" class="linker">Discord</a>
-                <img src="/bp/EE/assets/ouths/discord.jpg" alt="alert">
+                <img src="/bp/EE/assets/ouths/keysrank.png" alt="alert">
             </div>
+
+
         </div>
         <!-- <div class="vote-sec">
             <div class="vote">
@@ -56,6 +59,9 @@
             <div class="booer">
                 <span class="boo-name">Jacob Khoury</span>                
             </div>
+            <div class="booer">
+                <span class="boo-name">Daniel Tanguay</span>                
+            </div>
         </div>
     </div>
 
@@ -65,26 +71,41 @@
             <img src="/bp/EE/assets/ouths/stock.png" alt="">
 
         </div>
-        <div class="Casino linkthing mi dn" data-link="casino.html">
+        <div class="Casino linkthing mi R" data-link="casino.html">
             <span class="linker">Casino</span>
-
             <img src="/bp/EE/assets/ouths/pngtree-many-exquisite-diamonds-png-image_9099718.png" alt="">
-<div class="overlay-message">
-                <!-- <span>Element(s) cant be used in beta version</span> -->
-        
-              </div>
+                
+            <div class="overlay-message">
+                <span>Is being fixed</span>
+            </div> 
         </div>
         <div class="Marketplace linkthing mi " data-link="marketplace.html">
             <span class="linker">Marketplace</span>
             <img src="/bp/EE/assets/ouths/mark.png" alt="">
         </div>
-        <!-- <div class="bank  mi">
+        <div class="bank linkthing mi" data-link="bank.html">
             <span class="linker">Bank</span>
             <img src="/bp/EE/assets/ouths/bank.jpg" alt="">
         </div>
-        <div class="bank  mi">
+        <div class="network linkthing mi" data-link="network.html">
             <span class="linker">NetWork</span>
             <img src="/bp/EE/assets/ouths/network.webp" alt="">
+        </div>
+        <div class="bank  mi R" data-link="network.html">
+            <span class="linker">Missions</span>
+            <img src="/bp/EE/assets/ouths/mission.avif" alt="">
+
+            <div class="overlay-message">
+                <span>Coming Soon</span>
+            </div> 
+        </div>
+        <div class="bank linkthing  mi" data-link="redeem.html">
+            <span class="linker">Redeem</span>
+            <img src="/bp/EE/assets/ouths/scan.png" alt="">
+        </div>
+        <!-- <div class="bank  mi" data-link="network.html">
+            <span class="linker">Trade</span>
+            <img src="/bp/EE/assets/ouths/trade.webp" alt="">
         </div> -->
     </div>
     </div>
@@ -112,13 +133,12 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     const allLinkthings = document.querySelectorAll('.linkthing');
-allLinkthings.forEach(element => {
-    element.addEventListener('click', (event) => {
-        const link = element.dataset.link;
-        window.location.href = link;
+    allLinkthings.forEach(element => {
+        element.addEventListener('click', (event) => {
+            const link = element.dataset.link;
+            window.location.href = link;
+        });
     });
-});
 </script>
 <script src="/bp/inspo/overunder/global.js" type="module"></script>
-<script src="/bp/inspo/overunder/map.js" type="module"></script>
 </html>

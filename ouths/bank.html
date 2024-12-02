@@ -3,34 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bank Loan Game</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Document</title>
+  <link rel="stylesheet" href="/bp/inspo/overunder/ou.css">
+  <link rel="stylesheet" href="/css/standard.css">
+  <link rel="stylesheet" href="/bp/inspo/overunder/bank.css">
 </head>
 <body>
-  <div class="game-container">
-    <h1>Bank Loan Game</h1>
-    <div class="balance">
-      <p>Balance: $<span id="balance">1000</span></p>
+  <div class="img-sec" data-linker="map.html">
+    <img src="/bp/EE/assets/ouths/ou-logo-white-back (1).png" alt="logo">
+  </div>
+<div class="pageTitle Network">
+    <h2>Bank</h2>        
+</div>
+<div class="conter">
+  <div class="multi-tag stats-main">
+    <div class="">
+      <span id="username">Loading</span>
     </div>
-    <div class="loan-section">
-      <label for="loan-amount">Loan Amount:</label>
-      <input type="number" id="loan-amount" min="1" placeholder="Enter loan amount">
-      <button id="take-loan-btn">Take Loan</button>
+    <div class="stats" id="js-stats">
+      <span class="balance money">$loading...</span>
     </div>
-    <div class="loan-info">
-      <p>Loan Due In: <span id="loan-timer">1:00:00</span></p>
-      <p>Loan Amount: $<span id="loan-amount-display">0</span></p>
+  </div>
+  <div class="notice">
+    <img src="/bp/EE/assets/ouths/info-icono.png" alt="">
+    <span>Unlike a real bank, you will be charged immdietly with no minimum amount payment when due!</span>
+  </div>
+  <div class="multi-tag-2">
+    <h3>My loans</h3>
+    <div class="sepa"></div>
+    <div class="loans" id="my-loans">
+      <div class="loan">
+        <div class="loan-info">
+          <img src="/bp/EE/assets/ouths/fi-aid.png" alt="">
+          <div>
+            <span>Pay</span> <span class="bold">$870</span> by <span class="bold">Saturday 12:30pm</span>
+          </div>
+        </div>
+        <div class="paynow">
+          <button>Pay now</button>
+        </div>
+      </div>
     </div>
-    <div class="repayment-section">
-      <label for="repayment-amount">Repayment Amount:</label>
-      <input type="number" id="repayment-amount" min="1" placeholder="Enter repayment amount">
-      <button id="pay-loan-btn">Pay Loan</button>
-    </div>
-    <div class="message">
-      <p id="game-message"></p>
+  </div>
+  <div class="bank-cont">
+    <div class="bank">
+      <div class="bank-top fl-r-to-c g-10">
+        <span>Loading</span>
+      </div>
+      <div class="sepa"></div>
+        <div class="infos">
+          loading
+        </div>     
     </div>
   </div>
 
-  <script src="script.js"></script>
+</div>
 </body>
+<script src="/bp/inspo/overunder/bank.js" type="module"></script> 
 </html>

@@ -25,6 +25,8 @@ const userData = JSON.parse(localStorage.getItem('userData'));
 const adminsEmails = [
     'joelmulonde81@gmail.com',
     'nlfjoelalt@gmail.com',
+    `ironiclly.vf@gmail.com`,
+    `joel.mulonde@crpusd.org`,
     'jordan.herrera@crpusd.org',
     'harrison.matticola@crpusd.org',
     'acebrodhunludke@gmail.com',

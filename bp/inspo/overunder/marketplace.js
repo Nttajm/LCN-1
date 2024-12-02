@@ -33,18 +33,34 @@ const balanceElem = document.querySelector('.balance.money');
 balanceElem.textContent = `$${checkBetsAndUpdateBalance().toFixed(2)}`;
 const marketplace = [
     {
-        name: 'Arizona',
-        price: 3800,
-        left: '1',
-        img: 'mk-arizona.jpg'
+        name: '+10 keys',
+        price: 3,
+        left: 'infinit',
+        img: 'key.png',
+        customShowForm: 'See discord > #market-place.',
+        real: true
     },
     {
-        name: 'Overunder starter pack: $3800 + Free style',
+        name: 'Ultimate starter pack: $3800 + Free style + 5 keys + 300 rank',
+        price: 7,
+        left: 'infinit',
+        img: 'header.png',
+        customShowForm: 'See discord > #market-place.',
+        real: true
+    },
+    {
+        name: 'Overunder starter pack: $800 + Free style + 40 free shares of dev choice',
         price: 5,
-        left: '',
-        img: 'ou-logo-white.png',
+        left: 'infinit',
+        img: 'header.png',
         customShowForm: 'meet joel or any moderator.',
         real: true
+    },
+    {
+        name: 'Arizona',
+        price: 19800,
+        left: '1',
+        img: 'mk-arizona.jpg'
     },
     {
         name: 'Glow in the dark',

@@ -6,6 +6,7 @@ let clicked = 0;
 const playmessage = $('.caniplay');
 let betAmount = 10;
 
+
 import {
     checkBetsAndUpdateBalance,
     saveData,
@@ -15,15 +16,23 @@ import {
     updateBalanceUI,
     balanceAdder,
     updateBalanceAdder,
+    updateStatsUI,
     uiAndBalance,
     gameData,
     heartReturner,
     aWin,
+    getKeys,
 } from './global.js';
 
+import { rankUi, getFb, updateFb, fKeysAdder, addKeys } from './firebaseconfig.js';
+import { initGame, getGameLives, looseLife } from './casinoconfig.js';
 
+await initGame('gems');
+
+getFb();
 
 checkBetsAndUpdateBalance();
+await updateStatsUI();
 displayUserInfo();
 
 if (!gameData.gems) {
@@ -33,7 +42,7 @@ if (!gameData.gems) {
     localStorage.setItem('gameData', JSON.stringify(gameData));
 }
 
-let currentGameLives = gameData.gems.lives;
+let currentGameLives = await getGameLives('gems');
 
 const gameBoardElement = document.getElementById('game-board');
 const statusMessageElement = document.getElementById('status-message');
@@ -66,7 +75,7 @@ function createBoard() {
     renderBoard();
 }
 
-function renderBoard() {
+async function renderBoard() {
     gameBoardElement.innerHTML = '';
     for (let i = 0; i < boardSize; i++) {
         for (let j = 0; j < boardSize; j++) {
@@ -83,6 +92,7 @@ function renderBoard() {
                 }
             }
 
+
             tileElement.addEventListener('click', () => {
                 if (!board[i][j].revealed) {
                     revealTile(i, j);
@@ -91,7 +101,6 @@ function renderBoard() {
                         cashOutBtn.classList.remove('disabled');
                     }
                     clicked++;
-                    console.log(clicked);
                 }
             });
 
@@ -100,7 +109,7 @@ function renderBoard() {
     }
 }
 
-function revealTile(x, y) {
+async function revealTile(x, y) {
     if (gameOver || board[x][y].revealed) return;
 
     board[x][y].revealed = true;
@@ -111,24 +120,27 @@ function revealTile(x, y) {
         revealAllTiles();
         playmessage.addClass('fallDown');
         playmessage.removeClass('goUp');
+        const finalMultiplier = calculateFinalMultiplier();
         playmessage.html(`
             <div class="card">
-      <div class="title">
-        You hit a mine!
-      </div>
-      <div class="stats-i">
-        <div class="stat fl-ai">
-          <span></span>
-          <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
-        </div>
-        <span class="stat">left</span>
-      </div>
-      <div class="obj">
-
-      </div>
-      <button class="icon-xl" id="playAgin">Play Again</button>
-    </div>
-            `);
+            <div class="title">
+                You hit a mine!
+            </div>
+            <div class="stats-i fl-c fl-ai">
+                <div class="stat fl-ai">
+                <span>${await getKeys()}</span>
+                <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+                </div>
+                <div class="stat fl-ai">
+                ${heartReturner(currentGameLives - 1 || 0)}
+                </div>
+            </div>
+            <div class="obj">
+                you lost $${(finalMultiplier * betAmount).toFixed(2)}
+            </div>
+            <button class="icon-xl" id="playAgin" ${!(await isabletoplay()) ? `disabled` : ``}>Play Again</button>
+            </div>
+        `);
 
         
     } else {
@@ -153,17 +165,18 @@ resetButton.addEventListener('click', () => {
 });
 
 createBoard();
-
 let multi = 1; 
 const timers = document.getElementById('timers');
 
 const cashOutBtn = document.getElementById('cashout');
 
 function addMulti() {
-    if (mineCount === 5)  {
+    if (mineCount === 6)  {
         multi += 0.1;
     } else if (mineCount === 8) {
         multi += 0.15;
+    } else if (mineCount === 10) {
+        multi += 0.3;
     }
     multi = parseFloat(multi.toFixed(2)); // Ensure one decimal place
     // Add new multiplier span
@@ -194,7 +207,7 @@ function resetMulti() {
 }
 
 function calculateFinalMultiplier() {
-    return multi;
+    return Array.from(timers.children).reduce((acc, span) => acc * parseFloat(span.textContent), 1);
 }
 
 function cashOut() {
@@ -239,16 +252,17 @@ const playBtn = document.getElementById('play');
 playBtn.addEventListener('click', play);
 
 playmessage.addClass('fallDown');
-
 const changeBetBtn = document.getElementById('changeBetBtn');
 changeBetBtn.addEventListener('click', () => {
     const betInput = document.getElementById('betAmountInput');
     const newBetAmount = parseFloat(betInput.value);
-    if (!isNaN(newBetAmount) && newBetAmount > 0) {
+    const balance = checkBetsAndUpdateBalance();
+    if (!isNaN(newBetAmount) && newBetAmount > 0 && newBetAmount <= balance) {
         betAmount = newBetAmount;
         betInput.classList.remove('stat-error-border');
         refresh();
         createBoard();
+        resetMulti();
     } else {
         betInput.classList.add('stat-error-border');
     }
@@ -271,31 +285,45 @@ riskSelect.addEventListener('change', (event) => {
     resetMulti();
 });
 
-function loose() {
-    gameData.gems.lives--;
-    currentGameLives = gameData.gems.lives;
-    saveData();
+
+async function loose() {
+    const finalMultiplier = calculateFinalMultiplier();
+    await saveData();
+    await looseLife('gems');
+    currentGameLives = await getGameLives('gems');
     displayHearts();
-    if (gameData.gems.lives > 0) {
-        if (!userData.keysAdder) {
-            userData.keysAdder = 0;
-        } else {
-            userData.keysAdder--;
-            saveData();
-            console.log('no keys adder');
-            if (userData.keysAdder > 0) {
-                gameData.gems.lives = 5;
-                saveData();
-            }
-        }
-    }
+    updateFb();
+    updateStatsUI();
+    resetMulti()
+    uiAndBalance((finalMultiplier * betAmount * -1).toFixed(2))
 }
-
-
 
 function displayHearts() {
     const heartsSpan = document.getElementById('hearts');
     heartsSpan.textContent = currentGameLives > 0 ? heartReturner(currentGameLives) : '💔💔💔💔💔';
+    console.log(currentGameLives);
 }
 
 displayHearts();
+
+
+
+async function isabletoplay() {
+    const balance = checkBetsAndUpdateBalance();
+    const currentKeys = await getKeys();
+
+    const eachTile = document.querySelectorAll('.tile');
+    let haskeys = currentKeys > 0;
+    if (balance > 0 && haskeys) {
+        playBtn.classList.remove('disabled');
+    } else {
+        playBtn.classList.add('disabled');
+        eachTile.forEach(tile => {
+            tile.classList.add('disabled-tile');
+        });
+    }
+
+    return balance > 0 && haskeys;
+}
+
+isabletoplay();

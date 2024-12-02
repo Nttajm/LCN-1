@@ -1,6 +1,7 @@
 import { allBets, userBets } from './bets.js';
 import { updateFb } from './firebaseconfig.js';
-import { checkIfisBanned } from "./firebaseconfig.js";
+import { checkIfisBanned, rank, fKeysAdder, getFirebaseKeys } from "./firebaseconfig.js";
+
 
 
 export let balanceAdder = parseFloat(localStorage.getItem('balanceAdder')) || 0;
@@ -11,19 +12,20 @@ export function uiAndBalance(newCash) {
 
     updateBalanceAdder(currentMoney);
     updateBalanceUI(currentMoney);
+    saveData();
+    updateStatsUI();
 }
 
 
-export function getKeys() {
+export async function getKeys() {
     let keys = 3;
-    let keysAdder = userData.keysAdder || 0; 
     userBets.forEach(userBet => {
         const matchingBet = allBets.find(bet => bet.id === userBet.matchingBet);
         if (matchingBet) {
-            keys += (matchingBet.result === userBet.option) ? 1 : 0;
+            keys += (matchingBet.result === userBet.option) ? 3 : 0;
         }
     });
-    return keys + keysAdder;
+    return keys + await getFirebaseKeys();
 }
 
 export function aWin() {
@@ -187,31 +189,33 @@ export function displayUserInfo() {
     updateStatsUI();
 }
 
+
 // Update user stats UI
-function updateStatsUI() {
+export async function updateStatsUI() {
     const statsDiv = document.getElementById('js-stats');
+    const usernameElem = document.getElementById('username');
+    if (usernameElem) usernameElem.textContent = userData.username || '???';
     if (statsDiv) {
-        statsDiv.innerHTML = `
+        statsDiv.innerHTML = `          
             <div class="stat fl-ai">
-                <span>${getKeys() || 0}</span>
-                <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+            <span id='js-keys'>${await getKeys()}</span>
+            <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
             </div>
             <div class="stat fl-ai">
-                <span class="rank-1">${userData.rank || ''}</span>
-                <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
+            <span class="rank-1">${rank}</span>
+            <img src="/bp/EE/assets/ouths/rankk.png" alt="" class="icon">
             </div>
-            <span class="balance money">$${checkBetsAndUpdateBalance()}</span>
+            <span class="balance money">$${checkBetsAndUpdateBalance().toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span>
         `;
     }
 }
 
-export function saveData() {
+export async function saveData() {
     localStorage.setItem('userData', JSON.stringify(userData));
     localStorage.setItem('balanceAdder', balanceAdder);
     localStorage.setItem('userBets', JSON.stringify(userBets));
     localStorage.setItem('gameData', JSON.stringify(gameData));
     let time = new Date().toLocaleString();
-    updateFb();
     // gameSave('user', {time, checkBetsAndUpdateBalance});
 }
 
@@ -224,7 +228,6 @@ export function saveData() {
 
 
 
-console.log(userData);
 
 // alll something else from here.......
 
@@ -250,7 +253,11 @@ export function heartReturner(option) {
     return hearts;
 }
  
-
+// const betatesters = ['joelm', 'lizzy', 'WildS', 'TKing', 'BetaTester27', 'BetaTester49'];
+  
+// if (!(userData.username && betatesters.includes(userData.username))) {
+//      window.location.href = 'https://lcnjoel.com/ouths/info.html';
+//  }
 
 
 
