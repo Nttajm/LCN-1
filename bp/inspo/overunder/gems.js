@@ -207,7 +207,7 @@ function resetMulti() {
 }
 
 function calculateFinalMultiplier() {
-    return Array.from(timers.children).reduce((acc, span) => acc * parseFloat(span.textContent), 1);
+    return multi;
 }
 
 function cashOut() {
@@ -295,7 +295,7 @@ async function loose() {
     updateFb();
     updateStatsUI();
 
-    uiAndBalance(-finalMultiplier * betAmount);
+    uiAndBalance(-(finalMultiplier * betAmount));
 }
 
 function displayHearts() {
