@@ -294,8 +294,8 @@ async function loose() {
     displayHearts();
     updateFb();
     updateStatsUI();
-    resetMulti()
-    uiAndBalance((finalMultiplier * betAmount * -1).toFixed(2))
+
+    uiAndBalance(-finalMultiplier * betAmount);
 }
 
 function displayHearts() {
