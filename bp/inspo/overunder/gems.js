@@ -35,12 +35,6 @@ checkBetsAndUpdateBalance();
 await updateStatsUI();
 displayUserInfo();
 
-if (!gameData.gems) {
-    gameData.gems = {
-        lives: 5,
-    }
-    localStorage.setItem('gameData', JSON.stringify(gameData));
-}
 
 let currentGameLives = await getGameLives('gems');
 
