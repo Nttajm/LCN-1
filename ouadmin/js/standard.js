@@ -33,6 +33,7 @@ const adminsEmails = [
     'dagan.prusky@crpusd.org',
     'lucca.chen@crpusd.org',    
     `d.angeleshernandez@crpusd.org`,
+    'avery.uang@crpusd.org'
 ];
 
 if (userData) {

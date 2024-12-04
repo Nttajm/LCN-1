@@ -201,7 +201,7 @@ function resetMulti() {
 }
 
 function calculateFinalMultiplier() {
-    return Array.from(timers.children).reduce((acc, span) => acc * parseFloat(span.textContent), 1);
+    return multi;
 }
 
 function cashOut() {
@@ -279,6 +279,7 @@ riskSelect.addEventListener('change', (event) => {
     resetMulti();
 });
 
+
 async function loose() {
     const finalMultiplier = calculateFinalMultiplier();
     await saveData();
@@ -287,7 +288,8 @@ async function loose() {
     displayHearts();
     updateFb();
     updateStatsUI();
-    uiAndBalance(finalMultiplier * betAmount * -1);
+
+    uiAndBalance(-(finalMultiplier * betAmount));
 }
 
 function displayHearts() {
@@ -312,7 +314,6 @@ async function isabletoplay() {
         playBtn.classList.add('disabled');
         eachTile.forEach(tile => {
             tile.classList.add('disabled-tile');
-
         });
     }
 
