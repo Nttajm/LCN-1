@@ -110,11 +110,20 @@ async function revealTile(x, y) {
     if (board[x][y].mine) {
         gameOver = true;
         statusMessageElement.textContent = `Game Over! You hit a mine!`;
-        loose();
+        
         revealAllTiles();
         playmessage.addClass('fallDown');
         playmessage.removeClass('goUp');
         const finalMultiplier = calculateFinalMultiplier();
+
+        await saveData();
+        await looseLife('gems');
+        currentGameLives = await getGameLives('gems');
+        displayHearts();
+        updateFb();
+        updateStatsUI();
+
+        uiAndBalance(-(finalMultiplier * betAmount));
         playmessage.html(`
             <div class="card">
             <div class="title">
@@ -280,17 +289,6 @@ riskSelect.addEventListener('change', (event) => {
 });
 
 
-async function loose() {
-    const finalMultiplier = calculateFinalMultiplier();
-    await saveData();
-    await looseLife('gems');
-    currentGameLives = await getGameLives('gems');
-    displayHearts();
-    updateFb();
-    updateStatsUI();
-
-    uiAndBalance(-(finalMultiplier * betAmount));
-}
 
 function displayHearts() {
     const heartsSpan = document.getElementById('hearts');
