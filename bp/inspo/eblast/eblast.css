@@ -68,6 +68,15 @@ textarea {
     border-radius: 0.5rem;
     padding: 0.5rem;
     resize: none;
+} 
+
+input {
+    width: 100%;
+    background-color: rgb(71, 71, 71);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
 }
 
 button {

@@ -27,7 +27,34 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/fi
   const postsDiv = document.getElementById('posts');
   postsDiv.innerHTML = '';
   const blasts = collection(db, 'eblast');
+const blastsAnon = collection(db, 'eblast-anon');
 
+
+
+  const anontextarea = document.getElementById('anontextarea');
+  const sendanonBtn = document.getElementById('sendanon');
+
+  sendanonBtn.addEventListener('click', async () => {
+    const text = anontextarea.value;
+    if (text) {
+        sendanonBtn.disabled = true; // Disable button
+        try {
+            const docRef = await addDoc(blastsAnon, {
+                text: text,
+                createdAt: new Date(),
+            });
+            console.log("Document written with ID: ", docRef.id);
+            anontextarea.value = '';
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("Failed to send. Please try again.");
+        } finally {
+            sendanonBtn.disabled = false; // Re-enable button
+        }
+    } else {
+        alert("Please enter some text!");
+    }
+});
 
 
 

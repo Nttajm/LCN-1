@@ -24,6 +24,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/fi
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
   const blasts = collection(db, 'eblast');
+  const blastsAnon = collection(db, 'eblast-anon');
+
 
   const textarea = document.getElementById('textarea');
   const postBtn = document.getElementById('postBtn');
@@ -44,3 +46,24 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/fi
   }
 
     postBtn.addEventListener('click', post);
+
+    const toggleViewBtn = document.getElementById('toggleViewBtn');
+    const tipsDiv = document.getElementById('tips-cont');
+
+    tipsDiv.innerHTML = '';
+    getDocs(blastsAnon).then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const tip = document.createElement('div');
+            tip.classList.add('tip');
+            tip.innerHTML = `
+                <div class="tip-text">${data.text}</div>
+                <div class="tip-time">${data.createdAt.toDate().toLocaleString()}</div>
+            `;
+            tipsDiv.appendChild(tip);
+        });
+    });
+
+    toggleViewBtn.addEventListener('click', () => {
+        tipsDiv.style.display = tipsDiv.style.display === 'none' ? 'block' : 'none';
+    });
