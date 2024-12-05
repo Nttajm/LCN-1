@@ -120,11 +120,11 @@ button {
   }
 
   :root {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .logo-sec img {
-    width: 15rem;
+    width: 13rem;
   }
   
 }
