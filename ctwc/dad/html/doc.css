@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 body { 
-    background-color: #f1f1f1;
+    color: white;
 }
 .conter {
     padding: 10px !important;
@@ -20,6 +20,10 @@ body {
     --ff8: 'Pirata One', cursive;
     --ff9: 'Doto', sans-serif;
     --ff10: 'Neuton', serif;
+}
+
+.nav-cont {
+    background-color: rgb(85, 85, 85);
 }
 
 .bold {
@@ -53,7 +57,6 @@ body {
 }
 
 .first {
-    font-family: "Merriweather Sans", serif;
     font-size: 3.3rem;
     font-weight: 600;
 
@@ -165,8 +168,15 @@ p {
 }
 
 
+.img-sec img {
+    aspect-ratio: 16/9;
+    width: 100%;
+}
+
+
 .cont {
     height: fit-content !important;
+    padding: 1rem;
 }
 
 @media (max-width: 575.98px) {
