@@ -6,7 +6,7 @@ body {
 }
 
 :root {
-    font-size: 25px;
+    font-size: 21px;
 }
 
 * {
@@ -28,7 +28,7 @@ body {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    padding: 2rem;
+    padding: 0.5rem;
 }
 
 .post {
@@ -78,4 +78,53 @@ button {
     padding: 0.5rem;
     cursor: pointer;
     font-size: 1.3rem;
+}
+
+
+@media all and (width > 1280px) { 
+  
+
+}
+
+@media all and (min-width: 1124px) and (max-width: 1280px) { 
+  
+}
+
+
+@media all and (min-width: 768px) and (max-width: 1124px) { 
+  
+
+}
+
+@media all and (min-width: 480px) and (max-width: 768px) { 
+  .fl-c-to-r {
+    display: flex;
+    flex-direction: row !important;
+  }
+
+  .fl-r-to-c {
+    display: flex;
+    flex-direction: column !important;
+  }
+}
+
+@media all and (max-width: 480px) { 
+  .fl-c-to-r {
+    display: flex;
+    flex-direction: row !important;
+  }
+
+  .fl-r-to-c {
+    display: flex;
+    flex-direction: column !important;
+  }
+
+  :root {
+    font-size: 18px;
+  }
+
+  .logo-sec img {
+    width: 15rem;
+  }
+  
 }
