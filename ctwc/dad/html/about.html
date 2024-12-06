@@ -51,7 +51,7 @@
             community of <span class="bold">Namakwekwe</span>. The church began  with <span class="bold">7 people</span> and now 
             grown to a membership of <span class="bold">1200+ congregants.</span>
             <span class="readmore" data-rm-target="PREAMBLE">
-                read more
+                read more ▼
             </span>
             </p>
 
@@ -64,34 +64,30 @@
                 Temple worship Centre, main base in Mbale. 
             </p>
         </div>
-        <div class="scroll p-open" data-animation-delay="3s" id="special">
+        <div class="scroll p-open" data-animation-delay="1.7s" id="special">
             <span>scroll for more</span>
             <div class="hr"></div>
         </div>
         <div class="doc">
-            <div class="text">
+            <div class="text elem-revel">
                 <h3>Mission</h3>
                 <p>Our mission is to be a community of loving disciples, bold in faith, strong in character and global in vision</p>
             </div>
             <div class="img-sec">
-                <img src="../images/ctwc-cover-2.jpg" alt="">
+                <img src="../images/ctwc-cover-2.jpg" alt="" class="elem-revel">
+            </div>
+        </div>
+        <div class="doc">
+            <div class="text elem-revel">
+                <h3>Mission</h3>
+                <p>Our mission is to be a community of loving disciples, bold in faith, strong in character and global in vision</p>
+            </div>
+            <div class="img-sec">
+                <img src="../images/w-4.jpg" alt="" class="elem-revel">
             </div>
         </div>
     </div>
 </body>
 <script src="script.js"></script>
-<script>
-document.querySelectorAll('[data-animation-delay]').forEach(element => {
-    const delay = element.getAttribute('data-animation-delay');
-    element.style.setProperty('animation-delay', delay, 'important');
-});
 
-
-document.querySelector('.readmore').addEventListener('click', function() {
-    const target = this.getAttribute('data-rm-target');
-    const p = document.querySelector(`p[data-rm="${target}"]`);
-    p.classList.toggle('read-more-text');
-    this.textContent = p.classList.contains('read-more-text') ? 'read less' : 'read more';
-});
-</script>
 </html>

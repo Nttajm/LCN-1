@@ -1,7 +1,7 @@
 
 * {
     transition: all 0.3s ges;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
 }
 
 
@@ -335,6 +335,7 @@ nav img {
     transition: all 0.5s var(--dept-ease);
     position: fixed;
     top: 0;
+    left: 0;
     background-color: rgb(153, 173, 228);
     padding: 1rem;
 }
@@ -430,6 +431,14 @@ nav img {
     font-family: poppins;
 }
 
+.elem-revel {
+    opacity: 0;
+    transition: all 0.5s ease-in-out;
+}
+
+.reveled {
+    opacity: 1;
+}
 
 @keyframes come-down {
     0% {
@@ -526,16 +535,6 @@ nav img {
 
     .menu {
         display: flex;
-    }
-
-    nav {
-        width: 100%;
-        padding: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        transition: all 0.5s var(--dept-ease)t;
     }
 
     .nav-cont {
