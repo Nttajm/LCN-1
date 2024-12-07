@@ -42,7 +42,7 @@ export const basketballPlayers = [
     techTeam: 'Tech High Basketball (VB)',
     against: 'Summerfield Waldorf ',
     id: '18b',
-    amount: 27.5,
+    amount: 25.5,
     typeBet: 'Points',
     status: '',
     option: '',
