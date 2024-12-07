@@ -46,7 +46,7 @@ export const basketballPlayers = [
     typeBet: 'Points',
     status: '',
     option: '',
-    result: '',
+    result: 'over',
     price: 880,
     date: '12-6 19:30',
   },
