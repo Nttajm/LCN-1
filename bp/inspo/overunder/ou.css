@@ -1776,6 +1776,16 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
         font-weight: 600;
         color: rebeccapurple !important;
     }
+    
+    .nfs {
+        background: url('http://static.wikia.nocookie.net/nfs/images/d/db/NFSUB_Header_Pursuit.gif/revision/latest?cb=20221011211338&path-prefix=en') no-repeat !important;
+        background-position: 50% 59% !important;
+        background-size: 80%;
+        border-radius: 0.3rem;
+        font-family: var(--f-1);
+        font-weight: 600;
+        color: rebeccapurple !important;
+    }
 
     .hellokitty.leader-name {
         color: rebeccapurple !important;
