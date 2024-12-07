@@ -31,7 +31,7 @@ export const basketballPlayers = [
     id: '21b',
     amount: 15.5,
     typeBet: 'Points',
-    status: '',
+    status: 'ended',
     option: '',
     result: '',
     price: 1300,
