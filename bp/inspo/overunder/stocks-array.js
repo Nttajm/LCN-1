@@ -49,4 +49,4 @@ function combineStocksAverage(stock1, stock2) {
 }
 
 
-export const globalSto = 0.000001;
+export const globalSto = 0.0000017;
