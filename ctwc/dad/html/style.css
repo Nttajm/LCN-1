@@ -4,7 +4,11 @@
     box-sizing: border-box !important;
 }
 
-
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
 
 :root {
     --dept-ease: cubic-bezier(.175,.885,.32,1.275);
@@ -32,6 +36,10 @@
 
 nav * {
     transition: all 0.5s ease-in-out;
+}
+
+.logo {
+    width: 10rem;
 }
 
 .open {
@@ -122,6 +130,7 @@ nav {
     padding: 0.5rem;
     border-radius: 0.4rem;
     z-index: 1000;
+    width: 100%;
 }
 
 .nav-cont {
