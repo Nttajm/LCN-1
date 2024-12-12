@@ -1,10 +1,14 @@
 
 * {
     transition: all 0.3s ges;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
 }
 
-
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
 
 :root {
     --dept-ease: cubic-bezier(.175,.885,.32,1.275);
@@ -32,6 +36,10 @@
 
 nav * {
     transition: all 0.5s ease-in-out;
+}
+
+.logo {
+    width: 10rem;
 }
 
 .open {
@@ -122,6 +130,7 @@ nav {
     padding: 0.5rem;
     border-radius: 0.4rem;
     z-index: 1000;
+    width: 100%;
 }
 
 .nav-cont {
@@ -335,6 +344,7 @@ nav img {
     transition: all 0.5s var(--dept-ease);
     position: fixed;
     top: 0;
+    left: 0;
     background-color: rgb(153, 173, 228);
     padding: 1rem;
 }
@@ -430,6 +440,14 @@ nav img {
     font-family: poppins;
 }
 
+.elem-revel {
+    opacity: 0;
+    transition: all 0.5s ease-in-out;
+}
+
+.reveled {
+    opacity: 1;
+}
 
 @keyframes come-down {
     0% {
@@ -526,16 +544,6 @@ nav img {
 
     .menu {
         display: flex;
-    }
-
-    nav {
-        width: 100%;
-        padding: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        transition: all 0.5s var(--dept-ease)t;
     }
 
     .nav-cont {

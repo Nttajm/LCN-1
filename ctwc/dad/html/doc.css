@@ -8,6 +8,11 @@ body {
     width: 100%;
 }
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 :root {
     --ff: 'DM Serif Text', serif;
@@ -75,6 +80,7 @@ body {
     overflow: hidden;
     position: relative;
     height: 3.9rem;
+    font-family: 'Times New Roman', Times, serif;
 }
 
 .before-after span {
@@ -119,6 +125,10 @@ body {
     margin-top: 5rem;
 }
 
+::-webkit-scrollbar {
+    display: none;
+  }
+
 @keyframes openBlur {
     to {
         filter: blur(0);
@@ -151,7 +161,7 @@ p {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    padding: 10px;
+    padding: 10px 10px 5rem 10px;
 }
 
 .doc h3 {
@@ -176,7 +186,7 @@ p {
 
 .cont {
     height: fit-content !important;
-    padding: 1rem;
+    box-sizing: border-box;
 }
 
 @media (max-width: 575.98px) {
@@ -196,6 +206,39 @@ p {
     /* Styles for large devices */
 }
 
-@media (min-width: 1200px) {
-    /* Styles for extra large devices */
+@media (min-width: 1300px) {
+    .conter {
+        display: flex;
+        width: 70%;
+        margin-left: auto;
+        margin-right: auto;
+        height: 60vh;
+        justify-content: center;
+    }
+
+    .doc {
+        flex-direction: row;
+        gap: 2rem;
+    }
+
+    .doc:nth-child(odd) {
+        flex-direction: row-reverse;
+    }
+
+    .text {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .text p {
+        width: 80%;
+    }
+
+    .img-sec {
+        width: 50%;
+    }
+
+    
 }
