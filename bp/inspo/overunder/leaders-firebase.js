@@ -90,7 +90,7 @@ function getBalance(bets = []) {
                 leaderDiv.innerHTML = `
                     <span class="leader-rank">${index + 1}</span>
                     <span class="leader-name">${getDisplayName(leader)}</span>
-                    <span class="leader-balance">$${(getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)).toFixed(1)}</span>
+                    <span class="leader-balance">$${(getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)).toFixed(1) || 0}</span>
                 `;
                 leaderElem.appendChild(leaderDiv);
             });

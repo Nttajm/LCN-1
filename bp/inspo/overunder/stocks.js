@@ -550,7 +550,7 @@ function displayPortfolio() {
         let priceWshares = (lastPrice + parseFloat(shareSub)).toFixed(2);
         portfolioValue += stock.amount * priceWshares;
     });
-    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2)}`;
+    portfolioDiv.innerHTML = `$${portfolioValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
 
 
