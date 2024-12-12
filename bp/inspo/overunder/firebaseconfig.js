@@ -502,7 +502,7 @@ setInterval(await checkLoans, 6000);
       return;
   }
 
-  if (userData.balanceAdder > 2000000) {
+  if (userData.balanceAdder > 12000000) {
       const userRef = doc(db, 'users', userData.uid);
       try {
           await setDoc(userRef, {
