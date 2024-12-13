@@ -142,21 +142,25 @@ function writeStock(typeBet) {
     if (Array.isArray(typeBet) && typeof typeBet[0] === 'number') {
         typeBet.reverse(); // Reverse the order of the array
 
-        const candleData = typeBet.map((price, index) => {
-            // Generate OHLC values based on the input number
-            const open = price + 10;
-            const close = price - 19; // Close is the same as the input price
-            const high = price + 3; // High is slightly above the input price
-            const low = price - 3; // Low is slightly below the input price
+    
+        const candleData = [];
+        for (let i = 0; i < typeBet.length; i += 2) {
+            const prices = typeBet.slice(i, i + 2);
+            if (prices.length < 2) break;
 
-            return {
-                x: index + 1, // Use the index as x-axis value
-                o: open,
-                h: high,
-                l: low,
-                c: close
-            };
-        });
+            const open = prices[0];
+            const close = prices[1];
+            const high = Math.max(open, close) * 1.2;
+            const low = Math.min(open, close) * 0.8;
+
+            candleData.push({
+            x: (i / 2) + 1,
+            o: open,
+            h: high,
+            l: low,
+            c: close
+            });
+        }
 
         // Display stock information
         let stock = stockManual.find(stock => stock.data === typeBet);

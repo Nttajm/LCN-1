@@ -67,16 +67,23 @@ function getBalance(bets = []) {
     
             // Sort leaders by balance (including balanceAdder) in descending order
             leaders.sort((a, b) => {
-                const balanceA = getBalance(a.tripleABets || []) + (a.balanceAdder || 0);
-                const balanceB = getBalance(b.tripleABets || []) + (b.balanceAdder || 0);
-                return balanceB - balanceA; // Sort in descending order
+                const balanceA = getBalance(a.tripleABets || []) + (a.balanceAdder || 0) || 0;
+                const balanceB = getBalance(b.tripleABets || []) + (b.balanceAdder || 0) || 0;
+                return balanceB - balanceA; // Sort in descending order (largest to smallest)
             });
+            
     
             // Clear loading message
             leaderElem.innerHTML = '';
     
             // Render each leader after sorting
             leaders.forEach((leader, index) => {
+                const balance = (getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)) || 0;
+                if (isNaN(balance) || balance === null || balance === undefined) {
+                    console.error("Invalid balance for leader:", leader);
+                    return; // Skip invalid balances
+                }
+    
                 const leaderDiv = document.createElement('div');
                 leaderDiv.classList.add('leader');
     
@@ -90,7 +97,7 @@ function getBalance(bets = []) {
                 leaderDiv.innerHTML = `
                     <span class="leader-rank">${index + 1}</span>
                     <span class="leader-name">${getDisplayName(leader)}</span>
-                    <span class="leader-balance">$${(getBalance(leader.tripleABets || []) + (leader.balanceAdder || 0)).toFixed(1) || 0}</span>
+                    <span class="leader-balance">$${balance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
                 `;
                 leaderElem.appendChild(leaderDiv);
             });
@@ -99,6 +106,7 @@ function getBalance(bets = []) {
             leaderElem.innerHTML = 'Error loading data'; // Show error message
         }
     }
+    
     
 
 // Call renderLeaders to populate leaderboard on page load

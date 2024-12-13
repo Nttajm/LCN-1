@@ -42,13 +42,21 @@ viewAllButton.addEventListener('click', () => {
         viewAllButton.textContent = showAll ? 'View Less' : 'View All';
 });
 ordersDiv.appendChild(viewAllButton);
-
 async function renderOrders() {
-    ordersDiv.innerHTML = '';
+    ordersDiv.innerHTML = ''; // Clear existing orders
     let count = 0;
 
-    // Loop through the orders
-    for (const docI of querySnapshot.docs) {
+    // Re-fetch all orders
+    const snapshot = await getDocs(ordersRef);
+
+    // Convert string dates to Date objects and sort manually
+    const sortedDocs = snapshot.docs.sort((a, b) => {
+        const dateA = new Date(a.data().date);
+        const dateB = new Date(b.data().date);
+        return dateB - dateA; // Descending order
+    });
+
+    for (const docI of sortedDocs) {
         if (!showAll && count >= 3) break;
 
         const data = docI.data();
@@ -75,7 +83,7 @@ async function renderOrders() {
                         <span>Item description: </span><span class="order-disc">${data.disciption}</span>
                     </div>
                     <div>
-                        <span>Item accepted status: </span><span class="order-disc">${data.orderStatus}</span>
+                        <span>Item accepted status: </span><span class="order-status">${data.orderStatus}</span>
                     </div>
                     <div>
                         <span>Order date: </span><span class="order-date">${data.date}</span>
@@ -115,6 +123,8 @@ async function renderOrders() {
 
     ordersDiv.appendChild(viewAllButton);
 }
+
+
 
 
 renderOrders();
