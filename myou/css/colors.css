@@ -1,0 +1,43 @@
+.category.red, .theme.red, .banner.red {
+    background: linear-gradient(to right, maroon, red);
+}
+
+.category.blue, .theme.blue, .banner.blue {
+    background: linear-gradient(to right, navy, blue);
+}
+
+.category.green, .theme.green, .banner.green {
+    background: linear-gradient(to right, darkgreen, green);
+}
+
+.category.purple, .theme.purple, .banner.purple {
+    background: linear-gradient(to right, darkviolet, purple);
+}
+
+.category.orange, .theme.orange, .banner.orange {
+    background: linear-gradient(to right, darkorange, orange);
+}
+
+.category.yellow, .theme.yellow, .banner.yellow {
+    background: linear-gradient(to right, darkgoldenrod, yellow);
+}
+
+.category.pink, .theme.pink, .banner.pink {
+    background: linear-gradient(to right, darkmagenta, pink);
+}
+
+.category.brown, .theme.brown, .banner.brown {
+    background: linear-gradient(to right, saddlebrown, brown);
+}
+
+.category.black, .theme.black, .banner.black {
+    background: linear-gradient(to right, black, rgb(63, 63, 63));
+}
+
+.category.white, .theme.white, .banner.white {
+    background: linear-gradient(to right, rgb(117, 117, 117), white);
+}
+
+.category.gray, .theme.gray, .banner.gray {
+    background: linear-gradient(to right, rgb(82, 82, 82), rgb(143, 143, 143));
+}
