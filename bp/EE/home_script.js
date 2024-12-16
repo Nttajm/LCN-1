@@ -217,10 +217,14 @@ let sectionDiv = [{
   date: '3.11.24 - 5.1.24',
   projects: [
     {
-      img: 'bp/EE/assets/download',
-      date: '6.25.24',
-      dis: 'DB ps improvements and patches',
+      date: '8.10.24',
+      img: '/bp/EE/assets/ouths/Myoverunder.png',
+      dis: `Use commands to excute different function and more with "powershel.net". NOTE: Is ment to be ran locally*`,
       textColor: 'white',
+      link: 'PowerShell.html',
+      notes:'ran locally on PS server***',
+      initial: '6.26.24',
+      label: 'OverunderTHS',
     },
     {
       date: '6.18.24',
