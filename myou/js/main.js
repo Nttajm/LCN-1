@@ -118,34 +118,30 @@ onAuthStateChanged(auth, async (user) => {
                 return;
             }
     
-            const categories = [];
-            categoryDocs.forEach(doc => {
-                // Add both document data and the document ID
-                categories.push({ ...doc.data(), docId: doc.id });
-            });
-    
-            for (const data of categories) {
-                const matchingCat = query(
-                    collection(db, 'myou', 'data', 'categories'),
-                    where('catid', '==', data.catid)
-                );
-                const catDocSnapshots = await getDocs(matchingCat);
-    
-                const catDataArray = catDocSnapshots.docs.map(catDoc => ({
-                    ...catDoc.data(),
-                    docId: catDoc.id // Include docId for categories collection
-                }));
-    
-                catDataArray.sort((a, b) => a.joinedAt - b.joinedAt);
-    
-                catDataArray.forEach(catData => {
-                    catsection.innerHTML += `
-                        <div class="category ${catData.theme}" data-catid="${catData.catid}" data-docid="${catData.docId}">
-                            <span class="cat-name">${catData.name}</span>
-                            <span class="cat-members">members: ${catData.membersCount || 'N/A'}</span>
-                        </div>`;
-                });
+            
+        const categories = [];
+        for (const doc of categoryDocs.docs) {
+            const catData = doc.data();
+            const matchingCat = query(
+                collection(db, 'myou', 'data', 'categories'),
+                where('catid', '==', catData.catid)
+            );
+            const catDocSnapshots = await getDocs(matchingCat);
+
+            for (const catDoc of catDocSnapshots.docs) {
+                const catData = catDoc.data();
+                // Get member count using Firestore count aggregation
+                const membersRef = collection(db, 'myou', 'data', 'categories', catData.catid, 'members');
+                const memberCountSnap = await getCountFromServer(membersRef);
+                const membersCount = memberCountSnap.data().count;
+
+                catsection.innerHTML += `
+                    <div class="category ${catData.theme}" data-catid="${catData.catid}">
+                        <span class="cat-name">${catData.name}</span>
+                        <span class="cat-members">members: ${membersCount}</span>
+                    </div>`;
             }
+        }
         } catch (error) {
             console.error("Error loading categories:", error);
             catsection.innerHTML = "<p>Error loading categories. Please try again later.</p>";
