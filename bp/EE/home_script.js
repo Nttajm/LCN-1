@@ -175,12 +175,8 @@ let sectionDiv = [{
       secondary: 'bp/EE/assets/auras/pink-cream.webp',
       notes:'DB&M series, Patches and adjustments (6.17.24)',
       initial: '11.14.23',
-<<<<<<< HEAD
-      label: 'UPLOAD CENTER'
-=======
       label: 'UPLAOD CENTER',
       side: ''
->>>>>>> dad51abc14382234e0bc8868920bcaf9416df764
     },
     {
       date: '6.16.24',
@@ -190,11 +186,7 @@ let sectionDiv = [{
       link: 'PowerShell.html',
       notes:'Not an IDE',
       initial: '6.12.24',
-<<<<<<< HEAD
       label: 'TESCRIPT'
-=======
-      label: 'TESCRIPT',
->>>>>>> dad51abc14382234e0bc8868920bcaf9416df764
     },
     {
       date: '6.26.24',
@@ -205,12 +197,8 @@ let sectionDiv = [{
       notes:'Not an IDE',
       initial: '6.26.24',
       secondary: 'bp/EE/assets/auras/orange.jpg',
-<<<<<<< HEAD
       label: 'WVRK',
       side: ''
-=======
-      label: 'WRK',
->>>>>>> dad51abc14382234e0bc8868920bcaf9416df764
     },
     {
       date: '6.10.24',
