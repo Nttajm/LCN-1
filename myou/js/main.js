@@ -83,13 +83,11 @@ onAuthStateChanged(auth, async (user) => {
     async function renderCategories() {
         if (!user) return;
     
-        // Reference to the loading spinner element
         const loadingSpinner = document.querySelector('#loading-spinner');
         const catsection = document.querySelector('#categories');
     
         try {
-            // Show the loading spinner
-            loadingSpinner.style.display = 'block';
+            loadingSpinner.style.display = 'flex';
     
             const profileName = document.querySelector('.username');
             const profileImage = document.querySelector('#google-auth-pfp');
@@ -122,23 +120,27 @@ onAuthStateChanged(auth, async (user) => {
     
             const categories = [];
             categoryDocs.forEach(doc => {
-                categories.push(doc.data());
+                // Add both document data and the document ID
+                categories.push({ ...doc.data(), docId: doc.id });
             });
     
             for (const data of categories) {
                 const matchingCat = query(
-                    collection(db, 'myou', 'data', 'categories'), 
+                    collection(db, 'myou', 'data', 'categories'),
                     where('catid', '==', data.catid)
                 );
                 const catDocSnapshots = await getDocs(matchingCat);
     
-                // Render categories by date joined
-                const catDataArray = catDocSnapshots.docs.map(catDoc => catDoc.data());
+                const catDataArray = catDocSnapshots.docs.map(catDoc => ({
+                    ...catDoc.data(),
+                    docId: catDoc.id // Include docId for categories collection
+                }));
+    
                 catDataArray.sort((a, b) => a.joinedAt - b.joinedAt);
     
                 catDataArray.forEach(catData => {
                     catsection.innerHTML += `
-                        <div class="category ${catData.theme}" data-catid="${catData.catid}">
+                        <div class="category ${catData.theme}" data-catid="${catData.catid}" data-docid="${catData.docId}">
                             <span class="cat-name">${catData.name}</span>
                             <span class="cat-members">members: ${catData.membersCount || 'N/A'}</span>
                         </div>`;
@@ -148,10 +150,10 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Error loading categories:", error);
             catsection.innerHTML = "<p>Error loading categories. Please try again later.</p>";
         } finally {
-            // Hide the loading spinner after data fetching completes
             loadingSpinner.style.display = 'none';
         }
     }
+    
 
     await renderCategories();
 
@@ -216,6 +218,55 @@ onAuthStateChanged(auth, async (user) => {
     
     const createCatBtn = document.querySelector('.create-btn');
     createCatBtn.addEventListener('click', createCategory);
+
+    async function openCategory(docId) {
+        const categoryRef = doc(db, 'myou', 'data', 'categories', docId);
+        const categoryDoc = await getDoc(categoryRef);
+        const category = categoryDoc.data();
+    
+        // Manage the category div state
+        const catDiv = document.querySelector('.incat-div');
+        catDiv.classList.remove('close-cat');
+        catDiv.classList.add('open-cat');
+    
+        // Handle theme classes
+        const banner = document.querySelector('.banner');
+        const incatDiv = document.querySelector('.incat-div');
+        const allMulitags = document.querySelectorAll('.multi-tag');
+    
+        // Clear previous theme classes
+        clearThemeClasses([banner, incatDiv, ...allMulitags]);
+    
+        // Apply the new theme
+        if (category.theme) {
+            banner.classList.add(category.theme);
+            incatDiv.classList.add(category.theme);
+            allMulitags.forEach(tag => tag.classList.add(category.theme));
+        }
+    
+        // Update the banner name
+        const bannerName = document.querySelector('.js_catName');
+        bannerName.textContent = category.name;
+    }
+    
+    // Utility function to clear theme classes
+    function clearThemeClasses(elements) {
+        const themeClasses = ['red', 'orange', 'yellow', 'green', 
+            'blue', 'purple', 'pink', 'gray', 'black', 'white', 'brown',
+        ]; // Add all possible themes here
+        elements.forEach(el => {
+            el.classList.remove(...themeClasses);
+        });
+    }
+
+    const allcats = document.querySelectorAll('.category');
+    allcats.forEach(cat => {
+        cat.addEventListener('click', () => {
+            const docid = cat.getAttribute('data-docid');
+            openCategory(docid);
+        });
+    });
+
 });
 
 
@@ -225,7 +276,12 @@ onAuthStateChanged(auth, async (user) => {
 
 
 
-
+const backBtn = document.querySelector('#backBtn');
+backBtn.addEventListener('click', () => {
+    const catDiv = document.querySelector('.incat-div');
+    catDiv.classList.remove('open-cat');
+    catDiv.classList.add('close-cat');
+});
 
 
 const allClosers = document.querySelectorAll('.js_closer'); 
@@ -253,5 +309,17 @@ freqSelects.forEach(select => {
         freqSelects.forEach(s => s.classList.remove('selected'));
 
         select.classList.add('selected');
+    });
+});
+
+
+const allTargets = document.querySelectorAll('.js_cl');
+
+allTargets.forEach(target => {
+    const elem = document.querySelector(target.getAttribute('data-cl_target'));
+    const classToToggle = target.getAttribute('data-cl_toggle');
+
+    target.addEventListener('click', () => {
+        elem.classList.toggle(classToToggle);
     });
 });

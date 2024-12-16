@@ -19,7 +19,7 @@
 }
 
 .category.yellow, .theme.yellow, .banner.yellow {
-    background: linear-gradient(to right, darkgoldenrod, yellow);
+    background: linear-gradient(to right, darkgoldenrod, rgb(199, 199, 26));
 }
 
 .category.pink, .theme.pink, .banner.pink {
@@ -36,8 +36,100 @@
 
 .category.white, .theme.white, .banner.white {
     background: linear-gradient(to right, rgb(117, 117, 117), white);
+    color: black;
 }
 
 .category.gray, .theme.gray, .banner.gray {
     background: linear-gradient(to right, rgb(82, 82, 82), rgb(143, 143, 143));
 }
+
+.incat-div.red .multi-tag {
+    background-color: rgba(128, 0, 0, 0.767);
+}
+
+.incat-div.red {
+    background: radial-gradient(circle, rgb(59, 25, 11) 0%, rgb(102, 50, 15) 100%) !important;
+}
+
+.incat-div.blue .multi-tag {
+    background-color: rgba(0, 0, 128, 0.767);
+}
+
+.incat-div.blue {
+    background: radial-gradient(circle, rgb(11, 25, 59) 0%, rgb(15, 50, 102) 100%) !important;
+}
+
+.incat-div.green .multi-tag {
+    background-color: rgba(0, 128, 0, 0.767);
+}
+
+.incat-div.green {
+    background: radial-gradient(circle, rgb(11, 59, 25) 0%, rgb(15, 102, 50) 100%) !important;
+}
+
+.incat-div.purple .multi-tag {
+    background-color: rgba(128, 0, 128, 0.767);
+}
+
+.incat-div.purple {
+    background: radial-gradient(circle, rgb(59, 11, 59) 0%, rgb(102, 15, 102) 100%) !important;
+}
+
+.incat-div.orange .multi-tag {
+    background-color: rgba(255, 165, 0, 0.767);
+}
+
+.incat-div.orange {
+    background: radial-gradient(circle, rgb(59, 25, 11) 0%, rgb(153, 70, 15) 100%) !important;
+}
+
+.incat-div.yellow .multi-tag {
+    background-color: rgba(209, 209, 24, 0.767);
+}
+
+.incat-div.yellow {
+    background: radial-gradient(circle, rgb(59, 59, 11) 0%, rgb(102, 102, 15) 100%) !important;
+}
+
+.incat-div.pink .multi-tag {
+    background-color: rgba(255, 192, 203, 0.767);
+}
+
+.incat-div.pink {
+    background: radial-gradient(circle, rgb(59, 11, 25) 0%, rgb(102, 15, 50) 100%) !important;
+}
+
+.incat-div.brown .multi-tag {
+    background-color: rgba(139, 69, 19, 0.767);
+}
+
+.incat-div.brown {
+    background: radial-gradient(circle, rgb(59, 25, 11) 0%, rgb(102, 50, 15) 100%) !important;
+}
+
+.incat-div.black .multi-tag {
+    background-color: rgba(0, 0, 0, 0.767);
+}
+
+.incat-div.black {
+    background: radial-gradient(circle, rgb(0, 0, 0) 0%, rgb(63, 63, 63) 100%) !important;
+}
+
+.incat-div.white .multi-tag {
+    background-color: rgba(255, 255, 255, 0.767);
+    color: black;
+}
+
+.incat-div.white {
+    background: radial-gradient(circle, rgb(117, 117, 117) 0%, white 100%) !important;
+    color: black;
+}
+
+.incat-div.gray .multi-tag {
+    background-color: rgba(128, 128, 128, 0.767);
+}
+
+.incat-div.gray {
+    background: radial-gradient(circle, rgb(82, 82, 82) 0%, rgb(143, 143, 143) 100%) !important;
+}
+
