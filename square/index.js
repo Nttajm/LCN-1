@@ -156,31 +156,84 @@ viewport.addEventListener('mouseup', () => {
 viewport.addEventListener('mouseleave', () => {
   isDragging = false;
 });
-
-// Handle zoom with mouse wheel (zoom from the center of the screen)
-viewport.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const zoomSpeed = 0.1;
-    const prevScale = scale;
-    scale += e.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    scale = Math.min(Math.max(0.5, scale), 2); // Limit zoom levels
-
-    // Get cursor position relative to the viewport
-    const rect = viewport.getBoundingClientRect();
-    const cursorX = (e.clientX - rect.left) - (viewport.offsetWidth / 2);
-    const cursorY = (e.clientY - rect.top) - (viewport.offsetHeight / 2);
-
-    // Adjust map position to zoom at the cursor
-    const scaleDelta = scale / prevScale;
-    mapX = cursorX - (cursorX - mapX) * scaleDelta;
-    mapY = cursorY - (cursorY - mapY) * scaleDelta;
-
-    updateTransform();
-    updateCenterHover(); // Update hovering after zoom
-    updateCoordView();
+viewport.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) { // Single touch only
+    isDragging = true;
+    lastMouseX = e.touches[0].clientX;
+    lastMouseY = e.touches[0].clientY;
+  }
 });
-  
-  
+
+viewport.addEventListener('touchmove', (e) => {
+  if (!isDragging || e.touches.length !== 1) return; // Ignore multi-touch
+  const dx = e.touches[0].clientX - lastMouseX;
+  const dy = e.touches[0].clientY - lastMouseY;
+  mapX += dx;
+  mapY += dy;
+  lastMouseX = e.touches[0].clientX;
+  lastMouseY = e.touches[0].clientY;
+  updateTransform();
+  updateCenterHover();
+  updateCoordView();
+});
+
+viewport.addEventListener('touchend', () => {
+  isDragging = false;
+});
+
+// Handle zoom with mouse wheel (desktop) and pinch gesture (mobile)
+viewport.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const zoomSpeed = 0.1;
+  const prevScale = scale;
+  scale += e.deltaY > 0 ? -zoomSpeed : zoomSpeed;
+  scale = Math.min(Math.max(0.5, scale), 2); // Limit zoom levels
+
+  const rect = viewport.getBoundingClientRect();
+  const cursorX = (e.clientX - rect.left) - (viewport.offsetWidth / 2);
+  const cursorY = (e.clientY - rect.top) - (viewport.offsetHeight / 2);
+
+  const scaleDelta = scale / prevScale;
+  mapX = cursorX - (cursorX - mapX) * scaleDelta;
+  mapY = cursorY - (cursorY - mapY) * scaleDelta;
+
+  updateTransform();
+  updateCenterHover();
+  updateCoordView();
+});
+
+// Pinch-to-zoom (mobile)
+let initialPinchDistance = null;
+let initialScale = scale;
+
+viewport.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 2) { // Multi-touch for pinch-to-zoom
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (initialPinchDistance === null) {
+      initialPinchDistance = distance;
+      initialScale = scale;
+    } else {
+      const scaleFactor = distance / initialPinchDistance;
+      scale = Math.min(Math.max(0.5, initialScale * scaleFactor), 2);
+
+      updateTransform();
+      updateCenterHover();
+      updateCoordView();
+    }
+  }
+});
+
+viewport.addEventListener('touchend', () => {
+  if (e.touches.length < 2) {
+    initialPinchDistance = null;
+    initialScale = scale;
+  }
+});
 
 // Initialize transformation and center hovering
 updateTransform();
