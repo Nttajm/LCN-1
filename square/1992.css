@@ -3,21 +3,18 @@
     background-color: var(--secondary-color);
     font-family: roboto;
     margin: 0;
-    overflow: hidden;
 }
 
 #viewport {
     position: relative;
     width: 100%;
     height: 100vh;
-    overflow: hidden;
 }
 
 #grid-container {
     display: grid;
     grid-template-columns: repeat(125, 10px); /* 10px width per grid cell */
     grid-template-rows: repeat(125, 10px);  /* 10px height per grid cell */
-    position: absolute;
     top: 0;
     left: 0;
     transition: transform 0.1s forwards;
@@ -129,6 +126,23 @@ button:hover {
     border: 2px solid #007bff;
     scale: 1.2;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.grid-cell.selected {
+    border: solid 2px #000;
+    background-color: var(--secondary-color);
+}
+
+@keyframes glow {
+    0% {
+        background-color: var(--primary-color);
+    }
+    50% {
+        background-color: #fff;
+    }
+    100% {
+        background-color: var(--primary-color);
+    }
 }
 
 .color:hover {

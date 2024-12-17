@@ -47,8 +47,8 @@ const gridData = [
 ];
 
 // Generate the grid
-for (let y = 1; y <= 100; y++) {
-  for (let x = 1; x <= 100; x++) {
+for (let y = 1; y <= 125; y++) {
+  for (let x = 1; x <= 125; x++) {
     const gridCell = document.createElement('div');
     gridCell.classList.add('grid-cell');
     gridCell.setAttribute('data-x', x);
@@ -59,22 +59,21 @@ for (let y = 1; y <= 100; y++) {
 
 const loadDiv = document.querySelector('.loadboxes');
 
-function renderColorData() {
+async function renderColorData() {
   const gridRef = collection(db, 'grid', 'data', 'cells'); // Reference to your Firestore collection
-  onSnapshot(gridRef, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      const data = change.doc.data();
-      const gridCell = gridContainer.querySelector(`[data-x="${data.x}"][data-y="${data.y}"]`);
-      if (gridCell) {
-        gridCell.style.backgroundColor = data.color; // Set the cell's background color
-      }
-    });
-
-    // Once all cells are rendered, add the 'loaded' class to the loadDiv
-    loadDiv.classList.add('loaded');
-    closeBoxesWithDelay();
+  const snapshot = await getDocs(gridRef); // One-time fetch instead of real-time updates
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    const gridCell = gridContainer.querySelector(`[data-x="${data.x}"][data-y="${data.y}"]`);
+    if (gridCell) {
+      gridCell.style.backgroundColor = data.color;
+    }
   });
+  loadDiv.classList.add('loaded');
+  closeBoxesWithDelay();
 }
+
+setInterval(renderColorData, 3000);
 
 
 renderColorData();
