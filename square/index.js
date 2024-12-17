@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc,getDocs, addDoc, collection, getCountFromServer, query  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc,getDocs, addDoc, collection, getCountFromServer, query , where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
@@ -277,23 +277,33 @@ colors.forEach(color => {
 });
 
 async function placeSqare() {
-    const currentHoverDiv = document.querySelector('.grid-cell.hovering');
-    const cHy = currentHoverDiv.getAttribute('data-y');
-    const cHx = currentHoverDiv.getAttribute('data-x');
+  const currentHoverDiv = document.querySelector('.grid-cell.hovering');
+  const cHy = currentHoverDiv.getAttribute('data-y');
+  const cHx = currentHoverDiv.getAttribute('data-x');
 
-    const selectedColor = document.querySelector('.color.selected');
-    const color = selectedColor.dataset.color;
+  const selectedColor = document.querySelector('.color.selected');
+  const color = selectedColor.dataset.color;
 
-    const gridRef = collection(db, 'grid', 'data', 'cells');
-    await addDoc(gridRef, {
-        x: cHx,
-        y: cHy,
-        color: color,
+  const gridRef = collection(db, 'grid', 'data', 'cells');
+  const cellQuery = query(gridRef, where("x", "==", cHx), where("y", "==", cHy));
+  const querySnapshot = await getDocs(cellQuery);
+
+  if (!querySnapshot.empty) {
+    // If the cell already exists, update it
+    querySnapshot.forEach(async (doc) => {
+      await setDoc(doc.ref, { color: color }, { merge: true });
     });
+  } else {
+    // If the cell does not exist, add a new document
+    await addDoc(gridRef, {
+      x: cHx,
+      y: cHy,
+      color: color,
+    });
+  }
 
-
-    renderColorData();
-    console.log(gridData);
+  renderColorData();
+  console.log(gridData);
 }
 
 const placeBtn = document.getElementById('place-btn');
