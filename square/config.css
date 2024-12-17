@@ -1,6 +1,6 @@
  /* Main container styles */
  body {
-    background-color: var(--bg);
+    background-color: var(--secondary-color);
     font-family: roboto;
     margin: 0;
     overflow: hidden;
@@ -17,17 +17,16 @@
     display: grid;
     grid-template-columns: repeat(100, 10px); /* 10px width per grid cell */
     grid-template-rows: repeat(100, 10px);  /* 10px height per grid cell */
-    gap: 1px; /* Space between grid cells */
     position: absolute;
     top: 0;
     left: 0;
-    transition: transform 0.1s ease-out;
+    transition: transform 0.1s forwards;
 }
 
 :root {
     font-size: 20px;
     --primary-color: #007bff;
-    --secondary-color: #567b9b;
+    --secondary-color: #589b56;
     --bg: #8380a5;
 }
 
@@ -39,8 +38,7 @@
 .grid-cell {
     width: 10px;
     height: 10px;
-    background-color: lightgray;
-    border: 1px solid #ddd;
+    background-color: rgb(255, 255, 255);
     text-align: center;
     font-size: 6px;
     color: black;
@@ -137,7 +135,41 @@ button:hover {
     scale: 1.3;
 }
 
+.loadboxes {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -40%);
+    display: flex;
+    flex-wrap: wrap; /* Allow boxes to wrap into rows */
+    justify-content: center; /* Center align rows */
+    align-items: center; /* Center align vertically */
+    width: 100vw; /* Use full viewport width */
+    height: 100vh; /* Use full viewport height */
+    overflow: hidden; /* Prevent scrollbars */
+    scale: 1.3;
+    pointer-events: none;
+}
 
+.box {
+    width: calc(100vw / 12); /* Dynamically calculate width for 12 boxes per row */
+    height: calc(100vw / 12); /* Make the boxes square */
+    box-sizing: border-box;
+    background-color: #007bff;
+}
+
+.closed {
+    animation: closed 0.4s forwards;
+}
+
+@keyframes closed {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
 
 @media all and (width > 1280px) { 
 
@@ -169,3 +201,15 @@ button:hover {
       }
   
 }
+
+/* HTML: <div class="loader"></div> */
+.loader {
+    width: 55px;
+    aspect-ratio: 1;
+    --g1:conic-gradient(from  90deg at 3px  3px ,#0000 90deg,#fff 0);
+    --g2:conic-gradient(from -90deg at 22px 22px,#0000 90deg,#fff 0);
+    background:var(--g1),var(--g1),var(--g1), var(--g2),var(--g2),var(--g2);
+    background-size: 25px 25px;
+    background-repeat: no-repeat;
+    animation: l7 1.5s infinite;
+  }
