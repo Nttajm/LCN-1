@@ -213,3 +213,8 @@ button:hover {
     background-repeat: no-repeat;
     animation: l7 1.5s infinite;
   }
+
+
+  #viewport {
+    touch-action: none;
+  }
