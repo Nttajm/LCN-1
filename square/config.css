@@ -193,11 +193,19 @@ button:hover {
     :root {
         font-size: 16px;
       }
+
+      #computer-warning {
+        display: block !important;
+      }
 }
 
 @media all and (max-width: 480px) { 
     :root {
         font-size: 16px;
+      }
+
+      #computer-warning {
+        display: block !important;
       }
   
 }
@@ -217,4 +225,8 @@ button:hover {
 
   #viewport {
     touch-action: none;
+  }
+
+  #computer-warning {
+    display: none;
   }
