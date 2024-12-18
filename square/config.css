@@ -15,8 +15,8 @@
 
 #grid-container {
     display: grid;
-    grid-template-columns: repeat(125, 10px); /* 10px width per grid cell */
-    grid-template-rows: repeat(125, 10px);  /* 10px height per grid cell */
+    grid-template-columns: repeat(250, 10px); /* 10px width per grid cell */
+    grid-template-rows: repeat(150, 10px);  /* 10px height per grid cell */
     position: absolute;
     top: 0;
     left: 0;
@@ -161,6 +161,39 @@ button:hover {
 .closed {
     animation: closed 0.4s forwards;
 }
+
+.loading {
+    position: fixed !important;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    top: 0;
+    left: 0;
+    font-weight: 700;
+    color: white;
+    font-size: 3rem;
+    gap: 1rem;
+}
+.loader {
+    width: 55px;
+    aspect-ratio: 1;
+    --g1:conic-gradient(from  90deg at 3px  3px ,#0000 90deg,#fff 0);
+    --g2:conic-gradient(from -90deg at 22px 22px,#0000 90deg,#fff 0);
+    background:var(--g1),var(--g1),var(--g1), var(--g2),var(--g2),var(--g2);
+    background-size: 25px 25px;
+    background-repeat: no-repeat;
+    animation: l7 1.5s infinite;
+  }
+  @keyframes l7 {
+    0%   {background-position:0    0   ,0 100%,100% 100% }
+    25%  {background-position:100% 0   ,0 100%,100% 100% }
+    50%  {background-position:100% 0   ,0 0   ,100% 100% }
+    75%  {background-position:100% 0   ,0 0   ,0    100% }
+    100% {background-position:100% 100%,0 0   ,0    100% }
+  }
 
 @keyframes closed {
     0% {

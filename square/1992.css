@@ -13,8 +13,8 @@
 
 #grid-container {
     display: grid;
-    grid-template-columns: repeat(125, 10px); /* 10px width per grid cell */
-    grid-template-rows: repeat(125, 10px);  /* 10px height per grid cell */
+    grid-template-columns: repeat(250, 10px); /* 10px width per grid cell */
+    grid-template-rows: repeat(150, 10px);  /* 10px height per grid cell */
     top: 0;
     left: 0;
     transition: transform 0.1s forwards;

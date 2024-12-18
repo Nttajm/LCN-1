@@ -43,8 +43,8 @@ const gridData = [
 ];
 
 // Generate the grid
-for (let y = 1; y <= 125; y++) {
-  for (let x = 1; x <= 125; x++) {
+for (let y = 1; y <= 150; y++) {
+  for (let x = 1; x <= 250; x++) {
     const gridCell = document.createElement('div');
     gridCell.classList.add('grid-cell');
     gridCell.setAttribute('data-x', x);
@@ -67,6 +67,9 @@ async function renderColorData() {
   });
   loadDiv.classList.add('loaded');
   closeBoxesWithDelay();
+
+  const loadingText = document.querySelector('.loading');
+    loadingText.classList.add('dn');
 }
 
 setInterval(renderColorData, 3000);
