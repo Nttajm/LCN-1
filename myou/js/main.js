@@ -21,7 +21,11 @@ const auth = getAuth();
 const db = getFirestore(app);
 
 const loginBtn = document.querySelector('.googleButton');
+let lastId = null;
 const logoutBtn = document.querySelector('#logout');
+
+let currentId = null;
+let currentDocId = null;
 
 if (loginBtn) {
   loginBtn.addEventListener('click', async () => {
@@ -80,10 +84,13 @@ if (logState) {
 
 
 onAuthStateChanged(auth, async (user) => {
+
+
     async function renderCategories() {
+
         if (!user) return;
     
-        const loadingSpinner = document.querySelector('#loading-spinner');
+        const loadingSpinner = document.querySelector('.ls1');
         const catsection = document.querySelector('#categories');
     
         try {
@@ -136,7 +143,7 @@ onAuthStateChanged(auth, async (user) => {
                 const membersCount = memberCountSnap.data().count;
 
                 catsection.innerHTML += `
-                    <div class="category ${catData.theme}" data-catid="${catData.catid}">
+                    <div class="category ${catData.theme}" data-catid="${catDoc.id}">
                         <span class="cat-name">${catData.name}</span>
                         <span class="cat-members">members: ${membersCount}</span>
                     </div>`;
@@ -160,65 +167,83 @@ onAuthStateChanged(auth, async (user) => {
             
             if (!categoryName) {
                 alert("Please enter a category name.");
-                return;
             }
 
+            const systemSelect = document.querySelector('#system-selecters .freq.selected');
+            if (!systemSelect) {
+                alert("Please select a system.");
+            }
+    
             const catid = Math.random().toString(36).substring(2, 11);
     
             const theme = document.querySelector('.theme-selected').getAttribute('data-theme');
-            const system = document.querySelector('.freq.selected').getAttribute('data-system');
-            
+            const system = document.querySelector('#system-selecters .freq.selected').getAttribute('data-system');
+    
             const userUid = user.uid;
     
             const userCategories = collection(db, 'myou', 'data', 'users', userUid, 'categories');
             const categories = collection(db, 'myou', 'data', 'categories');
-            const categoryMembers = collection(db, 'myou', 'data', 'categories', catid, 'members');
-    
             
+            // Add the category under the user's categories
             await addDoc(userCategories, {
                 name: categoryName,
                 catid,
                 joinedAt: serverTimestamp(),
             });
     
-            const beforeMembers = await getDocs(categories);
-            const membersCount = beforeMembers.size;
-    
-            await addDoc(categories, {
+            // Add the category and retrieve the created category reference
+            const newCategoryRef = await addDoc(categories, {
                 name: categoryName,
                 catid,
                 theme,
                 system,
-                membersCount,
+                membersCount: 0, // Initial members count
                 createdAt: serverTimestamp(),
+                owner: userUid,
             });
     
+            // Add the member to the 'members' sub-collection under the created category
+            const categoryMembers = collection(newCategoryRef, 'members');
             await addDoc(categoryMembers, {
                 catid,
                 userUid,
                 name: user.displayName,
                 pfp: user.photoURL,
                 joinedAt: serverTimestamp(),
+                role: 'owner',
             });
     
             categoryInput.value = ""; 
     
             // Call renderCategories to update the UI
             await renderCategories();
+            const allcats = document.querySelectorAll('.category');
+            allcats.forEach(cat => {
+                cat.addEventListener('click', () => {
+                    const docid = cat.getAttribute('data-catid');
+                    openCategory(docid);
+                });
+            });
         });
-    
+
         const createDiv = document.querySelector('.create-div');
         createDiv.classList.add('dn');
     }
+    
 
     
-    const createCatBtn = document.querySelector('.create-btn');
+    const createCatBtn = document.querySelector('#create-btn-cat');
     createCatBtn.addEventListener('click', createCategory);
 
     async function openCategory(docId) {
         const categoryRef = doc(db, 'myou', 'data', 'categories', docId);
         const categoryDoc = await getDoc(categoryRef);
         const category = categoryDoc.data();
+
+        currentId = category;
+        currentDocId = docId;
+
+        const catid = category.catid;
     
         // Manage the category div state
         const catDiv = document.querySelector('.incat-div');
@@ -243,7 +268,417 @@ onAuthStateChanged(auth, async (user) => {
         // Update the banner name
         const bannerName = document.querySelector('.js_catName');
         bannerName.textContent = category.name;
+
+        const memebersDiv = document.querySelector('#members');
+        const memebrs = [];
+
+        const membersRef = collection(db, 'myou', 'data', 'categories', docId, 'members');
+        const membersDocs = await getDocs(membersRef);
+        memebersDiv.innerHTML = "";
+        if (membersDocs.empty) {
+            memebersDiv.innerHTML = "<p>No members found.</p>";
+            return;
+        }
+
+        let count = 0;
+        for (const doc of membersDocs.docs) {
+            if (count >= 3) break;
+            const memberData = doc.data();
+            memebersDiv.innerHTML += `
+                <img src="${memberData.pfp}" alt="profile picture" class="pfp">
+            `;
+            count++;
+        }
+
+        await renderBets();
+        
     }
+
+    async function renderBets() {
+        if (currentDocId === lastId) {
+            return;
+        }
+
+        checkOwner();
+        lastId = currentDocId;
+        const betsDiv = document.querySelector('.sec');
+        betsDiv.innerHTML = "";
+
+        const loadingSpinner = document.querySelector('.ls2');
+
+
+    
+        try {
+            loadingSpinner.style.display = 'flex';
+
+            const betsRef = collection(db, 'myou', 'data', 'categories', currentDocId, 'bets');
+            const betsDocs = await getDocs(betsRef);
+    
+            if (betsDocs.empty) {
+                betsDiv.innerHTML = `
+                    <div class="category-i mt-10 gray">
+                        <span class="cat-name">No bets yet</span>
+                        <span class="cat-members">
+                            New bets will appear soon.
+                        </span>
+                    </div>
+                `;
+                return;
+            }
+    
+            // Accumulate HTML
+            let betsHTML = '';
+            betsDocs.forEach((doc) => {
+                const bet = doc.data();
+                updateButtons(doc.id);
+                if (bet.hasCustomButtons === false) {
+                    bet.btn1 = 'over';
+                    bet.btn2 = 'under';
+                }
+
+                let titleHtml = ``
+                 if (bet.betType === 'vs') {
+                    titleHtml = `
+                        <div class="game">
+                                <div class="name">
+                                    <span>${bet.team1}</span>
+                                    <span class="span-vs">Vs</span>
+                                    <span>${bet.team2}</span>
+                                </div>
+                            </div>
+                            <div class="for">
+                                <span>${bet.condition}</span>
+                            </div>
+                    `
+                }
+
+                if (bet.betType === 'title') {
+                    titleHtml = `
+                        <div class="game title-bet">
+                                <div class="name">
+                                    <span>${bet.title}</span>
+                                </div>
+                            </div>
+                    `
+                }
+
+                    betsHTML += `
+                        <div class="bet card vs" data-betid="${doc.id}">
+                            <span class="multi it r">$${bet.systemPoints}</span>
+                            <div class="team-stats fl-ai g-5 dn">
+                                <img src="/bp/EE/assets/ouths/person.png" alt="" class="icon op-5 stand_er-invert">
+                                5
+                            </div>
+                            ${titleHtml}
+                            <div class="bottom">
+                                <div class="button-sec" id="btn-10s">
+                                    <button class="over" data-betid="${doc.id}">${bet.btn1}</button>
+                                    <button class="under" data-betid="${doc.id}">${bet.btn2}</button>
+                                </div>
+                                <span>${formatDateTime(`${bet.date} ${bet.time}`)}</span>
+                                <span class="bold"></span>
+                            </div>
+                        </div>
+                    `;
+                
+            });
+    
+            // Update the DOM once
+            betsDiv.innerHTML = betsHTML;
+    
+            // Add event listeners to buttons
+            const overButtons = betsDiv.querySelectorAll('.over');
+            const underButtons = betsDiv.querySelectorAll('.under');
+    
+            overButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const betid = button.getAttribute('data-betid');
+                    addUserBet('over', betid);
+
+                    const relitiveUnderBtn = document.querySelector(`.under[data-betid="${betid}"]`);
+                    relitiveUnderBtn.classList.add('collapse');
+                });
+            });
+    
+            underButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const betid = button.getAttribute('data-betid');
+                    addUserBet('under', betid);
+                    
+                    const relitiveOverBtn = document.querySelector(`.over[data-betid="${betid}"]`);
+                    relitiveOverBtn.classList.add('collapse');
+                });
+            });
+  
+        } catch (error) {
+            console.error("Error fetching bets:", error);
+            betsDiv.innerHTML = `
+                <div class="category-i mt-10 red">
+                    <span class="cat-name">Error</span>
+                    <span class="cat-members">
+                        Unable to load bets. Please try again later.
+                    </span>
+                </div>
+            `;
+        }
+        finally {
+            loadingSpinner.style.display = 'none';
+        }
+    }
+    
+    function addUserBet(option, betid) {
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                console.error("No user is logged in");
+                return;
+            }
+
+            const userCatId = collection(db, 'myou', 'data', 'users', user.uid, 'categories');
+            const userCategoriesQuery = query(
+                userCatId,
+                where('catid', '==', currentId.catid)
+            );
+            const userCategoriesSnapshot = await getDocs(userCategoriesQuery);
+            if (userCategoriesSnapshot.empty) {
+                console.error("No matching categories found for the user.");
+                return;
+            }
+    
+            const userBetsRef = collection(
+                db,
+                'myou',
+                'data',
+                'users',
+                user.uid,
+                'categories',
+                userCategoriesSnapshot.docs[0].id,
+                'bets'
+            );
+    
+            try {
+                await addDoc(userBetsRef, {
+                    betid,
+                    option,
+                });
+                console.log(`Bet ${option} added for bet ID ${betid}`);
+            } catch (error) {
+                console.error("Error adding bet:", error);
+            }
+        });
+    }
+    
+    async function updateButtons(betid) {
+        const userCatId = collection(db, 'myou', 'data', 'users', user.uid, 'categories');
+        const userCategoriesQuery = query(
+            userCatId,
+            where('catid', '==', currentId.catid)
+        );
+        const userCategoriesSnapshot = await getDocs(userCategoriesQuery);
+        if (userCategoriesSnapshot.empty) {
+            console.error("No matching categories found for the user.");
+            return;
+        }
+
+        const matchingUserBets = collection(
+            db,
+            'myou',
+            'data',
+            'users',
+            user.uid,
+            'categories',
+            userCategoriesSnapshot.docs[0].id,
+            'bets',
+        );
+
+        const matchingUserBet = query(matchingUserBets, where('betid', '==', betid));
+        
+        const userBetDocs = await getDocs(matchingUserBet);
+
+        userBetDocs.forEach((doc) => {
+            const userBetData = doc.data();
+
+            const overBtn = document.querySelector(`.over[data-betid="${betid}"]`);
+            const underBtn = document.querySelector(`.under[data-betid="${betid}"]`);
+
+            if (overBtn && underBtn) {
+                if (userBetData.option === 'over') {
+                    overBtn.disabled = true;
+                    underBtn.classList.add('collapse');
+                } else if (userBetData.option === 'under') {
+                    underBtn.disabled = true;
+                    overBtn.classList.add('collapse');
+                }
+            }
+        });
+    }
+
+    
+
+    function addabetDiv() {
+        const addabetDiv = document.querySelector('.add-a-bet');
+        addabetDiv.classList.toggle('dn');
+        changeTitle();
+    }
+
+    const addabetBtn = document.querySelector('.addabet');
+    addabetBtn.addEventListener('click', addabetDiv);
+
+     function checkOwner() {
+        onAuthStateChanged(auth, async (user) => {
+            let isOwner = false;
+
+            if (currentId && user) {
+                if (currentId.owner === user.uid) {
+                    isOwner = true;
+                } else {
+                    isOwner = false;
+                }
+            }
+
+            const addabetBtn = document.querySelector('.addabet');
+            const editBtn = document.querySelector('.edit');
+            if (isOwner) {
+                addabetBtn.style.display = 'block';
+                editBtn.style.display = 'flex';
+            } else {
+                addabetBtn.style.display = 'none';
+                editBtn.style.display = 'none';
+
+                addabetBtn.disabled = true;
+                editBtn.disabled = true;
+            }
+
+            if (isOwner) {
+                return true;
+            } else {
+                return false;
+            }
+
+
+        });
+    }
+
+
+    let vstitle = document.getElementById('js-vsTitle');
+    vstitle.innerHTML = `
+        <span>Team 12</span>
+        <input type="text" class="input" id="team1">
+        <span>Team 2</span>
+        <input type="text" class="input" id="team2">
+    `;
+
+    const allBetsselects = document.querySelectorAll('#bet-selecters .freq');
+    allBetsselects.forEach(select => {
+        select.addEventListener('click', changeTitle);
+    });
+
+    function changeTitle() {
+        const selected = document.querySelector('#bet-selecters .freq.selected');
+        const bettype = selected.getAttribute('data-bettype');
+        const sub2 = document.querySelector('.sub2');
+
+        if (bettype === 'vs') {
+            vstitle.innerHTML = `
+                <span>Team 1</span>
+                <input type="text" class="input" id="team1" placeholder="Warriors">
+                <span>Team 2</span>
+                <input type="text" class="input" id="team2" placeholder="Cavs">
+                <span>condition</span>
+                <input type="text" class="input" id="condition" placeholder="Who will win, point spread, etc.">
+            `;
+            sub2.innerHTML = `"Warriors vs Cavs"`
+        } else {
+            vstitle.innerHTML = `
+                <span>Title/Condition</span>
+                <input type="text" class="input" id="title" placeholder="John Doe's points">
+            `;
+            sub2.innerHTML = `"Who will win the NBA finals?"`
+        }
+        
+    }
+
+    async function addBet(currentIdi) {
+        const betType = document.querySelector('#bet-selecters .freq.selected').getAttribute('data-bettype');
+    
+        if (betType === 'vs') {
+            let bet = {};
+            const team1 = document.querySelector('#team1').value;
+            const team2 = document.querySelector('#team2').value;
+            const condition = document.querySelector('#condition').value;
+            const systemPoints = document.querySelector('#bet-value').value;
+            const time = document.querySelector('#game-time').value;
+            const date = document.querySelector('#game-date').value;
+            const btn1 = document.querySelector('.input.over').value;
+            const btn2 = document.querySelector('.input.under').value;
+            let hasCustomButtons = false;
+
+            if (btn1 && btn2) {
+                hasCustomButtons = true;
+            } else if (btn1 || btn2) {
+                alert("Please fill in all fields.");
+            }
+        
+            if (!team1 || !team2 || !condition || !systemPoints || !time || !date) {
+                alert("Please fill in all fields.");
+            }
+
+            bet = {
+                betType,
+                team1,
+                team2,
+                condition,
+                systemPoints,
+                time,
+                date,
+                hasCustomButtons,
+                btn1,
+                btn2,
+            };
+
+            const betsRef = collection(db, 'myou', 'data', 'categories', currentIdi, 'bets');
+            await addDoc(betsRef, bet);
+        } else if (betType === 'title') {
+            let bet = {};
+            const title = document.querySelector('#title').value;
+            const systemPoints = document.querySelector('#bet-value').value;
+            const time = document.querySelector('#game-time').value;
+            const date = document.querySelector('#game-date').value;
+            const btn1 = document.querySelector('.input.over').value;
+            const btn2 = document.querySelector('.input.under').value;
+            let hasCustomButtons = false;
+
+            if (btn1 && btn2) {
+                hasCustomButtons = true;
+            } else if (btn1 || btn2) {
+                alert("Please fill in all fields.");
+            }
+        
+            if (!systemPoints || !time || !date) {
+                alert("Please fill in all fields.");
+            }
+
+            bet = {
+                betType,
+                title,
+                systemPoints,
+                time,
+                date,
+                hasCustomButtons,
+                btn1,
+                btn2,
+            };
+
+            const betsRef = collection(db, 'myou', 'data', 'categories', currentIdi, 'bets');
+            await addDoc(betsRef, bet);
+        }
+    }
+
+    const addBetBtn = document.querySelector('#add-a-bet-btn');
+    addBetBtn.addEventListener('click', () => {
+        addBet(currentDocId);
+    });
+
+
     
     // Utility function to clear theme classes
     function clearThemeClasses(elements) {
@@ -258,18 +693,54 @@ onAuthStateChanged(auth, async (user) => {
     const allcats = document.querySelectorAll('.category');
     allcats.forEach(cat => {
         cat.addEventListener('click', () => {
-            const docid = cat.getAttribute('data-docid');
+            const docid = cat.getAttribute('data-catid');
             openCategory(docid);
         });
     });
-
 });
 
 
 
+
+
+
+
+
 // end 
+function share () {
+    
+    const shareDiv = document.querySelector('.joinsec');
+    const joinCodeSpan = document.querySelector('#join-code');
+    
+    shareDiv.classList.toggle('dn'); 
 
+    const joinCode = currentId.catid;
+    joinCodeSpan.textContent = joinCode;
 
+}
+
+const copyBtn = document.querySelector('.copy-btn');
+
+function copyCode() {
+    const code = document.querySelector('#join-code');
+    const codeText = code.textContent;
+    navigator.clipboard.writeText(codeText);
+
+    copyBtn.textContent = "Copied!";
+}
+
+copyBtn.addEventListener('click', copyCode);
+const shareBtn = document.querySelector('.share-btn');
+shareBtn.addEventListener('click', share);
+
+function shareCode() {
+    const code = document.querySelector('#join-code');
+    const codeText = code.textContent;
+    navigator.share({ title: 'My overunder Join code!', text: `Join code: ${codeText}`, url: 'https://lcnjoel.com/myou' });
+}
+
+const shareNativeBtn = document.querySelector('.share-native-btn');
+shareNativeBtn.addEventListener('click', shareCode);
 
 
 const backBtn = document.querySelector('#backBtn');
@@ -319,3 +790,24 @@ allTargets.forEach(target => {
         elem.classList.toggle(classToToggle);
     });
 });
+
+function formatDateTime(input) {
+    // Split the input into time and date parts
+    const [time, date] = input.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    // Convert hours to 12-hour format and determine am/pm
+    const ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12 || 12; // Adjust for 12-hour format
+
+    // Parse the date and extract parts
+    const [year, month, day] = date.split("-").map(Number);
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    const formattedMonth = monthNames[month - 1]; // Convert month number to name
+
+    // Format the date and time into the desired output
+    return `${hours}:${minutes + 1} ${ampm} ${formattedMonth} ${day}`;
+}

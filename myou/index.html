@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My over/under</title>
+    <link rel="stylesheet" href="css/myoverunder-utils.css">
+    <link rel="stylesheet" href="css/colors.css">
+    <link rel="stylesheet" href="css/myoverunder.css">
+    <link rel="stylesheet" href="/css/standard.css"> 
+
+</head>
+<body>
+
+  <div id="google-auth-div">
+    <div class="blob-sec">
+      <div class="blob"></div>
+      <div class="blob"></div>
+      <div class="blob"></div>
+    </div>
+    <div class="signin-cont">
+      <div class="logo">
+        <img src="/bp/EE/assets/ouths/Myoverunder.png" alt="logo">
+      </div>
+      <div class="google-bn-sec fl-c g-10">
+        <div class="googleButton">
+          <img src="/images/goolge-.png" alt="google">
+          <span>Continue with Google</span>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="beta-eddition dn">
+    <div>
+        <img src="/bp/EE/assets/ouths/Myoverunder.png">
+      <span class="dn">Beta Edition (1.9.8)</span>
+    </div>
+  </div>
+
+  <div class="joinsec dn">
+    <div class="join-alert fl-c R2">
+      <div class="stand_er-close-text js_closer" data-close=".joinsec">
+        <span>Cancel</span>
+      </div>
+      <span class="jc-title">Join Code</span>
+      <span id="join-code">gjYgs189</span>
+      <div class="button-sec">
+        <button class="copy-btn">
+          Copy
+        </button>
+        <button class="outSite share-native-btn">
+          Share 
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="add-a-bet dn">
+    <div class="stand_er-close-text js_closer" data-close=".add-a-bet">
+      <span>Cancel</span>
+    </div>
+    <h1>Add a bet</h1>
+    <div class="form-sec">
+      <div class="selecter" id="bet-selecters">
+        <span class="freq selected" data-bettype="vs">VS</span>
+        <span class="freq" data-bettype="title">Title</span>
+      </div>
+    </div>
+
+    <div class="title-vs fl-ai fl-c">
+      <span class="sub2 dn">"Warriors vs Cavs"</span>
+      <div class="form-sec" id="js-vsTitle">
+        <span>Team 1</span>
+        <input type="text" class="input" id="team1">
+        <span>Team 2</span>
+        <input type="text" class="input" id="team2">
+      </div>
+      <div class="form-sec">
+        <span>
+          $$$/Points value
+        </span>
+        <input type="number" class="input" id="bet-value">
+      </div>
+      <div class="form-sec">
+        <span>Bet time and date</span>
+        <input type="Date" class="input" id="game-time">
+        <input type="time" class="input" id="game-date">
+      </div>
+      <div class="form-sec">
+        <span>Custom buttons (over/under defult)</span>
+        <input type="text" class="input over" id="custom-buttons" placeholder="over">
+        <input type="text" class="input under" id="custom-buttons"  placeholder="under">
+      </div>
+    </div>
+    <button class="create-btn" id="add-a-bet-btn">
+      Add
+    </button>
+
+  </div>
+
+   <nav class="nav">
+    <div class="img-sec">
+        <a href="overunderths.html">
+          <img src="/bp/EE/assets/ouths/Myoverunder.png">
+        </a>
+      </div>
+      <div class="multi-tag-2 fl-js stats-main">
+            <div class="profile">
+                <span class="username">Loading</span>
+                <img src="bp/EE/assets/ouths/icono (2).png" alt="pfp" class="icon" id="google-auth-pfp">
+            </div>
+          <div class="stats high-buttons" id="js-stats">
+            <button class="under" id="logout">Log out</button>
+          </div>
+      </div>
+   </nav>
+   <div class="cont-nav">
+    <div class="multi-tag-2">
+        <h2>My Categories</h2>
+        <div class="sepa"></div>   
+        <div class="load-sec R2 fl-c">
+          <div id="loading-spinner" class="ls1" style="display: none;">
+            Loading...
+          </div>   
+          <div class="cat-sec" id="categories">
+            <!-- <div class="category red">
+              <span class="cat-name">
+                Bach' Party 25
+              </span>
+              <span class="cat-members">
+                25 members
+              </span>
+            </div> -->
+          </div>
+        </div>
+    </div>
+   </div>
+
+   <div class="actions button-sec">
+    <button class="create js_closer shinny" data-close=".create-div">Create</button>
+    <a href="join.html">
+      <button class="join">Join</button>
+    </a>   
+  </div>
+
+
+  <div class="create-div fl-c dn">
+    <div class="stand_er-close-text js_closer" data-close=".create-div">
+      <span>Cancel</span>
+    </div>
+    <h1>Create</h1>
+    <div class="form-sec">
+      <span>Category name</span>
+      <input type="text" class="input" id="cat-name">
+    </div>
+    <div class="form-sec">
+      <span>theme colors</span>
+      <div class="theme-colors">
+        <div class="theme red theme-selected" data-theme="red"></div>
+        <div class="theme orange" data-theme="orange"></div>
+        <div class="theme yellow" data-theme="yellow"></div>
+        <div class="theme green" data-theme="green"></div>
+        <div class="theme blue" data-theme="blue"></div>
+        <div class="theme purple" data-theme="purple"></div>
+        <div class="theme pink" data-theme="pink"></div>
+        <div class="theme brown" data-theme="brown"></div>
+        <div class="theme black" data-theme="black"></div>
+        <div class="theme white" data-theme="white"></div>
+      </div>
+    </div>
+    <div class="form-sec">
+      <div class="selecter" id="system-selecters">
+        <span class="freq selected" data-system="points">Points</span>
+        <span class="freq" data-system="money">$$$</span>
+      </div>
+    </div>
+    <button class="create-btn" id="create-btn-cat">
+      Create
+    </button>
+  </div>
+  
+
+   
+   <div class="incat-div "> 
+    <div class="banner fl-jsp-start fl-c R2 rotating-gradient ">
+      <div class="back " id="backBtn">
+        <img src="/images/back.png" alt="back" class="icon">
+      </div>
+      <h2 class="js_catName">Loading</h2>
+      <span class="cat-members">
+        Loading
+      </span>
+    </div>
+    <div class="cont-nav">
+      <div class="edit multi-tag fl-c u">
+        <h3>Edit</h3>
+      </div>
+      <div class="multi-tag stats-main">
+        <div class="">
+          <span id="username">Loading</span>
+        </div>
+        <div class="stats" id="js-stats">
+
+          <div class="stat fl-ai">
+            <span class="rankk">Loading</span>
+            <img src="/bp/EE/assets/ouths/rankk.png" alt="" class="icon">
+          </div>
+        </div>
+      </div>
+
+      <div class="boxes-cont">
+        <div class="box share share-btn">
+          <span>Share</span>
+        </div>
+        <div class="box members">
+          <span>Members</span>
+          <div class="people" id="members">
+            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post//summer swim.jpg" alt="a" class="pfp">
+            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post/King bach.jpg" alt="a" class="pfp">
+            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post/🦋.jpg" alt="a" class="pfp">
+            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post/⚡️.jpg" alt="a" class="pfp">
+          </div>
+        </div>
+
+      </div>
+      
+      <div class="category-i gray mt-10 fl-c addabet" style="display: none;">
+        <h2>
+          Add a bet
+        </h2>
+      </div>
+
+        <div class="load-sec R2 fl-c">
+          <div id="loading-spinner" class="ls2 mt-10" style="display: none;">
+            Loading...
+          </div>   
+          <div class="sec">
+            <!-- <div class="bet card vs">
+              <span class="multi it r">$320</span>
+              <div class="team-stats fl-ai g-5 dn">
+                <img src="/bp/EE/assets/ouths/person.png" alt="" class="icon op-5 stand_er-invert">
+                5
+              </div>
+              <div class="game">
+                <div class="name">
+                  <span >Tech High Soccer (VG)</span>
+                  <span class="span-vs">Vs</span>
+                  <span>Middle Town</span>
+                </div>
+              </div>
+              <div class="for">
+                <span>0.5</span>
+                <span>Goals</span>
+              </div>
+              <div class="button-sec" id="btn-10s">
+                <button class="over ">over</button>
+                <button class="under">under</button>
+              </div>
+              <span>Sep 17th 3:30pm</span>
+              <span class="bold"></span>
+            </div> -->
+          </div>
+        </div>
+    </div>      
+   </div>
+<script src="js/main.js" type="module"></script>
+</body>
+</html>

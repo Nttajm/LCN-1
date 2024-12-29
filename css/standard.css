@@ -179,6 +179,23 @@ p, a {
   gap: 20px;
 }
 
+.mt-3 {
+  margin-top: 3px;
+}
+
+.mt-5 {
+  margin-top: 5px;
+}
+
+.mt-10 {
+  margin-top: 10px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+
 .fl-wr{
   flex-wrap: wrap;
 }
