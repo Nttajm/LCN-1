@@ -84,7 +84,7 @@
         <input type="number" class="input" id="bet-value">
       </div>
       <div class="form-sec">
-        <span>Bet time and date</span>
+        <span>End bet time and date</span>
         <input type="Date" class="input" id="game-time">
         <input type="time" class="input" id="game-date">
       </div>
@@ -146,8 +146,8 @@
   </div>
 
 
-  <div class="create-div fl-c dn">
-    <div class="stand_er-close-text js_closer" data-close=".create-div">
+  <div class="create-div fl-c dn" id="catCreate">
+    <div class="stand_er-close-text js_closer" data-close="#catCreate">
       <span>Cancel</span>
     </div>
     <h1>Create</h1>
@@ -180,7 +180,39 @@
       Create
     </button>
   </div>
-  
+
+
+  <div class="create-div dn" id="editCat">
+    <div class="stand_er-close-text js_closer" data-close="#editCat">
+      <span>Cancel</span>
+    </div>
+    <h1>Edit</h1>
+    <div class="form-sec">
+      <span>Category name</span>
+      <input type="text" class="input" id="cat-name-edit">
+    </div>
+    <div class="editBets-sec">
+      <div class="bet-to-edit">
+        <span>St. Helena</span>
+          <div class="button-sec">
+            <button class="edit-btn over">Over</button>
+            <button class="edit-btn under">Under</button>
+            <button class="delete-btn">Delete</button>
+          </div>
+      </div>
+      <div class="bet-to-edit">
+        <span>St. Helena</span>
+          <div class="button-sec">
+            <button class="edit-btn over">Over</button>
+            <button class="edit-btn under">Under</button>
+            <button class="delete-btn">Delete</button>
+        </div>
+      </div>
+    </div>
+    <button class="create-btn edit-btn-cat" id="editBtn">
+      Edit
+    </button>
+  </div>
 
    
    <div class="incat-div "> 
@@ -193,19 +225,31 @@
         Loading
       </span>
     </div>
+    <div class="members-cont dn">
+      <div class="render-members-div">
+        <div class="stand_er-close-text js_closer" data-close=".members-cont">
+          <span>Cancel</span>
+        </div>
+        <div class="members-div">
+          <div class="member">
+            loading...
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="cont-nav">
       <div class="edit multi-tag fl-c u">
         <h3>Edit</h3>
       </div>
       <div class="multi-tag stats-main">
         <div class="">
-          <span id="username">Loading</span>
+          <span id="username2">Loading</span>
         </div>
         <div class="stats" id="js-stats">
 
           <div class="stat fl-ai">
-            <span class="rankk">Loading</span>
             <img src="/bp/EE/assets/ouths/rankk.png" alt="" class="icon">
+            <span class="rankk balance" id="moneyDisplay">Loading</span>
           </div>
         </div>
       </div>
@@ -214,13 +258,10 @@
         <div class="box share share-btn">
           <span>Share</span>
         </div>
-        <div class="box members">
+        <div class="box members members-btn">
           <span>Members</span>
           <div class="people" id="members">
-            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post//summer swim.jpg" alt="a" class="pfp">
-            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post/King bach.jpg" alt="a" class="pfp">
-            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post/🦋.jpg" alt="a" class="pfp">
-            <img src="/bp/edu/cs50a-mod-16/images/pintrest/post/⚡️.jpg" alt="a" class="pfp">
+            Loading
           </div>
         </div>
 

@@ -265,6 +265,10 @@ ul, li {
   opacity: 0;
 }
 
+.op-7 {
+  opacity:0.7;
+}
+
 .wi-100 {
   width: 100%;
 }
@@ -336,7 +340,7 @@ ul, li {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .stand_er-close-text {

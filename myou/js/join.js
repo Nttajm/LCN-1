@@ -38,6 +38,12 @@ onAuthStateChanged(auth, (user) => {
 
         } else {
             const category = categorySnapshot.docs[0];
+
+            await setDoc(category.ref, {
+                members: category.data().membersCount + 1,
+            }, { merge: true
+            })
+
             const categoryName = category.data().name;
             await addDoc(userCategories, {
                 name: categoryName,

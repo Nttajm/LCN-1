@@ -493,3 +493,94 @@ a:hover, .shinny:hover {
   .span-vs {
     background-color: #517592 !important;
 }
+
+.members-cont {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.658);
+    z-index: 104;
+}
+
+.members-div {
+    width: 80%;
+    height: fit-content;
+    padding: 2rem;
+    background-color: #2b2657;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+    align-items: center;
+    color: white;
+    overflow-y: auto;
+}
+
+.member {
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    font-size: 1.1rem;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+
+
+.member .pfp {
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.render-members-div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+/* edit bets */
+
+#editCat {
+    z-index: 101;
+}
+
+.editBets-sec {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.bet-to-edit {
+    width: 100%;
+    padding: 1rem;
+    background-color: #8a8a8a;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: space-between;
+    box-sizing: border-box;
+    gap: 0.5rem;
+    font-size: 1.3rem !important;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.bet-to-edit span {
+    flex: 80%;
+}
+
+.edit-btn-cat {
+    position: fixed;
+    bottom: 1rem;
+    left: 0;
+}

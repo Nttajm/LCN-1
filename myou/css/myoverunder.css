@@ -716,6 +716,7 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     margin: 1rem 0rem;
     font-weight: 300;
     font-size: 0.8rem;
+    text-align: center;
 }
 
 .bold {
@@ -1521,8 +1522,6 @@ box-shadow: 0px 0px 57px 12px rgba(235,0,0,1);
     height: 2rem;
     border-radius: 100px;
 }
-
-
 
 
     .weup {

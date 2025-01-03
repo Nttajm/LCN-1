@@ -97,8 +97,11 @@ onAuthStateChanged(auth, async (user) => {
             loadingSpinner.style.display = 'flex';
     
             const profileName = document.querySelector('.username');
+            const profileName2 = document.querySelector('#username2');
+
             const profileImage = document.querySelector('#google-auth-pfp');
             profileName.textContent = user.displayName.split(' ')[0];
+            profileName2.textContent = user.displayName.split(' ')[0];
             profileImage.src = user.photoURL;
     
             const userUid = user.uid;
@@ -138,7 +141,7 @@ onAuthStateChanged(auth, async (user) => {
             for (const catDoc of catDocSnapshots.docs) {
                 const catData = catDoc.data();
                 // Get member count using Firestore count aggregation
-                const membersRef = collection(db, 'myou', 'data', 'categories', catData.catid, 'members');
+                const membersRef = collection(db, 'myou', 'data', 'categories', catDoc.id, 'members');
                 const memberCountSnap = await getCountFromServer(membersRef);
                 const membersCount = memberCountSnap.data().count;
 
@@ -197,7 +200,7 @@ onAuthStateChanged(auth, async (user) => {
                 catid,
                 theme,
                 system,
-                membersCount: 0, // Initial members count
+                membersCount: 1, // Initial members count
                 createdAt: serverTimestamp(),
                 owner: userUid,
             });
@@ -226,7 +229,7 @@ onAuthStateChanged(auth, async (user) => {
             });
         });
 
-        const createDiv = document.querySelector('.create-div');
+        const createDiv = document.querySelector('#catCreate');
         createDiv.classList.add('dn');
     }
     
@@ -239,6 +242,19 @@ onAuthStateChanged(auth, async (user) => {
         const categoryRef = doc(db, 'myou', 'data', 'categories', docId);
         const categoryDoc = await getDoc(categoryRef);
         const category = categoryDoc.data();
+
+
+        if (category.system === 'money') {
+            document.querySelector('.balance').classList.add('money');
+            document.querySelector('.balance').classList.remove('rankk');
+        } else if (category.system === 'points') {
+            document.querySelector('.balance').classList.add('rankk');
+            document.querySelector('.balance').classList.remove('money');
+        }
+
+        
+
+        CalculateBalance(docId);
 
         currentId = category;
         currentDocId = docId;
@@ -270,10 +286,13 @@ onAuthStateChanged(auth, async (user) => {
         bannerName.textContent = category.name;
 
         const memebersDiv = document.querySelector('#members');
+        const membersDiv2 = document.querySelector('.members-div');
         const memebrs = [];
 
         const membersRef = collection(db, 'myou', 'data', 'categories', docId, 'members');
         const membersDocs = await getDocs(membersRef);
+        
+        membersDiv2.innerHTML = "";
         memebersDiv.innerHTML = "";
         if (membersDocs.empty) {
             memebersDiv.innerHTML = "<p>No members found.</p>";
@@ -290,14 +309,30 @@ onAuthStateChanged(auth, async (user) => {
             count++;
         }
 
+        let count2 = 0;
+        for (const doc of membersDocs.docs) {
+            if (count2 >= 3) break;
+            const memberData = doc.data();
+            membersDiv2.innerHTML += `
+                <div class="member">
+            <span>
+                ${memberData.name}
+            </span>
+            <img src="${memberData.pfp}" alt="" class="icon pfp">
+            </div>
+            `;
+            count++;
+        }
+        
         await renderBets();
         
     }
 
+
     async function renderBets() {
-        if (currentDocId === lastId) {
-            return;
-        }
+        // if (currentDocId === lastId) {
+        //     return;
+        // }
 
         checkOwner();
         lastId = currentDocId;
@@ -312,7 +347,8 @@ onAuthStateChanged(auth, async (user) => {
             loadingSpinner.style.display = 'flex';
 
             const betsRef = collection(db, 'myou', 'data', 'categories', currentDocId, 'bets');
-            const betsDocs = await getDocs(betsRef);
+            const betsQuery = query(betsRef, where('deleted', '==', false));
+            const betsDocs = await getDocs(betsQuery);
     
             if (betsDocs.empty) {
                 betsDiv.innerHTML = `
@@ -330,7 +366,21 @@ onAuthStateChanged(auth, async (user) => {
             let betsHTML = '';
             betsDocs.forEach((doc) => {
                 const bet = doc.data();
-                updateButtons(doc.id);
+                if (!bet.option) {
+                    updateButtons(doc.id);
+                }
+
+                if (bet.deleted === true) {
+                    return;
+                }
+                
+                let fullDate = `${bet.date} ${bet.time}`;
+                let dateHtml = formatDateTime(fullDate);
+
+                let dateBool = isDatePassed(fullDate);
+                if (isDatePassed(fullDate) && !bet.option) {
+                    dateHtml = `<span class="red">Pending results...</span>`;
+                }
                 if (bet.hasCustomButtons === false) {
                     bet.btn1 = 'over';
                     bet.btn2 = 'under';
@@ -362,9 +412,28 @@ onAuthStateChanged(auth, async (user) => {
                     `
                 }
 
+                let ButtonHtml = `
+                <button class="over" data-betid="${doc.id}">${bet.btn1}</button>
+                <button class="under" data-betid="${doc.id}">${bet.btn2}</button>
+                `;
+
+                if (bet.option) {
+                    if (bet.option === 'btn1') {
+                         ButtonHtml = `
+                        <button class="over" data-betid="${doc.id}"> Was ${bet.btn1}</button>
+                        <button class="under collapse" data-betid="${doc.id}">${bet.btn2}</button>
+                        `;
+                    } else if (bet.option === 'btn2') {
+                            ButtonHtml = `
+                            <button class="over collapse" data-betid="${doc.id}">${bet.btn1}</button>
+                            <button class="under" data-betid="${doc.id}"> Was ${bet.btn2}</button>
+                            `;
+                        }
+                }
+
                     betsHTML += `
-                        <div class="bet card vs" data-betid="${doc.id}">
-                            <span class="multi it r">$${bet.systemPoints}</span>
+                        <div class="bet card vs ${dateBool || bet.option ? 'ended' : ''}" data-betid="${doc.id}">
+                            <span class="multi it money">$${bet.systemPoints}</span>
                             <div class="team-stats fl-ai g-5 dn">
                                 <img src="/bp/EE/assets/ouths/person.png" alt="" class="icon op-5 stand_er-invert">
                                 5
@@ -372,10 +441,9 @@ onAuthStateChanged(auth, async (user) => {
                             ${titleHtml}
                             <div class="bottom">
                                 <div class="button-sec" id="btn-10s">
-                                    <button class="over" data-betid="${doc.id}">${bet.btn1}</button>
-                                    <button class="under" data-betid="${doc.id}">${bet.btn2}</button>
+                                    ${ButtonHtml}
                                 </div>
-                                <span>${formatDateTime(`${bet.date} ${bet.time}`)}</span>
+                                <span class="date">${dateHtml}</span>
                                 <span class="bold"></span>
                             </div>
                         </div>
@@ -425,6 +493,198 @@ onAuthStateChanged(auth, async (user) => {
             loadingSpinner.style.display = 'none';
         }
     }
+
+    async function CalculateBalance(id) {
+        const balanceElement = document.querySelector('.balance');
+        let balance = 0;
+    
+        try {
+            // Fetch category document
+            const catRef = doc(db, 'myou', 'data', 'categories', id);
+            const catDocSnap = await getDoc(catRef);
+            const catDoc = catDocSnap.data();
+            if (!catDoc) throw new Error("Category not found.");
+    
+            const hasDollar = catDoc.system === 'money'; // Check if system is 'money'
+    
+            // Fetch user category and bets
+            const userBetsRef = collection(db, 'myou', 'data', 'users', user.uid, 'categories');
+            const betsRef = query(userBetsRef, where('catid', '==', catDoc.catid));
+            const userCategoryDocs = await getDocs(betsRef);
+    
+            if (userCategoryDocs.empty) {
+                balanceElement.textContent = hasDollar ? '$0' : '0';
+                console.log("No user category found.");
+                return 0;
+            }
+    
+            const userCategoryDoc = userCategoryDocs.docs[0];
+            const userBetsCatDocs = collection(db, 'myou', 'data', 'users', user.uid, 'categories', userCategoryDoc.id, 'bets');
+            const userBetsDocs = await getDocs(userBetsCatDocs);
+    
+            if (userBetsDocs.empty) {
+                balanceElement.textContent = hasDollar ? '$0' : '0';
+                console.log("No user bets found.");
+                return 0;
+            }
+    
+            // Fetch category bets and map them for quick lookup
+            const CatbetsRef = collection(db, 'myou', 'data', 'categories', id, 'bets');
+            const CatbetsDocs = await getDocs(CatbetsRef);
+            const catBetsMap = new Map();
+            CatbetsDocs.forEach(doc => catBetsMap.set(doc.id, doc.data()));
+    
+            // Calculate balance
+            userBetsDocs.forEach(userDoc => {
+                const userBet = userDoc.data();
+                const matchingBet = catBetsMap.get(userBet.betid);
+    
+                if (!matchingBet || matchingBet.deleted) return; // Skip invalid or deleted bets
+    
+                const systemPoints = parseFloat(matchingBet.systemPoints) || 0; // Convert systemPoints to a number
+    
+                if (
+                    (matchingBet.option === "btn1" && userBet.option === "over") ||
+                    (matchingBet.option === "btn2" && userBet.option === "under")
+                ) {
+                    balance += systemPoints;
+                } else {
+                    balance -= systemPoints;
+                }
+            });
+    
+            // Update balance element
+            const finalBalance = hasDollar ? `$${balance.toFixed(2)}` : balance.toFixed(2);
+            balanceElement.textContent = finalBalance;
+            return finalBalance;
+    
+        } catch (error) {
+            console.error("Error calculating balance:", error);
+            balanceElement.textContent = hasDollar ? '$0' : '0';
+            return 0;
+        }
+    }
+    
+    
+    
+    
+
+    async function showEdit() {
+        const editDiv = document.querySelector('#editCat');
+        editDiv.classList.toggle('dn');
+
+        const editBetsDiv = document.querySelector('.editBets-sec');
+        editBetsDiv.innerHTML = "";
+
+        const betsRef = collection(db, 'myou', 'data', 'categories', currentDocId, 'bets');
+        const betsDocs = await getDocs(betsRef);
+        const titleInp = document.querySelector('#cat-name-edit');
+
+        titleInp.value = currentId.name;
+
+        if (betsDocs.empty) {
+            editBetsDiv.innerHTML = `
+                <div class="category-i mt-10 gray">
+                    <span class="cat-name">No bets yet</span>
+                    <span class="cat-members">
+                        Add Bets to edit.
+                    </span>
+                </div>
+            `;
+            return;
+        } else {
+            for (const doc of betsDocs.docs) {
+                const bet = doc.data();
+
+                if (bet.deleted === true) {
+                    continue;
+                }
+                const name = bet.betType === 'vs' ? `${bet.team1} vs ${bet.team2}` : bet.title;
+            
+                const button1 = bet.hasCustomButtons ? bet.btn1 : 'over';
+                const button2 = bet.hasCustomButtons ? bet.btn2 : 'under';
+            
+                editBetsDiv.innerHTML += `
+                    <div class="bet-to-edit" data-betid="${doc.id}">
+                    <span>${name}</span>
+                    <div class="button-sec">
+                        <button class="edit-btn over">${button1}</button>
+                        <button class="edit-btn under">${button2}</button>
+                        <button class="delete-btn edit-btn">Delete</button>
+                    </div>
+                    </div>
+                `;
+            }
+            
+            editBetsDiv.addEventListener('click', function (e) {
+                if (e.target.classList.contains('edit-btn')) {
+                    const btn = e.target;
+                    const betid = btn.closest('.bet-to-edit').dataset.betid;
+            
+                    const overBtn = btn.parentElement.querySelector('.edit-btn.over');
+                    const underBtn = btn.parentElement.querySelector('.edit-btn.under');
+                    const deleteBtn = btn.parentElement.querySelector('.edit-btn.delete-btn');
+            
+                    if (btn.classList.contains('over')) {
+                        setBet('over', betid);
+                        underBtn.classList.add('collapse');
+                        deleteBtn.classList.add('collapse');
+                    } else if (btn.classList.contains('under')) {
+                        setBet('under', betid);
+                        overBtn.classList.add('collapse');
+                        deleteBtn.classList.add('collapse');
+                    } else if (btn.classList.contains('delete-btn')) {
+                        deleteBet(betid);
+                        overBtn.classList.add('collapse');
+                        underBtn.classList.add('collapse');
+                    }
+                }
+            });
+            
+        }
+
+    }
+
+    function editCat() {
+        const titleInp = document.querySelector('#cat-name-edit');
+
+        if (titleInp) {
+            const catRef = doc(db, 'myou', 'data', 'categories', currentDocId);
+            setDoc(catRef, { name: titleInp.value }, { merge: true });
+        }
+
+        closeEdit();
+        closecat();
+
+        setTimeout(() => {
+            openCategory(currentDocId);
+            renderBets();
+        }, 100);
+
+    }
+
+    const editCatBtn = document.querySelector('#editBtn');
+    editCatBtn.addEventListener('click', editCat);
+
+    function setBet(condition, betid) {
+        const betRef = doc(db, 'myou', 'data', 'categories', currentDocId, 'bets', betid);
+        if (condition === 'over') {
+            setDoc(betRef, { option: 'btn1' }, { merge: true });
+        } else if (condition === 'under') {
+            setDoc(betRef, { option: 'btn2' }, { merge: true });
+        } else {
+            console.error("Invalid condition:", condition);
+        }
+
+    }
+
+    function deleteBet(betid) {
+        const betRef = doc(db, 'myou', 'data', 'categories', currentDocId, 'bets', betid);
+        setDoc(betRef, { deleted: true }, { merge: true });
+    }
+
+    const showEditBtn = document.querySelector('.edit');
+    showEditBtn.addEventListener('click', showEdit);
     
     function addUserBet(option, betid) {
         onAuthStateChanged(auth, async (user) => {
@@ -459,6 +719,8 @@ onAuthStateChanged(auth, async (user) => {
                 await addDoc(userBetsRef, {
                     betid,
                     option,
+                    createdAt: serverTimestamp(),
+                    catid: currentId.catid,
                 });
                 console.log(`Bet ${option} added for bet ID ${betid}`);
             } catch (error) {
@@ -540,12 +802,18 @@ onAuthStateChanged(auth, async (user) => {
             if (isOwner) {
                 addabetBtn.style.display = 'block';
                 editBtn.style.display = 'flex';
+
+                addabetBtn.disabled = false;
+                editBtn.disabled = false;
+
+                addabetBtn.addEventListener('click', addabetDiv);
             } else {
                 addabetBtn.style.display = 'none';
                 editBtn.style.display = 'none';
 
                 addabetBtn.disabled = true;
                 editBtn.disabled = true;
+                addabetBtn.removeEventListener('click', addabetDiv);
             }
 
             if (isOwner) {
@@ -616,10 +884,12 @@ onAuthStateChanged(auth, async (user) => {
                 hasCustomButtons = true;
             } else if (btn1 || btn2) {
                 alert("Please fill in all fields.");
+                return;
             }
         
             if (!team1 || !team2 || !condition || !systemPoints || !time || !date) {
                 alert("Please fill in all fields.");
+                return;
             }
 
             bet = {
@@ -633,6 +903,7 @@ onAuthStateChanged(auth, async (user) => {
                 hasCustomButtons,
                 btn1,
                 btn2,
+                deleted: false,
             };
 
             const betsRef = collection(db, 'myou', 'data', 'categories', currentIdi, 'bets');
@@ -651,10 +922,14 @@ onAuthStateChanged(auth, async (user) => {
                 hasCustomButtons = true;
             } else if (btn1 || btn2) {
                 alert("Please fill in all fields.");
+                return;
+
             }
         
             if (!systemPoints || !time || !date) {
                 alert("Please fill in all fields.");
+                return;
+
             }
 
             bet = {
@@ -666,11 +941,16 @@ onAuthStateChanged(auth, async (user) => {
                 hasCustomButtons,
                 btn1,
                 btn2,
+                deleted: false,
             };
 
             const betsRef = collection(db, 'myou', 'data', 'categories', currentIdi, 'bets');
             await addDoc(betsRef, bet);
         }
+        const addabetDiv = document.querySelector('.add-a-bet');
+        renderBets();
+        addabetDiv.classList.toggle('dn');
+        openCategory(currentIdi);
     }
 
     const addBetBtn = document.querySelector('#add-a-bet-btn');
@@ -707,6 +987,29 @@ onAuthStateChanged(auth, async (user) => {
 
 
 // end 
+
+function closeEdit() {
+    const editDiv = document.querySelector('#editCat');
+    editDiv.classList.add('dn');
+}
+
+function closecat() {
+    const catDiv = document.querySelector('.incat-div');
+    catDiv.classList.remove('open-cat');
+    catDiv.classList.add('close-cat');
+}
+
+function openMembers() {
+    const membersCont = document.querySelector('.members-cont');
+    membersCont.classList.toggle('dn');
+}
+
+const membersBtn = document.querySelector('.members-btn');
+membersBtn.addEventListener('click', openMembers);
+
+
+
+// Example usage
 function share () {
     
     const shareDiv = document.querySelector('.joinsec');
@@ -810,4 +1113,20 @@ function formatDateTime(input) {
 
     // Format the date and time into the desired output
     return `${hours}:${minutes + 1} ${ampm} ${formattedMonth} ${day}`;
+}
+
+function isDatePassed(inputDateTime) {
+    // Parse the input in the format "HH:mm YYYY-MM-DD"
+    const [time, date] = inputDateTime.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    const [year, month, day] = date.split('-').map(Number);
+    
+    // Create a Date object for the input
+    const inputDate = new Date(year, month - 1, day, hours, minutes);
+    
+    // Get the current date and time
+    const now = new Date();
+    
+    // Compare the input date with the current date
+    return inputDate < now;
 }
