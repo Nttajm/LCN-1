@@ -116,7 +116,7 @@ _reg('x', () => {
     }
 });
 
-_reg('--t', () => {
+_reg('**t', () => {
     localStorage.removeItem('cmdUtil');
 });
 
@@ -171,7 +171,7 @@ _reg('/', (_, cmd_split) => {
     if (cmd_split[1] === 'i') {
         if (cmd_split[2] === 'love') {
             print('I love you too!');
-        } else if (cmd_split[2].startsWith('--')) {
+        } else if (cmd_split[2].startsWith('**')) {
             imp(cmd_split[2],cmd_split[3]);
             print(`Imported: ${cmd_split[3]}`);
         } else {
@@ -205,7 +205,7 @@ function renderUtils() {
 
     cmdUtil.forEach(util => {
         let adder = '';
-        if (util.linkClass === '--') {
+        if (util.linkClass === '**') {
             adder = 'public/base-class/';
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
@@ -213,7 +213,7 @@ function renderUtils() {
             scriptTag.type = 'module';
 
             scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
-        } else if (util.linkClass === '--sv' && serverMaintain) {
+        } else if (util.linkClass === '**sv' && serverMaintain) {
             adder = 'servers/';
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
