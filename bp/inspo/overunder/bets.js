@@ -41,7 +41,7 @@ export const basketballPlayers = [
     sport: 'basketball',
     techTeam: 'Tech High Basketball (V girls)',
     against: 'Roseland',
-    id: '30b',
+    id: '31b',
     amount: 16.5,
     typeBet: 'Points',
     status: '',
