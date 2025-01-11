@@ -617,5 +617,3 @@ export async function checkLoans() {
   });
 }
 
-
-window.location.href = 'https://lcnjoel.com/ouths/info.html';
