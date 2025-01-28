@@ -101,7 +101,7 @@ function checkSend() {
         return;
     }
     const sendCol = collection(db, 'send');
-    const fourSecondsAgo = new Date(Date.now() - 4000);
+    const fourSecondsAgo = new Date(Date.now() - 2000);
     const sendColq = query(sendCol, where('timestamp', '>=', fourSecondsAgo));
     getDocs(sendColq)
         .then((querySnapshot) => {
@@ -133,5 +133,4 @@ _reg('send', (_, cmd_split) => {
             print(`Error sending message: ${error}`);
         });
 });
-
 
