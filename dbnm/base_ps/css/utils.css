@@ -22,3 +22,33 @@ input {
     font-family: monospace;
     width: 100%;
 }
+
+.fl-c {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.g-1 {
+    gap: 1px;
+}
+
+.g-3 {
+    gap: 3px;
+}
+
+.g-5 {
+    gap: 5px;
+}
+
+.g-10 {
+    gap: 10px;
+}
+
+.g-20 {
+    gap: 20px;
+}
+
+.g-30 {
+    gap: 30px;
+}
