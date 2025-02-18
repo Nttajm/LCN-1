@@ -1,7 +1,10 @@
 body {
     font-family: roboto;
-    background-color: var(--main-bg);
+    background: var(--main-bg);
     color: white;
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 h1, h2 {
@@ -9,8 +12,8 @@ h1, h2 {
 }
 
 :root {
-    --main-bg: rgb(61, 111, 219);
-
+    --main-bg: linear-gradient(135deg, rgb(103, 189, 223), rgb(0, 14, 216));
+    font-size: 18px;
 }
 
 .profile {
@@ -44,6 +47,7 @@ h1, h2 {
     /* opacity: 0.6; */
     background-color: rgb(96, 107, 255);
     border-radius: 0.5rem;
+    border: solid 1px rgba(255, 255, 255, 0.247);
 }
 
 
@@ -68,4 +72,51 @@ h1, h2 {
     border-radius: 0.5rem;
     background-color: rgb(49, 197, 86);
     color: white;
+}
+
+.settings {
+    position: absolute;
+    top: 0.2rem;
+    right:0.2rem;
+    padding: 0.5rem;
+}
+
+.settings img {
+    width: 30px;
+    height: 30px;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    background-color: rgb(96, 170, 255);
+    padding: 0.5rem;
+}
+
+ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: space-around;
+    width: 100%;    
+}
+
+li a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.3rem;
+}
+
+li a img {
+    width: 30px;
+    height: 30px;
+}
+
+li a.sel {
+    background-color: rgba(80, 17, 252, 0.226);
 }
