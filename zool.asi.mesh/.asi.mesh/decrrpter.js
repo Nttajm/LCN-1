@@ -266,11 +266,153 @@ function error(code) {
 
 initialize_db();
 
-// - joel mulonde 2025
 
 
+function passgen_1(input) {
+    // Helper function to get the alphabetical index of a character
+    function getAlphabetIndex(char) {
+        return char.toLowerCase().charCodeAt(0) - 96; // ASCII-based index for 'a' = 1
+    }
+
+    const vowels = "aeiouAEIOU";
+    let vowelCount = 0;
+    let chars = input.split("");  // Convert input into an array of characters
+    let transformedText = [];
+    let movedChars = [];          // To store the characters that will move to the end
+
+    // Reverse the input text
+    const reversed = chars.reverse();
+
+    // Iterate through the reversed text
+    for (let i = 0; i < reversed.length; i++) {
+        if ((i + 1) % 5 === 0) {
+            // If it's the 5th letter, push it to movedChars
+            movedChars.push(reversed[i]);
+        } else {
+            transformedText.push(reversed[i]);
+        }
+
+        // Replace vowels with the correct transformed value
+        if (vowels.includes(reversed[i])) {
+            vowelCount++;
+            if (vowelCount % 3 === 0) {
+                const alphabetIndex = getAlphabetIndex(reversed[i]);
+                transformedText[transformedText.length - 1] = (alphabetIndex + 3).toString(); // 3rd vowel
+            } else if (vowelCount % 1 === 0) {
+                const alphabetIndex = getAlphabetIndex(reversed[i]);
+                transformedText[transformedText.length - 1] = (alphabetIndex + 6).toString(); // 1st vowel
+            }
+        }
+    }
+
+    // Concatenate the transformed part and the moved characters at the back
+    const finalString = transformedText.concat(movedChars).join("");
+
+    // Swap every pair of two characters in the final string
+    let swappedString = "";
+    for (let i = 0; i < finalString.length; i += 2) {
+        if (i + 1 < finalString.length) {
+            // Swap pairs of characters
+            swappedString += finalString[i + 1] + finalString[i];
+        } else {
+            // Leave the last character unchanged if the length is odd
+            swappedString += finalString[i];
+        }
+    }
+
+    return swappedString;
+}
 
 
+function decrypt_passgen_1(input) {
+    // Helper function to get the alphabetical index of a character (1-26)
+    function getAlphabetIndex(char) {
+        return char.toLowerCase().charCodeAt(0) - 96;
+    }
 
+    // Helper function to shift the letter's index backwards
+    function unshiftLetter(char, shift = 4) {
+        if (/[a-zA-Z]/.test(char)) {
+            const isUpper = char === char.toUpperCase();
+            let newIndex = getAlphabetIndex(char) - shift; // Reverse the shift
+            
+            if (newIndex < 1) newIndex += 26; // Wrap around if necessary
+            
+            const newChar = String.fromCharCode(newIndex + 96);
+            return isUpper ? newChar.toUpperCase() : newChar;
+        }
+        return char; // Non-alphabetic characters remain the same
+    }
 
+    // Helper function to shift numbers backwards
+    function unshiftNumber(char, shift = 4) {
+        if (/\d/.test(char)) {
+            let newNum = parseInt(char) - shift;
+            if (newNum < 0) newNum += 10; // Wrap around if necessary
+            return newNum.toString();
+        }
+        return char;
+    }
+
+    // Helper function to reverse the cipher shift
+    function reverseCipherShift(input, shift = 3) {
+        return input.split("").map(char => {
+            if (/[a-zA-Z]/.test(char)) {
+                return unshiftLetter(char, shift); // Unshift letters
+            } else if (/\d/.test(char)) {
+                return unshiftNumber(char, shift); // Unshift numbers
+            }
+            return char; // Non-alphanumeric characters remain the same
+        }).join("");
+    }
+
+    // Step 1: Undo cipher shift (-3)
+    let decryptedText = reverseCipherShift(input, 3);
+
+    // Step 2: Undo the shift by 4
+    decryptedText = decryptedText.split("").map(char => {
+        if (/[a-zA-Z]/.test(char)) {
+            return unshiftLetter(char, 4); // Unshift letters
+        } else if (/\d/.test(char)) {
+            return unshiftNumber(char, 4); // Unshift numbers
+        }
+        return char; // Non-alphanumeric characters remain the same
+    }).join("");
+
+    // Step 3: Move every 5th character back to its original position
+    let transformedText = decryptedText.split("");
+    let movedChars = transformedText.splice(-Math.floor(transformedText.length / 5));
+    for (let i = 4; movedChars.length; i += 5) {
+        transformedText.splice(i, 0, movedChars.shift());
+    }
+
+    // Step 4: Undo vowel replacements
+    const vowels = "aeiouAEIOU";
+    const vowelMap = {}; // Build reverse mapping
+    for (let i = 0; i < vowels.length; i++) {
+        if ((i + 1) % 3 === 0) {
+            vowelMap[(getAlphabetIndex(vowels[i]) + 3).toString()] = vowels[i];
+        } else if ((i + 1) % 1 === 0) {
+            vowelMap[(getAlphabetIndex(vowels[i]) + 6).toString()] = vowels[i];
+        }
+    }
+
+    transformedText = transformedText.map(char => vowelMap[char] || char).join("");
+
+    // Step 5: Reverse the string
+    return transformedText.split("").reverse().join("");
+}
+
+// Example usage
+
+// Example API key usage:
+const apiKey = "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM";
+
+const transformedKey = passgen_1(apiKey);
+const decryptedText = decrypt_passgen_1(transformedKey);
+console.log("api", apiKey)
+console.log("crted",transformedKey);
+console.log("un Decrypted:", decryptedText);
+
+// Example Output: "MZ8QVEdufArhgAj-AHLyuWb49Fc34gcGASyAzI3"
 

@@ -7,7 +7,7 @@
 body {
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
+    overflow-x: hidden !important; 
 }
 
 :root {
@@ -38,9 +38,6 @@ nav * {
     transition: all 0.5s ease-in-out;
 }
 
-.logo {
-    width: 10rem;
-}
 
 .open {
     background-color: black;
@@ -139,6 +136,7 @@ nav {
     padding: 0.5rem;
     border-radius: 0.4rem;
     transition: all 0.5s var(--ges);
+    width: fit-content;
 }
 
 nav ul {
@@ -520,6 +518,11 @@ nav img {
         font-size: 13px;
     }
 
+    .logo {
+        width: 10rem;
+    }
+    
+
   }
   
   /* Small devices (landscape phones, 576px and up) */
@@ -554,6 +557,10 @@ nav img {
 
     :root {
         font-size: 16px;
+    }
+
+    .logo {
+        width: 10rem;
     }
   }
   
@@ -624,5 +631,6 @@ nav img {
     :root {
         font-size: 23px;
     }
+    
   }
   
