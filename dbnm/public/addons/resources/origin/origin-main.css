@@ -1,0 +1,40 @@
+:root {
+    --bg-color: rgb(41, 41, 41) ; 
+}
+
+.js-origin-tab {
+    background-color: var(--bg-color);
+    border: solid rgb(85, 85, 85) 1px;
+    display: flex;
+    gap: 0.2rem;
+    padding: 0.2rem;
+    position: absolute;
+    bottom: 1rem;
+    width: 98%;
+
+}
+
+.js-o-apps {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+
+.ajs-app {
+    background-color: rgb(32, 32, 32);
+    border: rgb(83, 83, 83) dashed 1px;
+    cursor: pointer;
+}
+
+.app-logo, .app-logo img {
+    width: 30px;
+    height: 30px;
+    padding: 0.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: cover;
+}
+
+

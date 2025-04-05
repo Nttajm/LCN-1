@@ -12,7 +12,7 @@
     inputVal: document.getElementById('input').value,
     output: document.getElementById('output'),
 }
-
+ 
 
 if (db_ui.input && db_ui.output) {
     _print(

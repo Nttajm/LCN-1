@@ -1,9 +1,9 @@
 // Constants
-const ps_use = 'main-ps';
+const ps_use = 'main';
 let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
 
 const db_info = {
-    name: 'ps1.3.1',
+    v: '1.3.1',
     desc: 'base_com',
     use: ps_use,
 };
@@ -40,7 +40,7 @@ function initializeUI() {
 // Render Initial Information
 function renderInitialInfo() {
     const infoHTML = `
-        <div>Path: ${db_info.name}/${db_info.desc}/${db_info.use}</div>
+        <div>Path: ${db_info.v}/${db_info.desc}/${db_info.use}</div>
         <div>Desc: ${db_info.desc}</div>
         <br> > v 1.3.1
         <br> > Base
@@ -51,7 +51,16 @@ function renderInitialInfo() {
 //  
 // Print to UI
 function print(value) {
-    const val_html = `<div class="fl-c g-3"><span>db$</span> ${value}</div>`;
+    const val_html = `<div class="fl-r g-3"><span>db$</span> ${value}</div>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+
+function u_print(value) {
+    const val_html = `<div class="fl-r g-3"><span>$</span> ${value}</div>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -111,6 +120,12 @@ _reg('x', () => {
     }
 });
 
+_reg('hello', () => {
+    if (db_ui.output) {
+        print('hello!')
+    }
+});
+
 _reg('**t', () => {
     localStorage.removeItem('cmdUtil');
 });
@@ -140,7 +155,7 @@ _reg('server', (_, cmd_split) => {
         if (typeof serverMainConfig !== 'undefined' && serverMainConfig) {
             print(`
                 <br> Server Info:
-                <br> Name: ${serverMainConfig.info.name}
+                <br> Name: ${serverMainConfig.info.v}
                 <br> Desc: ${serverMainConfig.info.desc}
                 <br> Use: ${serverMainConfig.info.use}
             `);
@@ -243,7 +258,7 @@ function setupInputListener() {
         db_ui.input.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 const command = db_ui.input.value;
-                print(command);
+                u_print(command);
                 handleCommand(command);
                 db_ui.input.value = '';
             }
