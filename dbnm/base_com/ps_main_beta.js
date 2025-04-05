@@ -1,23 +1,8 @@
 // Constants
-const ps_use = 'main';
-export let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
-export {
-    initializeUI,
-    renderInitialInfo,
-    print,
-    u_print,
-    parseCommand,
-    _reg,
-    handleCommand,
-    imp,
-    renderUtils,
-    saveUtils,
-    setupInputListener,
-    initialize_db,
-    error
-};
+let ps_use = 'main';
+ let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
 
-export const module_meta = [
+ const module_meta = [
     {
         name: 'dbnm1.3.1',
         desc: 'base_com',
@@ -66,8 +51,11 @@ function renderInitialInfo() {
 
 //  
 // Print to UI
+
+
+
 function print(value) {
-    const val_html = `<div class=" g-3"><span>db$</span> ${value}</div>`;
+    const val_html = `<div class=" g-3"><span>db$</code> ${value}</code>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -77,6 +65,22 @@ function print(value) {
 
 function u_print(value) {
     const val_html = `<div class=" g-3"><span>$</span> ${value}</div>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+function e_print(value) {
+    const val_html = `<div class=" g-3"><span></span> ${value}</div>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+function c_print(value , custom) {
+    const val_html = `<div class=" g-3"><span>${custom}</span> ${value}</div>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -99,10 +103,26 @@ function parseCommand(cmd) {
 
 // Command Handlers Registry
 const commandHandlers = {};
+let awaiting = false;
+let awaiting_cmd = null;
+
+function _await(value) {
+    awaiting = true;
+    awaiting_cmd = value || null;
+}
+
+function unawait() {
+    setTimeout(() => {
+        awaiting = false;
+        awaiting_cmd = null;
+    }, 300);
+}
 
 // Register Command Handler
 function _reg(command, handler) {
+    if (!awaiting) {
     commandHandlers[command.toLowerCase()] = handler;
+    }
 }
 
 
@@ -111,13 +131,15 @@ function handleCommand(cmd) {
     const { cmd_split, args } = parseCommand(cmd);
     const command = cmd_split[0].toLowerCase();
 
-    if (commandHandlers[command]) {
-        commandHandlers[command](args, cmd_split);
-    } else {
-        print(`
-            <br> base_com(${ps_use}):
-            <br> Command not found: ${cmd}
-        `);
+    if (!awaiting) {
+        if (commandHandlers[command]) {
+            commandHandlers[command](args, cmd_split);
+        } else {
+            print(`
+                <br> (${ps_use}):
+                <br> Command not Found: ${cmd}
+            `);
+        }
     }
 }
 
@@ -144,6 +166,19 @@ _reg('x', () => {
     }
 });
 
+_reg('await', () => {
+    if (db_ui.input) {
+        await();
+    }
+});
+
+_reg('exit', () => {
+        setTimeout(() => {
+            awaiting = false;
+            awaiting_cmd = null;
+        }, 300);
+});
+
 _reg('hello', () => {
     if (db_ui.output) {
         print('hello!')
@@ -165,9 +200,6 @@ _reg('time', (_, cmd_split) => {
         print(new Date().toLocaleTimeString());
     }
 });
-
-
-
 
 _reg('url', (_, cmd_split) => {
     window.open(cmd_split[1]);
@@ -199,6 +231,14 @@ _reg('local', (_, cmd_split) => {
         const username = localStorage.getItem('username');
         print(`Username: ${username}`);
     }
+});
+
+_reg('clear', () => {
+    localStorage.clear();
+    print('Local storage cleared.');
+    setTimeout(() => {
+        window.location.reload();
+    }, 300);
 });
 
 _reg('/', (_, cmd_split) => {
@@ -237,9 +277,11 @@ function imp(linkClass, link) {
     renderUtils();
 }
 
+console.log(cmdUtil)
+
 function renderUtils() {
     if (cmdUtil.length === 0) {
-        print('No Modules available.');
+        print('No Modules Found.');
     } 
 
     let serverMaintain = true
@@ -247,22 +289,22 @@ function renderUtils() {
     cmdUtil.forEach(util => {
         let adder = '';
         if (util.linkClass === '**') {
-            adder = 'public/base-class/';
+            adder = 'public/base-modules/';
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
-            document.body.appendChild(scriptTag);
             scriptTag.type = 'module';
+            document.body.appendChild(scriptTag);
 
-            scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
+            scriptTag.onload = () => e_print(`> ${util.link}.js`);
+
         } else if (util.linkClass === '**sv' && serverMaintain) {
             adder = 'servers/';
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
             scriptTag.type = 'module';
             document.body.appendChild(scriptTag);
-            scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
-
-
+            scriptTag.onload = () => e_print(`> ${util.link}.js`);
+        
             serverMaintain = false;
         }
     });
@@ -276,6 +318,8 @@ function saveUtils() {
     localStorage.setItem('cmdUtil', util);
 }
 
+
+
 // Event Listener for Commands
 function setupInputListener() {
     if (db_ui.input) {
@@ -285,6 +329,8 @@ function setupInputListener() {
                 u_print(command);
                 handleCommand(command);
                 db_ui.input.value = '';
+                db_ui.input.focus();
+                db_ui.input.scrollIntoView();
             }
         });
     }

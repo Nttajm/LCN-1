@@ -2,7 +2,6 @@ body {
     background-color: black;
     color: white;
     font-family: monospace;
-
 }
 
 :root {
@@ -20,6 +19,7 @@ input {
     background-color: transparent;
     color: inherit;
     font-family: monospace;
+    font-size: 1rem;
     width: 100%;
 }
 
