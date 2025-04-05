@@ -1,10 +1,34 @@
 // Constants
 const ps_use = 'main';
-let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
+export let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
+export {
+    initializeUI,
+    renderInitialInfo,
+    print,
+    u_print,
+    parseCommand,
+    _reg,
+    handleCommand,
+    imp,
+    renderUtils,
+    saveUtils,
+    setupInputListener,
+    initialize_db,
+    error
+};
+
+export const module_meta = [
+    {
+        name: 'dbnm1.3.1',
+        desc: 'base_com',
+        use: ps_use,
+        version: '1.3.1',
+    }
+]
 
 const db_info = {
     v: '1.3.1',
-    desc: 'base_com',
+    desc: 'vinnila dbnm',
     use: ps_use,
 };
 
@@ -20,13 +44,6 @@ const db_ui = {
     output: document.getElementById('output'),
 };
 
-// Command Handlers Registry
-const commandHandlers = {};
-
-// Register Command Handler
-function _reg(command, handler) {
-    commandHandlers[command.toLowerCase()] = handler;
-}
 
 // Initialize UI
 function initializeUI() {
@@ -40,10 +57,9 @@ function initializeUI() {
 // Render Initial Information
 function renderInitialInfo() {
     const infoHTML = `
-        <div>Path: ${db_info.v}/${db_info.desc}/${db_info.use}</div>
+        <div>Path: ${db_info.v}/${db_info.use}</div>
         <div>Desc: ${db_info.desc}</div>
-        <br> > v 1.3.1
-        <br> > Base
+        <br> > v ${db_info.v}
     `;
     print(infoHTML);
 }
@@ -51,7 +67,7 @@ function renderInitialInfo() {
 //  
 // Print to UI
 function print(value) {
-    const val_html = `<div class="fl-r g-3"><span>db$</span> ${value}</div>`;
+    const val_html = `<div class=" g-3"><span>db$</span> ${value}</div>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -60,7 +76,7 @@ function print(value) {
 
 
 function u_print(value) {
-    const val_html = `<div class="fl-r g-3"><span>$</span> ${value}</div>`;
+    const val_html = `<div class=" g-3"><span>$</span> ${value}</div>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -81,6 +97,15 @@ function parseCommand(cmd) {
     return { cmd_split, second, args };
 }
 
+// Command Handlers Registry
+const commandHandlers = {};
+
+// Register Command Handler
+function _reg(command, handler) {
+    commandHandlers[command.toLowerCase()] = handler;
+}
+
+
 // Handle Commands
 function handleCommand(cmd) {
     const { cmd_split, args } = parseCommand(cmd);
@@ -96,7 +121,6 @@ function handleCommand(cmd) {
     }
 }
 
-// Register Built-in Handlers
 _reg('example', (args) => {
     if (args.length === 2) {
         print(`Example command executed with values: ${args[0]}, ${args[1]}`);
@@ -180,8 +204,8 @@ _reg('local', (_, cmd_split) => {
 _reg('/', (_, cmd_split) => {
     if (cmd_split[1] === 'i') {
         if (cmd_split[2] === 'love') {
-            print('I love you too!');
-        } else if (cmd_split[2].startsWith('**')) {
+            print('you!');
+        } else if (cmd_split[2]) {
             imp(cmd_split[2],cmd_split[3]);
             print(`Imported: ${cmd_split[3]}`);
         } else {

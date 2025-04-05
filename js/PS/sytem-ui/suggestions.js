@@ -4,6 +4,7 @@ var suggestions = [
   "help",
   "bk",
   "rec",
+  "rec ()",
   "timex",
   "lcn",
   "reset",

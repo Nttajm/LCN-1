@@ -1,3 +1,5 @@
+import { _reg } from 'https://lcnjoel.com/dbnm/public/base-class/ps_main_beta.js';
+
 _reg('joke', () => {
     const jokes = [
         // Puns
