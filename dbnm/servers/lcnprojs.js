@@ -71,7 +71,7 @@ _reg('logs', () => {
                 const logData = doc.data().log;
                 const username = doc.data().username;
                 const shortLog = logData.length > 24 ? logData.substring(0, 23) + '...' : logData;
-                print(`${doc.id} [ ${username || 'Not reg'} ] => ${logData}`);
+                c_print(`${doc.id} [ ${username || 'Not reg'} ] => ${logData}`, `<span style="color: pink">lcnprojs$</span>`,);
             });
         })
         .catch((error) => {

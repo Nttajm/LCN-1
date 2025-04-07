@@ -52,3 +52,132 @@ input {
 .g-30 {
     gap: 30px;
 }
+
+.u {
+    text-decoration: underline;
+}
+
+.b {
+    font-weight: bold;
+}
+
+.i {
+    font-style: italic;
+}
+
+.coral {
+    color: coral;
+}
+
+.coral-bg {
+    background-color: coral;
+    color: black;
+}
+
+.pink {
+    color: pink;
+}
+
+.pink-bg {
+    background-color: pink;
+    color: black;
+}
+
+.blue {
+    color: blue;
+}
+
+.blue-bg {
+    background-color: blue;
+    color: white;
+}
+
+.green {
+    color: green;
+}
+
+.green-bg {
+    background-color: green;
+    color: white;
+}
+
+.light-blue {
+    color: rgb(124, 182, 227);
+}
+
+.light-blue-bg {
+    background-color: lightblue;
+    color: black;
+}
+
+.black {
+    color: black;
+}
+
+.black-bg {
+    background-color: black;
+    color: white;
+}
+
+.white {
+    color: white;
+}
+
+.white-bg {
+    background-color: white;
+    color: black;
+}
+
+.red {
+    color: red;
+}
+
+.red-bg {
+    background-color: red;
+    color: white;
+}
+
+.muted-yellow {
+    color: #d9d9a3;
+}
+
+.muted-yellow-bg {
+    background-color: #d9d9a3;
+    color: black;
+}
+
+.muted-orange {
+    color: #d5844d;
+}
+
+.muted-orange-bg {
+    background-color: #d9a37e;
+    color: black;
+}
+
+.muted-purple {
+    color: #b3a3d9;
+}
+
+.muted-purple-bg {
+    background-color: #b3a3d9;
+    color: black;
+}
+
+.muted-teal {
+    color: #a3d9d1;
+}
+
+.muted-teal-bg {
+    background-color: #a3d9d1;
+    color: black;
+}
+
+.muted-rose {
+    color: #d9a3b3;
+}
+
+.muted-rose-bg {
+    background-color: #d9a3b3;
+    color: black;
+}

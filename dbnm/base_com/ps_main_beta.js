@@ -29,6 +29,8 @@ const db_ui = {
     output: document.getElementById('output'),
 };
 
+// db_ui.input.focus();
+
 
 // Initialize UI
 function initializeUI() {
@@ -52,10 +54,30 @@ function renderInitialInfo() {
 //  
 // Print to UI
 
+function c_placeholder(value) {
+    if (db_ui.input) {
+        db_ui.input.setAttribute('placeholder', value);
+        db_ui.input.focus();
+        return value;
+    } else {
+        print('Input element not found.');
+        return '';
+    }
+}
+
+function qestion(value) {
+    const val_html = `<div class=" g-3">[<span class='light-blue b'>?</span>] </code>${value}</code>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+
 
 
 function print(value) {
-    const val_html = `<div class=" g-3"><span>db$</code> ${value}</code>`;
+    const val_html = `<div class=" g-3"><span>db$ ${value}</span>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }

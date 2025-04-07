@@ -1,0 +1,9 @@
+.dimond {
+    background-color: #f0f8ff; /* AliceBlue */
+    border: 2px solid #b0c4de; /* LightSteelBlue */
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+}

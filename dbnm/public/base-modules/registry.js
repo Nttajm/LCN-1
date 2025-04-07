@@ -1,16 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
 
-[
+function loadStylesheets(stylesheets) {
+    stylesheets.forEach(href => {
+        document.head.appendChild(Object.assign(document.createElement("link"), {
+            rel: "stylesheet",
+            href
+        }));
+    });
+}
+
+// Example usage:
+loadStylesheets([
     "public/base-modules/resources/css/registry.css",
-    
-].forEach
-        (href => {  
-            document.head.appendChild(Object.assign(document.createElement("link"), {  
-                rel: "stylesheet",  
-                href  
-            }));  
-        });
+]);
 
 
 
@@ -24,7 +27,11 @@ function reg_print(value) {
 const example_database = [
     {
         name: 'vite',
-        function: viteInstall, // reference to the function
+        function: viteInstall, // reference to the function in the link
+    },
+    {
+        name: 'paKeger',
+        function: pakegerInstall, // reference to the function in the link
     }
 ];
 
@@ -107,11 +114,33 @@ async function viteInstall() {
             <div class='info-box'><span class="reg_user">✅ Vite app initialized!</span></div>
             <div class='info-box'><span class="reg_user">Name: <b>${state.data.name}</b></span></div>
             <div class='info-box'><span class="reg_user">Description: <b>${state.data.description}</b></span></div>
+            <div class='info-box'><span class="reg_user">You can now run <code>cd ${state.data.name} && npm install</code> to install dependencies.</span></div>
         `);
     };
 
     db_ui.input.addEventListener('keydown', inputListener);
     renderStep();
+}
+
+function pakegerInstall() {
+    _await('paKeger')
+    // Example usage:
+    loadStylesheets([
+        "public/addons/resources/css/registry/registry.css",
+    ]);
+
+
+    c_print(`<span class='b muted-teal'>Installing paKeger</span>`, '>')
+    c_print(`<span class='b muted-teal'>v 0.4.1</span>`, '>');
+    e_print(`<hr>`)
+    qestion('Title for this package? (or type "x" to cancel):');
+    c_placeholder('Enter package title here...');
+
+    const inputListener = (e) => {
+        if (e.key !== 'Enter') return;
+
+
+    };
 }
 
 
