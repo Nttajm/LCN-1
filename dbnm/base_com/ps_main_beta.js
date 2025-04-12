@@ -1,7 +1,7 @@
 // Constants
 let ps_use = 'main';
  let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
-
+let last_selected = null;
  const module_meta = [
     {
         name: 'dbnm1.3.1',
@@ -67,6 +67,14 @@ function c_placeholder(value) {
 
 function qestion(value) {
     const val_html = `<div class=" g-3">[<span class='light-blue b'>?</span>] </code>${value}</code>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+function waring(value) {
+    const val_html = `<div class=" g-3">[<span class='red b'>!</span>] </code>${value}</code>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -142,16 +150,14 @@ function unawait() {
 
 // Register Command Handler
 function _reg(command, handler) {
-    if (!awaiting) {
     commandHandlers[command.toLowerCase()] = handler;
-    }
 }
 
 
 // Handle Commands
 function handleCommand(cmd) {
     const { cmd_split, args } = parseCommand(cmd);
-    const command = cmd_split[0].toLowerCase();
+    const command = cmd_split[0].toLowerCase().trim();
 
     if (!awaiting) {
         if (commandHandlers[command]) {
@@ -190,7 +196,7 @@ _reg('x', () => {
 
 _reg('await', () => {
     if (db_ui.input) {
-        await();
+        _await();
     }
 });
 
@@ -372,6 +378,14 @@ function error(code) {
 }
 
 initialize_db();
+
+const params = new URLSearchParams(window.location.search);
+
+for (const [key, value] of params.entries()) {
+    if (key.startsWith("cmd")) {
+        handleCommand(value.trim());
+    }
+}
 
 // - joel mulonde 2025
 

@@ -1,19 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
 
-function loadStylesheets(stylesheets) {
-    stylesheets.forEach(href => {
-        document.head.appendChild(Object.assign(document.createElement("link"), {
-            rel: "stylesheet",
-            href
-        }));
-    });
-}
+// function loadStylesheets(stylesheets) {
+//     stylesheets.forEach(href => {
+//         document.head.appendChild(Object.assign(document.createElement("link"), {
+//             rel: "stylesheet",
+//             href
+//         }));
+//     });
+// }
 
 // Example usage:
-loadStylesheets([
-    "public/base-modules/resources/css/registry.css",
-]);
+// loadStylesheets([
+//     "public/base-modules/resources/css/registry.css",
+// ]);
 
 
 
@@ -30,7 +30,7 @@ const example_database = [
         function: viteInstall, // reference to the function in the link
     },
     {
-        name: 'paKeger',
+        name: 'p',
         function: pakegerInstall, // reference to the function in the link
     }
 ];
@@ -122,60 +122,180 @@ async function viteInstall() {
     renderStep();
 }
 
+
+let last_selected = null; // assumed global or declared here
+let stepMode = 'input'; // 'input' or 'choice'
+
+
 function pakegerInstall() {
-    _await('paKeger')
-    // Example usage:
-    loadStylesheets([
-        "public/addons/resources/css/registry/registry.css",
-    ]);
+
+    
+const allProviders = [
+    { name: 'passgen', color: 'light-blue' },
+    { name: 'moxy', color: 'light-teal' },
+    { name: 'wlan-cons', color: 'red' },
+];
 
 
-    c_print(`<span class='b muted-teal'>Installing paKeger</span>`, '>')
+let steps = 0;
+let package_info = {};
+
+    _await('paKeger');
+
+    c_print(`<span class='b muted-teal'>Installing paKeger...</span>`, '>');
     c_print(`<span class='b muted-teal'>v 0.4.1</span>`, '>');
-    e_print(`<hr>`)
-    qestion('Title for this package? (or type "x" to cancel):');
-    c_placeholder('Enter package title here...');
+    e_print(`<hr>`);
 
-    const inputListener = (e) => {
+    qestion('🎉 What will you call this package? (or type "x" to cancel):');
+    c_placeholder('Enter the name of your awesome package...');
+
+    const documentListener = (e) => {
+        if (stepMode !== 'input') return;
         if (e.key !== 'Enter') return;
+        console.log(steps, stepMode, last_selected, package_info);
+
+        steps++;
+        const userInput = db_ui.input.value.trim();
+        db_ui.input.value = '';
+
+        if (steps === 1) {
+            package_info.title = userInput;
+            c_print(`📦 Title: ${package_info.title}`, '>');
+            qestion('🔍 Great! Now, pick a provider:');
+            c_placeholder('');
+            waring('🚨 Press Enter twice to confirm your choice!');
+
+            db_ui.input.blur();
+            stepMode = 'choice';
+            choices_print(allProviders, '>', '');
+        }
+
+        if (steps === 2 && last_selected === 'passgen') {
+            qestion('🔑 <span class="muted-teal u">Enter a key</span> for encryption/decryption:');
+            c_placeholder('Choose a strong key...');
+            package_info.type = last_selected.trim().toLowerCase();
+            stepMode = 'input';
+        }
+
+        if (steps === 3 && package_info.type === 'passgen') {
+            c_print(`📦 Title: ${package_info.title}`, '>');
+            c_print(`📦 Type: ${package_info.type}`, '>');
+            package_info.key = userInput;
+            qestion('🔒 Would you like to encrypt or decrypt? (e/d)');
+            c_placeholder('Enter "e" for encryption or "d" for decryption');
+
+            stepMode = 'input';
+        }
+
+        if (steps === 4 && package_info.type === 'passgen') {
+            package_info.e_type = userInput.trim();
+            c_print(`📦 Title: ${package_info.title}`, '>');
+            c_print(`📦 Type: ${package_info.type}`, '>');
+            qestion('📝 Enter text to encrypt or decrypt:');
+            c_placeholder('Type your text here...');
+
+            stepMode = 'input';
+        }
+
+        if (steps === 5 && package_info.type === 'passgen') {
+            if (package_info.e_type === 'e') {
+                const encryptedText = encrypt(userInput, package_info.key);
+                c_print(`🔐 Encrypted: ${encryptedText}`, '>');
+            } else if (package_info.e_type === 'd') {
+                const decryptedText = decrypt(userInput, package_info.key);
+                c_print(`🔓 Decrypted: ${decryptedText}`, '>');
+                c_print(`press and enter any key to exit`, '>');
+            }
+
+            stepMode = 'input';
+
+            unawait();
+            document.removeEventListener('keydown', documentListener);
+        }
+    }
+
+    document.addEventListener('keydown', documentListener);
+}
 
 
-    };
+function encrypt(text, key) {
+    const encrypted = new Array(text.length);
+    const keyLength = key.length;
+
+    for (let i = 0; i < text.length; i++) {
+        const t = text.charCodeAt(i);
+        const k = key.charCodeAt(i % keyLength);
+        encrypted[i] = String.fromCharCode((t + k) % 65535);
+    }
+
+    return encrypted.join('');
+}
+
+function decrypt(text, key) {
+    const decrypted = new Array(text.length);
+    const keyLength = key.length;
+
+    for (let i = 0; i < text.length; i++) {
+        const e = text.charCodeAt(i);
+        const k = key.charCodeAt(i % keyLength);
+        decrypted[i] = String.fromCharCode((e - k + 65535) % 65535);
+    }
+
+    return decrypted.join('');
 }
 
 
 
+function choices_print(choices, tager, classer) {
+    tager = tager || '>';
+    classer = classer || '';
+    const choicesHTML = choices.map((choice, index) => {
+        return `<div class="choice ${choice.color}" data-selChoices="${index + 1}"> ${tager} ${choice.name}</div>`;
+    }).join('');
+    db_ui.output.innerHTML += `<div class="choices">${choicesHTML}</div>`;
+
+    let selectedIndex = 0;
+
+    const updateSelection = () => {
+        const choiceEls = document.querySelectorAll('.choice');
+        choiceEls.forEach((el, i) => {
+            el.classList.toggle('selected', i === selectedIndex);
+        });
+    };
+
+    const handleKeydown = (e) => {
+        const choiceEls = document.querySelectorAll('.choice');
+        if (e.key === 'ArrowDown') {
+            selectedIndex = (selectedIndex + 1) % choiceEls.length;
+            updateSelection();
+        } else if (e.key === 'ArrowUp') {
+            selectedIndex = (selectedIndex - 1 + choiceEls.length) % choiceEls.length;
+            updateSelection();
+        } else if (e.key === 'Enter') {
+            const selectedChoice = choiceEls[selectedIndex];
+            if (selectedChoice) {
+                const selectedText = selectedChoice.textContent.trim().replace(/^> /, '');
+                last_selected = selectedText;
+                console.log(`Selected: ${last_selected}`);
+                stepMode = 'input';
+                document.removeEventListener('keydown', handleKeydown);
+            }
+        }
+    };
+
+    document.addEventListener('keydown', handleKeydown);
+    updateSelection();
+}
 
 const reg_errors = {
-    1:
-    `
+    1: `
     The module you are trying to install is not found in the registry.
     <br> 
     <br> + check online for the latest modules @ <span class='link u'>dbnm.lcnjoel.com/modules</span>
     <br> + check the module name and try again.
-    $
     `
-    }
-    
+};
 
 function find_module(name) {
     return example_database.find(module => module.name === name);
 }
-
-
- // if (active_server) {
-    //     const firebaseConfig = {
-    //         apiKey: "AIzaSyBoMh1L1bbPm-DzsB8DU1fWc1_z8MsFfj4",
-    //         authDomain: "lcntests.firebaseapp.com",
-    //         databaseURL: "https://lcntests-default-rtdb.firebaseio.com",
-    //         projectId: "lcntests",
-    //         storageBucket: "lcntests.firebasestorage.app",
-    //         messagingSenderId: "665856876392",
-    //         appId: "1:665856876392:web:aaaf2142819be3896400dd",
-    //         measurementId: "G-C8ZKK443D3"
-    //       };
-
-          
-    //     const app = initializeApp(firebaseConfig);
-    //     const analytics = getAnalytics(app);
-    // }

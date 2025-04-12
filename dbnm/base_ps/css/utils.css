@@ -65,6 +65,11 @@ input {
     font-style: italic;
 }
 
+.selected {
+    background-color: rgb(101, 181, 255);
+    color: black !important;
+}
+
 .coral {
     color: coral;
 }
@@ -84,7 +89,7 @@ input {
 }
 
 .blue {
-    color: blue;
+    color: rgb(64, 129, 204);
 }
 
 .blue-bg {
@@ -119,6 +124,7 @@ input {
     color: white;
 }
 
+
 .white {
     color: white;
 }
@@ -129,7 +135,7 @@ input {
 }
 
 .red {
-    color: red;
+    color: rgb(235, 57, 57);
 }
 
 .red-bg {
