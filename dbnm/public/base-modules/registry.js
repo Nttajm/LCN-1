@@ -1,19 +1,18 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
 
-// function loadStylesheets(stylesheets) {
-//     stylesheets.forEach(href => {
-//         document.head.appendChild(Object.assign(document.createElement("link"), {
-//             rel: "stylesheet",
-//             href
-//         }));
-//     });
-// }
+function loadStylesheets(stylesheets) {
+    stylesheets.forEach(href => {
+        document.head.appendChild(Object.assign(document.createElement("link"), {
+            rel: "stylesheet",
+            href
+        }));
+    });
+}
 
-// Example usage:
-// loadStylesheets([
-//     "public/base-modules/resources/css/registry.css",
-// ]);
+loadStylesheets([
+    "public/addons/resources/registry/registry.css",
+]);
 
 
 
@@ -54,6 +53,8 @@ _reg('reg', (_, cmd_split) => {
             ps_use = 'registry';
             reg_print(`(${module_name}) : <div class="reg_error">${reg_errors[1]}</div>`);
         }
+    } else {
+        reg_print(`(${module_name}) : <div class="reg_error">${reg_errors[1]}</div>`);
     }
 });
 
