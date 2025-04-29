@@ -98,28 +98,81 @@ function loadNote(id) {
 // Render all tabs
 function renderTabs() {
   tabs.innerHTML = '';
+
   const sortedNotes = Object.entries(notes).sort(([, a], [, b]) => {
     const dateA = a.lastType || a.createdAt;
     const dateB = b.lastType || b.createdAt;
-    return dateB - dateA; // Sort by last typed or created date (descending)
+    return dateB - dateA; // descending
   });
 
+  // Group arrays outside the loop
+  const today = [];
+  const yesterday = [];
+  const lastWeek = [];
+  const thirtyDays = [];
+
+  const todayDate = new Date();
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(todayDate.getDate() - 1);
+  const lastWeekDate = new Date();
+  lastWeekDate.setDate(todayDate.getDate() - 7);
+  const thirtyDaysDate = new Date();
+  thirtyDaysDate.setDate(todayDate.getDate() - 30);
+
+  // Categorize each note
   sortedNotes.forEach(([id, note]) => {
-      const today = []
-      const yesterday = []
-      const lastWeek = []
-      const thritydays = []
+    const lastType = note.lastType || note.createdAt;
+    const noteDate = new Date(Number(lastType));
 
-      // const tab = document.createElement('div');
-      // tab.className = 'tab';
-      // tab.dataset = id
-      // const lastType = note.lastType || note.createdAt;
-      // const title = note.title.length > 17 ? note.title.slice(0, 17) + '...' : note.title;
-      // const content = note.content.length > 30 ? note.content.slice(0, 30) + '...' : note.content;
-      // tab.innerHTML = `<h5>${title}</h5><div class="info"><span class="date">${formatNowDate(lastType)}</span><span>${content}</span></div>`;
-      // tab.onclick = () => loadNote(id);
-      // tabs.appendChild(tab);
+    if (noteDate.toDateString() === todayDate.toDateString()) {
+      today.push([id, note]);
+    } else if (noteDate.toDateString() === yesterdayDate.toDateString()) {
+      yesterday.push([id, note]);
+    } else if (noteDate >= lastWeekDate) {
+      lastWeek.push([id, note]);
+    } else if (noteDate >= thirtyDaysDate) {
+      thirtyDays.push([id, note]);
+    }
   });
+
+  // Helper to render a section
+  function renderSection(title, group) {
+    if (group.length === 0) return;
+
+    const section = document.createElement('div');
+    section.className = 'tab-group';
+    section.innerHTML = `<h2>${title}</h2>`;
+
+    group.forEach(([id, note]) => {
+      const tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.dataset.id = id;
+
+      const shortTitle = note.title.length > 17 ? note.title.slice(0, 17) + '...' : note.title;
+      const shortContent = note.content.length > 30 ? note.content.slice(0, 30) + '...' : note.content;
+
+      const lastType = note.lastType || note.createdAt;
+
+      tab.innerHTML = `
+        <h5>${shortTitle}</h5>
+        <div class="info">
+          <span class="date">${formatNowDate(lastType)}</span>
+          <span>${shortContent}</span>
+        </div>
+      `;
+
+      tab.onclick = () => loadNote(id);
+      section.appendChild(tab);
+    });
+
+    tabs.appendChild(section);
+  }
+
+  // Render all grouped sections
+  renderSection('Today', today);
+  renderSection('Yesterday', yesterday);
+  renderSection('Last week', lastWeek);
+  renderSection('30 Days', thirtyDays);
 }
 
 // Delete current note
