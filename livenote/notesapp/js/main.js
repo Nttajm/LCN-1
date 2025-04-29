@@ -98,15 +98,27 @@ function loadNote(id) {
 // Render all tabs
 function renderTabs() {
   tabs.innerHTML = '';
-  Object.entries(notes).forEach(([id, note]) => {
-    const tab = document.createElement('div');
-    tab.className = 'tab';
-    const lastType = note.lastType || note.createdAt;
-    const title = note.title.length > 17 ? note.title.slice(0, 17) + '...' : note.title;
-    const content = note.content.length > 30 ? note.content.slice(0, 30) + '...' : note.content;
-    tab.innerHTML = `<h5>${title}</h5><div class="info"><span class="date">${formatNowDate(lastType)}</span><span>${content}</span></div>`;
-    tab.onclick = () => loadNote(id);
-    tabs.appendChild(tab);
+  const sortedNotes = Object.entries(notes).sort(([, a], [, b]) => {
+    const dateA = a.lastType || a.createdAt;
+    const dateB = b.lastType || b.createdAt;
+    return dateB - dateA; // Sort by last typed or created date (descending)
+  });
+
+  sortedNotes.forEach(([id, note]) => {
+      const today = []
+      const yesterday = []
+      const lastWeek = []
+      const thritydays = []
+
+      // const tab = document.createElement('div');
+      // tab.className = 'tab';
+      // tab.dataset = id
+      // const lastType = note.lastType || note.createdAt;
+      // const title = note.title.length > 17 ? note.title.slice(0, 17) + '...' : note.title;
+      // const content = note.content.length > 30 ? note.content.slice(0, 30) + '...' : note.content;
+      // tab.innerHTML = `<h5>${title}</h5><div class="info"><span class="date">${formatNowDate(lastType)}</span><span>${content}</span></div>`;
+      // tab.onclick = () => loadNote(id);
+      // tabs.appendChild(tab);
   });
 }
 
@@ -185,7 +197,7 @@ contentEl.addEventListener('keydown', (e) => {
       newLine.contentEditable = true;
 
       if (container.nodeType === 3) {
-        const parent = container.parentElement;
+        const parent = container;
         parent.insertAdjacentElement('afterend', newLine);
         placeCaretAtEnd(newLine);
       } else {
