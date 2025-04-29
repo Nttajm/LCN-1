@@ -1,8 +1,14 @@
 // Constants
 let ps_use = 'main';
- let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
+let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
 let last_selected = null;
- const module_meta = [
+
+const commandHandlers = {};
+let awaiting = false;
+let awaiting_cmd = null;
+let directory = null;
+
+const module_meta = [
     {
         name: 'dbnm1.3.1',
         desc: 'base_com',
@@ -45,14 +51,28 @@ function initializeUI() {
 function renderInitialInfo() {
     const infoHTML = `
         <div>Path: ${db_info.v}/${db_info.use}</div>
-        <div>Desc: ${db_info.desc}</div>
-        <br> > v ${db_info.v}
     `;
     print(infoHTML);
 }
 
 //  
 // Print to UI
+
+function print(value) {
+    let dir_space = '';
+    if (directory) { 
+        dir_space = directory
+    } else {
+        dir_space = 'db'
+    }
+
+    const val_html = `<div class=" g-3"><span>${dir_space}$ ${value}</span>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
 
 function c_placeholder(value) {
     if (db_ui.input) {
@@ -75,17 +95,6 @@ function qestion(value) {
 
 function waring(value) {
     const val_html = `<div class=" g-3">[<span class='red b'>!</span>] </code>${value}</code>`;
-    if (db_ui.output) {
-        db_ui.output.innerHTML += val_html;
-    }
-    return value;
-}
-
-
-
-
-function print(value) {
-    const val_html = `<div class=" g-3"><span>db$ ${value}</span>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -118,23 +127,8 @@ function c_print(value , custom) {
 }
 
 // Parse Command
-function parseCommand(cmd) {
-    const cmd_split = cmd.split(' ');
-    const second = cmd_split[1];
-    const bracketOne = cmd.match(/\(([^)]+)\)/);
-    let args = [];
-
-    if (bracketOne) {
-        args = bracketOne[1].split(',').map(arg => arg.trim());
-    }
-
-    return { cmd_split, second, args };
-}
 
 // Command Handlers Registry
-const commandHandlers = {};
-let awaiting = false;
-let awaiting_cmd = null;
 
 function _await(value) {
     awaiting = true;
@@ -150,13 +144,34 @@ function unawait() {
 
 // Register Command Handler
 function _reg(command, handler) {
+
     commandHandlers[command.toLowerCase()] = handler;
 }
+
+function parseCommand(cmd) {
+    const cmd_split = cmd.split(' ');
+    const second = cmd_split[1];
+    const bracketOne = cmd.match(/\(([^)]+)\)/);
+    let args = [];
+
+    if (bracketOne) {
+        args = bracketOne[1].split(',').map(arg => arg.trim());
+    }
+
+    return { cmd_split, second, args };
+}
+
 
 
 // Handle Commands
 function handleCommand(cmd) {
-    const { cmd_split, args } = parseCommand(cmd);
+    if (cmd === 'cd..') {
+        directory = null;
+    }
+    if (directory && cmd !== 'cd..') {
+        cmd = directory + ` ` + cmd
+    }
+    let { cmd_split, args } = parseCommand(cmd);
     const command = cmd_split[0].toLowerCase().trim();
 
     if (!awaiting) {
@@ -164,12 +179,20 @@ function handleCommand(cmd) {
             commandHandlers[command](args, cmd_split);
         } else {
             print(`
-                <br> (${ps_use}):
+                <br> (${directory ? directory : 'main'}):
                 <br> Command not Found: ${cmd}
             `);
         }
     }
 }
+
+_reg(('help'), () => {
+    let output = '<br> Available Commands:';
+    Object.keys(commandHandlers).forEach(command => {
+        output += `<br> - ${command}`;
+    });
+    print(output);
+});
 
 _reg('example', (args) => {
     if (args.length === 2) {
@@ -186,6 +209,17 @@ _reg('multi', (args) => {
     } else {
         print('Multiplication command requires exactly 2 numeric arguments.');
     }
+});
+
+_reg('math', (_, cmd_split) => {
+    try {
+        const expression = cmd_split.slice(1).join(' ');
+        const result = eval(expression);
+        print(`Result: ${result}`);
+    } catch (error) {
+        print('Invalid mathematical expression.');
+    }
+    
 });
 
 _reg('x', () => {
@@ -213,7 +247,19 @@ _reg('hello', () => {
     }
 });
 
-_reg('**t', () => {
+_reg('cd', (_, cmd_split) => {
+    if (cmd_split[1] === '') {
+        print('specify a directory to change to.');
+    } else {
+        directory = cmd_split[1];
+    }
+});
+
+_reg('cd..', (_, cmd_split) => {
+    directory = null;
+});
+
+_reg('x dir', () => {
     localStorage.removeItem('cmdUtil');
 });
 
