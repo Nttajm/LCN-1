@@ -1,0 +1,150 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: rgb(32,42, 52);
+    color: white;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+  --tab-length: 150px;
+  --i-tab-length: 80vw;
+  --main-bg-color: rgb(32,42, 52);
+  --bg2: rgb(23, 32, 40);
+  --bg3: rgb(30, 30, 30);
+  --width-left: 150px;
+  font-size: 16px;
+}
+
+.note-content h1,
+.note-content span:not(.date) {
+  outline: none;
+  cursor: text;
+}
+
+
+input {
+  background-color: transparent;
+  color: white;
+  border: solid 2px rgba(136, 136, 136, 0.193);
+  border-radius: 7px;
+  min-width: 90px;
+  padding: 0.
+  2rem;
+}
+
+button {
+  background-color: transparent;
+  color: white;
+  border: solid 2px rgba(136, 136, 136, 0.193);
+  border-radius: 7px;
+  padding: 0.5rem;
+
+}
+
+.nav {
+  display: flex;
+  background-color: var(--main-bg-color);
+  align-items: stretch;
+}
+
+.nav-tabs {
+  width: var(--width-left);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.4rem;
+  border-right: solid 1px rgba(136, 136, 136, 0.193);
+}
+
+.options {
+  background-color: var(--bg2);
+  flex-grow: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.4rem;
+  gap: 0.5rem;
+
+}
+
+.tabs {
+  width: var(--tab-length);
+}
+
+.container {
+  display: flex; 
+  flex-direction: flex;
+  flex-grow: 1;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--main-bg-color);
+  min-width: var(--tab-length);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  border-bottom: solid 1px rgba(136, 136, 136, 0.193);
+}
+
+.tab .info {
+  font-size: 0.8rem;
+  margin-top: 0.5rem !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs .info .date {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.note-content {
+  background-color: var(--bg3);
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.6rem;
+  font-weight: 300 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-content .date {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  align-self: center;
+  margin: 0.2rem;
+  margin-bottom: 0.8rem;
+}
+
+.note-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.note-body {
+  white-space: pre-wrap;
+  outline: none;
+  cursor: text;
+  padding: 0.5rem 0;
+}
+
+.note-body ul, .note-body ol {
+  padding-left: 1.2rem;
+  margin: 0.5rem 0;
+}

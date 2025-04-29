@@ -219,30 +219,77 @@ let package_info = {};
 
 
 function encrypt(text, key) {
-    const encrypted = new Array(text.length);
-    const keyLength = key.length;
-
-    for (let i = 0; i < text.length; i++) {
-        const t = text.charCodeAt(i);
-        const k = key.charCodeAt(i % keyLength);
-        encrypted[i] = String.fromCharCode((t + k) % 65535);
-    }
-
-    return encrypted.join('');
+    const shifted = vigenereEncrypt(text, key);
+    return shuffleEncrypt(shifted, key);
 }
 
 function decrypt(text, key) {
-    const decrypted = new Array(text.length);
-    const keyLength = key.length;
+    const unshuffled = shuffleDecrypt(text, key);
+    return vigenereDecrypt(unshuffled, key);
+}
 
+// --- Layer 1: Vigenère-style full UTF-16 shift ---
+function vigenereEncrypt(text, key) {
+    const result = new Array(text.length);
+    for (let i = 0; i < text.length; i++) {
+        const t = text.charCodeAt(i);
+        const k = key.charCodeAt(i % key.length);
+        result[i] = String.fromCharCode((t + k) % 65535);
+    }
+    return result.join('');
+}
+
+function vigenereDecrypt(text, key) {
+    const result = new Array(text.length);
     for (let i = 0; i < text.length; i++) {
         const e = text.charCodeAt(i);
-        const k = key.charCodeAt(i % keyLength);
-        decrypted[i] = String.fromCharCode((e - k + 65535) % 65535);
+        const k = key.charCodeAt(i % key.length);
+        result[i] = String.fromCharCode((e - k + 65535) % 65535);
     }
-
-    return decrypted.join('');
+    return result.join('');
 }
+
+// --- Layer 2: Deterministic shuffle ---
+function shuffleEncrypt(text, key) {
+    const indices = generateShuffleIndices(text.length, key);
+    const result = new Array(text.length);
+    for (let i = 0; i < text.length; i++) {
+        result[indices[i]] = text[i];
+    }
+    return result.join('');
+}
+
+function shuffleDecrypt(text, key) {
+    const indices = generateShuffleIndices(text.length, key);
+    const result = new Array(text.length);
+    for (let i = 0; i < text.length; i++) {
+        result[i] = text[indices.indexOf(i)];
+    }
+    return result.join('');
+}
+
+// --- Pseudo-random shuffle index generator ---
+function generateShuffleIndices(length, key) {
+    const indices = Array.from({ length }, (_, i) => i);
+    const seed = hashCode(key);
+    let random = seed;
+    for (let i = length - 1; i > 0; i--) {
+        random = (random * 16807) % 2147483647;
+        const j = random % (i + 1);
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    return indices;
+}
+
+// Simple key hash
+function hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+    }
+    return hash || 1; // never allow 0 seed
+}
+
 
 
 
