@@ -223,8 +223,7 @@ nav img {
     border-bottom: solid 0.4rem rgb(153, 173, 228);
     font-weight: 600;
     overflow: hidden;
-    width: fit-content;
-
+    width: 100vw;
 }
 
 .scripture-coursel {
@@ -271,7 +270,7 @@ nav img {
 .aboutus {
     background-color: rgb(238, 238, 238);
     display: flex;
-    width: 100%;
+    width: 100vw;
     align-items: center;
     justify-content: center;
     padding: 1rem;
@@ -280,7 +279,7 @@ nav img {
 }
 
 .aboutus-disc {
-    width: 50%;
+    width: 50%; 
 }
 
 .aboutus-disc button {
@@ -298,7 +297,7 @@ nav img {
 }
 
 .single-img {
-    width: 70%;
+    width: 30%;
     object-fit: cover;
     border-radius: 0.4rem;
 }
@@ -325,7 +324,6 @@ nav img {
     grid-template-rows: repeat(2, 1fr);
     gap: 0.5rem;
     padding: 0.5rem;
-    width: 50%;
 }
 
 .people img:hover {
@@ -571,6 +569,10 @@ nav img {
     .logo {
         width: 10rem;
     }
+
+    .single-img {
+        width: 60%;
+    }
     
 
   }
@@ -612,6 +614,18 @@ nav img {
     .logo {
         width: 10rem;
     }
+
+    .aboutus {
+        background-color: rgb(238, 238, 238);
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        gap: 2rem;
+        color: white;
+        min-height: 60vh;
+    }
   }
   
   /* Medium devices (tablets, 768px and up) */
@@ -631,6 +645,7 @@ nav img {
     :root {
         font-size: 18px;
     }
+
 
   }
   
@@ -669,8 +684,8 @@ nav img {
     }
 
     .people img {
-        width: 15rem ;
-        height: 15rem ;
+        width: 13rem ;
+        height: 13rem ;
     }
 
     .aboutus-disc {
