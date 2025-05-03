@@ -4,6 +4,11 @@ const noteContent = document.querySelector('.note-content');
 const tabs = document.querySelector('.tabs');
 const titleEl = noteContent.querySelector('h1');
 const contentEl = noteContent.querySelector('.note-body');
+const userData = localStorage.getItem('livenote-UD') ? JSON.parse(localStorage.getItem('livenote-UD')) : {
+  folders: [],
+};
+
+
 
 const now = new Date().toLocaleString('en-US', {
   month: 'long',
@@ -14,8 +19,32 @@ const now = new Date().toLocaleString('en-US', {
   hour12: true
 });
 
+const folderCreator = document.querySelector('.folder-creator');
+folderCreator.addEventListener('click', () => {
+  const folderInput = document.querySelector('#js-new-folder');
 
+  folderInput.classList.toggle('hidden');
 
+  if (folderInput.classList.contains('hidden')) {
+    folderCreator.innerHTML = 'New Folder';
+  } else {
+    folderCreator.innerHTML = 'Close';
+  }
+
+  folderInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      folderCreator.innerHTML = 'New Folder';
+      folderInput.classList.toggle('hidden');
+
+      const folderName = folderInput.value.trim();
+      userData.folders.push(folderName);
+      saveNotes();
+    }
+  }
+  );
+});
+
+localStorage.clear();
 function formatNowDate(timestamp) {
   const now = new Date();
   const date = new Date(Number(timestamp));
@@ -52,6 +81,7 @@ let currentNoteId = null;
 // Save all notes
 function saveNotes() {
   localStorage.setItem('notes', JSON.stringify(notes));
+  localStorage.setItem('livenote-UD', JSON.stringify(userData));
 }
 
 // Create new note and switch to it
@@ -141,7 +171,7 @@ function renderTabs() {
 
     const section = document.createElement('div');
     section.className = 'tab-group';
-    section.innerHTML = `<h2>${title}</h2>`;
+    section.innerHTML = `<h2 class='tab-time'>${title}</h2>`;
 
     group.forEach(([id, note]) => {
       const tab = document.createElement('div');
@@ -154,11 +184,12 @@ function renderTabs() {
       const lastType = note.lastType || note.createdAt;
 
       tab.innerHTML = `
-        <h5>${shortTitle}</h5>
+        <h4>${shortTitle}</h4>
         <div class="info">
+        <span >${shortContent}</span>
           <span class="date">${formatNowDate(lastType)}</span>
-          <span>${shortContent}</span>
         </div>
+        ${renderFolders()}
       `;
 
       tab.onclick = () => loadNote(id);
@@ -167,12 +198,27 @@ function renderTabs() {
 
     tabs.appendChild(section);
   }
-
   // Render all grouped sections
   renderSection('Today', today);
   renderSection('Yesterday', yesterday);
   renderSection('Last week', lastWeek);
   renderSection('30 Days', thirtyDays);
+}
+
+
+
+function renderFolders(id) {
+  if (!Array.isArray(userData.folders)) {
+    console.error('userData.folders is not an array');
+    return `<select data-select-id='${id}'><option value="default">Notes</option></select>`;
+  }
+
+  const defultselect = `<option value="notes" }>notes</option>`
+  const folderNames = userData.folders.map(folder => {
+    return defultselect + `<option value="${folder}" ${folder === 'notes' ? 'selected' : ''}>${folder}</option>`;
+  }).join('');
+
+  return `<select data-select-id='${id}'>${folderNames}</select>`;
 }
 
 // Delete current note

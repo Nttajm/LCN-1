@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notes</title>
   <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css" >
 </head>
 <body>
   <div class="nav">
@@ -13,22 +14,34 @@
     </div>
     <div class="options">
       <button>New</button>
-      <button>Delete</button>
+      <button class="red-theme">Delete</button>
     </div>
   </div>
   <div class="container">
-    <div class="tabs">
-      <div class="tab">
-        <h3>Note Title</h3>
-        <div class="info">
-          <span class="date">
-            Last synced: 1/1/2023
-          </span>
-          <span>ever since i...</span>
-        </div>
+    <div class="tabs-cont">
+      <div class="folder-creator">
+        New folder
       </div>
-      <div class="tab">
-        <span>Tab 2</span>
+      <div class="fl-r">
+        <input type="text" placeholder="Folder name, enter" id="js-new-folder" class="hidden">
+      </div>
+      <div class="tabs">
+        <div class="tab">
+          <h3>Note Title</h3>
+          <div class="info">
+            <span class="date">
+              Last synced: 1/1/2023
+            </span>
+            <span>ever since i...</span>
+            <select>
+              <option value="1">All notes</option>
+              <option value="2">Meals</option>
+            </select>
+          </div>
+        </div>
+        <div class="tab">
+          <span>Tab 2</span>
+        </div>
       </div>
     </div>
     <div class="note-content">

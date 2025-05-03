@@ -1,59 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loading Animation</title>
-  <style>
-    .loading-bar-container {
-      width: 300px; /* Adjust width as needed */
-      height: 20px; /* Adjust height as needed */
-      border: 1px solid #ccc; /* Border color */
-      overflow: hidden; /* Hide overflow */
-    }
-
-    #loading-bar {
-      width: 0;
-      height: 100%;
-      background-color: #eeff00; /* Loading bar color */
-      transition: width 2s ease-in-out; /* Smooth transition with ease-in-out */
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Drag and Drop Folders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        .container {
+            display: flex;
+            gap: 20px;
+            margin: 0 auto;
+            max-width: 800px;
+        }
+        
+        .items-box {
+            width: 250px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        
+        .folders-box {
+            flex: 1;
+        }
+        
+        .folder {
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        
+        .folder-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .folder-content {
+            min-height: 50px;
+            border: 2px dashed #ccc;
+            padding: 10px;
+            background-color: white;
+        }
+        
+        .folder-content.highlight {
+            background-color: #e6f7ff;
+            border-color: #1890ff;
+        }
+        
+        .item {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 8px;
+            margin-bottom: 8px;
+            cursor: move;
+        }
+        
+        .item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .reset-button {
+            display: block;
+            margin: 20px auto;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <div class="loading-bar-container">
-    <div id="loading-bar"></div>
-  </div>
-
-  <script>
-    function startLoading(duration, int) {
-      const loadingBar = document.getElementById('loading-bar');
-      const interval = int; // Interval in milliseconds
-      const steps = duration / interval;
-      let width = 0;
-
-      const stepWidth = 100 / steps;
-
-      const animate = setInterval(() => {
-        width += stepWidth;
-        loadingBar.style.width = `${width}%`;
-
-        if (width >= 30) { // Slow down when reaching 70%
-          clearInterval(animate);
-          const slowInterval = setInterval(() => {
-            width += stepWidth / 2; // Slow down by half
-            loadingBar.style.width = `${width}%`;
-
-            if (width >= 100) { // Finish loading when reaching 100%
-              clearInterval(slowInterval);
-            }
-          }, interval * 2);
-        }
-      }, interval,);
-    }
-
-    // Example: Start loading animation for 3 seconds
-    startLoading(220, 10);
-  </script>
+    <h1>Simple Drag and Drop</h1>
+    
+    <div class="container">
+        <div class="items-box">
+            <h2>Items</h2>
+            <div class="item" draggable="true" data-type="document" id="item1">Document: Report</div>
+            <div class="item" draggable="true" data-type="image" id="item2">Image: Logo</div>
+            <div class="item" draggable="true" data-type="document" id="item3">Document: Contract</div>
+            <div class="item" draggable="true" data-type="code" id="item4">Code: JavaScript</div>
+            <div class="item" draggable="true" data-type="image" id="item5">Image: Banner</div>
+            <div class="item" draggable="true" data-type="code" id="item6">Code: HTML</div>
+        </div>
+        
+        <div class="folders-box">
+            <div class="folder">
+                <div class="folder-title">📁 Documents</div>
+                <div class="folder-content" id="documents-folder" data-type="document"></div>
+            </div>
+            
+            <div class="folder">
+                <div class="folder-title">📁 Images</div>
+                <div class="folder-content" id="images-folder" data-type="image"></div>
+            </div>
+            
+            <div class="folder">
+                <div class="folder-title">📁 Code</div>
+                <div class="folder-content" id="code-folder" data-type="code"></div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="reset-button" id="reset-button">Reset</button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all draggable items
+            const items = document.querySelectorAll('.item');
+            
+            // Get all folder drop zones
+            const folders = document.querySelectorAll('.folder-content');
+            
+            // Reset button
+            const resetButton = document.getElementById('reset-button');
+            
+            // Add drag events to items
+            items.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    // Store the dragged item ID
+                    e.dataTransfer.setData('text/plain', this.id);
+                });
+            });
+            
+            // Add drop events to folders
+            folders.forEach(folder => {
+                folder.addEventListener('dragover', function(e) {
+                    e.preventDefault(); // Allow drop
+                });
+                
+                folder.addEventListener('dragenter', function(e) {
+                    e.preventDefault();
+                    this.classList.add('highlight');
+                });
+                
+                folder.addEventListener('dragleave', function(e) {
+                    if (!this.contains(e.relatedTarget)) {
+                        this.classList.remove('highlight');
+                    }
+                });
+                
+                folder.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('highlight');
+                    
+                    // Get the dragged item ID
+                    const itemId = e.dataTransfer.getData('text/plain');
+                    const item = document.getElementById(itemId);
+                    
+                    if (item) {
+                        // Check if item type matches folder type
+                        const itemType = item.getAttribute('data-type');
+                        const folderType = this.getAttribute('data-type');
+                        
+                        if (itemType === folderType) {
+                            // Clone the item
+                            const clone = item.cloneNode(true);
+                            
+                            // Add click to remove functionality
+                            clone.addEventListener('click', function() {
+                                this.remove();
+                                // Show original item
+                                document.getElementById(itemId).style.display = 'block';
+                            });
+                            
+                            // Add to folder
+                            this.appendChild(clone);
+                            
+                            // Hide original item
+                            item.style.display = 'none';
+                        } else {
+                            alert('This item cannot be placed in this folder');
+                        }
+                    }
+                });
+            });
+            
+            // Reset button functionality
+            resetButton.addEventListener('click', function() {
+                // Clear all folders
+                folders.forEach(folder => {
+                    folder.innerHTML = '';
+                });
+                
+                // Show all original items
+                items.forEach(item => {
+                    item.style.display = 'block';
+                });
+            });
+        });
+    </script>
 </body>
 </html>
