@@ -216,12 +216,27 @@ nav img {
     object-fit: cover;
 }
 
-.img-coursel {
-    height: 10rem;
+.scripture-coursel-holder {
+    background-color: rgb(209, 202, 168);
+    padding: 0.7rem;
+    border-top: solid 0.4rem rgb(153, 173, 228);
+    border-bottom: solid 0.4rem rgb(153, 173, 228);
+    font-weight: 600;
+    overflow: hidden;
+    width: fit-content;
+
+}
+
+.scripture-coursel {
     display: flex;
-    object-fit: cover;
-    opacity: 0.5;
-    animation: toLeft 3s infinite linear;
+    width: fit-content;
+    gap: 0.8rem;
+    height: 1rem;
+    animation: toLeft 140s linear infinite;
+}
+
+.scripture-coursel span {
+    white-space: nowrap;
 }
 
 @keyframes toLeft {
@@ -229,7 +244,7 @@ nav img {
         transform: translateX(0);
     }
     100% {
-        transform: translateX(-53%);
+        transform: translateX(-100%);
     }
 }
 
@@ -261,12 +276,47 @@ nav img {
     justify-content: center;
     padding: 1rem;
     gap: 2rem;
-    background-image: url('../images/ctwc-overlay.jpg');
     color: white;
 }
 
 .aboutus-disc {
     width: 50%;
+}
+
+.aboutus-disc button {
+    margin-top: 0.8rem !important
+}
+
+.aboutus#people {
+    background-image: url('../images/ctwc-overlay.jpg');
+
+}
+
+
+.aboutus#whatwedo {
+    background-color: rgb(108, 124, 168) !important;
+}
+
+.single-img {
+    width: 70%;
+    object-fit: cover;
+    border-radius: 0.4rem;
+}
+
+.single-img img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: 0.4rem;
+    transition: all 0.5s;
+}
+
+.single-img img:hover {
+    filter: grayscale(0) contrast(1);
+    border-radius: 0.4rem;
+    box-shadow: 0 0 1rem rgb(153, 173, 228);
+    z-index: 1;
+    position: relative;
 }
 
 .people {
