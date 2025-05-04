@@ -35,7 +35,9 @@ const tabs = document.querySelector('.tabs');
 const titleEl = noteContent.querySelector('h1');
 const contentEl = noteContent.querySelector('.note-body');
 const folderCreator = document.querySelector('.folder-creator');
-const lastplacedcaret = localStorage.getItem('lastplacedcaret') || null;
+let lastFocusedEl = null;
+titleEl.addEventListener('focus', () => lastFocusedEl = titleEl);
+contentEl.addEventListener('focus', () => lastFocusedEl = contentEl);
 
 // Application state
 let notes = {};
@@ -205,25 +207,41 @@ function loadNote(id) {
   const note = notes[id];
   if (!note) return;
 
-  const caretOffset = getCaretCharacterOffsetWithin(contentEl); // ← save caret
+  // Save caret positions
+  const titleCaret = saveCaretPosition(titleEl);
+  const contentCaret = saveCaretPosition(contentEl);
 
+  // Update DOM
   titleEl.contentEditable = true;
   contentEl.contentEditable = true;
   titleEl.innerText = note.title;
   contentEl.innerText = note.content;
   currentNoteId = id;
-
-  // Restore caret at the previous position
-  requestAnimationFrame(() => setCaretPosition(contentEl, caretOffset));
-
   updateDate();
 
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.classList.remove('active-tab');
-  });
+  // Restore caret positions
+  if (document.activeElement === contentEl) {
+    restoreCaretPosition(contentEl, contentCaret);
+  } else if (document.activeElement === titleEl) {
+    restoreCaretPosition(titleEl, titleCaret);
+  }
 
+  // Highlight active tab
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active-tab'));
   const tabElement = document.querySelector(`.tab[data-id="${id}"]`);
-  if (tabElement) tabElement.classList.add('active-tab');
+  if (tabElement) {
+    tabElement.classList.add('active-tab');
+  }
+}
+
+
+// Focus on the note editor
+let lastFocus = null;
+function remainFocus(el) {
+  if (!lastFocus) {
+    lastFocus = el;
+  }
+  el.focus();
 }
 
 
@@ -417,9 +435,9 @@ function placeCaretAtEnd(el) {
 contentEl.addEventListener('keydown', (e) => {
   const sel = window.getSelection();
   if (!sel.rangeCount) return;
-
   const range = sel.getRangeAt(0);
   const container = range.startContainer;
+
 
   if (e.key === ' ' && container.nodeType === 3) {
     const text = container.textContent.trim();
@@ -555,6 +573,51 @@ function setCaretPosition(element, offset) {
   selection.removeAllRanges();
   selection.addRange(range);
 }
+
+function saveCaretPosition(el) {
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return null;
+
+  const range = selection.getRangeAt(0);
+  const preCaretRange = range.cloneRange();
+  preCaretRange.selectNodeContents(el);
+  preCaretRange.setEnd(range.endContainer, range.endOffset);
+
+  return preCaretRange.toString().length;
+}
+
+function restoreCaretPosition(el, offset) {
+  const nodeStack = [el];
+  let charIndex = 0;
+  let node, foundNode = null, foundOffset = 0;
+
+  while ((node = nodeStack.pop())) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const nextCharIndex = charIndex + node.length;
+
+      if (offset <= nextCharIndex) {
+        foundNode = node;
+        foundOffset = offset - charIndex;
+        break;
+      }
+
+      charIndex = nextCharIndex;
+    } else {
+      let i = node.childNodes.length;
+      while (i--) nodeStack.push(node.childNodes[i]);
+    }
+  }
+
+  if (foundNode) {
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.setStart(foundNode, foundOffset);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
 
 
 // ========== INITIALIZATION ==========
