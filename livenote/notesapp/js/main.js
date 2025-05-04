@@ -1,50 +1,364 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  onSnapshot 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBoMh1L1bbPm-DzsB8DU1fWc1_z8MsFfj4",
+  authDomain: "lcntests.firebaseapp.com",
+  databaseURL: "https://lcntests-default-rtdb.firebaseio.com",
+  projectId: "lcntests",
+  storageBucket: "lcntests.firebasestorage.app",
+  messagingSenderId: "665856876392",
+  appId: "1:665856876392:web:23fe74667972a8db6400dd",
+  measurementId: "G-JJM3816RHH"
+};
+
+// Initialize Firebase services
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth();
+const db = getFirestore(app);
+
+// DOM elements
 const newBtn = document.querySelector('.options button:nth-child(1)');
 const deleteBtn = document.querySelector('.options button:nth-child(2)');
 const noteContent = document.querySelector('.note-content');
 const tabs = document.querySelector('.tabs');
 const titleEl = noteContent.querySelector('h1');
 const contentEl = noteContent.querySelector('.note-body');
-const userData = localStorage.getItem('livenote-UD') ? JSON.parse(localStorage.getItem('livenote-UD')) : {
-  folders: [],
-};
-
-
-
-const now = new Date().toLocaleString('en-US', {
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-  hour: 'numeric',
-  minute: 'numeric',
-  hour12: true
-});
-
 const folderCreator = document.querySelector('.folder-creator');
-folderCreator.addEventListener('click', () => {
-  const folderInput = document.querySelector('#js-new-folder');
 
-  folderInput.classList.toggle('hidden');
+// Application state
+let notes = {};
+let userData = { folders: [] };
+let currentNoteId = null;
+let syncTimeout = null;
+let isInitialLoad = true;
+let firebaseUnsubscribe = null;
 
-  if (folderInput.classList.contains('hidden')) {
-    folderCreator.innerHTML = 'New Folder';
-  } else {
-    folderCreator.innerHTML = 'Close';
+// ========== DATA MANAGEMENT ==========
+
+// Load data from localStorage
+function loadFromLocalStorage() {
+  const storedNotes = localStorage.getItem('notes');
+  const storedUserData = localStorage.getItem('livenote-UD');
+  
+  if (storedNotes) {
+    notes = JSON.parse(storedNotes);
   }
+  
+  if (storedUserData) {
+    userData = JSON.parse(storedUserData);
+  } else {
+    userData = { folders: [] };
+  }
+}
 
-  folderInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      folderCreator.innerHTML = 'New Folder';
-      folderInput.classList.toggle('hidden');
+// Save data to localStorage
+function saveToLocalStorage() {
+  localStorage.setItem('notes', JSON.stringify(notes));
+  localStorage.setItem('livenote-UD', JSON.stringify(userData));
+}
 
-      const folderName = folderInput.value.trim();
-      userData.folders.push(folderName);
-      saveNotes();
+// Initialize Firebase data listener
+function initializeFirebaseListener(userId) {
+  if (firebaseUnsubscribe) {
+    firebaseUnsubscribe();
+  }
+  
+  const userRef = doc(db, 'noteUsers', userId);
+  
+  // Set up real-time listener for changes
+  firebaseUnsubscribe = onSnapshot(userRef, (doc) => {
+    if (doc.exists() && !isInitialLoad) {
+      const firebaseData = doc.data();
+      
+      // Only update if the data is different to avoid loops
+      if (firebaseData.notes && JSON.stringify(firebaseData.notes) !== JSON.stringify(notes)) {
+        notes = firebaseData.notes;
+        saveToLocalStorage();
+        renderTabs();
+        
+        // If current note exists in the new data, load it
+        if (currentNoteId && notes[currentNoteId]) {
+          loadNote(currentNoteId);
+        } else if (Object.keys(notes).length > 0) {
+          // Otherwise load most recent note
+          const firstId = getMostRecentNoteId();
+          loadNote(firstId);
+        }
+      }
+    }
+    
+    isInitialLoad = false;
+  });
+}
+
+// Sync data to Firebase with debounce
+function syncToFirebase() {
+  if (!auth.currentUser) return;
+  
+  // Clear existing timeout if any
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+  }
+  
+  syncTimeout = setTimeout(async () => {
+    try {
+      const userRef = doc(db, 'noteUsers', auth.currentUser.uid);
+      await setDoc(userRef, { notes, lastUpdated: Date.now() }, { merge: true });
+    } catch (error) {
+      console.error("Error syncing to Firebase:", error);
+    }
+  }, 1000);
+}
+
+// Initial data load from Firebase
+async function loadInitialData() {
+  if (!auth.currentUser) return;
+  
+  try {
+    const userRef = doc(db, 'noteUsers', auth.currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      const firebaseData = userSnap.data();
+      
+      // Merge with local data, prioritizing Firebase data
+      if (firebaseData.notes) {
+        notes = firebaseData.notes;
+        saveToLocalStorage();
+      }
+    } else {
+      // First time user, create document with current data
+      await setDoc(userRef, { notes, lastUpdated: Date.now() });
+    }
+    
+    renderTabs();
+    
+    // Load a note if available
+    if (Object.keys(notes).length > 0) {
+      loadNote(getMostRecentNoteId());
+    } else {
+      createNote();
+    }
+  } catch (error) {
+    console.error("Error loading initial data:", error);
+    
+    // Fallback to local data
+    loadFromLocalStorage();
+    renderTabs();
+    
+    if (Object.keys(notes).length > 0) {
+      loadNote(getMostRecentNoteId());
+    } else {
+      createNote();
     }
   }
-  );
-});
+}
 
-localStorage.clear();
+// ========== NOTE OPERATIONS ==========
+
+// Create new note
+function createNote() {
+  const id = Date.now().toString();
+  notes[id] = {
+    title: 'New Note',
+    content: 'Start typing...',
+    createdAt: id,
+  };
+  currentNoteId = id;
+  saveToLocalStorage();
+  syncToFirebase();
+  renderTabs();
+  loadNote(id);
+}
+
+// Update note content
+function updateNote() {
+  if (!currentNoteId) return;
+  
+  notes[currentNoteId] = {
+    title: titleEl.innerText,
+    content: contentEl.innerText,
+    lastType: Date.now().toString(),
+    createdAt: notes[currentNoteId].createdAt || Date.now().toString(),
+  };
+  
+  saveToLocalStorage();
+  syncToFirebase();
+  renderTabs();
+  updateDate();
+}
+
+// Load note into editor
+function loadNote(id) {
+  const note = notes[id];
+  if (!note) return;
+  
+  titleEl.contentEditable = true;
+  contentEl.contentEditable = true;
+  titleEl.innerText = note.title;
+  contentEl.innerText = note.content;
+  currentNoteId = id;
+  updateDate();
+
+  // Update active tab
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('active-tab');
+  });
+  
+  const tabElement = document.querySelector(`.tab[data-id="${id}"]`);
+  if (tabElement) {
+    tabElement.classList.add('active-tab');
+  }
+}
+
+// Delete current note
+function deleteNote() {
+  if (!currentNoteId) return;
+  
+  delete notes[currentNoteId];
+  saveToLocalStorage();
+  syncToFirebase();
+  
+  const remainingIds = Object.keys(notes);
+  if (remainingIds.length > 0) {
+    loadNote(getMostRecentNoteId());
+  } else {
+    titleEl.innerText = '';
+    contentEl.innerText = '';
+    currentNoteId = null;
+  }
+  
+  renderTabs();
+}
+
+// ========== UI RENDERING ==========
+
+// Render all note tabs
+function renderTabs() {
+  tabs.innerHTML = '';
+
+  // Early return if no notes
+  if (Object.keys(notes).length === 0) return;
+
+  // Prepare date references
+  const todayDate = new Date();
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(todayDate.getDate() - 1);
+  const lastWeekDate = new Date();
+  lastWeekDate.setDate(todayDate.getDate() - 7);
+  const thirtyDaysDate = new Date();
+  thirtyDaysDate.setDate(todayDate.getDate() - 30);
+
+  // Group notes by time period
+  const groups = {
+    'Today': [],
+    'Yesterday': [],
+    'Last week': [],
+    '30 Days': [],
+    'Older': []
+  };
+
+  // Sort and categorize notes
+  Object.entries(notes).forEach(([id, note]) => {
+    const lastType = note.lastType || note.createdAt;
+    const noteDate = new Date(Number(lastType));
+
+    if (noteDate.toDateString() === todayDate.toDateString()) {
+      groups['Today'].push([id, note]);
+    } else if (noteDate.toDateString() === yesterdayDate.toDateString()) {
+      groups['Yesterday'].push([id, note]);
+    } else if (noteDate >= lastWeekDate) {
+      groups['Last week'].push([id, note]);
+    } else if (noteDate >= thirtyDaysDate) {
+      groups['30 Days'].push([id, note]);
+    } else {
+      groups['Older'].push([id, note]);
+    }
+  });
+
+  // Sort notes within each group by most recent first
+  Object.values(groups).forEach(group => {
+    group.sort(([, noteA], [, noteB]) => {
+      const timeA = noteA.lastType || noteA.createdAt;
+      const timeB = noteB.lastType || noteB.createdAt;
+      return Number(timeB) - Number(timeA);
+    });
+  });
+
+  // Render each group
+  Object.entries(groups).forEach(([title, group]) => {
+    if (group.length === 0) return;
+
+    const section = document.createElement('div');
+    section.className = 'tab-group';
+    section.innerHTML = `<h2 class='tab-time'>${title}</h2>`;
+
+    group.forEach(([id, note]) => {
+      const tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.dataset.id = id;
+      
+      if (id === currentNoteId) {
+        tab.classList.add('active-tab');
+      }
+
+      const shortTitle = note.title.length > 17 ? note.title.slice(0, 17) + '...' : note.title;
+      const shortContent = note.content.length > 30 ? note.content.slice(0, 30) + '...' : note.content;
+      const lastType = note.lastType || note.createdAt;
+
+      tab.innerHTML = `
+        <h4>${shortTitle}</h4>
+        <div class="info">
+          <span>${shortContent}</span>
+          <span class="date">${formatNowDate(lastType)}</span>
+        </div>
+        ${renderFolders(id)}
+      `;
+
+      tab.onclick = () => loadNote(id);
+      section.appendChild(tab);
+    });
+
+    tabs.appendChild(section);
+  });
+}
+
+// Render folders dropdown
+function renderFolders(id) {
+  if (!Array.isArray(userData.folders)) {
+    userData.folders = [];
+  }
+
+  const options = ['notes', ...userData.folders].map(folder => {
+    return `<option value="${folder}" ${folder === 'notes' ? 'selected' : ''}>${folder}</option>`;
+  }).join('');
+
+  return `<select data-select-id='${id}'>${options}</select>`;
+}
+
+// Update last saved date display
+function updateDate() {
+  if (!currentNoteId || !notes[currentNoteId]) return;
+  
+  const dateEl = noteContent.querySelector('.date');
+  const lastType = notes[currentNoteId].lastType || notes[currentNoteId].createdAt;
+  dateEl.innerText = `Last saved: ${formatNowDate(lastType)}`;
+}
+
+// ========== UTILITY FUNCTIONS ==========
+
+// Format date for display
 function formatNowDate(timestamp) {
   const now = new Date();
   const date = new Date(Number(timestamp));
@@ -70,199 +384,33 @@ function formatNowDate(timestamp) {
   }
 }
 
-
-
-
-
-
-let notes = JSON.parse(localStorage.getItem('notes')) || {};
-let currentNoteId = null;
-
-// Save all notes
-function saveNotes() {
-  localStorage.setItem('notes', JSON.stringify(notes));
-  localStorage.setItem('livenote-UD', JSON.stringify(userData));
+// Get most recent note ID
+function getMostRecentNoteId() {
+  return Object.entries(notes)
+    .sort(([, a], [, b]) => {
+      const dateA = a.lastType || a.createdAt;
+      const dateB = b.lastType || b.createdAt;
+      return Number(dateB) - Number(dateA); // descending order
+    })
+    .map(([id]) => id)[0];
 }
 
-// Create new note and switch to it
-function createNote() {
-  const id = Date.now().toString();
-  notes[id] = {
-    title: 'New Note',
-    content: 'Start typing...',
-    createdAt: id,
-  };
-  currentNoteId = id;
-  saveNotes();
-  renderTabs();
-  loadNote(id);
+// Position cursor at end of element
+function placeCaretAtEnd(el) {
+  const range = document.createRange();
+  const sel = window.getSelection();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
 }
 
+// ========== EVENT HANDLERS ==========
 
-// Update note content in memory and save
-function updateNote() {
-  if (!currentNoteId) return;
-  notes[currentNoteId] = {
-    title: titleEl.innerText,
-    content: contentEl.innerText,
-    lastType: Date.now().toString(),
-  };
-  saveNotes();
-  renderTabs(); // update tab title too
-  updateDate();
-}
-
-
-// Load note into content area
-function loadNote(id) {
-  const note = notes[id];
-  if (!note) return;
-  titleEl.contentEditable = true;
-  contentEl.contentEditable = true;
-  titleEl.innerText = note.title;
-  contentEl.innerText = note.content;
-  currentNoteId = id;
-  updateDate();
-}
-
-// Render all tabs
-function renderTabs() {
-  tabs.innerHTML = '';
-
-  const sortedNotes = Object.entries(notes).sort(([, a], [, b]) => {
-    const dateA = a.lastType || a.createdAt;
-    const dateB = b.lastType || b.createdAt;
-    return dateB - dateA; // descending
-  });
-
-  // Group arrays outside the loop
-  const today = [];
-  const yesterday = [];
-  const lastWeek = [];
-  const thirtyDays = [];
-
-  const todayDate = new Date();
-  const yesterdayDate = new Date();
-  yesterdayDate.setDate(todayDate.getDate() - 1);
-  const lastWeekDate = new Date();
-  lastWeekDate.setDate(todayDate.getDate() - 7);
-  const thirtyDaysDate = new Date();
-  thirtyDaysDate.setDate(todayDate.getDate() - 30);
-
-  // Categorize each note
-  sortedNotes.forEach(([id, note]) => {
-    const lastType = note.lastType || note.createdAt;
-    const noteDate = new Date(Number(lastType));
-
-    if (noteDate.toDateString() === todayDate.toDateString()) {
-      today.push([id, note]);
-    } else if (noteDate.toDateString() === yesterdayDate.toDateString()) {
-      yesterday.push([id, note]);
-    } else if (noteDate >= lastWeekDate) {
-      lastWeek.push([id, note]);
-    } else if (noteDate >= thirtyDaysDate) {
-      thirtyDays.push([id, note]);
-    }
-  });
-
-  // Helper to render a section
-  function renderSection(title, group) {
-    if (group.length === 0) return;
-
-    const section = document.createElement('div');
-    section.className = 'tab-group';
-    section.innerHTML = `<h2 class='tab-time'>${title}</h2>`;
-
-    group.forEach(([id, note]) => {
-      const tab = document.createElement('div');
-      tab.className = 'tab';
-      tab.dataset.id = id;
-
-      const shortTitle = note.title.length > 17 ? note.title.slice(0, 17) + '...' : note.title;
-      const shortContent = note.content.length > 30 ? note.content.slice(0, 30) + '...' : note.content;
-
-      const lastType = note.lastType || note.createdAt;
-
-      tab.innerHTML = `
-        <h4>${shortTitle}</h4>
-        <div class="info">
-        <span >${shortContent}</span>
-          <span class="date">${formatNowDate(lastType)}</span>
-        </div>
-        ${renderFolders()}
-      `;
-
-      tab.onclick = () => loadNote(id);
-      section.appendChild(tab);
-    });
-
-    tabs.appendChild(section);
-  }
-  // Render all grouped sections
-  renderSection('Today', today);
-  renderSection('Yesterday', yesterday);
-  renderSection('Last week', lastWeek);
-  renderSection('30 Days', thirtyDays);
-}
-
-
-
-function renderFolders(id) {
-  if (!Array.isArray(userData.folders)) {
-    console.error('userData.folders is not an array');
-    return `<select data-select-id='${id}'><option value="default">Notes</option></select>`;
-  }
-
-  const defultselect = `<option value="notes" }>notes</option>`
-  const folderNames = userData.folders.map(folder => {
-    return defultselect + `<option value="${folder}" ${folder === 'notes' ? 'selected' : ''}>${folder}</option>`;
-  }).join('');
-
-  return `<select data-select-id='${id}'>${folderNames}</select>`;
-}
-
-// Delete current note
-function deleteNote() {
-  if (!currentNoteId) return;
-  delete notes[currentNoteId];
-  saveNotes();
-  const remainingIds = Object.keys(notes);
-  if (remainingIds.length > 0) {
-    loadNote(remainingIds[0]);
-  } else {
-    titleEl.innerText = '';
-    contentEl.innerText = '';
-    currentNoteId = null;
-  }
-  renderTabs();
-}
-
-function updateDate() {
-  const dateEl = noteContent.querySelector('.date');
-  const lastType = notes[currentNoteId]?.lastType || notes[currentNoteId]?.createdAt || now;
-  dateEl.innerText = `Last saved: ${formatNowDate(lastType)}`;
-}
-
-// Event listeners
-titleEl.addEventListener('input', updateNote);
-contentEl.addEventListener('input', updateNote);
-newBtn.addEventListener('click', createNote);
-deleteBtn.addEventListener('click', deleteNote);
-
-// Load first note or create one
-if (Object.keys(notes).length > 0) {
-  const firstId = Object.keys(notes)[0];
-  renderTabs();
-  loadNote(firstId);
-} else {
-  createNote();
-}
-
+// Handle bullet points and special formatting
 contentEl.addEventListener('keydown', (e) => {
   const sel = window.getSelection();
   if (!sel.rangeCount) return;
-
-  updateNote();
 
   const range = sel.getRangeAt(0);
   const container = range.startContainer;
@@ -270,19 +418,22 @@ contentEl.addEventListener('keydown', (e) => {
   if (e.key === ' ' && container.nodeType === 3) {
     const text = container.textContent.trim();
 
-    // If user types "- " and hits space
+    // If user types "- " and hits space, convert to bullet
     if (text === '-') {
       e.preventDefault();
       container.textContent = '• ';
       placeCaretAtEnd(container);
+      updateNote();
+      return;
     }
 
     // If line is just "•", and they hit space again -> exit bullet mode
     if (text === '•') {
       e.preventDefault();
-      const parent = container.parentElement;
-      container.textContent = ''; // clear the bullet
+      container.textContent = '';
       placeCaretAtEnd(container);
+      updateNote();
+      return;
     }
   }
 
@@ -296,23 +447,83 @@ contentEl.addEventListener('keydown', (e) => {
       newLine.contentEditable = true;
 
       if (container.nodeType === 3) {
-        const parent = container;
+        const parent = container.parentNode;
         parent.insertAdjacentElement('afterend', newLine);
-        placeCaretAtEnd(newLine);
       } else {
         container.insertAdjacentElement('afterend', newLine);
-        placeCaretAtEnd(newLine);
       }
+      
+      placeCaretAtEnd(newLine);
+      updateNote();
     }
   }
 });
 
-// Helper to place cursor at the end
-function placeCaretAtEnd(el) {
-  const range = document.createRange();
-  const sel = window.getSelection();
-  range.selectNodeContents(el);
-  range.collapse(false);
-  sel.removeAllRanges();
-  sel.addRange(range);
-}
+// Folder creator event handlers
+folderCreator.addEventListener('click', () => {
+  const folderInput = document.querySelector('#js-new-folder');
+  folderInput.classList.toggle('hidden');
+  
+  folderCreator.innerHTML = folderInput.classList.contains('hidden') 
+    ? 'New Folder' 
+    : 'Close';
+});
+
+document.querySelector('#js-new-folder').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const folderInput = e.target;
+    const folderName = folderInput.value.trim();
+    
+    if (folderName && !userData.folders.includes(folderName)) {
+      userData.folders.push(folderName);
+      saveToLocalStorage();
+      renderTabs();
+    }
+    
+    folderInput.value = '';
+    folderInput.classList.add('hidden');
+    folderCreator.innerHTML = 'New Folder';
+  }
+});
+
+// Update note on content change
+titleEl.addEventListener('input', updateNote);
+contentEl.addEventListener('input', updateNote);
+
+// Button click handlers
+newBtn.addEventListener('click', createNote);
+deleteBtn.addEventListener('click', deleteNote);
+
+// Handle folder selection changes
+tabs.addEventListener('change', (e) => {
+  if (e.target.tagName === 'SELECT') {
+    const noteId = e.target.getAttribute('data-select-id');
+    const folder = e.target.value;
+    
+    if (noteId && notes[noteId]) {
+      notes[noteId].folder = folder;
+      saveToLocalStorage();
+      syncToFirebase();
+    }
+  }
+});
+
+// ========== INITIALIZATION ==========
+
+// Handle authentication state changes
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    // Not logged in, redirect to login page
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  // Load initial data from localStorage
+  loadFromLocalStorage();
+  
+  // Set up Firebase listener
+  initializeFirebaseListener(user.uid);
+  
+  // Load data from Firebase
+  loadInitialData();
+});
