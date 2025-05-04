@@ -209,6 +209,7 @@ function loadNote(id) {
   titleEl.innerText = note.title;
   contentEl.innerText = note.content;
   currentNoteId = id;
+  placeCaretAtEnd(contentEl);
   updateDate();
 
   // Update active tab
@@ -227,8 +228,7 @@ function deleteNote() {
   if (!currentNoteId) return;
   
   delete notes[currentNoteId];
-  saveToLocalStorage();
-  syncToFirebase();
+  
   
   const remainingIds = Object.keys(notes);
   if (remainingIds.length > 0) {
@@ -240,6 +240,8 @@ function deleteNote() {
   }
   
   renderTabs();
+  saveToLocalStorage();
+  syncToFirebase();
 }
 
 // ========== UI RENDERING ==========
