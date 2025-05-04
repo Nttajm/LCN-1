@@ -35,6 +35,7 @@ const tabs = document.querySelector('.tabs');
 const titleEl = noteContent.querySelector('h1');
 const contentEl = noteContent.querySelector('.note-body');
 const folderCreator = document.querySelector('.folder-creator');
+const lastplacedcaret = localStorage.getItem('lastplacedcaret') || null;
 
 // Application state
 let notes = {};
@@ -203,25 +204,28 @@ function updateNote() {
 function loadNote(id) {
   const note = notes[id];
   if (!note) return;
-  
+
+  const caretOffset = getCaretCharacterOffsetWithin(contentEl); // ← save caret
+
   titleEl.contentEditable = true;
   contentEl.contentEditable = true;
   titleEl.innerText = note.title;
   contentEl.innerText = note.content;
   currentNoteId = id;
-  placeCaretAtEnd(contentEl);
+
+  // Restore caret at the previous position
+  requestAnimationFrame(() => setCaretPosition(contentEl, caretOffset));
+
   updateDate();
 
-  // Update active tab
   document.querySelectorAll('.tab').forEach(tab => {
     tab.classList.remove('active-tab');
   });
-  
+
   const tabElement = document.querySelector(`.tab[data-id="${id}"]`);
-  if (tabElement) {
-    tabElement.classList.add('active-tab');
-  }
+  if (tabElement) tabElement.classList.add('active-tab');
 }
+
 
 // Delete current note
 function deleteNote() {
@@ -510,6 +514,49 @@ tabs.addEventListener('change', (e) => {
   }
 });
 
+
+function getCaretCharacterOffsetWithin(element) {
+  const selection = window.getSelection();
+  let caretOffset = 0;
+  if (selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(element);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    caretOffset = preCaretRange.toString().length;
+  }
+  return caretOffset;
+}
+
+function setCaretPosition(element, offset) {
+  const selection = window.getSelection();
+  const range = document.createRange();
+  let currentOffset = 0;
+  let found = false;
+
+  function traverse(node) {
+    if (node.nodeType === 3) { // Text node
+      const length = node.textContent.length;
+      if (!found && currentOffset + length >= offset) {
+        range.setStart(node, offset - currentOffset);
+        range.setEnd(node, offset - currentOffset);
+        found = true;
+      }
+      currentOffset += length;
+    } else {
+      for (let i = 0; i < node.childNodes.length; i++) {
+        traverse(node.childNodes[i]);
+        if (found) break;
+      }
+    }
+  }
+
+  traverse(element);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+
 // ========== INITIALIZATION ==========
 
 // Handle authentication state changes
@@ -529,3 +576,4 @@ onAuthStateChanged(auth, (user) => {
   // Load data from Firebase
   loadInitialData();
 });
+
