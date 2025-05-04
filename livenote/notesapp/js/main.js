@@ -432,56 +432,188 @@ function placeCaretAtEnd(el) {
 // ========== EVENT HANDLERS ==========
 
 // Handle bullet points and special formatting
-contentEl.addEventListener('keydown', (e) => {
-  const sel = window.getSelection();
-  if (!sel.rangeCount) return;
-  const range = sel.getRangeAt(0);
-  const container = range.startContainer;
+// Enhanced bullet point system
+function initBulletPointSystem() {
+  const BULLET_SYMBOL = '• ';
+  const BULLET_TRIGGERS = ['-', '*'];
 
-
-  if (e.key === ' ' && container.nodeType === 3) {
-    const text = container.textContent.trim();
-
-    // If user types "- " and hits space, convert to bullet
-    if (text === '-') {
-      e.preventDefault();
-      container.textContent = '• ';
-      placeCaretAtEnd(container);
-      updateNote();
-      return;
-    }
-
-    // If line is just "•", and they hit space again -> exit bullet mode
-    if (text === '•') {
-      e.preventDefault();
-      container.textContent = '';
-      placeCaretAtEnd(container);
-      updateNote();
-      return;
-    }
-  }
-
-  // On enter: add new bullet if line starts with bullet
-  if (e.key === 'Enter') {
-    const text = container.textContent.trim();
-    if (text.startsWith('•')) {
-      e.preventDefault();
-      const newLine = document.createElement('div');
-      newLine.innerHTML = '• ';
-      newLine.contentEditable = true;
-
-      if (container.nodeType === 3) {
-        const parent = container.parentNode;
-        parent.insertAdjacentElement('afterend', newLine);
-      } else {
-        container.insertAdjacentElement('afterend', newLine);
+  contentEl.addEventListener('keydown', (e) => {
+    // Handle bullet creation with dash/asterisk + space
+    if (e.key === ' ') {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const currentLine = getLineElement(range.startContainer);
+      
+      if (!currentLine) return;
+      
+      const lineText = currentLine.textContent.trim();
+      
+      // Create bullet point when typing trigger character + space
+      if (BULLET_TRIGGERS.includes(lineText)) {
+        e.preventDefault();
+        replaceLine(currentLine, BULLET_SYMBOL);
+        return;
       }
       
-      placeCaretAtEnd(newLine);
-      updateNote();
+      // Exit bullet mode when bullet + space
+      if (lineText === BULLET_SYMBOL.trim()) {
+        e.preventDefault();
+        replaceLine(currentLine, '');
+        return;
+      }
     }
+    
+    // Continue bullet list on Enter
+    if (e.key === 'Enter') {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const currentLine = getLineElement(range.startContainer);
+      
+      if (!currentLine) return;
+      
+      const lineText = currentLine.textContent;
+      
+      // If line starts with bullet, continue bullet list
+      if (lineText.trim().startsWith(BULLET_SYMBOL.trim())) {
+        e.preventDefault();
+        
+        // If line only contains bullet, exit bullet mode
+        if (lineText.trim() === BULLET_SYMBOL.trim()) {
+          replaceLine(currentLine, '');
+          return;
+        }
+        
+        // Create new bullet point below
+        const newLine = document.createElement('div');
+        newLine.textContent = BULLET_SYMBOL;
+        currentLine.after(newLine);
+        
+        // Place cursor in new line
+        placeCaretAt(newLine, BULLET_SYMBOL.length);
+        updateNote();
+      }
+    }
+    
+    // Delete bullet with backspace at start of line
+    if (e.key === 'Backspace') {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      if (range.collapsed && range.startOffset === BULLET_SYMBOL.length) {
+        const currentLine = getLineElement(range.startContainer);
+        if (currentLine && currentLine.textContent.startsWith(BULLET_SYMBOL)) {
+          e.preventDefault();
+          replaceLine(currentLine, '');
+        }
+      }
+    }
+    
+    // Handle tab key for indentation
+    if (e.key === 'Tab') {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const currentLine = getLineElement(range.startContainer);
+      
+      if (currentLine && currentLine.textContent.startsWith(BULLET_SYMBOL)) {
+        e.preventDefault();
+        
+        if (e.shiftKey) {
+          // Decrease indentation with Shift+Tab
+          currentLine.style.marginLeft = Math.max(0, (parseInt(currentLine.style.marginLeft || '0') - 20)) + 'px';
+        } else {
+          // Increase indentation with Tab
+          currentLine.style.marginLeft = (parseInt(currentLine.style.marginLeft || '0') + 20) + 'px';
+        }
+        
+        updateNote();
+      }
+    }
+  });
+
+  // Helper: Get the parent block-level element of a node
+  function getLineElement(node) {
+    // If text node, get its parent
+    if (node.nodeType === 3) {
+      node = node.parentNode;
+    }
+    
+    // Find the block-level parent (div, p, etc.)
+    while (node && node !== contentEl) {
+      if (node.nodeType === 1) {
+        const display = window.getComputedStyle(node).display;
+        if (display === 'block' || display === 'list-item') {
+          return node;
+        }
+      }
+      node = node.parentNode;
+    }
+    
+    // If no block element is found, create a new div to wrap the content
+    return createWrapperDiv();
   }
-});
+  
+  // Helper: Create a wrapper div if needed
+  function createWrapperDiv() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return null;
+    
+    const range = selection.getRangeAt(0);
+    const fragment = range.extractContents();
+    
+    const div = document.createElement('div');
+    div.appendChild(fragment);
+    
+    range.insertNode(div);
+    placeCaretAt(div, 0);
+    
+    return div;
+  }
+  
+  // Helper: Replace content of line element
+  function replaceLine(lineElement, newContent) {
+    lineElement.textContent = newContent;
+    placeCaretAt(lineElement, newContent.length);
+    updateNote();
+  }
+  
+  // Helper: Place caret at specific position in element
+  function placeCaretAt(element, offset) {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    
+    // Find the first text node or create one
+    let textNode = null;
+    for (let i = 0; i < element.childNodes.length; i++) {
+      if (element.childNodes[i].nodeType === 3) {
+        textNode = element.childNodes[i];
+        break;
+      }
+    }
+    
+    if (!textNode) {
+      textNode = document.createTextNode(element.textContent);
+      element.textContent = '';
+      element.appendChild(textNode);
+    }
+    
+    // Position the caret
+    range.setStart(textNode, Math.min(offset, textNode.length));
+    range.collapse(true);
+    
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+}
+
+// Initialize the bullet system
+initBulletPointSystem();
 
 // Folder creator event handlers
 folderCreator.addEventListener('click', () => {
