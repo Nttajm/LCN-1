@@ -1,0 +1,158 @@
+.season-cont {
+    background: var(--grad-nav);
+    padding: 2rem;
+    overflow: hidden;
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+.season-cont span {
+    font-size: 5rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.acl-stars {
+    position: absolute;
+    right: 0%;
+    top: -50%;
+    scale: 1;
+    rotate: 0deg;
+    z-index: 1;
+    opacity: 0.6;
+}
+
+.matchdays {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+}
+
+.matchday-cont {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem 0;
+}
+
+.mathcday {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.md-match {
+    border: solid 1px var(--border-1);
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.md-match:hover {
+    background: var(--gray-1);
+}
+
+.md-match .team {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.md-match .team-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.md-match .team img {
+    width: 2.7rem;
+    height: 2/7rem;
+}
+
+.md-match .team .score {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.create-matchday, .create-season {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+}
+
+.create-matchday-btn, .create-season-btn {
+    border: var(--border-uline) dashed;
+    background-color: aliceblue;
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+
+.notifEd {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.466);
+    z-index: 3;
+    padding: 2rem;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.notifEd-context {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 1rem;
+    width: 50%;
+    height: 70%;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.teams-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr ;
+    gap: 1rem;
+    max-height: 30vh;
+    overflow-y: auto;
+}
+
+.s-team {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+}
+
+.s-team img {
+    width: 2.7rem;
+    height: 2.7rem;
+}
+
+.s-team input[type="checkbox"] {
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+}
+
+
+

@@ -1,0 +1,313 @@
+@import url('https://fonts.googleapis.com/css2?family=Cal+Sans&family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Special+Gothic+Expanded+One&display=swap');
+
+.league-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #000000;
+}
+
+.dotted-btn {
+    border: var(--border-uline) dashed;
+    background-color: aliceblue;
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+.btn {
+    border: var(--border-1) solid 2px;
+    background-color: rgb(0, 114, 214);
+    color: white;
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    border: var(--border-1) solid 2px;
+    background-color: rgb(240, 244, 255);
+    color: rgb(0, 0, 0);
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: roboto;
+  }
+
+
+.rfaa-img {
+    width: 10rem;
+}
+
+.rfaa-img img {
+    width: 100%;
+    height: auto;
+}
+
+.leagues {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.league {
+    display: flex;
+    align-items: center;
+    width: 2.7rem;
+
+}
+
+.league img {
+    width: 100%;
+    margin-right: 0.5rem;
+}
+
+.league-cont {
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(0, 1, 75);
+
+    align-items: stretch;
+    width: 100%;
+    color: white;
+    font-family: roboto;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    background: var(--grad-nav);
+    color: white;
+    padding: .5rem;
+    cursor: pointer;
+    border-bottom: 1px solid #00a6cf;
+}
+
+.imgel {
+    width: 5.5rem;
+    margin-right: 0.5rem;
+}
+
+.imgel img {
+    width: 100%;
+    height: auto;
+}
+
+.options {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-around;
+    gap: 1rem;
+    font-family: roboto;
+    font-size: 1.7rem;
+    font-weight: 300;
+}
+
+.preview-matches {
+    background: var(--gradient-top);
+    border-bottom: var(--border-3);
+    padding: 1rem;
+    color: white;
+    font-family: roboto;
+
+    display: flex;
+    gap: 1rem;
+}
+
+.match {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: fit-content;
+    padding: 1rem;
+    min-width: 14rem;
+    background-color: var(--dark-1);
+    border-radius: 0.5rem;
+    border: var(--border-2) solid 2px; 
+}
+
+.phase {
+    opacity: 0.5;
+    font-weight: 300;
+}
+
+.p-teams {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.p-team {
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.p-team img {
+    width: 2rem;
+    height: 2rem;
+}
+
+.games-article {
+    position: relative;
+    margin: 2rem 5%;
+    padding: 1rem;
+    border-radius: 20px;
+    min-height: 25rem;
+    color: white;
+    z-index: 0;
+    background-image: url('../graphics/gameday.png');
+  }
+  
+  .games-article::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px; /* border width */
+    border-radius: 1.4rem;
+    background: var(--border-gradient-rbw);
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    z-index: -1;
+    transition: all 0.3s ease-in-out;
+    background-size: 100%;
+  }
+
+  .games-article::before:hover {
+    scale: 1.05;
+    }
+
+.games-article .info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 2rem;
+    width: 100%;
+    font-family: roboto;
+    font-size: 2rem;
+    font-weight: 600;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.658));
+    border-radius: 1.4rem;
+}
+
+.display-teams-article {
+    display: flex;
+    justify-content: space-around;
+    padding: 3rem;
+}
+
+.display-teams-article img {
+    width: 12rem;
+    height: 12rem;
+}
+
+h1 {
+    font-size: 3rem;
+}
+
+.headlineGames {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 2rem 5%;
+}
+
+.hl-games {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.hl-game {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    cursor: pointer;
+}
+
+.cover {
+    position: relative;
+    width: 16rem;
+    background: var(--gard-1);
+    aspect-ratio: 16/9;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1rem;
+}
+
+
+.score-hero {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.hl-team {
+    position: relative;
+}
+
+.hl-team img {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+}
+
+.hl-team-1 .score {
+    position: absolute;
+    top: 0%;
+    left: -70%;
+    font-size: 2rem;
+    font-weight: 600;
+    background-color: #1313137e;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    border: var(--border-4);
+}
+
+.hl-team-2 .score {
+    position: absolute;
+    top: 0%;
+    right: -70%;
+    font-size: 2rem;
+    font-weight: 600;
+    background-color: #1313137e;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    border: var(--border-4);
+}
+
+.hl-game .info {
+    display: flex;
+    flex-direction: column;
+}
+
+.hl-game .info span:nth-child(1) {
+    font-size: 2rem;
+}
