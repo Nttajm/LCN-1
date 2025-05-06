@@ -472,7 +472,7 @@ function initializeEmptyState() {
     if (createSeasonBtn) {
         createSeasonBtn.addEventListener('click', createSeasonDialog);
     }
-}
+} 
 
 function createMatchdayFunc() {
     const currentSeason = getCurrentSeason();
