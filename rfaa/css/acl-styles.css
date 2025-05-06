@@ -4,9 +4,10 @@
     --border-3:  1px solid #00a6cf;
     --border-4:  2px solid #003bbb;
     --border-uline: #005acf;
+    --wh-1: #f7f7f7;
     --gray-1: #e6e6e6;
     --dark-1:  #00154ebd;
-    --grad-nav: linear-gradient(to right, rgb(19, 50, 97), rgb(22, 142, 172));
+    --grad-nav: linear-gradient(to right, rgb(51, 35, 121), rgb(17, 96, 116));
     --grad-1: linear-gradient(to bottom right, #322a3f, #3b9780);
     --border-gradient-rbw: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
     --gradient-top: linear-gradient(to right, rgb(19, 50, 97), rgb(22, 142, 172)) 

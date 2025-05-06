@@ -9,6 +9,13 @@
     gap: 3rem;
 }
 
+.pad-cont {
+    background-color: #f7f7f7;
+    height: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
 .season-cont span {
     font-size: 5rem;
     font-weight: 600;
@@ -37,17 +44,20 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 2rem 0;
+    padding: 2rem;
 }
 
-.mathcday {
+.matchday {
     display: flex;
-    flex-wrap: wrap;
+    gap: 2rem;
+    width: 100%;
+    flex-wrap: wrap ;
 }
 
 .md-match {
     border: solid 1px var(--border-1);
     border-radius: 1rem;
+    background-color: #fff;
     padding: 1rem;
     width: 30%;
     display: flex;
@@ -122,8 +132,8 @@
     background: #fff;
     padding: 2rem;
     border-radius: 1rem;
-    width: 50%;
-    height: 70%;
+    width: 70%;
+    height: 80%;
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -133,7 +143,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr ;
     gap: 1rem;
-    max-height: 30vh;
+    max-height: 60%;
     overflow-y: auto;
 }
 
@@ -155,4 +165,67 @@
 }
 
 
+.score-manager {
+    display: flex;
+    align-items: stretch;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    width: 100%;
+    max-height: 30vh;
+    overflow-y: auto;
+    flex-grow: 1;
 
+}
+.team-man {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.add-goal {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(56, 161, 56, 0.822);
+    color: white;
+    padding: 1rem;
+    border: dashed 2px var(--border-uline);
+    justify-self: flex-end;
+}
+
+
+
+.score-display {
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.goal-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.goal-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-bottom: 1px solid #ccc;
+}
+
+.remove-goal-btn {
+    background: #ff5c5c;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+}
