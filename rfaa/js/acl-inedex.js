@@ -24,7 +24,9 @@ let teams = [
         player: [
             'Juventus juve',
             'Jota Eme',
-            'countino'
+            'countino',
+            'Jesko',
+            'isco',
         ]
     },
     {
