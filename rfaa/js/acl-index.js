@@ -16,7 +16,10 @@ export let teams = [
             'Macherano',
             'Nolito',
             'Mou',
-            'Alanso'
+            'Alanso',
+            'countino',
+            'Jesko',
+            'isco',
         ]
     },
     {
