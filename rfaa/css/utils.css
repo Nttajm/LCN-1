@@ -1,8 +1,8 @@
 
 
 .ptable {
-    max-width: 800px;
-    margin: 0 2rem;
+    width: 80%;
+    margin: 2rem 1rem;
     background-color: #fff;
     border-radius: 8px;
     overflow: hidden;
@@ -42,6 +42,17 @@ table {
     border-collapse: collapse;
 }
 
+.team-name-cell {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    gap: 1rem; 
+}
+
+.team-name-cell img {
+    width: 30px;
+    height: 30px;
+}
 th, td {
     padding: 12px 15px;
     text-align: center;
@@ -91,11 +102,11 @@ td:last-child {
 }
 
 /* Add Champions League star icon before team name */
-.wpos td:nth-child(2)::before {
+/* .wpos td:nth-child(2)::before {
     content: "★ ";
     color: #0a51a1;
     font-size: 14px;
-}
+} */
 
 /* Negative goal difference */
 td:nth-child(7):contains("-") {

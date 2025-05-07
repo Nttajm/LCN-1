@@ -1,0 +1,122 @@
+.match-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--grad-2);
+    color: white;
+    height: 70vh;
+
+    background-size: 200% 200%;
+    animation: gradientAnimation 1s ease forwards;
+}
+
+.match-info-context {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 90rem;
+}
+
+.info-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-align: center;
+    margin: 0.5rem 0;
+    opacity: 0.5;
+    border-bottom: 1px solid var(--border-1);
+    width: 100%;
+    padding: 2rem 0;
+}
+
+.team-score {
+    width: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.team-score .team1, .team-score .team2 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 50%;
+
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.team-score .team1 span, .team-score .team2 span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-color);
+    opacity: 0.85;
+}
+
+.final-score {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.team-score .team2 {
+    flex-direction: row-reverse;
+    
+}
+
+.team-score .team1 img, .team-score .team2 img {
+    width: 7rem;
+    height: 7rem;
+    object-fit: contain;
+    
+}
+
+.player-goals {
+    display: flex;
+    gap: 15rem;
+    margin-top: 1rem;
+}
+
+.player-goals .team1, .player-goals .team2 {
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 300;
+    opacity: 0.85;
+
+    display: flex;
+    flex-direction: column;
+    min-width: 6rem;
+}
+
+.player-goals .team1 span {
+    white-space: nowrap;
+}
+
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+
+}
+
+.animated-gradient {
+    background: linear-gradient(270deg, #ff7eb3, #ff758c, #ff6a65, #ff5f3e);
+    background-size: 400% 400%;
+    animation: gradientAnimation 8s ease infinite;
+}

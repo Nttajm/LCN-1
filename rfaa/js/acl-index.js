@@ -1,30 +1,22 @@
 // Define global variables
-let goals = [
-    {
-        'season': '2025',
-        'fgoals': [
-            {
-                by: 'Juventus juve',
-                gameId: 129,
-                team: 'tex',
-                goals: 1,
-            }
-        ]
-    }
-];
-
-let teams = [
+export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
+export let teams = [
     {
         id: 'tex',
         name: 'Cerius Texico',
         sub: `Cer'x`,
         originC: 'Texico',
         originL: 'TS',
-        img: 'images/teams/degato.png',
+        img: 'images/teams/cerx.png',
         player: [
             'Juventus juve',
             'Jota Eme',
-            'countino'
+            'Countino',
+            'Isco',
+            'Macherano',
+            'Nolito',
+            'Mou',
+            'Alanso'
         ]
     },
     {
@@ -41,68 +33,21 @@ let teams = [
         ]
     },
     {
-        id: 'RM',
-        name: 'Real Madrid',
-        sub: `RM`,
-        originC: 'Spain',
-        originL: 'ES',
-        img: 'images/teams/real-madrid.png',
+        id: 'deg',
+        name: 'Degato',
+        sub: `Degato`,
+        originC: 'Bolive',
+        originL: 'BKS',
+        img: 'images/teams/degato.png',
         player: [
-            'Karim Benzema',
-            'Luka Modric',
-            'Vinicius Jr'
-        ]
-    },
-    {
-        id: 'BAR',
-        name: 'FC Barcelona',
-        sub: `BAR`,
-        originC: 'Spain',
-        originL: 'ES',
-        img: 'images/teams/barcelona.png',
-        player: [
-            'Lionel Messi',
-            'Pedri',
-            'Ansu Fati'
-        ]
-    },
-    {
-        id: 'MCI',
-        name: 'Manchester City',
-        sub: `MCI`,
-        originC: 'England',
-        originL: 'EN',
-        img: 'images/teams/manchester-city.png',
-        player: [
-            'Kevin De Bruyne',
-            'Phil Foden',
-            'Erling Haaland'
-        ]
-    },
-    {
-        id: 'PSG',
-        name: 'Paris Saint-Germain',
-        sub: `PSG`,
-        originC: 'France',
-        originL: 'FR',
-        img: 'images/teams/psg.png',
-        player: [
-            'Kylian Mbappé',
-            'Neymar Jr',
-            'Lionel Messi'
-        ]
-    },
-    {
-        id: 'LIV',
-        name: 'Liverpool FC',
-        sub: `LIV`,
-        originC: 'England',
-        originL: 'EN',
-        img: 'images/teams/liverpool.png',
-        player: [
-            'Mohamed Salah',
-            'Virgil van Dijk',
-            'Trent Alexander-Arnold'
+            'MeekMel',
+            'Jota Eme',
+            'Countino',
+            'Isco',
+            'Macherano',
+            'Nolito',
+            'Mou',
+            'Alanso'
         ]
     },
     {
@@ -111,7 +56,7 @@ let teams = [
         sub: `ATM`,
         originC: 'Spain',
         originL: 'ES',
-        img: 'images/teams/atletico-madrid.png',
+        img: 'images/teams/atleti.png',
         player: [
             'Antoine Griezmann',
             'Jan Oblak',
@@ -137,35 +82,24 @@ let teams = [
         sub: `BAY`,
         originC: 'Germany',
         originL: 'DE',
-        img: 'images/teams/bayern-munich.png',
+        img: 'images/teams/bayern.png',
         player: [
             'Robert Lewandowski',
             'Thomas Müller',
             'Manuel Neuer'
         ]
     },
-    {
-        id: 'INT',
-        name: 'Inter Milan',
-        sub: `INT`,
-        originC: 'Italy',
-        originL: 'IT',
-        img: 'images/teams/inter-milan.png',
-        player: [
-            'Lautaro Martínez',
-            'Romelu Lukaku',
-            'Milan Škriniar'
-        ]
-    }
+
+
 ];
 
-let seasons = [];
+export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
 
 // DOM Elements
 const content = document.querySelector('.pad-cont');
 
 // Helper Functions
-function getTeamById(id) {
+export function getTeamById(id) {
     return teams.find(team => team.id === id) || {
         name: 'Unknown Team',
         img: 'images/teams/default.png'
@@ -210,7 +144,7 @@ function renderMatches(matchdays) {
             const team2 = getTeamById(game.team2);
 
             return `
-                <div class="md-match">
+                <div class="md-match" data-match-id="${game.id}">
                     <div class="team-1 team">
                         <div class="team-info">
                             <img src="${team1.img}" alt="${team1.name}">
@@ -245,6 +179,18 @@ function renderMatches(matchdays) {
 
     
 }
+function bindMatchClickEvents() {
+    document.querySelectorAll('.md-match').forEach(match => {
+        match.addEventListener('click', () => {
+            const matchId = match.getAttribute('data-match-id');
+            if (matchId) {
+                window.location.href = `match-info.html?match=${matchId}`;
+            }
+        });
+    });
+}
+
+
 
 function bindAddMatchButtons() {
     document.querySelectorAll('.add-match-btn').forEach(btn => {
@@ -266,18 +212,16 @@ function addMatchDialog() {
     const notifEdText = document.querySelector('.notifEd-context');
     notifEd.classList.toggle('dn');
 
-    // Track goals
     const team1Goals = [];
     const team2Goals = [];
-    matchdayIndex = Array.from(document.querySelectorAll('.add-match-btn')).indexOf(event.target); // Find matchday index based on button position
 
-    // Render UI 
+    matchdayIndex = Array.from(document.querySelectorAll('.add-match-btn')).indexOf(event.target);
 
     notifEdText.innerHTML = `
         <h1>Create Match</h1>
         <div class="score-manager fl-r">
             <div class="team-man" id="team1">
-                        <div class="score-display" id="team1-score">0</div>
+                <div class="score-display" id="team1-score">0</div>
                 <select id="team1-select">
                     ${seasons.find(season => season.year === currentSeason).teams.map(teamId => {
                         const team = getTeamById(teamId);
@@ -286,12 +230,12 @@ function addMatchDialog() {
                 </select>
                 <div class="add-goal">
                     <div class="fl-r fl-ai" id="team1-add-goal">
-                        <img src="icons/add.png" alt="add-goal">
-                        Add Goal
+                        <img src="icons/add.png" alt="add-goal"> Add Goal
                     </div>
                     <select id="team1-player-select">
                         ${teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')}
                     </select>
+                    <input type="number" id="team1-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team1-goal-list"></ul>
             </div>
@@ -306,30 +250,29 @@ function addMatchDialog() {
                 </select>
                 <div class="add-goal">
                     <div class="fl-r fl-ai" id="team2-add-goal">
-                        <img src="icons/add.png" alt="add-goal">
-                        Add Goal
+                        <img src="icons/add.png" alt="add-goal"> Add Goal
                     </div>
                     <select id="team2-player-select">
                         ${teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')}
                     </select>
+                    <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team2-goal-list"></ul>
             </div>
         </div>
-        <div class="full-btn btn" id="create-match-btn">
-            <span>CREATE MATCH</span>
-        </div>
+        <div class="full-btn btn" id="create-match-btn"><span>CREATE MATCH</span></div>
+        <div class="btn-secondary" id="cancel-match-btn"><span>CANCEL</span></div>
     `;
 
-    // Element selectors
     const team1Select = document.querySelector('#team1-select');
     const team2Select = document.querySelector('#team2-select');
     const team1PlayerSelect = document.querySelector('#team1-player-select');
     const team2PlayerSelect = document.querySelector('#team2-player-select');
     const team1GoalList = document.querySelector('#team1-goal-list');
     const team2GoalList = document.querySelector('#team2-goal-list');
+    const playerMinute1 = document.querySelector('#team1-goal-minute');
+    const playerMinute2 = document.querySelector('#team2-goal-minute');
 
-    // Team selection updates player list
     team1Select.addEventListener('change', () => {
         const team = getTeamById(team1Select.value);
         team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -340,26 +283,51 @@ function addMatchDialog() {
         team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
     });
 
-    // Goal adding
+    const cancelMatchBtn = document.querySelector('#cancel-match-btn');
+    if (cancelMatchBtn) {
+        cancelMatchBtn.addEventListener('click', () => {
+            notifEd.classList.toggle('dn');
+            notifEdText.innerHTML = '';
+        });
+    }
+
+    // Add goal for team 1
     document.querySelector('#team1-add-goal').addEventListener('click', () => {
         const player = team1PlayerSelect.value;
-        if (player) {
-            team1Goals.push(player);
-            renderGoals(team1GoalList, team1Goals);
-            updateScores();
+        let minute = parseInt(playerMinute1.value);
+        if (!player) return;
+        if (isNaN(minute) || minute < 1 || minute > 120) {
+            minute = Math.floor(Math.random() * 91); // Generate a random number between 0 and 90
         }
+
+        if (!minute) {
+            minute = Math.floor(Math.random() * 91);
+        }
+
+        team1Goals.push({ player, minute });
+        renderGoals(team1GoalList, team1Goals);
+        updateScores();
     });
 
+    // Add goal for team 2
     document.querySelector('#team2-add-goal').addEventListener('click', () => {
         const player = team2PlayerSelect.value;
-        if (player) {
-            team2Goals.push(player);
-            renderGoals(team2GoalList, team2Goals);
-            updateScores();
+        let minute = parseInt(playerMinute2.value);
+        if (!player) return;
+        if (isNaN(minute) || minute < 1 || minute > 120) {
+            minute = Math.floor(Math.random() * 91); // Generate a random number between 0 and 90
         }
+
+        if (!minute) {
+            minute = Math.floor(Math.random() * 91);
+        }
+
+        team2Goals.push({ player, minute });
+        renderGoals(team2GoalList, team2Goals);
+        updateScores();
     });
 
-    // Final match creation
+    // Create match
     document.querySelector('#create-match-btn').addEventListener('click', () => {
         const team1 = team1Select.value;
         const team2 = team2Select.value;
@@ -368,55 +336,64 @@ function addMatchDialog() {
             alert('Please select two different teams.');
             return;
         }
- // Reload the season to show the new match
+
         notifEd.classList.toggle('dn');
         notifEdText.innerHTML = '';
 
-        goals.push(team1Goals.concat(team2Goals));
         const matchdayGames = seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games;
         if (!matchdayGames) {
             seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games = [];
         }
+
         seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
+            id: `match-${Math.random().toString(36).substr(2, 9)}`,
             team1: team1,
             team2: team2,
             score1: team1Goals.length,
             score2: team2Goals.length,
-            goals: team1Goals.map(player => ({ player, team: team1 })).concat(
-            team2Goals.map(player => ({ player, team: team2 }))
-            )
+            seed: Math.floor(Math.random() * 10000),
+            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
+                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 })))
         });
+
+        saveSeason();
+        saveGoals();
         loadSeason(currentSeason);
-        // Optional: Save match to backend/localStorage here
     });
 
-    
     function updateScores() {
         document.getElementById('team1-score').textContent = team1Goals.length;
         document.getElementById('team2-score').textContent = team2Goals.length;
     }
 
-    // Render goal list function
     function renderGoals(container, goals) {
-        container.innerHTML = goals.map((player, index) => `
-            <li>
-                ${player}
-                <button class="remove-goal-btn" data-index="${index}">❌</button>
-            </li>
-        `).join('');
+        container.innerHTML = goals.map((goal, index) => {
+            let displayMinute = goal.minute;
+            if (goal.minute >= 91 && goal.minute <= 98) {
+                displayMinute = `90+${goal.minute - 90}`;
+            } else if (goal.minute >= 121 && goal.minute <= 129) {
+                displayMinute = `120+${goal.minute - 120}`;
+            }
+            return `
+                <li>
+                    ${goal.player} - ${displayMinute}' 
+                    <button class="remove-goal-btn" data-index="${index}">❌</button>
+                </li>
+            `;
+        }).join('');
     
-        // Reattach event listeners for remove buttons
         container.querySelectorAll('.remove-goal-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const i = parseInt(btn.getAttribute('data-index'));
                 goals.splice(i, 1);
-                renderGoals(container, goals); // re-render
+                renderGoals(container, goals);
                 updateScores();
             });
         });
     }
     
 }
+
 
 setInterval(() => console.log(seasons, goals), 1000);
 
@@ -447,7 +424,7 @@ function loadSeason(snum) {
             `).join('')}
             ${renderMatchdays(seasonMatchdays)}
         `;
-
+        bindMatchClickEvents();
         // Attach event listeners
         const createMatchdayBtn = document.querySelector('#create-matchday-btn');
         if (createMatchdayBtn) {
@@ -482,14 +459,8 @@ function createMatchdayFunc() {
         const seasonMatchdays = seasonData.matchdays || [];
         seasonMatchdays.push({
             details: `${new Date().toLocaleDateString()}`,
-            games: [
-                {
-                    team1: 'BVB',
-                    team2: 'tex',
-                    score1: '0',
-                    score2: '3',
-                },
-            ]
+            games: [],
+            id: `matchday-${seasonMatchdays.length + 1}`
         });
         seasonData.matchdays = seasonMatchdays;
         loadSeason(currentSeason);
@@ -585,6 +556,7 @@ function createSeasonFunc() {
         seasons[existingSeasonIndex] = season;
     } else {
         seasons.push(season);
+        saveSeason()
     }
     
     // Close dialog and load the season
@@ -608,7 +580,7 @@ function closeDialog() {
     }
 }
 
-function getCurrentSeason() {
+export function getCurrentSeason() {
     const params = new URLSearchParams(window.location.search);
     return params.get('season') || new Date().getFullYear().toString();
 }
@@ -635,3 +607,42 @@ function initialize() {
 // Start the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initialize);
 
+
+function saveSeason() {
+    localStorage.setItem('seasons', JSON.stringify(seasons));
+}
+
+function saveGoals() {
+    localStorage.setItem('goals', JSON.stringify(goals));
+}
+
+
+// localStorage.clear()
+
+function startBraket() {
+    const currentSeason = getCurrentSeason();
+    const seasonData = seasons.find(season => season.year === currentSeason);
+    
+    if (seasonData) {
+        const matchdays = seasonData.matchdays || [];
+        const matches = matchdays.map(matchday => matchday.games || []).flat();
+        // Process matches for the bracket
+        console.log(matches);
+    } else {
+        console.log('No season data found');
+    }
+}
+
+function genStats(seed) {
+    let comentary = '';
+
+    let comentarys = [
+        'The match was intense with both teams showing great skill.',
+        'A thrilling encounter that kept fans on the edge of their seats.',
+        'An unexpected twist in the final minutes changed the game completely.',
+        'The players displayed exceptional teamwork and strategy.',
+        'A hard-fought battle that showcased the best of both teams.'
+    ];
+    let randomIndex = Math.floor(Math.random() * comentarys.length);  
+
+}
