@@ -131,7 +131,7 @@ function renderStandingsTable(standingsData) {
     
     return `
     <div class="ptable">
-        <h1 class="headin">Standings</h1>
+        <h1 class="headin">League Phase standings</h1>
         <table>
             <tr class="col">
                 <th>#</th>
