@@ -54,6 +54,42 @@ export let teams = [
         ]
     },
     {
+        id: 'penn',
+        name: 'Penn FC',
+        sub: `Penn`,
+        originC: 'Denvor',
+        originL: 'Quiser',
+        img: 'images/teams/penn.png',
+        player: [
+            'MeekMel',
+            'Jota Eme',
+            'Countino',
+            'Isco',
+            'Macherano',
+            'Nolito',
+            'Mou',
+            'Alanso'
+        ]
+    },
+    {
+        id: 'dj',
+        name: 'Dijel FC',
+        sub: `Dijel`,
+        originC: 'Denvor',
+        originL: 'Quiser',
+        img: 'images/teams/dijel.png',
+        player: [
+            'MeekMel',
+            'Jota Eme',
+            'Countino',
+            'Isco',
+            'Macherano',
+            'Nolito',
+            'Mou',
+            'Alanso'
+        ]
+    },
+    {
         id: 'ATM',
         name: 'Atletico Madrid',
         sub: `ATM`,
@@ -96,7 +132,10 @@ export let teams = [
 
 ];
 
+console.log(getTeamById('tex')); 
+
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
+// localStorage.clear()
 
 // DOM Elements
 const content = document.querySelector('.pad-cont');
@@ -109,13 +148,13 @@ export function getTeamById(id) {
     };
 }
 
-function renderMatchdays(matchdays) {
+function renderCreateButton(matchdays) {
     if (!matchdays || matchdays.length === 0) {
         return `
         <div class='matchdays'>
             <h1>No matchdays available</h1>
             <div class="create-matchday">
-                <div class="dotted-btn" id="create-matchday-btn">
+                <div class="dotted-btn fl-jsp-b" id="create-matchday-btn">
                     <span>CREATE MATCHDAY</span>
                 </div>
             </div>
@@ -126,9 +165,12 @@ function renderMatchdays(matchdays) {
         <div class='matchdays'>
            <div class='matchday'>
            </div>
-            <div class="create-matchday">
+            <div class="create-matchday fl-r">
                 <div class="dotted-btn" id="create-matchday-btn">
                     <span>CREATE MATCHDAY</span>
+                </div>
+                <div class="dotted-btn" id="create-bracket-btn">
+                    <span>CREATE BRAKET</span>
                 </div>
             </div>
         </div>
@@ -136,7 +178,7 @@ function renderMatchdays(matchdays) {
     }
 }
 
-function renderMatches(matchdays) {
+function renderMatches(matchdays, passdownIndex) {
     if (!matchdays || !Array.isArray(matchdays)) return '';
     
     return matchdays.map((matchday, index) => {
@@ -146,7 +188,8 @@ function renderMatches(matchdays) {
             const team1 = getTeamById(game.team1);
             const team2 = getTeamById(game.team2);
 
-            return `
+            if (!game.standby) {
+                return `
                 <div class="md-match" data-match-id="${game.id}">
                     <div class="team-1 team">
                         <div class="team-info">
@@ -168,6 +211,32 @@ function renderMatches(matchdays) {
                     </div>
                 </div>
             `;
+            } else if (game.standby) {
+                return `
+                <div class="md-match" data-match-id="${game.id}">
+                    <div class="team-1 team">
+                        <div class="team-info">
+                            <img src="${team1.img}" alt="${team1.name}">
+                            <span>${team1.name}</span>
+                        </div>
+                        <span class="score">
+                            ${game.score1}
+                        </span>
+                    </div>
+                    <div class="team-2 team">
+                        <div class="team-info">
+                            <img src="${team2.img}" alt="${team2.name}">
+                            <span>${team2.name}</span>
+                        </div>
+                        <span class="score">
+                            ${game.score2}
+                        </span>
+                    </div>
+                    <button class="start-match-btn js-mdi-index-${passdownIndex}" id="start-match-btn-${game.id}">
+                        Start
+                    </button>
+                </div>`;
+            }
         }).join('');
 
         return `
@@ -180,35 +249,41 @@ function renderMatches(matchdays) {
         `;
     }).join('');
 
-    
 }
 function bindMatchClickEvents() {
     document.querySelectorAll('.md-match').forEach(match => {
-        match.addEventListener('click', () => {
-            const matchId = match.getAttribute('data-match-id');
-            if (matchId) {
-                window.location.href = `match-info.html?match=${matchId}`;
+        match.addEventListener('click', (event) => {
+            if (!event.target.classList.contains('start-match-btn')) {
+                const matchId = match.getAttribute('data-match-id');
+                if (matchId) {
+                    window.location.href = `match-info.html?match=${matchId}`;
+                }
+            } else {
+                const mdiIndex = Array.from(document.querySelectorAll('.start-match-btn')).indexOf(event.target);
+                addMatchDialog(true, mdiIndex);
             }
         });
     });
 }
 
 
-
 function bindAddMatchButtons() {
     document.querySelectorAll('.add-match-btn').forEach(btn => {
-        btn.addEventListener('click', addMatchDialog);
+        btn.addEventListener('click',addMatchDialog());
     });
 }
 
 
 let matchdayIndex = null; // Declare matchdayIndex globally to use it in addMatchDialog
 
+function addMatchDialog(startMatch, mdiIndex) {
 
-
-
-function addMatchDialog() {
     const currentSeason = getCurrentSeason();
+    if (startMatch) {
+        matchdayIndex = mdiIndex
+    } else {
+        matchdayIndex = Array.from(document.querySelectorAll('.add-match-btn')).indexOf(event.target);
+    }
     const matchday = seasons.find(season => season.year === currentSeason)?.matchdays[matchdayIndex];
 
     const notifEd = document.querySelector('.notifEd');
@@ -218,7 +293,8 @@ function addMatchDialog() {
     const team1Goals = [];
     const team2Goals = [];
 
-    matchdayIndex = Array.from(document.querySelectorAll('.add-match-btn')).indexOf(event.target);
+    console.log(matchdayIndex, 'matchday');
+
 
     notifEdText.innerHTML = `
         <h1>Create Match</h1>
@@ -226,10 +302,22 @@ function addMatchDialog() {
             <div class="team-man" id="team1">
                 <div class="score-display" id="team1-score">0</div>
                 <select id="team1-select">
-                    ${seasons.find(season => season.year === currentSeason).teams.map(teamId => {
+                ${startMatch ? seasons.find(season => season.year === currentSeason).teams
+                    .filter(teamId => {
+                        const matchdayTeams = matchday.games.flatMap(game => [game.team1, game.team2]);
+                        return !matchdayTeams.includes(teamId);
+                    })
+                    .map(teamId => {
                         const team = getTeamById(teamId);
                         return `<option value="${teamId}">${team.name}</option>`;
-                    }).join('')}
+                    }).join('') 
+                    : matchday.games.flatMap(game => [game.team1, game.team2])
+                    .filter((teamId, index, self) => self.indexOf(teamId) === index) // Ensure unique teams
+                    .map(teamId => {
+                        const team = getTeamById(teamId);
+                        return `<option value="${teamId}">${team.name}</option>`;
+                    }).join('')
+                }
                 </select>
                 <div class="add-goal">
                     <div class="fl-r fl-ai" id="team1-add-goal">
@@ -246,10 +334,22 @@ function addMatchDialog() {
             <div class="team-man" id="team2">
                 <div class="score-display" id="team2-score">0</div>
                 <select id="team2-select">
-                    ${seasons.find(season => season.year === currentSeason).teams.map(teamId => {
+                ${startMatch ? seasons.find(season => season.year === currentSeason).teams
+                    .filter(teamId => {
+                        const matchdayTeams = matchday.games.flatMap(game => [game.team1, game.team2]);
+                        return !matchdayTeams.includes(teamId);
+                    })
+                    .map(teamId => {
                         const team = getTeamById(teamId);
                         return `<option value="${teamId}">${team.name}</option>`;
-                    }).join('')}
+                    }).join('') 
+                    : matchday.games.flatMap(game => [game.team1, game.team2])
+                    .filter((teamId, index, self) => self.indexOf(teamId) === index) // Ensure unique teams
+                    .map(teamId => {
+                        const team = getTeamById(teamId);
+                        return `<option value="${teamId}">${team.name}</option>`;
+                    }).join('')
+                }
                 </select>
                 <div class="add-goal">
                     <div class="fl-r fl-ai" id="team2-add-goal">
@@ -343,21 +443,43 @@ function addMatchDialog() {
         notifEd.classList.toggle('dn');
         notifEdText.innerHTML = '';
 
-        const matchdayGames = seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games;
-        if (!matchdayGames) {
-            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games = [];
+        const seasonData = seasons.find(season => season.year === currentSeason);
+        if (!seasonData || !seasonData.matchdays[matchdayIndex]) {
+            console.error('Invalid matchday index or season data.');
+            return;
         }
+        const matchdayGames = seasonData.matchdays[matchdayIndex].games || [];
+        seasonData.matchdays[matchdayIndex].games = matchdayGames;
 
-        seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
-            id: `match-${Math.random().toString(36).substr(2, 9)}`,
-            team1: team1,
-            team2: team2,
-            score1: team1Goals.length,
-            score2: team2Goals.length,
-            seed: Math.floor(Math.random() * 10000),
-            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
-                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 })))
-        });
+        if (!startMatch) {
+            seasons.find(season => season.year === currentSeason).matchday.games.push({
+                id: `match-${Math.random().toString(36).substr(2, 9)}`,
+                team1: team1,
+                team2: team2,
+                score1: team1Goals.length,
+                score2: team2Goals.length,
+                seed: Math.floor(Math.random() * 10000),
+                goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
+                    .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 })))
+            });
+        } else {
+            const thisStandbyMatch = matchdayGames.find(m => m.id === event.target.id.replace('start-match-btn-', ''));
+            const index = matchdayGames.indexOf(thisStandbyMatch);
+            if (index > -1) {
+                matchdayGames.splice(index, 1);
+            }
+            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
+                id: `match-${Math.random().toString(36).substr(2, 9)}`,
+                team1: team1,
+                team2: team2,
+                score1: team1Goals.length,
+                score2: team2Goals.length,
+                seed: Math.floor(Math.random() * 10000),
+                goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
+                    .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 }))),
+                standby: false
+            });
+        }
 
         saveSeason();
         saveGoals();
@@ -412,6 +534,8 @@ function loadSeason(snum) {
         return;
     }
 
+    if (!content) return;
+
     const seasonData = seasons.find(s => s.year === snum);
     
     if (seasonData) {
@@ -422,16 +546,20 @@ function loadSeason(snum) {
                 <div class="matchday-cont" id="matchday-${index}">
                     <h1>Matchday ${index + 1}</h1>
                     <p>${matchday.details || 'No details available'}</p>
-                    ${renderMatches([matchday])}
+                    ${renderMatches([matchday], index)}
                 </div>
             `).join('')}
-            ${renderMatchdays(seasonMatchdays)}
+            ${renderCreateButton(seasonMatchdays)}
         `;
         bindMatchClickEvents();
         // Attach event listeners
         const createMatchdayBtn = document.querySelector('#create-matchday-btn');
         if (createMatchdayBtn) {
             createMatchdayBtn.addEventListener('click', createMatchdayFunc);
+        }
+        const createBracketBtn = document.querySelector('#create-bracket-btn');
+        if (createBracketBtn) {
+            actionElem('#create-bracket-btn', startBracket);
         }
     } else {
         initializeEmptyState();
@@ -461,7 +589,7 @@ function createMatchdayFunc() {
     if (seasonData) {
         const seasonMatchdays = seasonData.matchdays || [];
         seasonMatchdays.push({
-            details: `${new Date().toLocaleDateString()}`,
+            details: `League Phase`,
             games: [],
             id: `matchday-${seasonMatchdays.length + 1}`
         });
@@ -622,19 +750,112 @@ function saveGoals() {
 
 // localStorage.clear()
 
-function startBraket() {
+function startBracket() {
     const currentSeason = getCurrentSeason();
-    const seasonData = seasons.find(season => season.year === currentSeason);
-    
+    const seasonData = seasons.find(s => s.year === currentSeason);
+
     if (seasonData) {
-        const matchdays = seasonData.matchdays || [];
-        const matches = matchdays.map(matchday => matchday.games || []).flat();
-        // Process matches for the bracket
-        console.log(matches);
-    } else {
-        console.log('No season data found');
+        const round16 = !seasonData.matchdays.some(matchday => matchday.bracketType);
+        const semiFinals = seasonData.matchdays.some(matchday => matchday.bracketType === 'semiFinals');
+        const quarterFinals = seasonData.matchdays.some(matchday => matchday.bracketType === 'quarterFinals');
+        const finals = seasonData.matchdays.some(matchday => matchday.bracketType === 'finals');
+
+        if (round16 ) {
+            const seasonMatchdays = seasonData.matchdays || [];
+            seasonMatchdays.push({
+                details: `Knockout Phase`,
+                games: getFirstFixtures(),
+                id: `matchday-${seasonMatchdays.length + 1}`,
+                bracketType: 'round16'
+            });
+            seasonData.matchdays = seasonMatchdays;
+            loadSeason(currentSeason);
+        }
     }
 }
+
+function getFirstFixtures() {
+    const currentSeason = getCurrentSeason();
+    const seasonData = seasons.find(s => s.year === currentSeason);
+    const teams = getRankOfTeam().slice(0, 16).map(team => team.team);
+    const fixtures = [];
+
+    for (let i = 0; i < teams.length; i += 2) {
+        fixtures.push({
+            id: `match-${Math.random().toString(36).substr(2, 9)}`,
+            team1: teams[i],
+            team2: teams[i + 1],
+            score1: 0,
+            score2: 0,
+            seed: Math.floor(Math.random() * 10000),
+            goals: [],
+            standby: true
+        });
+    }
+
+    return fixtures;
+}
+
+console.log(getFirstFixtures(), 'getFirstFixtures()');
+
+actionElem('#create-bracket-btn', startBracket());
+
+
+function getRankOfTeam() {
+    const currentSeason = getCurrentSeason();
+    const seasonData = seasons.find(s => s.year === currentSeason);
+
+    if (!seasonData || !seasonData.matchdays) return [];
+
+    const teamPoints = {};
+
+    // Initialize all teams with 0 points
+    seasonData.teams.forEach(teamId => {
+        teamPoints[teamId] = 0;
+    });
+
+    // Calculate points for each team
+    seasonData.matchdays.forEach(matchday => {
+        if (!matchday.games) return;
+
+        matchday.games.forEach(game => {
+            if (game.score1 > game.score2) {
+                teamPoints[game.team1] += 3; // Team 1 wins
+            } else if (game.score1 < game.score2) {
+                teamPoints[game.team2] += 3; // Team 2 wins
+            } else {
+                teamPoints[game.team1] += 1; // Tie
+                teamPoints[game.team2] += 1;
+            }
+        });
+    });
+
+    // Convert to array and sort by points
+    const rankedTeams = Object.entries(teamPoints)
+        .map(([team, points]) => ({ team, points }))
+        .sort((a, b) => b.points - a.points);
+
+    return rankedTeams;
+}
+
+console.log(getRankOfTeam()); 
+
+
+function actionElem(elem, action) {
+    const actionElem = document.querySelector(elem);
+    if (actionElem && typeof action === 'function') {
+        actionElem.addEventListener('click', action);
+    }
+}
+
+function toggleNotifEd() {
+    const notifEd = document.querySelector('.notifEd');
+    if (notifEd) {
+        notifEd.classList.toggle('dn');
+    }
+}
+
+
 
 function genStats(seed) {
     let comentary = '';

@@ -46,12 +46,14 @@ function displayMatchInfo() {
                     <div class="team1">
                         ${match.goals
                             .filter(goal => goal.team === match.team1)
+                            .sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
                             .map(goal => `<span>${goal.player} ${goal.minute || 'N/A'}'</span>`)
                             .join('')}
                     </div>
                     <div class="team2">
                         ${match.goals
                             .filter(goal => goal.team === match.team2)
+                            .sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
                             .map(goal => `<span>${goal.player} ${goal.minute || 'N/A'}'</span>`)
                             .join('')}
                     </div>
