@@ -7,16 +7,27 @@ function displayMatchInfo() {
     content.innerHTML = ''; // Clear previous content
     if (!matchId) return;
 
-    const currentSeason = getCurrentSeason();
-    const seasonData = seasons.find(season => season.year === currentSeason);
+    // Search through all seasons instead of just the current one
+    let match = null;
+    let matchSeasonData = null;
+    let matchday = null;
+    let mdIndex = null;
 
-    if (!seasonData) return;
-
-    const matchdays = seasonData.matchdays || [];
-    const match = matchdays
-        .map(matchday => matchday.games || [])
-        .flat()
-        .find(game => game.id === matchId);
+    // Loop through all seasons to find the match
+    for (const seasonData of seasons) {
+        const matchdays = seasonData.matchdays || [];
+        const foundMatch = matchdays
+            .map(matchday => matchday.games || [])
+            .flat()
+            .find(game => game.id === matchId);
+        matchday = matchdays.find(matchday => matchday.games && matchday.games.some(game => game.id === matchId));
+        mdIndex = matchdays.findIndex(md => md.games && md.games.some(game => game.id === matchId));
+        if (foundMatch) {
+            match = foundMatch;
+            matchSeasonData = seasonData;
+            break;
+        }
+    }
 
     if (!match) return;
 
@@ -27,7 +38,8 @@ function displayMatchInfo() {
         <div class="match-info">
             <div class="match-info-context">
                 <div class="info-text">
-                    <span>${match.details || 'MATCHDAY'}</span>
+                    <span>${matchday.details || 'MATCHDAY'} - ${'Matchday ' + (mdIndex + 1 + ',') || ''}</span>
+                    <span>${matchSeasonData.year} Season </span>
                 </div>
                 <div class="team-score">
                     <div class="team1">

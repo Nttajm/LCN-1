@@ -30,6 +30,7 @@ function calculateStandings(seasonData) {
     // Process all matches in the season
     seasonData.matchdays.forEach(matchday => {
         if (!matchday.games) return;
+        if (matchday.bracketType) return;
         
         matchday.games.forEach(game => {
             const team1 = game.team1;

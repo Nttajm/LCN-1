@@ -1,5 +1,30 @@
 // Define global variables
 export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
+export let players =[
+    {
+        name: 'Juventus juve',
+        type: 'retired',
+        dob: '1982-06-21',
+        teams: {
+            'tex': {
+                years: playerYears([[2002, 2017]]),
+            },
+            'PSL': {
+                years: playerYears([[1998, 2001]]),
+            }
+        }
+    },
+    {
+        name: 'Mali Bale',
+        type: 'retired',
+        dob: '1974-02-30',
+        teams: {
+            'PSL': {
+                years: playerYears([[1992, 1994], [1996, 2000]]),
+            }
+        }
+    }
+]
 export let teams = [
     {
         id: 'tex',
@@ -32,7 +57,11 @@ export let teams = [
         player: [
             'Marco Reus',
             'Erling Haaland',
-            'Jadon Sancho'
+            'Jadon Sancho',
+            'Lavdos',
+            'pika',
+            'dybala',
+            'Matauro',
         ]
     },
     {
@@ -44,13 +73,9 @@ export let teams = [
         img: 'images/teams/degato.png',
         player: [
             'MeekMel',
-            'Jota Eme',
-            'Countino',
-            'Isco',
-            'Macherano',
-            'Nolito',
-            'Mou',
-            'Alanso'
+            'Yamen',
+            'marquez',
+            'Pike',
         ]
     },
     {
@@ -61,14 +86,12 @@ export let teams = [
         originL: 'Quiser',
         img: 'images/teams/penn.png',
         player: [
-            'MeekMel',
-            'Jota Eme',
-            'Countino',
-            'Isco',
-            'Macherano',
-            'Nolito',
-            'Mou',
-            'Alanso'
+            'Loto',
+            'Aslo',
+            'DalU',
+            'Eto',
+            'Bale',
+            'P Alanso'
         ]
     },
     {
@@ -79,14 +102,10 @@ export let teams = [
         originL: 'Quiser',
         img: 'images/teams/dijel.png',
         player: [
-            'MeekMel',
-            'Jota Eme',
-            'Countino',
-            'Isco',
-            'Macherano',
-            'Nolito',
-            'Mou',
-            'Alanso'
+            'J. Mulonde',
+            'J. Mendez',
+            'Piles',
+            'Crakik',
         ]
     },
     {
@@ -128,11 +147,157 @@ export let teams = [
             'Manuel Neuer'
         ]
     },
+    {
+        id: 'PJA',
+        name: 'Paris Jovial Athletics',
+        sub: `PJA`,
+        originC: 'France',
+        originL: 'FR',
+        img: 'images/teams/pja.png',
+        player: [
+            'Luc DuBois',
+            'Antoine Girard',
+            'Pierre Moreau',
+            'Felix Lambert',
+            'Henri Michel',
+            'Vincent Petit',
+            'Simon Leroy'
+        ]
+    },
+    {
+        id: 'THN',
+        name: 'Tokyo Hawk Ninjas',
+        sub: `THN`,
+        originC: 'Japan',
+        originL: 'JP',
+        img: 'images/teams/thn.png',
+        player: [
+            'Hiroshi Tanaka',
+            'Kenji Yamamoto',
+            'Takashi Suzuki',
+            'Yuki Nakamura',
+            'Akira Sato',
+            'Kazuki Kobayashi'
+        ]
+    },
+    {
+        id: 'MSU',
+        name: 'Moscow Snow United',
+        sub: `MSU`,
+        originC: 'Russia',
+        originL: 'RU',
+        img: 'images/teams/msu.png',
+        player: [
+            'Mikhail Petrov',
+            'Igor Sokolov',
+            'Dmitry Ivanov',
+            'Viktor Volkov',
+            'Alexei Smirnov'
+        ]
+    },
+    {
+        id: 'BCL',
+        name: 'Barcelona Coastal Lions',
+        sub: `BCL`,
+        originC: 'Spain',
+        originL: 'ES',
+        img: 'images/teams/bcl.png',
+        player: [
+            'Carlos Rodriguez',
+            'Javier Martinez',
+            'Miguel Lopez',
+            'Diego Fernandez',
+            'Alejandro Garcia',
+            'Rafael Torres',
+            'Francisco Ruiz'
+        ]
+    },
+    {
+        id: 'RNW',
+        name: 'Rio Neon Wolves',
+        sub: `RNW`,
+        originC: 'Brazil',
+        originL: 'BR',
+        img: 'images/teams/rnw.png',
+        player: [
+            'Lucas Silva',
+            'Gabriel Santos',
+            'Mateus Costa',
+            'Pedro Oliveira',
+            'Rafael Almeida',
+            'Thiago Pereira'
+        ]
+    },
+    {
+        id: 'SST',
+        name: 'Sydney Sparkling Tides',
+        sub: `SST`,
+        originC: 'Australia',
+        originL: 'AU',
+        img: 'images/teams/sst.png',
+        player: [
+            'James Wilson',
+            'Ryan Thompson',
+            'Nathan Brown',
+            'Aaron Davis',
+            'Sean Miller',
+            'Blake Taylor',
+            'Liam Johnson'
+        ]
+    },
+    {
+        id: 'CAE',
+        name: 'Cairo Ancient Eagles',
+        sub: `CAE`,
+        originC: 'Egypt',
+        originL: 'EG',
+        img: 'images/teams/cae.png',
+        player: [
+            'Ahmed Hassan',
+            'Mohamed Ali',
+            'Omar Farouk',
+            'Tarek Ibrahim',
+            'Karim Mahmoud',
+            'Youssef Adel'
+        ]
+    },
+    {
+        id: 'NCH',
+        name: 'New York City Hurricanes',
+        sub: `NCH`,
+        originC: 'United States',
+        originL: 'US',
+        img: 'images/teams/nch.png',
+        player: [
+            'Michael Johnson',
+            'Christopher Williams',
+            'Brandon Smith',
+            'Tyler Brown',
+            'Jason Davis',
+            'Kevin Miller',
+            'Daniel Wilson',
+            'Matthew Thompson'
+        ]
+    }
 
 
 ];
 
-console.log(getTeamById('tex')); 
+// Helper function to generate array of years from ranges
+export function playerYears(ranges) {
+    const years = [];
+    
+    // For each range [start, end], add all years between start and end (inclusive)
+    for (const [start, end] of ranges) {
+        for (let year = start; year <= end; year++) {
+            years.push(year);
+        }
+    }
+    
+    return years;
+}
+
+console.log(playerYears([[2002, 2011], [1991, 1995]]) , 'eeee'); // Example usage
 
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
 // localStorage.clear()
@@ -170,7 +335,7 @@ function renderCreateButton(matchdays) {
                     <span>CREATE MATCHDAY</span>
                 </div>
                 <div class="dotted-btn" id="create-bracket-btn">
-                    <span>CREATE BRAKET</span>
+                    <span>CREATE KNOCK OUT DAY</span>
                 </div>
             </div>
         </div>
@@ -259,8 +424,8 @@ function bindMatchClickEvents() {
                     window.location.href = `match-info.html?match=${matchId}`;
                 }
             } else {
-                const mdiIndex = Array.from(document.querySelectorAll('.start-match-btn')).indexOf(event.target);
-                addMatchDialog(true, mdiIndex);
+                const mdIndex = Array.from(document.querySelectorAll('.matchday-cont')).indexOf(match.closest('.matchday-cont'));
+                addMatchDialog(true, mdIndex);
             }
         });
     });
@@ -276,11 +441,14 @@ function bindAddMatchButtons() {
 
 let matchdayIndex = null; // Declare matchdayIndex globally to use it in addMatchDialog
 
-function addMatchDialog(startMatch, mdiIndex) {
+function addMatchDialog(startMatch, mdIndex) {
 
     const currentSeason = getCurrentSeason();
+    let thisMatchIdex = null;
+
     if (startMatch) {
-        matchdayIndex = mdiIndex
+        matchdayIndex = mdIndex
+        thisMatchIdex = Array.from(document.querySelectorAll('.start-match-btn')).indexOf(event.target);
     } else {
         matchdayIndex = Array.from(document.querySelectorAll('.add-match-btn')).indexOf(event.target);
     }
@@ -302,21 +470,18 @@ function addMatchDialog(startMatch, mdiIndex) {
             <div class="team-man" id="team1">
                 <div class="score-display" id="team1-score">0</div>
                 <select id="team1-select">
-                ${startMatch ? seasons.find(season => season.year === currentSeason).teams
+                ${!startMatch ? seasons.find(season => season.year === currentSeason).teams
                     .filter(teamId => {
                         const matchdayTeams = matchday.games.flatMap(game => [game.team1, game.team2]);
                         return !matchdayTeams.includes(teamId);
                     })
                     .map(teamId => {
                         const team = getTeamById(teamId);
-                        return `<option value="${teamId}">${team.name}</option>`;
+                        return `<option value="${teamId}" ${teamId === matchday.games[0]?.team1 ? 'selected' : ''}>${team.name}</option>`;
                     }).join('') 
-                    : matchday.games.flatMap(game => [game.team1, game.team2])
-                    .filter((teamId, index, self) => self.indexOf(teamId) === index) // Ensure unique teams
-                    .map(teamId => {
-                        const team = getTeamById(teamId);
-                        return `<option value="${teamId}">${team.name}</option>`;
-                    }).join('')
+                    : 
+                    `<option value="${matchday.games[thisMatchIdex].team1}">${getTeamById(matchday.games[thisMatchIdex].team1).name}</option>`
+
                 }
                 </select>
                 <div class="add-goal">
@@ -324,7 +489,9 @@ function addMatchDialog(startMatch, mdiIndex) {
                         <img src="icons/add.png" alt="add-goal"> Add Goal
                     </div>
                     <select id="team1-player-select">
-                        ${teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')}
+                    ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        : `<option value="${matchday.games[thisMatchIdex].team2}">${getTeamById(matchday.games[thisMatchIdex].team2).name}</option>`
+                        }
                     </select>
                     <input type="number" id="team1-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
@@ -334,7 +501,7 @@ function addMatchDialog(startMatch, mdiIndex) {
             <div class="team-man" id="team2">
                 <div class="score-display" id="team2-score">0</div>
                 <select id="team2-select">
-                ${startMatch ? seasons.find(season => season.year === currentSeason).teams
+                ${!startMatch ? seasons.find(season => season.year === currentSeason).teams
                     .filter(teamId => {
                         const matchdayTeams = matchday.games.flatMap(game => [game.team1, game.team2]);
                         return !matchdayTeams.includes(teamId);
@@ -343,20 +510,18 @@ function addMatchDialog(startMatch, mdiIndex) {
                         const team = getTeamById(teamId);
                         return `<option value="${teamId}">${team.name}</option>`;
                     }).join('') 
-                    : matchday.games.flatMap(game => [game.team1, game.team2])
-                    .filter((teamId, index, self) => self.indexOf(teamId) === index) // Ensure unique teams
-                    .map(teamId => {
-                        const team = getTeamById(teamId);
-                        return `<option value="${teamId}">${team.name}</option>`;
-                    }).join('')
+                    : 
+                     `<option value="${matchday.games[thisMatchIdex].team2}">${getTeamById(matchday.games[thisMatchIdex].team2).name}</option>`
                 }
-                </select>
+                </select> 
                 <div class="add-goal">
                     <div class="fl-r fl-ai" id="team2-add-goal">
                         <img src="icons/add.png" alt="add-goal"> Add Goal
                     </div>
                     <select id="team2-player-select">
-                        ${teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')}
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        : `<option value="${matchday.games[thisMatchIdex].team2}">${getTeamById(matchday.games[thisMatchIdex].team2).name}</option>`
+                        }
                     </select>
                     <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
@@ -452,7 +617,7 @@ function addMatchDialog(startMatch, mdiIndex) {
         seasonData.matchdays[matchdayIndex].games = matchdayGames;
 
         if (!startMatch) {
-            seasons.find(season => season.year === currentSeason).matchday.games.push({
+            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
                 id: `match-${Math.random().toString(36).substr(2, 9)}`,
                 team1: team1,
                 team2: team2,
@@ -463,11 +628,11 @@ function addMatchDialog(startMatch, mdiIndex) {
                     .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 })))
             });
         } else {
-            const thisStandbyMatch = matchdayGames.find(m => m.id === event.target.id.replace('start-match-btn-', ''));
-            const index = matchdayGames.indexOf(thisStandbyMatch);
-            if (index > -1) {
-                matchdayGames.splice(index, 1);
-            }
+            const thisStandbyMatch = matchday.games[thisMatchIdex]
+            const index = matchdayGames.findIndex(game => game.id === thisStandbyMatch.id);            
+            
+            matchdayGames.splice(index, 1);
+
             seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
                 id: `match-${Math.random().toString(36).substr(2, 9)}`,
                 team1: team1,
@@ -519,10 +684,7 @@ function addMatchDialog(startMatch, mdiIndex) {
     
 }
 
-
 setInterval(() => console.log(seasons, goals), 1000);
-
-
 // Main Functions
 function loadSeason(snum) {
     if (!snum) {
@@ -565,6 +727,8 @@ function loadSeason(snum) {
         initializeEmptyState();
     }
 }
+
+
 
 function initializeEmptyState() {
     content.innerHTML = `
@@ -614,7 +778,8 @@ function createSeasonDialog() {
         <select name="years" id="year-select">
             ${Array.from({ length: 60 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
-                return `<option value="${year}">${year}</option>`;
+                const currentSeason = getCurrentSeason();
+                return `<option value="${year}" ${year.toString() === currentSeason ? 'selected' : ''}>${year}</option>`;
             }).join('')}
         </select>
 
@@ -745,7 +910,7 @@ function saveSeason() {
 
 function saveGoals() {
     localStorage.setItem('goals', JSON.stringify(goals));
-}
+}  
 
 
 // localStorage.clear()
@@ -754,31 +919,68 @@ function startBracket() {
     const currentSeason = getCurrentSeason();
     const seasonData = seasons.find(s => s.year === currentSeason);
 
-    if (seasonData) {
-        const round16 = !seasonData.matchdays.some(matchday => matchday.bracketType);
-        const semiFinals = seasonData.matchdays.some(matchday => matchday.bracketType === 'semiFinals');
-        const quarterFinals = seasonData.matchdays.some(matchday => matchday.bracketType === 'quarterFinals');
-        const finals = seasonData.matchdays.some(matchday => matchday.bracketType === 'finals');
 
-        if (round16 ) {
-            const seasonMatchdays = seasonData.matchdays || [];
+    if (seasonData) {
+        // Find out what's the next bracket stage to create
+        const bracketTypes = seasonData.matchdays
+            .filter(matchday => matchday.bracketType)
+            .map(matchday => matchday.bracketType);
+        
+        const round16 = !bracketTypes.includes('round16');
+        const quarterFinals = bracketTypes.includes('round16') && !bracketTypes.includes('quarterFinals');
+        const semiFinals = bracketTypes.includes('quarterFinals') && !bracketTypes.includes('semiFinals');
+        const finals = bracketTypes.includes('semiFinals') && !bracketTypes.includes('finals');
+
+        const seasonMatchdays = seasonData.matchdays || [];
+        if (round16) {
             seasonMatchdays.push({
-                details: `Knockout Phase`,
-                games: getFirstFixtures(),
+                details: `Knockout Phase - Round of 16`,
+                games: getFirstFixtures(1),
                 id: `matchday-${seasonMatchdays.length + 1}`,
                 bracketType: 'round16'
             });
             seasonData.matchdays = seasonMatchdays;
             loadSeason(currentSeason);
+        } else if (quarterFinals) {
+            seasonMatchdays.push({
+                details: `Quarter Finals`,
+                games: getFirstFixtures(2),
+                id: `matchday-${seasonMatchdays.length + 1}`,
+                bracketType: 'quarterFinals'
+            });
+            loadSeason(currentSeason);
+        } else if (semiFinals) {
+            seasonMatchdays.push({
+                details: `Semi Finals`,
+                games: getFirstFixtures(3),
+                id: `matchday-${seasonMatchdays.length + 1}`,
+                bracketType: 'semiFinals'
+            });
+            loadSeason(currentSeason);
+        }
+        else if (finals) {
+            seasonMatchdays.push({
+                details: `Final`,
+                games: getFirstFixtures(4),
+                id: `matchday-${seasonMatchdays.length + 1}`,
+                bracketType: 'finals'
+            });
+            loadSeason(currentSeason); 
+        } else {
+            console.log('All brackets already created!');
+            return;
         }
     }
 }
+ 
+// localStorage.clear()
 
-function getFirstFixtures() {
+function getFirstFixtures(order) {
     const currentSeason = getCurrentSeason();
-    const seasonData = seasons.find(s => s.year === currentSeason);
-    const teams = getRankOfTeam().slice(0, 16).map(team => team.team);
-    const fixtures = [];
+    if (order == 1) {
+        const seasonData = seasons.find(s => s.year === currentSeason);
+        const teams = getRankOfTeam().slice(0, 16).map(team => team.team);
+        const fixtures = [];
 
     for (let i = 0; i < teams.length; i += 2) {
         fixtures.push({
@@ -794,11 +996,130 @@ function getFirstFixtures() {
     }
 
     return fixtures;
+    } else if (order == 2) {
+        const seasonData = seasons.find(s => s.year === currentSeason);
+        // Find the round of 16 matchday
+        const round16Matchday = seasonData.matchdays.find(md => md.bracketType === 'round16');
+
+        if (!round16Matchday || !round16Matchday.games) {
+            console.error('Round of 16 matchday not found or has no games');
+            return [];
+        }
+
+        // Get winners from round of 16
+        const winners = round16Matchday.games.map(game => {
+            // Determine the winner
+            if (game.score1 > game.score2) {
+                return game.team1;
+            } else if (game.score2 > game.score1) {
+                return game.team2;
+            } else {
+                // In case of a tie, randomly select a winner for this example
+                // In a real tournament, this would be handled differently (e.g., penalties, away goals, etc.)
+                return Math.random() > 0.5 ? game.team1 : game.team2;
+            }
+        }).filter(winner => winner); // Filter out any undefined winners
+
+        // Create quarter-final fixtures
+        const fixtures = [];
+        for (let i = 0; i < winners.length; i += 2) {
+            if (i + 1 < winners.length) {  // Ensure we have a pair
+                fixtures.push({
+                    id: `match-${Math.random().toString(36).substr(2, 9)}`,
+                    team1: winners[i],
+                    team2: winners[i + 1],
+                    score1: 0,
+                    score2: 0,
+                    seed: Math.floor(Math.random() * 10000),
+                    goals: [],
+                    standby: true
+                });
+            }
+        }
+
+        return fixtures;
+    } else if (order == 3) {
+        const seasonData = seasons.find(s => s.year === currentSeason);
+        // Find the quarter finals matchday
+        const quarterFinalsMatchday = seasonData.matchdays.find(md => md.bracketType === 'quarterFinals');
+
+        if (!quarterFinalsMatchday || !quarterFinalsMatchday.games) {
+            console.error('Quarter Finals matchday not found or has no games');
+            return [];
+        }
+
+        // Get winners from quarter finals
+        const winners = quarterFinalsMatchday.games.map(game => {
+            // Determine the winner
+            if (game.score1 > game.score2) {
+                return game.team1;
+            } else if (game.score2 > game.score1) {
+                return game.team2;
+            } else {
+                // In case of a tie, randomly select a winner
+                return Math.random() > 0.5 ? game.team1 : game.team2;
+            }
+        }).filter(winner => winner);
+
+        // Create semi-final fixtures
+        const fixtures = [];
+        for (let i = 0; i < winners.length; i += 2) {
+            if (i + 1 < winners.length) {  // Ensure we have a pair
+                fixtures.push({
+                    id: `match-${Math.random().toString(36).substr(2, 9)}`,
+                    team1: winners[i],
+                    team2: winners[i + 1],
+                    score1: 0,
+                    score2: 0,
+                    seed: Math.floor(Math.random() * 10000),
+                    goals: [],
+                    standby: true
+                });
+            }
+        }
+
+        return fixtures;
+        } else if (order == 4) {
+        const seasonData = seasons.find(s => s.year === currentSeason);
+        // Find the semi finals matchday
+        const semiFinalsMatchday = seasonData.matchdays.find(md => md.bracketType === 'semiFinals');
+
+        if (!semiFinalsMatchday || !semiFinalsMatchday.games) {
+            console.error('Semi Finals matchday not found or has no games');
+            return [];
+        }
+
+        // Get winners from semi finals
+        const winners = semiFinalsMatchday.games.map(game => {
+            // Determine the winner
+            if (game.score1 > game.score2) {
+            return game.team1;
+            } else if (game.score2 > game.score1) {
+            return game.team2;
+            } else {
+            // In case of a tie, randomly select a winner
+            return Math.random() > 0.5 ? game.team1 : game.team2;
+            }
+        }).filter(winner => winner);
+
+        // Create final fixture
+        const fixtures = [];
+        if (winners.length >= 2) {
+            fixtures.push({
+            id: `match-${Math.random().toString(36).substr(2, 9)}`,
+            team1: winners[0],
+            team2: winners[1],
+            score1: 0,
+            score2: 0,
+            seed: Math.floor(Math.random() * 10000),
+            goals: [],
+            standby: true
+            });
+        }
+
+        return fixtures;
+        }
 }
-
-console.log(getFirstFixtures(), 'getFirstFixtures()');
-
-actionElem('#create-bracket-btn', startBracket());
 
 
 function getRankOfTeam() {
