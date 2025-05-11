@@ -94,6 +94,27 @@
     white-space: nowrap;
 }
 
+.score-group {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+.minute {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+    max-width: 10rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
 
 @keyframes fadeIn {
     0% {

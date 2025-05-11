@@ -47,6 +47,11 @@
     padding: 2rem;
 }
 
+.mathchday-info {
+    font-weight: 600;
+    color: #000;
+}
+
 .matchday {
     display: flex;
     gap: 2rem;
@@ -60,6 +65,7 @@
     background-color: #fff;
     padding: 1rem;
     width: 30%;
+    min-height: 11rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -81,6 +87,9 @@
     display: flex;
     gap: 1rem;
     align-items: center;
+    font-family: "Fredoka", sans-serif !important;
+    font-weight: 500;
+    font-size: 1.3rem;
 }
 
 .md-match .team img {
@@ -89,7 +98,7 @@
 }
 
 .md-match .team .score {
-    font-size: 1.4rem;
+    font-size: 1.8rem;
     font-weight: 600;
 }
 

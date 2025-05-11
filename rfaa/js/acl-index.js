@@ -1,6 +1,6 @@
 // Define global variables
 export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
-export let players =[
+export let players = [
     {
         name: 'Juventus juve',
         type: 'retired',
@@ -24,6 +24,913 @@ export let players =[
             }
         }
     }
+    ,
+    {
+        name: 'James Attenborough',
+        type: 'retired',
+        dob: '1989-05-31',
+        teams: {
+            'BVB': {
+                years: playerYears([[1991, 2003]]),
+            },
+            'Pacer': {
+                years: playerYears([[2004, 2010]]),
+            }
+        }
+    },
+    {
+        name: 'Erling Haaland',
+        type: 'active',
+        dob: '2000-07-21',
+        teams: {
+            'BVB': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Jadon Sancho',
+        type: 'active',
+        dob: '2000-03-25',
+        teams: {
+            'BVB': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Antoine Griezmann',
+        type: 'active',
+        dob: '1991-03-21',
+        teams: {
+            'ATM': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Jan Oblak',
+        type: 'active',
+        dob: '1993-01-07',
+        teams: {
+            'ATM': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Robert Lewandowski',
+        type: 'active',
+        dob: '1988-08-21',
+        teams: {
+            'BAY': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Thomas Müller',
+        type: 'active',
+        dob: '1989-09-13',
+        teams: {
+            'BAY': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Mason Mount',
+        type: 'active',
+        dob: '1999-01-10',
+        teams: {
+            'CHE': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Reece James',
+        type: 'active',
+        dob: '1999-12-08',
+        teams: {
+            'CHE': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    }
+    ,
+    {
+        name: 'Luc DuBois',
+        type: 'active',
+        dob: '1994-06-15',
+        teams: {
+            'PJA': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Antoine Girard',
+        type: 'active',
+        dob: '1992-04-02',
+        teams: {
+            'PJA': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Pierre Moreau',
+        type: 'active',
+        dob: '1996-11-19',
+        teams: {
+            'PJA': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Hiroshi Tanaka',
+        type: 'active',
+        dob: '1997-08-12',
+        teams: {
+            'THN': {
+                years: playerYears([[2016, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Kenji Yamamoto',
+        type: 'active',
+        dob: '1995-02-28',
+        teams: {
+            'THN': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Mikhail Petrov',
+        type: 'active',
+        dob: '1990-12-05',
+        teams: {
+            'MSU': {
+                years: playerYears([[2014, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Igor Sokolov',
+        type: 'active',
+        dob: '1991-07-17',
+        teams: {
+            'MSU': {
+                years: playerYears([[2015, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Carlos Rodriguez',
+        type: 'active',
+        dob: '1993-05-09',
+        teams: {
+            'BCL': {
+                years: playerYears([[2016, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Javier Martinez',
+        type: 'active',
+        dob: '1994-09-11',
+        teams: {
+            'BCL': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Lucas Silva',
+        type: 'active',
+        dob: '1996-03-15',
+        teams: {
+            'RNW': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Gabriel Santos',
+        type: 'active',
+        dob: '1998-01-07',
+        teams: {
+            'RNW': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'James Wilson',
+        type: 'active',
+        dob: '1992-11-23',
+        teams: {
+            'SST': {
+                years: playerYears([[2016, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Ryan Thompson',
+        type: 'active',
+        dob: '1994-08-14',
+        teams: {
+            'SST': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Ahmed Hassan',
+        type: 'active',
+        dob: '1993-10-18',
+        teams: {
+            'CAE': {
+                years: playerYears([[2016, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Mohamed Ali',
+        type: 'active',
+        dob: '1995-12-10',
+        teams: {
+            'CAE': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Michael Johnson',
+        type: 'active',
+        dob: '1991-04-05',
+        teams: {
+            'NCH': {
+                years: playerYears([[2014, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Christopher Williams',
+        type: 'active',
+        dob: '1993-06-30',
+        teams: {
+            'NCH': {
+                years: playerYears([[2016, 2025]]),
+            }
+        }
+    }
+    ,
+    {
+        name: 'João Félix',
+        type: 'active',
+        dob: '1999-11-10',
+        teams: {
+            'ATM': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: "N'Golo Kanté",
+        type: 'active',
+        dob: '1991-03-29',
+        teams: {
+            'CHE': {
+                years: playerYears([[2016, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Manuel Neuer',
+        type: 'active',
+        dob: '1986-03-27',
+        teams: {
+            'BAY': {
+                years: playerYears([[2011, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Felix Lambert',
+        type: 'active',
+        dob: '1995-02-11',
+        teams: {
+            'PJA': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Henri Michel',
+        type: 'active',
+        dob: '1993-07-22',
+        teams: {
+            'PJA': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Vincent Petit',
+        type: 'active',
+        dob: '1997-10-03',
+        teams: {
+            'PJA': {
+                years: playerYears([[2021, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Simon Leroy',
+        type: 'active',
+        dob: '1998-05-19',
+        teams: {
+            'PJA': {
+                years: playerYears([[2022, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Takashi Suzuki',
+        type: 'active',
+        dob: '1996-09-14',
+        teams: {
+            'THN': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Yuki Nakamura',
+        type: 'active',
+        dob: '1998-02-27',
+        teams: {
+            'THN': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Akira Sato',
+        type: 'active',
+        dob: '1995-12-05',
+        teams: {
+            'THN': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Kazuki Kobayashi',
+        type: 'active',
+        dob: '1999-04-16',
+        teams: {
+            'THN': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Dmitry Ivanov',
+        type: 'active',
+        dob: '1992-03-11',
+        teams: {
+            'MSU': {
+                years: playerYears([[2016, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Viktor Volkov',
+        type: 'active',
+        dob: '1994-08-23',
+        teams: {
+            'MSU': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Alexei Smirnov',
+        type: 'active',
+        dob: '1996-01-30',
+        teams: {
+            'MSU': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Miguel Lopez',
+        type: 'active',
+        dob: '1995-06-12',
+        teams: {
+            'BCL': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Diego Fernandez',
+        type: 'active',
+        dob: '1997-09-21',
+        teams: {
+            'BCL': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Alejandro Garcia',
+        type: 'active',
+        dob: '1998-11-02',
+        teams: {
+            'BCL': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Rafael Torres',
+        type: 'active',
+        dob: '1996-04-18',
+        teams: {
+            'BCL': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Francisco Ruiz',
+        type: 'active',
+        dob: '1999-07-25',
+        teams: {
+            'BCL': {
+                years: playerYears([[2021, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Mateus Costa',
+        type: 'active',
+        dob: '1997-03-08',
+        teams: {
+            'RNW': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Pedro Oliveira',
+        type: 'active',
+        dob: '1998-06-19',
+        teams: {
+            'RNW': {
+                years: playerYears([[2021, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Rafael Almeida',
+        type: 'active',
+        dob: '1996-10-27',
+        teams: {
+            'RNW': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Thiago Pereira',
+        type: 'active',
+        dob: '1999-12-13',
+        teams: {
+            'RNW': {
+                years: playerYears([[2022, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Nathan Brown',
+        type: 'active',
+        dob: '1995-05-15',
+        teams: {
+            'SST': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Aaron Davis',
+        type: 'active',
+        dob: '1997-08-22',
+        teams: {
+            'SST': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Sean Miller',
+        type: 'active',
+        dob: '1996-11-30',
+        teams: {
+            'SST': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Blake Taylor',
+        type: 'active',
+        dob: '1998-03-17',
+        teams: {
+            'SST': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Liam Johnson',
+        type: 'active',
+        dob: '1999-09-05',
+        teams: {
+            'SST': {
+                years: playerYears([[2021, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Omar Farouk',
+        type: 'active',
+        dob: '1996-02-14',
+        teams: {
+            'CAE': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Tarek Ibrahim',
+        type: 'active',
+        dob: '1997-07-28',
+        teams: {
+            'CAE': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Karim Mahmoud',
+        type: 'active',
+        dob: '1998-10-09',
+        teams: {
+            'CAE': {
+                years: playerYears([[2021, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Youssef Adel',
+        type: 'active',
+        dob: '1999-12-21',
+        teams: {
+            'CAE': {
+                years: playerYears([[2022, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Brandon Smith',
+        type: 'active',
+        dob: '1995-04-11',
+        teams: {
+            'NCH': {
+                years: playerYears([[2017, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Tyler Brown',
+        type: 'active',
+        dob: '1996-08-16',
+        teams: {
+            'NCH': {
+                years: playerYears([[2018, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Jason Davis',
+        type: 'active',
+        dob: '1997-11-29',
+        teams: {
+            'NCH': {
+                years: playerYears([[2019, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Kevin Miller',
+        type: 'active',
+        dob: '1998-03-25',
+        teams: {
+            'NCH': {
+                years: playerYears([[2020, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Daniel Wilson',
+        type: 'active',
+        dob: '1999-06-12',
+        teams: {
+            'NCH': {
+                years: playerYears([[2021, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Matthew Thompson',
+        type: 'active',
+        dob: '2000-01-08',
+        teams: {
+            'NCH': {
+                years: playerYears([[2022, 2025]]),
+            }
+        }
+    }
+    ,
+    {
+        name: 'Jota Eme',
+        type: 'retired',
+        dob: '1980-03-12',
+        teams: {
+            'tex': {
+                years: playerYears([[2003, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Countino',
+        type: 'retired',
+        dob: '1983-07-09',
+        teams: {
+            'tex': {
+                years: playerYears([[2005, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Isco',
+        type: 'retired',
+        dob: '1985-11-21',
+        teams: {
+            'tex': {
+                years: playerYears([[2006, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Macherano',
+        type: 'retired',
+        dob: '1982-04-18',
+        teams: {
+            'tex': {
+                years: playerYears([[2004, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Nolito',
+        type: 'retired',
+        dob: '1984-09-27',
+        teams: {
+            'tex': {
+                years: playerYears([[2007, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Mou',
+        type: 'retired',
+        dob: '1979-02-14',
+        teams: {
+            'tex': {
+                years: playerYears([[2001, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Alanso',
+        type: 'retired',
+        dob: '1981-06-30',
+        teams: {
+            'tex': {
+                years: playerYears([[2002, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Jesko',
+        type: 'retired',
+        dob: '1986-08-19',
+        teams: {
+            'tex': {
+                years: playerYears([[2008, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'MeekMel',
+        type: 'retired',
+        dob: '1987-05-23',
+        teams: {
+            'deg': {
+                years: playerYears([[2009, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Yamen',
+        type: 'retired',
+        dob: '1988-10-11',
+        teams: {
+            'deg': {
+                years: playerYears([[2010, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'marquez',
+        type: 'retired',
+        dob: '1985-12-01',
+        teams: {
+            'deg': {
+                years: playerYears([[2007, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Pike',
+        type: 'retired',
+        dob: '1983-03-05',
+        teams: {
+            'deg': {
+                years: playerYears([[2005, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Loto',
+        type: 'retired',
+        dob: '1982-08-08',
+        teams: {
+            'penn': {
+                years: playerYears([[2004, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Aslo',
+        type: 'retired',
+        dob: '1984-01-17',
+        teams: {
+            'penn': {
+                years: playerYears([[2006, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'DalU',
+        type: 'retired',
+        dob: '1986-04-22',
+        teams: {
+            'penn': {
+                years: playerYears([[2008, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Eto',
+        type: 'retired',
+        dob: '1981-09-13',
+        teams: {
+            'penn': {
+                years: playerYears([[2003, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Bale',
+        type: 'retired',
+        dob: '1987-02-28',
+        teams: {
+            'penn': {
+                years: playerYears([[2009, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'P Alanso',
+        type: 'retired',
+        dob: '1985-06-16',
+        teams: {
+            'penn': {
+                years: playerYears([[2007, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'J. Mulonde',
+        type: 'retired',
+        dob: '1983-11-03',
+        teams: {
+            'dj': {
+                years: playerYears([[2005, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'J. Mendez',
+        type: 'retired',
+        dob: '1986-07-29',
+        teams: {
+            'dj': {
+                years: playerYears([[2008, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Piles',
+        type: 'retired',
+        dob: '1984-05-12',
+        teams: {
+            'dj': {
+                years: playerYears([[2006, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Crakik',
+        type: 'retired',
+        dob: '1982-10-20',
+        teams: {
+            'dj': {
+                years: playerYears([[2004, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Lavdos',
+        type: 'retired',
+        dob: '1987-03-15',
+        teams: {
+            'BVB': {
+                years: playerYears([[2009, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'pika',
+        type: 'retired',
+        dob: '1988-12-22',
+        teams: {
+            'BVB': {
+                years: playerYears([[2010, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'dybala',
+        type: 'retired',
+        dob: '1989-05-10',
+        teams: {
+            'BVB': {
+                years: playerYears([[2011, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Matauro',
+        type: 'retired',
+        dob: '1986-09-07',
+        teams: {
+            'BVB': {
+                years: playerYears([[2008, 2025]]),
+            }
+        }
+    }
 ]
 export let teams = [
     {
@@ -33,26 +940,135 @@ export let teams = [
         originC: 'Texico',
         originL: 'TS',
         img: 'images/teams/cerx.png',
-        player: [
-            'Juventus juve',
-            'Jota Eme',
-            'Countino',
-            'Isco',
-            'Macherano',
-            'Nolito',
-            'Mou',
-            'Alanso',
-            'countino',
-            'Jesko',
-            'isco',
-        ]
+        player: getPlayersByTeam('tex', [
+            'kiloas'
+        ])
+    },
+    {
+        id: 'fill',
+        name: 'Fillham United',
+        sub: `Fillham`,
+        originC: 'Denvor',
+        originL: 'Quiser',
+        img: 'images/teams/fillham.png',
+        player: getPlayersByTeam('fill', [
+            'Ecani',
+            'Islo',
+            'Kante',
+            'Maslo',
+        ])
+    },
+    {
+        id: 'RS',
+        name: 'Real Sol',
+        sub: `PSL`,
+        originC: 'Texico',
+        originL: 'TS',
+        img: 'images/teams/real-sol.png',
+        player: getPlayersByTeam('RS', [
+            `K'bash`,
+        ])
+    },
+    {
+        id: 'BCCR',
+        name: 'BC Central',
+        sub: `BCCR`,
+        originC: 'Quiser',
+        originL: 'QUI',
+        img: 'images/teams/bc-central.png',
+        player: getPlayersByTeam('BCCR', [
+            `K'bash`,
+        ])
+    },
+    {
+        id: 'DelUnited',
+        name: 'Del United',
+        sub: `Del UTD`,
+        originC: 'Denvor',
+        originL: 'Quiser',
+        img: 'images/teams/del-united.png',
+        player: getPlayersByTeam('DelUnited', [
+            `K'bash`,
+        ])
+    },
+    {
+        id: 'PSL',
+        name: 'Pacific Saint leon',
+        sub: `PSL`,
+        originC: 'QUI',
+        originL: 'Quiser',
+        img: 'images/teams/psl.png',
+        player: getPlayersByTeam('psl', [
+            'lucka',
+            'jesui',
+            'kiloa',
+        ])
+    },
+    {
+        id: 'NDIJON',
+        name: 'North Dijon',
+        sub: `N. Dijon`,
+        originC: 'Ijo',
+        originL: 'TS',
+        img: 'images/teams/north-dijon.png',
+        player: getPlayersByTeam('NDIJON', [
+            'P. Gas',
+            'Yao',
+            'K. Jouls',
+            'K. Bmepp'
+        ])
+    },
+    {
+        id: 'ocio',
+        name: 'Ocio',
+        sub: `N. Dijon`,
+        originC: 'Texico',
+        originL: 'TS',
+        img: 'images/teams/ocio.png',
+        player: getPlayersByTeam('ocio', [
+            'Dybala',
+            'Matauro',
+            'pika',
+            'Enos',
+            'Diego',
+        ])
+    },
+    {
+        id: 'pacer',
+        name: 'Pacer FC',
+        sub: `Pacer`,
+        originC: 'QUI',
+        originL: 'Quiser',
+        img: 'images/teams/pacer.png',
+        player: getPlayersByTeam('pacer', [
+            'lucka',
+            'jesui',
+            'kiloa',
+            'Kasa',
+            'Antony',
+        ])
+    },
+    {
+        id: 'gks',
+        name: 'GKS',
+        sub: `GKS`,
+        originC: 'Bolive',
+        originL: 'BFF',
+        img: 'images/teams/gks.png',
+        player: getPlayersByTeam('gks', [
+            'Urmaki',
+            'lodi',
+            'Maicha',
+            'Sancho',
+            'Davis',
+        ])
     },
     {
         id: 'BVB',
         name: 'Borussia Dortmund',
         sub: `BVB`,
-        originC: 'Germany',
-        originL: 'DE',
+        originC: 'Bolive',
+        originL: 'BFF',
         img: 'images/teams/Borussia.png',
         player: [
             'Marco Reus',
@@ -148,140 +1164,106 @@ export let teams = [
         ]
     },
     {
-        id: 'PJA',
-        name: 'Paris Jovial Athletics',
-        sub: `PJA`,
-        originC: 'France',
-        originL: 'FR',
-        img: 'images/teams/pja.png',
+        id: 'athmak',
+        name: 'Athmak FC',
+        sub: `Athmak`,
+        originC: 'Bolive',
+        originL: 'BKS',
+        img: 'images/teams/athe-mak.png',
         player: [
-            'Luc DuBois',
-            'Antoine Girard',
-            'Pierre Moreau',
-            'Felix Lambert',
-            'Henri Michel',
-            'Vincent Petit',
-            'Simon Leroy'
+            'O. Farouk',
+            'T. Ibrahim',
+            'K. Mahmoud',
+            'Y. Adel',
+            'Jaken',
         ]
     },
     {
-        id: 'THN',
-        name: 'Tokyo Hawk Ninjas',
-        sub: `THN`,
-        originC: 'Japan',
-        originL: 'JP',
-        img: 'images/teams/thn.png',
+        id: 'Vfy',
+        name: 'Vfoyern',
+        sub: `Vfy`,
+        originC: 'Bolive',
+        originL: 'BKS',
+        img: 'images/teams/Vfoyern.png',
         player: [
-            'Hiroshi Tanaka',
-            'Kenji Yamamoto',
-            'Takashi Suzuki',
-            'Yuki Nakamura',
-            'Akira Sato',
-            'Kazuki Kobayashi'
+            'Ben Mark',
+            'K. Bmepp',
+            'atten',
+            'SotaMou',
+            'Kounde',
         ]
     },
     {
-        id: 'MSU',
-        name: 'Moscow Snow United',
-        sub: `MSU`,
-        originC: 'Russia',
-        originL: 'RU',
-        img: 'images/teams/msu.png',
+        id: 'SprtBlk',
+        name: 'Sporting Blekis',
+        sub: `S. Blekis`,
+        originC: 'Bolive',
+        originL: 'BKS',
+        img: 'images/teams/Sporting-Blekis.png',
         player: [
-            'Mikhail Petrov',
-            'Igor Sokolov',
-            'Dmitry Ivanov',
-            'Viktor Volkov',
-            'Alexei Smirnov'
+            'Ben Mark',
+            'K. Bmepp',
+            'atten',
+            'SotaMou',
+            'Kounde',
         ]
     },
     {
-        id: 'BCL',
-        name: 'Barcelona Coastal Lions',
-        sub: `BCL`,
-        originC: 'Spain',
-        originL: 'ES',
-        img: 'images/teams/bcl.png',
+        id: 'SLV',
+        name: 'Salvia FC',
+        sub: `Salvia`,
+        originC: 'ijo',
+        originL: 'TS',
+        img: 'images/teams/Slavia.png',
         player: [
-            'Carlos Rodriguez',
-            'Javier Martinez',
-            'Miguel Lopez',
-            'Diego Fernandez',
-            'Alejandro Garcia',
-            'Rafael Torres',
-            'Francisco Ruiz'
+            "kapea",
+            'Polai',
+            'Edeni',
+            'nendy',
         ]
     },
     {
-        id: 'RNW',
-        name: 'Rio Neon Wolves',
-        sub: `RNW`,
-        originC: 'Brazil',
-        originL: 'BR',
-        img: 'images/teams/rnw.png',
+        id: 'DELU',
+        name: 'DelU',
+        sub: `DelU`,
+        originC: 'Denvor',
+        originL: 'Quiser',
+        img: 'images/teams/delU.png',
         player: [
-            'Lucas Silva',
-            'Gabriel Santos',
-            'Mateus Costa',
-            'Pedro Oliveira',
-            'Rafael Almeida',
-            'Thiago Pereira'
+            'Foden',
+            'Rusco',
+            "Bale",
+            'L. Alves',
+            'Ancetti'
         ]
     },
-    {
-        id: 'SST',
-        name: 'Sydney Sparkling Tides',
-        sub: `SST`,
-        originC: 'Australia',
-        originL: 'AU',
-        img: 'images/teams/sst.png',
-        player: [
-            'James Wilson',
-            'Ryan Thompson',
-            'Nathan Brown',
-            'Aaron Davis',
-            'Sean Miller',
-            'Blake Taylor',
-            'Liam Johnson'
-        ]
-    },
-    {
-        id: 'CAE',
-        name: 'Cairo Ancient Eagles',
-        sub: `CAE`,
-        originC: 'Egypt',
-        originL: 'EG',
-        img: 'images/teams/cae.png',
-        player: [
-            'Ahmed Hassan',
-            'Mohamed Ali',
-            'Omar Farouk',
-            'Tarek Ibrahim',
-            'Karim Mahmoud',
-            'Youssef Adel'
-        ]
-    },
-    {
-        id: 'NCH',
-        name: 'New York City Hurricanes',
-        sub: `NCH`,
-        originC: 'United States',
-        originL: 'US',
-        img: 'images/teams/nch.png',
-        player: [
-            'Michael Johnson',
-            'Christopher Williams',
-            'Brandon Smith',
-            'Tyler Brown',
-            'Jason Davis',
-            'Kevin Miller',
-            'Daniel Wilson',
-            'Matthew Thompson'
-        ]
-    }
 
 
 ];
+
+console.log(teams);
+
+
+// Helper function to get players by team ID
+export function getPlayersByTeam(teamId, extraPlayers = []) {
+    if (!teamId) return [];
+    
+    // Get current season from the application state
+    const currentSeason = getCurrentSeason();
+    const currentYear = parseInt(currentSeason);
+    
+    // Filter players who have the specified team in their teams object
+    // and are playing in the current year/season
+    const filteredPlayers = players.filter(player => {
+        return player.teams && 
+               player.teams[teamId] && 
+               player.teams[teamId].years && 
+               player.teams[teamId].years.includes(currentYear);
+    });
+    
+    // Return just the names of the players
+    return filteredPlayers.map(player => player.name).concat(extraPlayers);
+}
 
 // Helper function to generate array of years from ranges
 export function playerYears(ranges) {
@@ -300,7 +1282,7 @@ export function playerYears(ranges) {
 console.log(playerYears([[2002, 2011], [1991, 1995]]) , 'eeee'); // Example usage
 
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-// localStorage.clear()
+// localStorage.clear() 
 
 // DOM Elements
 const content = document.querySelector('.pad-cont');
@@ -352,6 +1334,12 @@ function renderMatches(matchdays, passdownIndex) {
         const matchesHtml = matchday.games.map(game => {
             const team1 = getTeamById(game.team1);
             const team2 = getTeamById(game.team2);
+
+            // Set default images if team images aren't available or fail to load
+            const team1Img = team1.img || 'images/teams/default.png';
+            const team2Img = team2.img || 'images/teams/default.png';
+            
+            // Replace img src in the HTML with error
 
             if (!game.standby) {
                 return `
@@ -463,6 +1451,10 @@ function addMatchDialog(startMatch, mdIndex) {
 
     console.log(matchdayIndex, 'matchday');
 
+    const t1 = getTeamById(matchday?.games[thisMatchIdex]?.team1);
+    const t2 = getTeamById(matchday?.games[thisMatchIdex]?.team2);
+
+
 
     notifEdText.innerHTML = `
         <h1>Create Match</h1>
@@ -477,6 +1469,7 @@ function addMatchDialog(startMatch, mdIndex) {
                     })
                     .map(teamId => {
                         const team = getTeamById(teamId);
+                        // Format each team option for the dropdown list
                         return `<option value="${teamId}" ${teamId === matchday.games[0]?.team1 ? 'selected' : ''}>${team.name}</option>`;
                     }).join('') 
                     : 
@@ -490,8 +1483,8 @@ function addMatchDialog(startMatch, mdIndex) {
                     </div>
                     <select id="team1-player-select">
                     ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        : `<option value="${matchday.games[thisMatchIdex].team2}">${getTeamById(matchday.games[thisMatchIdex].team2).name}</option>`
-                        }
+                        : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                    }
                     </select>
                     <input type="number" id="team1-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
@@ -520,7 +1513,7 @@ function addMatchDialog(startMatch, mdIndex) {
                     </div>
                     <select id="team2-player-select">
                         ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        : `<option value="${matchday.games[thisMatchIdex].team2}">${getTeamById(matchday.games[thisMatchIdex].team2).name}</option>`
+                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
                         }
                     </select>
                     <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
@@ -824,6 +1817,9 @@ function createSeasonDialog() {
         cancelBtn.addEventListener('click', cancelCreateSeasonFunc);
     }
 }
+
+// localStorage.clear()
+
 
 function createSeasonFunc() {
     const yearSelect = document.querySelector('#year-select');

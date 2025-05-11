@@ -34,6 +34,28 @@ function displayMatchInfo() {
     const team1 = getTeamById(match.team1);
     const team2 = getTeamById(match.team2);
 
+    // Group goals by player for each team
+    const groupGoalsByPlayer = (goals, teamId) => {
+        const playerGoals = {};
+        
+        goals.filter(goal => goal.team === teamId)
+            .forEach(goal => {
+                if (!playerGoals[goal.player]) {
+                    playerGoals[goal.player] = [];
+                }
+                playerGoals[goal.player].push(goal.minute || 'N/A');
+            });
+        
+        return Object.entries(playerGoals)
+            .map(([player, minutes]) => {
+                const formattedMinutes = minutes.sort((a, b) => parseInt(a) - parseInt(b))
+                    .map(minute => `<span class="minute-item">${minute}'</span>`)
+                    .join(' ');
+                return `<div class="score-group"><span class="player">${player}</span><span class="minute">${formattedMinutes}</span></div>`;
+            })
+            .join('');
+    };
+
     const matchInfoHtml = `
         <div class="match-info">
             <div class="match-info-context">
@@ -56,18 +78,10 @@ function displayMatchInfo() {
                 </div>
                 <div class="player-goals">
                     <div class="team1">
-                        ${match.goals
-                            .filter(goal => goal.team === match.team1)
-                            .sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
-                            .map(goal => `<span>${goal.player} ${goal.minute || 'N/A'}'</span>`)
-                            .join('')}
+                        ${groupGoalsByPlayer(match.goals, match.team1)}
                     </div>
                     <div class="team2">
-                        ${match.goals
-                            .filter(goal => goal.team === match.team2)
-                            .sort((a, b) => parseInt(a.minute) - parseInt(b.minute))
-                            .map(goal => `<span>${goal.player} ${goal.minute || 'N/A'}'</span>`)
-                            .join('')}
+                        ${groupGoalsByPlayer(match.goals, match.team2)}
                     </div>
                 </div>
             </div>
