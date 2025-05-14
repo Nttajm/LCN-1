@@ -50,7 +50,7 @@ function calculateStandings(seasonData) {
             standings[team2].goalsFor += score2;
             standings[team2].goalsAgainst += score1;
             
-            // Update wins, draws, losses, and points
+            // Update wins, draws, losses
             if (score1 > score2) {
                 // Team 1 wins
                 standings[team1].wins++;
