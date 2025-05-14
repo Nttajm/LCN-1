@@ -199,7 +199,7 @@
             const teamInfo = teamsList.find(t => t.id === teamId) || { name: teamId };
             teamDisplay += `<br>Team: ${teamInfo.name} (${teamId})<br>Years: ${JSON.stringify(years)}<br>`;
           }
-        }
+        } 
         
         card.innerHTML = `
           <strong>${player.name}</strong><br/>
