@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Formatter</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    input, textarea, button { margin: 10px 0; display: block; width: 100%; }
+    .player-card { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    .delete-btn { background: crimson; color: white; padding: 5px 10px; border: none; cursor: pointer; }
+    .teams-wrapper { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Player Formatter Tool</h1>
+
+  <label>Name</label>
+  <input id="nameInput" type="text" placeholder="e.g., John Doe" />
+
+  <label>Type</label>
+  <input id="typeInput" type="text" placeholder="e.g., active" />
+
+  <label>DOB (age in 1997)</label>
+  <input id="dobInput" type="number" placeholder="e.g., 21" />
+
+  <div class="teams-wrapper">
+    <h3>Teams</h3>
+    <div id="teamsContainer"></div>
+    <button onclick="addTeamInput()">Add Team</button>
+  </div>
+
+  <button onclick="addPlayer()">Add Player</button>
+
+  <h2>Players</h2>
+  <div id="playerList"></div>
+
+  <h2>Exported Code</h2>
+  <pre id="exportOutput"></pre>
+
+  <script>
+    const currentYear = 1997;
+
+    function playerYears(ranges) {
+      return ranges; // Placeholder: Replace with actual function logic
+    }
+
+    function addTeamInput() {
+      const container = document.getElementById('teamsContainer');
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <input type="text" placeholder="Team Name" class="team-name" />
+        <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" />
+      `;
+      container.appendChild(div);
+    }
+
+    function getTeamData() {
+      const teamInputs = document.querySelectorAll('#teamsContainer div');
+      const teams = {};
+      teamInputs.forEach(div => {
+        const name = div.querySelector('.team-name')?.value.trim();
+        const rangeStr = div.querySelector('.team-years')?.value.trim();
+        if (!name || !rangeStr) return;
+
+        const ranges = [];
+        rangeStr.split(',').forEach(r => {
+          const [start, end] = r.split('-').map(Number);
+          if (!isNaN(start)) ranges.push([start, end || start]);
+        });
+
+        if (ranges.length) teams[name] = { years: `playerYears(${JSON.stringify(ranges)})` };
+      });
+      return teams;
+    }
+
+    function savePlayers(players) {
+      localStorage.setItem('players', JSON.stringify(players));
+    }
+
+    function getPlayers() {
+      return JSON.parse(localStorage.getItem('players')) || [];
+    }
+
+    function deletePlayer(index) {
+      const players = getPlayers();
+      players.splice(index, 1);
+      savePlayers(players);
+      renderPlayers();
+    }
+
+    function addPlayer() {
+      const name = document.getElementById('nameInput').value.trim();
+      const type = document.getElementById('typeInput').value.trim() || 'active';
+      const age = parseInt(document.getElementById('dobInput').value);
+      const dob = age ? `${currentYear - age}-01-01` : 'unknown';
+      const teams = getTeamData();
+
+      const player = { name, type, dob, teams };
+      const players = getPlayers();
+      players.push(player);
+      savePlayers(players);
+      renderPlayers();
+
+      document.getElementById('nameInput').value = '';
+      document.getElementById('typeInput').value = '';
+      document.getElementById('dobInput').value = '';
+      document.getElementById('teamsContainer').innerHTML = '';
+    }
+
+    function renderPlayers() {
+      const players = getPlayers();
+      const list = document.getElementById('playerList');
+      const output = document.getElementById('exportOutput');
+
+      list.innerHTML = '';
+      output.textContent = '';
+
+      players.forEach((player, index) => {
+        const card = document.createElement('div');
+        card.className = 'player-card';
+        card.innerHTML = `
+          <strong>${player.name}</strong><br/>
+          Type: ${player.type}<br/>
+          DOB: ${player.dob}<br/>
+          <button class="delete-btn" onclick="deletePlayer(${index})">Delete</button>
+        `;
+        list.appendChild(card);
+      });
+
+      output.textContent = `const players = ${JSON.stringify(players, null, 2)};`;
+    }
+
+    renderPlayers();
+  </script>
+</body>
+</html>

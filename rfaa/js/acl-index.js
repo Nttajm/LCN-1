@@ -944,6 +944,46 @@ export let teams = [
             'kiloas'
         ])
     },
+        {
+        id: 'DELU',
+        name: 'DelU',
+        sub: `DelU`,
+        originC: 'Denvor',
+        originL: 'Quiser',
+        img: 'images/teams/delU.png',
+        player: [
+            'Foden',
+            'Rusco',
+            "Bale",
+            'L. Alves',
+            'Ancetti'
+        ]
+    },
+        {
+        id: 'DELM',
+        name: 'Del Mer',
+        sub: `DelM`,
+        originC: 'Denvor',
+        originL: 'Quiser',
+        img: 'images/teams/DelMer.png',
+        player: [
+            "Anci",
+            "enok",
+            "Robih",
+            "Trent Foster",
+            "Leon",
+            "Girlo",
+        ]
+    },
+    {
+        id: 'Dom',
+        name: 'Domania',
+        sub: `Dom`,
+        originC: 'Texico',
+        originL: 'TS',
+        img: 'images/teams/Donamia.png',
+        player: getPlayersByTeam('Dom', [])
+    },
     {
         id: 'fill',
         name: 'Fillham United',
@@ -959,6 +999,78 @@ export let teams = [
         ])
     },
     {
+        id: 'esg',
+        name: 'Esgual CF',
+        sub: `Esgual`,
+        originC: 'Texico',
+        originL: 'TS',
+        img: 'images/teams/fcesgual.png',
+        player: getPlayersByTeam('esg', [])
+    },
+    {
+        id: 'hewi',
+        name: 'Hewi FC',
+        sub: `Hewi`,
+        originC: 'Pali',
+        originL: 'quiser',
+        img: 'images/teams/Hewifc.png',
+        player: getPlayersByTeam('hewi', [])
+    },
+    {
+        id: 'lenico',
+        name: 'Lenico',
+        sub: `Lenico`,
+        originC: 'Pali',
+        originL: 'quiser',
+        img: 'images/teams/lenico.png',
+        player: getPlayersByTeam('lenico', [])
+    },
+    {
+        id: 'nb',
+        name: 'New Bern',
+        sub: `Bern`,
+        originC: 'Qui',
+        originL: 'quiser',
+        img: 'images/teams/lenico.png',
+        player: getPlayersByTeam('lenico', [])
+    },
+    {
+        id: 'pali',
+        name: 'Pali',
+        sub: `Pali`,
+        originC: 'Pali',
+        originL: 'quiser',
+        img: 'images/teams/pali.png',
+        player: getPlayersByTeam('pali', [])
+    },
+    {
+        id: 'Sprta',
+        name: 'Sporta CF',
+        sub: `Sporta`,
+        originC: 'Pali',
+        originL: 'quiser',
+        img: 'images/teams/Sporta.png',
+        player: getPlayersByTeam('Sprta', [])
+    },
+    {
+        id: 'Sprta',
+        name: 'Sporta CF',
+        sub: `Sporta`,
+        originC: 'Pali',
+        originL: 'quiser',
+        img: 'images/teams/Sporta.png',
+        player: getPlayersByTeam('Sprta', [])
+    },
+    {
+        id: 'Uly',
+        name: 'Ulimy',
+        sub: `Ulimy`,
+        originC: 'jeski',
+        originL: 'quiser',
+        img: 'images/teams/Ulimy.png',
+        player: getPlayersByTeam('Uly', [])
+    },
+    {
         id: 'RS',
         name: 'Real Sol',
         sub: `PSL`,
@@ -967,6 +1079,9 @@ export let teams = [
         img: 'images/teams/real-sol.png',
         player: getPlayersByTeam('RS', [
             `K'bash`,
+            'Vazquez',
+            'Ebol',
+            "Sandro"
         ])
     },
     {
@@ -978,6 +1093,23 @@ export let teams = [
         img: 'images/teams/bc-central.png',
         player: getPlayersByTeam('BCCR', [
             `K'bash`,
+            "Hernandez",
+            "Setta",
+            "Fourt",
+        ])
+    },
+    {
+        id: 'serpo',
+        name: 'Serpogol',
+        sub: `Serpo`,
+        originC: 'Quiser',
+        originL: 'QUI',
+        img: 'images/teams/serpogol.png',
+        player: getPlayersByTeam('serpo', [
+            "Mani",
+            "Alajandro",
+            "Mika",
+            "Fenster",
         ])
     },
     {
@@ -1031,6 +1163,37 @@ export let teams = [
             'pika',
             'Enos',
             'Diego',
+        ])
+    },
+    {
+        id: 'riofc',
+        name: 'Rio FC',
+        sub: `Rio`,
+        originC: 'Texico',
+        originL: 'TS',
+        img: 'images/teams/riofc.png',
+        player: getPlayersByTeam('riofc', [
+            "Maken",
+            "martinez",
+            "Elosh",
+            "Jesi",
+            "Macalester",
+            "Cancelo"
+        ])
+    },
+    {
+        id: 'Sentago',
+        name: 'Sentago',
+        sub: `Sentago`,
+        originC: 'Texico',
+        originL: 'TS',
+        img: 'images/teams/Sentago.png',
+        player: getPlayersByTeam('riofc', [
+            "Sergio",
+            "Silva",
+            "thiago",
+            "Merquino",
+            "Fillson"
         ])
     },
     {
@@ -1095,6 +1258,34 @@ export let teams = [
         ]
     },
     {
+        id: 'astH',
+        name: 'Astana Hotspurs',
+        sub: `Astana`,
+        originC: 'Bolive',
+        originL: 'BKS',
+        img: 'images/teams/AST-Hotspurmn.png',
+        player: getPlayersByTeam('astH', [])
+    },
+    {
+        id: 'bsti',
+        name: 'Bistana FC',
+        sub: `Bistana`,
+        originC: 'Ijo',
+        originL: 'TS',
+        img: 'images/teams/Bistana.png',
+        player: getPlayersByTeam('bsti', [])
+    },
+    {
+        id: 'hogn',
+        name: 'Hougon FC',
+        sub: `Hogna`,
+        originC: 'Bolive',
+        originL: 'BKS',
+        img: 'images/teams/Bistana.png',
+        player: getPlayersByTeam('hogn', [])
+    },
+    
+    {
         id: 'penn',
         name: 'Penn FC',
         sub: `Penn`,
@@ -1124,45 +1315,7 @@ export let teams = [
             'Crakik',
         ]
     },
-    {
-        id: 'ATM',
-        name: 'Atletico Madrid',
-        sub: `ATM`,
-        originC: 'Spain',
-        originL: 'ES',
-        img: 'images/teams/atleti.png',
-        player: [
-            'Antoine Griezmann',
-            'Jan Oblak',
-            'João Félix'
-        ]
-    },
-    {
-        id: 'CHE',
-        name: 'Chelsea FC',
-        sub: `CHE`,
-        originC: 'England',
-        originL: 'EN',
-        img: 'images/teams/chelsea.png',
-        player: [
-            'Mason Mount',
-            `N'Golo Kanté`,
-            'Reece James'
-        ]
-    },
-    {
-        id: 'BAY',
-        name: 'Bayern Munich',
-        sub: `BAY`,
-        originC: 'Germany',
-        originL: 'DE',
-        img: 'images/teams/bayern.png',
-        player: [
-            'Robert Lewandowski',
-            'Thomas Müller',
-            'Manuel Neuer'
-        ]
-    },
+    
     {
         id: 'athmak',
         name: 'Athmak FC',
@@ -1222,21 +1375,7 @@ export let teams = [
             'nendy',
         ]
     },
-    {
-        id: 'DELU',
-        name: 'DelU',
-        sub: `DelU`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/delU.png',
-        player: [
-            'Foden',
-            'Rusco',
-            "Bale",
-            'L. Alves',
-            'Ancetti'
-        ]
-    },
+
 
 
 ];
@@ -1769,7 +1908,7 @@ function createSeasonDialog() {
             teams selected: 0/20
         </span>
         <select name="years" id="year-select">
-            ${Array.from({ length: 60 }, (_, i) => {
+            ${Array.from({ length: 103 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
                 const currentSeason = getCurrentSeason();
                 return `<option value="${year}" ${year.toString() === currentSeason ? 'selected' : ''}>${year}</option>`;
