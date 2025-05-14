@@ -6,10 +6,14 @@
   <title>Player Formatter</title>
   <style>
     body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    input, textarea, button { margin: 10px 0; display: block; width: 100%; }
+    input, textarea, button, select { margin: 10px 0; display: block; width: 100%; padding: 8px; box-sizing: border-box; }
     .player-card { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 8px; }
-    .delete-btn { background: crimson; color: white; padding: 5px 10px; border: none; cursor: pointer; }
+    .delete-btn { background: crimson; color: white; padding: 5px 10px; border: none; cursor: pointer; width: auto; }
     .teams-wrapper { margin-bottom: 10px; }
+    .team-entry { display: flex; gap: 10px; margin-bottom: 10px; }
+    .team-entry select { flex: 1; }
+    .team-entry input { flex: 1; }
+    .team-entry button { width: auto; background: crimson; color: white; border: none; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -40,36 +44,104 @@
 
   <script>
     const currentYear = 1997;
+    
+    // Team data from your provided list
+    const teamsList = [
+      { id: 'tex', name: 'Cerius Texico' },
+      { id: 'DELU', name: 'DelU' },
+      { id: 'DELM', name: 'Del Mer' },
+      { id: 'Dom', name: 'Domania' },
+      { id: 'fill', name: 'Fillham United' },
+      { id: 'esg', name: 'Esgual CF' },
+      { id: 'hewi', name: 'Hewi FC' },
+      { id: 'lenico', name: 'Lenico' },
+      { id: 'nb', name: 'New Bern' },
+      { id: 'pali', name: 'Pali' },
+      { id: 'Sprta', name: 'Sporta CF' },
+      { id: 'Uly', name: 'Ulimy' },
+      { id: 'RS', name: 'Real Sol' },
+      { id: 'BCCR', name: 'BC Central' },
+      { id: 'serpo', name: 'Serpogol' },
+      { id: 'DelUnited', name: 'Del United' },
+      { id: 'PSL', name: 'Pacific Saint leon' },
+      { id: 'NDIJON', name: 'North Dijon' },
+      { id: 'ocio', name: 'Ocio' },
+      { id: 'riofc', name: 'Rio FC' },
+      { id: 'Sentago', name: 'Sentago' },
+      { id: 'pacer', name: 'Pacer FC' },
+      { id: 'gks', name: 'GKS' },
+      { id: 'BVB', name: 'Borussia Dortmund' },
+      { id: 'deg', name: 'Degato' },
+      { id: 'astH', name: 'Astana Hotspurs' },
+      { id: 'bsti', name: 'Bistana FC' },
+      { id: 'hogn', name: 'Hougon FC' },
+      { id: 'penn', name: 'Penn FC' },
+      { id: 'dj', name: 'Dijel FC' },
+      { id: 'athmak', name: 'Athmak FC' },
+      { id: 'Vfy', name: 'Vfoyern' },
+      { id: 'SprtBlk', name: 'Sporting Blekis' },
+      { id: 'SLV', name: 'Salvia FC' }
+    ];
 
     function playerYears(ranges) {
-      return ranges; // Placeholder: Replace with actual function logic
+      // Process date ranges 
+      if (!ranges || !Array.isArray(ranges)) return [];
+      
+      // Format ranges for display and usage
+      return ranges.map(range => {
+        if (Array.isArray(range) && range.length === 2) {
+          const [start, end] = range;
+          if (start === end) return start;
+          return `${start}-${end}`;
+        }
+        return range;
+      });
     }
 
     function addTeamInput() {
       const container = document.getElementById('teamsContainer');
       const div = document.createElement('div');
+      div.className = 'team-entry';
+      
+      // Create team dropdown select with all teams
+      let teamsSelect = '<select class="team-name">';
+      teamsSelect += '<option value="">Select a team</option>';
+      teamsList.forEach(team => {
+        teamsSelect += `<option value="${team.id}">${team.name} (${team.id})</option>`;
+      });
+      teamsSelect += '</select>';
+      
       div.innerHTML = `
-        <input type="text" placeholder="Team Name" class="team-name" />
+        ${teamsSelect}
         <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" />
+        <button onclick="this.parentElement.remove()">Remove</button>
       `;
       container.appendChild(div);
     }
 
     function getTeamData() {
-      const teamInputs = document.querySelectorAll('#teamsContainer div');
+      const teamInputs = document.querySelectorAll('#teamsContainer .team-entry');
       const teams = {};
       teamInputs.forEach(div => {
-        const name = div.querySelector('.team-name')?.value.trim();
+        const teamSelect = div.querySelector('.team-name');
+        const nameValue = teamSelect ? teamSelect.value.trim() : '';
         const rangeStr = div.querySelector('.team-years')?.value.trim();
-        if (!name || !rangeStr) return;
+        if (!nameValue || !rangeStr) return;
 
         const ranges = [];
         rangeStr.split(',').forEach(r => {
-          const [start, end] = r.split('-').map(Number);
-          if (!isNaN(start)) ranges.push([start, end || start]);
+          const parts = r.split('-');
+          if (parts.length === 1) {
+            const year = Number(parts[0].trim());
+            if (!isNaN(year)) ranges.push([year, year]);
+          } else if (parts.length === 2) {
+            const start = Number(parts[0].trim());
+            const end = Number(parts[1].trim());
+            if (!isNaN(start) && !isNaN(end)) ranges.push([start, end]);
+          }
         });
 
-        if (ranges.length) teams[name] = { years: `playerYears(${JSON.stringify(ranges)})` };
+        if (ranges.length) teams[nameValue] = ranges;
       });
       return teams;
     }
@@ -114,23 +186,51 @@
       const output = document.getElementById('exportOutput');
 
       list.innerHTML = '';
-      output.textContent = '';
-
-      players.forEach((player, index) => {
+      
+      // Create player cards
+      players.reverse().forEach((player, index) => {
         const card = document.createElement('div');
         card.className = 'player-card';
+        
+        // Build team display
+        let teamDisplay = '';
+        if (player.teams) {
+          for (const [teamId, years] of Object.entries(player.teams)) {
+            const teamInfo = teamsList.find(t => t.id === teamId) || { name: teamId };
+            teamDisplay += `<br>Team: ${teamInfo.name} (${teamId})<br>Years: ${JSON.stringify(years)}<br>`;
+          }
+        }
+        
         card.innerHTML = `
           <strong>${player.name}</strong><br/>
           Type: ${player.type}<br/>
-          DOB: ${player.dob}<br/>
+          DOB: ${player.dob}
+          ${teamDisplay}
           <button class="delete-btn" onclick="deletePlayer(${index})">Delete</button>
         `;
         list.appendChild(card);
       });
 
-      output.textContent = `const players = ${JSON.stringify(players, null, 2)};`;
+      // Format for export
+      const formattedPlayers = players.map(player => {
+        const formattedPlayer = { ...player };
+        
+        // Format teams for export
+        if (formattedPlayer.teams) {
+          for (const teamId in formattedPlayer.teams) {
+            formattedPlayer.teams[teamId] = {
+              years: `playerYears(${JSON.stringify(formattedPlayer.teams[teamId])})`
+            };
+          }
+        }
+        
+        return formattedPlayer;
+      });
+      
+      output.textContent = `const players = ${JSON.stringify(formattedPlayers, null, 2)};`;
     }
 
+    // Initialize on page load
     renderPlayers();
   </script>
 </body>
