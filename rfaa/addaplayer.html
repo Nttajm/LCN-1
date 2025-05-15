@@ -89,12 +89,12 @@
       
       // Format ranges for display and usage
       return ranges.map(range => {
-        if (Array.isArray(range) && range.length === 2) {
-          const [start, end] = range;
-          if (start === end) return start;
-          return `${start}-${end}`;
-        }
-        return range;
+      if (Array.isArray(range) && range.length === 2) {
+        const [start, end] = range;
+        if (start === end) return start;
+        return `${start}-${end}`;
+      }
+      return range;
       });
     }
 
@@ -107,14 +107,14 @@
       let teamsSelect = '<select class="team-name">';
       teamsSelect += '<option value="">Select a team</option>';
       teamsList.forEach(team => {
-        teamsSelect += `<option value="${team.id}">${team.name} (${team.id})</option>`;
+      teamsSelect += `<option value="${team.id}">${team.name} (${team.id})</option>`;
       });
       teamsSelect += '</select>';
       
       div.innerHTML = `
-        ${teamsSelect}
-        <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" />
-        <button onclick="this.parentElement.remove()">Remove</button>
+      ${teamsSelect}
+      <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" />
+      <button onclick="this.parentElement.remove()">Remove</button>
       `;
       container.appendChild(div);
     }
@@ -122,26 +122,39 @@
     function getTeamData() {
       const teamInputs = document.querySelectorAll('#teamsContainer .team-entry');
       const teams = {};
+      
+      // Track team occurrences to handle duplicates
+      const teamOccurrences = {};
+      
       teamInputs.forEach(div => {
-        const teamSelect = div.querySelector('.team-name');
-        const nameValue = teamSelect ? teamSelect.value.trim() : '';
-        const rangeStr = div.querySelector('.team-years')?.value.trim();
-        if (!nameValue || !rangeStr) return;
+      const teamSelect = div.querySelector('.team-name');
+      const nameValue = teamSelect ? teamSelect.value.trim() : '';
+      const rangeStr = div.querySelector('.team-years')?.value.trim();
+      if (!nameValue || !rangeStr) return;
 
-        const ranges = [];
-        rangeStr.split(',').forEach(r => {
-          const parts = r.split('-');
-          if (parts.length === 1) {
-            const year = Number(parts[0].trim());
-            if (!isNaN(year)) ranges.push([year, year]);
-          } else if (parts.length === 2) {
-            const start = Number(parts[0].trim());
-            const end = Number(parts[1].trim());
-            if (!isNaN(start) && !isNaN(end)) ranges.push([start, end]);
-          }
-        });
+      const ranges = [];
+      rangeStr.split(',').forEach(r => {
+        const parts = r.split('-');
+        if (parts.length === 1) {
+        const year = Number(parts[0].trim());
+        if (!isNaN(year)) ranges.push([year, year]);
+        } else if (parts.length === 2) {
+        const start = Number(parts[0].trim());
+        const end = Number(parts[1].trim());
+        if (!isNaN(start) && !isNaN(end)) ranges.push([start, end]);
+        }
+      });
 
-        if (ranges.length) teams[nameValue] = ranges;
+      if (ranges.length) {
+        // For duplicate teams, create a unique key with an index
+        if (!teamOccurrences[nameValue]) {
+        teamOccurrences[nameValue] = 1;
+        teams[nameValue] = ranges;
+        } else {
+        teamOccurrences[nameValue]++;
+        teams[`${nameValue}_${teamOccurrences[nameValue]}`] = ranges;
+        }
+      }
       });
       return teams;
     }
@@ -155,11 +168,12 @@
     }
 
     function deletePlayer(index) {
-      const players = getPlayers();
+      const players = getPlayers().reverse();
+      if (index < 0 || index >= players.length) return;
       players.splice(index, 1);
       savePlayers(players);
       renderPlayers();
-    }
+    } 
 
     function addPlayer() {
       const name = document.getElementById('nameInput').value.trim();
@@ -189,41 +203,58 @@
       
       // Create player cards
       players.reverse().forEach((player, index) => {
-        const card = document.createElement('div');
-        card.className = 'player-card';
-        
-        // Build team display
-        let teamDisplay = '';
-        if (player.teams) {
-          for (const [teamId, years] of Object.entries(player.teams)) {
-            const teamInfo = teamsList.find(t => t.id === teamId) || { name: teamId };
-            teamDisplay += `<br>Team: ${teamInfo.name} (${teamId})<br>Years: ${JSON.stringify(years)}<br>`;
-          }
-        } 
-        
-        card.innerHTML = `
-          <strong>${player.name}</strong><br/>
-          Type: ${player.type}<br/>
-          DOB: ${player.dob}
-          ${teamDisplay}
-          <button class="delete-btn" onclick="deletePlayer(${index})">Delete</button>
-        `;
-        list.appendChild(card);
+      const card = document.createElement('div');
+      card.className = 'player-card';
+      
+      // Build team display
+      let teamDisplay = '';
+      if (player.teams) {
+        for (const [teamId, years] of Object.entries(player.teams)) {
+        // Extract base team ID without the duplicate suffix
+        const baseTeamId = teamId.split('_')[0];
+        const teamInfo = teamsList.find(t => t.id === baseTeamId) || { name: baseTeamId };
+        teamDisplay += `<br>Team: ${teamInfo.name} (${baseTeamId})<br>Years: ${JSON.stringify(years)}<br>`;
+        }
+      } 
+      
+      card.innerHTML = `
+        <strong>${player.name}</strong><br/>
+        Type: ${player.type}<br/>
+        DOB: ${player.dob}
+        ${teamDisplay}
+        <button class="delete-btn" onclick="deletePlayer(${index})">Delete</button>
+      `;
+      list.appendChild(card);
       });
 
       // Format for export
       const formattedPlayers = players.map(player => {
-        const formattedPlayer = { ...player };
-        
-        // Format teams for export
-        if (formattedPlayer.teams) {
-          for (const teamId in formattedPlayer.teams) {
-            formattedPlayer.teams[teamId] = {
-              years: `playerYears(${JSON.stringify(formattedPlayer.teams[teamId])})`
-            };
-          }
+      const formattedPlayer = { ...player };
+      
+      // Format teams for export
+      if (formattedPlayer.teams) {
+        const newTeams = {};
+        for (const teamId in formattedPlayer.teams) {
+        // Get base team ID without the duplicate suffix
+        const baseTeamId = teamId.split('_')[0];
+        // If this team already exists in newTeams, merge the years
+        if (newTeams[baseTeamId]) {
+          const existingYears = JSON.parse(newTeams[baseTeamId].years
+          .replace('playerYears(', '')
+          .replace(')', ''));
+          const newYears = formattedPlayer.teams[teamId];
+          newTeams[baseTeamId] = {
+          years: `playerYears(${JSON.stringify([...existingYears, ...newYears])})`
+          };
+        } else {
+          newTeams[baseTeamId] = {
+          years: `playerYears(${JSON.stringify(formattedPlayer.teams[teamId])})`
+          };
         }
-        return formattedPlayer;
+        }
+        formattedPlayer.teams = newTeams;
+      }
+      return formattedPlayer;
       });
       output.textContent = `const players = ${JSON.stringify(formattedPlayers, null, 2)};`;
     }
