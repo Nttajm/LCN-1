@@ -255,7 +255,7 @@
       }
       return formattedPlayer;
       });
-      output.textContent = `const players = ${JSON.stringify(formattedPlayers, null, 2)};`;
+      output.textContent = `let players = ${JSON.stringify(formattedPlayers, null, 2)};`;
     }
 
     // Initialize on page load
