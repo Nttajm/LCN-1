@@ -1354,11 +1354,7 @@ export let teams = [
         originL: 'BKS',
         img: 'images/teams/Sporting-Blekis.png',
         player: [
-            'Ben Mark',
-            'K. Bmepp',
-            'atten',
-            'SotaMou',
-            'Kounde',
+            'fierro',
         ]
     },
     {
