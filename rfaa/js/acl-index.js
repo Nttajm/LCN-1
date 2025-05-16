@@ -1263,7 +1263,7 @@ export let teams = [
         sub: `Astana`,
         originC: 'Bolive',
         originL: 'BKS',
-        img: 'images/teams/AST-Hotspurmn.png',
+        img: 'images/teams/AST-Hotspur.png',
         player: getPlayersByTeam('astH', [])
     },
     {
@@ -1281,7 +1281,7 @@ export let teams = [
         sub: `Hogna`,
         originC: 'Bolive',
         originL: 'BKS',
-        img: 'images/teams/Bistana.png',
+        img: 'images/teams/CastelHogan.png',
         player: getPlayersByTeam('hogn', [])
     },
     
