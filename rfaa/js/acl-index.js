@@ -1031,8 +1031,8 @@ export let teams = [
         sub: `Bern`,
         originC: 'Qui',
         originL: 'quiser',
-        img: 'images/teams/lenico.png',
-        player: getPlayersByTeam('lenico', [])
+        img: 'images/teams/newbern.png',
+        player: getPlayersByTeam('nb', [])
     },
     {
         id: 'pali',
