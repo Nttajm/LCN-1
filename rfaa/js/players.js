@@ -2004,7 +2004,7 @@ export let players = [
         }
     },
     {
-        name: 'Daniel Fairchild',
+        name: 'Daniel Fairchi',
         type: 'retired',
         dob: '1976-12-22',
         teams: {
