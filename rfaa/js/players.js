@@ -1647,7 +1647,7 @@ export let players = [
         }
     },
     {
-        name: 'Manuel González Castro',
+        name: 'Manuel Castro',
         type: 'retired',
         dob: '1976-05-18',
         teams: {
@@ -1660,7 +1660,7 @@ export let players = [
         }
     },
     {
-        name: 'Ricardo Sánchez Iglesias',
+        name: 'Ricardo Iglesias',
         type: 'retired',
         dob: '1975-11-07',
         teams: {
@@ -1716,7 +1716,7 @@ export let players = [
         }
     },
     {
-        name: 'Daniel López Vargas',
+        name: 'Daniel Vargas',
         type: 'retired',
         dob: '1975-01-19',
         teams: {
