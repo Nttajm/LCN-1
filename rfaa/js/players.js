@@ -1,3 +1,4 @@
+import { playerYears } from "./acl-index.js"
 export let players = [
   {
     "name": "Famete Saihno",
