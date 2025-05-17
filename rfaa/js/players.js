@@ -1,6 +1,1475 @@
-// Define global variables
-export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
-export let players = [    // Spanish players for Spanish teams (originL: TS)
+export let players = [
+  {
+    "name": "Famete Saihno",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "lenico": {
+        "years": playerYears([[1998, 2003]])
+      },
+      "SprtBlk": {
+        "years": playerYears([[2004, 2006]])
+      }
+    }
+  },
+  {
+    "name": "James Ollie",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "hewi": {
+        "years": playerYears([[1994, 1996]])
+      },
+      "lenico": {
+        "years": playerYears([[1997, 2000]])
+      },
+      "nb": {
+        "years": playerYears([[2001, 2004]])
+      }
+    }
+  },
+  {
+    "name": "Javier Hernandez",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "pali": {
+        "years": playerYears([[1995, 1999]])
+      },
+      "esg": {
+        "years": playerYears([[2000, 2004]])
+      },
+      "hewi": {
+        "years": playerYears([[2005, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Thomas Cansi",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "Vfy": {
+        "years": playerYears([[1995, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Frank Mar",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "athmak": {
+        "years": playerYears([[1996, 2001]])
+      },
+      "Vfy": {
+        "years": playerYears([[2002, 2005]])
+      }
+    }
+  },
+  {
+    "name": "Derrick Rose",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "athmak": {
+        "years": playerYears([[1995, 2003]])
+      },
+      "Uly": {
+        "years": playerYears([[2004, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Luis Casado",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "dj": {
+        "years": playerYears([[1996, 2002]])
+      },
+      "riofc": {
+        "years": playerYears([[2003, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Skelly Klose",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "dj": {
+        "years": playerYears([[1996, 2014]])
+      }
+    }
+  },
+  {
+    "name": "Meso Alvarez",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "dj": {
+        "years": playerYears([[1997, 2006]])
+      },
+      "pali": {
+        "years": playerYears([[2007, 2010]])
+      }
+    }
+  },
+  {
+    "name": "Doeu Jon",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "dj": {
+        "years": playerYears([[1996, 2006]])
+      }
+    }
+  },
+  {
+    "name": "Otto Nesta",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "tex": {
+        "years": playerYears([[1997, 2001]])
+      },
+      "DELM": {
+        "years": playerYears([[2002, 2005]])
+      },
+      "esg": {
+        "years": playerYears([[2006, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Xan De Bar",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "hogn": {
+        "years": playerYears([[1995, 1998]])
+      },
+      "BVB": {
+        "years": playerYears([[1999, 2008]])
+      },
+      "Vfy": {
+        "years": playerYears([[2009, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Enderson Ronaldo",
+    "type": "active",
+    "dob": "1980-01-01",
+    "teams": {
+      "penn": {
+        "years": playerYears([[1997, 2001]])
+      },
+      "gks": {
+        "years": playerYears([[2002, 2015]])
+      }
+    }
+  },
+  {
+    "name": "David Rodriguez",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "penn": {
+        "years": playerYears([[1996, 2004]])
+      },
+      "ocio": {
+        "years": playerYears([[2005, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Yao Termicia",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "hogn": {
+        "years": playerYears([[1997, 2002]])
+      },
+      "penn": {
+        "years": playerYears([[2003, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Denjo Perco",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "hogn": {
+        "years": playerYears([[1996, 2003]])
+      },
+      "esg": {
+        "years": playerYears([[2004, 2015]])
+      }
+    }
+  },
+  {
+    "name": "João Marcos",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "bsti": {
+        "years": playerYears([[1997, 2001]])
+      },
+      "Vfy": {
+        "years": playerYears([[2002, 2005]])
+      },
+      "hewi": {
+        "years": playerYears([[2006, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Tipo Legante",
+    "type": "active",
+    "dob": "1975-01-01",
+    "teams": {
+      "bsti": {
+        "years": playerYears([[1994, 1997]])
+      },
+      "DELM": {
+        "years": playerYears([[1999, 2002]])
+      },
+      "RS": {
+        "years": playerYears([[2003, 2014]])
+      }
+    }
+  },
+  {
+    "name": "Fosa Bole",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "astH": {
+        "years": playerYears([[1995, 2003]])
+      },
+      "SprtBlk": {
+        "years": playerYears([[2004, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Fisca Lapierre",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "PSL": {
+        "years": playerYears([[1996, 1999]])
+      },
+      "DELM": {
+        "years": playerYears([[2003, 2005]])
+      },
+      "ocio": {
+        "years": playerYears([[2006, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Elliot Fons",
+    "type": "active",
+    "dob": "1974-01-01",
+    "teams": {
+      "NDIJON": {
+        "years": playerYears([[1997, 2005]])
+      },
+      "ocio": {
+        "years": playerYears([[2006, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Harvey Delapos",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "NDIJON": {
+        "years": playerYears([[1996, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Bronando marcos",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "PSL": {
+        "years": playerYears([[1996, 2001]])
+      },
+      "dj": {
+        "years": playerYears([[2005, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Fern Martinez",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "PSL": {
+        "years": playerYears([[1997, 2003]])
+      },
+      "esg": {
+        "years": playerYears([[2004, 2009]])
+      },
+      "hewi": {
+        "years": playerYears([[2010, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Maylo Suarez",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "PSL": {
+        "years": playerYears([[1996, 2002]])
+      },
+      "penn": {
+        "years": playerYears([[2003, 2006]])
+      },
+      "BVB": {
+        "years": playerYears([[2007, 2015]])
+      }
+    }
+  },
+  {
+    "name": "Denis Dapali",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "PSL": {
+        "years": playerYears([[1996, 2001]])
+      },
+      "DELU": {
+        "years": playerYears([[2002, 2006]])
+      },
+      "NDIJON": {
+        "years": playerYears([[2007, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Ethan Bale",
+    "type": "active",
+    "dob": "1974-01-01",
+    "teams": {
+      "lenico": {
+        "years": playerYears([[1995, 1996]])
+      },
+      "PSL": {
+        "years": playerYears([[1997, 2000]])
+      },
+      "dj": {
+        "years": playerYears([[2001, 2006]])
+      },
+      "Sprta": {
+        "years": playerYears([[2007, 2014]])
+      }
+    }
+  },
+  {
+    "name": "Dante Paulo",
+    "type": "active",
+    "dob": "1973-01-01",
+    "teams": {
+      "athmak": {
+        "years": playerYears([[1993, 1996]])
+      },
+      "PSL": {
+        "years": playerYears([[1997, 2004]])
+      }
+    }
+  },
+  {
+    "name": "Alvro Casmiero",
+    "type": "active",
+    "dob": "1981-01-01",
+    "teams": {
+      "DelUnited": {
+        "years": playerYears([[1997, 2001]])
+      },
+      "tex": {
+        "years": playerYears([[2002, 2007]])
+      },
+      "ocio": {
+        "years": playerYears([[2008, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Tom Canos",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "DELM": {
+        "years": playerYears([[1994, 1996]])
+      },
+      "DelUnited": {
+        "years": playerYears([[1997, 2004]])
+      },
+      "NDIJON": {
+        "years": playerYears([[2005, 2008]])
+      }
+    }
+  },
+  {
+    "name": "Thiago Burns",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "DelUnited": {
+        "years": playerYears([[1996, 2004]])
+      },
+      "gks": {
+        "years": playerYears([[2005, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Marzo Dibla",
+    "type": "active",
+    "dob": "1974-01-01",
+    "teams": {
+      "Uly": {
+        "years": playerYears([[1995, 2002]])
+      },
+      "PSL": {
+        "years": playerYears([[2003, 2010]])
+      }
+    }
+  },
+  {
+    "name": "Docey E'cani",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "Uly": {
+        "years": playerYears([[1996, 2000]])
+      },
+      "dj": {
+        "years": playerYears([[2001, 2004]])
+      },
+      "BVB": {
+        "years": playerYears([[2005, 2018]])
+      }
+    }
+  },
+  {
+    "name": "Perco Di'lano",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "ocio": {
+        "years": playerYears([[1996, 2002], [2013, 2017]])
+      },
+      "DELU": {
+        "years": playerYears([[2003, 2012]])
+      }
+    }
+  },
+  {
+    "name": "James Holister",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "Uly": {
+        "years": playerYears([[1996, 2002]])
+      },
+      "DELM": {
+        "years": playerYears([[2003, 2009]])
+      },
+      "NDIJON": {
+        "years": playerYears([[2010, 2012]])
+      }
+    }
+  },
+  {
+    "name": "James Falcao",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "RS": {
+        "years": playerYears([[1996, 2003]])
+      },
+      "PSL": {
+        "years": playerYears([[2004, 2008]])
+      },
+      "penn": {
+        "years": playerYears([[2009, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Blane Hene",
+    "type": "active",
+    "dob": "1980-01-01",
+    "teams": {
+      "RS": {
+        "years": playerYears([[1997, 2002]])
+      },
+      "hogn": {
+        "years": playerYears([[2003, 2006]])
+      },
+      "dj": {
+        "years": playerYears([[2007, 2008]])
+      }
+    }
+  },
+  {
+    "name": "Diaz Chesma",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "PSL": {
+        "years": playerYears([[1996, 2000]])
+      },
+      "RS": {
+        "years": playerYears([[2001, 2007]])
+      },
+      "ocio": {
+        "years": playerYears([[2008, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Fezto Maradini",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "esg": {
+        "years": playerYears([[1994, 1996]])
+      },
+      "RS": {
+        "years": playerYears([[1997, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Hius Ruo",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "BCCR": {
+        "years": playerYears([[1996, 2006]])
+      },
+      "BVB": {
+        "years": playerYears([[2007, 2011]])
+      }
+    }
+  },
+  {
+    "name": "James tackfo",
+    "type": "active",
+    "dob": "1980-01-01",
+    "teams": {
+      "BCCR": {
+        "years": playerYears([[1997, 2004]])
+      },
+      "SprtBlk": {
+        "years": playerYears([[2005, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Rash Rafoy",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "BCCR": {
+        "years": playerYears([[1996, 2002]])
+      },
+      "Vfy": {
+        "years": playerYears([[2003, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Aiden brown",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "serpo": {
+        "years": playerYears([[1996, 2006]])
+      },
+      "lenico": {
+        "years": playerYears([[2007, 2010]])
+      }
+    }
+  },
+  {
+    "name": "Den Torch",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "serpo": {
+        "years": playerYears([[1995, 2001], [2008, 2013]])
+      },
+      "DelUnited": {
+        "years": playerYears([[2002, 2007]])
+      }
+    }
+  },
+  {
+    "name": "Hona Piroka",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "serpo": {
+        "years": playerYears([[1993, 1999]])
+      },
+      "pali": {
+        "years": playerYears([[2001, 2005]])
+      },
+      "pacer": {
+        "years": playerYears([[2006, 2010]])
+      }
+    }
+  },
+  {
+    "name": "Pesotuti Son",
+    "type": "active",
+    "dob": "1980-01-01",
+    "teams": {
+      "serpo": {
+        "years": playerYears([[1997, 2003]])
+      },
+      "lenico": {
+        "years": playerYears([[2004, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Mystio jelen",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "serpo": {
+        "years": playerYears([[1996, 2001]])
+      },
+      "DELM": {
+        "years": playerYears([[2002, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Bruno Diaz",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "DelUnited": {
+        "years": playerYears([[1996, 2005], [2012, 2014]])
+      },
+      "PSL": {
+        "years": playerYears([[2006, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Nigel Estafano",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "NDIJON": {
+        "years": playerYears([[1994, 2004]])
+      },
+      "BVB": {
+        "years": playerYears([[2005, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Elliot Granar",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "ocio": {
+        "years": playerYears([[1996, 2002]])
+      },
+      "Vfy": {
+        "years": playerYears([[2003, 2006]])
+      },
+      "Dom": {
+        "years": playerYears([[2007, 2007]])
+      }
+    }
+  },
+  {
+    "name": "James Garcia",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "ocio": {
+        "years": playerYears([[1996, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Riri Ruco",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "ocio": {
+        "years": playerYears([[1997, 2006]])
+      },
+      "tex": {
+        "years": playerYears([[2007, 2014]])
+      }
+    }
+  },
+  {
+    "name": "Dellin Isco",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "ocio": {
+        "years": playerYears([[1997, 2005]])
+      },
+      "tex": {
+        "years": playerYears([[2006, 2016]])
+      }
+    }
+  },
+  {
+    "name": "Sudo Mane",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "riofc": {
+        "years": playerYears([[1997, 2006]])
+      }
+    }
+  },
+  {
+    "name": "Nisel bastoni",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "SLV": {
+        "years": playerYears([[1994, 1995]])
+      },
+      "riofc": {
+        "years": playerYears([[1997, 2001]])
+      },
+      "nb": {
+        "years": playerYears([[2002, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Sans Pedri",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "riofc": {
+        "years": playerYears([[1997, 2009]])
+      },
+      "DELM": {
+        "years": playerYears([[2010, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Gas Luidado",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "riofc": {
+        "years": playerYears([[1997, 2005]])
+      },
+      "Vfy": {
+        "years": playerYears([[2006, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Jason Blu",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "riofc": {
+        "years": playerYears([[1997, 2016]])
+      }
+    }
+  },
+  {
+    "name": "Resto Elli",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "Sentago": {
+        "years": playerYears([[1996, 2006]])
+      },
+      "NDIJON": {
+        "years": playerYears([[2007, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Rafi Pulla",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "Sentago": {
+        "years": playerYears([[1997, 2004]])
+      },
+      "pali": {
+        "years": playerYears([[2005, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Apuma Hedona'to",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "Sentago": {
+        "years": playerYears([[1997, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Van Silva",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "pacer": {
+        "years": playerYears([[1996, 2014]])
+      }
+    }
+  },
+  {
+    "name": "San Guia",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "pacer": {
+        "years": playerYears([[1996, 2002]])
+      },
+      "hogn": {
+        "years": playerYears([[2003, 2005]])
+      }
+    }
+  },
+  {
+    "name": "Grane Flow",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "pacer": {
+        "years": playerYears([[1997, 2005]])
+      },
+      "penn": {
+        "years": playerYears([[2006, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Mans Icao",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "pacer": {
+        "years": playerYears([[1997, 2005]])
+      },
+      "DELU": {
+        "years": playerYears([[2006, 2010]])
+      },
+      "dj": {
+        "years": playerYears([[2011, 2016]])
+      }
+    }
+  },
+  {
+    "name": "Elin Foster",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "gks": {
+        "years": playerYears([[1995, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Derick Gru",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "gks": {
+        "years": playerYears([[1996, 2002]])
+      },
+      "DelUnited": {
+        "years": playerYears([[2003, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Giona Nogio",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "gks": {
+        "years": playerYears([[1995, 1999]])
+      },
+      "dj": {
+        "years": playerYears([[2001, 2008]])
+      }
+    }
+  },
+  {
+    "name": "Denzel Opel",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "BVB": {
+        "years": playerYears([[1996, 2010]])
+      }
+    }
+  },
+  {
+    "name": "João Lavdos",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "SprtBlk": {
+        "years": playerYears([[1996, 2001]])
+      },
+      "BVB": {
+        "years": playerYears([[2002, 2019]])
+      }
+    }
+  },
+  {
+    "name": "Denz Fenzo",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "deg": {
+        "years": playerYears([[1996, 2003]])
+      },
+      "DELU": {
+        "years": playerYears([[2004, 2016]])
+      }
+    }
+  },
+  {
+    "name": "Gramz Belfort",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "deg": {
+        "years": playerYears([[1996, 2004]])
+      },
+      "athmak": {
+        "years": playerYears([[2005, 2015]])
+      }
+    }
+  },
+  {
+    "name": "Reso Miko",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "deg": {
+        "years": playerYears([[1996, 2001]])
+      },
+      "Vfy": {
+        "years": playerYears([[2002, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Hela Slepton",
+    "type": "active",
+    "dob": "1975-01-01",
+    "teams": {
+      "DelUnited": {
+        "years": playerYears([[1994, 2001]])
+      },
+      "astH": {
+        "years": playerYears([[2002, 2013]])
+      }
+    }
+  },
+  {
+    "name": "fernado Fernz",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "astH": {
+        "years": playerYears([[1999, 1999]])
+      },
+      "Uly": {
+        "years": playerYears([[2000, 2003]])
+      },
+      "SLV": {
+        "years": playerYears([[2004, 2021]])
+      }
+    }
+  },
+  {
+    "name": "Jota Eme",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "tex": {
+        "years": playerYears([[1994, 2009], [2014, 2025]])
+      },
+      "BVB": {
+        "years": playerYears([[2010, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Fojan Grick",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "tex": {
+        "years": playerYears([[1997, 2006]])
+      }
+    }
+  },
+  {
+    "name": "Heberto Vezas",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "Sprta": {
+        "years": playerYears([[1996, 2000]])
+      },
+      "tex": {
+        "years": playerYears([[2002, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Dan Fons",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "lenico": {
+        "years": playerYears([[1994, 2001]])
+      },
+      "NDIJON": {
+        "years": playerYears([[2002, 2006]])
+      },
+      "nb": {
+        "years": playerYears([[2007, 2015]])
+      }
+    }
+  },
+  {
+    "name": "lleenish Marquinhos",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "SprtBlk": {
+        "years": playerYears([[1996, 2005]])
+      },
+      "Sentago": {
+        "years": playerYears([[2006, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Becenti Didier.",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "SprtBlk": {
+        "years": playerYears([[1997, 2005]])
+      },
+      "ocio": {
+        "years": playerYears([[2006, 2015]])
+      }
+    }
+  },
+  {
+    "name": "Eppie Cans",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "SLV": {
+        "years": playerYears([[1996, 1999]])
+      },
+      "hogn": {
+        "years": playerYears([[2000, 2002]])
+      }
+    }
+  },
+  {
+    "name": "Fern Vardy",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "DELU": {
+        "years": playerYears([[1996, 2004]])
+      },
+      "PSL": {
+        "years": playerYears([[2005, 2014]])
+      }
+    }
+  },
+  {
+    "name": "Bebi Fanton",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "DELU": {
+        "years": playerYears([[1997, 2003]])
+      }
+    }
+  },
+  {
+    "name": "Oswin Glanstoné",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "DELU": {
+        "years": playerYears([[1996, 2006]])
+      },
+      "DELM": {
+        "years": playerYears([[2007, 2011]])
+      }
+    }
+  },
+  {
+    "name": "João Maní",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "DELM": {
+        "years": playerYears([[1996, 2007]])
+      },
+      "lenico": {
+        "years": playerYears([[2008, 2010]])
+      }
+    }
+  },
+  {
+    "name": "Jose Lautaro",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "fill": {
+        "years": playerYears([[1996, 2000]])
+      },
+      "BVB": {
+        "years": playerYears([[2001, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Stenfano Mirc",
+    "type": "active",
+    "dob": "1975-01-01",
+    "teams": {
+      "DELM": {
+        "years": playerYears([[1997, 2009]])
+      },
+      "lenico": {
+        "years": playerYears([[2009, 2014]])
+      }
+    }
+  },
+  {
+    "name": "Eji",
+    "type": "active",
+    "dob": "1965-01-01",
+    "teams": {
+      "SprtBlk": {
+        "years": playerYears([[1989, 1994]])
+      },
+      "DELM": {
+        "years": playerYears([[1994, 2002]])
+      }
+    }
+  },
+  {
+    "name": "Yanim Yali",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "DELM": {
+        "years": playerYears([[1996, 2004]])
+      },
+      "Dom": {
+        "years": playerYears([[2004, 2006]])
+      },
+      "fill": {
+        "years": playerYears([[2006, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Yohan Blake",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "Dom": {
+        "years": playerYears([[1995, 2005]])
+      },
+      "esg": {
+        "years": playerYears([[2005, 2009]])
+      },
+      "hewi": {
+        "years": playerYears([[2009, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Ferpoli Luckis",
+    "type": "active",
+    "dob": "1974-01-01",
+    "teams": {
+      "Dom": {
+        "years": playerYears([[1996, 2001]])
+      },
+      "fill": {
+        "years": playerYears([[2001, 2004]])
+      },
+      "penn": {
+        "years": playerYears([[2004, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Marcos Luitana",
+    "type": "active",
+    "dob": "1973-01-01",
+    "teams": {
+      "Dom": {
+        "years": playerYears([[2006, 2011]])
+      },
+      "esg": {
+        "years": playerYears([[2000, 2004]])
+      },
+      "Sprta": {
+        "years": playerYears([[2004, 2006]])
+      }
+    }
+  },
+  {
+    "name": "Finz Poala",
+    "type": "active",
+    "dob": "1980-01-01",
+    "teams": {
+      "esg": {
+        "years": playerYears([[1997, 2004]])
+      },
+      "lenico": {
+        "years": playerYears([[2004, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Lamar Greenson",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "fill": {
+        "years": playerYears([[1996, 1999]])
+      },
+      "tex": {
+        "years": playerYears([[2000, 2003]])
+      },
+      "ocio": {
+        "years": playerYears([[2003, 2010]])
+      },
+      "hewi": {
+        "years": playerYears([[2010, 2017]])
+      }
+    }
+  },
+  {
+    "name": "Jerly Enock",
+    "type": "active",
+    "dob": "1974-01-01",
+    "teams": {
+      "esg": {
+        "years": playerYears([[1997, 1999]])
+      },
+      "RS": {
+        "years": playerYears([[2000, 2004]])
+      },
+      "Uly": {
+        "years": playerYears([[2005, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Egnini Lafano",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "esg": {
+        "years": playerYears([[1997, 2005]])
+      },
+      "RS": {
+        "years": playerYears([[2006, 2013]])
+      }
+    }
+  },
+  {
+    "name": "Mio Lusler",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "hewi": {
+        "years": playerYears([[1995, 2000]])
+      },
+      "esg": {
+        "years": playerYears([[2001, 2006]])
+      },
+      "BCCR": {
+        "years": playerYears([[2007, 2011]])
+      }
+    }
+  },
+  {
+    "name": "Ash Tito",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "hewi": {
+        "years": playerYears([[1997, 1999]])
+      },
+      "NDIJON": {
+        "years": playerYears([[2000, 2010]])
+      },
+      "astH": {
+        "years": playerYears([[2011, 2015]])
+      }
+    }
+  },
+  {
+    "name": "Olice Alze",
+    "type": "active",
+    "dob": "1974-01-01",
+    "teams": {
+      "hewi": {
+        "years": playerYears([[1997, 2002]])
+      },
+      "PSL": {
+        "years": playerYears([[2002, 2009]])
+      },
+      "DelUnited": {
+        "years": playerYears([[2010, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Flamiz Huberto",
+    "type": "active",
+    "dob": "1978-01-01",
+    "teams": {
+      "lenico": {
+        "years": playerYears([[1997, 2001]])
+      },
+      "dj": {
+        "years": playerYears([[2002, 2005]])
+      },
+      "tex": {
+        "years": playerYears([[2005, 2009]])
+      }
+    }
+  },
+  {
+    "name": "Fermin Lopez",
+    "type": "active",
+    "dob": "1980-01-01",
+    "teams": {
+      "lenico": {
+        "years": playerYears([[1997, 2000]])
+      },
+      "tex": {
+        "years": playerYears([[2001, 2011]])
+      },
+      "gks": {
+        "years": playerYears([[2012, 2014]])
+      }
+    }
+  },
+  {
+    "name": "Jules Garcia",
+    "type": "active",
+    "dob": "1976-01-01",
+    "teams": {
+      "lenico": {
+        "years": playerYears([[2008, 2009]])
+      },
+      "nb": {
+        "years": playerYears([[2001, 2002]])
+      },
+      "tex": {
+        "years": playerYears([[2003, 2007]])
+      }
+    }
+  },
+  {
+    "name": "Andre Picao",
+    "type": "active",
+    "dob": "1977-01-01",
+    "teams": {
+      "nb": {
+        "years": playerYears([[1998, 2008]])
+      },
+      "PSL": {
+        "years": playerYears([[2009, 2019]])
+      }
+    }
+  },
+  {
+    "name": "Fan Grue",
+    "type": "active",
+    "dob": "1975-01-01",
+    "teams": {
+      "nb": {
+        "years": playerYears([[1995, 2002]])
+      },
+      "Uly": {
+        "years": playerYears([[2003, 2010]])
+      }
+    }
+  },
+  {
+    "name": "Deigo Alverez",
+    "type": "active",
+    "dob": "1980-01-01",
+    "teams": {
+      "Sprta": {
+        "years": playerYears([[2013, 2017]])
+      },
+      "tex": {
+        "years": playerYears([[2004, 2012]])
+      }
+    }
+  },
+  {
+    "name": "Hoza Milta",
+    "type": "active",
+    "dob": "1975-01-01",
+    "teams": {
+      "Sprta": {
+        "years": playerYears([[1996, 2000]])
+      },
+      "DELU": {
+        "years": playerYears([[2001, 2010]])
+      },
+      "SLV": {
+        "years": playerYears([[2011, 2011]])
+      }
+    },
+},
+
+        // Spanish players for Spanish teams (originL: TS)
     {
         name: 'Raúl Fernández Blanco',
         type: 'retired',
@@ -2427,1393 +3896,3 @@ export let players = [    // Spanish players for Spanish teams (originL: TS)
         }
     }
 ]
-export let teams = [
-    {
-        id: 'tex',
-        name: 'Cerius Texico',
-        sub: `Cer'x`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/cerx.png',
-        player: getPlayersByTeam('tex', [
-            'kiloas'
-        ])
-    },
-        {
-        id: 'DELU',
-        name: 'DelU',
-        sub: `DelU`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/delU.png',
-        player: [
-            'Foden',
-            'Rusco',
-            "Bale",
-            'L. Alves',
-            'Ancetti'
-        ]
-    },
-        {
-        id: 'DELM',
-        name: 'Del Mer',
-        sub: `DelM`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/DelMer.png',
-        player: [
-            "Anci",
-            "enok",
-            "Robih",
-            "Trent Foster",
-            "Leon",
-            "Girlo",
-        ]
-    },
-    {
-        id: 'Dom',
-        name: 'Domania',
-        sub: `Dom`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/Donamia.png',
-        player: getPlayersByTeam('Dom', [])
-    },
-    {
-        id: 'fill',
-        name: 'Fillham United',
-        sub: `Fillham`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/fillham.png',
-        player: getPlayersByTeam('fill', [
-            'Ecani',
-            'Islo',
-            'Kante',
-            'Maslo',
-        ])
-    },
-    {
-        id: 'esg',
-        name: 'Esgual CF',
-        sub: `Esgual`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/fcesgual.png',
-        player: getPlayersByTeam('esg', [])
-    },
-    {
-        id: 'hewi',
-        name: 'Hewi FC',
-        sub: `Hewi`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/Hewifc.png',
-        player: getPlayersByTeam('hewi', [])
-    },
-    {
-        id: 'lenico',
-        name: 'Lenico',
-        sub: `Lenico`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/lenico.png',
-        player: getPlayersByTeam('lenico', [])
-    },
-    {
-        id: 'nb',
-        name: 'New Bern',
-        sub: `Bern`,
-        originC: 'Qui',
-        originL: 'quiser',
-        img: 'images/teams/newbern.png',
-        player: getPlayersByTeam('nb', [])
-    },
-    {
-        id: 'pali',
-        name: 'Pali',
-        sub: `Pali`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/pali.png',
-        player: getPlayersByTeam('pali', [])
-    },
-    {
-        id: 'Sprta',
-        name: 'Sporta CF',
-        sub: `Sporta`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/Sporta.png',
-        player: getPlayersByTeam('Sprta', [])
-    },
-    {
-        id: 'Sprta',
-        name: 'Sporta CF',
-        sub: `Sporta`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/Sporta.png',
-        player: getPlayersByTeam('Sprta', [])
-    },
-    {
-        id: 'Uly',
-        name: 'Ulimy',
-        sub: `Ulimy`,
-        originC: 'jeski',
-        originL: 'quiser',
-        img: 'images/teams/Ulimy.png',
-        player: getPlayersByTeam('Uly', [])
-    },
-    {
-        id: 'RS',
-        name: 'Real Sol',
-        sub: `PSL`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/real-sol.png',
-        player: getPlayersByTeam('RS', [
-            `K'bash`,
-            'Vazquez',
-            'Ebol',
-            "Sandro"
-        ])
-    },
-    {
-        id: 'BCCR',
-        name: 'BC Central',
-        sub: `BCCR`,
-        originC: 'Quiser',
-        originL: 'QUI',
-        img: 'images/teams/bc-central.png',
-        player: getPlayersByTeam('BCCR', [
-            `K'bash`,
-            "Hernandez",
-            "Setta",
-            "Fourt",
-        ])
-    },
-    {
-        id: 'serpo',
-        name: 'Serpogol',
-        sub: `Serpo`,
-        originC: 'Quiser',
-        originL: 'QUI',
-        img: 'images/teams/serpogol.png',
-        player: getPlayersByTeam('serpo', [
-            "Mani",
-            "Alajandro",
-            "Mika",
-            "Fenster",
-        ])
-    },
-    {
-        id: 'DelUnited',
-        name: 'Del United',
-        sub: `Del UTD`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/del-united.png',
-        player: getPlayersByTeam('DelUnited', [
-            `K'bash`,
-        ])
-    },
-    {
-        id: 'PSL',
-        name: 'Pacific Saint leon',
-        sub: `PSL`,
-        originC: 'QUI',
-        originL: 'Quiser',
-        img: 'images/teams/psl.png',
-        player: getPlayersByTeam('psl', [
-            'lucka',
-            'jesui',
-            'kiloa',
-        ])
-    },
-    {
-        id: 'NDIJON',
-        name: 'North Dijon',
-        sub: `N. Dijon`,
-        originC: 'Ijo',
-        originL: 'TS',
-        img: 'images/teams/north-dijon.png',
-        player: getPlayersByTeam('NDIJON', [
-            'P. Gas',
-            'Yao',
-            'K. Jouls',
-            'K. Bmepp'
-        ])
-    },
-    {
-        id: 'ocio',
-        name: 'Ocio',
-        sub: `N. Dijon`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/ocio.png',
-        player: getPlayersByTeam('ocio', [
-            'Dybala',
-            'Matauro',
-            'pika',
-            'Enos',
-            'Diego',
-        ])
-    },
-    {
-        id: 'riofc',
-        name: 'Rio FC',
-        sub: `Rio`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/riofc.png',
-        player: getPlayersByTeam('riofc', [
-            "Maken",
-            "martinez",
-            "Elosh",
-            "Jesi",
-            "Macalester",
-            "Cancelo"
-        ])
-    },
-    {
-        id: 'Sentago',
-        name: 'Sentago',
-        sub: `Sentago`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/Sentago.png',
-        player: getPlayersByTeam('riofc', [
-            "Sergio",
-            "Silva",
-            "thiago",
-            "Merquino",
-            "Fillson"
-        ])
-    },
-    {
-        id: 'pacer',
-        name: 'Pacer FC',
-        sub: `Pacer`,
-        originC: 'QUI',
-        originL: 'Quiser',
-        img: 'images/teams/pacer.png',
-        player: getPlayersByTeam('pacer', [
-            'lucka',
-            'jesui',
-            'kiloa',
-            'Kasa',
-            'Antony',
-        ])
-    },
-    {
-        id: 'gks',
-        name: 'GKS',
-        sub: `GKS`,
-        originC: 'Bolive',
-        originL: 'BFF',
-        img: 'images/teams/gks.png',
-        player: getPlayersByTeam('gks', [
-            'Urmaki',
-            'lodi',
-            'Maicha',
-            'Sancho',
-            'Davis',
-        ])
-    },
-    {
-        id: 'BVB',
-        name: 'Borussia Dortmund',
-        sub: `BVB`,
-        originC: 'Bolive',
-        originL: 'BFF',
-        img: 'images/teams/Borussia.png',
-        player: [
-            'Marco Reus',
-            'Erling Haaland',
-            'Jadon Sancho',
-            'Lavdos',
-            'pika',
-            'dybala',
-            'Matauro',
-        ]
-    },
-    {
-        id: 'deg',
-        name: 'Degato',
-        sub: `Degato`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/degato.png',
-        player: [
-            'MeekMel',
-            'Yamen',
-            'marquez',
-            'Pike',
-        ]
-    },
-    {
-        id: 'astH',
-        name: 'Astana Hotspurs',
-        sub: `Astana`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/AST-Hotspur.png',
-        player: getPlayersByTeam('astH', [])
-    },
-    {
-        id: 'bsti',
-        name: 'Bistana FC',
-        sub: `Bistana`,
-        originC: 'Ijo',
-        originL: 'TS',
-        img: 'images/teams/Bistana.png',
-        player: getPlayersByTeam('bsti', [])
-    },
-    {
-        id: 'hogn',
-        name: 'Hougon FC',
-        sub: `Hogna`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/CastelHogan.png',
-        player: getPlayersByTeam('hogn', [])
-    },
-    
-    {
-        id: 'penn',
-        name: 'Penn FC',
-        sub: `Penn`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/penn.png',
-        player: [
-            'Loto',
-            'Aslo',
-            'DalU',
-            'Eto',
-            'Bale',
-            'P Alanso'
-        ]
-    },
-    {
-        id: 'dj',
-        name: 'Dijel FC',
-        sub: `Dijel`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/dijel.png',
-        player: [
-            'J. Mulonde',
-            'J. Mendez',
-            'Piles',
-            'Crakik',
-        ]
-    },
-    
-    {
-        id: 'athmak',
-        name: 'Athmak FC',
-        sub: `Athmak`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/athe-mak.png',
-        player: [
-            'O. Farouk',
-            'T. Ibrahim',
-            'K. Mahmoud',
-            'Y. Adel',
-            'Jaken',
-        ]
-    },
-    {
-        id: 'Vfy',
-        name: 'Vfoyern',
-        sub: `Vfy`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/Vfoyern.png',
-        player: [
-            'Ben Mark',
-            'K. Bmepp',
-            'atten',
-            'SotaMou',
-            'Kounde',
-        ]
-    },
-    {
-        id: 'SprtBlk',
-        name: 'Sporting Blekis',
-        sub: `S. Blekis`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/Sporting-Blekis.png',
-        player: [
-            'fierro',
-        ]
-    },
-    {
-        id: 'SLV',
-        name: 'Salvia FC',
-        sub: `Salvia`,
-        originC: 'ijo',
-        originL: 'TS',
-        img: 'images/teams/Slavia.png',
-        player: [
-            "kapea",
-            'Polai',
-            'Edeni',
-            'nendy',
-        ]
-    },
-
-
-
-];
-
-console.log(teams);
-
-
-// Helper function to get players by team ID
-export function getPlayersByTeam(teamId, extraPlayers = []) {
-    if (!teamId) return [];
-    
-    // Get current season from the application state
-    const currentSeason = getCurrentSeason();
-    const currentYear = parseInt(currentSeason);
-    
-    // Filter players who have the specified team in their teams object
-    // and are playing in the current year/season
-    const filteredPlayers = players.filter(player => {
-        return player.teams && 
-               player.teams[teamId] && 
-               player.teams[teamId].years && 
-               player.teams[teamId].years.includes(currentYear);
-    });
-    
-    // Return just the names of the players
-    return filteredPlayers.map(player => player.name).concat(extraPlayers);
-}
-
-// Helper function to generate array of years from ranges
-export function playerYears(ranges) {
-    const years = [];
-    
-    // For each range [start, end], add all years between start and end (inclusive)
-    for (const [start, end] of ranges) {
-        for (let year = start; year <= end; year++) {
-            years.push(year);
-        }
-    }
-    
-    return years;
-}
-
-console.log(playerYears([[2002, 2011], [1991, 1995]]) , 'eeee'); // Example usage
-
-export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-// localStorage.clear() 
-
-// DOM Elements
-const content = document.querySelector('.pad-cont');
-
-// Helper Functions
-export function getTeamById(id) {
-    return teams.find(team => team.id === id) || {
-        name: 'Unknown Team',
-        img: 'images/teams/default.png'
-    };
-}
-
-function renderCreateButton(matchdays) {
-    if (!matchdays || matchdays.length === 0) {
-        return `
-        <div class='matchdays'>
-            <h1>No matchdays available</h1>
-            <div class="create-matchday">
-                <div class="dotted-btn fl-jsp-b" id="create-matchday-btn">
-                    <span>CREATE MATCHDAY</span>
-                </div>
-            </div>
-        </div>
-        `;
-    } else {
-        return `
-        <div class='matchdays'>
-           <div class='matchday'>
-           </div>
-            <div class="create-matchday fl-r">
-                <div class="dotted-btn" id="create-matchday-btn">
-                    <span>CREATE MATCHDAY</span>
-                </div>
-                <div class="dotted-btn" id="create-bracket-btn">
-                    <span>CREATE KNOCK OUT DAY</span>
-                </div>
-            </div>
-        </div>
-        `;
-    }
-}
-
-function renderMatches(matchdays, passdownIndex) {
-    if (!matchdays || !Array.isArray(matchdays)) return '';
-    
-    return matchdays.map((matchday, index) => {
-        if (!matchday.games || !Array.isArray(matchday.games)) return '';
-        
-        const matchesHtml = matchday.games.map(game => {
-            const team1 = getTeamById(game.team1);
-            const team2 = getTeamById(game.team2);
-
-            // Set default images if team images aren't available or fail to load
-            const team1Img = team1.img || 'images/teams/default.png';
-            const team2Img = team2.img || 'images/teams/default.png';
-            
-            // Replace img src in the HTML with error
-
-            if (!game.standby) {
-                return `
-                <div class="md-match" data-match-id="${game.id}">
-                    <div class="team-1 team">
-                        <div class="team-info">
-                            <img src="${team1.img}" alt="${team1.name}">
-                            <span>${team1.name}</span>
-                        </div>
-                        <span class="score">
-                            ${game.score1}
-                        </span>
-                    </div>
-                    <div class="team-2 team">
-                        <div class="team-info">
-                            <img src="${team2.img}" alt="${team2.name}">
-                            <span>${team2.name}</span>
-                        </div>
-                        <span class="score">
-                            ${game.score2}
-                        </span>
-                    </div>
-                </div>
-            `;
-            } else if (game.standby) {
-                return `
-                <div class="md-match" data-match-id="${game.id}">
-                    <div class="team-1 team">
-                        <div class="team-info">
-                            <img src="${team1.img}" alt="${team1.name}">
-                            <span>${team1.name}</span>
-                        </div>
-                        <span class="score">
-                            ${game.score1}
-                        </span>
-                    </div>
-                    <div class="team-2 team">
-                        <div class="team-info">
-                            <img src="${team2.img}" alt="${team2.name}">
-                            <span>${team2.name}</span>
-                        </div>
-                        <span class="score">
-                            ${game.score2}
-                        </span>
-                    </div>
-                    <button class="start-match-btn js-mdi-index-${passdownIndex}" id="start-match-btn-${game.id}">
-                        Start
-                    </button>
-                </div>`;
-            }
-        }).join('');
-
-        return `
-            <div class="matchday">
-                ${matchesHtml}
-                <div class="dotted-btn add-match-btn" id="add-match-btn-${index}">
-                    <span>ADD MATCH</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-}
-function bindMatchClickEvents() {
-    document.querySelectorAll('.md-match').forEach(match => {
-        match.addEventListener('click', (event) => {
-            if (!event.target.classList.contains('start-match-btn')) {
-                const matchId = match.getAttribute('data-match-id');
-                if (matchId) {
-                    window.location.href = `match-info.html?match=${matchId}`;
-                }
-            } else {
-                const mdIndex = Array.from(document.querySelectorAll('.matchday-cont')).indexOf(match.closest('.matchday-cont'));
-                addMatchDialog(true, mdIndex);
-            }
-        });
-    });
-}
-
-
-function bindAddMatchButtons() {
-    document.querySelectorAll('.add-match-btn').forEach(btn => {
-        btn.addEventListener('click',addMatchDialog());
-    });
-}
-
-
-let matchdayIndex = null; // Declare matchdayIndex globally to use it in addMatchDialog
-
-function addMatchDialog(startMatch, mdIndex) {
-
-    const currentSeason = getCurrentSeason();
-    let thisMatchIdex = null;
-
-    if (startMatch) {
-        matchdayIndex = mdIndex
-        thisMatchIdex = Array.from(document.querySelectorAll('.start-match-btn')).indexOf(event.target);
-    } else {
-        matchdayIndex = Array.from(document.querySelectorAll('.add-match-btn')).indexOf(event.target);
-    }
-    const matchday = seasons.find(season => season.year === currentSeason)?.matchdays[matchdayIndex];
-
-    const notifEd = document.querySelector('.notifEd');
-    const notifEdText = document.querySelector('.notifEd-context');
-    notifEd.classList.toggle('dn');
-
-    const team1Goals = [];
-    const team2Goals = [];
-
-    console.log(matchdayIndex, 'matchday');
-
-    const t1 = getTeamById(matchday?.games[thisMatchIdex]?.team1);
-    const t2 = getTeamById(matchday?.games[thisMatchIdex]?.team2);
-
-
-
-    notifEdText.innerHTML = `
-        <h1>Create Match</h1>
-        <div class="score-manager fl-r">
-            <div class="team-man" id="team1">
-                <div class="score-display" id="team1-score">0</div>
-                <select id="team1-select">
-                ${!startMatch ? seasons.find(season => season.year === currentSeason).teams
-                    .filter(teamId => {
-                        const matchdayTeams = matchday.games.flatMap(game => [game.team1, game.team2]);
-                        return !matchdayTeams.includes(teamId);
-                    })
-                    .map(teamId => {
-                        const team = getTeamById(teamId);
-                        // Format each team option for the dropdown list
-                        return `<option value="${teamId}" ${teamId === matchday.games[0]?.team1 ? 'selected' : ''}>${team.name}</option>`;
-                    }).join('') 
-                    : 
-                    `<option value="${matchday.games[thisMatchIdex].team1}">${getTeamById(matchday.games[thisMatchIdex].team1).name}</option>`
-
-                }
-                </select>
-                <div class="add-goal">
-                    <div class="fl-r fl-ai" id="team1-add-goal">
-                        <img src="icons/add.png" alt="add-goal"> Add Goal
-                    </div>
-                    <select id="team1-player-select">
-                    ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                    }
-                    </select>
-                    <input type="number" id="team1-goal-minute" placeholder="Minute" min="1" max="120">
-                </div>
-                <ul class="goal-list" id="team1-goal-list"></ul>
-            </div>
-
-            <div class="team-man" id="team2">
-                <div class="score-display" id="team2-score">0</div>
-                <select id="team2-select">
-                ${!startMatch ? seasons.find(season => season.year === currentSeason).teams
-                    .filter(teamId => {
-                        const matchdayTeams = matchday.games.flatMap(game => [game.team1, game.team2]);
-                        return !matchdayTeams.includes(teamId);
-                    })
-                    .map(teamId => {
-                        const team = getTeamById(teamId);
-                        return `<option value="${teamId}">${team.name}</option>`;
-                    }).join('') 
-                    : 
-                     `<option value="${matchday.games[thisMatchIdex].team2}">${getTeamById(matchday.games[thisMatchIdex].team2).name}</option>`
-                }
-                </select> 
-                <div class="add-goal">
-                    <div class="fl-r fl-ai" id="team2-add-goal">
-                        <img src="icons/add.png" alt="add-goal"> Add Goal
-                    </div>
-                    <select id="team2-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
-                    </select>
-                    <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
-                </div>
-                <ul class="goal-list" id="team2-goal-list"></ul>
-            </div>
-        </div>
-        <div class="full-btn btn" id="create-match-btn"><span>CREATE MATCH</span></div>
-        <div class="btn-secondary" id="cancel-match-btn"><span>CANCEL</span></div>
-    `;
-
-    const team1Select = document.querySelector('#team1-select');
-    const team2Select = document.querySelector('#team2-select');
-    const team1PlayerSelect = document.querySelector('#team1-player-select');
-    const team2PlayerSelect = document.querySelector('#team2-player-select');
-    const team1GoalList = document.querySelector('#team1-goal-list');
-    const team2GoalList = document.querySelector('#team2-goal-list');
-    const playerMinute1 = document.querySelector('#team1-goal-minute');
-    const playerMinute2 = document.querySelector('#team2-goal-minute');
-
-    team1Select.addEventListener('change', () => {
-        const team = getTeamById(team1Select.value);
-        team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-    team2Select.addEventListener('change', () => {
-        const team = getTeamById(team2Select.value);
-        team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-    const cancelMatchBtn = document.querySelector('#cancel-match-btn');
-    if (cancelMatchBtn) {
-        cancelMatchBtn.addEventListener('click', () => {
-            notifEd.classList.toggle('dn');
-            notifEdText.innerHTML = '';
-        });
-    }
-
-    // Add goal for team 1
-    document.querySelector('#team1-add-goal').addEventListener('click', () => {
-        const player = team1PlayerSelect.value;
-        let minute = parseInt(playerMinute1.value);
-        if (!player) return;
-        if (isNaN(minute) || minute < 1 || minute > 120) {
-            minute = Math.floor(Math.random() * 91); // Generate a random number between 0 and 90
-        }
-
-        if (!minute) {
-            minute = Math.floor(Math.random() * 91);
-        }
-
-        team1Goals.push({ player, minute });
-        renderGoals(team1GoalList, team1Goals);
-        updateScores();
-    });
-
-    // Add goal for team 2
-    document.querySelector('#team2-add-goal').addEventListener('click', () => {
-        const player = team2PlayerSelect.value;
-        let minute = parseInt(playerMinute2.value);
-        if (!player) return;
-        if (isNaN(minute) || minute < 1 || minute > 120) {
-            minute = Math.floor(Math.random() * 91); // Generate a random number between 0 and 90
-        }
-
-        if (!minute) {
-            minute = Math.floor(Math.random() * 91);
-        }
-
-        team2Goals.push({ player, minute });
-        renderGoals(team2GoalList, team2Goals);
-        updateScores();
-    });
-
-    // Create match
-    document.querySelector('#create-match-btn').addEventListener('click', () => {
-        const team1 = team1Select.value;
-        const team2 = team2Select.value;
-
-        if (!team1 || !team2 || team1 === team2) {
-            alert('Please select two different teams.');
-            return;
-        }
-
-        notifEd.classList.toggle('dn');
-        notifEdText.innerHTML = '';
-
-        const seasonData = seasons.find(season => season.year === currentSeason);
-        if (!seasonData || !seasonData.matchdays[matchdayIndex]) {
-            console.error('Invalid matchday index or season data.');
-            return;
-        }
-        const matchdayGames = seasonData.matchdays[matchdayIndex].games || [];
-        seasonData.matchdays[matchdayIndex].games = matchdayGames;
-
-        if (!startMatch) {
-            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
-                id: `match-${Math.random().toString(36).substr(2, 9)}`,
-                team1: team1,
-                team2: team2,
-                score1: team1Goals.length,
-                score2: team2Goals.length,
-                seed: Math.floor(Math.random() * 10000),
-                goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
-                    .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 })))
-            });
-        } else {
-            const thisStandbyMatch = matchday.games[thisMatchIdex]
-            const index = matchdayGames.findIndex(game => game.id === thisStandbyMatch.id);            
-            
-            matchdayGames.splice(index, 1);
-
-            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
-                id: `match-${Math.random().toString(36).substr(2, 9)}`,
-                team1: team1,
-                team2: team2,
-                score1: team1Goals.length,
-                score2: team2Goals.length,
-                seed: Math.floor(Math.random() * 10000),
-                goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
-                    .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 }))),
-                standby: false
-            });
-        }
-
-        saveSeason();
-        saveGoals();
-        loadSeason(currentSeason);
-    });
-
-    function updateScores() {
-        document.getElementById('team1-score').textContent = team1Goals.length;
-        document.getElementById('team2-score').textContent = team2Goals.length;
-    }
-
-    function renderGoals(container, goals) {
-        container.innerHTML = goals.map((goal, index) => {
-            let displayMinute = goal.minute;
-            if (goal.minute >= 91 && goal.minute <= 98) {
-                displayMinute = `90+${goal.minute - 90}`;
-            } else if (goal.minute >= 121 && goal.minute <= 129) {
-                displayMinute = `120+${goal.minute - 120}`;
-            }
-            return `
-                <li>
-                    ${goal.player} - ${displayMinute}' 
-                    <button class="remove-goal-btn" data-index="${index}">❌</button>
-                </li>
-            `;
-        }).join('');
-    
-        container.querySelectorAll('.remove-goal-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const i = parseInt(btn.getAttribute('data-index'));
-                goals.splice(i, 1);
-                renderGoals(container, goals);
-                updateScores();
-            });
-        });
-    }
-    
-}
-
-setInterval(() => console.log(seasons, goals), 1000);
-// Main Functions
-function loadSeason(snum) {
-    if (!snum) {
-        snum = new Date().getFullYear().toString();
-    }
-
-    if (seasons.length === 0) {
-        initializeEmptyState();
-        return;
-    }
-
-    if (!content) return;
-
-    const seasonData = seasons.find(s => s.year === snum);
-    
-    if (seasonData) {
-        const seasonMatchdays = seasonData.matchdays || [];
-
-        content.innerHTML = `
-            ${seasonMatchdays.map((matchday, index) => `
-                <div class="matchday-cont" id="matchday-${index}">
-                    <h1>Matchday ${index + 1}</h1>
-                    <p>${matchday.details || 'No details available'}</p>
-                    ${renderMatches([matchday], index)}
-                </div>
-            `).join('')}
-            ${renderCreateButton(seasonMatchdays)}
-        `;
-        bindMatchClickEvents();
-        // Attach event listeners
-        const createMatchdayBtn = document.querySelector('#create-matchday-btn');
-        if (createMatchdayBtn) {
-            createMatchdayBtn.addEventListener('click', createMatchdayFunc);
-        }
-        const createBracketBtn = document.querySelector('#create-bracket-btn');
-        if (createBracketBtn) {
-            actionElem('#create-bracket-btn', startBracket);
-        }
-    } else {
-        initializeEmptyState();
-    }
-}
-
-
-
-function initializeEmptyState() {
-    content.innerHTML = `
-        <div class="create-matchday">
-            <div class="dotted-btn" id="create-season-btn">
-                <span>CREATE SEASON</span>
-            </div>
-        </div>
-    `;
-    
-    // Attach event listeners
-    const createSeasonBtn = document.querySelector('#create-season-btn');
-    if (createSeasonBtn) {
-        createSeasonBtn.addEventListener('click', createSeasonDialog);
-    }
-} 
-
-function createMatchdayFunc() {
-    const currentSeason = getCurrentSeason();
-    const seasonData = seasons.find(s => s.year === currentSeason);
-    
-    if (seasonData) {
-        const seasonMatchdays = seasonData.matchdays || [];
-        seasonMatchdays.push({
-            details: `League Phase`,
-            games: [],
-            id: `matchday-${seasonMatchdays.length + 1}`
-        });
-        seasonData.matchdays = seasonMatchdays;
-        loadSeason(currentSeason);
-    }
-}
-
-function createSeasonDialog() {
-    const notifEd = document.querySelector('.notifEd');
-    const notifEdText = document.querySelector('.notifEd-context');
-    
-    if (!notifEd || !notifEdText) return;
-    
-    notifEd.classList.remove('dn');
-
-    notifEdText.innerHTML = `
-        <h1>Create Season</h1>
-        <span class="medtx">
-            teams selected: 0/20
-        </span>
-        <select name="years" id="year-select">
-            ${Array.from({ length: 103 }, (_, i) => {
-                const year = new Date().getFullYear() - i;
-                const currentSeason = getCurrentSeason();
-                return `<option value="${year}" ${year.toString() === currentSeason ? 'selected' : ''}>${year}</option>`;
-            }).join('')}
-        </select>
-
-        <div class="teams-select">
-            ${teams.map((team) => `
-                <div class="s-team">
-                    <input type="checkbox" id="team-${team.id}" class="team-checkbox">
-                    <img src="${team.img}" alt="${team.name}">
-                    <span>${team.name}</span>
-                </div>
-            `).join('')}
-        </div>
-        <div class='fl-r'>
-            <div class="btn" id="create-season">
-                <span>CREATE SEASON</span>
-            </div>
-            <div class="btn-secondary" id="cancel-create-season">
-                <span>CANCEL</span>
-            </div>
-        </div>
-    `;
-
-    // Add event listeners for checkboxes to update team count
-    const checkboxes = document.querySelectorAll('.team-checkbox');
-    const teamCountDisplay = document.querySelector('.medtx');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            const selectedCount = document.querySelectorAll('.team-checkbox:checked').length;
-            teamCountDisplay.textContent = `teams selected: ${selectedCount}/20`;
-        });
-    });
-
-    // Attach event listeners
-    const createSeasonBtn = document.querySelector('#create-season');
-    if (createSeasonBtn) {
-        createSeasonBtn.addEventListener('click', createSeasonFunc);
-    }
-    
-    const cancelBtn = document.querySelector('#cancel-create-season');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', cancelCreateSeasonFunc);
-    }
-}
-
-// localStorage.clear()
-
-
-function createSeasonFunc() {
-    const yearSelect = document.querySelector('#year-select');
-    if (!yearSelect) return;
-    
-    const selectedYear = yearSelect.value;
-    const selectedTeams = Array.from(document.querySelectorAll('.team-checkbox:checked')).map(checkbox => {
-        return checkbox.id.replace('team-', '');
-    });
-    
-    if (selectedTeams.length === 0) {
-        alert('Please select at least one team');
-        return;
-    }
-    
-    const season = {
-        year: selectedYear,
-        teams: selectedTeams,
-        id: `season-${selectedYear}`,
-        matchdays: []
-    };
-    
-    // Check if the season already exists
-    const existingSeasonIndex = seasons.findIndex(s => s.year === selectedYear);
-    if (existingSeasonIndex !== -1) {
-        seasons[existingSeasonIndex] = season;
-    } else {
-        seasons.push(season);
-        saveSeason()
-    }
-    
-    // Close dialog and load the season
-    closeDialog();
-    loadSeason(selectedYear);
-}
-
-function cancelCreateSeasonFunc() {
-    closeDialog();
-}
-
-function closeDialog() {
-    const notifEd = document.querySelector('.notifEd');
-    if (notifEd) {
-        notifEd.classList.add('dn');
-    }
-    
-    const notifEdText = document.querySelector('.notifEd-context');
-    if (notifEdText) {
-        notifEdText.innerHTML = '';
-    }
-}
-
-export function getCurrentSeason() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('season') || new Date().getFullYear().toString();
-}
-
-// Initialize the application
-function initialize() {
-    // Set up global event listeners
-    document.addEventListener('click', (event) => {
-        if (event.target && event.target.id === 'cancel-create-season') {
-            cancelCreateSeasonFunc();
-        } else if (event.target && event.target.id === 'create-season-btn') {
-            createSeasonDialog();
-        } else if (event.target && event.target.classList.contains('add-match-btn')) {
-            addMatchDialog();
-        }
-
-    });
-
-    // Load the current season or show the empty state
-    const currentSeason = getCurrentSeason();
-    loadSeason(currentSeason);
-}
-
-// Start the application when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initialize);
-
-
-function saveSeason() {
-    localStorage.setItem('seasons', JSON.stringify(seasons));
-}
-
-function saveGoals() {
-    localStorage.setItem('goals', JSON.stringify(goals));
-}  
-
-
-// localStorage.clear()
-
-function startBracket() {
-    const currentSeason = getCurrentSeason();
-    const seasonData = seasons.find(s => s.year === currentSeason);
-
-
-    if (seasonData) {
-        // Find out what's the next bracket stage to create
-        const bracketTypes = seasonData.matchdays
-            .filter(matchday => matchday.bracketType)
-            .map(matchday => matchday.bracketType);
-        
-        const round16 = !bracketTypes.includes('round16');
-        const quarterFinals = bracketTypes.includes('round16') && !bracketTypes.includes('quarterFinals');
-        const semiFinals = bracketTypes.includes('quarterFinals') && !bracketTypes.includes('semiFinals');
-        const finals = bracketTypes.includes('semiFinals') && !bracketTypes.includes('finals');
-
-        const seasonMatchdays = seasonData.matchdays || [];
-        if (round16) {
-            seasonMatchdays.push({
-                details: `Knockout Phase - Round of 16`,
-                games: getFirstFixtures(1),
-                id: `matchday-${seasonMatchdays.length + 1}`,
-                bracketType: 'round16'
-            });
-            seasonData.matchdays = seasonMatchdays;
-            loadSeason(currentSeason);
-        } else if (quarterFinals) {
-            seasonMatchdays.push({
-                details: `Quarter Finals`,
-                games: getFirstFixtures(2),
-                id: `matchday-${seasonMatchdays.length + 1}`,
-                bracketType: 'quarterFinals'
-            });
-            loadSeason(currentSeason);
-        } else if (semiFinals) {
-            seasonMatchdays.push({
-                details: `Semi Finals`,
-                games: getFirstFixtures(3),
-                id: `matchday-${seasonMatchdays.length + 1}`,
-                bracketType: 'semiFinals'
-            });
-            loadSeason(currentSeason);
-        }
-        else if (finals) {
-            seasonMatchdays.push({
-                details: `Final`,
-                games: getFirstFixtures(4),
-                id: `matchday-${seasonMatchdays.length + 1}`,
-                bracketType: 'finals'
-            });
-            loadSeason(currentSeason); 
-        } else {
-            console.log('All brackets already created!');
-            return;
-        }
-    }
-}
- 
-// localStorage.clear()
-
-function getFirstFixtures(order) {
-    const currentSeason = getCurrentSeason();
-    if (order == 1) {
-        const seasonData = seasons.find(s => s.year === currentSeason);
-        const teams = getRankOfTeam().slice(0, 16).map(team => team.team);
-        const fixtures = [];
-
-    for (let i = 0; i < teams.length; i += 2) {
-        fixtures.push({
-            id: `match-${Math.random().toString(36).substr(2, 9)}`,
-            team1: teams[i],
-            team2: teams[i + 1],
-            score1: 0,
-            score2: 0,
-            seed: Math.floor(Math.random() * 10000),
-            goals: [],
-            standby: true
-        });
-    }
-
-    return fixtures;
-    } else if (order == 2) {
-        const seasonData = seasons.find(s => s.year === currentSeason);
-        // Find the round of 16 matchday
-        const round16Matchday = seasonData.matchdays.find(md => md.bracketType === 'round16');
-
-        if (!round16Matchday || !round16Matchday.games) {
-            console.error('Round of 16 matchday not found or has no games');
-            return [];
-        }
-
-        // Get winners from round of 16
-        const winners = round16Matchday.games.map(game => {
-            // Determine the winner
-            if (game.score1 > game.score2) {
-                return game.team1;
-            } else if (game.score2 > game.score1) {
-                return game.team2;
-            } else {
-                // In case of a tie, randomly select a winner for this example
-                // In a real tournament, this would be handled differently (e.g., penalties, away goals, etc.)
-                return Math.random() > 0.5 ? game.team1 : game.team2;
-            }
-        }).filter(winner => winner); // Filter out any undefined winners
-
-        // Create quarter-final fixtures
-        const fixtures = [];
-        for (let i = 0; i < winners.length; i += 2) {
-            if (i + 1 < winners.length) {  // Ensure we have a pair
-                fixtures.push({
-                    id: `match-${Math.random().toString(36).substr(2, 9)}`,
-                    team1: winners[i],
-                    team2: winners[i + 1],
-                    score1: 0,
-                    score2: 0,
-                    seed: Math.floor(Math.random() * 10000),
-                    goals: [],
-                    standby: true
-                });
-            }
-        }
-
-        return fixtures;
-    } else if (order == 3) {
-        const seasonData = seasons.find(s => s.year === currentSeason);
-        // Find the quarter finals matchday
-        const quarterFinalsMatchday = seasonData.matchdays.find(md => md.bracketType === 'quarterFinals');
-
-        if (!quarterFinalsMatchday || !quarterFinalsMatchday.games) {
-            console.error('Quarter Finals matchday not found or has no games');
-            return [];
-        }
-
-        // Get winners from quarter finals
-        const winners = quarterFinalsMatchday.games.map(game => {
-            // Determine the winner
-            if (game.score1 > game.score2) {
-                return game.team1;
-            } else if (game.score2 > game.score1) {
-                return game.team2;
-            } else {
-                // In case of a tie, randomly select a winner
-                return Math.random() > 0.5 ? game.team1 : game.team2;
-            }
-        }).filter(winner => winner);
-
-        // Create semi-final fixtures
-        const fixtures = [];
-        for (let i = 0; i < winners.length; i += 2) {
-            if (i + 1 < winners.length) {  // Ensure we have a pair
-                fixtures.push({
-                    id: `match-${Math.random().toString(36).substr(2, 9)}`,
-                    team1: winners[i],
-                    team2: winners[i + 1],
-                    score1: 0,
-                    score2: 0,
-                    seed: Math.floor(Math.random() * 10000),
-                    goals: [],
-                    standby: true
-                });
-            }
-        }
-
-        return fixtures;
-        } else if (order == 4) {
-        const seasonData = seasons.find(s => s.year === currentSeason);
-        // Find the semi finals matchday
-        const semiFinalsMatchday = seasonData.matchdays.find(md => md.bracketType === 'semiFinals');
-
-        if (!semiFinalsMatchday || !semiFinalsMatchday.games) {
-            console.error('Semi Finals matchday not found or has no games');
-            return [];
-        }
-
-        // Get winners from semi finals
-        const winners = semiFinalsMatchday.games.map(game => {
-            // Determine the winner
-            if (game.score1 > game.score2) {
-            return game.team1;
-            } else if (game.score2 > game.score1) {
-            return game.team2;
-            } else {
-            // In case of a tie, randomly select a winner
-            return Math.random() > 0.5 ? game.team1 : game.team2;
-            }
-        }).filter(winner => winner);
-
-        // Create final fixture
-        const fixtures = [];
-        if (winners.length >= 2) {
-            fixtures.push({
-            id: `match-${Math.random().toString(36).substr(2, 9)}`,
-            team1: winners[0],
-            team2: winners[1],
-            score1: 0,
-            score2: 0,
-            seed: Math.floor(Math.random() * 10000),
-            goals: [],
-            standby: true
-            });
-        }
-
-        return fixtures;
-        }
-}
-
-
-function getRankOfTeam() {
-    const currentSeason = getCurrentSeason();
-    const seasonData = seasons.find(s => s.year === currentSeason);
-
-    if (!seasonData || !seasonData.matchdays) return [];
-
-    const teamPoints = {};
-
-    // Initialize all teams with 0 points
-    seasonData.teams.forEach(teamId => {
-        teamPoints[teamId] = 0;
-    });
-
-    // Calculate points for each team
-    seasonData.matchdays.forEach(matchday => {
-        if (!matchday.games) return;
-
-        matchday.games.forEach(game => {
-            if (game.score1 > game.score2) {
-                teamPoints[game.team1] += 3; // Team 1 wins
-            } else if (game.score1 < game.score2) {
-                teamPoints[game.team2] += 3; // Team 2 wins
-            } else {
-                teamPoints[game.team1] += 1; // Tie
-                teamPoints[game.team2] += 1;
-            }
-        });
-    });
-
-    // Convert to array and sort by points
-    const rankedTeams = Object.entries(teamPoints)
-        .map(([team, points]) => ({ team, points }))
-        .sort((a, b) => b.points - a.points);
-
-    return rankedTeams;
-}
-
-console.log(getRankOfTeam()); 
-
-
-function actionElem(elem, action) {
-    const actionElem = document.querySelector(elem);
-    if (actionElem && typeof action === 'function') {
-        actionElem.addEventListener('click', action);
-    }
-}
-
-function toggleNotifEd() {
-    const notifEd = document.querySelector('.notifEd');
-    if (notifEd) {
-        notifEd.classList.toggle('dn');
-    }
-}
-
-
-
-function genStats(seed) {
-    let comentary = '';
-
-    let comentarys = [
-        'The match was intense with both teams showing great skill.',
-        'A thrilling encounter that kept fans on the edge of their seats.',
-        'An unexpected twist in the final minutes changed the game completely.',
-        'The players displayed exceptional teamwork and strategy.',
-        'A hard-fought battle that showcased the best of both teams.'
-    ];
-    let randomIndex = Math.floor(Math.random() * comentarys.length);  
-
-}
