@@ -1729,7 +1729,7 @@ export let players = [
         }
     },
     {
-        name: 'Emilio Rodríguez Gallego',
+        name: 'Emilio Gallego',
         type: 'retired',
         dob: '1976-09-27',
         teams: {
@@ -1782,7 +1782,7 @@ export let players = [
         }
     },
     {
-        name: 'Santiago Hernández Casado',
+        name: 'Santiago Hernández',
         type: 'retired',
         dob: '1974-10-09',
         teams: {
