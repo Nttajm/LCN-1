@@ -4,443 +4,285 @@ export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getIt
 import { players } from './players.js';
 export let teams = [
     {
-        id: 'tex',
-        name: 'Cerius Texico',
-        sub: `Cer'x`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/cerx.png',
-        player: getPlayersByTeam('tex', [
-            'kiloas'
-        ])
-    },
-        {
-        id: 'DELU',
-        name: 'DelU',
-        sub: `DelU`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/delU.png',
-        player: [
-            'Foden',
-            'Rusco',
-            "Bale",
-            'L. Alves',
-            'Ancetti'
-        ]
-    },
-        {
-        id: 'DELM',
-        name: 'Del Mer',
-        sub: `DelM`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/DelMer.png',
-        player: [
-            "Anci",
-            "enok",
-            "Robih",
-            "Trent Foster",
-            "Leon",
-            "Girlo",
-        ]
-    },
-    {
-        id: 'Dom',
-        name: 'Domania',
-        sub: `Dom`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/Donamia.png',
-        player: getPlayersByTeam('Dom', [])
-    },
-    {
-        id: 'fill',
-        name: 'Fillham United',
-        sub: `Fillham`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/fillham.png',
-        player: getPlayersByTeam('fill', [
-            'Ecani',
-            'Islo',
-            'Kante',
-            'Maslo',
-        ])
-    },
-    {
-        id: 'esg',
-        name: 'Esgual CF',
-        sub: `Esgual`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/fcesgual.png',
-        player: getPlayersByTeam('esg', [])
-    },
-    {
-        id: 'hewi',
-        name: 'Hewi FC',
-        sub: `Hewi`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/Hewifc.png',
-        player: getPlayersByTeam('hewi', [])
-    },
-    {
-        id: 'lenico',
-        name: 'Lenico',
-        sub: `Lenico`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/lenico.png',
-        player: getPlayersByTeam('lenico', [])
-    },
-    {
-        id: 'nb',
-        name: 'New Bern',
-        sub: `Bern`,
-        originC: 'Qui',
-        originL: 'quiser',
-        img: 'images/teams/newbern.png',
-        player: getPlayersByTeam('nb', [])
-    },
-    {
-        id: 'pali',
-        name: 'Pali',
-        sub: `Pali`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/pali.png',
-        player: getPlayersByTeam('pali', [])
-    },
-    {
-        id: 'Sprta',
-        name: 'Sporta CF',
-        sub: `Sporta`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/Sporta.png',
-        player: getPlayersByTeam('Sprta', [])
-    },
-    {
-        id: 'Sprta',
-        name: 'Sporta CF',
-        sub: `Sporta`,
-        originC: 'Pali',
-        originL: 'quiser',
-        img: 'images/teams/Sporta.png',
-        player: getPlayersByTeam('Sprta', [])
-    },
-    {
-        id: 'Uly',
-        name: 'Ulimy',
-        sub: `Ulimy`,
-        originC: 'jeski',
-        originL: 'quiser',
-        img: 'images/teams/Ulimy.png',
-        player: getPlayersByTeam('Uly', [])
-    },
-    {
-        id: 'RS',
-        name: 'Real Sol',
-        sub: `PSL`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/real-sol.png',
-        player: getPlayersByTeam('RS', [
-            `K'bash`,
-            'Vazquez',
-            'Ebol',
-            "Sandro"
-        ])
-    },
-    {
-        id: 'BCCR',
-        name: 'BC Central',
-        sub: `BCCR`,
-        originC: 'Quiser',
-        originL: 'QUI',
-        img: 'images/teams/bc-central.png',
-        player: getPlayersByTeam('BCCR', [
-            `K'bash`,
-            "Hernandez",
-            "Setta",
-            "Fourt",
-        ])
-    },
-    {
-        id: 'serpo',
-        name: 'Serpogol',
-        sub: `Serpo`,
-        originC: 'Quiser',
-        originL: 'QUI',
-        img: 'images/teams/serpogol.png',
-        player: getPlayersByTeam('serpo', [
-            "Mani",
-            "Alajandro",
-            "Mika",
-            "Fenster",
-        ])
-    },
-    {
-        id: 'DelUnited',
-        name: 'Del United',
-        sub: `Del UTD`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/del-united.png',
-        player: getPlayersByTeam('DelUnited', [
-            `K'bash`,
-        ])
-    },
-    {
-        id: 'PSL',
-        name: 'Pacific Saint leon',
-        sub: `PSL`,
-        originC: 'QUI',
-        originL: 'Quiser',
-        img: 'images/teams/psl.png',
-        player: getPlayersByTeam('psl', [
-            'lucka',
-            'jesui',
-            'kiloa',
-        ])
-    },
-    {
-        id: 'NDIJON',
-        name: 'North Dijon',
-        sub: `N. Dijon`,
-        originC: 'Ijo',
-        originL: 'TS',
-        img: 'images/teams/north-dijon.png',
-        player: getPlayersByTeam('NDIJON', [
-            'P. Gas',
-            'Yao',
-            'K. Jouls',
-            'K. Bmepp'
-        ])
-    },
-    {
-        id: 'ocio',
-        name: 'Ocio',
-        sub: `N. Dijon`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/ocio.png',
-        player: getPlayersByTeam('ocio', [
-            'Dybala',
-            'Matauro',
-            'pika',
-            'Enos',
-            'Diego',
-        ])
-    },
-    {
-        id: 'riofc',
-        name: 'Rio FC',
-        sub: `Rio`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/riofc.png',
-        player: getPlayersByTeam('riofc', [
-            "Maken",
-            "martinez",
-            "Elosh",
-            "Jesi",
-            "Macalester",
-            "Cancelo"
-        ])
-    },
-    {
-        id: 'Sentago',
-        name: 'Sentago',
-        sub: `Sentago`,
-        originC: 'Texico',
-        originL: 'TS',
-        img: 'images/teams/Sentago.png',
-        player: getPlayersByTeam('riofc', [
-            "Sergio",
-            "Silva",
-            "thiago",
-            "Merquino",
-            "Fillson"
-        ])
-    },
-    {
-        id: 'pacer',
-        name: 'Pacer FC',
-        sub: `Pacer`,
-        originC: 'QUI',
-        originL: 'Quiser',
-        img: 'images/teams/pacer.png',
-        player: getPlayersByTeam('pacer', [
-            'lucka',
-            'jesui',
-            'kiloa',
-            'Kasa',
-            'Antony',
-        ])
-    },
-    {
-        id: 'gks',
-        name: 'GKS',
-        sub: `GKS`,
-        originC: 'Bolive',
-        originL: 'BFF',
-        img: 'images/teams/gks.png',
-        player: getPlayersByTeam('gks', [
-            'Urmaki',
-            'lodi',
-            'Maicha',
-            'Sancho',
-            'Davis',
-        ])
-    },
-    {
-        id: 'BVB',
-        name: 'Borussia Dortmund',
-        sub: `BVB`,
-        originC: 'Bolive',
-        originL: 'BFF',
-        img: 'images/teams/Borussia.png',
-        player: [
-            'Marco Reus',
-            'Erling Haaland',
-            'Jadon Sancho',
-            'Lavdos',
-            'pika',
-            'dybala',
-            'Matauro',
-        ]
-    },
-    {
-        id: 'deg',
-        name: 'Degato',
-        sub: `Degato`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/degato.png',
-        player: [
-            'MeekMel',
-            'Yamen',
-            'marquez',
-            'Pike',
-        ]
-    },
-    {
-        id: 'astH',
-        name: 'Astana Hotspurs',
-        sub: `Astana`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/AST-Hotspur.png',
-        player: getPlayersByTeam('astH', [])
-    },
-    {
-        id: 'bsti',
-        name: 'Bistana FC',
-        sub: `Bistana`,
-        originC: 'Ijo',
-        originL: 'TS',
-        img: 'images/teams/Bistana.png',
-        player: getPlayersByTeam('bsti', [])
-    },
-    {
-        id: 'hogn',
-        name: 'Hougon FC',
-        sub: `Hogna`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/CastelHogan.png',
-        player: getPlayersByTeam('hogn', [])
-    },
-    
-    {
-        id: 'penn',
-        name: 'Penn FC',
-        sub: `Penn`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/penn.png',
-        player: [
-            'Loto',
-            'Aslo',
-            'DalU',
-            'Eto',
-            'Bale',
-            'P Alanso'
-        ]
-    },
-    {
-        id: 'dj',
-        name: 'Dijel FC',
-        sub: `Dijel`,
-        originC: 'Denvor',
-        originL: 'Quiser',
-        img: 'images/teams/dijel.png',
-        player: [
-            'J. Mulonde',
-            'J. Mendez',
-            'Piles',
-            'Crakik',
-        ]
-    },
-    
-    {
-        id: 'athmak',
-        name: 'Athmak FC',
-        sub: `Athmak`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/athe-mak.png',
-        player: [
-            'O. Farouk',
-            'T. Ibrahim',
-            'K. Mahmoud',
-            'Y. Adel',
-            'Jaken',
-        ]
-    },
-    {
-        id: 'Vfy',
-        name: 'Vfoyern',
-        sub: `Vfy`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/Vfoyern.png',
-        player: [
-            'Ben Mark',
-            'K. Bmepp',
-            'atten',
-            'SotaMou',
-            'Kounde',
-        ]
-    },
-    {
-        id: 'SprtBlk',
-        name: 'Sporting Blekis',
-        sub: `S. Blekis`,
-        originC: 'Bolive',
-        originL: 'BKS',
-        img: 'images/teams/Sporting-Blekis.png',
-        player: [
-            'fierro',
-        ]
-    },
-    {
-        id: 'SLV',
-        name: 'Salvia FC',
-        sub: `Salvia`,
-        originC: 'ijo',
-        originL: 'TS',
-        img: 'images/teams/Slavia.png',
-        player: [
-            "kapea",
-            'Polai',
-            'Edeni',
-            'nendy',
-        ]
-    },
+    id: 'tex',
+    name: 'Cerius Texico',
+    sub: `Cer'x`,
+    originC: 'Texico',
+    originL: 'TS',
+    img: 'images/teams/cerx.png',
+    player: getPlayersByTeam('tex')
+},
+{
+    id: 'DELU',
+    name: 'DelU',
+    sub: `DelU`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/delU.png',
+    player: getPlayersByTeam('DELU')
+},
+{
+    id: 'DELM',
+    name: 'Del Mer',
+    sub: `DelM`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/DelMer.png',
+    player: getPlayersByTeam('DELM')
+},
+{
+    id: 'Dom',
+    name: 'Domania',
+    sub: `Dom`,
+    originC: 'Texico',
+    originL: 'TS',
+    img: 'images/teams/Donamia.png',
+    player: getPlayersByTeam('Dom')
+},
+{
+    id: 'fill',
+    name: 'Fillham United',
+    sub: `Fillham`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/fillham.png',
+    player: getPlayersByTeam('fill')
+},
+{
+    id: 'esg',
+    name: 'Esgual CF',
+    sub: `Esgual`,
+    originC: 'Texico',
+    originL: 'TS',
+    img: 'images/teams/fcesgual.png',
+    player: getPlayersByTeam('esg')
+},
+{
+    id: 'hewi',
+    name: 'Hewi FC',
+    sub: `Hewi`,
+    originC: 'Pali',
+    originL: 'quiser',
+    img: 'images/teams/Hewifc.png',
+    player: getPlayersByTeam('hewi')
+},
+{
+    id: 'lenico',
+    name: 'Lenico',
+    sub: `Lenico`,
+    originC: 'Pali',
+    originL: 'quiser',
+    img: 'images/teams/lenico.png',
+    player: getPlayersByTeam('lenico')
+},
+{
+    id: 'nb',
+    name: 'New Bern',
+    sub: `Bern`,
+    originC: 'Qui',
+    originL: 'quiser',
+    img: 'images/teams/newbern.png',
+    player: getPlayersByTeam('nb')
+},
+{
+    id: 'pali',
+    name: 'Pali',
+    sub: `Pali`,
+    originC: 'Pali',
+    originL: 'quiser',
+    img: 'images/teams/pali.png',
+    player: getPlayersByTeam('pali')
+},
+{
+    id: 'Sprta',
+    name: 'Sporta CF',
+    sub: `Sporta`,
+    originC: 'Pali',
+    originL: 'quiser',
+    img: 'images/teams/Sporta.png',
+    player: getPlayersByTeam('Sprta')
+},
+{
+    id: 'Uly',
+    name: 'Ulimy',
+    sub: `Ulimy`,
+    originC: 'jeski',
+    originL: 'quiser',
+    img: 'images/teams/Ulimy.png',
+    player: getPlayersByTeam('Uly')
+},
+{
+    id: 'RS',
+    name: 'Real Sol',
+    sub: `PSL`,
+    originC: 'Texico',
+    originL: 'TS',
+    img: 'images/teams/real-sol.png',
+    player: getPlayersByTeam('RS')
+},
+{
+    id: 'BCCR',
+    name: 'BC Central',
+    sub: `BCCR`,
+    originC: 'Quiser',
+    originL: 'QUI',
+    img: 'images/teams/bc-central.png',
+    player: getPlayersByTeam('BCCR')
+},
+{
+    id: 'serpo',
+    name: 'Serpogol',
+    sub: `Serpo`,
+    originC: 'Quiser',
+    originL: 'QUI',
+    img: 'images/teams/serpogol.png',
+    player: getPlayersByTeam('serpo')
+},
+{
+    id: 'DelUnited',
+    name: 'Del United',
+    sub: `Del UTD`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/del-united.png',
+    player: getPlayersByTeam('DelUnited')
+},
+{
+    id: 'PSL',
+    name: 'Pacific Saint leon',
+    sub: `PSL`,
+    originC: 'QUI',
+    originL: 'Quiser',
+    img: 'images/teams/psl.png',
+    player: getPlayersByTeam('PSL')
+},
+{
+    id: 'NDIJON',
+    name: 'North Dijon',
+    sub: `N. Dijon`,
+    originC: 'Ijo',
+    originL: 'TS',
+    img: 'images/teams/north-dijon.png',
+    player: getPlayersByTeam('NDIJON')
+},
+{
+    id: 'ocio',
+    name: 'Ocio',
+    sub: `N. Dijon`,
+    originC: 'Texico',
+    originL: 'TS',
+    img: 'images/teams/ocio.png',
+    player: getPlayersByTeam('ocio')
+},
+{
+    id: 'riofc',
+    name: 'Rio FC',
+    sub: `Rio`,
+    originC: 'Texico',
+    originL: 'TS',
+    img: 'images/teams/riofc.png',
+    player: getPlayersByTeam('riofc')
+},
+{
+    id: 'Sentago',
+    name: 'Sentago',
+    sub: `Sentago`,
+    originC: 'Texico',
+    originL: 'TS',
+    img: 'images/teams/Sentago.png',
+    player: getPlayersByTeam('Sentago')
+},
+{
+    id: 'pacer',
+    name: 'Pacer FC',
+    sub: `Pacer`,
+    originC: 'QUI',
+    originL: 'Quiser',
+    img: 'images/teams/pacer.png',
+    player: getPlayersByTeam('pacer')
+},
+{
+    id: 'gks',
+    name: 'GKS',
+    sub: `GKS`,
+    originC: 'Bolive',
+    originL: 'BFF',
+    img: 'images/teams/gks.png',
+    player: getPlayersByTeam('gks')
+},
+{
+    id: 'BVB',
+    name: 'Borussia Dortmund',
+    sub: `BVB`,
+    originC: 'Bolive',
+    originL: 'BFF',
+    img: 'images/teams/Borussia.png',
+    player: getPlayersByTeam('BVB')
+},
+{
+    id: 'deg',
+    name: 'Degato',
+    sub: `Degato`,
+    originC: 'Bolive',
+    originL: 'BKS',
+    img: 'images/teams/degato.png',
+    player: getPlayersByTeam('deg')
+},
+{
+    id: 'astH',
+    name: 'Astana Hotspurs',
+    sub: `Astana`,
+    originC: 'Bolive',
+    originL: 'BKS',
+    img: 'images/teams/AST-Hotspur.png',
+    player: getPlayersByTeam('astH')
+},
+{
+    id: 'bsti',
+    name: 'Bistana FC',
+    sub: `Bistana`,
+    originC: 'Ijo',
+    originL: 'TS',
+    img: 'images/teams/Bistana.png',
+    player: getPlayersByTeam('bsti')
+},
+{
+    id: 'hogn',
+    name: 'Hougon FC',
+    sub: `Hogna`,
+    originC: 'Bolive',
+    originL: 'BKS',
+    img: 'images/teams/CastelHogan.png',
+    player: getPlayersByTeam('hogn')
+},
+{
+    id: 'penn',
+    name: 'Penn FC',
+    sub: `Penn`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/penn.png',
+    player: getPlayersByTeam('penn')
+},
+{
+    id: 'dj',
+    name: 'Dijel FC',
+    sub: `Dijel`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/dijel.png',
+    player: getPlayersByTeam('dj')
+},
+{
+    id: 'athmak',
+    name: 'Athmak FC',
+    sub: `Athmak`,
+    originC: 'Bolive',
+    originL: 'BKS',
+    img: 'images/teams/athmak.png',
+    player: getPlayersByTeam('athmak')
+}
+
 ];
 
 

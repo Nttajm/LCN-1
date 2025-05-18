@@ -2037,7 +2037,7 @@ export let players = [
         }
     },
     {
-        name: 'Andrew Livingstone',
+        name: 'Andrew Livings',
         type: 'retired',
         dob: '1976-11-16',
         teams: {
@@ -3877,12 +3877,38 @@ export let players = [
         }
     },
     {
-        name: 'dybala',
+        name: 'Dybala',
         type: 'retired',
         dob: '1989-05-10',
         teams: {
             'BVB': {
                 years: playerYears([[2011, 2025]]),
+            }
+        }
+    },
+    {
+        name: 'Follano Curto',
+        type: 'retired',
+        dob: '1979-05-10',
+        teams: {
+            'V': {
+                years: playerYears([[1997, 2001]]),
+            },
+            'BVB': {
+                years: playerYears([[2002, 2009]]),
+            }
+        }
+    },
+    {
+        name: 'Mañalito Gafatos',
+        type: 'retired',
+        dob: '1979-05-10',
+        teams: {
+            'V': {
+                years: playerYears([[1997, 2001]]),
+            },
+            'RNW': {
+                years: playerYears([[2002, 2004]]),
             }
         }
     },

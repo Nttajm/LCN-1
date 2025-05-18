@@ -91,6 +91,5 @@ function displayMatchInfo() {
     content.innerHTML = matchInfoHtml;
 }
 
-
 // Call the function when the page loads
 document.addEventListener('DOMContentLoaded', displayMatchInfo);
