@@ -500,6 +500,8 @@ function addMatchDialog(startMatch, mdIndex) {
     const notifEdText = document.querySelector('.notifEd-context');
     notifEd.classList.toggle('dn');
 
+    let selectedTeams = [];
+
     const team1Goals = [];
     const team2Goals = [];
     const assist1 = [];
@@ -513,13 +515,18 @@ function addMatchDialog(startMatch, mdIndex) {
 
     notifEdText.innerHTML = `
         <h1>Create Match</h1>
-        <div class="score-manager fl-r">
             <select name="potm" id="potm">
                 <option value="none">Player of the Match</option>
-                ${[...t1?.player || [], ...t2?.player || []].map(player => 
-                    `<option value="${player}">${player}</option>`
-                ).join('')}
-            <select>
+                ${
+                !startMatch ? 
+                    (teams[0]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
+                    (teams[1]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                : 
+                    (t1?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
+                    (t2?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                }
+            </select>
+        <div class="score-manager fl-r">
             <div class="team-man" id="team1">
                 <div class="score-display" id="team1-score">0</div>
                 <select id="team1-select">
@@ -610,6 +617,7 @@ function addMatchDialog(startMatch, mdIndex) {
     const playerMinute2 = document.querySelector('#team2-goal-minute');
     const playerAssist1 = document.querySelector('#team1-player-select-assist');
     const playerAssist2 = document.querySelector('#team2-player-select-assist');
+    const potm = document.querySelector('#potm');
 
     team1Select.addEventListener('change', () => {
         const team = getTeamById(team1Select.value);
@@ -629,6 +637,55 @@ function addMatchDialog(startMatch, mdIndex) {
     team2Select.addEventListener('change', () => {
         const team = getTeamById(team2Select.value);
         playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+    });
+    // Update POTM dropdown when team1 changes
+    team1Select.addEventListener('change', () => {
+        const team1 = getTeamById(team1Select.value);
+        const team2 = getTeamById(team2Select.value);
+        
+        potm.innerHTML = '<option value="none">Player of the Match</option>';
+        
+        // Add players from both selected teams
+        if (!startMatch) {
+            if (team1 && team1.player) {
+                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+            if (team2 && team2.player) {
+                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+        } else {
+            if (t1 && t1.player) {
+                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+            if (t2 && t2.player) {
+                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+        }
+    });
+    
+    // Update POTM dropdown when team2 changes
+    team2Select.addEventListener('change', () => {
+        const team1 = getTeamById(team1Select.value);
+        const team2 = getTeamById(team2Select.value);
+        
+        potm.innerHTML = '<option value="none">Player of the Match</option>';
+        
+        // Add players from both selected teams
+        if (!startMatch) {
+            if (team1 && team1.player) {
+                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+            if (team2 && team2.player) {
+                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+        } else {
+            if (t1 && t1.player) {
+                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+            if (t2 && t2.player) {
+                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+        }
     });
 
 
@@ -706,7 +763,7 @@ function addMatchDialog(startMatch, mdIndex) {
             seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.
             push({
             id: `match-${Math.random().toString(36).substr(2, 9)}`,
-            potm: document.querySelector('#potm').value,
+            potm: potm.value,
             team1: team1,
             team2: team2,
             score1: team1Goals.length,
@@ -724,7 +781,7 @@ function addMatchDialog(startMatch, mdIndex) {
             seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games
             .push({
             id: `match-${Math.random().toString(36).substr(2, 9)}`,
-            potm: document.querySelector('#potm').value,
+            potm: potm.value,
             team1: team1,
             team2: team2,
             score1: team1Goals.length,
