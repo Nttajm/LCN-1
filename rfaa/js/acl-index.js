@@ -281,7 +281,16 @@ export let teams = [
     originL: 'BKS',
     img: 'images/teams/athmak.png',
     player: getPlayersByTeam('athmak')
-}
+},
+{
+    id: 'V',
+    name: 'Visto FC',
+    sub: `Visto`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/VistoFc.png',
+    player: getPlayersByTeam('V')
+},
 
 ];
 
