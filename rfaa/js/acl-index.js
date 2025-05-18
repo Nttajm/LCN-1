@@ -502,6 +502,7 @@ function addMatchDialog(startMatch, mdIndex) {
 
     const team1Goals = [];
     const team2Goals = [];
+    const assist1 = [];
 
     console.log(matchdayIndex, 'matchday');
 
@@ -513,6 +514,12 @@ function addMatchDialog(startMatch, mdIndex) {
     notifEdText.innerHTML = `
         <h1>Create Match</h1>
         <div class="score-manager fl-r">
+            <select name="potm" id="potm">
+                <option value="none">Player of the Match</option>
+                ${[...t1?.player || [], ...t2?.player || []].map(player => 
+                    `<option value="${player}">${player}</option>`
+                ).join('')}
+            <select>
             <div class="team-man" id="team1">
                 <div class="score-display" id="team1-score">0</div>
                 <select id="team1-select">
@@ -536,6 +543,13 @@ function addMatchDialog(startMatch, mdIndex) {
                         <img src="icons/add.png" alt="add-goal"> Add Goal
                     </div>
                     <select id="team1-player-select">
+                    ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                    }
+                    </select>
+                    <span class="assist">Assist * optional</span>
+                    <select id="team1-player-select-assist" label="Assist">
+                        <option value="none">none</option>
                     ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
                         : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
                     }
@@ -570,6 +584,13 @@ function addMatchDialog(startMatch, mdIndex) {
                             : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
                         }
                     </select>
+                    <span class="assist">Assist * optional</span>
+                    <select id="team2-player-select-assist" label="Assist">
+                        <option value="none">none</option>
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                    </select>
                     <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team2-goal-list"></ul>
@@ -587,6 +608,8 @@ function addMatchDialog(startMatch, mdIndex) {
     const team2GoalList = document.querySelector('#team2-goal-list');
     const playerMinute1 = document.querySelector('#team1-goal-minute');
     const playerMinute2 = document.querySelector('#team2-goal-minute');
+    const playerAssist1 = document.querySelector('#team1-player-select-assist');
+    const playerAssist2 = document.querySelector('#team2-player-select-assist');
 
     team1Select.addEventListener('change', () => {
         const team = getTeamById(team1Select.value);
@@ -597,6 +620,17 @@ function addMatchDialog(startMatch, mdIndex) {
         const team = getTeamById(team2Select.value);
         team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
     });
+
+    team1Select.addEventListener('change', () => {
+        const team = getTeamById(team1Select.value);
+        playerAssist1.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+    });
+
+    team2Select.addEventListener('change', () => {
+        const team = getTeamById(team2Select.value);
+        playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+    });
+
 
     const cancelMatchBtn = document.querySelector('#cancel-match-btn');
     if (cancelMatchBtn) {
@@ -610,6 +644,8 @@ function addMatchDialog(startMatch, mdIndex) {
     document.querySelector('#team1-add-goal').addEventListener('click', () => {
         const player = team1PlayerSelect.value;
         let minute = parseInt(playerMinute1.value);
+        let assit = playerAssist1.value === 'none' ? false : playerAssist1.value;
+
         if (!player) return;
         if (isNaN(minute) || minute < 1 || minute > 120) {
             minute = Math.floor(Math.random() * 91); // Generate a random number between 0 and 90
@@ -619,7 +655,7 @@ function addMatchDialog(startMatch, mdIndex) {
             minute = Math.floor(Math.random() * 91);
         }
 
-        team1Goals.push({ player, minute });
+        team1Goals.push({ player, minute, assit });
         renderGoals(team1GoalList, team1Goals);
         updateScores();
     });
@@ -628,6 +664,8 @@ function addMatchDialog(startMatch, mdIndex) {
     document.querySelector('#team2-add-goal').addEventListener('click', () => {
         const player = team2PlayerSelect.value;
         let minute = parseInt(playerMinute2.value);
+        let assit = playerAssist2.value === 'none' ? false : playerAssist2.value;
+
         if (!player) return;
         if (isNaN(minute) || minute < 1 || minute > 120) {
             minute = Math.floor(Math.random() * 91); // Generate a random number between 0 and 90
@@ -637,7 +675,7 @@ function addMatchDialog(startMatch, mdIndex) {
             minute = Math.floor(Math.random() * 91);
         }
 
-        team2Goals.push({ player, minute });
+        team2Goals.push({ player, minute, assit});
         renderGoals(team2GoalList, team2Goals);
         updateScores();
     });
@@ -646,6 +684,7 @@ function addMatchDialog(startMatch, mdIndex) {
     document.querySelector('#create-match-btn').addEventListener('click', () => {
         const team1 = team1Select.value;
         const team2 = team2Select.value;
+
 
         if (!team1 || !team2 || team1 === team2) {
             alert('Please select two different teams.');
@@ -664,15 +703,17 @@ function addMatchDialog(startMatch, mdIndex) {
         seasonData.matchdays[matchdayIndex].games = matchdayGames;
 
         if (!startMatch) {
-            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
-                id: `match-${Math.random().toString(36).substr(2, 9)}`,
-                team1: team1,
-                team2: team2,
-                score1: team1Goals.length,
-                score2: team2Goals.length,
-                seed: Math.floor(Math.random() * 10000),
-                goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
-                    .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 })))
+            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.
+            push({
+            id: `match-${Math.random().toString(36).substr(2, 9)}`,
+            potm: document.querySelector('#potm').value,
+            team1: team1,
+            team2: team2,
+            score1: team1Goals.length,
+            score2: team2Goals.length,
+            seed: Math.floor(Math.random() * 10000),
+            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit }))
+                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit })))
             });
         } else {
             const thisStandbyMatch = matchday.games[thisMatchIdex]
@@ -680,16 +721,18 @@ function addMatchDialog(startMatch, mdIndex) {
             
             matchdayGames.splice(index, 1);
 
-            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.push({
-                id: `match-${Math.random().toString(36).substr(2, 9)}`,
-                team1: team1,
-                team2: team2,
-                score1: team1Goals.length,
-                score2: team2Goals.length,
-                seed: Math.floor(Math.random() * 10000),
-                goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1 }))
-                    .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2 }))),
-                standby: false
+            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games
+            .push({
+            id: `match-${Math.random().toString(36).substr(2, 9)}`,
+            potm: document.querySelector('#potm').value,
+            team1: team1,
+            team2: team2,
+            score1: team1Goals.length,
+            score2: team2Goals.length,
+            seed: Math.floor(Math.random() * 10000),
+            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit }))
+                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit }))),
+            standby: false
             });
         }
 
