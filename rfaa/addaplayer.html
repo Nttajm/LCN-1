@@ -1,264 +1,681 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Player Formatter</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    input, textarea, button, select { margin: 10px 0; display: block; width: 100%; padding: 8px; box-sizing: border-box; }
-    .player-card { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 8px; }
-    .delete-btn { background: crimson; color: white; padding: 5px 10px; border: none; cursor: pointer; width: auto; }
-    .teams-wrapper { margin-bottom: 10px; }
-    .team-entry { display: flex; gap: 10px; margin-bottom: 10px; }
-    .team-entry select { flex: 1; }
-    .team-entry input { flex: 1; }
-    .team-entry button { width: auto; background: crimson; color: white; border: none; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Player Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .delete-btn, .cancel-btn {
+            background-color: #dc3545;
+        }
+        
+        .delete-btn:hover, .cancel-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .edit-btn {
+            background-color: #28a745;
+        }
+        
+        .edit-btn:hover {
+            background-color: #1e7e34;
+        }
+        
+        .save-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .save-btn:hover {
+            background-color: #e0a800;
+        }
+        
+        .team-entry {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .team-entry select, .team-entry input {
+            width: auto;
+            flex: 1;
+        }
+        
+        .team-entry button {
+            width: auto;
+            margin: 0;
+            padding: 8px 12px;
+        }
+        
+        .player-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        
+        .player-card.editing {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .player-actions {
+            margin-top: 10px;
+        }
+        
+        .export-section {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        
+        #exportOutput {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .import-section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .team-display {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
-  <h1>Rfaa Player Formatter Tool</h1>
-  <label>Name</label>
-  <input id="nameInput" type="text" placeholder="e.g., John Doe" />
-  <label>Type</label>
-  <input id="typeInput" type="text" placeholder="e.g., active" />
-
-  <label>DOB (age in 1997)</label>
-  <input id="dobInput" type="number" placeholder="e.g., 21" />
-
-  <div class="teams-wrapper">
-    <h3>Teams</h3>
-    <div id="teamsContainer"></div>
-    <button onclick="addTeamInput()">Add Team</button>
-  </div>
-
-  <button onclick="addPlayer()">Add Player</button>
-
-  <h2>Players</h2>
-  <div id="playerList"></div>
-
-  <h2>Exported Code</h2>
-  <pre id="exportOutput"></pre>
-
-  <script>
-    const currentYear = 1997;
+    <h1>Enhanced Player Management System</h1>
     
-    // Team data from your provided list
-    const teamsList = [
-      { id: 'tex', name: 'Cerius Texico' },
-      { id: 'DELU', name: 'DelU' },
-      { id: 'DELM', name: 'Del Mer' },
-      { id: 'Dom', name: 'Domania' },
-      { id: 'fill', name: 'Fillham United' },
-      { id: 'esg', name: 'Esgual CF' },
-      { id: 'hewi', name: 'Hewi FC' },
-      { id: 'lenico', name: 'Lenico' },
-      { id: 'nb', name: 'New Bern' },
-      { id: 'pali', name: 'Pali' },
-      { id: 'Sprta', name: 'Sporta CF' },
-      { id: 'Uly', name: 'Ulimy' },
-      { id: 'RS', name: 'Real Sol' },
-      { id: 'BCCR', name: 'BC Central' },
-      { id: 'serpo', name: 'Serpogol' },
-      { id: 'DelUnited', name: 'Del United' },
-      { id: 'PSL', name: 'Pacific Saint leon' },
-      { id: 'NDIJON', name: 'North Dijon' },
-      { id: 'ocio', name: 'Ocio' },
-      { id: 'riofc', name: 'Rio FC' },
-      { id: 'Sentago', name: 'Sentago' },
-      { id: 'pacer', name: 'Pacer FC' },
-      { id: 'gks', name: 'GKS' },
-      { id: 'BVB', name: 'Borussia Dortmund' },
-      { id: 'deg', name: 'Degato' },
-      { id: 'astH', name: 'Astana Hotspurs' },
-      { id: 'bsti', name: 'Bistana FC' },
-      { id: 'hogn', name: 'Hougon FC' },
-      { id: 'penn', name: 'Penn FC' },
-      { id: 'dj', name: 'Dijel FC' },
-      { id: 'athmak', name: 'Athmak FC' },
-      { id: 'Vfy', name: 'Vfoyern' },
-      { id: 'SprtBlk', name: 'Sporting Blekis' },
-      { id: 'SLV', name: 'Salvia FC' }
-    ];
+    <!-- Import Section -->
+    <div class="container">
+        <h2 class="section-title">Import Data</h2>
+        <div class="import-section">
+            <label for="importData">Paste Player Data (JSON format):</label>
+            <textarea id="importData" placeholder='Paste your player data here in JSON format, e.g., [{"name": "John Doe", "type": "active", "dob": "1995-01-01", "teams": {"tex": {"years": "playerYears([[2020,2022]])"}}}]'></textarea>
+            <button onclick="importPlayers()">Import Players</button>
+            <button onclick="clearImportData()">Clear</button>
+        </div>
+    </div>
 
-    function playerYears(ranges) {
-      // Process date ranges 
-      if (!ranges || !Array.isArray(ranges)) return [];
-      
-      // Format ranges for display and usage
-      return ranges.map(range => {
-      if (Array.isArray(range) && range.length === 2) {
-        const [start, end] = range;
-        if (start === end) return start;
-        return `${start}-${end}`;
-      }
-      return range;
-      });
-    }
+    <!-- Add Player Section -->
+    <div class="container">
+        <h2 class="section-title">Add New Player</h2>
+        <div class="input-group">
+            <label for="nameInput">Player Name:</label>
+            <input type="text" id="nameInput" placeholder="Enter player name">
+        </div>
+        
+        <div class="input-group">
+            <label for="typeInput">Player Type:</label>
+            <input type="text" id="typeInput" placeholder="e.g., active, retired" value="active">
+        </div>
+        
+        <div class="input-group">
+            <label for="dobInput">Age (will calculate DOB from current year 1997):</label>
+            <input type="number" id="dobInput" placeholder="Enter age">
+        </div>
+        
+        <div class="input-group">
+            <label>Teams:</label>
+            <div id="teamsContainer"></div>
+            <button onclick="addTeamInput()">Add Team</button>
+        </div>
+        
+        <button onclick="addPlayer()">Add Player</button>
+    </div>
 
-    function addTeamInput() {
-      const container = document.getElementById('teamsContainer');
-      const div = document.createElement('div');
-      div.className = 'team-entry';
-      
-      // Create team dropdown select with all teams
-      let teamsSelect = '<select class="team-name">';
-      teamsSelect += '<option value="">Select a team</option>';
-      teamsList.forEach(team => {
-      teamsSelect += `<option value="${team.id}">${team.name} (${team.id})</option>`;
-      });
-      teamsSelect += '</select>';
-      
-      div.innerHTML = `
-      ${teamsSelect}
-      <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" />
-      <button onclick="this.parentElement.remove()">Remove</button>
-      `;
-      container.appendChild(div);
-    }
+    <!-- Players List -->
+    <div class="container">
+        <h2 class="section-title">Players List</h2>
+        <div id="playerList"></div>
+    </div>
 
-    function getTeamData() {
-      const teamInputs = document.querySelectorAll('#teamsContainer .team-entry');
-      const teams = {};
-      
-      // Track team occurrences to handle duplicates
-      const teamOccurrences = {};
-      
-      teamInputs.forEach(div => {
-      const teamSelect = div.querySelector('.team-name');
-      const nameValue = teamSelect ? teamSelect.value.trim() : '';
-      const rangeStr = div.querySelector('.team-years')?.value.trim();
-      if (!nameValue || !rangeStr) return;
+    <!-- Export Section -->
+    <div class="container">
+        <h2 class="section-title">Export Data</h2>
+        <div class="export-section">
+            <div id="exportOutput"></div>
+        </div>
+    </div>
 
-      const ranges = [];
-      rangeStr.split(',').forEach(r => {
-        const parts = r.split('-');
-        if (parts.length === 1) {
-        const year = Number(parts[0].trim());
-        if (!isNaN(year)) ranges.push([year, year]);
-        } else if (parts.length === 2) {
-        const start = Number(parts[0].trim());
-        const end = Number(parts[1].trim());
-        if (!isNaN(start) && !isNaN(end)) ranges.push([start, end]);
+    <script>
+        const currentYear = 1997;
+        
+        // Team data from your provided list
+        const teamsList = [
+            { id: 'tex', name: 'Cerius Texico' },
+            { id: 'DELU', name: 'DelU' },
+            { id: 'DELM', name: 'Del Mer' },
+            { id: 'Dom', name: 'Domania' },
+            { id: 'fill', name: 'Fillham United' },
+            { id: 'esg', name: 'Esgual CF' },
+            { id: 'hewi', name: 'Hewi FC' },
+            { id: 'lenico', name: 'Lenico' },
+            { id: 'nb', name: 'New Bern' },
+            { id: 'pali', name: 'Pali' },
+            { id: 'Sprta', name: 'Sporta CF' },
+            { id: 'Uly', name: 'Ulimy' },
+            { id: 'RS', name: 'Real Sol' },
+            { id: 'BCCR', name: 'BC Central' },
+            { id: 'serpo', name: 'Serpogol' },
+            { id: 'DelUnited', name: 'Del United' },
+            { id: 'PSL', name: 'Pacific Saint leon' },
+            { id: 'NDIJON', name: 'North Dijon' },
+            { id: 'ocio', name: 'Ocio' },
+            { id: 'riofc', name: 'Rio FC' },
+            { id: 'Sentago', name: 'Sentago' },
+            { id: 'pacer', name: 'Pacer FC' },
+            { id: 'gks', name: 'GKS' },
+            { id: 'BVB', name: 'Borussia Dortmund' },
+            { id: 'deg', name: 'Degato' },
+            { id: 'astH', name: 'Astana Hotspurs' },
+            { id: 'bsti', name: 'Bistana FC' },
+            { id: 'hogn', name: 'Hougon FC' },
+            { id: 'penn', name: 'Penn FC' },
+            { id: 'dj', name: 'Dijel FC' },
+            { id: 'athmak', name: 'Athmak FC' },
+            { id: 'Vfy', name: 'Vfoyern' },
+            { id: 'SprtBlk', name: 'Sporting Blekis' },
+            { id: 'SLV', name: 'Salvia FC' }
+        ];
+
+        import
+
+        function playerYears(ranges) {
+            // Process date ranges 
+            if (!ranges || !Array.isArray(ranges)) return [];
+            
+            // Format ranges for display and usage
+            return ranges.map(range => {
+                if (Array.isArray(range) && range.length === 2) {
+                    const [start, end] = range;
+                    if (start === end) return start;
+                    return `${start}-${end}`;
+                }
+                return range;
+            });
         }
-      });
 
-      if (ranges.length) {
-        // For duplicate teams, create a unique key with an index
-        if (!teamOccurrences[nameValue]) {
-        teamOccurrences[nameValue] = 1;
-        teams[nameValue] = ranges;
-        } else {
-        teamOccurrences[nameValue]++;
-        teams[`${nameValue}_${teamOccurrences[nameValue]}`] = ranges;
+        function addTeamInput(containerId = 'teamsContainer', teamId = '', years = '') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = 'team-entry';
+            
+            // Create team dropdown select with all teams
+            let teamsSelect = '<select class="team-name">';
+            teamsSelect += '<option value="">Select a team</option>';
+            teamsList.forEach(team => {
+                const selected = team.id === teamId ? 'selected' : '';
+                teamsSelect += `<option value="${team.id}" ${selected}>${team.name} (${team.id})</option>`;
+            });
+            teamsSelect += '</select>';
+            
+            div.innerHTML = `
+                ${teamsSelect}
+                <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" value="${years}" />
+                <button onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(div);
         }
-      }
-      });
-      return teams;
-    }
 
-    function savePlayers(players) {
-      localStorage.setItem('players', JSON.stringify(players));
-    }
+        function getTeamData(containerId = 'teamsContainer') {
+            const teamInputs = document.querySelectorAll(`#${containerId} .team-entry`);
+            const teams = {};
+            
+            // Track team occurrences to handle duplicates
+            const teamOccurrences = {};
+            
+            teamInputs.forEach(div => {
+                const teamSelect = div.querySelector('.team-name');
+                const nameValue = teamSelect ? teamSelect.value.trim() : '';
+                const rangeStr = div.querySelector('.team-years')?.value.trim();
+                if (!nameValue || !rangeStr) return;
 
-    function getPlayers() {
-      return JSON.parse(localStorage.getItem('players')) || [];
-    }
+                const ranges = [];
+                rangeStr.split(',').forEach(r => {
+                    const parts = r.split('-');
+                    if (parts.length === 1) {
+                        const year = Number(parts[0].trim());
+                        if (!isNaN(year)) ranges.push([year, year]);
+                    } else if (parts.length === 2) {
+                        const start = Number(parts[0].trim());
+                        const end = Number(parts[1].trim());
+                        if (!isNaN(start) && !isNaN(end)) ranges.push([start, end]);
+                    }
+                });
 
-    function deletePlayer(index) {
-      const players = getPlayers().reverse();
-      if (index < 0 || index >= players.length) return;
-      players.splice(index, 1);
-      savePlayers(players);
-      renderPlayers();
-    } 
-
-    function addPlayer() {
-      const name = document.getElementById('nameInput').value.trim();
-      const type = document.getElementById('typeInput').value.trim() || 'active';
-      const age = parseInt(document.getElementById('dobInput').value);
-      const dob = age ? `${currentYear - age}-01-01` : 'unknown';
-      const teams = getTeamData();
-
-      const player = { name, type, dob, teams };
-      const players = getPlayers();
-      players.push(player);
-      savePlayers(players);
-      renderPlayers();
-
-      document.getElementById('nameInput').value = '';
-      document.getElementById('typeInput').value = '';
-      document.getElementById('dobInput').value = '';
-      document.getElementById('teamsContainer').innerHTML = '';
-    }
-
-    function renderPlayers() {
-      const players = getPlayers();
-      const list = document.getElementById('playerList');
-      const output = document.getElementById('exportOutput');
-
-      list.innerHTML = '';
-      
-      // Create player cards
-      players.reverse().forEach((player, index) => {
-      const card = document.createElement('div');
-      card.className = 'player-card';
-      
-      // Build team display
-      let teamDisplay = '';
-      if (player.teams) {
-        for (const [teamId, years] of Object.entries(player.teams)) {
-        // Extract base team ID without the duplicate suffix
-        const baseTeamId = teamId.split('_')[0];
-        const teamInfo = teamsList.find(t => t.id === baseTeamId) || { name: baseTeamId };
-        teamDisplay += `<br>Team: ${teamInfo.name} (${baseTeamId})<br>Years: ${JSON.stringify(years)}<br>`;
+                if (ranges.length) {
+                    // For duplicate teams, create a unique key with an index
+                    if (!teamOccurrences[nameValue]) {
+                        teamOccurrences[nameValue] = 1;
+                        teams[nameValue] = ranges;
+                    } else {
+                        teamOccurrences[nameValue]++;
+                        teams[`${nameValue}_${teamOccurrences[nameValue]}`] = ranges;
+                    }
+                }
+            });
+            return teams;
         }
-      } 
-      
-      card.innerHTML = `
-        <strong>${player.name}</strong><br/>
-        Type: ${player.type}<br/>
-        DOB: ${player.dob}
-        ${teamDisplay}
-        <button class="delete-btn" onclick="deletePlayer(${index})">Delete</button>
-      `;
-      list.appendChild(card);
-      });
 
-      // Format for export
-      const formattedPlayers = players.map(player => {
-      const formattedPlayer = { ...player };
-      
-      // Format teams for export
-      if (formattedPlayer.teams) {
-        const newTeams = {};
-        for (const teamId in formattedPlayer.teams) {
-        // Get base team ID without the duplicate suffix
-        const baseTeamId = teamId.split('_')[0];
-        // If this team already exists in newTeams, merge the years
-        if (newTeams[baseTeamId]) {
-          const existingYears = JSON.parse(newTeams[baseTeamId].years
-          .replace('playerYears(', '')
-          .replace(')', ''));
-          const newYears = formattedPlayer.teams[teamId];
-          newTeams[baseTeamId] = {
-          years: `playerYears(${JSON.stringify([...existingYears, ...newYears])})`
-          };
-        } else {
-          newTeams[baseTeamId] = {
-          years: `playerYears(${JSON.stringify(formattedPlayer.teams[teamId])})`
-          };
+        function savePlayers(players) {
+            // Store in memory instead of localStorage for Claude environment
+            window.playersData = players;
         }
-        }
-        formattedPlayer.teams = newTeams;
-      }
-      return formattedPlayer;
-      });
-      output.textContent = `let players = ${JSON.stringify(formattedPlayers, null, 2)};`;
-    }
 
-    // Initialize on page load
-    renderPlayers();
-  </script>
+        function getPlayers() {
+            return window.playersData || [];
+        }
+
+        function deletePlayer(index) {
+            const players = getPlayers().slice().reverse();
+            if (index < 0 || index >= players.length) return;
+            players.splice(index, 1);
+            savePlayers(players.reverse());
+            renderPlayers();
+        }
+
+        function editPlayer(index) {
+            const players = getPlayers().slice().reverse();
+            if (index < 0 || index >= players.length) return;
+            
+            const player = players[index];
+            const card = document.querySelector(`.player-card[data-index="${index}"]`);
+            
+            // Create edit form
+            let teamInputs = '';
+            if (player.teams) {
+                for (const [teamId, years] of Object.entries(player.teams)) {
+                    const baseTeamId = teamId.split('_')[0];
+                    const teamInfo = teamsList.find(t => t.id === baseTeamId) || { name: baseTeamId };
+                    
+                    // Parse years from the playerYears format
+                    let yearsStr = '';
+                    if (years && years.years) {
+                        const yearsMatch = years.years.match(/playerYears\(\[(.*?)\]\)/);
+                        if (yearsMatch) {
+                            try {
+                                const yearsArray = JSON.parse(`[${yearsMatch[1]}]`);
+                                yearsStr = yearsArray.map(range => {
+                                    if (Array.isArray(range) && range.length === 2) {
+                                        return range[0] === range[1] ? range[0] : `${range[0]}-${range[1]}`;
+                                    }
+                                    return range;
+                                }).join(', ');
+                            } catch (e) {
+                                yearsStr = '';
+                            }
+                        }
+                    }
+                    
+                    teamInputs += `
+                        <div class="team-entry">
+                            <select class="team-name">
+                                <option value="">Select a team</option>
+                                ${teamsList.map(team => 
+                                    `<option value="${team.id}" ${team.id === baseTeamId ? 'selected' : ''}>${team.name} (${team.id})</option>`
+                                ).join('')}
+                            </select>
+                            <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" value="${yearsStr}" />
+                            <button onclick="this.parentElement.remove()">Remove</button>
+                        </div>
+                    `;
+                }
+            }
+            
+            const age = player.dob !== 'unknown' ? currentYear - parseInt(player.dob.split('-')[0]) : '';
+            
+            card.className = 'player-card editing';
+            card.innerHTML = `
+                <div class="input-group">
+                    <label>Player Name:</label>
+                    <input type="text" class="edit-name" value="${player.name}">
+                </div>
+                <div class="input-group">
+                    <label>Player Type:</label>
+                    <input type="text" class="edit-type" value="${player.type}">
+                </div>
+                <div class="input-group">
+                    <label>Age:</label>
+                    <input type="number" class="edit-age" value="${age}">
+                </div>
+                <div class="input-group">
+                    <label>Teams:</label>
+                    <div class="edit-teams-container">
+                        ${teamInputs}
+                    </div>
+                    <button onclick="addTeamToEditForm(${index})">Add Team</button>
+                </div>
+                <div class="player-actions">
+                    <button class="save-btn" onclick="savePlayerEdit(${index})">Save</button>
+                    <button class="cancel-btn" onclick="cancelEdit(${index})">Cancel</button>
+                </div>
+            `;
+        }
+
+        function addTeamToEditForm(index) {
+            const container = document.querySelector(`.player-card[data-index="${index}"] .edit-teams-container`);
+            const div = document.createElement('div');
+            div.className = 'team-entry';
+            
+            let teamsSelect = '<select class="team-name">';
+            teamsSelect += '<option value="">Select a team</option>';
+            teamsList.forEach(team => {
+                teamsSelect += `<option value="${team.id}">${team.name} (${team.id})</option>`;
+            });
+            teamsSelect += '</select>';
+            
+            div.innerHTML = `
+                ${teamsSelect}
+                <input type="text" placeholder="Years (e.g. 1994-1997)" class="team-years" />
+                <button onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function savePlayerEdit(index) {
+            const players = getPlayers().slice().reverse();
+            if (index < 0 || index >= players.length) return;
+            
+            const card = document.querySelector(`.player-card[data-index="${index}"]`);
+            const name = card.querySelector('.edit-name').value.trim();
+            const type = card.querySelector('.edit-type').value.trim() || 'active';
+            const age = parseInt(card.querySelector('.edit-age').value);
+            const dob = age ? `${currentYear - age}-01-01` : 'unknown';
+            
+            // Get teams from edit form
+            const teamInputs = card.querySelectorAll('.edit-teams-container .team-entry');
+            const teams = {};
+            const teamOccurrences = {};
+            
+            teamInputs.forEach(div => {
+                const teamSelect = div.querySelector('.team-name');
+                const nameValue = teamSelect ? teamSelect.value.trim() : '';
+                const rangeStr = div.querySelector('.team-years')?.value.trim();
+                if (!nameValue || !rangeStr) return;
+
+                const ranges = [];
+                rangeStr.split(',').forEach(r => {
+                    const parts = r.split('-');
+                    if (parts.length === 1) {
+                        const year = Number(parts[0].trim());
+                        if (!isNaN(year)) ranges.push([year, year]);
+                    } else if (parts.length === 2) {
+                        const start = Number(parts[0].trim());
+                        const end = Number(parts[1].trim());
+                        if (!isNaN(start) && !isNaN(end)) ranges.push([start, end]);
+                    }
+                });
+
+                if (ranges.length) {
+                    if (!teamOccurrences[nameValue]) {
+                        teamOccurrences[nameValue] = 1;
+                        teams[nameValue] = ranges;
+                    } else {
+                        teamOccurrences[nameValue]++;
+                        teams[`${nameValue}_${teamOccurrences[nameValue]}`] = ranges;
+                    }
+                }
+            });
+            
+            players[index] = { name, type, dob, teams };
+            savePlayers(players.reverse());
+            renderPlayers();
+        }
+
+        function cancelEdit(index) {
+            renderPlayers();
+        }
+
+        function addPlayer() {
+            const name = document.getElementById('nameInput').value.trim();
+            const type = document.getElementById('typeInput').value.trim() || 'active';
+            const age = parseInt(document.getElementById('dobInput').value);
+            const dob = age ? `${currentYear - age}-01-01` : 'unknown';
+            const teams = getTeamData();
+
+            const player = { name, type, dob, teams };
+            const players = getPlayers();
+            players.push(player);
+            savePlayers(players);
+            renderPlayers();
+
+            // Clear form
+            document.getElementById('nameInput').value = '';
+            document.getElementById('typeInput').value = '';
+            document.getElementById('dobInput').value = '';
+            document.getElementById('teamsContainer').innerHTML = '';
+        }
+
+        function importPlayers() {
+            const importData = document.getElementById('importData').value.trim();
+            if (!importData) {
+                alert('Please paste player data to import.');
+                return;
+            }
+
+            try {
+                const importedPlayers = JSON.parse(importData);
+                if (!Array.isArray(importedPlayers)) {
+                    throw new Error('Data must be an array of players');
+                }
+
+                // Process imported players to handle different formats
+                const processedPlayers = importedPlayers.map(player => {
+                    const processedPlayer = { ...player };
+                    
+                    // Handle teams format conversion if needed
+                    if (processedPlayer.teams) {
+                        const newTeams = {};
+                        for (const [teamId, teamData] of Object.entries(processedPlayer.teams)) {
+                            if (teamData.years) {
+                                // Extract years from playerYears format
+                                const yearsMatch = teamData.years.match(/playerYears\(\[(.*?)\]\)/);
+                                if (yearsMatch) {
+                                    try {
+                                        const yearsArray = JSON.parse(`[${yearsMatch[1]}]`);
+                                        newTeams[teamId] = yearsArray;
+                                    } catch (e) {
+                                        newTeams[teamId] = teamData;
+                                    }
+                                } else {
+                                    newTeams[teamId] = teamData;
+                                }
+                            } else {
+                                newTeams[teamId] = teamData;
+                            }
+                        }
+                        processedPlayer.teams = newTeams;
+                    }
+                    
+                    return processedPlayer;
+                });
+
+                const existingPlayers = getPlayers();
+                const combinedPlayers = [...existingPlayers, ...processedPlayers];
+                savePlayers(combinedPlayers);
+                renderPlayers();
+                
+                document.getElementById('importData').value = '';
+                alert(`Successfully imported ${importedPlayers.length} players!`);
+            } catch (error) {
+                alert(`Error importing data: ${error.message}`);
+            }
+        }
+
+        function clearImportData() {
+            document.getElementById('importData').value = '';
+        }
+
+        function renderPlayers() {
+            const players = getPlayers();
+            const list = document.getElementById('playerList');
+            const output = document.getElementById('exportOutput');
+
+            list.innerHTML = '';
+            
+            // Create player cards (reversed order as requested)
+            players.slice().reverse().forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.setAttribute('data-index', index);
+                
+                // Build team display
+                let teamDisplay = '';
+                if (player.teams) {
+                    for (const [teamId, years] of Object.entries(player.teams)) {
+                        // Extract base team ID without the duplicate suffix
+                        const baseTeamId = teamId.split('_')[0];
+                        const teamInfo = teamsList.find(t => t.id === baseTeamId) || { name: baseTeamId };
+                        teamDisplay += `<div class="team-display">Team: ${teamInfo.name} (${baseTeamId}) - Years: ${JSON.stringify(years)}</div>`;
+                    }
+                } 
+                
+                card.innerHTML = `
+                    <strong>${player.name}</strong><br/>
+                    Type: ${player.type}<br/>
+                    DOB: ${player.dob}
+                    ${teamDisplay}
+                    <div class="player-actions">
+                        <button class="edit-btn" onclick="editPlayer(${index})">Edit</button>
+                        <button class="delete-btn" onclick="deletePlayer(${index})">Delete</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            // Format for export - create JavaScript code, not JSON
+            const formattedPlayers = players.map(player => {
+                const formattedPlayer = { ...player };
+                
+                // Format teams for export
+                if (formattedPlayer.teams) {
+                    const newTeams = {};
+                    for (const teamId in formattedPlayer.teams) {
+                        // Get base team ID without the duplicate suffix
+                        const baseTeamId = teamId.split('_')[0];
+                        // If this team already exists in newTeams, merge the years
+                        if (newTeams[baseTeamId]) {
+                            // Handle existing teams - merge years arrays
+                            const existingYears = Array.isArray(newTeams[baseTeamId].years) ? 
+                                newTeams[baseTeamId].years : 
+                                (formattedPlayer.teams[baseTeamId] || []);
+                            const newYears = Array.isArray(formattedPlayer.teams[teamId]) ? 
+                                formattedPlayer.teams[teamId] : [];
+                            newTeams[baseTeamId] = {
+                                years: [...existingYears, ...newYears]
+                            };
+                        } else {
+                            newTeams[baseTeamId] = {
+                                years: Array.isArray(formattedPlayer.teams[teamId]) ? 
+                                    formattedPlayer.teams[teamId] : []
+                            };
+                        }
+                    }
+                    formattedPlayer.teams = newTeams;
+                }
+                return formattedPlayer;
+            });
+            
+            // Generate JavaScript code with playerYears function calls
+            let exportCode = 'let players = [\n';
+            formattedPlayers.forEach((player, index) => {
+                exportCode += '  {\n';
+                exportCode += `    "name": ${JSON.stringify(player.name)},\n`;
+                exportCode += `    "type": ${JSON.stringify(player.type)},\n`;
+                exportCode += `    "dob": ${JSON.stringify(player.dob)},\n`;
+                if (player.teams && Object.keys(player.teams).length > 0) {
+                    exportCode += '    "teams": {\n';
+                    const teamEntries = Object.entries(player.teams);
+                    teamEntries.forEach(([teamId, teamData], teamIndex) => {
+                        exportCode += `      "${teamId}": {\n`;
+                        exportCode += `        "years": playerYears(${JSON.stringify(teamData.years)})\n`;
+                        exportCode += `      }${teamIndex < teamEntries.length - 1 ? ',' : ''}\n`;
+                    });
+                    exportCode += '    }\n';
+                } else {
+                    exportCode += '    "teams": {}\n';
+                }
+                exportCode += `  }${index < formattedPlayers.length - 1 ? ',' : ''}\n`;
+            });
+            exportCode += '];';
+            
+            output.textContent = exportCode;
+        }
+
+        // Initialize on page load
+        renderPlayers();
+    </script>
 </body>
 </html>

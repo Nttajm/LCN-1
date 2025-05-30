@@ -1028,7 +1028,7 @@ function closeDialog() {
 
 export function getCurrentSeason() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('season') || 1998 ;
+    return params.get('season') || 2025 ;
 }
 
 // Initialize the application

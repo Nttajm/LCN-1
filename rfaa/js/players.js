@@ -1472,7 +1472,7 @@ export let players = [
 
         // Spanish players for Spanish teams (originL: TS)
     {
-        name: 'Raúl Fernández Blanco',
+        name: 'Raúl Blanco',
         type: 'retired',
         dob: '1973-05-12',
         teams: {
@@ -1482,7 +1482,7 @@ export let players = [
         }
     },
     {
-        name: 'Diego Sánchez Ortega',
+        name: 'Diego Ortema',
         type: 'retired',
         dob: '1975-09-28',
         teams: {
@@ -1505,7 +1505,7 @@ export let players = [
         }
     },
     {
-        name: 'Alejandro Gómez Vidal',
+        name: 'Alejandro Vidal',
         type: 'retired',
         dob: '1974-11-03',
         teams: {
@@ -1515,7 +1515,7 @@ export let players = [
         }
     },
     {
-        name: 'Pablo Jiménez Torres',
+        name: 'Pablo Jiménez',
         type: 'retired',
         dob: '1975-02-14',
         teams: {
@@ -1528,7 +1528,7 @@ export let players = [
         }
     },
     {
-        name: 'Miguel Ángel Pérez Navarro',
+        name: 'Miguel Navarro',
         type: 'retired',
         dob: '1976-07-21',
         teams: {
@@ -1538,7 +1538,7 @@ export let players = [
         }
     },
     {
-        name: 'Carlos Rodríguez Moreno',
+        name: 'Carlos Moreno',
         type: 'retired',
         dob: '1973-06-09',
         teams: {
@@ -1548,7 +1548,7 @@ export let players = [
         }
     },
     {
-        name: 'Javier López Muñoz',
+        name: 'Javier Muñoz',
         type: 'retired',
         dob: '1974-01-27',
         teams: {
@@ -1561,7 +1561,7 @@ export let players = [
         }
     },
     {
-        name: 'Antonio García Vega',
+        name: 'Antonio García',
         type: 'retired',
         dob: '1975-12-18',
         teams: {
@@ -1571,7 +1571,7 @@ export let players = [
         }
     },
     {
-        name: 'Enrique Díaz Ramos',
+        name: 'Enrique Díaz',
         type: 'retired',
         dob: '1974-04-06',
         teams: {
@@ -1581,7 +1581,7 @@ export let players = [
         }
     },
     {
-        name: 'Francisco Torres Medina',
+        name: 'Francisco Torres',
         type: 'retired',
         dob: '1976-08-12',
         teams: {
@@ -2106,7 +2106,7 @@ export let players = [
         }
     },
     {
-        name: 'Stephen Rutherford',
+        name: 'Stephen de Vere',
         type: 'retired',
         dob: '1974-12-19',
         teams: {
@@ -2182,7 +2182,7 @@ export let players = [
         }
     },
     {
-        name: 'Brian Underwood',
+        name: 'Brian Marlino',
         type: 'retired',
         dob: '1975-07-14',
         teams: {
@@ -2215,7 +2215,7 @@ export let players = [
         }
     },
     {
-        name: 'Jacob Hemsworth',
+        name: 'Jacob Cox',
         type: 'retired',
         dob: '1973-08-05',
         teams: {
@@ -2228,7 +2228,7 @@ export let players = [
         }
     },
     {
-        name: 'Ethan Merryweather',
+        name: 'Ethan ColWil',
         type: 'retired',
         dob: '1975-05-18',
         teams: {
@@ -2261,7 +2261,7 @@ export let players = [
         }
     },
     {
-        name: 'Luke Bartholomew',
+        name: 'Luke Bartho',
         type: 'retired',
         dob: '1975-10-17',
         teams: {
@@ -2492,7 +2492,7 @@ export let players = [
         }
     },
     {
-        name: 'Sean Wainwright',
+        name: 'Sean lawernce',
         type: 'retired',
         dob: '1974-10-23',
         teams: {
@@ -2512,7 +2512,7 @@ export let players = [
         }
     },
     {
-        name: 'Colin Stockwell',
+        name: 'Colin Rashwell',
         type: 'retired',
         dob: '1975-08-21',
         teams: {
@@ -2525,7 +2525,7 @@ export let players = [
         }
     },
     {
-        name: 'Elliott Harrington',
+        name: 'Elliott Lox',
         type: 'retired',
         dob: '1973-03-29',
         teams: {
@@ -2704,7 +2704,7 @@ export let players = [
         }
     },
     {
-        name: 'David Thompson',
+        name: 'David Huberto',
         type: 'retired',
         dob: '1975-03-15',
         teams: {
@@ -2727,7 +2727,7 @@ export let players = [
         }
     },
     {
-        name: 'Christopher Davis',
+        name: 'Christopher Davidson',
         type: 'retired',
         dob: '1972-12-05',
         teams: {
@@ -2773,7 +2773,7 @@ export let players = [
         }
     },
     {
-        name: 'Thomas Johnson',
+        name: 'Quag Quintero',
         type: 'retired',
         dob: '1974-11-11',
         teams: {
@@ -2786,7 +2786,7 @@ export let players = [
         }
     },
     {
-        name: 'Richard Smith',
+        name: 'Richard Ricci',
         type: 'retired',
         dob: '1975-06-28',
         teams: {
@@ -2980,6 +2980,16 @@ export let players = [
         }
     },
     {
+        name: 'Warn Foden',
+        type: 'retired',
+        dob: '1981-04-24',
+        teams: {
+            'DELU': {
+                years: playerYears([[1997, 2018]]),
+            },
+        }
+    },
+    {
         name: 'Mali Bale',
         type: 'retired',
         dob: '1974-02-30',
@@ -2988,8 +2998,7 @@ export let players = [
                 years: playerYears([[1992, 1994], [1996, 2000]]),
             }
         }
-    }
-    ,
+    },
     {
         name: 'James Attenborough',
         type: 'retired',
@@ -3004,16 +3013,6 @@ export let players = [
         }
     },
     {
-        name: 'Erling Haaland',
-        type: 'active',
-        dob: '2000-07-21',
-        teams: {
-            'BVB': {
-                years: playerYears([[2015, 2025]]),
-            }
-        }
-    },
-    {
         name: 'Jadon Sancho',
         type: 'active',
         dob: '2000-03-25',
@@ -3023,66 +3022,6 @@ export let players = [
             }
         }
     },
-    {
-        name: 'Antoine Griezmann',
-        type: 'active',
-        dob: '1991-03-21',
-        teams: {
-            'ATM': {
-                years: playerYears([[2015, 2025]]),
-            }
-        }
-    },
-    {
-        name: 'Jan Oblak',
-        type: 'active',
-        dob: '1993-01-07',
-        teams: {
-            'ATM': {
-                years: playerYears([[2015, 2025]]),
-            }
-        }
-    },
-    {
-        name: 'Robert Lewandowski',
-        type: 'active',
-        dob: '1988-08-21',
-        teams: {
-            'BAY': {
-                years: playerYears([[2015, 2025]]),
-            }
-        }
-    },
-    {
-        name: 'Thomas Müller',
-        type: 'active',
-        dob: '1989-09-13',
-        teams: {
-            'BAY': {
-                years: playerYears([[2015, 2025]]),
-            }
-        }
-    },
-    {
-        name: 'Mason Mount',
-        type: 'active',
-        dob: '1999-01-10',
-        teams: {
-            'CHE': {
-                years: playerYears([[2015, 2025]]),
-            }
-        }
-    },
-    {
-        name: 'Reece James',
-        type: 'active',
-        dob: '1999-12-08',
-        teams: {
-            'CHE': {
-                years: playerYears([[2015, 2025]]),
-            }
-        }
-    }
     ,
     {
         name: 'Luc DuBois',
@@ -3145,7 +3084,7 @@ export let players = [
         }
     },
     {
-        name: 'Igor Sokolov',
+        name: 'Igor Volmuer',
         type: 'active',
         dob: '1991-07-17',
         teams: {
@@ -3225,7 +3164,7 @@ export let players = [
         }
     },
     {
-        name: 'Mohamed Ali',
+        name: 'Mohamed Ash',
         type: 'active',
         dob: '1995-12-10',
         teams: {
@@ -3235,7 +3174,7 @@ export let players = [
         }
     },
     {
-        name: 'Michael Johnson',
+        name: 'Michael Foster',
         type: 'active',
         dob: '1991-04-05',
         teams: {
@@ -3251,37 +3190,6 @@ export let players = [
         teams: {
             'NCH': {
                 years: playerYears([[2016, 2025]]),
-            }
-        }
-    }
-    ,
-    {
-        name: 'João Félix',
-        type: 'active',
-        dob: '1999-11-10',
-        teams: {
-            'ATM': {
-                years: playerYears([[2019, 2025]]),
-            }
-        }
-    },
-    {
-        name: "N'Golo Kanté",
-        type: 'active',
-        dob: '1991-03-29',
-        teams: {
-            'CHE': {
-                years: playerYears([[2016, 2025]]),
-            }
-        }
-    },
-    {
-        name: 'Manuel Neuer',
-        type: 'active',
-        dob: '1986-03-27',
-        teams: {
-            'BAY': {
-                years: playerYears([[2011, 2025]]),
             }
         }
     },
@@ -3326,7 +3234,7 @@ export let players = [
         }
     },
     {
-        name: 'Takashi Suzuki',
+        name: 'Takashi uki',
         type: 'active',
         dob: '1996-09-14',
         teams: {
@@ -3406,7 +3314,7 @@ export let players = [
         }
     },
     {
-        name: 'Diego Fernandez',
+        name: 'Diego Fernando',
         type: 'active',
         dob: '1997-09-21',
         teams: {
@@ -3486,7 +3394,7 @@ export let players = [
         }
     },
     {
-        name: 'Nathan Brown',
+        name: 'Nathan Causey',
         type: 'active',
         dob: '1995-05-15',
         teams: {
@@ -3576,7 +3484,7 @@ export let players = [
         }
     },
     {
-        name: 'Brandon Smith',
+        name: 'Brandon Kane',
         type: 'active',
         dob: '1995-04-11',
         teams: {
@@ -3586,7 +3494,7 @@ export let players = [
         }
     },
     {
-        name: 'Tyler Brown',
+        name: 'Tyler Davis',
         type: 'active',
         dob: '1996-08-16',
         teams: {
@@ -3606,7 +3514,7 @@ export let players = [
         }
     },
     {
-        name: 'Kevin Miller',
+        name: 'Kevin Benson',
         type: 'active',
         dob: '1998-03-25',
         teams: {
@@ -3626,7 +3534,7 @@ export let players = [
         }
     },
     {
-        name: 'Matthew Thompson',
+        name: 'Matthew Topica',
         type: 'active',
         dob: '2000-01-08',
         teams: {

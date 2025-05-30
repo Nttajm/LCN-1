@@ -54,7 +54,7 @@ function renderStatList(stats, teamsFn, m) {
         
         return `
             <div class="p-t">
-                <div class="rank">${index + 1}</div>
+                <div class="rank">${index + 2}</div>
                 <div class="p-t-name">
                     <span>${stat.name}</span>
                     <div class="p-clubs">
