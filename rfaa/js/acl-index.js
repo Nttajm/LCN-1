@@ -114,7 +114,7 @@ export let teams = [
 {
     id: 'RS',
     name: 'Real Sol',
-    sub: `PSL`,
+    sub: `Real Sol`,
     originC: 'Texico',
     originL: 'TS',
     img: 'images/teams/real-sol.png',
@@ -1028,7 +1028,7 @@ function closeDialog() {
 
 export function getCurrentSeason() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('season') || new Date().getFullYear().toString();
+    return params.get('season') || 1998 ;
 }
 
 // Initialize the application
@@ -1341,3 +1341,182 @@ function genStats(seed) {
     let randomIndex = Math.floor(Math.random() * comentarys.length);  
 
 }
+
+
+// function displayStatistics() {
+//     const statsCont = document.querySelector('.stats');
+//     if (!statsCont) return;
+
+//     // Get the current season
+    const currentSeason = getCurrentSeason();
+
+    // Generate top goal scorers
+//     const goalScorers = getTopGoalScorers(currentSeason);
+    
+//     // Generate assists leaderboard
+//     const assistLeaders = getTopAssistProviders(currentSeason);
+
+//     // Get players with most player of the match awards
+//     const potmLeaders = getTopPOTM(currentSeason);
+
+//     statsCont.innerHTML = `
+//         <div class="stat-table" id="ps-goals">
+//             <div class="header">
+//                 <h3>Goal Scorers</h3>
+//             </div>
+//             ${renderStatList(goalScorers, getPlayerTeams)}
+//         </div>
+//         <div class="stat-table" id="ps-assists">
+//             <div class="header">
+//                 <h3>Assists</h3>
+//             </div>
+//             ${renderStatList(assistLeaders, getPlayerTeams)}
+//         </div>
+//         <div class="stat-table" id="ps-potm">
+//             <div class="header">
+//                 <h3>Player of the Match</h3>
+//             </div>
+//             ${renderStatList(potmLeaders, getPlayerTeams)}
+//         </div>
+//     `;
+// }
+
+// function renderStatList(stats, teamsFn) {
+//     if (!stats || stats.length === 0) {
+//         return `<div class="p-t">No data available</div>`;
+//     }
+    
+//     return stats.slice(0, 10).map((stat, index) => {
+//         const playerTeams = teamsFn(stat.name);
+        
+//         return `
+//             <div class="p-t">
+//                 <div class="rank">${index + 1}</div>
+//                 <div class="p-t-name">
+//                     <span>${stat.name}</span>
+//                     <div class="p-clubs">
+//                         ${playerTeams.map(teamId => {
+//                             const team = getTeamById(teamId);
+//                             return `<img src="${team.img}" alt="${team.name}">`;
+//                         }).join('')}
+//                     </div>
+//                 </div>
+//                 <div class="p-t-quant">
+//                     ${stat.count}
+//                 </div>
+//             </div>
+//         `;
+//     }).join('');
+// }
+
+// function getTopGoalScorers() {
+//     // Create a map to count goals per player across all seasons
+//     const playerGoals = {};
+    
+//     // Iterate through all seasons
+//     seasons.forEach(seasonData => {
+//         if (!seasonData || !seasonData.matchdays) return;
+        
+//         // Count goals across all matches in each season
+//         seasonData.matchdays.forEach(matchday => {
+//             if (!matchday.games) return;
+            
+//             matchday.games.forEach(game => {
+//                 if (!game.goals) return;
+                
+//                 game.goals.forEach(goal => {
+//                     if (!goal.player) return;
+                    
+//                     if (!playerGoals[goal.player]) {
+//                         playerGoals[goal.player] = 0;
+//                     }
+                    
+//                     playerGoals[goal.player]++;
+//                 });
+//             });
+//         });
+//     });
+    
+//     // Convert to array and sort by goal count
+//     return Object.entries(playerGoals)
+//         .map(([name, count]) => ({ name, count }))
+//         .sort((a, b) => b.count - a.count);
+// }
+
+// function getTopAssistProviders() {
+//     // Create a map to count assists per player across all seasons
+//     const playerAssists = {};
+    
+//     // Iterate through all seasons
+//     seasons.forEach(seasonData => {
+//         if (!seasonData || !seasonData.matchdays) return;
+        
+//         // Count assists across all matches in each season
+//         seasonData.matchdays.forEach(matchday => {
+//             if (!matchday.games) return;
+            
+//             matchday.games.forEach(game => {
+//                 if (!game.goals) return;
+                
+//                 game.goals.forEach(goal => {
+//                     if (!goal.assist) return;
+                    
+//                     if (!playerAssists[goal.assist]) {
+//                         playerAssists[goal.assist] = 0;
+//                     }
+                    
+//                     playerAssists[goal.assist]++;
+//                 });
+//             });
+//         });
+//     });
+    
+//     // Convert to array and sort by assist count
+//     return Object.entries(playerAssists)
+//         .map(([name, count]) => ({ name, count }))
+//         .sort((a, b) => b.count - a.count);
+// }
+
+// function getTopPOTM() {
+//     // Create a map to count POTM awards per player across all seasons
+//     const playerPOTM = {};
+    
+//     // Iterate through all seasons
+//     seasons.forEach(seasonData => {
+//         if (!seasonData || !seasonData.matchdays) return;
+        
+//         // Count POTM across all matches in each season
+//         seasonData.matchdays.forEach(matchday => {
+//             if (!matchday.games) return;
+            
+//             matchday.games.forEach(game => {
+//                 if (!game.potm || game.potm === "none") return;
+                
+//                 if (!playerPOTM[game.potm]) {
+//                     playerPOTM[game.potm] = 0;
+//                 }
+                
+//                 playerPOTM[game.potm]++;
+//             });
+//         });
+//     });
+    
+//     // Convert to array and sort by POTM count
+//     return Object.entries(playerPOTM)
+//         .map(([name, count]) => ({ name, count }))
+//         .sort((a, b) => b.count - a.count);
+// }
+
+// function getPlayerTeams(playerName) {
+//     // Find the player in the players array
+//     const player = players.find(p => p.name === playerName);
+//     if (!player || !player.teams) return [];
+    
+//     // Get the team IDs for this player
+//     return Object.keys(player.teams);
+// }
+
+// // Call this function when your page loads or when needed
+// document.addEventListener('DOMContentLoaded', () => {
+//     displayStatistics();
+// });

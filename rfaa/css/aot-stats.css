@@ -1,0 +1,89 @@
+ .cont {
+    padding: 2.2rem;
+ }
+
+ .stats {
+   margin-bottom: 5rem;
+   overflow-x: scroll;
+   display: flex;
+   width: 100vw;
+   box-sizing: initial;
+   gap: 1.5rem;
+ }
+
+ 
+
+ .stat-table {
+    display: flex;
+    flex-direction: column;
+    width: 500px;
+    overflow: hidden;
+box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
+-webkit-box-shadow: -2px 5px 18px 0px rgba(0, 0, 0, 0.096);
+-moz-box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
+      border-radius: 0rem 0rem 1rem 1rem; 
+
+ }
+
+ .header {
+    background: var(--grad-stats);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 2rem;
+    border-radius: 1rem 1rem 0rem 0rem; 
+    color: white;
+ }
+
+ .p-t {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    width: 100%;
+    padding: 0 1rem;
+   border-bottom: 1px solid var(--border-subtle);
+   padding: 0.7rem 1rem;
+ }
+
+
+ .rank {
+    font-size: 1.7rem;
+    font-weight: 500;
+ }
+
+ .img {
+    width: 4rem;
+ }
+
+ .p-clubs {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+ }
+
+   .p-clubs img {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+   }
+
+   .p-clubs img:not(:first-child) {
+      margin-left: -1.2rem;
+   }
+
+
+ .img img {
+    width: 100%;
+ }
+
+ .p-t-name {
+    font-size: 1.6rem;
+    font-weight: 600;
+ }
+
+ .p-t-quant {
+    margin-left: auto;
+    margin-right: 1rem;
+   font-size: 1.7rem;
+   font-weight: 600;
+ }

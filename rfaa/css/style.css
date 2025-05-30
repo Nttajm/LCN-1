@@ -114,7 +114,7 @@ button {
     color: white;
     padding: .5rem;
     cursor: pointer;
-    border-bottom: 1px solid #00a6cf;
+    border-bottom: var(--border-3);
 }
 
 .imgel {
@@ -136,6 +136,42 @@ button {
     font-family: roboto;
     font-size: 1.7rem;
     font-weight: 300;
+}
+
+.option-elem {
+    position: relative;
+    transition: all 0.125s;
+}
+
+#histab-parent:hover #histab {
+    opacity: 1;
+    pointer-events: all;
+    transition: all 0.125s ease-in-out;
+}
+
+.more-info {
+    position: absolute;
+    z-index: 2;
+    transform: translate(-10%, 0%);
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.more-info ul {
+    border: var(--border-3);
+    font-size: 1.7rem;
+    font-weight: 400;
+    border-radius: 10px;
+        background-color: var(--mc-1);
+}
+
+.more-info ul li:not(.more-info ul li:last-child) {
+    border-bottom: var(--border-subtle-dark) solid 1px;
+}
+
+.more-info ul li{
+    padding: 0.5rem 1rem;
 }
 
 .preview-matches {
@@ -241,7 +277,16 @@ button {
 }
 
 h1 {
-    font-size: 3rem;
+    font-size: 3.4rem;
+}
+
+h2 {
+    font-size: 2.5rem;
+    padding: 1.4rem 0;
+}
+
+h3 {
+    font-size: 2rem;
 }
 
 .headlineGames {
