@@ -1,6 +1,12 @@
 :root {
     font-size: 13px;
+
+    /* standard colors */
     --border-1: #08080838;
+    --subtle-bkg: rgb(241, 243, 248);
+    /* end */
+
+    
     --border-2: #ffffff1a;
     --border-3:  1px solid #00a6cf;
     --border-4:  2px solid #003bbb; 
@@ -12,6 +18,7 @@
     --mc-3: #00aeff; 
     --wh-1: #f7f7f7;
     --gray-1: #e6e6e6;
+    --gray-2: #d3d3d3;
     --dark-1:  #00154ebd;
     --grad-nav: linear-gradient(to right, rgb(51, 35, 121), rgb(17, 96, 116));
     --grad-stats: linear-gradient(to right, rgb(0, 60, 255), rgb(32, 29, 168));

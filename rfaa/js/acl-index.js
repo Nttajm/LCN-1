@@ -526,6 +526,8 @@ function addMatchDialog(startMatch, mdIndex) {
                     (t2?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
                 }
             </select>
+
+            
         <div class="score-manager fl-r">
             <div class="team-man" id="team1">
                 <div class="score-display" id="team1-score">0</div>
@@ -546,21 +548,25 @@ function addMatchDialog(startMatch, mdIndex) {
                 }
                 </select>
                 <div class="add-goal">
-                    <div class="fl-r fl-ai" id="team1-add-goal">
-                        <img src="icons/add.png" alt="add-goal"> Add Goal
+                    <div class="fl-r fl-ai add-options">
+                        <div class="fl-r fl-ai" id="team1-add-goal">
+                            <img src="icons/add.png" alt="add-goal"> Add Goal
+                        </div>
+                        <select id="team1-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
                     </div>
-                    <select id="team1-player-select">
-                    ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                    }
-                    </select>
-                    <span class="assist">Assist * optional</span>
-                    <select id="team1-player-select-assist" label="Assist">
-                        <option value="none">none</option>
-                    ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                    }
-                    </select>
+                    <div class="fl-r fl-ai add-options">
+                        <span class="assist">Assist * optional</span>
+                        <select id="team1-player-select-assist" label="Assist">
+                            <option value="none">none</option>
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
                     <input type="number" id="team1-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team1-goal-list"></ul>
@@ -583,21 +589,25 @@ function addMatchDialog(startMatch, mdIndex) {
                 }
                 </select> 
                 <div class="add-goal">
-                    <div class="fl-r fl-ai" id="team2-add-goal">
-                        <img src="icons/add.png" alt="add-goal"> Add Goal
+                    <div class="fl-r fl-ai add-options">
+                            <div class="fl-r fl-ai" id="team2-add-goal">
+                            <img src="icons/add.png" alt="add-goal"> Add Goal
+                        </div>
+                        <select id="team2-player-select">
+                            ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                                : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            }
+                        </select>
                     </div>
-                    <select id="team2-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
-                    </select>
-                    <span class="assist">Assist * optional</span>
-                    <select id="team2-player-select-assist" label="Assist">
-                        <option value="none">none</option>
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
-                    </select>
+                    <div class="fl-r fl-ai add-options">
+                            <span class="assist">Assist * optional</span>
+                        <select id="team2-player-select-assist" label="Assist">
+                            <option value="none">none</option>
+                            ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                                : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            }
+                        </select>
+                    </div>
                     <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team2-goal-list"></ul>
@@ -854,7 +864,7 @@ function loadSeason(snum) {
             ${seasonMatchdays.map((matchday, index) => `
                 <div class="matchday-cont" id="matchday-${index}">
                     <h1>Matchday ${index + 1}</h1>
-                    <p>${matchday.details || 'No details available'}</p>
+                    <p class="md-details">${matchday.details || 'No details available'}</p>
                     ${renderMatches([matchday], index)}
                 </div>
             `).join('')}

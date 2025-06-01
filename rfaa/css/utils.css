@@ -11,6 +11,19 @@
     font-family: roboto;
 }
 
+.blink-red {
+    animation: blink 2s steps(1) infinite;
+}
+
+@keyframes blink {
+    0%, 100% {
+        background-color: #ffffff;
+    }
+    50% {
+        background-color: #ff9999;
+    }
+}
+
 .headin {
     background: linear-gradient(135deg, #0e1e5b 0%, #0a51a1 100%);
     color: white;
@@ -112,6 +125,15 @@ td:last-child {
 td:nth-child(7):contains("-") {
     color: #e74c3c;
 }
+
+.m2-group {
+    margin: 2rem 3%;
+}
+
+.p2-group {
+    padding-left:  3%;
+    padding-right: 3%;
+}   
 
 /* Responsive adjustments */
 @media screen and (max-width: 600px) {

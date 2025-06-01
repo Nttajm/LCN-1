@@ -1,27 +1,35 @@
+ body {
+   background-color: var(--subtle-bkg);
+ }
+ 
  .cont {
     padding: 2.2rem;
+    overflow: hidden;
  }
 
  .stats {
    margin-bottom: 5rem;
-   overflow-x: scroll;
    display: flex;
    width: 100vw;
    box-sizing: initial;
    gap: 1.5rem;
- }
 
- 
+   overflow-x:scroll;
+
+ }
 
  .stat-table {
     display: flex;
     flex-direction: column;
     width: 500px;
     overflow: hidden;
-box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
+    background-color: white;
+    border: solid 1px var(--border-1);
+      border-radius: 0rem 0rem 1rem 1rem ;
+/* box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
 -webkit-box-shadow: -2px 5px 18px 0px rgba(0, 0, 0, 0.096);
 -moz-box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
-      border-radius: 0rem 0rem 1rem 1rem; 
+      border-radius: 0rem 0rem 1rem 1rem;  */
 
  }
 
@@ -45,10 +53,25 @@ box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
    padding: 0.7rem 1rem;
  }
 
+ .header .p-t {
+   padding: 0 0.5rem;
+ }
+
+
+ .p-t:last-child {
+    border-bottom: none;
+ }
 
  .rank {
     font-size: 1.7rem;
     font-weight: 500;
+    color: var(--dark-1);
+    margin-right: 1rem;
+    margin-left: 0.5rem;
+ }
+
+ .header .rank {
+   color: white;
  }
 
  .img {
@@ -78,12 +101,12 @@ box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
 
  .p-t-name {
     font-size: 1.6rem;
-    font-weight: 600;
+    font-weight: 500;
  }
 
  .p-t-quant {
     margin-left: auto;
     margin-right: 1rem;
-   font-size: 1.7rem;
+   font-size: 2rem;
    font-weight: 600;
  }

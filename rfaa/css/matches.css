@@ -14,7 +14,7 @@
     height: 100%;
     height: 70vh;
     overflow-y: auto;
-}
+} 
 
 .season-cont span {
     font-size: 5rem;
@@ -45,6 +45,13 @@
     flex-direction: column;
     gap: 1rem;
     padding: 2rem;
+}
+
+.md-details {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--dark-1);
+
 }
 
 .mathchday-info {
@@ -139,14 +146,20 @@
 }
 
 .notifEd-context {
-    background: #fff;
+    background: rgb(255, 255, 255);
     padding: 2rem;
     border-radius: 1rem;
-    width: 70%;
-    height: 80%;
+    width: 90%;
+    height: 90%;
     display: flex;
     flex-direction: column;
     gap: 2rem;
+}
+
+.add-options {
+    background-color: rgba(70, 136, 70, 0.651);
+    padding: 1rem;
+    border-radius: 10rem;
 }
 
 .teams-select {
