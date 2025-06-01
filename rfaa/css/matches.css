@@ -16,7 +16,7 @@
     overflow-y: auto;
 } 
 
-.season-cont span {
+.season-year-text {
     font-size: 5rem;
     font-weight: 600;
     color: #fff;
@@ -30,6 +30,34 @@
     rotate: 0deg;
     z-index: 1;
     opacity: 0.6;
+    pointer-events: none;
+}
+
+.m-seasons {
+    display: flex;
+    flex-direction: row;
+    gap: .5rem;
+}
+
+.season {
+    font-size: 1.2rem !important;
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 3rem;
+    background-color: var(--mc-1);
+
+    border: solid 1px var(--border-2);
+}
+
+.season.selected {
+    background-color: var(--mc-2);
+    color: white;
+    font-weight: 600;
+}
+
+.season:hover {
+    background-color: var(--mc-4);
+    cursor: pointer;
 }
 
 .matchdays {

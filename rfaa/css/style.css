@@ -198,6 +198,7 @@ button {
     border: var(--border-2) solid 2px; 
 }
 
+
 .phase {
     opacity: 0.5;
     font-weight: 300;

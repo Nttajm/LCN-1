@@ -3,8 +3,11 @@
  }
  
  .cont {
-    padding: 2.2rem;
     overflow: hidden;
+ }
+
+ .stats-cont {
+   width: 100%;
  }
 
  .stats {

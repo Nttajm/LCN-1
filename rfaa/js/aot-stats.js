@@ -3,7 +3,6 @@ import { seasons } from "./acl-index.js";
 import { players } from "./players.js";
 import { getTeamById } from "./acl-index.js";
 
-
 function displayStatistics() {
     const statsCont = document.querySelector('.stats');
     if (!statsCont) return;
@@ -196,6 +195,8 @@ function getTopPOTM(m) {
 function getPlayerTeams(playerName) {
     // Find the player in the players array
     const player = players.find(p => p.name === playerName);
+    if (!player.name) return [];
+    if (!player) return [];
     if (!player || !player.teams) return [];
     
     // Get the team IDs for this player
