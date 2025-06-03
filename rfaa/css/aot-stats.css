@@ -8,6 +8,8 @@
 
  .stats-cont {
    width: 100%;
+  overflow: hidden;
+  position: relative;
  }
 
  .stats {
@@ -17,9 +19,12 @@
    box-sizing: initial;
    gap: 1.5rem;
 
-   overflow-x:scroll;
 
  }
+
+ .stats-cont.dragging {
+  cursor: grabbing;
+}
 
  .stat-table {
     display: flex;
@@ -29,6 +34,9 @@
     background-color: white;
     border: solid 1px var(--border-1);
       border-radius: 0rem 0rem 1rem 1rem ;
+      transform: translateX(0);
+  transition: transform 0.3s ease;
+  will-change: transform;
 /* box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
 -webkit-box-shadow: -2px 5px 18px 0px rgba(0, 0, 0, 0.096);
 -moz-box-shadow: -2px 5px 18px 0px rgba(0,0,0,0.29);
@@ -113,3 +121,13 @@
    font-size: 2rem;
    font-weight: 600;
  }
+
+ .full-rankings {
+   display: flex;
+   align-items: center;
+   padding: 1rem;
+   font-weight: 500;
+   font-size: 1.6rem;
+   color: var(--mc-1);
+ }
+

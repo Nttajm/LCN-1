@@ -8,6 +8,11 @@
     background-color: #000000;
 }
 
+a:hover {
+    color: var(--mc-3);
+    transition: all 0.2s ease-in-out;
+}
+
 .full-btn {
     width: 100% !important;
     display: flex;

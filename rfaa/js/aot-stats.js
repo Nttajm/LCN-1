@@ -16,6 +16,8 @@ function displayStatistics() {
     // Get players with most player of the match awards of all time
     const potmLeaders = getTopPOTM();
 
+    const finalWinners = getWinners();
+
 
     statsCont.innerHTML = `
         <div class="stat-table" id="ps-goals">
@@ -24,6 +26,9 @@ function displayStatistics() {
                  ${renderStatList(goalScorers, getPlayerTeams, true)}
             </div>
             ${renderStatList(goalScorers, getPlayerTeams)}
+            <div class="full-rankings">
+                <a href="/rfaa/acl/stats/alltime.html?type=goals" class="link">View All</a>
+            </div>
         </div>
         <div class="stat-table" id="ps-assists">
             <div class="header">
@@ -31,6 +36,9 @@ function displayStatistics() {
                 ${renderStatList(assistLeaders, getPlayerTeams, true)}
             </div>
             ${renderStatList(assistLeaders, getPlayerTeams)}
+            <div class="full-rankings">
+                <a href="/rfaa/acl/stats/alltime.html?type=assists" class="link">View All</a>
+            </div>
         </div>
         <div class="stat-table" id="ps-potm">
             <div class="header">
@@ -38,7 +46,22 @@ function displayStatistics() {
                 ${renderStatList(potmLeaders, getPlayerTeams, true)}
             </div>
             ${renderStatList(potmLeaders, getPlayerTeams)}
+            <div class="full-rankings">
+                <a href="/rfaa/acl/stats/alltime.html?type=potm" class="link">View All</a>
+            </div>
         </div>
+
+        <div class="stat-table" id="ps-potm">
+            <div class="header">
+                <h3>All-Time Finalists</h3>
+                ${renderStatList(finalWinners, getPlayerTeams, true)}
+            </div>
+            ${renderStatList(finalWinners, getPlayerTeams)}
+            <div class="full-rankings">
+                <a href="/rfaa/acl/stats/alltime.html?type=potm" class="link">View All</a>
+            </div>
+        </div>
+        
     `;
 }
 
@@ -203,7 +226,69 @@ function getPlayerTeams(playerName) {
     return Object.keys(player.teams);
 }
 
+function getWinners() {
+    // Create a map to count finals appearances for players
+    const playerFinals = {};
+    
+    // Iterate through all seasons
+    seasons.forEach(seasonData => {
+        if (!seasonData || !seasonData.matchdays) return;
+        
+        // Find the finals matchday in this season
+        const finalsMatchday = seasonData.matchdays.find(md => md.bracketType === 'finals');
+        if (!finalsMatchday || !finalsMatchday.games || finalsMatchday.games.length === 0) return;
+        
+        // Get the year of this season
+        const seasonYear = parseInt(seasonData.year);
+        
+        // Get the teams that reached the finals
+        const finalsTeams = finalsMatchday.games.flatMap(game => [game.team1, game.team2]);
+        
+        // For each team that reached the finals, find all players who were on that team that season
+        finalsTeams.forEach(teamId => {
+            // Find players who were on this team during this season
+            const teamPlayers = players.filter(player => {
+                return player.teams && 
+                       player.teams[teamId] && 
+                       player.teams[teamId].years && 
+                       (Array.isArray(player.teams[teamId].years) ? 
+                           player.teams[teamId].years.includes(seasonYear) : 
+                           player.teams[teamId].years.some(yearRange => 
+                               (Array.isArray(yearRange) && 
+                                yearRange[0] <= seasonYear && 
+                                yearRange[1] >= seasonYear)
+                           )
+                       );
+            });
+            
+            // Increment finals count for each player
+            teamPlayers.forEach(player => {
+                if (!playerFinals[player.name]) {
+                    playerFinals[player.name] = 0;
+                }
+                playerFinals[player.name]++;
+            });
+        });
+    });
+    
+    // Convert to array and sort by finals appearances count
+    return Object.entries(playerFinals)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+}
+
 // Call this function when your page loads or when needed
 document.addEventListener('DOMContentLoaded', () => {
     displayStatistics();
+});
+
+
+const viewport = document.querySelector('.stats-cont');
+const content = document.querySelector('.stats');
+
+const sb = new ScrollBooster({
+  viewport: viewport,
+  content: content,
+  scrollMode: 'transform',
+  direction: 'horizontal',
 });

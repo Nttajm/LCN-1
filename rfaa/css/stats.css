@@ -1,0 +1,19 @@
+body {
+    background-color: var(--subtle-bkg)
+}
+
+.type {
+    padding: 1rem 2rem;
+    border-radius: 4rem;
+    background-color: white;
+    border: solid 1px var(--border-1);
+}
+
+.board {
+    background-color: white;
+    margin: 2rem auto;
+    display: flex;
+    gap: 1.2rem;
+    justify-content: space-between;
+    padding: 3rem 1.2rem;
+}
