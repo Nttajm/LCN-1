@@ -4,7 +4,7 @@ import { teams } from './acl-index.js';
 import { getTeamById } from './acl-index.js';
 import { getCurrentSeason } from './acl-index.js';
 
-function calculateStandings(seasonData) {
+export function calculateStandings(seasonData) {
     if (!seasonData || !seasonData.matchdays) return [];
     
     // Initialize standings object to track team statistics
@@ -96,7 +96,7 @@ function calculateStandings(seasonData) {
 }
 
 // Function to render the standings table
-function renderStandingsTable(standingsData) {
+export function renderStandingsTable(standingsData) {
     if (!standingsData || standingsData.length === 0) {
         return `
         <div class="ptable">
@@ -109,7 +109,7 @@ function renderStandingsTable(standingsData) {
     const tableRows = standingsData.map((team, index) => {
         // Determine row class based on position
         let rowClass = "pos";
-        if (index < 12) rowClass = "wpos"; // Top 4 teams
+        if (index < 16) rowClass = "wpos"; // Top 4 teams
         
         return `
         <tr class="${rowClass}">
@@ -152,8 +152,9 @@ function renderStandingsTable(standingsData) {
 
 const outputHTml = document.getElementById('output');
 
-function renderTable() {
+export function renderTable() {
     const outputHTml = document.getElementById('output');
+    if (!outputHTml) return;
     outputHTml.innerHTML = ''; // Clear previous content
 
     outputHTml.innerHTML += `
