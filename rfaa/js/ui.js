@@ -23,7 +23,7 @@ nav.innerHTML = `
                 </div>
             </div>
             <div class="option-elem">
-                <span><a href="#stats">Stats</a></span>
+                <span><a href="acl/stats/alltime.html">Stats</a></span>
             </div>
             <div class="option-elem">
                 <span><a href="#compare">Compare</a></span>
