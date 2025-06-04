@@ -117,7 +117,7 @@ function renderStatList(stats, teamsFn, m) {
     }
 }
 
-function getTopGoalScorers(m) {
+export function getTopGoalScorers(m) {
     // Create a map to count goals per player across all seasons
     const playerGoals = {};
     
@@ -151,7 +151,7 @@ function getTopGoalScorers(m) {
         .sort((a, b) => b.count - a.count);
 }
 
-function getTopAssistProviders(m) {
+export function getTopAssistProviders(m) {
     // Create a map to count assists per player across all seasons
     const playerAssists = {};
     
@@ -185,7 +185,7 @@ function getTopAssistProviders(m) {
         .sort((a, b) => b.count - a.count);
 }
 
-function getTopPOTM(m) {
+export function getTopPOTM(m) {
     // Create a map to count POTM awards per player across all seasons
     const playerPOTM = {};
     
@@ -215,9 +215,10 @@ function getTopPOTM(m) {
         .sort((a, b) => b.count - a.count);
 }
 
-function getPlayerTeams(playerName) {
+export function getPlayerTeams(playerName) {
     // Find the player in the players array
-    const player = players.find(p => p.name === playerName);
+    const player = players.find(p => p && p.name === playerName);
+    if (!player) return [];
     if (!player.name) return [];
     if (!player) return [];
     if (!player || !player.teams) return [];
@@ -226,7 +227,7 @@ function getPlayerTeams(playerName) {
     return Object.keys(player.teams);
 }
 
-function getWinners() {
+export function getWinners() {
     // Create a map to count finals appearances for players
     const playerFinals = {};
     
@@ -286,9 +287,11 @@ document.addEventListener('DOMContentLoaded', () => {
 const viewport = document.querySelector('.stats-cont');
 const content = document.querySelector('.stats');
 
-const sb = new ScrollBooster({
-  viewport: viewport,
-  content: content,
-  scrollMode: 'transform',
-  direction: 'horizontal',
-});
+if (viewport && content) {
+    const sb = new ScrollBooster({
+        viewport: viewport,
+        content: content,
+        scrollMode: 'transform',
+        direction: 'horizontal',
+    });
+}

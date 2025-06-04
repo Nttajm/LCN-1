@@ -1041,6 +1041,11 @@ export function getCurrentSeason() {
     return params.get('season') || 2025 ;
 }
 
+
+const latestSeason = seasons.reduce((latest, season) => {
+    const year = parseInt(season.year);
+    return year > latest ? year : latest;
+}, 0);
 // Initialize the application
 function initialize() {
     // Set up global event listeners
@@ -1417,3 +1422,76 @@ function renderSeasonButtons() {
 }
 
 renderSeasonButtons();
+
+function renderMatchesTable() {
+    const maindiv = document.querySelector('.matches-table-select');
+    if (!maindiv) return;
+
+    const currentSeason = getCurrentSeason();
+    const latestSeasonYear = seasons.reduce((latest, season) => {
+        const year = parseInt(season.year);
+        return year > latest ? year : latest;
+    }, 0);
+
+    if (currentSeason === latestSeasonYear.toString()) {
+        maindiv.style.display = 'none';
+    } else {
+        maindiv.style.display = 'flex';
+    }
+}
+
+renderMatchesTable();
+
+import { calculateStandings, renderStandingsTable } from './table.js';
+
+function showTable() {
+    const content = document.querySelector('.pad-cont');
+    if (!content) return;
+
+    const currentSeason = getCurrentSeason();
+    const seasonData = seasons.find(season => season.year === currentSeason);
+
+    if (!seasonData) {
+        content.innerHTML = `
+            <div class="ptable">
+                <h1 class="headin">Standings</h1>
+                <p>No standings data available for the current season.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const standingsData = calculateStandings(seasonData);
+    content.innerHTML = renderStandingsTable(standingsData);
+}
+
+// Add event listener for the "Show Table" button
+document.addEventListener('DOMContentLoaded', () => {
+    const showTableButton = document.querySelector('#show-table-btn');
+    if (showTableButton) {
+        showTableButton.addEventListener('click', showTable);
+    }
+});
+
+const tableBtn = document.querySelector('#show-table-btn');
+if (tableBtn) {
+    tableBtn.addEventListener('click', () => {
+        const currentSeason = getCurrentSeason();
+        loadSeason(currentSeason);
+    });
+}
+
+const matchesBtn = document.querySelector('#show-matches-btn');
+if (matchesBtn) {
+    matchesBtn.addEventListener('click', () => {
+        const currentSeason = getCurrentSeason();
+        const seasonData = seasons.find(season => season.year === currentSeason);
+        
+        if (seasonData) {
+            loadSeason(currentSeason);
+            bindMatchClickEvents();
+        } else {
+            content.innerHTML = '<p>No matches available for this season.</p>';
+        }
+    });
+}
