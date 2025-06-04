@@ -6,13 +6,16 @@
     --subtle-bkg: rgb(241, 243, 248);
     /* end */
 
-    
+     
     --border-2: #ffffff1a;
     --border-3:  1px solid #00a6cf;
     --border-4:  2px solid #003bbb; 
     --border-uline: #005acf;
-    --border-subtle-dark: #00295fcc;
+    --border-subtle-dark: #6fa2e4cc;
+    --border-subtle-dark-2: #738ad4cc;
     --border-subtle: #00295f25;
+    --border-subtle-2: #001e460d;
+
     --mc-1: #3646a3;
     --mc-2: #0000ff;
     --mc-3: #00aeff; 
