@@ -291,6 +291,15 @@ export let teams = [
     img: 'images/teams/VistoFc.png',
     player: getPlayersByTeam('V')
 },
+{
+    id: 'BB',
+    name: 'Bardon FC',
+    sub: `Visto`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/Bardon.png',
+    player: getPlayersByTeam('BB')
+},
 
 ];
 

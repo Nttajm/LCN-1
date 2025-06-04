@@ -30,6 +30,32 @@ export let players = [
     }
   },
   {
+    "name": "Lewis Van Milo",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "BB": {
+        "years": playerYears([[1996,1999]])
+      },
+      "lenico": {
+        "years": playerYears([[2001,2010]])
+      }
+    }
+  },
+  {
+    "name": "Milo Karvhel",
+    "type": "active",
+    "dob": "1979-01-01",
+    "teams": {
+      "BB": {
+        "years": playerYears([[1997,2001]])
+      },
+      "SLV": {
+        "years": playerYears([[2002,2009]])
+      }
+    }
+  },
+  {
     "name": "Javier Hernandez",
     "type": "active",
     "dob": "1976-01-01",
@@ -300,7 +326,7 @@ export let players = [
     "type": "active",
     "dob": "1978-01-01",
     "teams": {
-      "PSL": {
+      "BB": {
         "years": playerYears([[1996, 2001]])
       },
       "dj": {
@@ -1893,7 +1919,7 @@ export let players = [
         type: 'retired',
         dob: '1976-12-05',
         teams: {
-            'PSL': {
+            'BB': {
                 years: playerYears([[1997, 2002]]),
             },
             'pacer': {
