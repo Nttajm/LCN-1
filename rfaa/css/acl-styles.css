@@ -4,7 +4,7 @@
     /* standard colors */
     --border-1: #08080838;
     --subtle-bkg: rgb(241, 243, 248);
-    /* end */
+    /* end */ 
 
      
     --border-2: #ffffff1a;
@@ -23,11 +23,35 @@
     --wh-1: #f7f7f7;
     --gray-1: #e6e6e6;
     --gray-2: #d3d3d3;
+    --gray-3: #bfbfbf;
     --dark-1:  #00154ebd;
     --grad-nav: linear-gradient(to right, rgb(70, 15, 223), rgb(0, 122, 153));
     --grad-stats: linear-gradient(to right, rgb(0, 60, 255), rgb(32, 29, 168));
     --grad-1: linear-gradient(to bottom right, #322a3f, #3b9780);
     --grad-2: linear-gradient(to right, rgb(133, 98, 221), rgb(26, 28, 148));
     --border-gradient-rbw: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
-    --gradient-top: linear-gradient(to right, rgb(19, 50, 97), rgb(22, 142, 172)) 
+    --gradient-top: linear-gradient(to right, rgb(19, 50, 97), rgb(22, 142, 172));
+    
+    --green-1: #63d158;  
+    --green-2: #4eaa46;  
+    --green-3: #3a8335;  
+
+    --red-1: #e45252;  
+    --red-2: #d34c4c;  
+    --red-3: #a12e2e;
+
+    --font-1: roboto, sans-serif;
+    --font-2: 'Cal Sans', sans-serif;
+    --font-3: 'DM Serif Text', serif;
+    --font-4: 'Doto', sans-serif;
+    --font-5: 'Fredoka', sans-serif;
+    --font-6: 'Merriweather Sans', sans-serif;
+    --font-7: 'Neuton', serif;
+    --font-8: 'Oswald', sans-serif;
+    --font-9: 'Pacifico', cursive;
+    --font-10: 'Pirata One', display;
+    --font-11: 'Playfair Display', serif;
+    --font-12: 'Roboto Mono', monospace;
+    --font-13: 'Roboto', sans-serif;
+    --font-14: 'Special Gothic Expanded One', sans-serif; 
 }
