@@ -1,0 +1,215 @@
+body {
+    background-color: var(--subtle-bkg);
+}
+
+.content-team-info {
+    background: var(--grad-nav);
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 2rem;
+    color: var(--wh-1);
+}
+
+.team-name-sec {
+    display: flex;
+    gap: 4rem;
+    margin-top: 2rem;
+    align-items: center;
+}
+
+.team-image {
+    width: 200px;
+    height: 200px;
+}
+
+.team-image img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+
+
+.team-name {
+    font-size: 4rem;
+    font-family: var(--font-6) !important;
+}
+
+.cl-count-cont {
+    display: flex;
+    gap: 2rem;
+}
+
+.cl-count {
+    display: flex;
+    align-items: center;
+    font-size: 2.4rem;
+    color: var(--mc-3);
+    font-family: var(--font-1);
+    width: 40px;
+}
+
+.cl-count img {
+    width: 100%;
+}
+
+.win-years {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: var(--mc-3);
+    white-space: nowrap;
+    position: relative;
+    overflow-x: hidden;
+}
+
+
+
+.win-years span {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.5rem;
+    background-color: var(--mc-1);
+    color: var(--wh-1);
+}
+
+.guide {
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    font-family: var(--font-1) !important;
+    background: var(--mc-1);
+    backdrop-filter: blur(10px);
+    border: var(--border-3);
+    border-radius: 1.4rem;
+    padding: 0.8rem;
+}
+
+.guide .header {
+    font-size: 1.4rem;
+}
+
+.wl-info {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.wl-info .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: solid 1px var(--border-1);
+    border-radius: 50%;
+    font-size: 1.2rem;
+    line-height: 1;
+    text-align: center;
+}
+
+.wl-info .item#w {
+    background-color: var(--green-2);
+}
+
+.wl-info .item#l {
+    background-color: var(--red-2);
+}
+
+.wl-info .item#d {
+    background-color: var(--gray-3);
+}
+
+.content {
+    font-family: var(--font-1);
+}
+
+.matches {
+    display: flex;
+    white-space: nowrap;
+    overflow-x: hidden;
+    justify-content: space-around;
+}
+
+.matches-cont {
+    display: flex;
+    gap: 1rem;
+    white-space: nowrap;
+    overflow-x: hidden;
+}
+
+.mini-match {
+    background-color: var(--gray-1);
+    border: solid 1px var(--border-1);
+    border-radius: 1rem;
+    padding: 0.7rem;
+    width: 20rem;
+    height: 11rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.match-info {
+    font-size: 1.2rem;
+    display: flex;
+    white-space: wrap;
+}
+
+.mini-match .team {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mini-match .team-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-weight: 500;
+    font-size: 1.3rem;
+}
+
+.mini-match .team img {
+    width: 2.7rem;
+    height: 2/7rem;
+}
+
+.mini-match .team .score {
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.stats-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.team-stat {
+    flex-basis: calc(33.33% - 1rem);
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+.team-stat span:first-child {
+    font-weight: 3            00;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.team-stat span:last-child {
+    font-weight: 500;
+    font-size: 3.8rem;
+    text-align: center;
+}

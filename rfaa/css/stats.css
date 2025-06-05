@@ -1,5 +1,6 @@
 body {
-    background-color: var(--subtle-bkg)
+    background-color: var(--subtle-bkg);
+    font-family: var(--font-1);
 }
 
 .type-selectors {
