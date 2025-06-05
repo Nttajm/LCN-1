@@ -379,6 +379,9 @@ function renderCreateButton(matchdays) {
                 <div class="dotted-btn" id="create-matchday-btn">
                     <span>CREATE MATCHDAY</span>
                 </div>
+                <div class="dotted-btn" id="create-select-btn">
+                    <span>CREATE SELECT DAY</span>
+                </div>
                 <div class="dotted-btn" id="create-bracket-btn">
                     <span>CREATE KNOCK OUT DAY</span>
                 </div>
@@ -568,6 +571,14 @@ function addMatchDialog(startMatch, mdIndex) {
                         </select>
                     </div>
                     <div class="fl-r fl-ai add-options">
+                        <span class="type">type * optional</span>
+                        <select id="team1-goal-type" label="Type">
+                            <option value="none">none</option>
+                            <option value="free kick">free kick</option>
+                            <option value="penalty">penalty</option>
+                        </select>
+                    </div>
+                    <div class="fl-r fl-ai add-options">
                         <span class="assist">Assist * optional</span>
                         <select id="team1-player-select-assist" label="Assist">
                             <option value="none">none</option>
@@ -609,6 +620,14 @@ function addMatchDialog(startMatch, mdIndex) {
                         </select>
                     </div>
                     <div class="fl-r fl-ai add-options">
+                        <span class="type">type * optional</span>
+                        <select id="team2-goal-type" label="Type">
+                            <option value="none">none</option>
+                            <option value="free kick">free kick</option>
+                            <option value="penalty">penalty</option>
+                        </select>
+                    </div>
+                    <div class="fl-r fl-ai add-options">
                             <span class="assist">Assist * optional</span>
                         <select id="team2-player-select-assist" label="Assist">
                             <option value="none">none</option>
@@ -636,6 +655,8 @@ function addMatchDialog(startMatch, mdIndex) {
     const playerMinute2 = document.querySelector('#team2-goal-minute');
     const playerAssist1 = document.querySelector('#team1-player-select-assist');
     const playerAssist2 = document.querySelector('#team2-player-select-assist');
+    const type1 = document.querySelector('#team1-goal-type').value;
+    const type2 = document.querySelector('#team2-goal-type').value;
     const potm = document.querySelector('#potm');
 
     team1Select.addEventListener('change', () => {
@@ -657,6 +678,8 @@ function addMatchDialog(startMatch, mdIndex) {
         const team = getTeamById(team2Select.value);
         playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
     });
+
+
     // Update POTM dropdown when team1 changes
     team1Select.addEventListener('change', () => {
         const team1 = getTeamById(team1Select.value);
@@ -721,6 +744,9 @@ function addMatchDialog(startMatch, mdIndex) {
         const player = team1PlayerSelect.value;
         let minute = parseInt(playerMinute1.value);
         let assit = playerAssist1.value === 'none' ? false : playerAssist1.value;
+        let gaolType = type1 === 'none' ? false : type1;
+
+        
 
         if (!player) return;
         if (isNaN(minute) || minute < 1 || minute > 120) {
@@ -731,7 +757,7 @@ function addMatchDialog(startMatch, mdIndex) {
             minute = Math.floor(Math.random() * 91);
         }
 
-        team1Goals.push({ player, minute, assit });
+        team1Goals.push({ player, minute, assit,  type: gaolType });
         renderGoals(team1GoalList, team1Goals);
         updateScores();
     });
@@ -741,6 +767,7 @@ function addMatchDialog(startMatch, mdIndex) {
         const player = team2PlayerSelect.value;
         let minute = parseInt(playerMinute2.value);
         let assit = playerAssist2.value === 'none' ? false : playerAssist2.value;
+        let gaolType = type2 === 'none' ? false : type2;
 
         if (!player) return;
         if (isNaN(minute) || minute < 1 || minute > 120) {
@@ -751,7 +778,7 @@ function addMatchDialog(startMatch, mdIndex) {
             minute = Math.floor(Math.random() * 91);
         }
 
-        team2Goals.push({ player, minute, assit});
+        team2Goals.push({ player, minute, assit, type: gaolType });
         renderGoals(team2GoalList, team2Goals);
         updateScores();
     });
@@ -888,6 +915,10 @@ function loadSeason(snum) {
         const createBracketBtn = document.querySelector('#create-bracket-btn');
         if (createBracketBtn) {
             actionElem('#create-bracket-btn', startBracket);
+        }
+        const createSelectBtn = document.querySelector('#create-select-btn');
+        if (createSelectBtn) {
+            actionElem('#create-select-btn', createSelectDay);
         }
     } else {
         initializeEmptyState();
@@ -1146,6 +1177,49 @@ function startBracket() {
         }
     }
 }
+
+function createSelectDay() {
+    const currentSeason = getCurrentSeason();
+    const seasonData = seasons.find(s => s.year === currentSeason);
+
+    if (!seasonData) {
+        console.error('No season data found for the current season.');
+        return;
+    }
+
+    const rankedTeams = getRankOfTeam();
+    if (rankedTeams.length < 2) {
+        console.error('Not enough teams to create matches.');
+        return;
+    }
+
+    const fixtures = [];
+    for (let i = 0; i < rankedTeams.length; i += 2) {
+        if (i + 1 < rankedTeams.length) {
+            fixtures.push({
+                id: `match-${Math.random().toString(36).substr(2, 9)}`,
+                team1: rankedTeams[i].team,
+                team2: rankedTeams[i + 1].team,
+                score1: 0,
+                score2: 0,
+                seed: Math.floor(Math.random() * 10000),
+                goals: [],
+                standby: true
+            });
+        }
+    }
+
+    const seasonMatchdays = seasonData.matchdays || [];
+    seasonMatchdays.push({
+        details: `Leaderboard Matchups`,
+        games: fixtures,
+        id: `matchday-${seasonMatchdays.length + 1}`
+    });
+    seasonData.matchdays = seasonMatchdays;
+
+    saveSeason();
+    loadSeason(currentSeason);
+}
  
 // localStorage.clear()
 
@@ -1302,33 +1376,42 @@ function getRankOfTeam() {
 
     if (!seasonData || !seasonData.matchdays) return [];
 
-    const teamPoints = {};
+    const teamStats = {};
 
-    // Initialize all teams with 0 points
+    // Initialize all teams with 0 points and 0 goal difference
     seasonData.teams.forEach(teamId => {
-        teamPoints[teamId] = 0;
+        teamStats[teamId] = { points: 0, goalDifference: 0 };
     });
 
-    // Calculate points for each team
+    // Calculate points and goal difference for each team
     seasonData.matchdays.forEach(matchday => {
         if (!matchday.games) return;
 
         matchday.games.forEach(game => {
-            if (game.score1 > game.score2) {
-                teamPoints[game.team1] += 3; // Team 1 wins
-            } else if (game.score1 < game.score2) {
-                teamPoints[game.team2] += 3; // Team 2 wins
+            const goalDiff = game.score1 - game.score2;
+
+            if (goalDiff > 0) {
+                // Team 1 wins
+                teamStats[game.team1].points += 3;
+            } else if (goalDiff < 0) {
+                // Team 2 wins
+                teamStats[game.team2].points += 3;
             } else {
-                teamPoints[game.team1] += 1; // Tie
-                teamPoints[game.team2] += 1;
+                // Tie
+                teamStats[game.team1].points += 1;
+                teamStats[game.team2].points += 1;
             }
+
+            // Update goal difference
+            teamStats[game.team1].goalDifference += goalDiff;
+            teamStats[game.team2].goalDifference -= goalDiff;
         });
     });
 
-    // Convert to array and sort by points
-    const rankedTeams = Object.entries(teamPoints)
-        .map(([team, points]) => ({ team, points }))
-        .sort((a, b) => b.points - a.points);
+    // Convert to array and sort by points, then by goal difference
+    const rankedTeams = Object.entries(teamStats)
+        .map(([team, stats]) => ({ team, ...stats }))
+        .sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference);
 
     return rankedTeams;
 }
@@ -1504,3 +1587,36 @@ if (matchesBtn) {
         }
     });
 }
+
+function removeSeason(year) {
+    const seasonIndex = seasons.findIndex(season => season.year === year.toString());
+    if (seasonIndex !== -1) {
+        seasons.splice(seasonIndex, 1);
+        saveSeason();
+        console.log(`Season ${year} has been removed.`);
+    } else {
+        console.log(`Season ${year} not found.`);
+    }
+}
+
+// Example usage:
+// removeSeason(1997);
+
+function deleteMatchday(seasonYear, matchdayIndex) {
+    const seasonData = seasons.find(season => season.year === seasonYear.toString());
+    if (seasonData && seasonData.matchdays && seasonData.matchdays[matchdayIndex]) {
+        seasonData.matchdays.splice(matchdayIndex, 1);
+        saveSeason();
+        console.log(`Matchday ${matchdayIndex + 1} from season ${seasonYear} has been deleted.`);
+    } else {
+        console.log(`Matchday ${matchdayIndex + 1} not found in season ${seasonYear}.`);
+    }
+}
+
+// deleteMatchday(1998, 3); // Example usage: delete the first matchday of the 2025 season
+
+// deleteMatchday(1998, 4); // Example usage: delete the first matchday of the 2025 season
+
+// deleteMatchday(1998, 5); // Example usage: delete the first matchday of the 2025 season
+
+

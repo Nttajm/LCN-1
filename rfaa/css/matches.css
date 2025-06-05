@@ -5,8 +5,9 @@
     position: relative;
 
     display: flex;
-    align-items: center;
+    align-items: center; 
     gap: 3rem;
+    font-family: var(--font-1);
 }
 
 .pad-cont {
@@ -14,6 +15,7 @@
     height: 100%;
     height: 70vh;
     overflow-y: auto;
+    font-family: var(--font-1);
 } 
  
 .season-year-text {
@@ -125,8 +127,8 @@
 .md-match {
     border: solid 1px var(--border-1);
     border-radius: 1rem;
-    background-color: #fff;
     padding: 1rem;
+    background-color: #fff;
     width: 30%;
     min-height: 11rem;
     display: flex;
@@ -139,6 +141,7 @@
     background: var(--gray-1);
 }
 
+
 .md-match .team {
     display: flex;
     gap: 1rem;
@@ -150,7 +153,6 @@
     display: flex;
     gap: 1rem;
     align-items: center;
-    font-family: "Fredoka", sans-serif !important;
     font-weight: 500;
     font-size: 1.3rem;
 }
@@ -199,6 +201,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    font-family: var(--font-1);
 }
 
 .notifEd-context {

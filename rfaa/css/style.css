@@ -66,11 +66,61 @@ button {
     cursor: pointer;
 }
 
+.d-box {
+    border: solid 1px var(--border-1);
+    border-radius: 1rem;
+    background-color: #fff;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.d-inland {
+    background-color: var(--gray-1);
+}
+
+.d-rbtn-cont {
+    display: flex;
+    gap: .5rem;
+    padding: 0.5rem 0rem;
+    width: auto;
+    overflow-x: hidden;
+    white-space: nowrap;
+}
+
+.d-rbtn {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 1.4rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: white;
+    padding: 0.7rem 1.4rem;
+    border-radius: 3rem;
+    border: solid 1px var(--border-1);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.d-rbtn:hover {
+    background-color: var(--mc-3);
+    color: white;
+    border: solid 1px var(--border-uline);
+}
+
+.d-rbtn.selected {
+    background-color: var(--mc-3);
+    color: white;
+    border: solid 1px var(--border-uline);
+}
+
+
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
-    font-family: roboto;
   }
 
 
