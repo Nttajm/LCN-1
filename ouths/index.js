@@ -1,5 +1,7 @@
 var barCount = 60;
-var initialDateStr = new Date().toUTCString();
+var initialDateStr = new Date().toUTCString(); 
+
+// what the helly
 
 var ctx = document.getElementById('chart').getContext('2d');
 ctx.canvas.width = 1000;
