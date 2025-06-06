@@ -360,28 +360,12 @@ function renderUtils() {
 
     let serverMaintain = true
 
-    cmdUtil.forEach(util => {
-        let adder = '';
-        if (util.linkClass === '**') {
-            adder = 'public/base-modules/';
-            const scriptTag = document.createElement('script');
-            scriptTag.src = adder + util.link + '.js';
-            scriptTag.type = 'module';
-            document.body.appendChild(scriptTag);
-
-            scriptTag.onload = () => e_print(`> ${util.link}.js`);
-
-        } else if (util.linkClass === '**sv' && serverMaintain) {
-            adder = 'servers/';
-            const scriptTag = document.createElement('script');
-            scriptTag.src = adder + util.link + '.js';
-            scriptTag.type = 'module';
-            document.body.appendChild(scriptTag);
-            scriptTag.onload = () => e_print(`> ${util.link}.js`);
-        
-            serverMaintain = false;
-        }
-    });
+    const totalLinks = cmdUtil.length;
+    if (totalLinks === 0) {
+        print('No Modules Found.');
+    } else {
+        print(`Loaded Modules: ${totalLinks}`);
+    }
 }
 
 renderUtils();
