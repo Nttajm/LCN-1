@@ -304,7 +304,6 @@ export let teams = [
 ];
 
 
-console.log(teams);
 
 
 // Helper function to get players by team ID
@@ -342,7 +341,7 @@ export function playerYears(ranges) {
     return years;
 }
 
-console.log(playerYears([[2002, 2011], [1991, 1995]]) , 'eeee'); // Example usage
+// console.log(playerYears([[2002, 2011], [1991, 1995]]) , 'eeee'); // Example usage
 
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
 // localStorage.clear() 
@@ -351,12 +350,7 @@ export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.g
 const content = document.querySelector('.pad-cont');
 
 // Helper Functions
-export function getTeamById(id) {
-    return teams.find(team => team.id === id) || {
-        name: 'Unknown Team',
-        img: 'images/teams/default.png'
-    };
-}
+
 
 function renderCreateButton(matchdays) {
     if (!matchdays || matchdays.length === 0) {
@@ -655,9 +649,46 @@ function addMatchDialog(startMatch, mdIndex) {
     const playerMinute2 = document.querySelector('#team2-goal-minute');
     const playerAssist1 = document.querySelector('#team1-player-select-assist');
     const playerAssist2 = document.querySelector('#team2-player-select-assist');
-    const type1 = document.querySelector('#team1-goal-type').value;
-    const type2 = document.querySelector('#team2-goal-type').value;
+    let type1 = document.querySelector('#team1-goal-type').value;
+    let type2 = document.querySelector('#team2-goal-type').value;
     const potm = document.querySelector('#potm');
+
+    // On load, populate player selects and assists for both teams
+    function updateTeam1Inputs() {
+        const team = getTeamById(team1Select.value);
+        team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        playerAssist1.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+    function updateTeam2Inputs() {
+        const team = getTeamById(team2Select.value);
+        team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+    updateTeam1Inputs();
+    updateTeam2Inputs();
+
+    // On load, populate POTM dropdown
+    function updatePOTM() {
+        const team1 = getTeamById(team1Select.value);
+        const team2 = getTeamById(team2Select.value);
+        potm.innerHTML = '<option value="none">Player of the Match</option>';
+        if (!startMatch) {
+            if (team1 && team1.player) {
+                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+            if (team2 && team2.player) {
+                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+        } else {
+            if (t1 && t1.player) {
+                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+            if (t2 && t2.player) {
+                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
+        }
+    }
+    updatePOTM();
 
     team1Select.addEventListener('change', () => {
         const team = getTeamById(team1Select.value);
@@ -877,7 +908,7 @@ function addMatchDialog(startMatch, mdIndex) {
     
 }
 
-setInterval(() => console.log(seasons, goals), 1000);
+// setInterval(() => console.log(seasons, goals), 1000);
 // Main Functions
 function loadSeason(snum) {
     if (!snum) {
@@ -1223,7 +1254,250 @@ function createSelectDay() {
  
 // localStorage.clear()
 
-function getFirstFixtures(order) {
+
+function actionElem(elem, action) {
+    const actionElem = document.querySelector(elem);
+    if (actionElem && typeof action === 'function') {
+        actionElem.addEventListener('click', action);
+    }
+}
+
+function toggleNotifEd() {
+    const notifEd = document.querySelector('.notifEd');
+    if (notifEd) {
+        notifEd.classList.toggle('dn');
+    }
+}
+
+
+
+
+const seasonDisplay = document.querySelector('.m-seasons');    
+
+function renderSeasonButtons() {
+    if (!seasonDisplay) return;
+
+    const currentSeason = getCurrentSeason();
+    // Get unique years from the seasons array
+    const seasonYears = [...new Set(seasons.map(season => season.year))];
+    
+    // Create buttons for each season
+    const seasonButtons = seasonYears.map(year => {
+        const isSelected = year === currentSeason;
+        return `
+            <div class="season ${isSelected ? 'selected' : ''}">
+                <a href="?season=${year}"><span>${year}</span></a>
+            </div>
+        `;
+    }).join('');
+    
+    // If no seasons are available, show a message
+    seasonDisplay.innerHTML = seasonYears.length > 0 
+        ? `<div class="m-seasons">${seasonButtons}</div>`
+        : `<div class="m-seasons"><div class="no-seasons">No seasons available</div></div>`;
+
+}
+
+renderSeasonButtons();
+
+function renderMatchesTable() {
+    const maindiv = document.querySelector('.matches-table-select');
+    if (!maindiv) return;
+
+    const currentSeason = getCurrentSeason();
+    const latestSeasonYear = seasons.reduce((latest, season) => {
+        const year = parseInt(season.year);
+        return year > latest ? year : latest;
+    }, 0);
+
+    if (currentSeason === latestSeasonYear.toString()) {
+        maindiv.style.display = 'none';
+    } else {
+        maindiv.style.display = 'flex';
+    }
+}
+
+renderMatchesTable();
+
+import { calculateStandings, renderStandingsTable } from './table.js';
+
+function showTable() {
+    const content = document.querySelector('.pad-cont');
+    if (!content) return;
+
+    const currentSeason = getCurrentSeason();
+    const seasonData = seasons.find(season => season.year === currentSeason);
+
+    if (!seasonData) {
+        content.innerHTML = `
+            <div class="ptable">
+                <h1 class="headin">Standings</h1>
+                <p>No standings data available for the current season.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const standingsData = calculateStandings(seasonData);
+    content.innerHTML = renderStandingsTable(standingsData);
+}
+
+// Add event listener for the "Show Table" button
+document.addEventListener('DOMContentLoaded', () => {
+    const showTableButton = document.querySelector('#show-table-btn');
+    if (showTableButton) {
+        showTableButton.addEventListener('click', showTable);
+    }
+});
+
+const tableBtn = document.querySelector('#show-table-btn');
+if (tableBtn) {
+    tableBtn.addEventListener('click', () => {
+        const currentSeason = getCurrentSeason();
+        loadSeason(currentSeason);
+    });
+}
+
+const matchesBtn = document.querySelector('#show-matches-btn');
+if (matchesBtn) {
+    matchesBtn.addEventListener('click', () => {
+        const currentSeason = getCurrentSeason();
+        const seasonData = seasons.find(season => season.year === currentSeason);
+        
+        if (seasonData) {
+            loadSeason(currentSeason);
+            bindMatchClickEvents();
+        } else {
+            content.innerHTML = '<p>No matches available for this season.</p>';
+        }
+    });
+}
+
+function removeSeason(year) {
+    const seasonIndex = seasons.findIndex(season => season.year === year.toString());
+    if (seasonIndex !== -1) {
+        seasons.splice(seasonIndex, 1);
+        saveSeason();
+        console.log(`Season ${year} has been removed.`);
+    } else {
+        console.log(`Season ${year} not found.`);
+    }
+}
+
+// Example usage:
+// removeSeason(1997);
+
+function deleteMatchday(seasonYear, matchdayIndex) {
+    const seasonData = seasons.find(season => season.year === seasonYear.toString());
+    if (seasonData && seasonData.matchdays && seasonData.matchdays[matchdayIndex]) {
+        seasonData.matchdays.splice(matchdayIndex, 1);
+        saveSeason();
+        console.log(`Matchday ${matchdayIndex + 1} from season ${seasonYear} has been deleted.`);
+    } else {
+        console.log(`Matchday ${matchdayIndex + 1} not found in season ${seasonYear}.`);
+    }
+}
+
+function deleteMatchById(matchId) {
+    for (let season of seasons) {
+        for (let matchday of season.matchdays || []) {
+            const idx = (matchday.games || []).findIndex(game => game.id === matchId);
+            if (idx !== -1) {
+                matchday.games.splice(idx, 1);
+                saveSeason();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+// deleteMatchday(1998, 3); // Example usage: delete the first matchday of the 2025 season
+
+// deleteMatchday(1998, 4); // Example usage: delete the first matchday of the 2025 season
+
+// deleteMatchday(1998, 5); // Example usage: delete the first matchday of the 2025 season
+
+
+
+function genStats(seed) {
+    let comentary = '';
+
+    let comentarys = [
+        'The match was intense with both teams showing great skill.',
+        'A thrilling encounter that kept fans on the edge of their seats.',
+        'An unexpected twist in the final minutes changed the game completely.',
+        'The players displayed exceptional teamwork and strategy.',
+        'A hard-fought battle that showcased the best of both teams.'
+    ];
+    let randomIndex = Math.floor(Math.random() * comentarys.length);  
+
+}
+
+    function getPlayercoifficient(playerName) {
+        if (!playerName) return 0;
+        
+        let coefficient = 0;
+        
+        // Iterate through all seasons
+        for (let season of seasons) {
+            // Iterate through all matchdays
+            for (let matchday of season.matchdays || []) {
+                // Iterate through all games
+                for (let game of matchday.games || []) {
+                    // Check if player was the Player of the Match (POTM)
+                    if (game.potm === playerName) {
+                        coefficient += 2;
+                    }
+                    
+                    // Check if player scored any goals
+                    if (game.goals && Array.isArray(game.goals)) {
+                        for (let goal of game.goals) {
+                            // Add 2 points for each goal
+                            if (goal.player === playerName) {
+                                coefficient += 2;
+                            }
+                            
+                            // Add 1 point for each assist
+                            if (goal.assist === playerName) {
+                                coefficient += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return coefficient;
+    }
+
+
+    export function getTeamMacthes(teamid) {
+        const matches = [];
+
+        // Iterate through all seasons
+        for (let season of seasons) {
+            // Iterate through all matchdays
+            for (let matchday of season.matchdays || []) {
+                // Iterate through all games
+                for (let game of matchday.games || []) {
+                    // Check if the team is involved in the match
+                    if (game.team1 === teamid || game.team2 === teamid) {
+                        matches.push({
+                            season: season.year,
+                            matchday: matchday.id,
+                            game
+                        });
+                    }
+                }
+            }
+        }
+
+        return matches;
+    }
+
+    function getFirstFixtures(order) {
     const currentSeason = getCurrentSeason();
     if (order == 1) {
         const seasonData = seasons.find(s => s.year === currentSeason);
@@ -1416,207 +1690,108 @@ function getRankOfTeam() {
     return rankedTeams;
 }
 
-console.log(getRankOfTeam()); 
-
-
-function actionElem(elem, action) {
-    const actionElem = document.querySelector(elem);
-    if (actionElem && typeof action === 'function') {
-        actionElem.addEventListener('click', action);
-    }
-}
-
-function toggleNotifEd() {
-    const notifEd = document.querySelector('.notifEd');
-    if (notifEd) {
-        notifEd.classList.toggle('dn');
-    }
+export function getTeamById(id) {
+    if (!id) return {
+        name: 'Unknown Team',
+        img: 'images/teams/default.png'
+    };
+    const team = teams.find(team => team.id.toLowerCase() === id.toLowerCase());
+    return team || {
+        name: 'Unknown Team',
+        img: 'images/teams/default.png'
+    };
 }
 
 
-
-function genStats(seed) {
-    let comentary = '';
-
-    let comentarys = [
-        'The match was intense with both teams showing great skill.',
-        'A thrilling encounter that kept fans on the edge of their seats.',
-        'An unexpected twist in the final minutes changed the game completely.',
-        'The players displayed exceptional teamwork and strategy.',
-        'A hard-fought battle that showcased the best of both teams.'
-    ];
-    let randomIndex = Math.floor(Math.random() * comentarys.length);  
-
-}
-
-    function getPlayercoifficient(playerName) {
-        if (!playerName) return 0;
-        
-        let coefficient = 0;
-        
-        // Iterate through all seasons
-        for (let season of seasons) {
-            // Iterate through all matchdays
-            for (let matchday of season.matchdays || []) {
-                // Iterate through all games
-                for (let game of matchday.games || []) {
-                    // Check if player was the Player of the Match (POTM)
-                    if (game.potm === playerName) {
-                        coefficient += 2;
-                    }
-                    
-                    // Check if player scored any goals
-                    if (game.goals && Array.isArray(game.goals)) {
-                        for (let goal of game.goals) {
-                            // Add 2 points for each goal
-                            if (goal.player === playerName) {
-                                coefficient += 2;
-                            }
-                            
-                            // Add 1 point for each assist
-                            if (goal.assist === playerName) {
-                                coefficient += 1;
-                            }
-                        }
-                    }
-                }
+export function getFinalsAndWins(teamId) {
+    let finals = 0;
+    let wins = 0;
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+        // Find the last matchday with games
+        const lastMatchday = [...season.matchdays].reverse().find(md => md.games && md.games.length > 0);
+        if (!lastMatchday) return;
+        const finalGame = lastMatchday.games[0];
+        if (!finalGame) return;
+        if (finalGame.team1 === teamId || finalGame.team2 === teamId) {
+            finals++;
+            const isTeam1 = finalGame.team1 === teamId;
+            const teamScore = isTeam1 ? finalGame.score1 : finalGame.score2;
+            const opponentScore = isTeam1 ? finalGame.score2 : finalGame.score1;
+            if (teamScore > opponentScore) {
+                wins++;
             }
         }
-        
-        return coefficient;
-    }
-
-
-const seasonDisplay = document.querySelector('.m-seasons');    
-
-function renderSeasonButtons() {
-    if (!seasonDisplay) return;
-
-    const currentSeason = getCurrentSeason();
-    // Get unique years from the seasons array
-    const seasonYears = [...new Set(seasons.map(season => season.year))];
-    
-    // Create buttons for each season
-    const seasonButtons = seasonYears.map(year => {
-        const isSelected = year === currentSeason;
-        return `
-            <div class="season ${isSelected ? 'selected' : ''}">
-                <a href="?season=${year}"><span>${year}</span></a>
-            </div>
-        `;
-    }).join('');
-    
-    // If no seasons are available, show a message
-    seasonDisplay.innerHTML = seasonYears.length > 0 
-        ? `<div class="m-seasons">${seasonButtons}</div>`
-        : `<div class="m-seasons"><div class="no-seasons">No seasons available</div></div>`;
-
-}
-
-renderSeasonButtons();
-
-function renderMatchesTable() {
-    const maindiv = document.querySelector('.matches-table-select');
-    if (!maindiv) return;
-
-    const currentSeason = getCurrentSeason();
-    const latestSeasonYear = seasons.reduce((latest, season) => {
-        const year = parseInt(season.year);
-        return year > latest ? year : latest;
-    }, 0);
-
-    if (currentSeason === latestSeasonYear.toString()) {
-        maindiv.style.display = 'none';
-    } else {
-        maindiv.style.display = 'flex';
-    }
-}
-
-renderMatchesTable();
-
-import { calculateStandings, renderStandingsTable } from './table.js';
-
-function showTable() {
-    const content = document.querySelector('.pad-cont');
-    if (!content) return;
-
-    const currentSeason = getCurrentSeason();
-    const seasonData = seasons.find(season => season.year === currentSeason);
-
-    if (!seasonData) {
-        content.innerHTML = `
-            <div class="ptable">
-                <h1 class="headin">Standings</h1>
-                <p>No standings data available for the current season.</p>
-            </div>
-        `;
-        return;
-    }
-
-    const standingsData = calculateStandings(seasonData);
-    content.innerHTML = renderStandingsTable(standingsData);
-}
-
-// Add event listener for the "Show Table" button
-document.addEventListener('DOMContentLoaded', () => {
-    const showTableButton = document.querySelector('#show-table-btn');
-    if (showTableButton) {
-        showTableButton.addEventListener('click', showTable);
-    }
-});
-
-const tableBtn = document.querySelector('#show-table-btn');
-if (tableBtn) {
-    tableBtn.addEventListener('click', () => {
-        const currentSeason = getCurrentSeason();
-        loadSeason(currentSeason);
     });
+    return { finals, wins };
 }
 
-const matchesBtn = document.querySelector('#show-matches-btn');
-if (matchesBtn) {
-    matchesBtn.addEventListener('click', () => {
-        const currentSeason = getCurrentSeason();
-        const seasonData = seasons.find(season => season.year === currentSeason);
+
+export function calculatePlayerRatings() {
+    const playerStats = {};
+    
+    // Collect all player stats from all seasons
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
         
-        if (seasonData) {
-            loadSeason(currentSeason);
-            bindMatchClickEvents();
-        } else {
-            content.innerHTML = '<p>No matches available for this season.</p>';
-        }
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+            
+            matchday.games.forEach(game => {
+                // Count POTM awards
+                if (game.potm && game.potm !== 'none') {
+                    if (!playerStats[game.potm]) {
+                        playerStats[game.potm] = { goals: 0, assists: 0, potm: 0 };
+                    }
+                    playerStats[game.potm].potm++;
+                }
+                
+                // Count goals and assists
+                if (game.goals && Array.isArray(game.goals)) {
+                    game.goals.forEach(goal => {
+                        // Count goal
+                        if (!playerStats[goal.player]) {
+                            playerStats[goal.player] = { goals: 0, assists: 0, potm: 0 };
+                        }
+                        playerStats[goal.player].goals++;
+                        
+                        // Count assist
+                        if (goal.assist && goal.assist !== 'none') {
+                            if (!playerStats[goal.assist]) {
+                                playerStats[goal.assist] = { goals: 0, assists: 0, potm: 0 };
+                            }
+                            playerStats[goal.assist].assists++;
+                        }
+                    });
+                }
+            });
+        });
     });
+    
+    // Convert to array and calculate ratings
+    const players = Object.entries(playerStats).map(([name, stats]) => {
+        const maxGoals = Math.max(...Object.values(playerStats).map(p => p.goals), 1);
+        const maxAssists = Math.max(...Object.values(playerStats).map(p => p.assists), 1);
+        const maxPOTM = Math.max(...Object.values(playerStats).map(p => p.potm), 1);
+        
+        const goalsScore = stats.goals / maxGoals;
+        const assistsScore = stats.assists / maxAssists;
+        const potmScore = stats.potm / maxPOTM;
+        
+        const rawRating = (goalsScore * 0.5) + (assistsScore * 0.3) + (potmScore * 0.2);
+        const rating = +(rawRating * 9 + 1).toFixed(3); // Scale to 1-10, 3 decimals
+        
+        return {
+            name,
+            goals: stats.goals,
+            assists: stats.assists,
+            potm: stats.potm,
+            rating
+        };
+    }).sort((a, b) => b.rating - a.rating);
+    
+    return players;
 }
 
-function removeSeason(year) {
-    const seasonIndex = seasons.findIndex(season => season.year === year.toString());
-    if (seasonIndex !== -1) {
-        seasons.splice(seasonIndex, 1);
-        saveSeason();
-        console.log(`Season ${year} has been removed.`);
-    } else {
-        console.log(`Season ${year} not found.`);
-    }
-}
-
-// Example usage:
-// removeSeason(1997);
-
-function deleteMatchday(seasonYear, matchdayIndex) {
-    const seasonData = seasons.find(season => season.year === seasonYear.toString());
-    if (seasonData && seasonData.matchdays && seasonData.matchdays[matchdayIndex]) {
-        seasonData.matchdays.splice(matchdayIndex, 1);
-        saveSeason();
-        console.log(`Matchday ${matchdayIndex + 1} from season ${seasonYear} has been deleted.`);
-    } else {
-        console.log(`Matchday ${matchdayIndex + 1} not found in season ${seasonYear}.`);
-    }
-}
-
-// deleteMatchday(1998, 3); // Example usage: delete the first matchday of the 2025 season
-
-// deleteMatchday(1998, 4); // Example usage: delete the first matchday of the 2025 season
-
-// deleteMatchday(1998, 5); // Example usage: delete the first matchday of the 2025 season
-
-
+// To test it, just call:
+console.log(calculatePlayerRatings());

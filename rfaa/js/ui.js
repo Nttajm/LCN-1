@@ -1,5 +1,5 @@
-const nav = document.querySelector('.nav');
-nav.classList.add('p2-group');
+const nav = document.querySelector(".nav");
+nav.classList.add("p2-group");
 nav.innerHTML = `
 <a href="index.html">
             <div class="imgel">
@@ -30,3 +30,21 @@ nav.innerHTML = `
             </div>
         </div>
 `;
+
+
+// Make sure this runs after .js-team-link elements are present in the DOM
+document.addEventListener("DOMContentLoaded", () => {
+    const teamLinks = document.querySelectorAll(".js-team-link");
+    if (teamLinks.length > 0) {
+        teamLinks.forEach(link => {
+            console.log(link);
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                const teamId = link.getAttribute("data-team-id");
+                if (teamId) {
+                    window.location.href = `team-info.html?team=${teamId}`;
+                }
+            });
+        });
+    }
+});

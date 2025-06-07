@@ -1,4 +1,4 @@
-import { getCurrentSeason, getTeamById } from './acl-index.js';
+import { getCurrentSeason, getTeamById, } from './acl-index.js';
 import { seasons } from './acl-index.js';
 function displayMatchInfo() {
     const params = new URLSearchParams(window.location.search);
@@ -64,14 +64,14 @@ function displayMatchInfo() {
                     <span>${matchSeasonData.year} Season </span>
                 </div>
                 <div class="team-score">
-                    <div class="team1">
+                    <div class="team1 js-team-link cur" data-team-id="${team1.id}">
                         <img src="${team1.img}" alt="${team1.name}">
                         <span>${team1.name}</span>
                     </div>
                     <div class="final-score">
                         ${match.score1}-${match.score2}
                     </div>
-                    <div class="team2">
+                    <div class="team2 js-team-link cur" data-team-id="${team2.id}">
                         <img src="${team2.img}" alt="${team2.name}">
                         <span>${team2.name}</span>
                     </div>
