@@ -142,6 +142,7 @@ body {
     gap: 1rem;
     white-space: nowrap;
     overflow-x: hidden;
+    padding-bottom: 1rem;
 }
 
 .mini-match {
@@ -154,6 +155,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    flex-shrink: 0;
 }
 
 .match-info {
@@ -187,6 +189,18 @@ body {
     font-weight: 600;
 }
 
+.top-players-box {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.top-players-box .player-rating {
+    width: calc(33.33% - 1.5rem) !important;
+    height: 5.8rem;
+}
+
 .stats-flex {
     display: flex;
     flex-wrap: wrap;
@@ -212,3 +226,5 @@ body {
     font-size: 3.8rem;
     text-align: center;
 }
+
+

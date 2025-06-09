@@ -1,4 +1,4 @@
-import { getCurrentSeason, getTeamById, getTeamMacthes, getFinalsAndWins  } from './acl-index.js';
+import { getCurrentSeason, getTeamById, getTeamMacthes, getFinalsAndWins , getPlayersByTeam } from './acl-index.js';
 import { seasons } from './acl-index.js';
 
 const team = getTeambyLink();
@@ -11,8 +11,6 @@ function getTeambyLink() {
     if (!teamId) return null;
     return getTeamById(teamId);
 }
-
-console.log(team);
 
 function getTeamForm(teamId) {
     const results = [];
@@ -154,210 +152,322 @@ function renderMatches_1() {
 
 
 
-import { seasons } from './acl-index.js';
-import { getTeamById } from './acl-index.js';
 
 export function calculatePlayerRatings() {
     const playerStats = {};
     
-    // Collect detailed stats from all seasons
+    // Collect all player stats from all seasons
     seasons.forEach(season => {
         if (!season.matchdays) return;
         
         season.matchdays.forEach(matchday => {
             if (!matchday.games) return;
             
-            // Determine match importance multiplier
-            let importanceMultiplier = 1.0;
-            if (matchday.bracketType === 'finals') importanceMultiplier = 2.0;
-            else if (matchday.bracketType === 'semiFinals') importanceMultiplier = 1.8;
-            else if (matchday.bracketType === 'quarterFinals') importanceMultiplier = 1.6;
-            else if (matchday.bracketType === 'round16') importanceMultiplier = 1.4;
-            else if (matchday.details?.includes('Final')) importanceMultiplier = 1.3;
-            
             matchday.games.forEach(game => {
-                const totalGoals = (game.score1 || 0) + (game.score2 || 0);
-                const gameQuality = Math.min(1.2, 1 + (totalGoals * 0.05)); // Bonus for high-scoring games
-                
-                // Initialize players who appeared in the match
-                [game.team1, game.team2].forEach(teamId => {
-                    const team = getTeamById(teamId);
-                    if (team && team.player) {
-                        team.player.forEach(playerName => {
-                            if (!playerStats[playerName]) {
-                                playerStats[playerName] = {
-                                    goals: 0,
-                                    assists: 0,
-                                    potm: 0,
-                                    appearances: 0,
-                                    weightedGoals: 0,
-                                    weightedAssists: 0,
-                                    weightedPOTM: 0,
-                                    bigGameGoals: 0,
-                                    consistency: 0,
-                                    matchTypes: []
-                                };
-                            }
-                            playerStats[playerName].appearances++;
-                            playerStats[playerName].matchTypes.push({
-                                importance: importanceMultiplier,
-                                quality: gameQuality
-                            });
-                        });
-                    }
-                });
-                
-                // Count POTM awards with weighted scoring
+                // Count POTM awards
                 if (game.potm && game.potm !== 'none') {
                     if (!playerStats[game.potm]) {
-                        playerStats[game.potm] = {
-                            goals: 0, assists: 0, potm: 0, appearances: 0,
-                            weightedGoals: 0, weightedAssists: 0, weightedPOTM: 0,
-                            bigGameGoals: 0, consistency: 0, matchTypes: []
-                        };
+                        playerStats[game.potm] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
                     }
                     playerStats[game.potm].potm++;
-                    playerStats[game.potm].weightedPOTM += (importanceMultiplier * gameQuality);
+                    playerStats[game.potm].appearances = (playerStats[game.potm].appearances || 0) + 1;
                 }
                 
-                // Count goals and assists with weighted scoring
+                // Count goals and assists
                 if (game.goals && Array.isArray(game.goals)) {
                     game.goals.forEach(goal => {
                         // Count goal
                         if (!playerStats[goal.player]) {
-                            playerStats[goal.player] = {
-                                goals: 0, assists: 0, potm: 0, appearances: 0,
-                                weightedGoals: 0, weightedAssists: 0, weightedPOTM: 0,
-                                bigGameGoals: 0, consistency: 0, matchTypes: []
-                            };
+                            playerStats[goal.player] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
                         }
-                        
                         playerStats[goal.player].goals++;
-                        
-                        // Calculate weighted goal value
-                        let goalValue = importanceMultiplier * gameQuality;
-                        
-                        // Bonus for goal types
-                        if (goal.type === 'free kick') goalValue *= 1.2;
-                        else if (goal.type === 'penalty') goalValue *= 0.9; // Penalties are easier
-                        
-                        // Bonus for late goals (if minute data exists)
-                        if (goal.minute && goal.minute >= 85) goalValue *= 1.15;
-                        
-                        playerStats[goal.player].weightedGoals += goalValue;
-                        
-                        // Track big game goals
-                        if (importanceMultiplier >= 1.6) {
-                            playerStats[goal.player].bigGameGoals++;
-                        }
+                        playerStats[goal.player].appearances = (playerStats[goal.player].appearances || 0) + 1;
                         
                         // Count assist
-                        if (goal.assist && goal.assist !== 'none' && goal.assist !== false) {
+                        if (goal.assist && goal.assist !== 'none') {
                             if (!playerStats[goal.assist]) {
-                                playerStats[goal.assist] = {
-                                    goals: 0, assists: 0, potm: 0, appearances: 0,
-                                    weightedGoals: 0, weightedAssists: 0, weightedPOTM: 0,
-                                    bigGameGoals: 0, consistency: 0, matchTypes: []
-                                };
+                                playerStats[goal.assist] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
                             }
                             playerStats[goal.assist].assists++;
-                            playerStats[goal.assist].weightedAssists += (goalValue * 0.7); // Assists worth 70% of goals
+                            playerStats[goal.assist].appearances = (playerStats[goal.assist].appearances || 0) + 1;
                         }
                     });
                 }
+                
+                // Add appearances for players from team1 and team2
+                const team1 = getTeamById(game.team1);
+                const team2 = getTeamById(game.team2);
+                
+                [team1, team2].forEach(team => {
+                    if (team && team.player) {
+                        team.player.forEach(playerName => {
+                            if (!playerStats[playerName]) {
+                                playerStats[playerName] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
+                            }
+                            playerStats[playerName].appearances = (playerStats[playerName].appearances || 0) + 1;
+                        });
+                    }
+                });
             });
         });
     });
     
-    // Calculate consistency and final ratings
+    // Convert to array and calculate ratings
     const players = Object.entries(playerStats).map(([name, stats]) => {
-        // Calculate consistency (how regularly player contributes)
+        const maxGoals = Math.max(...Object.values(playerStats).map(p => p.goals), 1);
+        const maxAssists = Math.max(...Object.values(playerStats).map(p => p.assists), 1);
+        const maxPOTM = Math.max(...Object.values(playerStats).map(p => p.potm), 1);
+        
+        // Base rating starts at 5.0
+        let rating = 5.0;
+        
+        // Add contributions with diminishing returns
+        const goalsRatio = stats.goals / maxGoals;
+        const assistsRatio = stats.assists / maxAssists;
+        const potmRatio = stats.potm / maxPOTM;
+        
+        // Apply non-linear scaling (square root) to make it harder to reach higher values
+        const goalsScore = Math.sqrt(goalsRatio) * 1.8;  // Reduced from 2.0
+        const assistsScore = Math.sqrt(assistsRatio) * 1.3;  // Reduced from 1.5
+        const potmScore = Math.sqrt(potmRatio) * 2.0;  // Reduced from 2.5
+        
+        rating += goalsScore + assistsScore + potmScore;
+        
+        // Bonus for overall contribution with diminishing returns
         const totalContributions = stats.goals + stats.assists + stats.potm;
-        stats.consistency = stats.appearances > 0 ? 
-            Math.min(1, (totalContributions / stats.appearances) * 2) : 0;
-        
-        // Calculate average match importance
-        const avgImportance = stats.matchTypes.length > 0 ?
-            stats.matchTypes.reduce((sum, match) => sum + match.importance, 0) / stats.matchTypes.length : 1;
-        
-        return { name, ...stats, avgImportance };
-    });
-    
-    if (players.length === 0) return [];
-    
-    // Find max values for normalization
-    const maxWeightedGoals = Math.max(...players.map(p => p.weightedGoals), 1);
-    const maxWeightedAssists = Math.max(...players.map(p => p.weightedAssists), 1);
-    const maxWeightedPOTM = Math.max(...players.map(p => p.weightedPOTM), 1);
-    const maxAppearances = Math.max(...players.map(p => p.appearances), 1);
-    const maxBigGameGoals = Math.max(...players.map(p => p.bigGameGoals), 1);
-    
-    // Calculate final ratings with Fotmob-inspired algorithm
-    return players.map(player => {
-        // Normalize each component (0-1)
-        const goalsScore = player.weightedGoals / maxWeightedGoals;
-        const assistsScore = player.weightedAssists / maxWeightedAssists;
-        const potmScore = player.weightedPOTM / maxWeightedPOTM;
-        const consistencyScore = player.consistency;
-        const bigGameScore = player.bigGameGoals / maxBigGameGoals;
-        const experienceScore = Math.min(1, player.appearances / maxAppearances);
-        
-        // Fotmob-inspired weighted calculation
-        const rawRating = (
-            goalsScore * 0.35 +           // Goals (35%)
-            assistsScore * 0.25 +         // Assists (25%)
-            potmScore * 0.20 +            // POTM awards (20%)
-            consistencyScore * 0.10 +     // Consistency (10%)
-            bigGameScore * 0.07 +         // Big game performance (7%)
-            experienceScore * 0.03        // Experience/appearances (3%)
-        );
-        
-        // Apply match importance bonus
-        const importanceBonus = Math.min(0.5, (player.avgImportance - 1) * 0.3);
-        
-        // Scale to 1-10 range with minimum floor
-        let rating = Math.max(1, (rawRating + importanceBonus) * 9 + 1);
-        
-        // Apply final adjustments
-        if (player.goals === 0 && player.assists === 0 && player.potm === 0) {
-            rating = Math.min(rating, 3.0); // Cap rating for players with no contributions
+        if (totalContributions > 0) {
+            // Lower bonus and apply diminishing returns
+            rating += Math.log10(1 + totalContributions / 8) * 0.8;
         }
         
-        // Round to 1 decimal place
+        // Apply a sigmoid-like function to make 10 harder to reach
+        if (rating > 8.5) {
+            // Compress ratings between 8.5 and 10
+            const excess = rating - 8.5;
+            rating = 8.5 + (excess * 0.6);
+        }
+        
+        // Minimum rating is 1.0
+        rating = Math.max(1.0, rating);
+        
+        // Cap rating at 10
+        rating = Math.min(10, rating);
+        
+        // Round to one decimal place
         rating = Math.round(rating * 10) / 10;
         
         return {
-            name: player.name,
-            goals: player.goals,
-            assists: player.assists,
-            potm: player.potm,
-            appearances: player.appearances,
-            bigGameGoals: player.bigGameGoals,
+            name,
+            goals: stats.goals,
+            assists: stats.assists,
+            potm: stats.potm,
+            appearances: stats.appearances,
             rating,
-            // Additional metrics for analysis
-            goalsPerGame: player.appearances > 0 ? (player.goals / player.appearances).toFixed(2) : '0.00',
-            assistsPerGame: player.appearances > 0 ? (player.assists / player.appearances).toFixed(2) : '0.00',
-            contributionsPerGame: player.appearances > 0 ? 
-                ((player.goals + player.assists) / player.appearances).toFixed(2) : '0.00',
-            consistency: Math.round(player.consistency * 100),
-            avgImportance: player.avgImportance.toFixed(2)
+            team: getPlayerTeam(name)
         };
     }).sort((a, b) => b.rating - a.rating);
+    
+    return players;
 }
 
-// Get top rated players for a specific season
-export function getTopRatedPlayersBySeason(seasonYear = null, limit = 10) {
-    // Modify the function to filter by season if needed
-    const allRatings = calculatePlayerRatings();
-    return allRatings.slice(0, limit);
+// To test it, just call:
+console.log(calculatePlayerRatings());
+
+export function playerStatsOfMatch(matchId) {
+    // Find the match across all seasons
+    let targetMatch = null;
+    let matchTeams = [];
+
+    for (let season of seasons) {
+        for (let matchday of season.matchdays || []) {
+            for (let game of matchday.games || []) {
+                if (game.id === matchId) {
+                    targetMatch = game;
+                    matchTeams = [game.team1, game.team2];
+                    break;
+                }
+            }
+            if (targetMatch) break;
+        }
+        if (targetMatch) break;
+    }
+
+    if (!targetMatch) {
+        console.error(`Match with ID ${matchId} not found`);
+        return [];
+    }
+
+    const playerStats = {};
+
+    // Get all players from both teams
+    const team1 = getTeamById(matchTeams[0]);
+    const team2 = getTeamById(matchTeams[1]);
+
+    // Initialize all players from both teams
+    [...(team1.player || []), ...(team2.player || [])].forEach(playerName => {
+        playerStats[playerName] = {
+            goals: 0,
+            assists: 0,
+            potm: 0,
+            team: (team1.player || []).includes(playerName) ? team1.name : team2.name,
+            teamId: (team1.player || []).includes(playerName) ? team1.id : team2.id,
+            matchResult: 'draw' // Will be updated based on match result
+        };
+    });
+
+    // Determine match result for each team
+    const team1Won = targetMatch.score1 > targetMatch.score2;
+    const team2Won = targetMatch.score2 > targetMatch.score1;
+    const isDraw = targetMatch.score1 === targetMatch.score2;
+
+    // Update match result for all players
+    Object.keys(playerStats).forEach(playerName => {
+        const isTeam1Player = (team1.player || []).includes(playerName);
+        if (isDraw) {
+            playerStats[playerName].matchResult = 'draw';
+        } else if ((isTeam1Player && team1Won) || (!isTeam1Player && team2Won)) {
+            playerStats[playerName].matchResult = 'win';
+        } else {
+            playerStats[playerName].matchResult = 'loss';
+        }
+    });
+
+    // Count POTM award
+    if (targetMatch.potm && targetMatch.potm !== 'none' && playerStats[targetMatch.potm]) {
+        playerStats[targetMatch.potm].potm = 1;
+    }
+
+    // Count goals and assists
+    if (targetMatch.goals && Array.isArray(targetMatch.goals)) {
+        targetMatch.goals.forEach(goal => {
+            if (playerStats[goal.player]) {
+                playerStats[goal.player].goals++;
+            }
+
+            if (goal.assist && goal.assist !== 'none' && goal.assist !== false && playerStats[goal.assist]) {
+                playerStats[goal.assist].assists++;
+            }
+        });
+    }
+
+    // Calculate ratings with match-specific algorithm
+    const players = Object.entries(playerStats).map(([name, stats]) => {
+        let rating = 5.0; // Base rating for all players who participated
+
+        // Goal scoring bonus (much higher for single match)
+        rating += stats.goals * 1.5; // +1.5 per goal
+
+        // Assist bonus
+        rating += stats.assists * 1.0; // +1.0 per assist
+
+        // POTM bonus
+        rating += stats.potm * 2.0; // +2.0 for POTM
+
+        // Match result bonus/penalty
+        if (stats.matchResult === 'win') {
+            rating += 0.8; // +0.8 for being on winning team
+        } else if (stats.matchResult === 'loss') {
+            rating += 0.2; // +0.2 for participation even in loss
+        } else {
+            rating += 0.5; // +0.5 for draw
+        }
+
+        // Goal contribution bonus (goals + assists)
+        const totalContributions = stats.goals + stats.assists;
+        if (totalContributions >= 3) rating += 1.0; // Hat-trick or equivalent
+        else if (totalContributions === 2) rating += 0.5; // Brace or goal+assist
+
+        // Ensure rating stays within 1-10 range
+        rating = Math.max(1.0, Math.min(10.0, rating));
+
+        // Round to 1 decimal place
+        rating = Math.round(rating * 10) / 10;
+
+        return {
+            name,
+            goals: stats.goals,
+            assists: stats.assists,
+            potm: stats.potm,
+            team: stats.team,
+            teamId: stats.teamId,
+            matchResult: stats.matchResult,
+            totalContributions: totalContributions,
+            rating
+        };
+    }).sort((a, b) => b.rating - a.rating);
+
+    return players;
 }
 
-// Get player rating by name
-export function getPlayerRating(playerName) {
-    const ratings = calculatePlayerRatings();
-    const player = ratings.find(p => p.name === playerName);
-    return player ? player.rating : 1.0;
+// Example usage
+console.log(playerStatsOfMatch('match-fp3zkypqs'));
+function renderFotmobStats() {
+    const output = document.querySelector('.top-players-box');
+    if (!output || !team) return;
+
+    output.innerHTML = ''; // Clear previous content
+
+    // Get all player rankings
+    const allPlayerRankings = calculatePlayerRatings();
+
+    // Filter players belonging to the current team
+    const teamPlayers = getPlayersByTeam(team.id);
+    const topPlayers = allPlayerRankings
+        .filter(player => teamPlayers.includes(player.name))
+        .slice(0, 5); // Limit to top 5 players
+
+    if (topPlayers.length === 0) {
+        output.innerHTML = '<p>No player data available</p>';
+        return;
+    }
+
+    topPlayers.forEach(player => {
+        // Determine rank class based on rating
+        let rankClass = 'rank-5-6'; // Default
+        if (player.rating >= 9.0) rankClass = 'rank-9-10';
+        else if (player.rating >= 8.0) rankClass = 'rank-8-9';
+        else if (player.rating >= 7.0) rankClass = 'rank-7-8';
+        else if (player.rating >= 6.0) rankClass = 'rank-6-7';
+
+        // Generate assists SVGs or number
+        const assistsContent = player.assists > 4
+            ? `<span class="number">${player.assists}</span>`
+            : Array.from({ length: player.assists }, () => `
+                <svg class="svg-assits" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
+                    <ellipse cx="7" cy="7" rx="7" ry="7" fill="transparent"></ellipse>
+                    <g id="ic_assist" transform="translate(0 0)">
+                        <path id="Path_88" fill="var(--MFFullscreenColorScheme-eventIconColor)" fill-rule="evenodd" d="M12.608 5.7c-.175.1-.377.209-.6.337-.156.09-.322.188-.493.3-.806.524-6.651 4.113-7.836 4.793s-3.035.929-3.565.016 1.029-1.952 1.948-3.055C3.11 6.833 4.48 5.461 4.48 5.461c-.088-.426.332-.712.494-.805a.607.607 0 0 1 .06-.03c-.117-.5.631-.929.631-.929l1.147-2.518a.231.231 0 0 1 .094-.105.236.236 0 0 1 .208-.013l1.024.424c.673.283-.769 1.89-.465 1.962a1.67 1.67 0 0 0 1.043-.273 2.826 2.826 0 0 0 .735-.614c.48-.56-.03-1.38.249-1.543.1-.054.287-.034.642.095 1.393.535 2.192 2.211 2.776 3.254.402.709.121.973-.51 1.334zm-8.018.693a.085.085 0 0 0-.075.022l-.631.62a.079.079 0 0 0 .04.135l3.227.669a.09.09 0 0 0 .058-.009l.981-.563a.081.081 0 0 0-.02-.15zm5.558-.418l-4.407-.844a.089.089 0 0 0-.075.023l-.628.618a.081.081 0 0 0 .041.137l3.99.807a.089.089 0 0 0 .058-.009l1.041-.581a.082.082 0 0 0-.02-.151zM3.807 12.1a.083.083 0 0 1-.039.1l-.734.422a.082.082 0 0 1-.1-.016l-.546-.579a.083.083 0 0 1-.016-.063 5.312 5.312 0 0 0 1.3-.462zm1.668-.92a.083.083 0 0 1-.039.1l-.736.42a.082.082 0 0 1-.1-.016l-.41-.484c.3-.177.693-.415 1.15-.691zm5.687-3.4a.084.084 0 0 1-.039.1l-.735.422a.082.082 0 0 1-.1-.016l-.488-.5c.441-.27.839-.516 1.158-.716zM12.5 6.132c.1-.052.184-.1.268-.154L12.9 5.9l.222.754a.084.084 0 0 1-.039.1l-.734.422a.082.082 0 0 1-.1-.016L11.7 6.6c.144-.093.294-.182.466-.281.118-.068.224-.129.334-.187z"></path>
+                    </g>
+                </svg>
+            `).join('');
+
+        // Generate goals SVGs or number
+        const goalsContent = player.goals > 4
+            ? `<span class="number">${player.goals}</span>`
+            : Array.from({ length: player.goals }, () => `
+                <svg class="svg-goals" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="7" cy="7" r="5.25" fill="transparent"></circle>
+                    <path d="M8.88284 9.49699C8.72009 9.49699 8.55734 9.48591 8.39459 9.46958C8.34242 9.4595 8.29347 9.43694 8.25192 9.40382C8.21037 9.3707 8.17746 9.32802 8.156 9.27941C7.988 8.65524 7.82525 8.06374 7.66775 7.48858C7.6388 7.41343 7.63706 7.33052 7.66285 7.25423C7.68863 7.17794 7.74031 7.11308 7.80892 7.07091L9.17625 5.84591C9.2334 5.7961 9.30665 5.76865 9.38246 5.76865C9.45827 5.76865 9.53152 5.7961 9.58867 5.84591C10.0474 6.09633 10.4588 6.42503 10.8043 6.81716C10.8827 6.91412 10.9266 7.03436 10.9292 7.15899C10.932 7.84171 10.7287 8.50937 10.3458 9.07466C10.342 9.09048 10.3346 9.10523 10.3243 9.11782C10.253 9.2147 10.1577 9.29131 10.0478 9.34008C9.67045 9.44934 9.27911 9.50241 8.88634 9.49758L8.88284 9.49699Z" fill="var(--GlobalColorScheme-Text-textDefault)"></path>
+                </svg>
+            `).join('');
+
+        // Create player rating element
+        const playerElement = `
+            <div class="player-rating ${rankClass}">
+                <span class="name">${player.name}</span>
+                <span class="rating">${player.rating}</span>
+                <div class="assists">
+                    ${assistsContent}
+                </div>
+                <div class="goals">
+                    ${goalsContent}
+                </div>
+                <img src="images/icons/noise.png" alt="grain">
+            </div>
+        `;
+
+        output.innerHTML += playerElement;
+    });
 }
 
-// Console log function for testing
-console.log('Player Ratings:', calculatePlayerRatings().slice(0, 10));
+renderFotmobStats();

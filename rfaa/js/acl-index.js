@@ -22,6 +22,15 @@ export let teams = [
     player: getPlayersByTeam('DELU')
 },
 {
+    id: 'teso',
+    name: 'Teso FC',
+    sub: `Teso`,
+    originC: 'Denvor',
+    originL: 'Quiser',
+    img: 'images/teams/teso.png',
+    player: getPlayersByTeam('teso')
+},
+{
     id: 'DELM',
     name: 'Del Mer',
     sub: `DelM`,
@@ -1420,6 +1429,26 @@ function deleteMatchById(matchId) {
 // deleteMatchday(1998, 5); // Example usage: delete the first matchday of the 2025 season
 
 
+function importSeason(seasonData) {
+    // Check if season already exists
+    const existingSeasonIndex = seasons.findIndex(season => season.year === seasonData.year);
+    if (existingSeasonIndex !== -1) {
+        // Replace existing season
+        seasons[existingSeasonIndex] = seasonData;
+    } else {
+        // Add new season
+        seasons.push(seasonData);
+    }
+
+    // Save to localStorage
+    saveSeason();
+
+    // Load the imported season
+    loadSeason(seasonData.year);
+
+    console.log(`Season ${seasonData.year} has been imported successfully.`);
+}
+
 
 function genStats(seed) {
     let comentary = '';
@@ -1703,6 +1732,7 @@ export function getTeamById(id) {
 }
 
 
+
 export function getFinalsAndWins(teamId) {
     let finals = 0;
     let wins = 0;
@@ -1727,71 +1757,3 @@ export function getFinalsAndWins(teamId) {
 }
 
 
-export function calculatePlayerRatings() {
-    const playerStats = {};
-    
-    // Collect all player stats from all seasons
-    seasons.forEach(season => {
-        if (!season.matchdays) return;
-        
-        season.matchdays.forEach(matchday => {
-            if (!matchday.games) return;
-            
-            matchday.games.forEach(game => {
-                // Count POTM awards
-                if (game.potm && game.potm !== 'none') {
-                    if (!playerStats[game.potm]) {
-                        playerStats[game.potm] = { goals: 0, assists: 0, potm: 0 };
-                    }
-                    playerStats[game.potm].potm++;
-                }
-                
-                // Count goals and assists
-                if (game.goals && Array.isArray(game.goals)) {
-                    game.goals.forEach(goal => {
-                        // Count goal
-                        if (!playerStats[goal.player]) {
-                            playerStats[goal.player] = { goals: 0, assists: 0, potm: 0 };
-                        }
-                        playerStats[goal.player].goals++;
-                        
-                        // Count assist
-                        if (goal.assist && goal.assist !== 'none') {
-                            if (!playerStats[goal.assist]) {
-                                playerStats[goal.assist] = { goals: 0, assists: 0, potm: 0 };
-                            }
-                            playerStats[goal.assist].assists++;
-                        }
-                    });
-                }
-            });
-        });
-    });
-    
-    // Convert to array and calculate ratings
-    const players = Object.entries(playerStats).map(([name, stats]) => {
-        const maxGoals = Math.max(...Object.values(playerStats).map(p => p.goals), 1);
-        const maxAssists = Math.max(...Object.values(playerStats).map(p => p.assists), 1);
-        const maxPOTM = Math.max(...Object.values(playerStats).map(p => p.potm), 1);
-        
-        const goalsScore = stats.goals / maxGoals;
-        const assistsScore = stats.assists / maxAssists;
-        const potmScore = stats.potm / maxPOTM;
-        
-        const rawRating = (goalsScore * 0.5) + (assistsScore * 0.3) + (potmScore * 0.2);
-        const rating = +(rawRating * 9 + 1).toFixed(3); // Scale to 1-10, 3 decimals
-        
-        return {
-            name,
-            goals: stats.goals,
-            assists: stats.assists,
-            potm: stats.potm,
-            rating
-        };
-    }).sort((a, b) => b.rating - a.rating);
-    
-    return players;
-}
-
-// To test it, just call:
-console.log(calculatePlayerRatings());

@@ -135,6 +135,93 @@ td:nth-child(7):contains("-") {
     padding-right: 3%;
 }   
 
+.player-rating {
+    width: 20rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #4a7a3d, #6fbf5a);
+    border-radius: 1rem;
+
+    border: solid 1px var(--border-1);
+    position: relative;
+    margin: 0.2rem;
+}
+
+.player-rating img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0.3;
+    object-fit: cover;
+    scale: 2.2;
+    mix-blend-mode: overlay;
+    background-repeat: repeat;
+
+
+    display: none;
+}
+.player-rating .assists {
+    position: absolute;
+    top: -1rem;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(188, 255, 157);
+    padding: 0.4rem;
+    min-width: 3rem;
+    padding-left: 1rem;
+    border-radius: 3rem;
+    border: solid 1px var(--border-1);
+}
+
+.player-rating .goals {
+    position: absolute;
+    bottom: -1rem;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(188, 255, 157);
+    padding: 0.4rem;
+    min-width: 3rem;
+    padding-left: 1rem;
+    border-radius: 3rem;
+    border: solid 1px var(--border-1);
+}
+
+.svg-assits,
+.svg-goals {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    fill: #4a7a3d;
+    margin-left: -0.4rem;
+}
+
+.assists .number,
+.goals .number {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4a7a3d;
+    margin-left: 0.4rem;
+}
+
+
+.player-rating .name {
+    font-weight: 500;
+    color: #ffffffdc;
+}
+
+.player-rating .rating {
+    font-weight: 600;
+    color: #ffffff;
+}
+
 /* Responsive adjustments */
 @media screen and (max-width: 600px) {
     th, td {
