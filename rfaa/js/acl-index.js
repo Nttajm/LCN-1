@@ -344,8 +344,6 @@ export function getTeamByplayer(playerName) {
 
         // remeber to make get last team played for by season..
 
-
-
     }
 
 export function playerYears(ranges) {
