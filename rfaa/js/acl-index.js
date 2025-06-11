@@ -336,7 +336,33 @@ export function getPlayersByTeam(teamId, extraPlayers = []) {
     return filteredPlayers.map(player => player.name).concat(extraPlayers);
 }
 
-// Helper function to generate array of years from ranges
+export function getTeamByplayer(playerName) {
+        if (!playerName) return null;
+        
+        // Find the player in the players array
+        const player = players.find(p => p && p.name === playerName);
+        if (!player || !player.teams) return null;
+        
+        let lastTeam = null;
+        let lastYear = 0;
+        
+        // Check each team the player has been on
+        Object.entries(player.teams).forEach(([teamId, teamData]) => {
+            if (teamData && teamData.years && teamData.years.length > 0) {
+                // Find the most recent year for this team
+                const maxYear = Math.max(...teamData.years);
+                
+                // Update last team if this year is more recent
+                if (maxYear > lastYear) {
+                    lastYear = maxYear;
+                    lastTeam = teamId;
+                }
+            }
+        });
+        
+        return lastTeam;
+    }
+
 export function playerYears(ranges) {
     const years = [];
     
@@ -350,16 +376,8 @@ export function playerYears(ranges) {
     return years;
 }
 
-// console.log(playerYears([[2002, 2011], [1991, 1995]]) , 'eeee'); // Example usage
-
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-// localStorage.clear() 
-
-// DOM Elements
 const content = document.querySelector('.pad-cont');
-
-// Helper Functions
-
 
 function renderCreateButton(matchdays) {
     if (!matchdays || matchdays.length === 0) {
@@ -1427,18 +1445,6 @@ function deleteMatchById(matchId) {
 // deleteMatchday(1998, 4); // Example usage: delete the first matchday of the 2025 season
 
 // deleteMatchday(1998, 5); // Example usage: delete the first matchday of the 2025 season
-// The importSeason function and its call are not working because they are being executed immediately when the module loads.
-// This means every time the page loads, it will overwrite all seasons in localStorage with the hardcoded data.
-// Also, if you are running this in a browser, you may hit localStorage size limits with such a large dataset.
-// 
-// If you want to import data only on demand, you should NOT call importSeason() directly in the code.
-// Instead, expose importSeason as a function and call it from the browser console or via a button click.
-//
-// Example fix:
-// 1. Remove the direct call to importSeason(...)
-// 2. Optionally, add a button to trigger importSeason from the UI, or call it from the console.
-//
-// If you want to keep the function for manual import, just keep:
 function importSeason(seasonsArray) {
     // Replace all existing seasons with the provided array
     seasons.length = 0;
@@ -1446,6 +1452,7 @@ function importSeason(seasonsArray) {
 
     // Save to localStorage
     saveSeason();
+    loadSeason(seasonsArray[0].year); // Load the first season in the array
 
     // Load the latest imported season
     if (seasonsArray.length > 0) {
@@ -1739,7 +1746,20 @@ export function getTeamById(id) {
     };
 }
 
+export function getPlayerByName(pName) {
+    const player = players.find(p => p && p.name === pName);
+    if (!player) {
+        return {
+            name: pName,
+            img: 'images/players/default.png',
+            team: 'Unknown Team',
+            position: 'Unknown Position'
+        };
+    } else {
+        return player;
+    }
 
+}
 
 export function getFinalsAndWins(teamId) {
     let finals = 0;
@@ -4588,6 +4608,6 @@ const seasonTopush =    [
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
-    importSeason(seasonTopush);
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//     importSeason(seasonTopush);
+// });
