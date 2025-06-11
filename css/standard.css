@@ -403,3 +403,20 @@ ul, li {
   }
   
 }
+
+:root {
+  --font-1: roboto, sans-serif;
+    --font-2: 'Cal Sans', sans-serif;
+    --font-3: 'DM Serif Text', serif;
+    --font-4: 'Doto', sans-serif;
+    --font-5: 'Fredoka', sans-serif;
+    --font-6: 'Merriweather Sans', sans-serif;
+    --font-7: 'Neuton', serif;
+    --font-8: 'Oswald', sans-serif;
+    --font-9: 'Pacifico', cursive;
+    --font-10: 'Pirata One', display;
+    --font-11: 'Playfair Display', serif;
+    --font-12: 'Roboto Mono', monospace;
+    --font-13: 'Roboto', sans-serif;
+    --font-14: 'Special Gothic Expanded One', sans-serif;
+}
