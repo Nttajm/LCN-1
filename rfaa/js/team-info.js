@@ -165,7 +165,7 @@ function renderTopPlayersOfTeam(team) {
         let conditionalClass = '';
         if (player.rating >= 9.0) {
             conditionalClass = 'rank-9-10';
-        } else if (player.rating >= 7.0) {
+        } else if (player.rating >= 6.7) {
             conditionalClass = 'rank-7-8';
         } else if (player.rating >= 5.0) {
             conditionalClass = 'rank-5-6';
@@ -176,6 +176,17 @@ function renderTopPlayersOfTeam(team) {
         }
         playerDiv.className = 'player-rating';
         playerDiv.className += ` ${conditionalClass}`;
+
+        let HasNumA4 = false;
+        let HasNumG4 = false;
+
+        if (player.assists <= 4) {
+            HasNumA4 = true;
+        }
+
+        if (player.goals <= 4) {
+            HasNumG4 = true;
+        }
 
         // Generate assist SVGs
         const assistSvgs = player.assists > 0 && player.assists <= 4 ? 
@@ -206,18 +217,20 @@ function renderTopPlayersOfTeam(team) {
                 </svg>
             `).join('') : '';
 
+
+
         playerDiv.innerHTML = `
             <span class="name">${player.name}</span>
             <span class="rating">${player.rating}</span>
             ${player.assists > 0 ? `
             <div class="assists">
                 ${assistSvgs}
-                <span class="number">${player.assists}</span>
+                <span class="number ${HasNumA4 ? 'dn' : ''}">${player.assists}</span>
             </div>` : ''}
             ${player.goals > 0 ? `
             <div class="goals">
                 ${goalSvgs}
-                <span class="number">${player.goals}</span>
+                <span class="number ${HasNumG4 ? 'dn' : ''}">${player.goals}</span>
             </div>` : ''}
             <img src="images/icons/noise.png" alt="grain">
         `;

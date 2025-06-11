@@ -339,28 +339,13 @@ export function getPlayersByTeam(teamId, extraPlayers = []) {
 export function getTeamByplayer(playerName) {
         if (!playerName) return null;
         
-        // Find the player in the players array
-        const player = players.find(p => p && p.name === playerName);
+        const player = getPlayersByName(playerName);
         if (!player || !player.teams) return null;
-        
-        let lastTeam = null;
-        let lastYear = 0;
-        
-        // Check each team the player has been on
-        Object.entries(player.teams).forEach(([teamId, teamData]) => {
-            if (teamData && teamData.years && teamData.years.length > 0) {
-                // Find the most recent year for this team
-                const maxYear = Math.max(...teamData.years);
-                
-                // Update last team if this year is more recent
-                if (maxYear > lastYear) {
-                    lastYear = maxYear;
-                    lastTeam = teamId;
-                }
-            }
-        });
-        
-        return lastTeam;
+
+        // remeber to make get last team played for by season..
+
+
+
     }
 
 export function playerYears(ranges) {
