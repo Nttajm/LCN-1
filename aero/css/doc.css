@@ -1,0 +1,121 @@
+body {
+    background-color: rgb(2, 2, 2);
+    color: white;
+    overflow-y: hidden;
+    font-family: var(--font-12);
+    -webkit-text-size-adjust: none;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.d-cont-1 {
+    overflow-x: scroll;
+    overflow-y: hidden;
+
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+}
+
+.d-vid {
+    position: absolute;
+    z-index: -1;
+}
+
+.scrolla-cont {
+    position: absolute;
+    top: 50%;
+    right: -2%;
+    rotate: -90deg;
+    opacity: 0;
+    transform: translateY(160%);
+    animation: fadeIn 0.5s var(--baz) forwards;
+    animation-delay: 1.5s;
+    z-index: -1;
+}
+
+.scrolla {
+    display: flex;
+    gap: 1rem;
+}
+
+.scrolla span {
+    white-space: nowrap;
+}
+
+.info-upscroll {
+   
+}
+
+.watch {
+    background: linear-gradient(to bottom, transparent, rgb(0, 0, 0));
+    width: 100vw;
+    height: 6rem;
+    position: absolute;
+    bottom: -20%;
+    left: 0%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.watch-org {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+
+    position: fixed;
+    top: 50%;
+    left: 1.5rem;
+    color: white;
+    mix-blend-mode: difference;
+    max-width: 14rem;
+    white-space: normal;
+    word-break: break-word;
+    z-index: -1;
+}
+
+.info .title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    transform: translateY(30%);
+    opacity: 0;
+    animation: fadeIn 0.5s var(--baz) forwards;
+    animation-delay: 0.4s;
+}
+
+.info .subtitle {
+    font-size: 0.7rem;
+    font-weight: 300;
+    transform: translateY(90%);
+    opacity: 0;
+    animation: fadeIn 0.5s var(--baz) forwards;
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fader {
+    margin-left: 110vw;
+    padding: 3rem;
+    background: linear-gradient(to right, transparent, rgb(0, 0, 0));
+}
+
+.level {
+    min-width: 80vw;
+    background-color: rgb(0, 0, 0);
+}

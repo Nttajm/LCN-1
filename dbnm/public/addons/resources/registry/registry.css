@@ -11,7 +11,7 @@
 
 
 body {
-    font-family: "Roboto Mono" !important;
+    font-family: "Roboto Mono", monospace, Helvetica, sans-serif !important;
     letter-spacing: -0.07em;
 }
 

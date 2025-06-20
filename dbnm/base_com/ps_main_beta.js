@@ -355,17 +355,33 @@ console.log(cmdUtil)
 
 function renderUtils() {
     if (cmdUtil.length === 0) {
-        print('No Modules Found.');
+        print('No Modules available.');
     } 
 
     let serverMaintain = true
 
-    const totalLinks = cmdUtil.length;
-    if (totalLinks === 0) {
-        print('No Modules Found.');
-    } else {
-        print(`Loaded Modules: ${totalLinks}`);
-    }
+    cmdUtil.forEach(util => {
+        let adder = '';
+        if (util.linkClass === '**') {
+            adder = 'public/base-modules/';
+            const scriptTag = document.createElement('script');
+            scriptTag.src = adder + util.link + '.js';
+            document.body.appendChild(scriptTag);
+            scriptTag.type = 'module';
+
+            scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
+        } else if (util.linkClass === '**sv' && serverMaintain) {
+            adder = 'servers/';
+            const scriptTag = document.createElement('script');
+            scriptTag.src = adder + util.link + '.js';
+            scriptTag.type = 'module';
+            document.body.appendChild(scriptTag);
+            scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
+
+
+            serverMaintain = false;
+        }
+    });
 }
 
 renderUtils();

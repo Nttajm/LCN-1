@@ -1,5 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+// import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+//   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
 
 function loadStylesheets(stylesheets) {
     stylesheets.forEach(href => {
@@ -124,7 +124,7 @@ async function viteInstall() {
 }
 
 
-let last_selected = null; // assumed global or declared here
+// let last_selected = null; // assumed global or declared here
 let stepMode = 'input'; // 'input' or 'choice'
 
 

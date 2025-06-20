@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { src: 'images/aero/seq-aero-4.mp4', title: 'Example Video 3' },
         { src: 'images/aero/seq-aero-5.mp4', title: 'Example Video 3' },
 
-    ];
+    ]; 
     let currentVideoIndex = 0;
     function loadVideo(index) {
         videoPlayer.src = videos[index].src;
@@ -43,28 +43,31 @@ document.addEventListener('DOMContentLoaded', function() {
     loadVideo(currentVideoIndex);
 });
 
-let linksEle = document.querySelectorAll('a')
-linksEle.forEach(element => {
-    element.classList.add('delayed-link')
+const allWorkLinklers = document.querySelectorAll('.work-linkler');
+
+allWorkLinklers.forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        wipeRL();
+        setTimeout(() => {
+            const linkLocation = link.dataset.linkLocation;
+            const temp = 'aero/work/' + linkLocation + '.html';
+            window.location.href = temp;
+        }, 400);
+    });
 });
 
+function wipeRL() {
+    const wipe = document.querySelector('.wipe');
+    wipe.classList.remove('dn');
+    wipe.classList.add('wipe-rl');
+}
+
+
 document.addEventListener('DOMContentLoaded', function () {
-    const links = document.querySelectorAll('.delayed-link');
-    const messageDiv = document.getElementById('redirect-message');
-    const delay = 2000; // Delay in milliseconds (2000ms = 2 seconds)
-
-    links.forEach(link => {
-        link.addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent the default link behavior
-            const url = link.getAttribute('href');
-
-            // Show the message div
-            messageDiv.style.display = 'block';
-
-            // Wait for the specified delay, then redirect
-            setTimeout(() => {
-                window.location.href = url;
-            }, delay);
-        });
+    const scroll = new LocomotiveScroll({
+        el: document.querySelector('[data-scroll-container]'),
+        smooth: true
     });
-}, 1900);
+});
+

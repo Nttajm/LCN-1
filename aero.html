@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/images/aero.png" type="image/x-icon">
     <link rel="stylesheet" href="bp/EE/aero.css">
+    <link rel="stylesheet" href="aero/css/screens.css">
     <link rel="stylesheet" href="css/standard.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.css">
     <title>AERO - lzmd</title>
 </head>
-<body>
-    <div class="loader">
+<body> 
+    <div class="loader dn">
         <div class="load-sec">
             <img class="stand_er-invert" draggable="false" src="images/aero.png" alt="" srcset="">
             <div class="load-ani">
@@ -22,6 +23,7 @@
             </div>
         </div>
     </div>
+    <div class="wipe"></div>
     <div class="scoller-i stand_er-scroll" data-scroll-container>
         <div class="cont-1">
             <div class="sticky">
@@ -65,14 +67,6 @@
                 </div>
             </div>
         </div>
-        <div class="cont-3" data-scroll-section>
-            <div class="forth f-header" >
-                <div class="f-i">WO</div>
-                <div class="f-i"></div>
-                <div class="f-i" id="sub"></div>
-                <div class="f-i">RK</div>
-            </div>
-        </div>
         <div class="cont-4" data-scroll-section>
             <div class="subhead he" data-scroll data-scroll-speed="2">
                 <span>
@@ -80,7 +74,7 @@
                 </span>
             </div>
             <div class="work-sec">
-                <div class="work" id="work-grow">
+                <div class="work work-linkler" id="work-grow" data-link-location="musiala">
                     <div class="text">
                         <span>
                             dolore ipsum libero, ad nam.
@@ -190,15 +184,7 @@
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const scroll = new LocomotiveScroll({
-                el: document.querySelector('[data-scroll-container]'),
-                smooth: true
-            });
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.3/dist/locomotive-scroll.min.js"></script>
+    <script src="aero/locomotiv-scroll.min.js" defer></script>
     <script defer src="bp/EE/aero.js"></script>
 </body>
 </html>

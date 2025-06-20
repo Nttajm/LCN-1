@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 body {
-    background-color: rgb(2, 2, 2);
+    background-color: rgb(255, 0, 0);
     color: white;
     overflow-x: hidden;
 }
@@ -26,24 +26,6 @@ body {
     background-color: black;
 }
 
-#redirect-message {
-    position: fixed;
-    height: 100vh;
-    width: 0vw;
-    background-color: rgb(0, 0, 0);
-    color: white;
-    z-index: 1000;
-    animation: link 1s forwards;
-    display: none;
-}
-
-@keyframes link {
-    to {
-        width: 100vw;
-    }
-}
-
-
 :root {
     font-size: 26px;
     --b-1: "Inter", sans-serif;
@@ -61,6 +43,39 @@ body {
     overflow: hidden;
     animation: test 0.6s ease-out forwards;
     animation-delay: 1.9s; 
+}
+
+.wipe {
+    position: fixed;
+    top: 0;
+    left: 100vw;
+    z-index: 1000;
+    height: 100vh;
+    width: 100vw;
+    background-color: black;
+}
+
+.wipe-rl {
+    animation: wipe-rl 0.3s var(--baz) forwards;
+}
+
+.wipe-lr {
+    animation: wipe-lr 0.3s var(--baz) forwards;
+}
+
+@keyframes wipe-rl {
+    to {
+        left: 0;
+    }
+}
+
+@keyframes wipe-lr {
+    from {
+        left: 0;
+    }
+    to {
+        left: -100vw;
+    }
 }
 
 @keyframes test {
@@ -111,7 +126,7 @@ body {
 
 .cont-1 {
     width: 100%;
-    height: 150vh;
+    height: 100vh;
     position: relative;
 }
 
@@ -290,8 +305,8 @@ body {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    cursor: pointer;
 }
-
 
 a {
     font-style: none;
@@ -316,7 +331,7 @@ a {
 }
 
 .text a, .text span {
-    max-width: 30%;
+    max-width: 40%;
 }
 
 .work:nth-child(even) {

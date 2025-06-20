@@ -262,6 +262,11 @@ ul, li {
   --notetext:  #808ea1;
 }
 
+:root { 
+  --smooth-dept: cubic-bezier(0.22, 0.74, 0.43, 1.05);
+
+}
+
 .op-n {
   opacity: 0;
 }

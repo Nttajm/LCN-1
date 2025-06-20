@@ -1,4 +1,4 @@
-import { getCurrentSeason, getTeamById, getTeamMacthes, getFinalsAndWins , getTeamByplayer, getPlayersByTeam } from './acl-index.js';
+import { getCurrentSeason, getTeamById, getTeamMacthes, getFinalsAndWins , getTeamByplayer, getPlayersByTeam, bindMatchClickEventsGlobal } from './acl-index.js';
 import { seasons } from './acl-index.js';
 
 const team = getTeambyLink();
@@ -59,8 +59,13 @@ function rendertopcontent() {
 
     // Update Champions League count
     const clCount = document.querySelector('.cl-count span');
+    const clcountCont = document.querySelector('.cl-count-cont');
     if (clCount) {
-        clCount.textContent = team.clWins || 0;
+        clCount.textContent = getFinalsAndWins(team.name).wins;
+    }
+
+    if ( getFinalsAndWins(team.name).wins === 0) {
+        clcountCont.style.display = 'none';
     }
 
     // Update win years
@@ -121,7 +126,7 @@ function renderMatches_1() {
 
         // console.log(match);
         matchesHTML += `
-            <div class="mini-match">
+            <div class="mini-match link-match" data-match-id="${match.game.id}">
                 <div class="match-info">
                     <span>${match.matchday} ${match.season}</span>
                 </div>
@@ -147,6 +152,8 @@ function renderMatches_1() {
 
     return matchesHTML;
 }
+
+bindMatchClickEventsGlobal();
 
 function renderTopPlayersOfTeam(team) {
     if (!team) {
@@ -361,3 +368,14 @@ export function calculatePlayerRatings() {
 console.log(calculatePlayerRatings());
 
 
+const viewport = document.querySelector('.vpsc');
+const content = document.querySelector('.matches-cont');
+
+if (viewport && content) {
+    const sb = new ScrollBooster({
+        viewport: viewport,
+        content: content,
+        scrollMode: 'transform',
+        direction: 'horizontal',
+    });
+}

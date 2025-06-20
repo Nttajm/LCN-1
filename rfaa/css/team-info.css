@@ -137,12 +137,18 @@ body {
     justify-content: space-around;
 }
 
+.vpsc {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
 .matches-cont {
+    margin-bottom: 5rem;
     display: flex;
+    width: 100vw;
+    box-sizing: initial;
     gap: 1rem;
-    white-space: nowrap;
-    overflow-x: hidden;
-    padding-bottom: 1rem;
 }
 
 .mini-match {
