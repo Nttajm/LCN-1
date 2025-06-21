@@ -319,6 +319,16 @@ ul, li {
   transform: rotate3d(0, 1, 0, 180deg);
 }
 
+.fl-c-reverse {
+  display: flex;
+  flex-direction: column-reverse !important;
+}
+
+.fl-r-reverse {
+  display: flex;
+  flex-direction: row-reverse !important;
+}
+
 .fl-c-to-r {
   display: flex;
   flex-direction: column !important;
@@ -412,7 +422,7 @@ ul, li {
 :root {
   --font-1: roboto, sans-serif;
     --font-2: 'Cal Sans', sans-serif;
-    --font-3: 'DM Serif Text', serif;
+    --font-3: 'DM Serif Text', serif; 
     --font-4: 'Doto', sans-serif;
     --font-5: 'Fredoka', sans-serif;
     --font-6: 'Merriweather Sans', sans-serif;

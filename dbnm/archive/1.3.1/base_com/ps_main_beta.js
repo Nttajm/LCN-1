@@ -7,47 +7,27 @@ const commandHandlers = {};
 let awaiting = false;
 let awaiting_cmd = null;
 let directory = null;
-let versionII = '1.3.2';
 
 const module_meta = [
     {
-        name: 'dbnm',
+        name: 'dbnm1.3.1',
         desc: 'base_com',
         use: ps_use,
-        version: versionII,
+        version: '1.3.1',
     }
 ]
 
 const db_info = {
-    v: versionII,
+    v: '1.3.1',
     desc: 'vinnila dbnm',
-    license: 'MIT',
     use: ps_use,
 };
 
 let system = {
     err: {
-        0: 'Command not found',
         1: 'invalid command or arguments provided'
     }
 }
-
-let vertiualFiles = [
-    {
-        modName: 'reg',
-        version: '1.0.0',
-        files: [
-            {
-                ['packager']: [
-                    {
-                        key: 'example',
-                        names : ['example', 'ex'],
-                    }
-                ],
-            },
-        ]
-    },
-]
 
 // UI Elements
 const db_ui = {
@@ -70,7 +50,7 @@ function initializeUI() {
 // Render Initial Information
 function renderInitialInfo() {
     const infoHTML = `
-        Path: ${db_info.v}/${db_info.use}
+        <div>Path: ${db_info.v}/${db_info.use}</div>
     `;
     print(infoHTML);
 }
@@ -86,45 +66,13 @@ function print(value) {
         dir_space = 'db'
     }
 
-    const val_html = `<div class="g-3"><span>${dir_space}$ </span> <span>${value}</span>`;
+    const val_html = `<div class=" g-3"><span>${dir_space}$ ${value}</span>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
     return value;
 }
 
-
-function warning(value) {
-    const val_html = `<div class=" g-3">[<span class='red b'>!</span>] </code>${value}</code>`;
-    if (db_ui.output) {
-        db_ui.output.innerHTML += val_html;
-    }
-    return value;
-}
-
-function e_print(value) {
-    const val_html = `<div class=" g-3 red"><span> ${value}</span></div>`;
-    if (db_ui.output) {
-        db_ui.output.innerHTML += val_html;
-    }
-    return value;
-}
-
-function c_print(value , custom) {
-    const val_html = `<div class=" g-3"><span>${custom}</span> ${value}</div>`;
-    if (db_ui.output) {
-        db_ui.output.innerHTML += val_html;
-    }
-    return value;
-}
-
-function u_print(value) {
-    const val_html = `<div class=" g-3"><span>$</span> ${value}</div>`;
-    if (db_ui.output) {
-        db_ui.output.innerHTML += val_html;
-    }
-    return value;
-}
 
 function c_placeholder(value) {
     if (db_ui.input) {
@@ -139,6 +87,39 @@ function c_placeholder(value) {
 
 function qestion(value) {
     const val_html = `<div class=" g-3">[<span class='light-blue b'>?</span>] </code>${value}</code>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+function waring(value) {
+    const val_html = `<div class=" g-3">[<span class='red b'>!</span>] </code>${value}</code>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+
+function u_print(value) {
+    const val_html = `<div class=" g-3"><span>$</span> ${value}</div>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+function e_print(value) {
+    const val_html = `<div class=" g-3"><span></span> ${value}</div>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
+function c_print(value , custom) {
+    const val_html = `<div class=" g-3"><span>${custom}</span> ${value}</div>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -162,7 +143,7 @@ function unawait() {
 }
 
 // Register Command Handler
-function _reg(command, handler, options = {}) {
+function _reg(command, handler) {
 
     commandHandlers[command.toLowerCase()] = handler;
 }
@@ -197,11 +178,10 @@ function handleCommand(cmd) {
         if (commandHandlers[command]) {
             commandHandlers[command](args, cmd_split);
         } else {
-            e_print(`
-                (${directory ? directory : 'main'}):
-                <br> ${system.err[0]}: ${cmd}
+            print(`
+                <br> (${directory ? directory : 'main'}):
+                <br> Command not Found: ${cmd}
             `);
-
         }
     }
 }
@@ -218,13 +198,17 @@ _reg('example', (args) => {
     if (args.length === 2) {
         print(`Example command executed with values: ${args[0]}, ${args[1]}`);
     } else {
-        print('Hello World!');
+        print('Example command requires exactly 2 arguments.');
     }
 });
 
-_reg('print', (_, cmd_split) => {
-    const output = cmd_split.slice(1).join(' ');
-    print(output);
+_reg('multi', (args) => {
+    if (args.length === 2) {
+        const result = parseFloat(args[0]) * parseFloat(args[1]);
+        print(`Multiplication result: ${result}`);
+    } else {
+        print('Multiplication command requires exactly 2 numeric arguments.');
+    }
 });
 
 _reg('math', (_, cmd_split) => {
@@ -332,7 +316,6 @@ _reg('clear', () => {
 });
 
 _reg('/', (_, cmd_split) => {
-    // system command 
     if (cmd_split[1] === 'i') {
         if (cmd_split[2] === 'love') {
             print('you!');
@@ -357,21 +340,6 @@ _reg('/', (_, cmd_split) => {
     }
 });
 
-_reg('rand', (_, cmd_split) => {
-    const from = parseInt(cmd_split[1], 10);
-    const to = parseInt(cmd_split[2], 10);
-    if (isNaN(from) || isNaN(to)) {
-        print('Usage: rand <from> <to>');
-        return;
-    }
-    if (from > to) {
-        print('The start value must be less than or equal to the end value.');
-        return;
-    }
-    const random = Math.floor(Math.random() * (to - from + 1)) + from;
-    print(`${random}`);
-});
-
 
 // non-registered commands
 
@@ -394,7 +362,7 @@ function renderUtils() {
 
     cmdUtil.forEach(util => {
         let adder = '';
-        if (util.linkClass === '**' || util.linkClass === 'base') {
+        if (util.linkClass === '**') {
             adder = 'public/base-modules/';
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
@@ -408,7 +376,7 @@ function renderUtils() {
             scriptTag.src = adder + util.link + '.js';
             scriptTag.type = 'module';
             document.body.appendChild(scriptTag);
-            scriptTag.onload = () => print(`Script loaded: ${scriptTag}`);
+            scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
 
 
             serverMaintain = false;
