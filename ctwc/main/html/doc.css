@@ -149,12 +149,9 @@ body {
 }
 
 p {
-    font-family: "poppins", serif;
     font-size: 1.3rem;
-    letter-spacing: -0.1rem;
     font-weight: 400;
     margin-top: 1rem;
-
 }
 
 .doc {
@@ -193,9 +190,6 @@ p {
 }
 
 @media (min-width: 0px) and (max-width: 767.98px) {
-    p {
-        width: 60%;
-    }
 }
 
 @media (min-width: 768px) and (max-width: 991.98px) {
