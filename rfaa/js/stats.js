@@ -80,6 +80,7 @@ function getStatTypeFromText(text) {
         'Goals': 'goals',
         'Assists': 'assists',
         'Apperences': 'appearances',
+        'G/MP ratio': 'goals_per_game_ratio',
         'Free Kicks': 'free_kicks',
         'Penalties': 'penalties',
         'Finals Apps': 'finals_apps',
@@ -103,9 +104,34 @@ function getStatsForType(statType, season) {
             return getCombinedGoalsAssists(seasonFilter);
         case 'appearances':
             return getPlayerAppearances(seasonFilter);
+        case 'goals_per_game_ratio':
+            return goals_per_game_ratio(seasonFilter);
         default:
             return getTopGoalScorers(seasonFilter);
     }
+}
+
+function goals_per_game_ratio(season) {
+    const goalScorers = getTopGoalScorers(season);
+    const appearances = getPlayerAppearances(season);
+
+    // Map player names to goals
+    const goalsMap = new Map();
+    goalScorers.forEach(player => {
+        goalsMap.set(player.name, player.count);
+    });
+
+    // Calculate goals per match ratio for each player with at least one appearance
+    const ratios = appearances
+        .filter(player => player.count > 0 && goalsMap.has(player.name))
+        .map(player => ({
+            name: player.name,
+            count: +(goalsMap.get(player.name) / player.count).toFixed(2)
+        }))
+        .sort((a, b) => b.count - a.count);
+
+        console.log(ratios);
+    return ratios;
 }
 
 // Get combined goals + assists stats
@@ -131,6 +157,8 @@ function getCombinedGoalsAssists(season) {
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 }
+
+
 
 // Get player appearances
 function getPlayerAppearances(season) {

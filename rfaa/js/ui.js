@@ -1,6 +1,8 @@
 const nav = document.querySelector(".nav");
-nav.classList.add("p2-group");
-nav.innerHTML = `
+if (nav) {
+    nav.classList.add("p2-group");
+
+    nav.innerHTML = `
 <a href="index.html">
             <div class="imgel">
                 <img src="images/leagues/acl.png" alt="tx">
@@ -30,6 +32,8 @@ nav.innerHTML = `
             </div>
         </div>
 `;
+}
+
 
 
 // Make sure this runs after .js-team-link elements are present in the DOM
@@ -48,3 +52,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+export function reapplyTeamLinkListeners() {
+    const teamLinks = document.querySelectorAll(".js-team-link");
+    if (teamLinks.length > 0) {
+        teamLinks.forEach(link => {
+            // Remove any existing click listeners to avoid duplicates
+            link.replaceWith(link.cloneNode(true));
+        });
+        // Re-select after cloning
+        const newTeamLinks = document.querySelectorAll(".js-team-link");
+        newTeamLinks.forEach(link => {
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                const teamId = link.getAttribute("data-team-id");
+                if (teamId) {
+                    window.location.href = `team-info.html?team=${teamId}`;
+                }
+            });
+        });
+    }
+}

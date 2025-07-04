@@ -3,6 +3,7 @@ import { goals } from './acl-index.js'
 import { teams } from './acl-index.js';
 import { getTeamById } from './acl-index.js';
 import { getCurrentSeason } from './acl-index.js';
+import { reapplyTeamLinkListeners } from './ui.js';
 
 export function calculateStandings(seasonData) {
     if (!seasonData || !seasonData.matchdays) return [];
@@ -105,6 +106,8 @@ export function renderStandingsTable(standingsData) {
         </div>
         `;
     }
+
+    reapplyTeamLinkListeners();
     
     const tableRows = standingsData.map((team, index) => {
         // Determine row class based on position
@@ -112,7 +115,7 @@ export function renderStandingsTable(standingsData) {
         if (index < 16) rowClass = "wpos"; // Top 4 teams
         
         return `
-        <tr class="${rowClass}">
+        <tr class="${rowClass} js-team-link cur"  data-team-id="${team.id}">
             <td>${index + 1}</td>
             <td>
                 <div class="team-name-cell">

@@ -10,7 +10,7 @@ function displayMatchInfo() {
     // Search through all seasons instead of just the current one
     let match = null;
     let matchSeasonData = null;
-    let matchday = null;
+    let matchday = null; 
     let mdIndex = null;
 
     // Loop through all seasons to find the match

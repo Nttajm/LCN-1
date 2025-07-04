@@ -2,7 +2,8 @@
 export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
 
 import { players } from './players.js';
-import { seasonTopush } from './achive/1998-1.js';
+import { seasonTopush } from './achive/1998-2.js';
+import { reapplyTeamLinkListeners } from './ui.js';
 export let teams = [
     {
     id: 'tex',
@@ -315,8 +316,9 @@ export let teams = [
 
 
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-// export let seasons = seasonTopush;
+// seasons = seasonTopush; 
 
+// saveSeason();
 const content = document.querySelector('.pad-cont');
 
 function renderCreateButton(matchdays) {
@@ -473,7 +475,7 @@ function bindAddMatchButtons() {
 let matchdayIndex = null; // Declare matchdayIndex globally to use it in addMatchDialog
 
 function addMatchDialog(startMatch, mdIndex) {
-    // create match, add match, make match, create game, gameday
+    // create match, add match, make match, create game, gameday, add game, create game.
 
     const currentSeason = getCurrentSeason();
     let thisMatchIdex = null;
@@ -820,7 +822,13 @@ function addMatchDialog(startMatch, mdIndex) {
         const matchdayGames = seasonData.matchdays[matchdayIndex].games || [];
         seasonData.matchdays[matchdayIndex].games = matchdayGames;
 
-        const appearances = teams[0].player.concat(teams[1].player);
+        // Build appearances as array of objects: { team: team name, name: player name }
+        const teams1 = getTeamById(team1);
+        const teams2 = getTeamById(team2);
+        const appearances = [
+            ...teams1.player.map(p => ({ team: teams1.name, name: p })),
+            ...teams2.player.map(p => ({ team: teams2.name, name: p }))
+        ];
         
         if (!startMatch) {
             seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.
@@ -1328,6 +1336,8 @@ function showTable() {
 
     const standingsData = calculateStandings(seasonData);
     content.innerHTML = renderStandingsTable(standingsData);
+    reapplyTeamLinkListeners();
+
 }
 
 // Add event listener for the "Show Table" button
@@ -1400,12 +1410,11 @@ function deleteMatchById(matchId) {
     return false;
 }
 
+// deleteMatchById('match-kpj76hsck'); 
 
-// deleteMatchday(1998, 3); // Example usage: delete the first matchday of the 2025 season
+// deleteMatchday(1998, 10); 
 
-// deleteMatchday(1998, 4); // Example usage: delete the first matchday of the 2025 season
 
-// deleteMatchday(1998, 5); // Example usage: delete the first matchday of the 2025 season
 function importSeason(seasonsArray) {
     // Replace all existing seasons with the provided array
     seasons.length = 0;
@@ -1815,17 +1824,7 @@ export function getTeamByplayer(playerName) {
             for (let game of matchday.games || []) {
                 if (Array.isArray(game.appearances) && game.appearances.includes(playerName)) {
                     // Check which team the player played for in this game
-                    if (getTeamById(game.team1).player.includes(playerName)) {
-                        if (game.seed > lastMatchTime) {
-                            lastTeam = game.team1;
-                            lastMatchTime = game.seed;
-                        }
-                    } else if (getTeamById(game.team2).player.includes(playerName)) {
-                        if (game.seed > lastMatchTime) {
-                            lastTeam = game.team2;
-                            lastMatchTime = game.seed;
-                        }
-                    }
+                    lastMatchTime = game
                 }
             }
         }

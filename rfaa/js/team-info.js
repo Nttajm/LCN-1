@@ -117,7 +117,7 @@ renderTeamInfo();
 function renderMatches_1() {
     if (!team) return '';
 
-    const teamMatches = getTeamMacthes(team.id);
+    const teamMatches = getTeamMacthes(team.id).reverse();
     let matchesHTML = '';
 
     teamMatches.forEach(match => {
@@ -352,12 +352,12 @@ export function calculatePlayerRatings() {
         
         return {
             name,
+            rating,
             goals: stats.goals,
             assists: stats.assists,
             potm: stats.potm,
             appearances: stats.appearances,
-            rating,
-            team: getTeamByplayer(name)
+            team: getTeamByplayer(name),
         };
     }).sort((a, b) => b.rating - a.rating);
     
@@ -367,6 +367,275 @@ export function calculatePlayerRatings() {
 // To test it, just call:
 console.log(calculatePlayerRatings());
 
+function getTeamWinRatio(team) {
+    if (!team) return 0;
+
+    let wins = 0;
+    let total = 0;
+    const games = [];
+
+    // Collect all games for the team
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id || game.team2 === team.id) {
+                    games.push({
+                        game,
+                        season: season,
+                        matchday: matchday
+                    });
+                }
+            });
+        });
+    });
+
+    // Sort games by some order (assuming each game has an 'id' or date, fallback to order)
+    games.sort((a, b) => {
+        // If your game object has a date or timestamp, use it here
+        // For now, fallback to order as collected (latest last)
+        return 0;
+    });
+
+    // Take last 10 games
+    const last10 = games.slice(-10);
+
+    last10.forEach(({game}) => {
+        total++;
+        const isTeam1 = game.team1 === team.id;
+        const teamScore = isTeam1 ? game.score1 : game.score2;
+        const opponentScore = isTeam1 ? game.score2 : game.score1;
+        if (teamScore > opponentScore) wins++;
+    });
+
+    return total > 0 ? (wins / total) : 0;
+}
+function getTeamGoalsScored(team) {
+    if (!team) return 0;
+
+    let goalsScored = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id) {
+                    goalsScored += game.score1 || 0;
+                } else if (game.team2 === team.id) {
+                    goalsScored += game.score2 || 0;
+                }
+            });
+        });
+    });
+
+    return goalsScored;
+}
+
+function getGoalsConceded(team) {
+    if (!team) return 0;
+
+    let goalsConceded = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id) {
+                    goalsConceded += game.score2 || 0;
+                } else if (game.team2 === team.id) {
+                    goalsConceded += game.score1 || 0;
+                }
+            });
+        });
+    });
+
+    return goalsConceded;
+}
+
+function getGoalsPerGameRatio(team) {
+    if (!team) return 0;
+
+    let goalsScored = 0;
+    let gamesPlayed = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id || game.team2 === team.id) {
+                    gamesPlayed++;
+                    if (game.team1 === team.id) {
+                        goalsScored += game.score1 || 0;
+                    } else if (game.team2 === team.id) {
+                        goalsScored += game.score2 || 0;
+                    }
+                }
+            });
+        });
+    });
+
+    return gamesPlayed > 0 ? (goalsScored / gamesPlayed) : 0;
+}
+
+function getTeamWins(team) {
+    if (!team) return 0;
+
+    let wins = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id || game.team2 === team.id) {
+                    const isTeam1 = game.team1 === team.id;
+                    const teamScore = isTeam1 ? game.score1 : game.score2;
+                    const opponentScore = isTeam1 ? game.score2 : game.score1;
+
+                    if (teamScore > opponentScore) {
+                        wins++;
+                    }
+                }
+            });
+        });
+    });
+
+    return wins;
+}
+
+function getTeamLosses(team) {
+    if (!team) return 0;
+
+    let losses = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id || game.team2 === team.id) {
+                    const isTeam1 = game.team1 === team.id;
+                    const teamScore = isTeam1 ? game.score1 : game.score2;
+                    const opponentScore = isTeam1 ? game.score2 : game.score1;
+
+                    if (teamScore < opponentScore) {
+                        losses++;
+                    }
+                }
+            });
+        });
+    });
+
+    return losses;
+}
+
+
+function getTeamGamesPlayed(team) {
+    if (!team) return 0;
+
+    let gp = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id || game.team2 === team.id) {
+                    const isTeam1 = game.team1 === team.id;
+                    const teamScore = isTeam1 ? game.score1 : game.score2;
+                    const opponentScore = isTeam1 ? game.score2 : game.score1;
+
+                    gp++
+                }
+            });
+        });
+    });
+
+    return gp;
+}
+function classColorBias(bias, input) {
+    if (bias === 0) return 'rank-1-2'; // Prevent division by zero
+
+    const ratio = input / bias;
+
+    if (ratio >= 0.9) return 'rank-9-10';
+    if (ratio >= 0.7) return 'rank-7-8';
+    if (ratio >= 0.5) return 'rank-5-6';
+    if (ratio >= 0.3) return 'rank-3-4';
+    if (ratio === 0) return 'rank-9-10' 
+    return '';
+}
+
+    function getRightGoalScoreBias(gamesPlayed, percent = 1.25) {
+        if (gamesPlayed <= 0) return 0;
+        return Math.round(gamesPlayed * percent);
+    }
+
+
+function renderTeamStats() {
+    const output = document.querySelector('.js-team-stats')
+    output.innerHTML = ''
+
+    const winRatio = (getTeamWinRatio(team) * 100).toFixed(2);
+    const goalsScored = getTeamGoalsScored(team);
+    const goalsConceded = getGoalsConceded(team);
+    const goalsPerGame = getGoalsPerGameRatio(team).toFixed(2);
+    const wins = getTeamWins(team);
+    const losses = getTeamLosses(team);
+    const winLossDifference = wins - losses;
+
+
+
+    output.innerHTML = `
+        <div class="team-stat d-box d-inland ${classColorBias(100, winRatio)}">
+            <span>Win ratio %</span>
+            <span>${winRatio}</span>
+        </div>
+        <div class="team-stat d-box d-inland ${classColorBias(getRightGoalScoreBias(getTeamGamesPlayed(team)), goalsScored)}">
+            <span>Goals scored</span>
+            <span>${goalsScored}</span>
+        </div>
+        <div class="team-stat d-box d-inland ${classColorBias(getRightGoalScoreBias(getTeamGamesPlayed(team)), goalsConceded)}">
+            <span>Goals conceded</span>
+            <span>${goalsConceded}</span>
+        </div>
+        <div class="team-stat d-box d-inland ${classColorBias(1.50, goalsPerGame)}">
+            <span>Goals per game ratio</span>
+            <span>${goalsPerGame}</span>
+        </div>
+        <div class="team-stat d-box d-inland ${classColorBias(getTeamGamesPlayed(team), wins)}">
+            <span>Wins</span>
+            <span>${wins}</span>
+        </div>
+        <div class="team-stat d-box d-inland ${classColorBias(getTeamGamesPlayed(team), losses)}">
+            <span>Losses</span>
+            <span>${losses}</span>
+        </div>
+        <div class="team-stat d-box d-inland">
+            <span>Win-Loss Difference</span>
+            <span>${winLossDifference}</span>
+        </div>
+    `;
+
+}
+
+renderTeamStats()
 
 const viewport = document.querySelector('.vpsc');
 const content = document.querySelector('.matches-cont');

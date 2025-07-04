@@ -112,6 +112,7 @@ button {
     width: 100%;
     height: 100%;
     z-index: -1;
+    overflow: hidden;
 }
 
 .cover img {
@@ -120,18 +121,41 @@ button {
     object-fit: cover;
 }
 
+.tag {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 2rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    background: linear-gradient(to top, black, transparent);
+}
+
+
+.tag * {
+    width: 40%;
+}
+
+.tag .title {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
 nav {
     position: absolute;
-    top: 1rem;
     display: flex;
-    padding: 0.5rem;
+    padding: 1rem;
+    box-sizing: border-box;
     border-radius: 0.4rem;
     z-index: 1000;
     width: 100%;
+
 }
 
 .nav-cont {
-    background-color: rgb(153, 173, 228);
+    background-color: rgba(153, 173, 228, 0.724);
     display: flex;
     padding: 0.5rem;
     border-radius: 0.4rem;
@@ -142,13 +166,13 @@ nav {
 nav ul {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
     font-weight: 500;
 }
 
 nav ul li {
-    padding: 0.1rem;
-    border-radius: 0.2rem;
+    padding: 0.8rem 0.5rem;
+    border-radius: 0.4rem;
     font-size: 1.1rem;
 }
 
@@ -270,6 +294,7 @@ nav img {
 .aboutus {
     background-color: rgb(238, 238, 238);
     display: flex;
+
     width: 100vw;
     align-items: center;
     justify-content: center;
@@ -278,11 +303,21 @@ nav img {
     color: white;
 }
 
+.aboutus#whatwedo {
+    flex-direction: column;
+    padding-bottom: 2rem;
+}
+
+.ab-section-1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
 .aboutus-disc {
     width: 50%; 
 }
-
-
 
 .aboutus-disc button {
     margin-top: 0.8rem !important
@@ -318,6 +353,61 @@ nav img {
     box-shadow: 0 0 1rem rgb(153, 173, 228);
     z-index: 1;
     position: relative;
+}
+
+.banner {
+    width: 100%;
+    padding: 1.1rem 1.5rem;
+    background-color: rgb(197, 161, 32);
+    font-family: var(--font-5);
+
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.event-imgs {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.event {
+    width: calc(39% - 2rem);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.event img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.event-img-context {
+    position: absolute;
+    bottom: 0;
+    padding: 0.5rem .7rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.685), transparent);
+    height: 50%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: end;
+    gap: 0.4rem;
+
+}
+
+.event-img-context span {
+    font-size: 1.3rem;
+    font-weight: 700;
 }
 
 .people {
@@ -448,8 +538,9 @@ nav img {
 .other-links li {
     margin: 0.5rem;
     padding: 0px;
-    border-bottom: solid 4px rgb(112, 112, 112);
     opacity: 0;
+    width: 100%;
+    padding: 0.8rem 0.5rem;
     animation: come-down 0.5s ease-in-out forwards;
 }
 
@@ -468,14 +559,14 @@ nav img {
 
 .close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    font-size: 1.3rem;
+    top:3rem;
+    right: 3rem;
+    font-size: 2.3rem;
     cursor: pointer;
     background: gray;
     padding: 0.2rem 0.5rem;
-    height: 2rem;
-    width: 2rem;
+    height: 3rem;
+    width: 3rem;
     border-radius: 50%;
     color: white;
 
@@ -519,9 +610,19 @@ nav img {
     }
 }
 
+
 @media (max-width: 575.98px) {
     #cover-large {
         display: none;
+    }
+
+    .tag .title {
+        font-size: 1.5rem;
+        font-weight: 600;   
+    }
+
+    .tag .desc {
+        font-size: 0.6rem;
     }
 
     #cover-small {
@@ -537,6 +638,25 @@ nav img {
         justify-content: center;
         align-items: center;
         padding: 2rem;
+    }
+
+    .ab-section-1 {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .event-imgs {
+        flex-direction: column;
+    }
+
+    .event {
+        width: 100%;
+    }
+
+    .event-img-context span {
+        font-size: 2.3rem;
+        font-weight: 700;
     }
 
     .people {
@@ -563,6 +683,12 @@ nav img {
     .people img:nth-child(4) {
         display: none;
     }
+
+    .event-imgs .event:nth-child(n+3){
+        display: none;
+    }
+
+    
 
     :root {
         font-size: 13px;
@@ -604,9 +730,14 @@ nav img {
     }
 
     .nav-cont {
-        width: 100%;
+        width: 100vw;
         justify-content: space-between;
-         height: fit-content;
+        height: fit-content;
+    }
+
+    nav {
+        display: flex;
+        justify-content: center;
     }
 
     :root {
