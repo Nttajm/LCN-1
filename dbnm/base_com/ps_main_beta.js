@@ -392,7 +392,7 @@ function renderUtils() {
     cmdUtil.forEach(util => {
         let adder = '';
         if (util.linkClass === '**' || util.linkClass === 'base') {
-            adder = 'public/base-modules/files/';
+            adder = 'public/base-modules/';
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
             document.body.appendChild(scriptTag);

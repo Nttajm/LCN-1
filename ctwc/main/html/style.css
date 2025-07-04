@@ -19,6 +19,10 @@ body {
     display: none;
 }
 
+img {
+    pointer-events: none;
+}
+
 .read-more-text {
     display: block;
 }
@@ -125,6 +129,7 @@ button:hover {
     width: 100vw;
     height: 90vh;
     object-fit: cover;
+    pointer-events: none;
 }
 
 .tag {
@@ -149,7 +154,7 @@ button:hover {
     font-weight: 600;
 }
 
-nav {
+nav#mobile-nav {
     position: absolute;
     display: flex;
     padding: 1rem;
@@ -157,7 +162,6 @@ nav {
     border-radius: 0.4rem;
     z-index: 1000;
     width: 100%;
-
 }
 
 .nav-cont {
@@ -167,6 +171,15 @@ nav {
     border-radius: 0.4rem;
     transition: all 0.5s var(--ges);
     width: fit-content;
+}
+
+.nav-cont.desktop-nav {
+    border-radius: 0;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.742) 30%, transparent);
+    color: white;
 }
 
 nav ul {
@@ -711,6 +724,7 @@ nav img {
     }
     
 
+
   }
   
   /* Small devices (landscape phones, 576px and up) */
@@ -767,6 +781,11 @@ nav img {
         color: white;
         min-height: 60vh;
     }
+
+    nav.desktop-nav {
+        display: none;
+    }
+
   }
   
   /* Medium devices (tablets, 768px and up) */
@@ -787,10 +806,9 @@ nav img {
         font-size: 18px;
     }
 
-    nav {
+    nav#mobile-nav {
         display: none;
     }
-
 
   }
   
@@ -817,9 +835,10 @@ nav img {
         font-size: 19px;
     }
 
-     nav {
+    nav#mobile-nav {
         display: none;
     }
+
     
   }
   
@@ -846,7 +865,7 @@ nav img {
         font-size: 19px;
     }
 
-     nav {
+     nav#mobile-nav {
         display: none;
     }
     
