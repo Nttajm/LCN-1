@@ -115,6 +115,12 @@ body {
     background: linear-gradient(to right, transparent, rgb(0, 0, 0));
 }
 
+.fader.reversed {
+    margin-right: 110vw;
+    margin-left: 0 !important;
+    background: linear-gradient(to left, transparent, rgb(0, 0, 0));
+}
+
 .level {
     background-color: rgb(0, 0, 0);
     padding: 4rem;
@@ -136,5 +142,6 @@ body {
 
 .level img {
     max-width : 60vw;
+    max-height: 70vh;
     object-fit: cover;
 }
