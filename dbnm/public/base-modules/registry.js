@@ -164,7 +164,7 @@ let package_info = {};
             c_print(`📦 Title: ${package_info.title}`, '>');
             qestion('🔍 Great! Now, pick a provider:');
             c_placeholder('');
-            waring('🚨 Press Enter twice to confirm your choice!');
+            warning('🚨 Press Enter twice to confirm your choice!');
 
             db_ui.input.blur();
             stepMode = 'choice';

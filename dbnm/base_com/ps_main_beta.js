@@ -1,5 +1,4 @@
-// Constants
-let ps_use = 'main';
+let ps_use = 'main'; // use in case using a different os.
 let cmdUtil = JSON.parse(localStorage.getItem('cmdUtil')) || [];
 let last_selected = null;
 
@@ -15,6 +14,8 @@ const module_meta = [
         desc: 'base_com',
         use: ps_use,
         version: versionII,
+        type: 'system',
+        systemFileName: 'Main directoy'
     }
 ]
 
@@ -34,20 +35,16 @@ let system = {
 
 let vertiualFiles = [
     {
-        modName: 'reg',
-        version: '1.0.0',
-        files: [
-            {
-                ['packager']: [
-                    {
-                        key: 'example',
-                        names : ['example', 'ex'],
-                    }
-                ],
-            },
-        ]
-    },
-]
+        directoryName: module_meta.systemFileName,
+        id: 'tld-001',
+        desc: 'Top level directory',
+        path: 'root'
+    }
+];
+
+function mkdir(directory, file) {
+    vertiualFiles
+}
 
 // UI Elements
 const db_ui = {
@@ -55,7 +52,7 @@ const db_ui = {
     output: document.getElementById('output'),
 };
 
-// db_ui.input.focus();
+db_ui.input.focus();
 
 
 // Initialize UI
@@ -345,7 +342,7 @@ _reg('/', (_, cmd_split) => {
     } else if (cmd_split[1] === 'dir') {
         let output = '';
         if (cmdUtil.length === 0) {
-            print('No Modules available.');
+            print('No modules/files available.');
         } else {
             cmdUtil.forEach((util, index) => {
                 output += `<br> ${index + 1}. ${util.link}`;
@@ -387,7 +384,7 @@ console.log(cmdUtil)
 
 function renderUtils() {
     if (cmdUtil.length === 0) {
-        print('No Modules available.');
+        print('No modules/files available.');
     } 
 
     let serverMaintain = true
@@ -395,7 +392,7 @@ function renderUtils() {
     cmdUtil.forEach(util => {
         let adder = '';
         if (util.linkClass === '**' || util.linkClass === 'base') {
-            adder = 'public/base-modules/';
+            adder = 'public/base-modules/files/';
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
             document.body.appendChild(scriptTag);
