@@ -5,6 +5,7 @@
     --rank-3-4: linear-gradient(135deg, #6d2e2e, #863e3e, #f07070, #ff8b8b);
     --rank-1-2: linear-gradient(135deg, #5f203e, #742637, #ca2b2b, #e14b4b);
 }
+
 .rank-9-10 {
     background: var(--rank-9-10) !important;
 }

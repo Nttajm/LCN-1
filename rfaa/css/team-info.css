@@ -215,7 +215,7 @@ body {
 
 .team-stat {
     flex-basis: calc(33.33% - 1rem);
-
+    color: white;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
