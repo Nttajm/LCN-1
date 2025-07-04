@@ -91,6 +91,12 @@ button {
     font-size: 1rem;
     font-weight: 500;
     width: 100%;
+    transition: all 0.321s var(--smooth-dept);
+}
+
+button:hover {
+    background-color: rgb(80, 117, 250);
+    color: rgb(228, 228, 228);
 }
 
 .conter {
@@ -306,6 +312,12 @@ nav img {
 .aboutus#whatwedo {
     flex-direction: column;
     padding-bottom: 2rem;
+}
+
+.aboutus#whatwedo p {
+    font-size: 1.5rem;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    opacity: 0.6;
 }
 
 .ab-section-1 {
@@ -540,7 +552,6 @@ nav img {
     padding: 0px;
     opacity: 0;
     width: 100%;
-    padding: 0.8rem 0.5rem;
     animation: come-down 0.5s ease-in-out forwards;
 }
 
@@ -612,9 +623,6 @@ nav img {
 
 
 @media (max-width: 575.98px) {
-    #cover-large {
-        display: none;
-    }
 
     .tag .title {
         font-size: 1.5rem;
@@ -622,7 +630,7 @@ nav img {
     }
 
     .tag .desc {
-        font-size: 0.6rem;
+        font-size: 0.9rem;
     }
 
     #cover-small {
@@ -779,6 +787,10 @@ nav img {
         font-size: 18px;
     }
 
+    nav {
+        display: none;
+    }
+
 
   }
   
@@ -802,7 +814,11 @@ nav img {
     }
 
     :root {
-        font-size: 23px;
+        font-size: 19px;
+    }
+
+     nav {
+        display: none;
     }
     
   }
@@ -827,7 +843,11 @@ nav img {
     }
 
     :root {
-        font-size: 23px;
+        font-size: 19px;
+    }
+
+     nav {
+        display: none;
     }
     
   }

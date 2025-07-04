@@ -90,6 +90,8 @@ if (closeBtn1) {
         }
     });
 }
+
+//scroll feture
 document.addEventListener('DOMContentLoaded', () => {
     const elemRevels = document.querySelectorAll('.elem-revel');
 
