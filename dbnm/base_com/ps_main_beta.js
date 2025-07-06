@@ -29,7 +29,8 @@ const db_info = {
 let system = {
     err: {
         0: 'Command not found',
-        1: 'invalid command or arguments provided'
+        1: 'invalid command or arguments provided',
+        2: 'please '
     }
 }
 
@@ -38,8 +39,24 @@ let vertiualFiles = [
         directoryName: module_meta.systemFileName,
         id: 'tld-001',
         desc: 'Top level directory',
-        path: 'root'
-    }
+        path: 'root',
+        type: 'system',
+    },
+    {
+        directoryName: 'New_Test_File_1',
+        id: 'mxcii',
+        desc: 'Top level directory',
+        path: 'New_Test_File_1',
+        type: 'folder',
+    },
+    {
+        directoryName: 'Nested_File',
+        id: 'tld-001',
+        desc: 'Top level directory',
+        path: 'New_Test_File_1/Nested_File',
+        type: 'folder'
+    },
+
 ];
 
 function mkdir(directory, file) {

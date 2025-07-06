@@ -107,6 +107,14 @@ function e_print(value) {
     return value;
 }
 
+function y_print(value) {
+    const val_html = `<div class=" g-3 yellow"><span> ${value}</span></div>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
 function c_print(value , custom) {
     const val_html = `<div class=" g-3"><span>${custom}</span> ${value}</div>`;
     if (db_ui.output) {
@@ -184,7 +192,7 @@ function handleCommand(cmd) {
     if (cmd === 'cd..') {
         directory = null;
     }
-    if (directory && cmd !== 'cd..') {
+    if (directory && (cmd !== 'cd..' || cmd !== '/' || cmd !== 'r')) {
         cmd = directory + ` ` + cmd
     }
     let { cmd_split, args } = parseCommand(cmd);
@@ -264,7 +272,12 @@ _reg('cd', (_, cmd_split) => {
     if (cmd_split[1] === '') {
         print('specify a directory to change to.');
     } else {
-        directory = cmd_split[1];
+        // Check if the directory name is actually a command
+        if (commandHandlers[cmd_split[1].toLowerCase()]) {
+            e_print(`Cannot change to directory '${cmd_split[1]}': it's a command`);
+        } else {
+            directory = cmd_split[1];
+        }
     }
 });
 
@@ -340,6 +353,7 @@ _reg('/', (_, cmd_split) => {
             error(1);
         }
     } else if (cmd_split[1] === 'dir') {
+        // / i dir
         let output = '';
         if (cmdUtil.length === 0) {
             print('No modules/files available.');
@@ -381,36 +395,52 @@ function imp(linkClass, link) {
 }
 
 console.log(cmdUtil)
-
-function renderUtils() {
+async function renderUtils() {
     if (cmdUtil.length === 0) {
         print('No modules/files available.');
-    } 
+        return;
+    }
 
-    let serverMaintain = true
+    let serverMaintain = true;
+    let filesLoaded = 0;
 
-    cmdUtil.forEach(util => {
-        let adder = '';
-        if (util.linkClass === '**' || util.linkClass === 'base') {
-            adder = 'public/base-modules/';
+    // Wrap each load into a Promise
+    const loadPromises = cmdUtil.map(util => {
+        return new Promise((resolve, reject) => {
+            let adder = '';
+
+            if (util.linkClass === '**' || util.linkClass === 'base') {
+                adder = 'public/base-modules/';
+            } else if (util.linkClass === '**sv' && serverMaintain) {
+                adder = 'servers/';
+                serverMaintain = false;
+            } else {
+                // Skip if it doesn't match criteria
+                resolve(null);
+                return;
+            }
+
             const scriptTag = document.createElement('script');
             scriptTag.src = adder + util.link + '.js';
-            document.body.appendChild(scriptTag);
             scriptTag.type = 'module';
 
-            scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
-        } else if (util.linkClass === '**sv' && serverMaintain) {
-            adder = 'servers/';
-            const scriptTag = document.createElement('script');
-            scriptTag.src = adder + util.link + '.js';
-            scriptTag.type = 'module';
+            scriptTag.onload = () => {
+                filesLoaded++;
+                resolve(true);
+            };
+
+            scriptTag.onerror = () => {
+                e_print(`Failed to load script: ${util.link}`);
+                resolve(false); // don't reject, continue processing
+            };
+
             document.body.appendChild(scriptTag);
-            scriptTag.onload = () => print(`Script loaded: ${scriptTag}`);
-
-
-            serverMaintain = false;
-        }
+        });
     });
+
+    // Wait for all to finish
+    await Promise.all(loadPromises);
+    y_print(`Files loaded: (${filesLoaded})`);
 }
 
 renderUtils();
