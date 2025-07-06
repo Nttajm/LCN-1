@@ -41,13 +41,6 @@ p, a {
   transform: translate(-50%, -50%);
 }
 
-.pos-cent-r {
-  position: relative;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
 .d-btn {
   cursor: disabled;
 }
@@ -273,6 +266,10 @@ ul, li {
 
 .op-7 {
   opacity:0.7;
+}
+
+.standard_tx-center {
+    text-align: center;
 }
 
 .wi-100 {
