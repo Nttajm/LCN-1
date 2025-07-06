@@ -4,7 +4,6 @@ body {
     color: white;
 }
 .conter {
-    padding: 10px !important;
     width: 100%;
 }
 
@@ -61,44 +60,6 @@ body {
     font-weight: 700;
 }
 
-.first {
-    font-size: 3.3rem;
-    font-weight: 600;
-
-    gap: 0.5rem;
-    display: flex;
-    flex-direction: column;
-
-    margin-top: 1rem;
-}
-
-.before-after:not(:first-child) {
-    margin-top: -1rem;
-}
-
-.before-after {
-    overflow: hidden;
-    position: relative;
-    height: 3.9rem;
-    font-family: 'Times New Roman', Times, serif;
-}
-
-.before-after span {
-    position: absolute;
-    bottom: -3.7rem;
-    animation: reset 1s var(--ges) forwards;
-}
-
-
-
-#b-1 {
-    animation-delay: .1s;
-}
-
-#b-2 {
-    animation-delay: .2s;
-}
-
 .p-open {
 
     animation: openBlur 0.5s ease-in-out forwards;
@@ -136,13 +97,6 @@ body {
         transform: translate(0);
     }
 }
-
-@keyframes reset {
-    to {
-        bottom: 0;
-    }
-}
-
 
 .opacity {
     opacity: 0;
