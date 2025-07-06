@@ -10,10 +10,74 @@ body {
     overflow-x: hidden !important; 
 }
 
+/* bofore i add to standard.css */
+.standard_tx-center {
+    text-align: center;
+}
+
 :root {
     --dept-ease: cubic-bezier(.175,.885,.32,1.275);
     --ges: linear(0,.0216,.091,.176,.261,.342,.415,.481,.54,.592,.638,.678,.715,.748,.777,.802,.825,.845,.863,.878,.892,.904,.915,.925,.933,.941,.948,.954,.959,.964,.968,.972,.975,.978,.98,.982,.984,.986,.988,.989,.99,.991,.992,.993,.994,.995,.995,.996,.996,.997,.997,.997,.998,.998,.998,.998,.999,.999,.999,.999,1);
 }
+
+.op-7 {
+    opacity: 0.7;
+}
+
+.roboto {
+    font-family: 'Roboto', sans-serif;
+}
+
+.poppins {
+    font-family: 'Poppins', sans-serif;
+}
+
+
+.first {
+    font-size: 3.3rem;
+    font-weight: 600;
+
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+
+    margin-top: 1rem;
+}
+
+.before-after:not(:first-child) {
+    margin-top: -1rem;
+}
+
+.before-after {
+    overflow: hidden;
+    position: relative;
+    height: 3.9rem;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.before-after span {
+    position: absolute;
+    bottom: -3.7rem;
+    animation: reset 1s var(--ges) forwards;
+}
+
+
+
+#b-1 {
+    animation-delay: .1s;
+}
+
+#b-2 {
+    animation-delay: .2s;
+}
+
+
+@keyframes reset {
+    to {
+        bottom: 0;
+    }
+}
+
 
 [data-rm] {
     display: none;
@@ -106,6 +170,35 @@ button:hover {
 .conter {
     display: flex;
     flex-direction: column;
+}
+
+.p-15-nav {
+    padding: 15px;
+}
+
+.picture-banner {
+    position: relative;
+    height: 20rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.picture-banner .first {
+    width: 100%;
+}
+
+.picture-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    filter: brightness(0.7);
 }
 
 .cont {
@@ -530,7 +623,7 @@ nav img {
     display: none;
     flex-direction: column;
     align-items: flex-start;
-    padding: 1rem;
+    padding: 0.4rem;
     border-radius: 0.4rem;
     width: 100%;
 }
@@ -561,7 +654,7 @@ nav img {
 }
 
 .other-links li {
-    margin: 0.5rem;
+    margin: 0.3rem;
     padding: 0px;
     opacity: 0;
     width: 100%;
@@ -571,7 +664,7 @@ nav img {
 
 .other-links a {
     color: rgb(0, 0, 0);
-    font-size: 3rem;
+    font-size: 2.2rem;
     font-weight: 600;
 }
 
