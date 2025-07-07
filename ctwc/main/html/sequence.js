@@ -2,17 +2,17 @@ const coverTags = [
     {
         title: 'CTWC Cover',
         desc: 'This is the cover image for the CTWC website.',
-        img: '../images/w-4.jpg'
+        img: 'images/w-4.jpg'
     },
     {
         title: 'Lunch Hour',
         desc: 'come and join us for our weekly lunch hour service every Friday at 12:30pm.',
-        img: '../images/w-3.jpg'
+        img: 'images/w-3.jpg'
     },
     {
         title: 'CTWC Cover Min',
         desc: 'This is the minimized cover image for the CTWC website.',
-        img: '../images/w-5.jpg'
+        img: 'images/w-5.jpg'
     }
 ]
 

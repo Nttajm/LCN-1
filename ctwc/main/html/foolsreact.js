@@ -15,13 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         desktopNav.innerHTML = `
             <a href="${fixLInkDesktop}index.html" class="logo">
-                <img src="../images/logo-long-long.png" alt="CTWC">
+                <img src="images/logo-long-long.png" alt="CTWC">
                 </a>
                 <ul class="nav-links">
                 <li><a href="${fixLInkDesktop}index.html" class="cur uh">Home</a></li>
                 <li><a href="${fixLInkDesktop}about.html" class="cur uh">About us</a></li>
                 <li><a href="${fixLInkDesktop}events.html" class="cur uh">Missions & Events</a></li>
-                <li><a href="${fixLInkDesktop}give.html" class="cur uh">wewo</a></li>
+                <li><a href="${fixLInkDesktop}give.html" class="cur uh">give</a></li>
                 </ul>
         `;
     } else {
