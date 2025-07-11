@@ -99,7 +99,9 @@ img {
 
 
 .navBuffer {
+    pointer-events: none;
     height: 130px;
+    opacity: 0;
 }
 
 nav * {
@@ -173,7 +175,7 @@ button:hover {
 }
 
 .p-15-nav {
-    padding: 15px;
+    padding: 20px;
 }
 
 .picture-banner {
@@ -269,10 +271,12 @@ nav#mobile-nav {
 .nav-cont.desktop-nav {
     border-radius: 0;
     width: 100%;
-    position: absolute;
     top: 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.742) 30%, transparent);
+    /* background: linear-gradient(to bottom, rgba(0, 0, 0, 0.742) 50%, transparent); */
     color: white;
+
+    justify-content: space-between;
+    padding: 1rem 5%;
 }
 
 nav ul {
@@ -284,9 +288,52 @@ nav ul {
 
 nav ul li {
     padding: 0.8rem 0.5rem;
-    border-radius: 0.4rem;
     font-size: 1.1rem;
 }
+
+.extras {
+    color: rgb(0, 0, 0);
+    font-size: 2.2rem;
+    font-weight: 600;
+    font-family: roboto, Arial, Helvetica, sans-serif;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+}
+
+.title {
+    display: flex;
+    justify-content: space-between;
+}
+
+.dropdown-elems {
+    display: none;
+}
+
+.dropdown {
+    width: 40px;
+    height: 40px;
+    margin-right: 4rem;
+}
+
+.dropdown img{
+    width: 100%;
+}
+
+.dropdown-elems ul{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+
+}
+
+.angle-180 {
+    rotate: -180deg;
+}
+
 
 nav img {
     width: 17rem;
@@ -415,6 +462,29 @@ nav img {
     color: white;
 }
 
+.aboutus#thechurch {
+    background-color: rgb(64, 103, 208) !important;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: flex-start;
+    padding: 3rem 0;
+}
+
+.tcc {
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tcc .title {
+    font-size: 3.5rem;
+}
+
+.tcc .sub {
+    font-size: 2rem;
+}
 .aboutus#whatwedo {
     flex-direction: column;
     padding-bottom: 2rem;
@@ -442,7 +512,7 @@ nav img {
 }
 
 .aboutus#people {
-    background-image: url('../images/ctwc-overlay.jpg');
+    background-image: url('images/ctwc-overlay.jpg');
 
 }
 
@@ -728,6 +798,21 @@ nav img {
 }
 
 
+@keyframes fadeIn {
+    0% {
+        opacity: 0 !important;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+
+.fadeIn {
+    animation: fadeIn 0.125s var(--ges) forwards;
+}
+
+
 @media (max-width: 575.98px) {
 
     .tag .title {
@@ -903,6 +988,14 @@ nav img {
         display: none;
     }
 
+    .navBuffer {
+        display: none;
+    }
+
+    .p-15-nav {
+        padding: 1rem 5%;
+    }
+
   }
   
   /* Large devices (desktops, 992px and up) */
@@ -930,6 +1023,14 @@ nav img {
 
     nav#mobile-nav {
         display: none;
+    }
+
+    .navBuffer {
+        display: none;
+    }
+
+    .p-15-nav {
+        padding: 1rem 5%;
     }
 
     
@@ -960,6 +1061,14 @@ nav img {
 
      nav#mobile-nav {
         display: none;
+    }
+
+    .navBuffer {
+        display: none;
+    }
+
+    .p-15-nav {
+        padding: 1rem 5%;
     }
     
   }
