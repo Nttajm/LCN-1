@@ -99,6 +99,14 @@ function warning(value) {
     return value;
 }
 
+function g_print(value) {
+    const val_html = `<div class=" g-3 green"><span> ${value}</span></div>`;
+    if (db_ui.output) {
+        db_ui.output.innerHTML += val_html;
+    }
+    return value;
+}
+
 function e_print(value) {
     const val_html = `<div class=" g-3 red"><span> ${value}</span></div>`;
     if (db_ui.output) {
@@ -342,7 +350,7 @@ _reg('clear', () => {
 });
 
 _reg('/', (_, cmd_split) => {
-    // system command 
+    // system command / 
     if (cmd_split[1] === 'i') {
         if (cmd_split[2] === 'love') {
             print('you!');
@@ -363,6 +371,10 @@ _reg('/', (_, cmd_split) => {
             });
             print(output);
         }
+    } else if (cmd_split[1] === 'rm') {
+        const cmd_2 = cmd_split[2];
+        removeDir(cmd_2);
+        y_print(`File: ${cmd_2} has been removed`)
     } else {
         error(1);
     }
@@ -385,6 +397,15 @@ _reg('rand', (_, cmd_split) => {
 
 
 // non-registered commands
+
+function removeDir(dirName) {
+    for (let i = cmdUtil.length - 1; i >= 0; i--) {
+        if (cmdUtil[i].link === dirName) {
+            cmdUtil.splice(i, 1);
+        }
+    }
+    saveUtils();
+}
 
 function imp(linkClass, link) {
     const newUtil = {linkClass, link};
@@ -411,11 +432,10 @@ async function renderUtils() {
 
             if (util.linkClass === '**' || util.linkClass === 'base') {
                 adder = 'public/base-modules/';
-            } else if (util.linkClass === '**sv' && serverMaintain) {
+            } else if (util.linkClass === '**svr' && serverMaintain) {
                 adder = 'servers/';
                 serverMaintain = false;
             } else {
-                // Skip if it doesn't match criteria
                 resolve(null);
                 return;
             }
