@@ -42,9 +42,6 @@ let vertiualFiles = [
     }
 ];
 
-function mkdir(directory, file) {
-    vertiualFiles
-}
 
 // UI Elements
 const db_ui = {
@@ -52,7 +49,9 @@ const db_ui = {
     output: document.getElementById('output'),
 };
 
-db_ui.input.focus();
+if (db_ui.input && db_ui.output) {
+    db_ui.input.focus();
+}
 
 
 // Initialize UI
@@ -61,6 +60,7 @@ function initializeUI() {
         renderInitialInfo();
     } else {
         print('pre-x UI not available');
+        return false;
     }
 }
 
