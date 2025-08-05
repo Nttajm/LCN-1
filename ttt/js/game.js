@@ -1,6 +1,6 @@
 const WORDS = [
     "CLASS", "SCHOOL", "TEACH", "STUDY", "GRADE", "BOOKS", "PAPER", "PENCI", "BOARD", "CHAIR",
-    "DESKS", "MATHS", "NOTES", "RULES", "QUIZZ", "SPORT", "FIELD", "BELL", "PRINC", "GROUP"
+    "DESKS", "MATHS", "NOTES", "RULES", "LUNCH", "SPORT", "FIELD", "BELL", "PRINC", "GROUP"
 ];
 let target = "";
 let guesses = [];
