@@ -314,7 +314,7 @@ _reg('url', (_, cmd_split) => {
 });
 
 
-_reg('server', (_, cmd_split) => {
+_reg('svr', (_, cmd_split) => {
     if (cmd_split[1] === 'info') {
         if (typeof serverMainConfig !== 'undefined' && serverMainConfig) {
             print(`
