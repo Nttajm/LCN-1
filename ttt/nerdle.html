@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech High's Wordle </title>
+    <title>Tech High's Nerdle </title>
     <link rel="stylesheet" href="/css/standard.css">
     <link rel="stylesheet" href="css/nerdle.css">
+    <link rel="stylesheet" href="css/keyboard_game.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="imgs/tttsmallogo.png">
 
 </head>
 <body>
-    <div class="opener dn">
+    <div class="opener">
         <img src="imgs/tttsmallogo.png" alt="ttt logo" class="opener-logo">
         <span class="nerdle-word">
             Nerdle (beta)
         </span>
         <span class="disc">
-            Get 6 chances to guess a 5-letter word based on school.
+            Get 6 chances to guess a 5-letter word based on Tech High.
         </span>
         <div class="btn-section">
             <button>
@@ -26,7 +28,7 @@
                     Ths Times
                 </a>
             </button>
-            <button>
+            <button id="js-enter-site" class="enter-site">
                 Play
             </button> 
         </div>
@@ -37,5 +39,27 @@
             Made by Joel Mulonde
         </span>
     </div>
+
+   <div class="game-container">
+    <h1 style="margin-bottom:15px;">NERDLE</h1>
+    <div class="grid" id="grid"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="keyboard-container" id="keyboard">
+        <div class="keyboard-row">
+            <button class="key" data-key="q">Q</button><button class="key" data-key="w">W</button><button class="key" data-key="e">E</button><button class="key" data-key="r">R</button><button class="key" data-key="t">T</button><button class="key" data-key="y">Y</button><button class="key" data-key="u">U</button><button class="key" data-key="i">I</button><button class="key" data-key="o">O</button><button class="key" data-key="p">P</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key" data-key="a">A</button><button class="key" data-key="s">S</button><button class="key" data-key="d">D</button><button class="key" data-key="f">F</button><button class="key" data-key="g">G</button><button class="key" data-key="h">H</button><button class="key" data-key="j">J</button><button class="key" data-key="k">K</button><button class="key" data-key="l">L</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key wide" data-key="Enter">ENTER</button><button class="key" data-key="z">Z</button><button class="key" data-key="x">X</button><button class="key" data-key="c">C</button><button class="key" data-key="v">V</button><button class="key" data-key="b">B</button><button class="key" data-key="n">N</button><button class="key" data-key="m">M</button><button class="key wide" data-key="Backspace">⌫</button>
+        </div>
+    </div>
+</div>
+
+
 </body>
+<script src="js/game.js"></script>
+<script src="js/index.js"></script>
+
 </html>

@@ -8,7 +8,7 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
         font-family: 'Helvetica Neue', Arial, sans-serif;
-        background-color: #121213;
+        background-color: #020a2e;
         color: white;
         display: flex;
         flex-direction: column;
@@ -39,13 +39,16 @@
         font-size: 2rem; font-weight: bold;
         text-transform: uppercase;
         background-color: #121213;
-        transition: background-color 0.3s, border-color 0.3s;
+        transition: all 0.5s ease !important;
     }
-    .cell.correct { background-color: #6aaa64; border-color: #6aaa64; }
-    .cell.present { background-color: #c9b458; border-color: #c9b458; }
-    .cell.absent { background-color: #3a3a3c; border-color: #3a3a3c; }
+    .cell.correct { background-color: #6aaa64; border-color: #6aaa64;  transform: rotateX(360deg);
+}
+    .cell.present { background-color: #c9b458; border-color: #c9b458; transform: rotateX(360deg) }
+    .cell.absent { background-color: #3a3a3c; border-color: #3a3a3c;}
     .keyboard-container { max-width: 600px; width: 60%; }
     .keyboard-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; }
+    
+    
     .key {
         height: 58px; min-width: 43px;
         background-color: #818384; border: none; border-radius: 4px;
@@ -54,45 +57,6 @@
         text-transform: uppercase; transition: all 0.1s ease; user-select: none;
     }
 
-    @media (max-width: 600px) {
-        .game-container {
-            width: 100vw;
-            padding: 10px;
-        }
-        .grid {
-            gap: 3px;
-            margin-bottom: 12px;
-        }
-        .row {
-            gap: 3px;
-        }
-        .cell {
-            width: 38px;
-            height: 38px;
-            font-size: 1.2rem;
-        }
-        .keyboard-container {
-            width: 100%;
-            max-width: 100vw;
-        }
-        .keyboard-row {
-            gap: 3px;
-            margin-bottom: 5px;
-        }
-        .key, .key.wide {
-            min-width: 28px;
-            height: 38px;
-            font-size: 11px;
-            padding: 0 2px;
-        }
-        .key.wide {
-            min-width: 45px;
-            font-size: 10px;
-        }
-        h1 {
-            font-size: 1.3rem;
-        }
-    }
     .key:hover { background-color: #9ca3a4; }
     .key:active { transform: scale(0.95); }
     .key.wide { min-width: 65px; font-size: 12px; }
@@ -104,6 +68,47 @@
         margin-top: 15px; padding: 8px 16px;
         background-color: #538d4e; color: white; border: none;
         border-radius: 4px; cursor: pointer; font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+        .game-container {
+            width: 100vw;
+            padding: 10px;
+        }
+        .grid {
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+        .row {
+            gap: 3px;
+        }
+        .cell {
+            width: 58px;
+            height: 58px;
+            font-size: 1.7rem;
+        }
+        .keyboard-container {
+            justify-self: flex-end;
+            width: 100%;
+            max-width: 100vw;
+        }
+        .keyboard-row {
+            gap: 3px;
+            margin-bottom: 5px;
+        }
+        .key, .key.wide {
+            min-width: 32px;
+            height: 41px;
+            font-size: 16px;
+            padding: 0 2px;
+        }
+        .key.wide {
+            min-width: 45px;
+            font-size: 10px;
+        }
+        h1 {
+            font-size: 1.3rem;
+        }
     }
 </style>
 </head>
@@ -183,6 +188,7 @@ function handleInput(key) {
             }
             feedback.textContent = "";
             guesses.push(currentGuess);
+            currentGuess = "";
             updateGrid();
             updateKeys();
 
