@@ -1,4 +1,7 @@
-const WORDS = ["ABOUT","HEART","WORLD","HOUSE","LIGHT","WATER","PLANT","MUSIC","HAPPY","SMART","DREAM","PEACE","TRUST","BRAVE","MAGIC","FRESH","QUICK","ROYAL","SWEET","TRUTH"];
+const WORDS = [
+    "CLASS", "SCHOOL", "TEACH", "STUDY", "GRADE", "BOOKS", "PAPER", "PENCI", "BOARD", "CHAIR",
+    "DESKS", "MATHS", "NOTES", "RULES", "QUIZZ", "SPORT", "FIELD", "BELL", "PRINC", "GROUP"
+];
 let target = "";
 let guesses = [];
 let currentGuess = "";
