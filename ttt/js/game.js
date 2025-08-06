@@ -1,6 +1,10 @@
+// const WORDS = [
+//     "CLASS", "SCHOOL", "TEACH", "STUDY", "GRADE", "BOOKS", "PAPER", "PENCI", "BOARD", "CHAIR",
+//     "DESKS", "MATHS", "NOTES", "RULES", "LUNCH", "SPORT", "FIELD", "BELL", "PRINC", "GROUP"
+// ];
+
 const WORDS = [
-    "CLASS", "SCHOOL", "TEACH", "STUDY", "GRADE", "BOOKS", "PAPER", "PENCI", "BOARD", "CHAIR",
-    "DESKS", "MATHS", "NOTES", "RULES", "LUNCH", "SPORT", "FIELD", "BELL", "PRINC", "GROUP"
+    "JAVAS",
 ];
 let target = "";
 let guesses = [];
@@ -36,11 +40,12 @@ function newGame() {
 }
 
 async function validateWord(word) {
+    if (WORDS.includes(word)) return true;
     try {
         const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
         return res.ok;
     } catch {
-        return WORDS.includes(word);
+        return false;
     }
 }
 

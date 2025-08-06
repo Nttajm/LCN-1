@@ -18,6 +18,8 @@ button {
     border-radius: 1.5rem;
     color: white;
     font-size: 1.3rem;
+
+    cursor: pointer;
 }
 
 nav {
@@ -155,8 +157,12 @@ nav {
     border-radius: 20px;
     overflow: hidden;
     margin:1rem;
-    margin-top:  5.5rem ;
     position: relative;
+
+}
+
+.buffer {
+    margin-top:  5.5rem ;
 
 }
 
@@ -266,7 +272,7 @@ nav {
     font-family: roboto;
 }
 
-.btn-section {
+.quick_menu .btn-section {
     display: flex;
     justify-content: end;
     align-items: center;
