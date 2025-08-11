@@ -1,0 +1,134 @@
+body {
+    overflow: hidden;
+    background-color: rgb(233, 233, 233);
+}
+
+nav {
+    position: fixed;
+    top: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background-color: rgba(255, 255, 0, 0.63);
+
+}
+
+nav img {
+    width: 200px;
+    height: auto;
+    margin: 1rem;
+    /* mix-blend-mode: difference; */
+}
+
+.item-section {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    height: 200vh;
+    transform: scale(0.5);
+
+
+    display: flex;
+    overflow-y: scroll;
+    animation: zoomIn 1s var(--smooth-dept) forwards;
+    animation-delay: 1s;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.5);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+
+@keyframes zeroOut {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* border: solid 2px red */
+    animation: zeroOut 1s var(--smooth-dept) forwards;
+    opacity: 0;
+}
+
+.column:nth-child(odd) {
+    transform: translateY(-100%);
+}
+
+.column:nth-child(even) {
+    transform: translateY(100%);
+}
+
+.item {
+    width: 50vw;
+    height: 40rem !important;
+    /* border: solid 2px blue; */
+    transition: transform 0.3s ease-in-out;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+@keyframes clicked {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.6) !important;
+        position: fixed;
+        width: 60vw;
+    }
+}
+
+.item img{
+    width: 90%;
+    height: 90%;
+    aspect-ratio: 1 / 1;
+    object-fit:contain;
+    filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.15));
+    transition: all 0.3s ease-in-out;
+}
+
+.item img#clicked {
+    transform: translate(-50%, -80%) !important;
+}
+
+
+
+
+.item:hover {
+    transform: scale(1.05);
+}
+
+
+.price {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5rem 1.5rem 0.5rem 0.75rem;
+    border-radius: 0.5rem 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: roboto, sans-serif;
+    background: #fff7009c;
+    color: #222;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    clip-path: polygon(
+        0 0, 
+        calc(100% - 1.2rem) 0, 
+        100% 50%, 
+        calc(100% - 1.2rem) 100%, 
+        0 100%
+    );
+}
