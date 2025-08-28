@@ -8,7 +8,10 @@ let awaiting_cmd = null;
 let directory = null;
 let versionII = '1.3.2';
 
-const module_meta = [
+let userData = JSON.parse(localStorage.getItem('userData')) || [];
+
+
+let module_meta = [
     {
         name: 'dbnm',
         desc: 'base_com',
@@ -24,6 +27,7 @@ const db_info = {
     desc: 'vinnila dbnm',
     license: 'MIT',
     use: ps_use,
+    author: 'LCN'
 };
 
 let system = {
@@ -50,7 +54,7 @@ const db_ui = {
 };
 
 if (db_ui.input && db_ui.output) {
-    db_ui.input.focus();
+    // db_ui.input.focus();
 }
 
 
@@ -67,7 +71,7 @@ function initializeUI() {
 // Render Initial Information
 function renderInitialInfo() {
     const infoHTML = `
-        Path: ${db_info.v}/${db_info.use}
+        ${db_info.v}/${db_info.use}
     `;
     print(infoHTML);
 }
@@ -83,7 +87,7 @@ function print(value) {
         dir_space = 'db'
     }
 
-    const val_html = `<div class="g-3"><span>${dir_space}$ </span> <span>${value}</span>`;
+    const val_html = `<div class="g-3"><span class="print_out">${dir_space}$</span> <span>${value}</span>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -132,7 +136,7 @@ function c_print(value , custom) {
 }
 
 function u_print(value) {
-    const val_html = `<div class=" g-3"><span>$</span> ${value}</div>`;
+    const val_html = `<div class=" g-3"><span class="prompt">$</span> ${value}</div>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -333,13 +337,14 @@ _reg('svr', (_, cmd_split) => {
 
 _reg('local', (_, cmd_split) => {
     if (cmd_split[1] === 'username') {
-        localStorage.setItem('username', cmd_split[2]);
+        userData.username = cmd_split[2];
         print(`Username set to: ${cmd_split[2]}`);
     } else if (cmd_split[1] === 'u') {
-        const username = localStorage.getItem('username');
-        print(`Username: ${username}`);
+        const username = userData.username;
+        print(`Username: ${username || 'user'}`);
     }
 });
+
 
 _reg('clear', () => {
     localStorage.clear();
@@ -361,13 +366,13 @@ _reg('/', (_, cmd_split) => {
             error(1);
         }
     } else if (cmd_split[1] === 'dir') {
-        // / i dir
+        // / dir
         let output = '';
         if (cmdUtil.length === 0) {
             print('No modules/files available.');
         } else {
             cmdUtil.forEach((util, index) => {
-                output += `<br> ${index + 1}. ${util.link}`;
+                output += `<span class=${util.loaded ? '' : 'red'}> ${index + 1}. ${util.link} </span>`;
             });
             print(output);
         }
@@ -375,6 +380,11 @@ _reg('/', (_, cmd_split) => {
         const cmd_2 = cmd_split[2];
         removeDir(cmd_2);
         y_print(`File: ${cmd_2} has been removed`)
+    } else if (cmd_split[1] === 'info') {
+        print(`Version: ${db_info.v}`);
+        print(`Description: ${db_info.desc}`);
+        print(`Author(s): ${db_info.author}`);
+        print(`<hr>`)
     } else {
         error(1);
     }
@@ -398,10 +408,30 @@ _reg('rand', (_, cmd_split) => {
 
 // non-registered commands
 
+function checkFileNotLoaded(fileName) {
+    const script = document.getElementsByTagName(fileName);
+
+    script.onload = () => {
+        return true;
+    };
+
+    script.onerror = () => {
+        return false;
+    };
+}
+
 function removeDir(dirName) {
-    for (let i = cmdUtil.length - 1; i >= 0; i--) {
-        if (cmdUtil[i].link === dirName) {
-            cmdUtil.splice(i, 1);
+    // If dirName is a number, treat it as index (1-based)
+    if (!isNaN(dirName)) {
+        const idx = parseInt(dirName, 10) - 1;
+        if (idx >= 0 && idx < cmdUtil.length) {
+            cmdUtil.splice(idx, 1);
+        }
+    } else {
+        for (let i = cmdUtil.length - 1; i >= 0; i--) {
+            if (cmdUtil[i].link === dirName) {
+                cmdUtil.splice(i, 1);
+            }
         }
     }
     saveUtils();
@@ -424,6 +454,7 @@ async function renderUtils() {
 
     let serverMaintain = true;
     let filesLoaded = 0;
+    let filesFailed = 0;
 
     // Wrap each load into a Promise
     const loadPromises = cmdUtil.map(util => {
@@ -447,12 +478,17 @@ async function renderUtils() {
             scriptTag.onload = () => {
                 filesLoaded++;
                 resolve(true);
+                util.loaded = true;
             };
 
             scriptTag.onerror = () => {
-                e_print(`Failed to load script: ${util.link}`);
+                filesFailed++;
+                // e_print(`Failed to load script: ${util.link}`);
                 resolve(false); // don't reject, continue processing
+                util.loaded = false;
             };
+
+            saveUtils();
 
             document.body.appendChild(scriptTag);
         });
@@ -460,7 +496,16 @@ async function renderUtils() {
 
     // Wait for all to finish
     await Promise.all(loadPromises);
-    y_print(`Files loaded: (${filesLoaded})`);
+    if (filesLoaded > 0) {
+        y_print(`Files loaded: (${filesLoaded})`);
+    }
+    if (filesFailed > 0) {
+        e_print(`Files failed to load: (${filesFailed})`);
+    }
+}
+
+function getUtil(linkClass, linkName) {
+
 }
 
 renderUtils();

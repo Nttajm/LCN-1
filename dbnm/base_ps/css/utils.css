@@ -2,10 +2,20 @@ body {
     background-color: black;
     color: white;
     font-family: monospace, Arial, Helvetica, sans-serif;
+    letter-spacing: -0.3px;
 }
 
 :root {
-    font-size: 21px;
+    font-size: 17px;
+}
+
+.fl-r {
+    display: flex;
+    flex-direction: row;
+}
+
+.prompt {
+    color: rgb(81, 231, 211);
 }
 
 .js_cont {
