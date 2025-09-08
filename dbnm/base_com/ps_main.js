@@ -76,6 +76,17 @@ function renderInitialInfo() {
     print(infoHTML);
 }
 
+function generateSessionId() {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+function initSystemMeta() {
+    if (!userData.sessionId) {
+        userData.sessionId = generateSessionId();
+        saveData();
+    }
+}
+
 //  
 // Print to UI
 
@@ -136,7 +147,7 @@ function c_print(value , custom) {
 }
 
 function u_print(value) {
-    const val_html = `<div class=" g-3"><span class="prompt">$</span> ${value}</div>`;
+    const val_html = `<div class=" g-3"><span class="prompt">${userData.username || ''} ~ $</span> ${value}</div>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += val_html;
     }
@@ -376,15 +387,33 @@ _reg('/', (_, cmd_split) => {
             });
             print(output);
         }
+    } else if (cmd_split[1] === 'user') {
+        if (cmd_split[2] === 'set') {
+            const fullText = cmd_split.slice(3).join(' ');
+            userData.username = fullText;
+            saveData();
+            print(`Username set to: ${fullText}`);
+        } else if (cmd_split[2] === 'get') {
+            const username = userData.username;
+            print(`Username: ${username || 'user'}`);
+        } else {
+            print('Invalid user command.');
+        }
     } else if (cmd_split[1] === 'rm') {
         const cmd_2 = cmd_split[2];
         removeDir(cmd_2);
         y_print(`File: ${cmd_2} has been removed`)
     } else if (cmd_split[1] === 'info') {
-        print(`Version: ${db_info.v}`);
-        print(`Description: ${db_info.desc}`);
-        print(`Author(s): ${db_info.author}`);
-        print(`<hr>`)
+        print(` 
+            
+                Version: ${db_info.v}<br>
+                Description: ${db_info.desc}<br>
+                Author(s): ${db_info.author}<br>
+                <hr>
+                <br> User : ${userData.username || 'user::' + (userData.sessionId || 'N/A')}
+                <br> Session Id: ${userData.sessionId || 'N/A'}
+
+    `);
     } else {
         error(1);
     }
@@ -516,7 +545,15 @@ function saveUtils() {
     localStorage.setItem('cmdUtil', util);
 }
 
+function saveData() {
+    const data = JSON.stringify(userData);
+    localStorage.setItem('userData', data);
+}
 
+function saveAll() {
+    saveUtils();
+    saveData();
+}
 
 // Event Listener for Commands
 function setupInputListener() {
@@ -538,6 +575,7 @@ function setupInputListener() {
 function initialize_db() {
     initializeUI();
     setupInputListener();
+    initSystemMeta();
 }
 
 function error(code) {
