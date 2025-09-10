@@ -14,12 +14,13 @@ const serverMainConfig = {
         messagingSenderId: "1043222135072",
         appId: "1:1043222135072:web:32115e8e8768bf26c2d745",
         measurementId: "G-F13TDHJBWR"
-      },
+    },
     info: {
         name: 'lcnjoelprojects',
         desc: 'servers',
-        use: 'any'
-    }
+        use: 'any',
+        id: 'lcnprojs_1'
+    },
 };
 
 const firebaseConfig = serverMainConfig.firebaseConfig;
