@@ -399,36 +399,75 @@ function imp(linkClass, link) {
 
 console.log(cmdUtil)
 
-function renderUtils() {
+async function renderUtils() {
     if (cmdUtil.length === 0) {
         print('No modules/files available.');
-    } 
+        return;
+    }
 
-    let serverMaintain = true
+    let filesLoaded = 0;
+    let filesFailed = 0;
+    let serverMaintain = true;
 
-    cmdUtil.forEach(util => {
-        let adder = '';
-        if (util.linkClass === '**' || util.linkClass === 'base') {
-            adder = 'public/base-modules/';
-            const scriptTag = document.createElement('script');
-            scriptTag.src = adder + util.link + '.js';
-            document.body.appendChild(scriptTag);
-            scriptTag.type = 'module';
-
-            scriptTag.onload = () => print(`Script loaded: ${scriptTag.src}`);
-        } else if (util.linkClass === '**sv' && serverMaintain) {
-            adder = 'servers/';
-            const scriptTag = document.createElement('script');
-            scriptTag.src = adder + util.link + '.js';
-            scriptTag.type = 'module';
-            document.body.appendChild(scriptTag);
-            scriptTag.onload = () => print(`Script loaded: ${scriptTag}`);
-
-
-            serverMaintain = false;
+    // Map linkClass -> adder path or function (so it's easy to extend)
+    const linkClassMap = {
+        '**': 'public/base-modules/',
+        'base': 'public/base-modules/',
+        '**svr': () => {
+            if (serverMaintain) {
+                serverMaintain = false;
+                return 'servers/';
+            }
+            return null; // skip if server already loaded
         }
+        // Add more linkClass mappings here:
+        // 'admin': 'public/admin-modules/',
+        // 'plugin': (util) => `plugins/${util.link}/`
+    };
+
+    const loadPromises = cmdUtil.map(util => {
+        return new Promise(resolve => {
+            let adder;
+
+            const mapping = linkClassMap[util.linkClass];
+            if (typeof mapping === 'function') {
+                adder = mapping(util);
+            } else {
+                adder = mapping;
+            }
+
+            if (!adder) {
+                resolve(null);
+                return;
+            }
+
+            const scriptTag = document.createElement('script');
+            scriptTag.src = `${adder}${util.link}.js`;
+            scriptTag.type = 'module';
+
+            scriptTag.onload = () => {
+                filesLoaded++;
+                util.loaded = true;
+                resolve(true);
+            };
+
+            scriptTag.onerror = () => {
+                filesFailed++;
+                util.loaded = false;
+                resolve(false);
+            };
+
+            saveUtils();
+            document.body.appendChild(scriptTag);
+        });
     });
+
+    await Promise.all(loadPromises);
+
+    if (filesLoaded > 0) y_print(`Files loaded: (${filesLoaded})`);
+    if (filesFailed > 0) e_print(`Files failed to load: (${filesFailed})`);
 }
+
 
 renderUtils();
 

@@ -213,6 +213,8 @@ function handleCommand(cmd) {
     if (!awaiting) {
         if (commandHandlers[command]) {
             commandHandlers[command](args, cmd_split);
+        } else if (command === '' && cmd === '') {
+             print(' ');
         } else {
             e_print(`
                 (${directory ? directory : 'main'}):
@@ -356,6 +358,7 @@ _reg('clear', () => {
 
 _reg('/', (_, cmd_split) => {
     // system command / 
+    // / i <linkClass> <link>
     if (cmd_split[1] === 'i') {
         if (cmd_split[2] === 'love') {
             print('you!');
