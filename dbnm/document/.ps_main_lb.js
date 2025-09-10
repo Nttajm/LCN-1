@@ -8,6 +8,12 @@ let awaiting_cmd = null;
 let directory = null;
 let versionII = '1.3.2';
 
+/**
+ * Retrieves the 'userData' array from localStorage.
+ * If no data is found, initializes as an empty array.
+ *
+ * @type {Array<Object>} userData - The array of user data objects stored in localStorage under the key 'userData'.
+ */
 let userData = JSON.parse(localStorage.getItem('userData')) || [];
 
 
@@ -59,6 +65,13 @@ if (db_ui.input && db_ui.output) {
 
 
 // Initialize UI
+/**
+ * Initializes the user interface by checking the availability of required UI elements.
+ * If both input and output elements are present, it renders initial information and initializes the server.
+ * If not, it logs a message indicating the UI is not available and returns false.
+ *
+ * @returns {void|boolean} Returns false if the required UI elements are not available; otherwise, returns nothing.
+ */
 function initializeUI() {
     if (db_ui.input && db_ui.output) {
         renderInitialInfo();
@@ -70,6 +83,13 @@ function initializeUI() {
 }
 
 // Render Initial Information
+/**
+ * Renders and prints the initial database information using the values from `db_info`.
+ * The information includes the database version and usage.
+ *
+ * @function
+ * @returns {void}
+ */
 function renderInitialInfo() {
     const infoHTML = `
         ${db_info.v}/${db_info.use}
@@ -390,6 +410,10 @@ _reg('/', (_, cmd_split) => {
         }
     } else if (cmd_split[1] === 'user') {
         if (cmd_split[2] === 'set') {
+            /**
+             * Joins the elements of the cmd_split array from index 3 onwards into a single string separated by spaces.
+             * @type {string}
+             */
             const fullText = cmd_split.slice(3).join(' ');
             userData.username = fullText;
             saveData();
