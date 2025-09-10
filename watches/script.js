@@ -11,7 +11,6 @@ import {
   ref,
   set,
   onValue,
-  push,
   update,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
@@ -86,6 +85,11 @@ function checkUserTimer(user) {
     userRef,
     (snapshot) => {
       const userData = snapshot.val();
+      if (userData) {
+        // show reset count for current user
+        document.getElementById('resetCountDisplay').textContent =
+          `You have reset ${userData.resetCount || 0} times`;
+      }
       if (userData && userData.startTime) {
         showDashboard();
       } else {
@@ -94,7 +98,7 @@ function checkUserTimer(user) {
     },
     (err) => {
       console.error('checkUserTimer read failed:', err);
-      showSetupSection(); // fallback to setup section so UI doesn't stay blank
+      showSetupSection();
     }
   );
 }
@@ -128,7 +132,8 @@ window.startTimer = async () => {
   try {
     await set(ref(database, `timers/${currentUser.uid}`), {
       email: currentUser.email,
-      startTime: startTime, // could use serverTimestamp() if you want server time
+      startTime: startTime,
+      resetCount: 0,
       isConfigured: true
     });
     showDashboard();
@@ -143,9 +148,26 @@ window.resetTimer = async () => {
 
   if (confirm('Are you sure you want to reset your timer to zero?')) {
     try {
-      await update(ref(database, `timers/${currentUser.uid}`), {
-        startTime: Date.now() // or serverTimestamp()
+      const userRef = ref(database, `timers/${currentUser.uid}`);
+      const snapshot = await new Promise((resolve, reject) => {
+        onValue(
+          userRef,
+          (snap) => resolve(snap),
+          (err) => reject(err),
+          { onlyOnce: true }
+        );
       });
+
+      const userData = snapshot.val();
+      const currentCount = userData?.resetCount || 0;
+
+      await update(userRef, {
+        startTime: Date.now(), // could also use serverTimestamp()
+        resetCount: currentCount + 1
+      });
+
+      document.getElementById('resetCountDisplay').textContent =
+        `You have reset ${currentCount + 1} times`;
     } catch (error) {
       console.error('Failed to reset timer:', error);
       alert('Failed to reset timer. Check database rules.');
@@ -189,8 +211,13 @@ function createTimerCard(timer) {
   const display = document.createElement('div');
   display.className = 'timer-display';
 
+  const resetCountDisplay = document.createElement('div');
+  resetCountDisplay.className = 'reset-count';
+  resetCountDisplay.textContent = `Resets: ${timer.resetCount || 0}`;
+
   card.appendChild(email);
   card.appendChild(display);
+  card.appendChild(resetCountDisplay);
 
   function updateDisplay() {
     const elapsed = Date.now() - timer.startTime;
