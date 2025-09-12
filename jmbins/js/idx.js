@@ -42,7 +42,7 @@ if (pctcBtn) {
         console.error("Error saving user:", err);
       }
       // Already logged in → redirect to checkout
-      window.location.href = "/checkout.html";
+      window.location.href = "checkout.html";
     } else {
       try {
         const result = await signInWithPopup(auth, provider);
@@ -60,7 +60,7 @@ if (pctcBtn) {
         }
         console.log("Signed in as:", newUser.displayName);
         // Redirect after successful login
-        window.location.href = "/checkout.html";
+        window.location.href = "checkout.html";
       } catch (error) {
         console.error("Google login failed:", error);
         alert("Login failed. Please try again.");
