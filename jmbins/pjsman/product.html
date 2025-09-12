@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Product Uploader</title>
+<style>
+  body { font-family: Arial; max-width: 600px; margin: 20px auto; }
+  form { display: flex; flex-direction: column; gap: 10px; }
+  input, select, button { padding: 8px; font-size: 14px; }
+  button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+  button:hover { background: #45a049; }
+  label { font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h2>Upload Product</h2>
+<form id="productForm">
+  <label>Product Name:</label>
+  <input type="text" id="name" required>
+
+  <label>Company:</label>
+  <input type="text" id="company" required>
+
+  <label>Condition (1–4):</label>
+  <input type="number" id="condition" min="1" max="4" required>
+
+  <label >Type</label>
+  <select name="type" id="type">
+    <option value="">Select</option>
+    <option value="top">Top</option>
+    <option value="bottom">Bottom</option>
+    <option value="dress">Dress</option>
+    <option value="outerwear">Outerwear</option>
+  </select>
+
+  <label for="">Clothing Type</label>
+  <select name="clothingType" id="clothingType">
+    <option value="">Select</option>
+    <option value="shirt">Shirt</option>
+    <option value="pants">Pants</option>
+    <option value="hoodie">Hoodie</option>
+    <option value="crew-neck">Crew Neck</option>
+    <option value="sweater">Sweater</option>
+    <option value="tank-top">Tank Top</option>
+    <option value="jeans">Jeans</option>
+    <option value="shorts">Shorts</option>
+    <option value="jacket">Jacket</option>
+    <option value="skirt">Skirt</option>
+    <option value="shorts">Shorts</option>
+    <option value="dress">Dress</option>
+  </select>
+
+  <label>Size:</label>
+  <select id="size" required>
+    <option value="">Select</option>
+    <option>XS</option>
+    <option>S</option>
+    <option>M</option>
+    <option>L</option>
+    <option>XL</option>
+  </select>
+
+  <label>Price ($):</label>
+  <input type="number" id="price" required>
+
+  <label>Main Photo (PNG):</label>
+  <input type="file" id="mainPhoto" accept="image/png" required>
+
+  <label>Clothing Photos (Multiple):</label>
+  <input type="file" id="clothingPhotos" accept="image/*" multiple>
+
+  <button type="submit">Upload</button>
+</form>
+
+<p id="status"></p>
+
+<script type="module" src="product.js"></script>
+</body>
+</html>

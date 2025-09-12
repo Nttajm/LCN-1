@@ -13,9 +13,17 @@ const quizData = [
     },
     {
         type: 'mcq',
-        qestion: 'Identify the sentence that contains a pun:',
+        qestion: 'Which of the following phrases is in the correct order?',
         options: [
-            'The cat sat on the mat.',
+            'Tanya Ate Slices, Dre Ate Fries, My Mother Ate Doughnuts.',
+            'Tanya Ate Doughnuts, Dre Ate Fries, My Mother Ate Slices, and I Ate it All.',
+            'I ate it all, Tanya Ate Fries, Dre Ate Slices, My Mother Ate Doughnuts.',
+            'My Mother Ate Fries, Tanya Ate Slices, Dre Ate Doughnuts, and I Ate it All.',
         ]
     }
 ];
+
+const qinfo = {
+    name: 'Unit 1 Quiz - August Brainrot',
+    class: 'apbr',
+}
