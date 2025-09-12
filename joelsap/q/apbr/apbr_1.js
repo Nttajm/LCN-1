@@ -10,7 +10,12 @@ const quizData = [
             'racecar',
             'A bicycle can\'t stand on its own because it is two-tired'
         ], 
-
-        
+    },
+    {
+        type: 'mcq',
+        qestion: 'Identify the sentence that contains a pun:',
+        options: [
+            'The cat sat on the mat.',
+        ]
     }
 ];
