@@ -2,6 +2,7 @@
 body {
     overflow: hidden;
     background-color: rgb(233, 233, 233);
+    overflow-x: hidden;
 }
 
 nav {
@@ -20,6 +21,7 @@ nav {
 
 :root {
     --tm-yellow:  rgb(252, 229, 23);
+    font-size: 14px;
 }
 
 nav img {
@@ -561,12 +563,13 @@ nav img {
     position: fixed;
     top: 0rem;
     left:0;
-    padding: 3rem 1rem;
+    padding: 6rem 1rem 1rem 1rem;
     background-color: white;
     width: 100%;
 
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     border-bottom: solid 1px rgba(0, 0, 0, 0.1);
     transform: translateY(-100%);
     z-index: 103;
@@ -612,7 +615,7 @@ nav img {
     position: fixed;
     bottom: 0rem;
     left:0;
-    padding: 1rem;
+    padding:1rem 2rem;
     background-color: white;
     width: 100%;
 

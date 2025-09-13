@@ -20,7 +20,8 @@ body {
       z-index: 102;
       transition: all 0.3s var(--smooth-dept);
       opacity: 0;
-    pointer-events: none;
+      pointer-events: none;
+      overflow: hidden;
     }
 
     .carousel.carousel-out {
@@ -103,10 +104,11 @@ body {
 
     .carousel-counter {
       position: absolute;
-      top: 8px;
+      top: 16px;
       right: 8px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
+      background: rgb(255, 217, 0);
+      border: solid 2px #000000;
+      color: rgb(0, 0, 0);
       font-size: 12px;
       padding: 3px 6px;
       border-radius: 6px;
