@@ -13,7 +13,7 @@ body {
       left: 0;
       transform: translateY(-50%);
       width: 100vw;
-      height: 60vh;
+      height: 70vh;
       overflow: hidden;
       margin: 20px auto;
       border-radius: 12px;
@@ -91,6 +91,8 @@ body {
       bottom: 3rem;
       width: 100%;
     z-index: 105;
+        padding-bottom: 1rem;
+
     }
     .dot {
       width: 8px;
@@ -100,7 +102,7 @@ body {
       cursor: pointer;
       transition: background 0.3s;
     }
-    .dot.active { background: #333; }
+    .dot.active { background: #ecd500; }
 
     .carousel-counter {
       position: absolute;

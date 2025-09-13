@@ -1,6 +1,7 @@
 import { products, reloadProducts, loadProducts} from "./idx.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+
 products;
 async function init() {
   await loadProducts();   // wait until products are loaded
@@ -19,6 +20,8 @@ onAuthStateChanged(getAuth(), user => {
   console.log("User Name:", userName);
 });
 
+
+const banner = document.querySelector(".banner"); // ✅ get banner element
 const button = document.querySelector(".checkout-btn");
 button.addEventListener("click", async () => {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -43,6 +46,9 @@ button.addEventListener("click", async () => {
     alert("Please select a pickup option before continuing.");
     return;
   }
+
+  banner.style.display = "flex";
+
   try {
     const res = await fetch("https://backend2-b76r.onrender.com/create-checkout-session", {
     // const res = await fetch("http://localhost:3005/create-checkout-session", {
@@ -65,6 +71,7 @@ button.addEventListener("click", async () => {
     }
 
     const { url } = await res.json();
+    banner.style.display = "none";
     window.location = url;
 
   } catch (e) {

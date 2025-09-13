@@ -3,173 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JS Carousel</title>
+  <title>Document</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #ad962d;
-    }
-    .carousel {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      transform: translateY(-50%);
-      width: 100vw;
-      height: 40vh;
-      overflow: hidden;
-      margin: 20px auto;
-      border-radius: 12px;
-    }
-    .carousel-track {
-      display: flex;
-      transition: transform 0.4s ease-in-out;
-      height: 100%;
-    }
-    .carousel img, .blank-slide {
-      width: 100%;
-      flex-shrink: 0;
-      object-fit: contain;
-      pointer-events: none;
-      user-select: none;
-    }
-    .blank-slide {
-      background: transparent;
-    }
-
-    .carousel-arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgb(255, 238, 0);
-      color: rgb(0, 0, 0);
-      border: none;
-      font-size: 20px;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 10px 175px 169px 9px;
-      -webkit-border-radius: 10px 175px 169px 9px;
-      -moz-border-radius: 10px 175px 169px 9px;
-      border: 3px solid #000000;
-    }
-    .carousel-arrow.left { left: 0px; }
-    .carousel-arrow.right {
-      right: 0px;
-      border-radius: 175px 10px 9px 169px;
-      -webkit-border-radius: 175px 10px 9px 169px;
-      -moz-border-radius: 175px 10px 9px 169px;
-    }
-
-    .carousel-dots {
-      display: flex;
-      justify-content: center;
-      gap: 6px;
-      position: absolute;
-      bottom: 8px;
-      width: 100%;
-    }
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #ccc;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .dot.active { background: #333; }
-
-    .carousel-counter {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      font-size: 12px;
-      padding: 3px 6px;
-      border-radius: 6px;
-    }
+.loader {
+  width: 30px;
+  padding: 8px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #d3cf00b4;
+  --_m: 
+    conic-gradient(#0000 10%,#000),
+    linear-gradient(#000 0 0) content-box;
+  -webkit-mask: var(--_m);
+          mask: var(--_m);
+  -webkit-mask-composite: source-out;
+          mask-composite: subtract;
+  animation: l3 1s infinite linear;
+}
+@keyframes l3 {to{transform: rotate(1turn)}}
   </style>
 </head>
 <body>
-
-<div id="carousel-root"></div>
-
-<script>
-function createCarousel(containerId, imageUrls) {
-  if (!imageUrls || imageUrls.length === 0) return;
-  const root = document.getElementById(containerId);
-  root.innerHTML = `
-    <div class="carousel">
-      <div class="carousel-track"></div>
-      <button class="carousel-arrow left">&#10094;</button>
-      <button class="carousel-arrow right">&#10095;</button>
-      <div class="carousel-dots"></div>
-      <div class="carousel-counter"></div>
-    </div>
-  `;
-
-  const track = root.querySelector(".carousel-track");
-  const leftBtn = root.querySelector(".carousel-arrow.left");
-  const rightBtn = root.querySelector(".carousel-arrow.right");
-  const dotsContainer = root.querySelector(".carousel-dots");
-  const counter = root.querySelector(".carousel-counter");
-
-  // Add blank slide first
-  const blankSlide = document.createElement("div");
-  blankSlide.className = "blank-slide";
-  track.appendChild(blankSlide);
-
-  // Add all image slides
-  imageUrls.forEach(url => {
-    const img = document.createElement("img");
-    img.src = url;
-    track.appendChild(img);
-  });
-
-  let totalSlides = imageUrls.length + 1; // count blank
-  let currentIndex = 0; // start at blank
-
-  const updateCarousel = () => {
-    track.style.transform = `translateX(-${currentIndex * 100}%)`;
-    counter.textContent = `${currentIndex + 1} / ${totalSlides}`;
-    dotsContainer.querySelectorAll(".dot").forEach((dot, idx) => {
-      dot.classList.toggle("active", idx === currentIndex);
-    });
-  };
-
-  for (let i = 0; i < totalSlides; i++) {
-    const dot = document.createElement("div");
-    dot.className = "dot";
-    dot.addEventListener("click", () => {
-      currentIndex = i;
-      updateCarousel();
-    });
-    dotsContainer.appendChild(dot);
-  }
-
-  leftBtn.addEventListener("click", () => {
-    currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-    updateCarousel();
-  });
-
-  rightBtn.addEventListener("click", () => {
-    currentIndex = (currentIndex + 1) % totalSlides;
-    updateCarousel();
-  });
-
-  // Start already on blank slide but translated to show it
-  updateCarousel();
-}
-
-createCarousel("carousel-root", [
-  'extra_examples/IMG_E3310.JPG',
-  'extra_examples/IMG_3325.JPG',
-]);
-</script>
-
+  <div class="loader"></div>
 </body>
 </html>
