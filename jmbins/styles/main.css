@@ -5,6 +5,7 @@ body {
     overflow-x: hidden;
 }
 
+
 nav {
     position: fixed;
     top: 0.5rem;
@@ -344,6 +345,7 @@ nav img {
     overflow-y: scroll;
     animation: zoomIn 1s var(--smooth-dept) forwards;
     animation-delay: 1s;
+    overflow-x: hidden;
 }
 
 
@@ -557,13 +559,14 @@ nav img {
 .discriptors {
     width: 100%;
     height: 100vh;
+    overflow-x: hidden;
 }
 
 .top-disc {
     position: fixed;
     top: 0rem;
     left:0;
-    padding: 6rem 1rem 1rem 1rem;
+    padding: 4.8rem 1rem 1rem 1rem;
     background-color: white;
     width: 100%;
 
