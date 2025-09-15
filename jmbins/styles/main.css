@@ -158,7 +158,7 @@ nav img {
 }
 
 .checkout-section {
-    position: absolute;
+    position: fixed;
     top: 0;
     right: 0;
     background-color: rgb(255, 255, 255);
