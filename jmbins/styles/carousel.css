@@ -8,7 +8,7 @@ body {
     }
 
     .carousel {
-      position: absolute;
+      position: fixed;
       top: 47%;
       left: 0;
       transform: translateY(-50%);
