@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ame Importer - Online Impostor Game</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Main Menu Page -->
+        <div id="mainPage" class="page active">
+            <h1>🎭 Ame Importer</h1>
+            <div class="input-group">
+                <label for="playerName">Your Name:</label>
+                <input type="text" id="playerName" placeholder="Enter your name">
+            </div>
+            <div class="text-center">
+                <button class="btn" id="createPartyPageBtn">Create Party</button>
+                <button class="btn btn-secondary" id="joinPartyPageBtn">Join Party</button>
+            </div>
+        </div>
+
+        <!-- Create Party Page -->
+        <div id="createPage" class="page">
+            <h2>Create New Party</h2>
+            <div class="input-group">
+                <label for="partyName">Party Name:</label>
+                <input type="text" id="partyName" placeholder="Enter party name">
+            </div>
+            <div class="text-center">
+                <button id="createPartyBtn" class="btn">Create Party</button>
+                <button class="btn btn-secondary" id="backFromCreateBtn">Back</button>
+            </div>
+            <div id="createError" class="error"></div>
+        </div>
+
+        <!-- Join Party Page -->
+        <div id="joinPage" class="page">
+            <h2>Join Party</h2>
+            <div class="input-group">
+                <label for="partyCode">Party Code:</label>
+                <input type="text" id="partyCode" placeholder="Enter party code">
+            </div>
+            <div class="text-center">
+                <button id="joinPartyBtn" class="btn">Join Party</button>
+                <button class="btn btn-secondary" id="backFromJoinBtn">Back</button>
+            </div>
+            <div id="joinError" class="error"></div>
+        </div>
+
+        <!-- Party Lobby Page -->
+        <div id="lobbyPage" class="page">
+            <h2 id="lobbyTitle">Party Lobby</h2>
+            <div class="party-code" id="lobbyCode"></div>
+            
+            <div class="player-list">
+                <h3>Players:</h3>
+                <div id="playersList"></div>
+            </div>
+
+            <div class="word-bank-section">
+                <h3>Word Bank</h3>
+                <div class="word-bank-options">
+                    <button class="btn btn-secondary" id="addWordsBtn">Add Words</button>
+                    <button class="btn btn-secondary" id="pasteListBtn">Paste List</button>
+                    <button class="btn btn-secondary" id="useDefaultBtn">Use Default</button>
+                </div>
+                
+                <div id="manualWords" style="display: none;">
+                    <div class="input-group">
+                        <input type="text" id="newWord" placeholder="Enter a word">
+                        <button class="btn" id="addWordBtn">Add Word</button>
+                    </div>
+                </div>
+                
+                <div id="pasteWords" style="display: none;">
+                    <div class="input-group">
+                        <textarea id="wordList" placeholder="Paste words here (one per line or tab-separated)"></textarea>
+                        <button class="btn" id="addWordsFromListBtn">Add Words</button>
+                    </div>
+                </div>
+                
+                <div id="defaultWords" style="display: none;">
+                    <button class="btn" id="useDefaultWordsBtn">Use Default Word Bank</button>
+                </div>
+                
+                <div class="word-preview">
+                    <strong>Current Words:</strong>
+                    <div id="wordsPreview">No words added yet</div>
+                </div>
+            </div>
+
+            <div class="text-center" id="hostControls">
+                <button class="btn btn-success" id="startGameBtn">Start Game</button>
+                <button class="btn btn-danger" id="hostLeavePartyBtn">Leave Party</button>
+            </div>
+            <div class="text-center" id="playerControls" style="display: none;">
+                <button class="btn btn-danger" id="playerLeavePartyBtn">Leave Party</button>
+            </div>
+        </div>
+
+        <!-- Game Page -->
+        <div id="gamePage" class="page">
+            <div id="roleIndicator" class="role-indicator"></div>
+            <div class="game-word" id="gameWord"></div>
+            <div class="text-center" id="hostGameControls">
+                <button class="btn" id="endGameBtn">End Game</button>
+            </div>
+            <div class="text-center" id="playerGameControls" style="display: none;">
+                <p>Waiting for host to end the game...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+
+    <script src="js/idx.js" type="module"></script>
+</body>
+</html>
