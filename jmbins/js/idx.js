@@ -758,7 +758,7 @@ function clearCart() {
 // clearCart();
 
 
-
+const carousel = document.querySelector(".carousel");
 
 document.addEventListener('touchmove', function(e) {
   e.preventDefault();
