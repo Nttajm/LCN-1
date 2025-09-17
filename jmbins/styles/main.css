@@ -13,6 +13,11 @@ html {
   touch-action: manipulation;
 }
 
+html, body {
+  overscroll-behavior: none;
+}
+
+
 
 body {
   -webkit-touch-callout: none;

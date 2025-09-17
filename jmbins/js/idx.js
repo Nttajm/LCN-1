@@ -758,4 +758,8 @@ function clearCart() {
 // clearCart();
 
 
-// CustomEase.create(".checkout-section", "M0,0 C0.343,0.203 0.254,0.806 0.485,0.835 0.739,0.866 0.74,0.117 1,0 ");
+
+
+document.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+}, { passive: false });
