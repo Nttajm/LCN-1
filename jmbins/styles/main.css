@@ -5,9 +5,9 @@ body {
     overflow-x: hidden;
 }
 
-* {
+/* * {
     overflow-x: hidden;
-}
+} */
 
 html {
   touch-action: manipulation;
@@ -576,6 +576,7 @@ nav img {
     height: 100vh;
     overflow-x: hidden;
 }
+
 
 .top-disc {
     position: fixed;
