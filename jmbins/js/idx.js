@@ -760,6 +760,6 @@ function clearCart() {
 
 const carousel = document.querySelector(".carousel");
 
-document.addEventListener('touchmove', function(e) {
+carousel.addEventListener('touchmove', function(e) {
   e.preventDefault();
 }, { passive: false });

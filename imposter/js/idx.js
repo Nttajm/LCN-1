@@ -234,6 +234,7 @@ function showWordBankOption(option) {
   document.getElementById('manualWords').style.display = 'none';
   document.getElementById('pasteWords').style.display = 'none';
   document.getElementById('defaultWords').style.display = 'none';
+  document.getElementById('clearWords').style.display = 'none';
   document.getElementById(option + 'Words').style.display = 'block';
 }
 
@@ -388,9 +389,19 @@ function setupEventListeners() {
   document.getElementById('pasteListBtn').addEventListener('click', () => showWordBankOption('paste'));
   document.getElementById('useDefaultBtn').addEventListener('click', () => showWordBankOption('default'));
   
+  
   document.getElementById('addWordBtn').addEventListener('click', addWord);
   document.getElementById('addWordsFromListBtn').addEventListener('click', addWordsFromList);
   document.getElementById('useDefaultWordsBtn').addEventListener('click', useDefaultWords);
+
+  document.getElementById('clearWordsBtn').addEventListener('click', () => {
+    gameWords = [];
+    updateWordsPreview();
+    saveWords();
+    updatePartyWords();
+  });
+
+
 
   // Game controls
   document.getElementById('startGameBtn').addEventListener('click', startGame);
