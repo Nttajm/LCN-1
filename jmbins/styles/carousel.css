@@ -32,6 +32,7 @@ body {
     .carousel.carousel-in {
       opacity: 0;
       pointer-events: none;
+      display: none;
     }
 
     .carousel-track {
