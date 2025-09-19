@@ -100,6 +100,8 @@ export async function reloadProducts() {
   img: data.mainPhoto,
   size: data.size,
   sold: data.sold ? data.sold : false,
+  customizable: data.customizable ? data.customizable : false,
+  customPrice: data.customPrice ? data.customPrice : 0,
   clothingPhotos: Array.isArray(data.clothingPhotos) ? data.clothingPhotos : [] // ✅ add this
 });
 
@@ -128,6 +130,8 @@ export async function loadProducts() {
       img: data.mainPhoto,
       size: data.size,
       sold: data.sold ? data.sold : false,
+      customizable: data.customizable ? data.customizable : false,
+      customPrice: data.customPrice ? data.customPrice : 0,
       clothingPhotos: Array.isArray(data.clothingPhotos) ? data.clothingPhotos : [] // ✅ add this
     });
   });
@@ -388,7 +392,16 @@ if (container) {
   const company = document.querySelector(".brand");
   const size = document.querySelector(".item-size");
   const price = document.querySelector(".item-price");
+  const customizable = document.querySelector(".customizable");
+  const customText = document.querySelector(".customizable a");
 
+  if (product.customizable) {
+    customizable.classList.toggle("true");
+    customText.textContent = `Customizable +$${(product.customPrice / 100).toFixed(2)} →`;
+  } else {
+    customizable.classList.remove("true");
+    customText.textContent = "Not Customizable";
+  }
   name.textContent = product.name;
   company.textContent = 'company: ' + product.company;
   size.textContent = 'size: ' + product.size;
@@ -760,6 +773,8 @@ function clearCart() {
 
 const carousel = document.querySelector(".carousel");
 
-carousel.addEventListener('touchmove', function(e) {
+if (carousel) {
+  carousel.addEventListener('touchmove', function(e) {
   e.preventDefault();
 }, { passive: false });
+}

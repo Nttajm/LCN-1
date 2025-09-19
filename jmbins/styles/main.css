@@ -713,6 +713,27 @@ nav img {
     margin-bottom: 0.5rem;
 }
 
+.customizable {
+    position: absolute;
+    right: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.4rem;
+    background-color: rgb(230, 230, 230);
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    pointer-events: none;
+}
+
+.customizable.true {
+    background-color: var(--tm-yellow);
+    color: black;
+    font-weight: 600;
+    text-decoration: underline;
+    pointer-events: auto;
+}
+
 .purchuse-options {
     display: flex;
     gap: 0.5rem;

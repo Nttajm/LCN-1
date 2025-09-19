@@ -45,6 +45,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
       const type = document.getElementById("type").value;
       const clothingType = document.getElementById("clothingType").value;
       const size = document.getElementById("size").value;
+      const customizable = document.getElementById("customizable").checked;
+      const customPrice = document.getElementById("customPrice").value;
       const price = document.getElementById("price").value;
 
       const mainPhotoFile = document.getElementById("mainPhoto").files[0];
@@ -72,7 +74,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
           price: Number(price) * 100, // convert to cents
           mainPhoto: mainUrl,
           clothingPhotos: clothingUrls,
-          createdAt: new Date()
+          createdAt: new Date(),
+          customizable,
+          customPrice
         });
 
         status.textContent = "✅ Product uploaded!";

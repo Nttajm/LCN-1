@@ -6,7 +6,7 @@
 <style>
   body { font-family: Arial; max-width: 600px; margin: 20px auto; }
   form { display: flex; flex-direction: column; gap: 10px; }
-  input, select, button { padding: 8px; font-size: 14px; }
+  input, select, but  ton { padding: 8px; font-size: 14px; }
   button { background: #4CAF50; color: white; border: none; cursor: pointer; }
   button:hover { background: #45a049; }
   label { font-weight: bold; }
@@ -61,11 +61,17 @@
     <option>XL</option>
   </select>
 
+  <label >Customizable</label>
+  <input type="checkbox" id="customizable">
+
+  <label for="customizable">base price for customization</label>
+  <input type="number" id="customPrice" min="0" value="0">
+
   <label>Price ($):</label>
   <input type="number" id="price" required>
 
   <label>Main Photo (PNG):</label>
-  <input type="file" id="mainPhoto" accept="image/png" required>
+  <input type="file" id="mainPhoto" accept="image/png,image/webp" required>
 
   <label>Clothing Photos (Multiple):</label>
   <input type="file" id="clothingPhotos" accept="image/*" multiple>
