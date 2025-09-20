@@ -528,7 +528,10 @@ function addToCart(e) {
       alert("Item already in cart");
       return;
     }
-    cart.push(productId);
+    cart.push({
+      id: productId,
+      customized: false // default to false; can be updated later
+    });
     localStorage.setItem("cart", JSON.stringify(cart));
     updateCartCount();
 
@@ -657,7 +660,9 @@ async function updateCartCount() {
   loadingMsg.remove();
 
   const cartItems = cart
-    .map(id => {
+    .map(cartItem => {
+      // Handle both old format (string IDs) and new format (objects)
+      const id = typeof cartItem === 'string' ? cartItem : cartItem.id;
       const product = products.find(p => p.id === id);
       return product ? { 
         id: product.id, 
@@ -666,7 +671,8 @@ async function updateCartCount() {
         company: product.company, 
         img: product.img, 
         size: product.size,
-        sold: product.sold
+        sold: product.sold,
+        customized: typeof cartItem === 'object' ? cartItem.customized : false
       } : null;
     })
     .filter(item => item !== null);
@@ -713,7 +719,7 @@ async function updateCartCount() {
     btn.addEventListener("click", function () {
       const id = btn.getAttribute("data-id");
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
-      const idx = cart.indexOf(id);
+      const idx = cart.indexOf(cart.find(item => item.id === id));
       if (idx !== -1) {
         cart.splice(idx, 1);
         localStorage.setItem("cart", JSON.stringify(cart));

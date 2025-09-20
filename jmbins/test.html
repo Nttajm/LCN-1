@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Custom Shirt Editor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Pacifico&family=Raleway:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Crimson+Text:wght@400;600;700&family=Lobster&family=Bebas+Neue&family=Righteous&family=Comfortaa:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -44,20 +44,19 @@
         }
 
         .design-area {
-    position: absolute;
-    border: 2px dashed rgba(255, 255, 255, 0.6);
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(2px);
-    cursor: move;
-    width: 300px;   /* ✅ fixed width */
-    height: 350px;  /* ✅ fixed height */
-    top: 50%;       /* better centered */
-    left: 50%;
-    transform: translate(-50%, -60%);
-    z-index: 2;
-    overflow: hidden;
-}
-
+            position: absolute;
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(2px);
+            cursor: move;
+            width: 280px;
+            height: 320px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -65%);
+            z-index: 2;
+            overflow: hidden;
+        }
 
         .design-element {
             position: absolute;
@@ -85,14 +84,14 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             border-top: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            padding: 15px;
             z-index: 10;
             transform: translateY(100%);
             transition: transform 0.3s ease;
-            max-height: 60vh;
+            max-height: 35vh;
             overflow-y: auto;
         }
 
@@ -102,15 +101,15 @@
 
         .tools-toggle {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
+            bottom: 15px;
+            right: 15px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             background: #2563eb;
             color: white;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
             z-index: 11;
             box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
@@ -123,32 +122,33 @@
         }
 
         .tools-section {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .tools-section h3 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             color: #374151;
         }
 
         .button-group {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
         }
 
         .btn {
-            padding: 10px 16px;
+            padding: 10px 14px;
             border: 1px solid #d1d5db;
             background: white;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 500;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -166,30 +166,40 @@
             background: #1d4ed8;
         }
 
+        .btn.danger {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .btn.danger:hover {
+            background: #b91c1c;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             color: #374151;
         }
 
         .form-control {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
             background: white;
         }
 
         .color-input {
-            width: 60px;
-            height: 40px;
+            width: 50px;
+            height: 35px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -199,8 +209,8 @@
             display: none;
             background: #f9fafb;
             border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
+            padding: 12px;
+            margin-top: 12px;
         }
 
         .element-properties.active {
@@ -209,16 +219,16 @@
 
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             background: #fef3c7;
             border: 1px solid #f59e0b;
             color: #92400e;
-            padding: 15px 20px;
+            padding: 12px 16px;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             z-index: 20;
-            max-width: 300px;
+            max-width: 280px;
             animation: slideIn 0.3s ease;
         }
 
@@ -240,13 +250,41 @@
 
         .resize-handle {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             background: #2563eb;
             border-radius: 50%;
-            bottom: -5px;
-            right: -5px;
+            bottom: -6px;
+            right: -6px;
             cursor: nw-resize;
+        }
+
+        .rotate-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #059669;
+            border-radius: 50%;
+            top: -6px;
+            right: -6px;
+            cursor: grab;
+        }
+
+        .delete-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #dc2626;
+            border-radius: 50%;
+            top: -6px;
+            left: -6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+            font-weight: bold;
         }
 
         /* Desktop Layout */
@@ -270,6 +308,7 @@
                 transform: none;
                 max-height: none;
                 order: -1;
+                padding: 20px;
             }
 
             .tools-toggle {
@@ -282,6 +321,25 @@
                 top: 50%;
                 left: 50%;
             }
+
+            .btn {
+                font-size: 14px;
+                padding: 10px 16px;
+            }
+
+            .form-control {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .tools-section h3 {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+            .tools-section {
+                margin-bottom: 25px;
+            }
         }
 
         .selected {
@@ -291,19 +349,21 @@
 
         .fonts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 8px;
-            margin-top: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 6px;
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         .font-option {
-            padding: 8px 12px;
+            padding: 6px 8px;
             border: 1px solid #d1d5db;
             background: white;
             border-radius: 6px;
             cursor: pointer;
             text-align: center;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.2s ease;
         }
 
@@ -315,6 +375,44 @@
         .font-option.selected {
             border-color: #2563eb;
             background: #dbeafe;
+        }
+
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-group input {
+            flex: 1;
+        }
+
+        .range-value {
+            font-size: 12px;
+            color: #6b7280;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        @media (max-width: 767px) {
+            .fonts-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: 4px;
+            }
+
+            .font-option {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+
+            .range-group {
+                gap: 8px;
+            }
+
+            .range-value {
+                font-size: 11px;
+                min-width: 40px;
+            }
         }
     </style>
 </head>
@@ -337,11 +435,16 @@
                 <div class="button-group">
                     <button class="btn" onclick="clearDesign()">Clear All</button>
                     <button class="btn primary" onclick="exportDesign()">Export Design</button>
+                    <button class="btn" onclick="showDesignData()">Show Data</button>
                 </div>
             </div>
 
             <div id="elementProperties" class="element-properties">
-                <h3>Element Properties</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin-bottom: 0;">Element Properties</h3>
+                    <button class="btn danger" onclick="deleteSelectedElement()">Delete</button>
+                </div>
+                
                 <div id="textProperties" style="display: none;">
                     <div class="form-group">
                         <label>Text Content</label>
@@ -349,15 +452,24 @@
                     </div>
                     <div class="form-group">
                         <label>Font Size</label>
-                        <input type="range" id="fontSize" min="12" max="100" value="24" class="form-control">
-                        <span id="fontSizeValue">24px</span>
+                        <div class="range-group">
+                            <input type="range" id="fontSize" min="12" max="100" value="24" class="form-control">
+                            <span id="fontSizeValue" class="range-value">24px</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Text Color</label>
                         <input type="color" id="textColor" value="#000000" class="color-input">
                     </div>
                     <div class="form-group">
-                        <label>Font Family</label>
+                        <label>Rotation</label>
+                        <div class="range-group">
+                            <input type="range" id="textRotation" min="0" max="360" value="0" class="form-control">
+                            <span id="textRotationValue" class="range-value">0°</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Font Family *note: any </label>
                         <div class="fonts-grid" id="fontsGrid">
                             <div class="font-option selected" data-font="Inter" style="font-family: Inter">Inter</div>
                             <div class="font-option" data-font="Roboto" style="font-family: Roboto">Roboto</div>
@@ -369,6 +481,16 @@
                             <div class="font-option" data-font="Playfair Display" style="font-family: 'Playfair Display'">Playfair</div>
                             <div class="font-option" data-font="Dancing Script" style="font-family: 'Dancing Script'">Dancing</div>
                             <div class="font-option" data-font="Pacifico" style="font-family: Pacifico">Pacifico</div>
+                            <div class="font-option" data-font="Raleway" style="font-family: Raleway">Raleway</div>
+                            <div class="font-option" data-font="Nunito" style="font-family: Nunito">Nunito</div>
+                            <div class="font-option" data-font="Merriweather" style="font-family: Merriweather">Merriweather</div>
+                            <div class="font-option" data-font="Crimson Text" style="font-family: 'Crimson Text'">Crimson</div>
+                            <div class="font-option" data-font="Lobster" style="font-family: Lobster">Lobster</div>
+                            <div class="font-option" data-font="Bebas Neue" style="font-family: 'Bebas Neue'">Bebas</div>
+                            <div class="font-option" data-font="Righteous" style="font-family: Righteous">Righteous</div>
+                            <div class="font-option" data-font="Comfortaa" style="font-family: Comfortaa">Comfortaa</div>
+                            <div class="font-option" data-font="Source Sans Pro" style="font-family: 'Source Sans Pro'">Source Sans</div>
+                            <div class="font-option" data-font="Ubuntu" style="font-family: Ubuntu">Ubuntu</div>
                         </div>
                     </div>
                 </div>
@@ -376,13 +498,17 @@
                 <div id="imageProperties" style="display: none;">
                     <div class="form-group">
                         <label>Image Scale</label>
-                        <input type="range" id="imageScale" min="0.1" max="3" step="0.1" value="1" class="form-control">
-                        <span id="imageScaleValue">100%</span>
+                        <div class="range-group">
+                            <input type="range" id="imageScale" min="0.1" max="3" step="0.1" value="1" class="form-control">
+                            <span id="imageScaleValue" class="range-value">100%</span>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Opacity</label>
-                        <input type="range" id="imageOpacity" min="0" max="1" step="0.1" value="1" class="form-control">
-                        <span id="imageOpacityValue">100%</span>
+                        <label>Rotation</label>
+                        <div class="range-group">
+                            <input type="range" id="imageRotation" min="0" max="360" value="0" class="form-control">
+                            <span id="imageRotationValue" class="range-value">0°</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -400,8 +526,15 @@
         let selectedElement = null;
         let isDragging = false;
         let isResizing = false;
+        let isRotating = false;
         let dragOffset = { x: 0, y: 0 };
         let elementCounter = 0;
+        let rotationCenter = { x: 0, y: 0 };
+        let initialAngle = 0;
+        let currentRotation = 0;
+
+        // Store all design elements data
+        let designElements = {};
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -416,6 +549,7 @@
                     this.classList.add('selected');
                     if (selectedElement && selectedElement.classList.contains('text-element')) {
                         selectedElement.style.fontFamily = this.dataset.font;
+                        updateElementData(selectedElement);
                     }
                 });
             });
@@ -424,8 +558,9 @@
             document.getElementById('textContent').addEventListener('input', updateTextContent);
             document.getElementById('fontSize').addEventListener('input', updateFontSize);
             document.getElementById('textColor').addEventListener('input', updateTextColor);
+            document.getElementById('textRotation').addEventListener('input', updateTextRotation);
             document.getElementById('imageScale').addEventListener('input', updateImageScale);
-            document.getElementById('imageOpacity').addEventListener('input', updateImageOpacity);
+            document.getElementById('imageRotation').addEventListener('input', updateImageRotation);
 
             // File upload
             document.querySelector('.file-upload').addEventListener('click', function() {
@@ -445,11 +580,26 @@
             textEl.textContent = 'New Text';
             textEl.style.left = '50px';
             textEl.style.top = '50px';
+            textEl.style.fontSize = '24px';
+            textEl.style.color = '#000000';
+            textEl.style.fontFamily = 'Inter';
             textEl.id = 'element-' + elementCounter;
             
             addElementEventListeners(textEl);
             document.getElementById('designArea').appendChild(textEl);
             selectElement(textEl);
+            
+            // Store element data
+            designElements[textEl.id] = {
+                type: 'text',
+                text: 'New Text',
+                fontSize: 24,
+                color: '#000000',
+                fontFamily: 'Inter',
+                x: 50,
+                y: 50,
+                rotation: 0
+            };
         }
 
         function handleImageUpload(event) {
@@ -473,6 +623,17 @@
                 addElementEventListeners(imgEl);
                 document.getElementById('designArea').appendChild(imgEl);
                 selectElement(imgEl);
+                
+                // Store element data
+                designElements[imgEl.id] = {
+                    type: 'image',
+                    src: e.target.result,
+                    width: 100,
+                    x: 50,
+                    y: 50,
+                    scale: 1,
+                    rotation: 0
+                };
             };
             reader.readAsDataURL(file);
         }
@@ -481,22 +642,104 @@
             element.addEventListener('mousedown', handleMouseDown);
             element.addEventListener('touchstart', handleTouchStart, { passive: false });
             
+            // Add control handles
+            addControlHandles(element);
+        }
+
+        function addControlHandles(element) {
+            // Delete handle
+            const deleteHandle = document.createElement('div');
+            deleteHandle.className = 'delete-handle';
+            deleteHandle.innerHTML = '×';
+            deleteHandle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteElement(element);
+            });
+            element.appendChild(deleteHandle);
+
+            // Rotate handle
+            const rotateHandle = document.createElement('div');
+            rotateHandle.className = 'rotate-handle';
+            rotateHandle.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                startRotation(e, element);
+            });
+            element.appendChild(rotateHandle);
+            
             // Add resize handle for images
             if (element.classList.contains('image-element')) {
-                const handle = document.createElement('div');
-                handle.className = 'resize-handle';
-                element.appendChild(handle);
-                
-                handle.addEventListener('mousedown', function(e) {
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                resizeHandle.addEventListener('mousedown', function(e) {
                     e.stopPropagation();
                     isResizing = true;
                     selectElement(element);
                 });
+                element.appendChild(resizeHandle);
+            }
+        }
+
+        function startRotation(e, element) {
+            isRotating = true;
+            selectElement(element);
+            
+            const rect = element.getBoundingClientRect();
+            rotationCenter.x = rect.left + rect.width / 2;
+            rotationCenter.y = rect.top + rect.height / 2;
+            
+            const angle = Math.atan2(e.clientY - rotationCenter.y, e.clientX - rotationCenter.x);
+            initialAngle = angle;
+            
+            const transform = element.style.transform;
+            const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
+            currentRotation = rotateMatch ? parseFloat(rotateMatch[1]) : 0;
+            
+            document.addEventListener('mousemove', handleRotationMove);
+            document.addEventListener('mouseup', handleRotationEnd);
+        }
+
+        function handleRotationMove(e) {
+            if (!isRotating) return;
+            
+            const angle = Math.atan2(e.clientY - rotationCenter.y, e.clientX - rotationCenter.x);
+            const deltaAngle = (angle - initialAngle) * (180 / Math.PI);
+            const newRotation = currentRotation + deltaAngle;
+            
+            applyRotation(selectedElement, newRotation);
+        }
+
+        function handleRotationEnd() {
+            isRotating = false;
+            document.removeEventListener('mousemove', handleRotationMove);
+            document.removeEventListener('mouseup', handleRotationEnd);
+        }
+
+        function applyRotation(element, rotation) {
+            const normalizedRotation = rotation % 360;
+            const otherTransforms = element.style.transform.replace(/rotate\([^)]*\)/g, '');
+            element.style.transform = `${otherTransforms} rotate(${normalizedRotation}deg)`.trim();
+            updateElementData(element);
+        }
+
+        function deleteElement(element) {
+            if (confirm('Delete this element?')) {
+                delete designElements[element.id];
+                element.remove();
+                if (selectedElement === element) {
+                    selectedElement = null;
+                    document.getElementById('elementProperties').classList.remove('active');
+                }
+            }
+        }
+
+        function deleteSelectedElement() {
+            if (selectedElement) {
+                deleteElement(selectedElement);
             }
         }
 
         function handleMouseDown(e) {
-            if (isResizing) return;
+            if (isResizing || isRotating) return;
             
             e.preventDefault();
             isDragging = true;
@@ -511,7 +754,7 @@
         }
 
         function handleTouchStart(e) {
-            if (isResizing) return;
+            if (isResizing || isRotating) return;
             
             e.preventDefault();
             isDragging = true;
@@ -538,6 +781,7 @@
                 
                 selectedElement.style.left = Math.max(0, x) + 'px';
                 selectedElement.style.top = Math.max(0, y) + 'px';
+                updateElementData(selectedElement);
             }
             
             if (isResizing && selectedElement) {
@@ -546,6 +790,7 @@
                 
                 selectedElement.style.width = Math.max(20, width) + 'px';
                 selectedElement.style.height = Math.max(20, height) + 'px';
+                updateElementData(selectedElement);
             }
         }
 
@@ -563,6 +808,7 @@
                 
                 selectedElement.style.left = Math.max(0, x) + 'px';
                 selectedElement.style.top = Math.max(0, y) + 'px';
+                updateElementData(selectedElement);
             }
         }
 
@@ -608,23 +854,57 @@
                 document.getElementById('fontSize').value = parseInt(element.style.fontSize) || 24;
                 document.getElementById('fontSizeValue').textContent = (parseInt(element.style.fontSize) || 24) + 'px';
                 document.getElementById('textColor').value = rgbToHex(element.style.color) || '#000000';
+                
+                const rotation = getRotationFromTransform(element.style.transform);
+                document.getElementById('textRotation').value = rotation;
+                document.getElementById('textRotationValue').textContent = rotation + '°';
             } else if (element.classList.contains('image-element')) {
                 textProps.style.display = 'none';
                 imageProps.style.display = 'block';
                 
-                const scale = parseFloat(element.style.transform.match(/scale\((.*?)\)/)?.[1]) || 1;
+                const scale = getScaleFromTransform(element.style.transform);
                 document.getElementById('imageScale').value = scale;
                 document.getElementById('imageScaleValue').textContent = Math.round(scale * 100) + '%';
                 
-                const opacity = parseFloat(element.style.opacity) || 1;
-                document.getElementById('imageOpacity').value = opacity;
-                document.getElementById('imageOpacityValue').textContent = Math.round(opacity * 100) + '%';
+                const rotation = getRotationFromTransform(element.style.transform);
+                document.getElementById('imageRotation').value = rotation;
+                document.getElementById('imageRotationValue').textContent = rotation + '°';
+            }
+        }
+
+        function getRotationFromTransform(transform) {
+            const match = transform.match(/rotate\(([^)]+)\)/);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        function getScaleFromTransform(transform) {
+            const match = transform.match(/scale\(([^)]+)\)/);
+            return match ? parseFloat(match[1]) : 1;
+        }
+
+        function updateElementData(element) {
+            if (!designElements[element.id]) return;
+            
+            const data = designElements[element.id];
+            data.x = parseInt(element.style.left) || 0;
+            data.y = parseInt(element.style.top) || 0;
+            data.rotation = getRotationFromTransform(element.style.transform);
+            
+            if (element.classList.contains('text-element')) {
+                data.text = element.textContent;
+                data.fontSize = parseInt(element.style.fontSize) || 24;
+                data.color = element.style.color || '#000000';
+                data.fontFamily = element.style.fontFamily || 'Inter';
+            } else if (element.classList.contains('image-element')) {
+                data.width = parseInt(element.style.width) || 100;
+                data.scale = getScaleFromTransform(element.style.transform);
             }
         }
 
         function updateTextContent() {
             if (selectedElement && selectedElement.classList.contains('text-element')) {
                 selectedElement.textContent = this.value;
+                updateElementData(selectedElement);
             }
         }
 
@@ -632,26 +912,37 @@
             if (selectedElement && selectedElement.classList.contains('text-element')) {
                 selectedElement.style.fontSize = this.value + 'px';
                 document.getElementById('fontSizeValue').textContent = this.value + 'px';
+                updateElementData(selectedElement);
             }
         }
 
         function updateTextColor() {
             if (selectedElement && selectedElement.classList.contains('text-element')) {
                 selectedElement.style.color = this.value;
+                updateElementData(selectedElement);
+            }
+        }
+
+        function updateTextRotation() {
+            if (selectedElement && selectedElement.classList.contains('text-element')) {
+                applyRotation(selectedElement, this.value);
+                document.getElementById('textRotationValue').textContent = this.value + '°';
             }
         }
 
         function updateImageScale() {
             if (selectedElement && selectedElement.classList.contains('image-element')) {
-                selectedElement.style.transform = `scale(${this.value})`;
+                const rotation = getRotationFromTransform(selectedElement.style.transform);
+                selectedElement.style.transform = `scale(${this.value}) rotate(${rotation}deg)`;
                 document.getElementById('imageScaleValue').textContent = Math.round(this.value * 100) + '%';
+                updateElementData(selectedElement);
             }
         }
 
-        function updateImageOpacity() {
+        function updateImageRotation() {
             if (selectedElement && selectedElement.classList.contains('image-element')) {
-                selectedElement.style.opacity = this.value;
-                document.getElementById('imageOpacityValue').textContent = Math.round(this.value * 100) + '%';
+                applyRotation(selectedElement, this.value);
+                document.getElementById('imageRotationValue').textContent = this.value + '°';
             }
         }
 
@@ -659,8 +950,14 @@
             if (confirm('Are you sure you want to clear all elements?')) {
                 document.getElementById('designArea').innerHTML = '';
                 selectedElement = null;
+                designElements = {};
                 document.getElementById('elementProperties').classList.remove('active');
             }
+        }
+
+        function showDesignData() {
+            console.log('Design Elements:', designElements);
+            alert('Design data logged to console. Open developer tools to view.');
         }
 
         function exportDesign() {
@@ -699,6 +996,9 @@
                 elements.forEach(element => {
                     const left = parseInt(element.style.left) || 0;
                     const top = parseInt(element.style.top) || 0;
+                    const rotation = getRotationFromTransform(element.style.transform);
+                    
+                    ctx.save();
                     
                     if (element.classList.contains('text-element')) {
                         const fontSize = parseInt(element.style.fontSize) || 24;
@@ -708,16 +1008,39 @@
                         ctx.font = `${fontSize}px ${fontFamily}`;
                         ctx.fillStyle = color;
                         ctx.textBaseline = 'top';
-                        ctx.fillText(element.textContent, left, top);
+                        
+                        // Apply rotation
+                        if (rotation !== 0) {
+                            const textWidth = ctx.measureText(element.textContent).width;
+                            const centerX = left + textWidth / 2;
+                            const centerY = top + fontSize / 2;
+                            ctx.translate(centerX, centerY);
+                            ctx.rotate(rotation * Math.PI / 180);
+                            ctx.translate(-textWidth / 2, -fontSize / 2);
+                            ctx.fillText(element.textContent, 0, 0);
+                        } else {
+                            ctx.fillText(element.textContent, left, top);
+                        }
                     } else if (element.classList.contains('image-element')) {
                         const img = element;
-                        const scale = parseFloat(element.style.transform.match(/scale\((.*?)\)/)?.[1]) || 1;
-                        const opacity = parseFloat(element.style.opacity) || 1;
+                        const scale = getScaleFromTransform(element.style.transform);
+                        const width = img.offsetWidth * scale;
+                        const height = img.offsetHeight * scale;
                         
-                        ctx.globalAlpha = opacity;
-                        ctx.drawImage(img, left, top, img.offsetWidth * scale, img.offsetHeight * scale);
-                        ctx.globalAlpha = 1;
+                        // Apply rotation
+                        if (rotation !== 0) {
+                            const centerX = left + width / 2;
+                            const centerY = top + height / 2;
+                            ctx.translate(centerX, centerY);
+                            ctx.rotate(rotation * Math.PI / 180);
+                            ctx.translate(-width / 2, -height / 2);
+                            ctx.drawImage(img, 0, 0, width, height);
+                        } else {
+                            ctx.drawImage(img, left, top, width, height);
+                        }
                     }
+                    
+                    ctx.restore();
                 });
                 
                 // Download
@@ -783,6 +1106,6 @@
                 }
             }
         });
-    </script>
+    </script> 
 </body>
 </html>
