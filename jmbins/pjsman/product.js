@@ -76,7 +76,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
           clothingPhotos: clothingUrls,
           createdAt: new Date(),
           customizable,
-          customPrice
+          customPrice: Number(customPrice) * 100 // convert to cents
         });
 
         status.textContent = "✅ Product uploaded!";

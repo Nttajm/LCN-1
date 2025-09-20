@@ -30,9 +30,7 @@ button.addEventListener("click", async () => {
   }
 
   // ✅ Use object.id instead of raw array values
-  const cartItems = cart
-    .map(obj => products.find(p => p.id === obj.id))
-    .filter(item => item && !item.sold);
+
 
   if (cartItems.length === 0) {
     alert("All products in cart are sold or unavailable.");

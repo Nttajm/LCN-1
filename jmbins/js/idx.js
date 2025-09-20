@@ -113,8 +113,8 @@ export async function reloadProducts() {
 // Firebase config
 const container = document?.getElementById("item-section");
 
-  export const products = [];
-  console.log(products)
+export const products = [];
+console.log(products)
 
 export async function loadProducts() {
   const querySnapshot = await getDocs(collection(db, "products"));
@@ -135,133 +135,6 @@ export async function loadProducts() {
       clothingPhotos: Array.isArray(data.clothingPhotos) ? data.clothingPhotos : [] // ✅ add this
     });
   });
-
-//   const products = [
-//     {
-//         "id": "1gCh6bkVNuFFGFEH8Jul",
-//         "price": 400,
-//         "name": "Regular Shirt",
-//         "company": "GoodFellow",
-//         "img": "https://res.cloudinary.com/ddxfj8knl/image/upload/v1755648808/isr8xyk3faxzksk7kuov.png",
-//         "size": "M"
-//     },
-//     {
-//         "id": "CdAhGESxNkUBRHWYydKQ",
-//         "price": 500,
-//         "name": "LASO\n",
-//         "company": "EN",
-//         "img": "https://res.cloudinary.com/ddxfj8knl/image/upload/v1755649000/frjayw85lvexj9llayb2.png",
-//         "size": "L"
-//     },
-//     {
-//         "id": "QoW4OejarjYdagVLTG4P",
-//         "price": 500,
-//         "name": "Polo Ralph lueran",
-//         "company": "Polo",
-//         "img": "https://res.cloudinary.com/ddxfj8knl/image/upload/v1755379919/products/main/main_product_1755379923472.png",
-//         "size": "M"
-//     },
-//     {
-//         "id": "moKjyuvYlxxiUJE4sFyy",
-//         "price": 11,
-//         "name": "Polo Ralph lueran",
-//         "company": "Polo",
-//         "img": "https://res.cloudinary.com/ddxfj8knl/image/upload/v1755380242/vfhjsx89m7wyhphfrtkl.png",
-//         "size": "XL"
-//     },
-//     {
-//         "id": "p8wBeNH1G8bPcBtGhhxH",
-//         "price": 2500,
-//         "name": "Center Swoosh hoodie",
-//         "company": "Nike",
-//         "img": "https://res.cloudinary.com/ddxfj8knl/image/upload/v1755745111/plaapye5pk4x274rrara.png",
-//         "size": "L"
-//     },
-//     {
-//         "id": "s3bYxy1aX78dFWIiJGlf",
-//         "price": 1500,
-//         "name": "CREAM HOODIE",
-//         "company": "Carhart",
-//         "img": "https://res.cloudinary.com/ddxfj8knl/image/upload/v1755744622/kbbxjhjm2dhduhyizzcb.png",
-//         "size": "L"
-//     }
-// ]
-
-//   const products = [
-//   {
-//     id: 1,
-//     price: 3999,
-//     img: "hoodies/fog-essentials-hoodie-v0-koqz2g505nib1.png",
-//     details: ["hoodies/detail1.png", "hoodies/detail2.png"]
-//   },
-//   {
-//     id: 2,
-//     price: 4999,
-//     img: "hoodies/ralph-lauren-sweater-and-hoodie-pandabuy-v0-pb37o61tmhmb1.png",
-//     details: ["hoodies/detail3.png", "hoodies/detail4.png"]
-//   },
-//   {
-//     id: 3,
-//     price: 2999,
-//     img: "shirts/shirt.png",
-//     details: ["shirts/detail1.png", "shirts/detail2.png"]
-//   },
-//   {
-//     id: 4,
-//     price: 3999,
-//     img: "hoodies/fog-essentials-hoodie-v0-koqz2g505nib1.png",
-//     details: ["hoodies/detail1.png", "hoodies/detail2.png"]
-//   },
-//   {
-//     id: 1,
-//     price: 3999,
-//     img: "hoodies/fog-essentials-hoodie-v0-koqz2g505nib1.png",
-//     details: ["hoodies/detail1.png", "hoodies/detail2.png"]
-//   },
-//   {
-//     id: 2,
-//     price: 4999,
-//     img: "hoodies/ralph-lauren-sweater-and-hoodie-pandabuy-v0-pb37o61tmhmb1.png",
-//     details: ["hoodies/detail3.png", "hoodies/detail4.png"]
-//   },
-//   {
-//     id: 3,
-//     price: 2999,
-//     img: "shirts/shirt.png",
-//     details: ["shirts/detail1.png", "shirts/detail2.png"]
-//   },
-//   {
-//     id: 4,
-//     price: 3999,
-//     img: "hoodies/fog-essentials-hoodie-v0-koqz2g505nib1.png",
-//     details: ["hoodies/detail1.png", "hoodies/detail2.png"]
-//   },
-//   {
-//     id: 1,
-//     price: 3999,
-//     img: "hoodies/fog-essentials-hoodie-v0-koqz2g505nib1.png",
-//     details: ["hoodies/detail1.png", "hoodies/detail2.png"]
-//   },
-//   {
-//     id: 2,
-//     price: 4999,
-//     img: "hoodies/ralph-lauren-sweater-and-hoodie-pandabuy-v0-pb37o61tmhmb1.png",
-//     details: ["hoodies/detail3.png", "hoodies/detail4.png"]
-//   },
-//   {
-//     id: 3,
-//     price: 2999,
-//     img: "shirts/shirt.png",
-//     details: ["shirts/detail1.png", "shirts/detail2.png"]
-//   },
-//   {
-//     id: 4,
-//     price: 3999,
-//     img: "hoodies/fog-essentials-hoodie-v0-koqz2g505nib1.png",
-//     details: ["hoodies/detail1.png", "hoodies/detail2.png"]
-//   },
-// ];
-
 
   renderProducts(products);
 
@@ -396,7 +269,8 @@ if (container) {
   const customText = document.querySelector(".customizable a");
 
   if (product.customizable) {
-    customizable.classList.toggle("true");
+    customizable.classList.add("true");
+    customText.href = `customizer.html?productId=${product.id}`;
     customText.textContent = `Customizable +$${(product.customPrice / 100).toFixed(2)} →`;
   } else {
     customizable.classList.remove("true");
@@ -659,7 +533,7 @@ async function updateCartCount() {
   // Remove loading message
   loadingMsg.remove();
 
-  const cartItems = cart
+ const cartItems = cart
     .map(cartItem => {
       // Handle both old format (string IDs) and new format (objects)
       const id = typeof cartItem === 'string' ? cartItem : cartItem.id;

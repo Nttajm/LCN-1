@@ -1,6 +1,6 @@
 let tut_store = JSON.parse(localStorage.getItem("tut_store")) || {};
 
-function tutorial(steps, id) {
+export function tutorial(steps, id) {
   if (tut_store[id]) return; // Already done
 
   let stepIndex = 0;

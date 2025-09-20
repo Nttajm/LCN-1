@@ -17,7 +17,7 @@
     border-radius: 16px;
     width: 80%;
     max-width: 480px;
-    height: 520px; /* fixed height to prevent size jumping */
+    height: 600px; /* fixed height to prevent size jumping */
     padding: 25px 20px;
     text-align: center;
     display: flex;
@@ -61,7 +61,7 @@
 
   .tutorial-content {
     flex: 0 0 auto;
-    font-size: 1.15em;
+    font-size: 1.05em;
     line-height: 1.5em;
     opacity: 0;
     font-family: roboto;
