@@ -9,7 +9,7 @@ let selectedElement = null;
         let currentRotation = 0;
 
         // Store all design elements data
-        let designElements = {};
+        export let designElements = {};
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -53,6 +53,18 @@ let selectedElement = null;
             panel.classList.toggle('open');
             inspire.classList.toggle('dn');
         }
+
+        const toolsBtn = document.querySelector('.tools-toggle');
+        toolsBtn.addEventListener('click', toggleTools);
+
+        const showDataBtn = document.getElementById('showDataBtn');
+        showDataBtn.addEventListener('click', showDesignData);
+
+        const addTextBtn = document.getElementById('addTextBtn');
+        addTextBtn.addEventListener('click', addTextElement);
+
+        const imageUploadInput = document.getElementById('imageUpload');
+        imageUploadInput.addEventListener('change', handleImageUpload);
 
         function toggleCutout() {
             if (selectedElement && selectedElement.classList.contains('text-element')) {
@@ -130,6 +142,7 @@ let selectedElement = null;
                 designElements[imgEl.id] = {
                     type: 'image',
                     src: e.target.result,
+                    name: file.name,
                     width: 100,
                     cutout: false,
                     x: 50,
@@ -486,7 +499,7 @@ let selectedElement = null;
             alert('Design data logged to console. Open developer tools to view.');
         }
 
-        function exportDesign() {
+        export function exportDesign() {
             const designArea = document.getElementById('designArea');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -570,14 +583,23 @@ let selectedElement = null;
                 });
                 
                 // Download
+                // canvas.toBlob(function(blob) {
+                //     const url = URL.createObjectURL(blob);
+                //     const a = document.createElement('a');
+                //     a.href = url;
+                //     a.download = 'shirt-design.png';
+                //     a.click();
+                //     URL.revokeObjectURL(url);
+                // });
+
+                // Instead of downloading:
                 canvas.toBlob(function(blob) {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'shirt-design.png';
-                    a.click();
-                    URL.revokeObjectURL(url);
+                // pass blob back instead of download
+                if (typeof callback === "function") {
+                    callback(blob);
+                }
                 });
+
             }
             
             if (totalImages === 0) {

@@ -207,13 +207,13 @@
         .bottom-bar {
             position: fixed;
             bottom: 15px;
-            left: 15px;
             right: 15px;
             display: flex;
             justify-content: space-between;
             flex-direction: row-reverse;
             align-items: center;
             z-index: 10;
+            gap: 0.8rem;
         }
 
         .blob {

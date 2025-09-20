@@ -12,7 +12,7 @@
 <body>
     <nav>
         <img src="icons/customizerlogo.png" alt="">
-        <button class="next">
+        <button class="next" id="nextbtn">
             NEXT $
         </button>
     </nav>
@@ -21,20 +21,20 @@
             <div class="tools-section">
                 <h3>Add Elements</h3>
                 <div class="button-group">
-                    <button class="btn primary" onclick="addTextElement()">+ Text</button>
+                    <button class="btn primary" id="addTextBtn">+ Text</button>
                     <div class="file-upload">
                         <button class="btn">+ Image</button>
-                        <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
+                        <input type="file" id="imageUpload" accept="image/*" />
                     </div>
                 </div>
             </div>
 
-            <div class="tools-section dn">
+            <div class="tools-section ">
                 <h3>Canvas Actions</h3>
                 <div class="button-group">
                     <button class="btn" onclick="clearDesign()">Clear All</button>
                     <button class="btn primary" onclick="exportDesign()">Export Design</button>
-                    <button class="btn" onclick="showDesignData()">Show Data</button>
+                    <button class="btn" id="showDataBtn">Show Data</button>
                 </div>
             </div>
 
@@ -125,7 +125,7 @@
     </div>
 
     <div class="bottom-bar">
-        <button class="tools-toggle blob" onclick="toggleTools()">⚙️</button>
+        <button class="tools-toggle blob">⚙️</button>
         <div class="blob" id="inspire">
             <span>
                 Need Inspiration?
@@ -141,11 +141,11 @@
             <div class="price-cont">
                 <div class="price">
                 <span class="name">Item Price</span>
-                <span class="value">$6.00</span>
+                <span class="value" id="itemPrice">$6.00</span>
             </div>
             <div class="price">
                 <span class="name">Customization Fee</span>
-                <span class="value">$3.00</span>
+                <span class="value" id="customPrice">$3.00</span>
             </div>
             <div class="price total">
                 <span class="name">Text: "Hello World"</span>
@@ -165,13 +165,13 @@
                     Please remember: Custom Designs will be reviewed before printing, designs that are deemed hate speech and highly inappropriate are rejected and will or not be refunded.
                 </span>
             </div>
-            <button class="btn done">
+            <button class="btn done" id="donebtn">
                 Add to Cart and Continue to jmbins
             </button>
         </div>
 
         <script src="js/customizerutils.js" type="module"></script>
-    <script src="js/customizer.js"></script>
+    <script src="js/customizer.js" type="module"></script>
     <script src="js/tutorial.js" type="module"></script>
 
 </body>
