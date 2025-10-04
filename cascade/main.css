@@ -1,0 +1,546 @@
+/* ===== TEXT COLOR CLASSES ===== */
+.text-rainbow-red { color: var(--rainbow-red) !important;}
+.text-rainbow-orange { color: var(--rainbow-orange) !important;}
+.text-rainbow-yellow { color: var(--rainbow-yellow) !important;}
+.text-rainbow-green { color: var(--rainbow-green) !important;}
+.text-rainbow-teal { color: var(--rainbow-teal) !important;}
+.text-rainbow-blue { color: var(--rainbow-blue) !important;}
+.text-rainbow-indigo { color: var(--rainbow-indigo) !important;}
+.text-rainbow-purple { color: var(--rainbow-purple) !important;}
+.text-rainbow-pink { color: var(--rainbow-pink) !important;}
+
+.text-notion-red { color: var(--notion-red); }
+.text-notion-orange { color: var(--notion-orange); }
+.text-notion-yellow { color: var(--notion-yellow); }
+.text-notion-green { color: var(--notion-green); }
+.text-notion-blue { color: var(--notion-blue); }
+.text-notion-purple { color: var(--notion-purple); }
+.text-notion-pink { color: var(--notion-pink); }
+.text-notion-brown { color: var(--notion-brown); }
+
+.text-gray-50 { color: var(--gray-50); }
+.text-gray-100 { color: var(--gray-100); }
+.text-gray-200 { color: var(--gray-200); }
+.text-gray-300 { color: var(--gray-300); }
+.text-gray-400 { color: var(--gray-400); }
+.text-gray-500 { color: var(--gray-500); }
+.text-gray-600 { color: var(--gray-600); }
+.text-gray-700 { color: var(--gray-700); }
+.text-gray-800 { color: var(--gray-800); }
+.text-gray-900 { color: var(--gray-900); }
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-placeholder { color: var(--text-placeholder); }
+.text-white { color: var(--text-white); }
+
+
+:root {
+  /* ===== CALM RAINBOW COLORS ===== */
+  --rainbow-red: #ff6b6b;
+  --rainbow-orange: #ffa06b;
+  --rainbow-yellow: #ffd93d;
+  --rainbow-green: #6bcf7f;
+  --rainbow-teal: #4ecdc4;
+  --rainbow-blue: #5dade2;
+  --rainbow-indigo: #7b68ee;
+  --rainbow-purple: #b084cc;
+  --rainbow-pink: #ff85b3;
+
+  /* ===== NOTION BRAND COLORS ===== */
+  --notion-red: #e03e3e;
+  --notion-orange: #d9730d;
+  --notion-yellow: #dfab01;
+  --notion-green: #0f7b6c;
+  --notion-blue: #0b6e99;
+  --notion-purple: #6940a5;
+  --notion-pink: #ad1a72;
+  --notion-brown: #64473a;
+
+  /* ===== NOTION BACKGROUND COLORS ===== */
+  --notion-red-bg: #fbe4e4;
+  --notion-orange-bg: #faebdd;
+  --notion-yellow-bg: #fbf3db;
+  --notion-green-bg: #ddedea;
+  --notion-blue-bg: #ddebf1;
+  --notion-purple-bg: #eae4f2;
+  --notion-pink-bg: #f4dfeb;
+  --notion-brown-bg: #e9e5e3;
+
+  /* ===== GRAY SCALE ===== */
+  --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+
+  /* ===== PRIMARY BACKGROUNDS ===== */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f5;
+  --bg-tertiary: #f1f1ef;
+  --bg-hover: rgba(0, 0, 0, 0.03);
+  --bg-active: rgba(0, 0, 0, 0.05);
+
+  /* ===== BORDERS ===== */
+  --border-color: #e9e9e7;
+  --border-dark: #d3d3d1;
+  --border-light: #f1f1ef;
+  --border-width: 1px;
+  --border-radius-sm: 3px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 12px;
+
+  /* ===== TEXT COLORS ===== */
+  --text-primary: #37352f;
+  --text-secondary: #65635c;
+  --text-tertiary: #9b9a97;
+  --text-placeholder: #c2c1bd;
+  --text-white: #ffffff;
+
+  /* ===== SHADOWS ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.16);
+
+  /* ===== SPACING (Notion-style) ===== */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+font-size: 16px;
+--font-select: bold 1.3rem var(--font-primary); /* 16px */
+--font-grayed: 0.9rem var(--font-primary); /* 14px */
+--font-grayed-color: var(--text-secondary);
+
+  /* ===== TYPOGRAPHY ===== */
+  --font-primary: 'Alan Sans', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-main: 'roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+}
+
+/* ===== DARK MODE ===== */
+[data-theme="dark"] {
+  /* ===== CALM RAINBOW COLORS (slightly brighter for dark mode) ===== */
+  --rainbow-red: #ff7b7b;
+  --rainbow-orange: #ffb07b;
+  --rainbow-yellow: #ffe14d;
+  --rainbow-green: #7bdf8f;
+  --rainbow-teal: #5eddd4;
+  --rainbow-blue: #6dbdef;
+  --rainbow-indigo: #8b78ff;
+  --rainbow-purple: #c094dd;
+  --rainbow-pink: #ff95c3;
+
+  /* ===== NOTION BRAND COLORS (brighter for dark) ===== */
+  --notion-red: #ff6b6b;
+  --notion-orange: #ffa344;
+  --notion-yellow: #ffcc00;
+  --notion-green: #4db896;
+  --notion-blue: #529cca;
+  --notion-purple: #9a6dd7;
+  --notion-pink: #e255a1;
+  --notion-brown: #9f7563;
+
+  /* ===== NOTION BACKGROUND COLORS (dark variants) ===== */
+  --notion-red-bg: #4a2626;
+  --notion-orange-bg: #4a3426;
+  --notion-yellow-bg: #4a4126;
+  --notion-green-bg: #26403a;
+  --notion-blue-bg: #263a4a;
+  --notion-purple-bg: #352a4a;
+  --notion-pink-bg: #4a2640;
+  --notion-brown-bg: #3d332a;
+
+  /* ===== GRAY SCALE (inverted) ===== */
+  --gray-50: #171717;
+  --gray-100: #262626;
+  --gray-200: #404040;
+  --gray-300: #525252;
+  --gray-400: #737373;
+  --gray-500: #a3a3a3;
+  --gray-600: #d4d4d4;
+  --gray-700: #e5e5e5;
+  --gray-800: #f5f5f5;
+  --gray-900: #fafafa;
+
+  /* ===== PRIMARY BACKGROUNDS ===== */
+  --bg-primary: #191919;
+  --bg-secondary: #202020;
+  --bg-tertiary: #2a2a2a;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.08);
+
+  /* ===== BORDERS ===== */
+  --border-color: #3a3a3a;
+  --border-dark: #4a4a4a;
+  --border-light: #2f2f2f;
+
+  /* ===== TEXT COLORS ===== */
+  --text-primary: #e3e2e0;
+  --text-secondary: #9b9a97;
+  --text-tertiary: #6f6e69;
+  --text-placeholder: #4a4a48;
+  --text-white: #ffffff;
+
+  /* ===== SHADOWS (darker, more prominent) ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* Alternative: Using prefers-color-scheme */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Same dark mode variables as above */
+    --rainbow-red: #ff7b7b;
+    --rainbow-orange: #ffb07b;
+    --rainbow-yellow: #ffe14d;
+    --rainbow-green: #7bdf8f;
+    --rainbow-teal: #5eddd4;
+    --rainbow-blue: #6dbdef;
+    --rainbow-indigo: #8b78ff;
+    --rainbow-purple: #c094dd;
+    --rainbow-pink: #ff95c3;
+
+    --notion-red: #ff6b6b;
+    --notion-orange: #ffa344;
+    --notion-yellow: #ffcc00;
+    --notion-green: #4db896;
+    --notion-blue: #529cca;
+    --notion-purple: #9a6dd7;
+    --notion-pink: #e255a1;
+    --notion-brown: #9f7563;
+
+    --notion-red-bg: #4a2626;
+    --notion-orange-bg: #4a3426;
+    --notion-yellow-bg: #4a4126;
+    --notion-green-bg: #26403a;
+    --notion-blue-bg: #263a4a;
+    --notion-purple-bg: #352a4a;
+    --notion-pink-bg: #4a2640;
+    --notion-brown-bg: #3d332a;
+
+    --gray-50: #171717;
+    --gray-100: #262626;
+    --gray-200: #404040;
+    --gray-300: #525252;
+    --gray-400: #737373;
+    --gray-500: #a3a3a3;
+    --gray-600: #d4d4d4;
+    --gray-700: #e5e5e5;
+    --gray-800: #f5f5f5;
+    --gray-900: #fafafa;
+
+    --bg-primary: #191919;
+    --bg-secondary: #202020;
+    --bg-tertiary: #2a2a2a;
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-active: rgba(255, 255, 255, 0.08);
+
+    --border-color: #3a3a3a;
+    --border-dark: #4a4a4a;
+    --border-light: #2f2f2f;
+
+    --text-primary: #e3e2e0;
+    --text-secondary: #9b9a97;
+    --text-tertiary: #6f6e69;
+    --text-placeholder: #4a4a48;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.6);
+  }
+}
+
+.tx-secondary {
+    color: var(--text-secondary);
+    font: var(--font-main);
+}
+
+/* ===== fxclasses ===== */
+
+.fx-full {
+    flex-grow: 1;
+    width: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-main);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.cascade-app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+.side-nav {
+    padding: 0.7rem;
+    background-color: var(--bg-secondary);
+    width: 230px;
+    display: flex;
+    flex-direction: column;
+}
+
+.conelem {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    height: 34px;
+    width: 100%;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    color: var(--text-secondary);
+}
+
+
+.conelem.selcted {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+.hover:hover {
+    background-color: var(--gray-200);
+    cursor: pointer;
+    transition: var(--smooth-dept) all 0.3s;
+}
+
+.letter {
+    background-color: var(--bg-tertiary);
+    border-radius: 8px;
+    width: 39px;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.letter.small {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+}
+
+.icono {
+    border-radius: 8px;
+    width: 34px;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icono img {
+    width: 24px;
+    aspect-ratio: 1/1;
+}
+
+.icono.gray {
+    opacity: 0.5;
+}
+
+.name {
+    font: var(--font-select) !important;
+    color: var(--text-primary);
+}
+
+.section-title {
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+}
+
+/* board content */
+
+.board-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+}
+
+.board-items {
+    margin-top: 15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: calc(100% - 45%);
+    margin-left: 23%;
+    margin-right: 23%;
+}
+
+.board-item-row {
+    display: flex;
+    gap: 0.2rem;
+    padding: 1rem 0;
+}
+
+.item {
+    width: 100%;
+    padding: 0.5rem;
+    position: relative;
+}
+
+.item:hover .floaty, .item:hover .float-button  {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s ease;
+}
+
+
+input.simple {
+    border: none;
+    background-color: transparent;
+    color: var(--text-primary);
+}
+
+input.simple:focus {
+    outline: none;
+    color: var(--text-primary);
+}
+
+/* ===== SMOOTH SCROLLBARS ===== */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--border-dark);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Smooth scrolling behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+
+/* floaties */
+
+.float-button {
+    background-color: var(--bg-secondary);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 5px;
+    width: fit-content;
+
+    position: absolute;
+    top: -1rem;
+    right: -2rem;
+    opacity: 0;
+}
+
+.floaty {
+    position: absolute;
+    top: 1rem;
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem;
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.floaty img {
+    padding: 4px;
+    border: var(--border-width) solid var(--border-color);
+}
+
+.floaty img:hover {
+    background-color: var(--gray-500);
+}
+
+.floaty.right {
+    right: 1rem;
+}
+
+
+/* item types */
+
+
+.item-element.title {
+    font: bold 3.3rem var(--font-main);
+    color: var(--text-primary);
+}
+
+
+/* adds */
+
+.extra-section {
+    margin-top: 3rem;
+}
+
+.addNote {
+    border: dashed var(--border-width) var(--border-color);
+    width: 200px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--border-radius-lg);
+}
+
+/* tools */
+
+
+.tools-container {
+    position: relative;
+}
+
+.tools {
+    position: absolute;
+    top: 1.7rem;
+    right: 1rem;
+    background-color: var(--bg-secondary);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: 0.5rem;
+    width: 300px;
+    height: 300px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    padding: 0.2rem;
+}
