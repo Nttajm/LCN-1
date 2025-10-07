@@ -22,6 +22,17 @@ const TEXT_TOOLS = {
     ]
 };
 
+const NOTE_TOOLS = {
+    embeds: [
+        {
+            img: 'icons/image.png',
+            label: 'Google',
+            action: 'Google Drive'
+        }
+    ]
+} ;
+
+
 const boardItemsSection = document.getElementById('boardItems');
 
 function createTextItem(type) {
@@ -39,33 +50,42 @@ function createTextItem(type) {
     input.className = `simple item-element ${type || 'normal-text'}`;
     input.placeholder = type === 'title' ? 'Board name' : 'Type something...';
     input.dataset.itemIndex = itemIndex;
+    input.autocomplete = 'off';
     
-    // Create floaty edit button
     const floaty = document.createElement('div');
     floaty.className = 'floaty right edit';
     floaty.innerHTML = '<img src="icons/edit.png" alt="edit" class="icono gray icon small">';
     
-    // Add click handler for edit button
     floaty.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleToolsMenu(itemIndex, floaty);
     });
     
-    itemDiv.appendChild(input);
     itemDiv.appendChild(floaty);
+    itemDiv.appendChild(input);
     itemDivRow.appendChild(itemDiv);
     
     boardItemsSection.appendChild(itemDivRow);
 }
 
+function removeLastTextItem() {
+    const allRows = document.querySelectorAll('.board-item-row');
+    if (allRows.length > 0) {
+        const lastRow = allRows[allRows.length - 1];
+        lastRow.parentNode.removeChild(lastRow);
+    }
+}
+
 function toolsMenuHTML(itemIndex) {
     const toolsContainer = document.createElement('div');
-    toolsContainer.className = 'tools-container';
+    toolsContainer.className = 'tools-container dn';
     toolsContainer.id = `tools-${itemIndex}`;
     
     const toolsDiv = document.createElement('div');
-    toolsDiv.className = 'tools';
+    toolsDiv.className = 'tools taboff';
 
+
+    toolsDiv.innerHTML = '<div class="cursor-ui-helper"></div>';
     const alignmentsSection = generateToolSection('Alignment', TEXT_TOOLS.alignments, (alignObj) => {
         return `
             <div class="conelem profile hover" data-action="changeAlignment" data-value="${alignObj.class}" data-item="${itemIndex}">
@@ -74,7 +94,7 @@ function toolsMenuHTML(itemIndex) {
             </div>
         `;
     });
-    // Generate sizes section
+    
     const sizesSection = generateToolSection('Font Size', TEXT_TOOLS.sizes, (sizeObj) => {
         return `
             <div class="conelem profile hover" data-action="changeSize" data-value="${sizeObj.class}" data-item="${itemIndex}">
@@ -84,7 +104,6 @@ function toolsMenuHTML(itemIndex) {
         `;
     });
     
-    // Generate colors section
     const colorsSection = generateToolSection('Color', TEXT_TOOLS.colors, (colorObj) => {
         return `
             <div class="conelem profile hover" data-action="changeColor" data-value="${colorObj.class}" data-item="${itemIndex}">
@@ -94,9 +113,8 @@ function toolsMenuHTML(itemIndex) {
         `;
     });
     
-    toolsDiv.innerHTML =  sizesSection + alignmentsSection + colorsSection  ;
+    toolsDiv.innerHTML += sizesSection + alignmentsSection + colorsSection;
     
-    // Attach event listeners to all action buttons
     toolsDiv.querySelectorAll('[data-action]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const action = btn.dataset.action;
@@ -108,10 +126,9 @@ function toolsMenuHTML(itemIndex) {
             } else if (action === 'changeColor') {
                 changeTextColor(itemIdx, value);
             } else if (action === 'changeAlignment') {
-                // Future feature: change text alignment
+                changeTextAlignment(itemIdx, value);
             }
             
-            // Close menu after action
             closeAllToolsMenus();
         });
     });
@@ -120,7 +137,6 @@ function toolsMenuHTML(itemIndex) {
     return toolsContainer;
 }
 
-// Helper function to generate a tool section dynamically
 function generateToolSection(title, items, itemTemplate) {
     let html = `<div class="section-title conelem"><span>${title}</span></div>`;
     items.forEach(item => {
@@ -129,99 +145,72 @@ function generateToolSection(title, items, itemTemplate) {
     return html;
 }
 
-// Toggle tools menu visibility
+// ✅ FIXED SECTION — Proper toggle logic using .dn
 function toggleToolsMenu(itemIndex, floatyElement) {
-    // Close other open menus first
     closeAllToolsMenus();
-    
-    // Check if menu already exists
+
     let existingTools = floatyElement.querySelector('.tools-container');
-    
     if (existingTools) {
-        // Toggle visibility
-        const toolsDiv = existingTools.querySelector('.tools');
-        if (toolsDiv.style.display === 'flex') {
-            toolsDiv.style.display = 'none';
-        } else {
-            toolsDiv.style.display = 'flex';
-        }
+        existingTools.classList.toggle('dn');
     } else {
-        // Create new menu
         const toolsMenu = toolsMenuHTML(itemIndex);
         floatyElement.appendChild(toolsMenu);
-        const toolsDiv = toolsMenu.querySelector('.tools');
-        toolsDiv.style.display = 'flex';
+        requestAnimationFrame(() => {
+            toolsMenu.classList.remove('dn');
+        });
     }
 }
 
-// Close all open tools menus
 function closeAllToolsMenus() {
-    document.querySelectorAll('.tools').forEach(tool => {
-        tool.style.display = 'none';
+    document.querySelectorAll('.tools-container').forEach(menu => {
+        menu.classList.add('dn');
     });
-}
-
-function changeTextAlignment(itemIndex, alignClass) {
-    const item = document.getElementById(`item-${itemIndex}`);
-    if (item) {
-        // Remove all alignment classes
-        TEXT_TOOLS.alignments.forEach(align => {
-            item.style.textAlign = '';
-        });
-
-        // Add new alignment class
-        if (alignClass) {
-            item.style.textAlign = alignClass;
-        }
-    }
-}
-
-// Change text size
-function changeTextSize(itemIndex, sizeClass) {
-    const item = document.getElementById(`item-${itemIndex}`);
-    if (item) {
-        // Remove all size classes
-        TEXT_TOOLS.sizes.forEach(size => {
-            item.classList.remove(size.class);
-        });
-        
-        // Add new size class
-        if (sizeClass) {
-            item.classList.add(sizeClass);
-        }
-    }
-}
-
-// Change text color
-function changeTextColor(itemIndex, colorClass) {
-    const item = document.getElementById(`item-${itemIndex}`);
-    if (item) {
-        // Remove all color classes
-        TEXT_TOOLS.colors.forEach(color => {
-            if (color.class) {
-                item.classList.remove(color.class);
-            }
-        });
-        
-        // Add new color class
-        if (colorClass) {
-            item.classList.add(colorClass);
-        }
-    }
 }
 
 // Close menus when clicking outside
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.floaty') && !e.target.closest('.tools')) {
+    if (!e.target.closest('.floaty') && !e.target.closest('.tools-container')) {
         closeAllToolsMenus();
     }
 });
+
+function changeTextAlignment(itemIndex, alignClass) {
+    const item = document.getElementById(`item-${itemIndex}`);
+    if (item) {
+        TEXT_TOOLS.alignments.forEach(align => {
+            item.classList.remove(align.class);
+        });
+        if (alignClass) item.classList.add(alignClass);
+    }
+    closeAllToolsMenus();
+}
+
+function changeTextSize(itemIndex, sizeClass) {
+    const item = document.getElementById(`item-${itemIndex}`);
+    if (item) {
+        TEXT_TOOLS.sizes.forEach(size => {
+            item.classList.remove(size.class);
+        });
+        if (sizeClass) item.classList.add(sizeClass);
+    }
+    closeAllToolsMenus();
+}
+
+function changeTextColor(itemIndex, colorClass) {
+    const item = document.getElementById(`item-${itemIndex}`);
+    if (item) {
+        TEXT_TOOLS.colors.forEach(color => {
+            if (color.class) item.classList.remove(color.class);
+        });
+        if (colorClass) item.classList.add(colorClass);
+    }
+    closeAllToolsMenus(); 
+}
 
 window.addEventListener('load', () => {
     createTextItem('title');
 });
 
-// Expose functions for debugging/external use
 window.CASCADE = {
     createTextItem,
     changeTextSize,
@@ -229,12 +218,10 @@ window.CASCADE = {
     TEXT_TOOLS
 };
 
-// Create new normal text input when clicking below an unfocused input
+// Create new normal text input when clicking below last input
 document.addEventListener('click', (e) => {
     const activeInput = document.activeElement;
     const allInputs = Array.from(document.querySelectorAll('.item-element'));
-    
-    // Find the last input (lowest one visually)
     const lastInput = allInputs[allInputs.length - 1];
     if (!lastInput) return;
 
@@ -242,10 +229,39 @@ document.addEventListener('click', (e) => {
     const clickY = e.clientY;
     const belowLast = clickY > rect.bottom;
 
-    // If user clicks below last input AND not on any tool or floaty
-    if (belowLast && !e.target.closest('.floaty') && !e.target.closest('.tools') && lastInput.value.trim() !== '') {
-        // Prevent duplicates if last one is still focused
+    if (belowLast && !e.target.closest('.floaty') && !e.target.closest('.tools-container') && lastInput.value.trim() !== '') {
         if (activeInput && activeInput === lastInput) return;
         createTextItem();
+    }
+});
+
+// Enter = new item, Backspace = delete empty item
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.classList.contains('item-element') && activeElement.value.trim() !== '') {
+            e.preventDefault();
+            createTextItem();
+            const allInputs = document.querySelectorAll('.item-element');
+            const lastInput = allInputs[allInputs.length - 1];
+            if (lastInput) lastInput.focus();
+        }
+    }
+
+    if (e.key === 'Backspace') {
+        const activeElement = document.activeElement;
+        const allInputs = document.querySelectorAll('.item');
+        if (
+            activeElement &&
+            activeElement.classList.contains('item-element') &&
+            activeElement.value.trim() === '' &&
+            allInputs.length > 1
+        ) {
+            e.preventDefault();
+            removeLastTextItem();
+            const updatedInputs = document.querySelectorAll('.item-element');
+            const lastInput = updatedInputs[updatedInputs.length - 1];
+            if (lastInput) lastInput.focus();
+        }
     }
 });

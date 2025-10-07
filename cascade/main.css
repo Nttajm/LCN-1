@@ -35,6 +35,15 @@
 .text-placeholder { color: var(--text-placeholder); }
 .text-white { color: var(--text-white); }
 
+.text-left {
+    text-align: left !important;
+}
+.text-center {
+    text-align: center !important;
+}
+.text-right {
+    text-align: right !important;
+}
 
 :root {
   /* ===== CALM RAINBOW COLORS ===== */
@@ -376,25 +385,28 @@ body {
 }
 
 .board-items {
-    margin-top: 15rem;
+    margin-top: 7rem;
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    width: calc(100% - 45%);
-    margin-left: 23%;
-    margin-right: 23%;
+    width: calc(100% - 30%);
+    margin-left: 15%;
+    margin-right: 15%;
 }
 
 .board-item-row {
     display: flex;
-    gap: 0.2rem;
-    padding: 1rem 0;
+    gap: 0.5rem;
+    padding: 0.5rem 2rem;
 }
 
 .item {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.5rem 0.2rem 0.4rem 2rem;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
 }
 
 .item:hover .floaty, .item:hover .float-button  {
@@ -471,8 +483,8 @@ html {
 }
 
 .floaty {
-    position: absolute;
-    top: 1rem;
+    bottom: 1rem;
+    left: -1rem;
     border-radius: var(--border-radius-md);
     padding: 0.5rem;
     display: flex;
@@ -492,9 +504,9 @@ html {
     background-color: var(--gray-500);
 }
 
-.floaty.right {
+/* .floaty.right {
     right: 1rem;
-}
+} */
 
 
 /* item types */
@@ -502,6 +514,11 @@ html {
 
 .item-element.title {
     font: bold 3.3rem var(--font-main);
+    color: var(--text-primary);
+}
+
+.item-element.normal-text {
+    font: 1.5rem var(--font-main);
     color: var(--text-primary);
 }
 
