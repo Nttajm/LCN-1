@@ -272,6 +272,25 @@ font-size: 16px;
   }
 }
 
+
+/* ui helper */
+
+.cursor-ui-helper {
+    background-color: var(--notion-blue);
+    width: 100px;
+    height: 100px;
+    position: absolute;
+
+    pointer-events: none;
+    right: -30%;
+    z-index: 3;
+
+    display: none;
+
+}
+
+/* ===== */
+
 .tx-secondary {
     color: var(--text-secondary);
     font: var(--font-main);
@@ -392,6 +411,8 @@ body {
     width: calc(100% - 30%);
     margin-left: 15%;
     margin-right: 15%;
+
+    position: relative;
 }
 
 .board-item-row {
@@ -402,7 +423,7 @@ body {
 
 .item {
     width: 100%;
-    padding: 0.5rem 0.2rem 0.4rem 2rem;
+    padding: 0.5rem 0.2rem ;
     position: relative;
     display: flex;
     align-items: center;
@@ -525,8 +546,10 @@ html {
 
 /* adds */
 
-.extra-section {
-    margin-top: 3rem;
+.noteBlock-container {
+    position: absolute;
+    bottom: -70%;
+    left: 2rem;
 }
 
 .addNote {

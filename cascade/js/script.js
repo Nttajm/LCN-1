@@ -35,6 +35,27 @@ const NOTE_TOOLS = {
 
 const boardItemsSection = document.getElementById('boardItems');
 
+forEachAddEvent('.js-tools-noteBlock', 'click', function() {
+    const thisId = this.id;
+    openNoteBlockModal(thisId);
+}); 
+
+function openNoteBlockModal(triggerId) {
+    const element = document.getElementById(triggerId);
+    element.innerHTML = createNoteBlockHTML();
+}
+
+function createFloaty(itemIndex, floatyClass = 'floaty right edit') {
+    const floaty = document.createElement('div');
+    floaty.className = floatyClass;
+    floaty.innerHTML = '<img src="icons/edit.png" alt="edit" class="icono gray icon small">';
+    floaty.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleToolsMenu(itemIndex, floaty);
+    });
+    return floaty;
+}
+
 function createTextItem(type) {
     const itemDivRow = document.createElement('div');
     itemDivRow.className = 'board-item-row';
@@ -52,14 +73,7 @@ function createTextItem(type) {
     input.dataset.itemIndex = itemIndex;
     input.autocomplete = 'off';
     
-    const floaty = document.createElement('div');
-    floaty.className = 'floaty right edit';
-    floaty.innerHTML = '<img src="icons/edit.png" alt="edit" class="icono gray icon small">';
-    
-    floaty.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleToolsMenu(itemIndex, floaty);
-    });
+    const floaty = createFloaty(itemIndex);
     
     itemDiv.appendChild(floaty);
     itemDiv.appendChild(input);
@@ -265,3 +279,11 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+
+
+function forEachAddEvent(selector, event, handler) {
+    const elements = document.querySelectorAll(selector);
+    elements.forEach(el => {
+        el.addEventListener(event, handler);
+    });
+}
