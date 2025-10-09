@@ -104,6 +104,7 @@
   --border-radius-sm: 3px;
   --border-radius-md: 6px;
   --border-radius-lg: 12px;
+  --border-radius-xl: 24px;
 
   /* ===== TEXT COLORS ===== */
   --text-primary: #37352f;
@@ -373,6 +374,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    object-fit: contain;
 }
 
 .icono img {
@@ -418,12 +420,12 @@ body {
 .board-item-row {
     display: flex;
     gap: 0.5rem;
-    padding: 0.5rem 2rem;
+    /* padding: 0.5rem 2rem; */
 }
 
 .item {
     width: 100%;
-    padding: 0.5rem 0.2rem ;
+    /* padding: 0.5rem 0.2rem ; */
     position: relative;
     display: flex;
     align-items: center;
@@ -534,7 +536,17 @@ html {
 
 
 .item-element.title {
-    font: bold 3.3rem var(--font-main);
+    font: bold 3.6rem var(--font-main);
+    color: var(--text-primary);
+}
+
+.item-element.heading2 {
+    font: bold 2.7rem var(--font-main);
+    color: var(--text-primary);
+}
+
+.item-element.heading3 {
+    font: bold 2rem var(--font-main);
     color: var(--text-primary);
 }
 
@@ -584,3 +596,52 @@ html {
     flex-direction: column;
     padding: 0.2rem;
 }
+
+/* extras
+ */
+
+
+ .extra_elems {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: calc(100% - 30%);
+    margin-left: 15%;
+    margin-right: 15%;
+
+    position: relative;
+    padding-left: 3rem;
+    margin-top: 1.5rem;
+ }
+
+
+
+ .await {
+
+    border: dashed 0.2rem var(--notion-blue-bg);
+    border-radius: var(--border-radius-xl);
+    padding: 0.7rem;
+    display: flex;
+ }
+
+
+ .prompt-input {
+    border: solid 0.1rem var(--border-color);
+    border-radius: var(--border-radius-xl);
+    padding: 0.5rem;
+    background-color: transparent;
+    color: var(--text-primary);
+    font: var(--font-main);
+    width: 100%; 
+ }
+
+ .go {
+    background-color: var(--notion-blue-bg);
+    border: none;
+    color: var(--text-white);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font: var(--font-main);
+    margin-left: 0.5rem;
+ }
