@@ -1,5 +1,10 @@
+
+
 document.addEventListener('DOMContentLoaded', () => {
     const TEXT_TOOLS = {
+        'settings': [
+            { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' }
+        ],
         'Size': [
             { id: 'title', label: 'Heading 1', class: 'title', icon: 'H1' },
             { id: 'heading2', label: 'Heading 2', class: 'heading2', icon: 'H2' },
@@ -25,6 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const ADD_BLOCKS = {
+        'text': [
+            { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal' },
+            { id: 'title', icon: 'H1', class: 'title', label: 'Heading 1', action: 'title' },
+            { id: 'heading2', icon: 'H2', class: 'heading2', label: 'Heading 2', action: 'heading2' },
+            { id: 'heading3', icon: 'H3', class: 'heading3', label: 'Heading 3', action: 'heading3' }
+        ],
         'Note Block': [
             { id: 'note', icon: '▼', class: 'note-block', label: 'Drop down' },
             { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist' }
@@ -44,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // load initial item
     createTextItem('title');
+    initEmptyInputs();
 
     // create items
     function createTextItem(type = 'normal-text') {
@@ -83,23 +95,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Build tools menu
     function openConElemTools(tools, itemIndex) {
-        const toolsContainer = document.createElement('div');
-        toolsContainer.className = 'tools-container dn';
+    const toolsContainer = document.createElement('div');
+    toolsContainer.className = 'tools-container dn';
 
-        const toolsDiv = document.createElement('div');
-        toolsDiv.className = 'tools taboff';
+    const toolsDiv = document.createElement('div');
+    toolsDiv.className = 'tools taboff';
 
-        Object.entries(tools).forEach(([sectionName, sectionItems]) => {
-            const sectionHTML = [`<div class="section-title conelem"><span>${sectionName}</span></div>`];
-            sectionItems.forEach(tool => {
-                sectionHTML.push(genColElement( icon = tool.icon, img = tool.img, label = tool.label, colorClass = tool.class, itemIndex = itemIndex, tool.action ? tool.action : sectionName ));
-            });
-            toolsDiv.innerHTML += sectionHTML.join('');
+    Object.entries(tools).forEach(([sectionName, sectionItems]) => {
+        const sectionHTML = [`<div class="section-title conelem"><span>${sectionName}</span></div>`];
+        sectionItems.forEach(tool => {
+            sectionHTML.push(
+                genColElement(
+                    tool.icon,
+                    tool.img,
+                    tool.label,
+                    tool.class,
+                    itemIndex,
+                    tool.action ? tool.action : sectionName
+                )
+            );
         });
+        toolsDiv.innerHTML += sectionHTML.join('');
+    });
 
-        toolsContainer.appendChild(toolsDiv);
-        return toolsContainer;
-    }
+    toolsContainer.appendChild(toolsDiv);
+    return toolsContainer;
+}
+
 
     // Single tool button
     function genColElement(icon, img, label, colorClass, itemIndex, sectionName) {
@@ -155,6 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (action === 'Color') changeTextColor(itemIndex, value);
         if (action === 'Alignments') changeTextAlignment(itemIndex, value);
 
+        if (action === 'normal') createTextItem('normal-text');
+        if (action === 'title') createTextItem('title');
+        if (action === 'heading2') createTextItem('heading2');
+        if (action === 'heading3') createTextItem('heading3');
+        if (action === 'delete') {
+            const row = document.getElementById(`item-row-${itemIndex}`);
+            if (row) row.remove();
+        }
+
         if (action === 'link') {
             promptForLink();
         }
@@ -203,18 +234,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add new item when clicking below last input
     document.addEventListener('click', (e) => {
+        const boardContainer = document.querySelector('.board-content');
         const activeInput = document.activeElement;
         const allInputs = Array.from(document.querySelectorAll('.item-element'));
         const lastInput = allInputs[allInputs.length - 1];
         if (!lastInput) return;
 
-        if (lastInput.classList.contains('nAvoid')) return;
+        const boardItemChildren = Array.from(boardContainer.children);
 
         const rect = lastInput.getBoundingClientRect();
         const clickY = e.clientY;
         const belowLast = clickY > rect.bottom;
 
-        if (belowLast && !e.target.closest('.floaty') && !e.target.closest('.tools-container') && lastInput.value.trim() !== '' && !e.target.classList.contains('nAvoid')) {
+        if (
+            belowLast &&
+            !e.target.closest('.floaty') &&
+            !e.target.closest('.board-item-row') &&
+            !e.target.closest('.extra_elems') &&
+            !lastInput.classList.contains('empty')
+        ) {
             if (activeInput && activeInput === lastInput) return;
             createTextItem();
         }
@@ -276,44 +314,108 @@ function closeAllToolsMenus() {
 
 // prompters 
 function promptForLink(container = document.getElementById('boardItems')) {
-  const row = document.createElement('div');
-  row.className = 'board-item-row';
-  container.appendChild(row);
+    const row = document.createElement('div');
+    row.className = 'board-item-row';
+    container.appendChild(row);
 
+    const removePrompt = () => row.remove();
 
-  const prompt = (placeholder, btnText, next) => {
-    row.innerHTML = `
-      <div class="await">
-        <input type="text" class="prompt-input" placeholder="${placeholder}">
-        <button class="go">${btnText}</button>
-      </div>`;
-    const input = row.querySelector('.prompt-input');
-    row.querySelector('.go').onclick = () => {
-      const val = input.value.trim();
-      if (!val) return alert('Please enter something.');
-      next(val);
+    const prompt = (placeholder, btnText, next) => {
+        row.innerHTML = `
+            <div class="await">
+                <input type="text" class="prompt-input" placeholder="${placeholder}">
+                <button class="go btn-sm">${btnText}</button>
+                <button class="cancel btn-sm">Cancel</button>
+            </div>`;
+        const input = row.querySelector('.prompt-input');
+        row.querySelector('.go').onclick = () => {
+            const val = input.value.trim();
+            if (!val) return alert('Please enter something.');
+            next(val);
+        };
+        row.querySelector('.cancel').onclick = removePrompt;
+        input.focus();
     };
-    input.focus();
-  };
 
-  let link = '';
-  prompt('Type or paste link...', 'Next', val => {
-    link = val;
-    prompt('Enter a name for the link...', 'Save', name => {
-      const a = Object.assign(document.createElement('a'), {
-        href: link,
-        textContent: name,
-        target: '_blank',
-        className: 'board-link'
-      });
-      const linkRow = Object.assign(document.createElement('div'), {
-        className: 'board-item-row'
-      });
-      linkRow.appendChild(a);
-        linkRow.appendChild(floaty);
-      container.appendChild(linkRow);
-      row.remove();
+    let link = '';
+    prompt('Type or paste link...', 'Next', val => {
+        link = val;
+        prompt('Enter a name for the link...', 'Save', name => {
+            const a = Object.assign(document.createElement('a'), {
+                href: link,
+                textContent: name,
+                target: '_blank',
+                className: 'board-link item-element',
+            });
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            itemDiv.appendChild(a);
+
+            const linkRow = document.createElement('div');
+            linkRow.className = 'board-item-row';
+            linkRow.appendChild(itemDiv);
+
+            container.appendChild(linkRow);
+            row.remove();
+        });
     });
-  });
 }
 
+
+function initEmptyInputs() {
+    document.querySelectorAll('.item-element').forEach(input => {
+        input.classList.add('empty');
+    });
+    document.querySelectorAll('.item-element').forEach(input => {
+        const checkEmpty = () => {
+            if (input.value.trim() === '') {
+                input.classList.add('empty');
+            } else {
+                input.classList.remove('empty');
+            }
+        };
+        input.addEventListener('input', checkEmpty);
+        checkEmpty();
+    });
+}
+
+
+function addCover(imgUrl) {
+  const coverElem = document.querySelector('.cover');
+
+  const covers = [
+    'covers/cover1.jpg',
+  ];
+  imgUrl = imgUrl || covers[Math.floor(Math.random() * covers.length)];
+
+  if (coverElem) {
+    coverElem.style.backgroundImage = `url('${imgUrl}')`;
+  }
+}
+
+const coverBtn = document.querySelector('.add-cover-btn');
+if (coverBtn) {
+    coverBtn.addEventListener('click', () => addCover());
+}
+
+
+
+// detectors 
+
+document.addEventListener('keydown', (e) => {
+    const activeElement = document.activeElement;
+    if (
+        activeElement &&
+        activeElement.classList.contains('item-element') &&
+        e.key === ' ' &&
+        activeElement.value.trim().endsWith('-')
+    ) {
+        activeElement.value = '';
+        e.preventDefault();
+        const cursorPos = activeElement.selectionStart;
+        const before = activeElement.value.substring(0, cursorPos);
+        const after = activeElement.value.substring(cursorPos);
+        activeElement.value = before + '\n• ' + after;
+        activeElement.selectionStart = activeElement.selectionEnd = cursorPos + 3;
+        }
+});
