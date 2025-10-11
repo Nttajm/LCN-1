@@ -1,6 +1,24 @@
 
+let printMode = 'board'; // or 'page'
+let listmode = ''; // or 'numbered'
+const boardItemsSection = document.getElementById('boardItems');
 
+let covers = [
+'covers/cover1.jpg',
+'covers/cover2.png',
+];
+
+let randomIcons = [
+'🏞️', '📘', '📗', '📕', '📒', '📓', '📔', '📚', '🖼️', '🎨', '🎭', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '📷', '📹', '🎥', '📺', '💻', '🖥️', '🖨️', '⌨️', '🖱️', '🖲️', '💡', '🔦', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️'
+]
 document.addEventListener('DOMContentLoaded', () => {
+
+    const DEFAULT = {
+        'settings': [
+            { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' }
+        ],
+    };
+
     const TEXT_TOOLS = {
         'settings': [
             { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' }
@@ -28,16 +46,53 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    const ANCHOR_TEXT_TOOLS = {
+        'settings': [
+            { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' },
+            { id: 'edit', icon: '✏️', class: 'edit', label: 'Edit Link', action: 'edit' }
+        ],
+        'Color': [
+            { id: 'default', label: 'Default', class: '', icon: 'A' },
+            { id: 'red', label: 'Red', class: 'text-rainbow-red', icon: 'A' },
+            { id: 'blue', label: 'Blue', class: 'text-rainbow-blue', icon: 'A' },
+            { id: 'green', label: 'Green', class: 'text-rainbow-green', icon: 'A' },
+            { id: 'yellow', label: 'Yellow', class: 'text-rainbow-yellow', icon: 'A' },
+            { id: 'purple', label: 'Purple', class: 'text-rainbow-purple', icon: 'A' },
+            { id: 'orange', label: 'Orange', class: 'text-rainbow-orange', icon: 'A' },
+            { id: 'pink', label: 'Pink', class: 'text-rainbow-pink', icon: 'A' }
+        ],
+        'Alignments': [
+            { id: 'left', label: 'Left', class: 'text-left', icon: 'L' },
+            { id: 'center', label: 'Center', class: 'text-center', icon: 'C' },
+            { id: 'right', label: 'Right', class: 'text-right', icon: 'R' }
+        ]
+    };
+
+    const ADD_DROP_BLOCKS = {
+        'text': [
+            { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal', drop: true },
+        ],
+        'Note Block': [
+            { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true }
+        ],
+        'Media': [
+            { id: 'link', icon: '🔗', class: 'link', label: 'Link', action: 'link', drop: true },
+            { id: 'image', icon: '🖼️', class: 'image', label: 'Image', action: 'image', drop: true },
+            { id: 'video', icon: '🎥', class: 'video', label: 'Video', action: 'video', drop: true }
+        ],
+        'Embed': [
+            { id: 'gcal', img: 'appicons/gcal.png', class: 'embed', label: 'Google Calendar', drop: true },
+            { id: 'yt', img: 'appicons/yt.png', class: 'embed', label: 'YouTube', action: 'youtube', drop: true }
+        ]
+    }
 
     const ADD_BLOCKS = {
         'text': [
             { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal' },
-            { id: 'title', icon: 'H1', class: 'title', label: 'Heading 1', action: 'title' },
-            { id: 'heading2', icon: 'H2', class: 'heading2', label: 'Heading 2', action: 'heading2' },
-            { id: 'heading3', icon: 'H3', class: 'heading3', label: 'Heading 3', action: 'heading3' }
         ],
         'Note Block': [
-            { id: 'note', icon: '▼', class: 'note-block', label: 'Drop down' },
+            {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
+            { id: 'note', icon: '▼', class: 'note-block', label: 'Drop down' , action: 'dropdown' },
             { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist' }
         ],
         'Media': [
@@ -51,14 +106,22 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     }
 
-    const boardItemsSection = document.getElementById('boardItems');
+    const CHANGE_ICON_TOOLS = {
+        'Icon Settings': [
+            { id: 'edit', icon: '✏️', class: 'edit', label: 'Add emoji or Letter', action: 'edit-icon' },
+        ]
+    };
 
     // load initial item
     createTextItem('title');
     initEmptyInputs();
+    syncInputToDataContent();
+    addEventListenerGroup();
+    recognizeElems();
+
 
     // create items
-    function createTextItem(type = 'normal-text') {
+    function createTextItem(type = 'normal-text', toBoard = true) {
         const itemDivRow = document.createElement('div');
         itemDivRow.className = 'board-item-row';
 
@@ -71,24 +134,140 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.createElement('input');
         input.type = 'text';
         input.id = `item-input-${itemIndex}`;
-        input.className = `simple item-element ${type || 'normal-text'}`;
+        input.className = `simple item-element fx-full ${type || 'normal-text'}`;
         input.placeholder = type === 'title' ? 'Title' : 'Type something...';
         input.dataset.itemIndex = itemIndex;
         input.autocomplete = 'off';
+
+        input.value = checkList();
 
         const floaty = createFloaty(itemIndex, 'edit');
 
         itemDiv.appendChild(floaty);
         itemDiv.appendChild(input);
         itemDivRow.appendChild(itemDiv);
-        boardItemsSection.appendChild(itemDivRow);
-    }
+        appendItemToBoard(itemDivRow);
+        initEmptyInputs(); // Ensure new inputs are initialized
+     }
+
+     function checkList() {
+        if (listmode === 'dash') {
+            return '- ';
+        } else if (listmode === 'bullet') {
+            return '• ';
+        } else if (listmode === 'numbered') {
+            
+        } else {
+            return '';
+        }
+     }
+
+     function createNewIdenticalInput() {
+        const activeElementInput = document.activeElement;
+        if (activeElementInput && activeElementInput.classList.contains('item-element')) {
+            const currentType = Array.from(activeElementInput.classList).find(cls => ['normal-text', 'title', 'heading2', 'heading3'].includes(cls)) || 'normal-text';
+            createTextItem(currentType);
+            const allInputs = document.querySelectorAll('.item-element');
+            allInputs[allInputs.length - 1].focus();
+        }
+        }
+
+
+        function createSeparator() {
+        const itemDivRow = document.createElement('div');
+        itemDivRow.className = 'board-item-row';
+        itemDivRow.innerHTML = `
+                    <div class="item">
+                    </div>`;
+
+                    
+        const itemIndex = document.querySelectorAll('.item').length + 1;
+        itemDivRow.id = `item-row-${itemIndex}`;
+        const floaty = createFloaty(itemIndex, 'simple');
+        const itemDiv = itemDivRow.querySelector('.item');
+        itemDiv.appendChild(floaty);
+        appendItemToBoard(itemDivRow); 
+
+        const hr = document.createElement('hr');
+        itemDivRow.querySelector('.item').appendChild(hr);
+        }
+
+     
+function createAnchorTextItem(type = 'normal-text', link = '#', name = '') {
+        const itemDivRow = document.createElement('div');
+        itemDivRow.className = 'board-item-row';
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item';
+
+        const itemIndex = document.querySelectorAll('.item').length + 1;
+        itemDivRow.id = `item-row-${itemIndex}`;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = `item-input-${itemIndex}`;
+        input.className = `simple item-element ${type || 'normal-text'} board-link cur `;
+        input.placeholder = 'link description...';
+        input.dataset.itemIndex = itemIndex;
+        input.autocomplete = 'off';
+        input.value = name;
+        if (link && !/^https?:\/\//i.test(link)) {
+            link = 'https://' + link;
+        }
+        input.setAttribute('data-link', link);
+
+        const floaty = createFloaty(itemIndex, 'anchor');
+
+        itemDiv.appendChild(floaty);
+        itemDiv.appendChild(input);
+        itemDivRow.appendChild(itemDiv);
+        appendItemToBoard(itemDivRow);
+        syncInputToDataContent();
+     }
+
+
+// prompters 
+function promptForLink(container = document.getElementById('boardItems')) {
+    const row = document.createElement('div');
+    row.className = 'board-item-row';
+    appendItemToBoard(row);
+
+
+    const removePrompt = () => row.remove();
+
+    const prompt = (placeholder, btnText, next) => {
+        row.innerHTML = `
+            <div class="await">
+                <input type="text" class="prompt-input" placeholder="${placeholder}">
+                <button class="go btn-sm">${btnText}</button>
+                <button class="cancel btn-sm">🗑️</button>
+            </div>`;
+        const input = row.querySelector('.prompt-input');
+        row.querySelector('.go').onclick = () => {
+            const val = input.value.trim();
+            if (!val) return alert('Please enter something.');
+            next(val);
+        };
+        row.querySelector('.cancel').onclick = removePrompt;
+        input.focus();
+    };
+
+    let link = '';
+    prompt('Type or paste link...', '➔', val => {
+        link = val;
+        prompt('Enter a name for the link...', 'Save', name => {
+            removePrompt();
+            createAnchorTextItem('link', link, name);
+            syncInputToDataContent();
+        });
+    });
+}
 
     // create floaty edit button
-    function createFloaty(itemIndex, action) {
+    function createFloaty(itemIndex, action = 'edit') {
         const floaty = document.createElement('div');
-        floaty.className = 'floaty right edit js-uni-tools';
-        floaty.innerHTML = '<img src="icons/edit.png" alt="edit" class="icono gray icon small">';
+        floaty.className = `floaty right ${action} js-uni-tools`;
+        floaty.innerHTML = `<img src="icons/edit.png" alt="${action}" class="icono gray icon">`;
         floaty.dataset.item = itemIndex;
         return floaty;
     }
@@ -100,6 +279,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const toolsDiv = document.createElement('div');
     toolsDiv.className = 'tools taboff';
+
+    const cursorGap = document.createElement('div');
+    cursorGap.className = 'cursor-gap';
+    toolsContainer.appendChild(cursorGap);
 
     Object.entries(tools).forEach(([sectionName, sectionItems]) => {
         const sectionHTML = [`<div class="section-title conelem"><span>${sectionName}</span></div>`];
@@ -136,33 +319,101 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
     }
 
+    function createDropdown() {
+    const index = document.querySelectorAll('.item').length + 1;
+
+    const itemDivRow = document.createElement('div');
+    itemDivRow.className = 'board-item-row';
+
+    itemDivRow.innerHTML = `
+        <div class="dropdown item fl-c g-5" id="item-${index}">
+            <div class="drop-name fl-r g-5 fx-full">
+                <img src="icons/dropdown.png" alt="dropdown" data-target="dd-hide-${index}" class="hide-part icono gray icon drop-icon btn-space btn-set" />
+                <input type="text" class="drop-input item-element simple" placeholder="Name" />
+            </div>
+            <div class="drop-content dd-hide-${index}" id="drop-content-${index}"></div>
+            <div class="addNote js-uni-tools add-drop nAvoid dd-hide-${index}" id="add-dropdown-${index}">
+                <img src="icons/add.png" alt="add" class="icono gray icon small">
+                <span class="tx-secondary"></span>
+            </div>
+        </div>
+    `;
+
+    appendItemToBoard(itemDivRow);
+}
+
+function createBox() {
+    const index = document.querySelectorAll('.item').length + 1;
+
+    const itemDivRow = document.createElement('div');
+    itemDivRow.className = 'board-item-row';
+
+    itemDivRow.innerHTML = `
+        <div class="item box" id="item-${index}">
+            <div class="drop-name fl-r g-5 fx-full">
+                <input type="text" class="drop-input item-element simple" placeholder="Name" />
+            </div>
+        </div>
+    `;
+
+    appendItemToBoard(itemDivRow);
+}
+
+
+    
+
     // Event delegation for floaty (edit) button clicks
     document.addEventListener('click', (e) => {
-        const floaty = e.target.closest('.js-uni-tools');
-        if (floaty) {
+        const u_Tool = e.target.closest('.js-uni-tools');
+        if (u_Tool) {
             e.stopPropagation();
             closeAllToolsMenus();
 
-            const itemIndex = floaty.dataset.item;
-            let existing = floaty.querySelector('.tools-container');
+            const itemIndex = u_Tool.dataset.item;
+            let existing = u_Tool.querySelector('.tools-container');
             if (existing) {
-                existing.classList.toggle('dn');
-                return;
+            existing.classList.toggle('dn');
+            return;
             }
 
-            if (floaty.classList.contains('edit')) {
-                const toolsMenu = openConElemTools(TEXT_TOOLS, itemIndex);
-                floaty.appendChild(toolsMenu);
-                requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
+            
+            if (u_Tool.classList.contains('simple')) {
+            const toolsMenu = openConElemTools(DEFAULT, itemIndex);
+            u_Tool.appendChild(toolsMenu);
+            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
             }
 
-            if (floaty.classList.contains('add')) {
-                const toolsMenu = openConElemTools(ADD_BLOCKS, itemIndex);
-                floaty.appendChild(toolsMenu);
-                requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
+            if (u_Tool.classList.contains('edit')) {
+            const toolsMenu = openConElemTools(TEXT_TOOLS, itemIndex);
+            u_Tool.appendChild(toolsMenu);
+            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
+            }
+
+            if (u_Tool.classList.contains('add')) {
+            const toolsMenu = openConElemTools(ADD_BLOCKS, itemIndex);
+            u_Tool.appendChild(toolsMenu);
+            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
+            }
+
+            if (u_Tool.classList.contains('add-drop')) {
+            const toolsMenu = openConElemTools(ADD_DROP_BLOCKS, itemIndex);
+            u_Tool.appendChild(toolsMenu);
+            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
+            }
+
+            if (u_Tool.classList.contains('anchor')) {
+            const toolsMenu = openConElemTools(ANCHOR_TEXT_TOOLS, itemIndex);
+            u_Tool.appendChild(toolsMenu);
+            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
+            }
+
+            if (u_Tool.classList.contains('edit-icon')) {
+            const toolsMenu = openConElemTools(CHANGE_ICON_TOOLS, itemIndex);
+            u_Tool.appendChild(toolsMenu);
+            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
             }
         }
-    });
+        });
 
     // Event delegation for all .js-trigger-action clicks
     document.addEventListener('click', (e) => {
@@ -176,6 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (action === 'Size') changeTextSize(itemIndex, value);
         if (action === 'Color') changeTextColor(itemIndex, value);
         if (action === 'Alignments') changeTextAlignment(itemIndex, value);
+    
 
         if (action === 'normal') createTextItem('normal-text');
         if (action === 'title') createTextItem('title');
@@ -186,14 +438,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (row) row.remove();
         }
 
+        if (action === 'separator') {
+            createSeparator();
+        }
+
         if (action === 'link') {
             promptForLink();
         }
 
+        if (action === 'dropdown') {
+            createDropdown();
+        }
 
+        if (action === 'edit') {
+            focusInput(itemIndex);
+        }
 
         if (action === 'yotube') {
             alert('YouTube embed feature coming soon!');
+        }
+
+        if (action === 'edit-icon') {
+            focusIconInput();
         }
 
 
@@ -232,6 +498,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (alignClass) input.classList.add(alignClass);
     }
 
+    function focusInput(itemIndex) {
+        const input = document.getElementById(`item-input-${itemIndex}`);
+        if (input) input.focus();
+    }
+
     // Add new item when clicking below last input
     document.addEventListener('click', (e) => {
         const boardContainer = document.querySelector('.board-content');
@@ -260,6 +531,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Enter + Backspace shortcuts
     document.addEventListener('keydown', (e) => {
+        if (
+            (e.key === 'ArrowDown' || e.key === 'ArrowUp') &&
+            document.activeElement.classList.contains('item-element')
+        ) {
+            const allInputs = Array.from(document.querySelectorAll('.item-element'));
+            const currentIndex = allInputs.indexOf(document.activeElement);
+            if (e.key === 'ArrowDown' && currentIndex < allInputs.length - 1) {
+                e.preventDefault();
+                allInputs[currentIndex + 1].focus();
+            }
+            if (e.key === 'ArrowUp' && currentIndex > 0) {
+                e.preventDefault();
+                allInputs[currentIndex - 1].focus();
+            }
+        }
+
+        const activeElementInput = document.activeElement;
+
+        if (activeElementInput.scrollWidth > activeElementInput.clientWidth) {
+            createNewIdenticalInput();
+        }
+
+
         if (e.key === 'Enter') {
             const activeElement = document.activeElement;
             if (activeElement && activeElement.classList.contains('item-element') && activeElement.value.trim() !== '') {
@@ -276,8 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (
                 activeElement &&
                 activeElement.classList.contains('item-element') &&
-                activeElement.value.trim() === '' &&
-                allInputs.length > 1
+                activeElement.value.trim() === ''
             ) {
                 e.preventDefault();
                 const parentRow = activeElement.closest('.board-item-row');
@@ -294,15 +587,102 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+
+    // icons stuff
+
+    function addIcon() {
+        const iconInput = document.getElementById('icon-input');
+        if (iconInput) {
+            iconInput.classList.remove('dn');
+            iconInput.classList.add('hasIcon');
+            const randomIcon = randomIcons[Math.floor(Math.random() * randomIcons.length)];
+            iconInput.value = randomIcon;
+            recognizeElems();
+        }
+    }
+
+
+    function focusIconInput() {
+        const iconInput = document.getElementById('icon-input');
+        if (iconInput) {
+            iconInput.removeAttribute('readonly');
+            iconInput.focus();
+
+            // Handler to set readonly back
+            function setReadonlyBack() {
+                iconInput.setAttribute('readonly', true);
+                iconInput.removeEventListener('blur', setReadonlyBack);
+                iconInput.removeEventListener('keydown', onEnter);
+            }
+
+            function onEnter(e) {
+                if (e.key === 'Enter') {
+                    setReadonlyBack();
+                }
+            }
+
+            iconInput.addEventListener('blur', setReadonlyBack);
+            iconInput.addEventListener('keydown', onEnter);
+        }
+    }
+
+
+    const addIconBtn = document.querySelector('.add-icon-btn');
+    if (addIconBtn) {
+        addIconBtn.addEventListener('click', () => {
+            addIcon();
+        });
+    }
+
+
 });
 
+     function appendItemToBoard(itemDivRow) {
+        const printer = boardItemsSection;
+        if (printMode != 'board') {
+            const dropdownContent = document.getElementById(`drop-content-${printMode}`);
+            if (dropdownContent) {
+                dropdownContent.appendChild(itemDivRow);
+            } else {
+                boardItemsSection.appendChild(itemDivRow);
+            }
+        } else {
+            boardItemsSection.appendChild(itemDivRow);
+        }
+    } 
+
+// =========== Additional Features ===========
 
 document.addEventListener('click', (e) => {
+        addEventListenerGroup();
     if (!e.target.closest('.js-uni-tools') && !e.target.closest('.tools-container')) {
         closeAllToolsMenus();
     }
+    
 });
 
+
+
+function addEventListenerGroup() {
+     recognizeElems();
+    syncInputToDataContent();
+        initEmptyInputs();
+        initLinkers();
+        initHiders();
+    const allAddNoteBtns = document.querySelectorAll('.addNote');
+    allAddNoteBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const itemID = btn.id 
+        if (!itemID || itemID === 'add-note') return;
+        const itemIndex = itemID.split('-').pop();
+        printMode = itemIndex;
+        console.log('Set printMode to:', printMode);
+    })
+});
+}
+
+// =========== Additional Features ===========
 
 function closeAllToolsMenus() {
     document.querySelectorAll('.tools-container').forEach(menu => {
@@ -312,80 +692,9 @@ function closeAllToolsMenus() {
 
 
 
-// prompters 
-function promptForLink(container = document.getElementById('boardItems')) {
-    const row = document.createElement('div');
-    row.className = 'board-item-row';
-    container.appendChild(row);
-
-    const removePrompt = () => row.remove();
-
-    const prompt = (placeholder, btnText, next) => {
-        row.innerHTML = `
-            <div class="await">
-                <input type="text" class="prompt-input" placeholder="${placeholder}">
-                <button class="go btn-sm">${btnText}</button>
-                <button class="cancel btn-sm">Cancel</button>
-            </div>`;
-        const input = row.querySelector('.prompt-input');
-        row.querySelector('.go').onclick = () => {
-            const val = input.value.trim();
-            if (!val) return alert('Please enter something.');
-            next(val);
-        };
-        row.querySelector('.cancel').onclick = removePrompt;
-        input.focus();
-    };
-
-    let link = '';
-    prompt('Type or paste link...', 'Next', val => {
-        link = val;
-        prompt('Enter a name for the link...', 'Save', name => {
-            const a = Object.assign(document.createElement('a'), {
-                href: link,
-                textContent: name,
-                target: '_blank',
-                className: 'board-link item-element',
-            });
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'item';
-            itemDiv.appendChild(a);
-
-            const linkRow = document.createElement('div');
-            linkRow.className = 'board-item-row';
-            linkRow.appendChild(itemDiv);
-
-            container.appendChild(linkRow);
-            row.remove();
-        });
-    });
-}
-
-
-function initEmptyInputs() {
-    document.querySelectorAll('.item-element').forEach(input => {
-        input.classList.add('empty');
-    });
-    document.querySelectorAll('.item-element').forEach(input => {
-        const checkEmpty = () => {
-            if (input.value.trim() === '') {
-                input.classList.add('empty');
-            } else {
-                input.classList.remove('empty');
-            }
-        };
-        input.addEventListener('input', checkEmpty);
-        checkEmpty();
-    });
-}
-
-
 function addCover(imgUrl) {
   const coverElem = document.querySelector('.cover');
 
-  const covers = [
-    'covers/cover1.jpg',
-  ];
   imgUrl = imgUrl || covers[Math.floor(Math.random() * covers.length)];
 
   if (coverElem) {
@@ -398,24 +707,145 @@ if (coverBtn) {
     coverBtn.addEventListener('click', () => addCover());
 }
 
+function initLinkers() {
+    const linkers = document.querySelectorAll('[data-link]');
+    linkers.forEach(linker => {
+        linker.addEventListener('click', (e) => {
+            const url = linker.dataset.link;
+            if (url) {
+                window.open(url, '_blank');
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+    });
+}
 
+function initHiders() {
+    const hiders = document.querySelectorAll('.hide-part');
+    hiders.forEach(hider => {
+        hider.addEventListener('click', () => {
+            const targetId = hider.dataset.target;
+            if (!targetId) return;
+            const targetElems = document.querySelectorAll(`.${targetId}`);
+            targetElems.forEach(targetElem => {
+                targetElem.classList.toggle('dn');
+            });
+            hider.classList.toggle('active');
+        });
+    });
+}
+
+// Call these after DOM is ready or after dynamic content is added
+initLinkers();
+initHiders();
+
+function initEmptyInputs() {
+    document.querySelectorAll('.item-element').forEach(input => {
+        const checkEmpty = () => {
+            if (input.value.trim() === '') {
+                input.classList.add('empty');
+            } else {
+                input.classList.remove('empty');
+            }
+        };
+        input.classList.add('empty');
+        input.removeEventListener('input', checkEmpty); // Prevent duplicate listeners
+        input.addEventListener('input', checkEmpty);
+        checkEmpty();
+    });
+}
+
+
+initEmptyInputs();
+
+
+// Sync input value to data-content on keydown
+function syncInputToDataContent() {
+    document.addEventListener('keydown', (e) => {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.classList.contains('item-element')) {
+            setTimeout(() => {
+                activeElement.setAttribute('data-content', activeElement.value);
+            }, 0);
+        }
+    });
+
+    // On DOMContentLoaded, set input value from data-content if present
+        document.querySelectorAll('.item-element[data-content]').forEach(input => {
+            if (input.dataset.content) {
+                input.value = input.dataset.content;
+            }
+        });
+}
+
+// Call the function to enable syncing
 
 // detectors 
-
+// Dynamic bullet/marker detector
+const BULLET_MARKERS = [
+    { trigger: '-', replace: '• ', mode: 'bullet' },
+    // Add more markers here in the future, e.g. { trigger: '*', replace: '• ' }
+];
 document.addEventListener('keydown', (e) => {
     const activeElement = document.activeElement;
+
     if (
         activeElement &&
-        activeElement.classList.contains('item-element') &&
-        e.key === ' ' &&
-        activeElement.value.trim().endsWith('-')
+        activeElement.classList.contains('item-element')
     ) {
-        activeElement.value = '';
-        e.preventDefault();
-        const cursorPos = activeElement.selectionStart;
-        const before = activeElement.value.substring(0, cursorPos);
-        const after = activeElement.value.substring(cursorPos);
-        activeElement.value = before + '\n• ' + after;
-        activeElement.selectionStart = activeElement.selectionEnd = cursorPos + 3;
+        // Bullet marker on space
+        if (e.key === ' ') {
+            for (const marker of BULLET_MARKERS) {
+                const trimmedValue = activeElement.value.trim();
+                if (trimmedValue.endsWith(marker.trigger)) {
+                    // Remove the marker and insert the bullet
+                    const cursorPos = activeElement.selectionStart;
+                    // Remove marker from value before cursor
+                    const before = activeElement.value.substring(0, cursorPos - marker.trigger.length);
+                    const after = activeElement.value.substring(cursorPos);
+                    activeElement.value = before + marker.replace + after;
+                    // Set cursor after bullet
+                    activeElement.selectionStart = activeElement.selectionEnd = before.length + marker.replace.length;
+                    // Switch listmode to corresponding
+                    listmode = marker.mode;
+                    e.preventDefault();
+                    break;
+                }
+            }
         }
+        // Cancel bullet if Enter is pressed and only marker is present
+        if (e.key === 'Enter') {
+            for (const marker of BULLET_MARKERS) {
+                if (activeElement.value.trim() === marker.replace.trim()) {
+                    activeElement.value = '';
+                    listmode = '';
+                    e.preventDefault();
+                    break;
+                }
+            }
+        }
+    }
 });
+
+
+function recognizeElems() {
+    const iconInput = document.getElementById('icon-input');
+    const addIconBtn = document.querySelector('.add-icon-btn');
+
+    if (iconInput && iconInput.classList.contains('hasIcon')) {
+        addIconBtn.classList.add('dn');
+    }
+}
+
+function addListener(elements, event, handler) {
+    if (NodeList.prototype.isPrototypeOf(elements) || Array.isArray(elements)) {
+        elements.forEach(element => {
+            if (element) element.addEventListener(event, handler);
+        });
+    } else if (elements) {
+        elements.addEventListener(event, handler);
+    }
+}
+
+

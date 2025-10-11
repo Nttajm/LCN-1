@@ -77,6 +77,8 @@
   --notion-pink-bg: #f4dfeb;
   --notion-brown-bg: #e9e5e3;
 
+  --translucent-05: rgba(124, 124, 124, 0.068);
+
   /* ===== GRAY SCALE ===== */
   --gray-50: #fafafa;
   --gray-100: #f5f5f5;
@@ -131,11 +133,21 @@ font-size: 16px;
 --font-grayed: 0.9rem var(--font-primary); /* 14px */
 --font-grayed-color: var(--text-secondary);
 
+--font-size-xs: 0.75rem; /* 12px */
+--font-size-sm: 0.875rem; /* 14px */
+--font-size-md: 1rem; /* 16px */
+--font-size-lg: 1.25rem; /* 18px */
+--font-size-xl: 1.5rem; /* 24px */
+--font-size-2xl: 2.3rem; /* 32px */
+--font-size-3xl: 3.175rem; /* 48px */
+
+
   /* ===== TYPOGRAPHY ===== */
   --font-primary: 'Alan Sans', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-main: 'roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
 }
+
 
 /* ===== DARK MODE ===== */
 [data-theme="dark"] {
@@ -351,6 +363,12 @@ body {
     transition: var(--smooth-dept) all 0.3s;
 }
 
+.op5-hover:hover {
+    background-color: var(--translucent-05);
+    cursor: pointer;
+    transition: var(--smooth-dept) all 0.3s;
+}
+
 .letter {
     background-color: var(--bg-tertiary);
     border-radius: 8px;
@@ -377,9 +395,18 @@ body {
     object-fit: contain;
 }
 
+.icono.small {
+    width: 21px;
+    height: 21px;
+}
+
 .icono img {
     width: 24px;
     aspect-ratio: 1/1;
+}
+
+.gray {
+    color: var(--text-secondary) !important;
 }
 
 .icono.gray {
@@ -407,11 +434,17 @@ body {
 
 .cover {
     width: 100%;
-    height: 15rem;
+    height: 17rem;
     position: relative;
     display: flex;
     align-items: flex-end;
-    justify-content: flex-start;
+    justify-content: space-between;
+    padding-left: 15%;
+    padding-right: 15%;
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .cover:hover .cover-settings {
@@ -419,16 +452,31 @@ body {
     transition: opacity 0.3s ease;
 }
 
+.cover-icon {
+    transform: translate(0, 1.5rem);
+    cursor: pointer;
+    padding: 0.8rem;
+    border-radius: var(--border-radius-lg);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cover-icon input {
+    color: var(--text-primary);
+    font-size: var(--font-size-3xl);
+    width: 60px !important;
+    font-weight: 700;
+    cursor: pointer;
+}
+
 .cover-settings {
     display: flex;
     gap: 0.2rem;
     padding: 0.5rem;
     opacity: 0;
-    width: calc(100% - 30%);
-    margin-left: 15%;
-    margin-right: 15%;
-    padding-left: 2.5rem;
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
 }
 
 .btn-set {
@@ -446,8 +494,15 @@ body {
     color: var(--text-primary);
 }
 
+hr {
+    opacity: 0.7;
+    border: 1px solid   rgb(128, 128, 128);
+    width: 100%;
+    margin: 0.5rem;
+}
+
 .board-items {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
@@ -471,6 +526,14 @@ body {
     display: flex;
     align-items: center;
     gap: 0.1rem;
+    z-index: 1;
+}
+
+.item.callout {
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--notion-yellow-bg);
+    padding: 0.5rem;
 }
 
 .item:hover .floaty, .item:hover .float-button  {
@@ -480,10 +543,42 @@ body {
 }
 
 
+.item .input.simple {
+    width: 100%;
+}
+
+.item.box {
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--bg-secondary);
+    padding: 0.5rem;
+    width: 33%;
+}
+
+.item.box:first-child {
+margin-left: 3rem;
+}
+
 input.simple {
     border: none;
     background-color: transparent;
     color: var(--text-primary);
+    width: fit-content;
+}
+
+[data-theme="light"] input.simple-checkbox {
+    filter: invert(0);
+}
+
+input.simple-checkbox {
+    width: fit-content;
+    margin-right: 0.5rem;
+    transform: scale(1.2);
+    cursor: pointer;
+
+    accent-color: var(--notion-red);
+    filter: invert(1);
+
 }
 
 input.simple:focus {
@@ -556,13 +651,22 @@ html {
     bottom: 1rem;
     left: -1rem;
     border-radius: var(--border-radius-md);
-    padding: 0.5rem;
+    padding: 0.2rem;
     display: flex;
     gap: 0.3rem;
     align-items: center;
-    z-index: 100;
+    z-index: 99;
     opacity: 0;
     pointer-events: none;
+}
+
+.cursor-gap {
+    width: 6rem;
+    height: 7rem;
+    position: absolute;
+    top: .5rem;
+    left: -5.5rem;
+    scale: 1.4;
 }
 
 .floaty img {
@@ -618,12 +722,14 @@ html {
 
 .addNote {
     border: dashed var(--border-width) var(--border-color);
-    width: 200px;
-    padding: 1.5rem;
+    width: fit-content;
+    padding: 0.7rem;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     border-radius: var(--border-radius-lg);
+    cursor: pointer;
 }
 
 /* tools */
@@ -631,6 +737,7 @@ html {
 
 .tools-container {
     position: relative;
+    z-index: 1000;
 }
 
 .tools {
@@ -640,13 +747,14 @@ html {
     background-color: var(--bg-secondary);
     border: var(--border-width) solid var(--border-color);
     border-radius: 0.5rem;
-    width: 300px;
-    height: 300px;
+    width: 220px;
+    max-height: 300px;
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
     padding: 0.2rem;
+    z-index: 1000;
 }
 
 /* extras
@@ -690,6 +798,9 @@ html {
 
  .go {
     background-color: var(--notion-blue-bg);
+ }
+
+ .btn-sm {
     border: none;
     color: var(--text-white);
     padding: 0.5rem 1rem;
@@ -698,3 +809,47 @@ html {
     font: var(--font-main);
     margin-left: 0.5rem;
  }
+
+ .holder {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-left: 0.5rem;
+ }
+
+
+ .cancel {
+    background-color: var(--notion-red-bg);
+ }
+
+ .dropdown {
+    position: relative;
+    /* border: solid 0.1rem var(--border-color); */
+    border-radius: var(--border-radius-lg);
+    width: 33%; 
+    align-items: flex-start;
+
+    margin-left: 2.8rem;
+ }
+
+ .drop-name {
+
+ }
+
+ .drop-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.2rem;    
+ }
+
+ .add-drop {
+        margin-left: 1.5rem;
+ }
+
+ .btn-space {
+    padding: 0.2rem !important;
+ }
+
