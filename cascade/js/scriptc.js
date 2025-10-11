@@ -71,9 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADD_DROP_BLOCKS = {
         'text': [
             { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal', drop: true },
+            { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true, action: 'checklist' },
         ],
         'Note Block': [
-            { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true }
+            {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
         ],
         'Media': [
             { id: 'link', icon: '🔗', class: 'link', label: 'Link', action: 'link', drop: true },
@@ -89,11 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADD_BLOCKS = {
         'text': [
             { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal' },
+            { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true, action: 'checklist' },
         ],
         'Note Block': [
             {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
-            { id: 'note', icon: '▼', class: 'note-block', label: 'Drop down' , action: 'dropdown' },
-            { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist' }
+            { id: 'dropdown', icon: '▼', class: 'note-block', label: 'Drop down' , action: 'dropdown' },
         ],
         'Media': [
             { id: 'link', icon: '🔗', class: 'link', label: 'Link', action: 'link' },
@@ -139,15 +140,38 @@ document.addEventListener('DOMContentLoaded', () => {
         input.dataset.itemIndex = itemIndex;
         input.autocomplete = 'off';
 
-        input.value = checkList();
+        if (checkList() == 'checkList') {
+            const holder = document.createElement('div');
+            holder.className = 'holder';
 
-        const floaty = createFloaty(itemIndex, 'edit');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'simple-checkbox';
 
-        itemDiv.appendChild(floaty);
-        itemDiv.appendChild(input);
-        itemDivRow.appendChild(itemDiv);
-        appendItemToBoard(itemDivRow);
-        initEmptyInputs(); // Ensure new inputs are initialized
+            holder.appendChild(checkbox);
+            holder.appendChild(input);
+
+            itemDiv.appendChild(createFloaty(itemIndex, 'edit'));
+            itemDiv.appendChild(holder);
+            itemDivRow.appendChild(itemDiv);
+            appendItemToBoard(itemDivRow);
+            initEmptyInputs();
+
+            // Add strike-through toggle for this checkbox
+            checkbox.addEventListener('change', () => {
+                input.classList.toggle('strike', checkbox.checked);
+            });
+
+        } else {
+            input.value = checkList();
+            const floaty = createFloaty(itemIndex, 'edit');
+
+            itemDiv.appendChild(floaty);
+            itemDiv.appendChild(input);
+            itemDivRow.appendChild(itemDiv);
+            appendItemToBoard(itemDivRow);
+            initEmptyInputs();
+        } // Ensure new inputs are initialized
      }
 
      function checkList() {
@@ -158,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (listmode === 'numbered') {
             
         } else {
-            return '';
+            return listmode;
         }
      }
 
@@ -360,6 +384,100 @@ function createBox() {
 }
 
 
+function createChecklistItem() {
+    const itemIndex = document.querySelectorAll('.item').length + 1;
+    const html = `
+        <div class="board-item-row" id="item-row-${itemIndex}">
+            <div class="item">
+                <div class="floaty right edit js-uni-tools" data-item="${itemIndex}">
+                    <img src="icons/edit.png" alt="edit" class="icono gray icon">
+                </div>
+                <div class="holder">
+                    <input type="checkbox" class="simple-checkbox">
+                    <input type="text" id="item-input-${itemIndex}" class="simple item-element normal-text" placeholder="Type something..." data-item-index="${itemIndex}" autocomplete="off">
+                </div>
+            </div>
+        </div>
+    `;
+    boardItemsSection.insertAdjacentHTML('beforeend', html);
+    initEmptyInputs();
+    listmode = 'checkList';
+    syncInputToDataContent();
+
+    // Add strike-through toggle for this checkbox
+    const row = document.getElementById(`item-row-${itemIndex}`);
+    const checkbox = row.querySelector('.simple-checkbox');
+    const input = row.querySelector('.item-element');
+    checkbox.addEventListener('change', () => {
+        input.classList.toggle('strike', checkbox.checked);
+    });
+}
+
+
+function turnToChecklist(itemIndex) {
+    const row = document.getElementById(`item-row-${itemIndex}`);
+    if (!row) return;
+    const itemDiv = row.querySelector('.item');
+    if (!itemDiv) return;
+    const oldInput = itemDiv.querySelector('.item-element');
+    if (!oldInput) return;
+
+    // Preserve value and classes
+    const value = oldInput.value;
+    const inputClasses = oldInput.className;
+    const inputId = oldInput.id;
+    const inputDataset = { ...oldInput.dataset };
+
+    // Remove old input
+    oldInput.remove();
+
+    // Create holder
+    const holder = document.createElement('div');
+    holder.className = 'holder';
+
+    // Create checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'simple-checkbox';
+
+    // Create new input
+    const newInput = document.createElement('input');
+    newInput.type = 'text';
+    newInput.id = inputId;
+    newInput.className = inputClasses;
+    newInput.placeholder = 'Type something...';
+    newInput.value = value;
+    Object.entries(inputDataset).forEach(([k, v]) => newInput.dataset[k] = v);
+    newInput.autocomplete = 'off';
+
+    // Add strike-through toggle
+    checkbox.addEventListener('change', () => {
+        newInput.classList.toggle('strike', checkbox.checked);
+    });
+
+    // Append to holder and itemDiv
+    holder.appendChild(checkbox);
+    holder.appendChild(newInput);
+
+    // Remove any existing holder to avoid duplicates
+    const existingHolder = itemDiv.querySelector('.holder');
+    if (existingHolder) existingHolder.remove();
+
+    itemDiv.appendChild(holder);
+
+    // Optionally focus the input
+    newInput.focus();
+}
+
+const allCheckboxes = document.querySelectorAll('.simple-checkbox');
+allCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        const input = checkbox.closest('.board-item-row')?.querySelector('.item-element');
+        if (input) {
+            input.classList.toggle('strike', checkbox.checked);
+        }
+    });
+});
     
 
     // Event delegation for floaty (edit) button clicks
@@ -433,6 +551,7 @@ function createBox() {
         if (action === 'title') createTextItem('title');
         if (action === 'heading2') createTextItem('heading2');
         if (action === 'heading3') createTextItem('heading3');
+        if (action === 'checklist') createChecklistItem();
         if (action === 'delete') {
             const row = document.getElementById(`item-row-${itemIndex}`);
             if (row) row.remove();

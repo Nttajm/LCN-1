@@ -592,6 +592,11 @@ input.simple:focus {
     font: var(--font-main);
 }
 
+.strike {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
 /* ===== SMOOTH SCROLLBARS ===== */
 * {
     scrollbar-width: thin;
