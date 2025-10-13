@@ -9,6 +9,42 @@
 .text-rainbow-purple { color: var(--rainbow-purple) !important;}
 .text-rainbow-pink { color: var(--rainbow-pink) !important;}
 
+
+.bg-rainbow-red { background-color: var(--rainbow-red) !important; }
+.bg-rainbow-orange { background-color: var(--rainbow-orange) !important; }
+.bg-rainbow-yellow { background-color: var(--rainbow-yellow) !important; }
+.bg-rainbow-green { background-color: var(--rainbow-green) !important; }
+.bg-rainbow-teal { background-color: var(--rainbow-teal) !important; }
+.bg-rainbow-blue { background-color: var(--rainbow-blue) !important; }
+.bg-rainbow-indigo { background-color: var(--rainbow-indigo) !important; }
+.bg-rainbow-purple { background-color: var(--rainbow-purple) !important; }
+.bg-rainbow-pink { background-color: var(--rainbow-pink) !important; }
+
+.bg-notion-red { background-color: var(--notion-red-bg) !important; }
+.bg-notion-orange { background-color: var(--notion-orange-bg) !important; }
+.bg-notion-yellow { background-color: var(--notion-yellow-bg) !important; }
+.bg-notion-green { background-color: var(--notion-green-bg) !important; }
+.bg-notion-blue { background-color: var(--notion-blue-bg) !important; }
+.bg-notion-purple { background-color: var(--notion-purple-bg) !important; }
+.bg-notion-pink { background-color: var(--notion-pink-bg) !important; }
+.bg-notion-brown { background-color: var(--notion-brown-bg) !important; }
+
+.bg-gray-50 { background-color: var(--gray-50) !important; }
+.bg-gray-100 { background-color: var(--gray-100) !important; }
+.bg-gray-200 { background-color: var(--gray-200) !important; }
+.bg-gray-300 { background-color: var(--gray-300) !important; }
+.bg-gray-400 { background-color: var(--gray-400) !important; }
+.bg-gray-500 { background-color: var(--gray-500) !important; }
+.bg-gray-600 { background-color: var(--gray-600) !important; }
+.bg-gray-700 { background-color: var(--gray-700) !important; }
+.bg-gray-800 { background-color: var(--gray-800) !important; }
+.bg-gray-900 { background-color: var(--gray-900) !important; }
+
+.bg-primary { background-color: var(--bg-primary) !important; }
+.bg-secondary { background-color: var(--bg-secondary) !important; }
+.bg-tertiary { background-color: var(--bg-tertiary) !important; }
+.bg-white { background-color: var(--text-white) !important; }
+
 .text-notion-red { color: var(--notion-red); }
 .text-notion-orange { color: var(--notion-orange); }
 .text-notion-yellow { color: var(--notion-yellow); }
@@ -517,6 +553,40 @@ hr {
     display: flex;
     gap: 0.5rem;
     /* padding: 0.5rem 2rem; */
+    margin-left: -3rem;
+}
+
+.board-item-row .item {
+    flex: 1; /* Each item will take equal space */
+    box-sizing: border-box; /* Ensure padding and border are included in total width/height */
+}
+
+.board-item-row .floaty {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.board-item-row:hover .floaty {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s ease;
+}
+
+.floaty.active {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.board-item-row.by-2 .item{
+    width: 50%;
+}
+
+.board-item-row.by-3 .item{
+    width: 33%;
+}
+
+.board-item-row.by-4 .item{
+    width: 25%;
 }
 
 .item {
@@ -529,11 +599,35 @@ hr {
     z-index: 1;
 }
 
+.resizable {
+    background-color: var(--bg-secondary);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin: 0.1rem;
+    font: var(--font-main);
+    color: var(--text-primary);
+
+    position: absolute;
+    top: -1.5rem;
+    right: -2rem;
+}
+
 .item.callout {
     border: var(--border-width) solid var(--border-color);
     border-radius: var(--border-radius-md);
     background-color: var(--notion-yellow-bg);
     padding: 0.5rem;
+}
+
+.item .floaty, .item .float-button {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .item:hover .floaty, .item:hover .float-button  {
@@ -648,16 +742,22 @@ html {
 }
 
 .floaty {
-    bottom: 1rem;
-    left: -1rem;
     border-radius: var(--border-radius-md);
     padding: 0.2rem;
     display: flex;
     gap: 0.3rem;
     align-items: center;
     z-index: 99;
-    opacity: 0;
-    pointer-events: none;
+}
+
+.floaty.left {
+    left: -1rem;
+    bottom: 1rem;
+}
+
+.floaty.right {
+    right: -1rem;
+    bottom: 1rem;
 }
 
 .cursor-gap {
@@ -678,7 +778,7 @@ html {
     background-color: var(--gray-500);
 }
 
-/* .floaty.right {
+/* .floaty.left {
     right: 1rem;
 } */
 
@@ -723,7 +823,7 @@ html {
 .addNote {
     border: dashed var(--border-width) var(--border-color);
     width: fit-content;
-    padding: 0.7rem;
+    padding: 0.4rem 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
