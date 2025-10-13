@@ -28,39 +28,63 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'heading2', label: 'Heading 2', class: 'heading2', icon: 'H2' },
             { id: 'heading3', label: 'Heading 3', class: 'heading3', icon: 'H3' },
             { id: 'normal', label: 'Normal', class: 'normal-text', icon: 'T' }
-        ],
-        'Color': [
-            { id: 'default', label: 'Default', class: '', icon: 'A' },
-            { id: 'red', label: 'Red', class: 'text-rainbow-red', icon: 'A' },
-            { id: 'blue', label: 'Blue', class: 'text-rainbow-blue', icon: 'A' },
-            { id: 'green', label: 'Green', class: 'text-rainbow-green', icon: 'A' },
-            { id: 'yellow', label: 'Yellow', class: 'text-rainbow-yellow', icon: 'A' },
-            { id: 'purple', label: 'Purple', class: 'text-rainbow-purple', icon: 'A' },
-            { id: 'orange', label: 'Orange', class: 'text-rainbow-orange', icon: 'A' },
-            { id: 'pink', label: 'Pink', class: 'text-rainbow-pink', icon: 'A' }
-        ],
-        'Alignments': [
+        ],'Alignments': [
             { id: 'left', label: 'Left', class: 'text-left', icon: 'L' },
             { id: 'center', label: 'Center', class: 'text-center', icon: 'C' },
             { id: 'right', label: 'Right', class: 'text-right', icon: 'R' }
-        ]
+        ],
+        'Color': [
+            { id: 'default', label: 'Default', class: '', icon: 'A', adjClass: true },
+            { id: 'red', label: 'Red', class: 'text-rainbow-red', icon: 'A', adjClass: true },
+            { id: 'blue', label: 'Blue', class: 'text-rainbow-blue', icon: 'A', adjClass: true },
+            { id: 'green', label: 'Green', class: 'text-rainbow-green', icon: 'A', adjClass: true },
+            { id: 'yellow', label: 'Yellow', class: 'text-rainbow-yellow', icon: 'A', adjClass: true },
+            { id: 'purple', label: 'Purple', class: 'text-rainbow-purple', icon: 'A', adjClass: true },
+            { id: 'orange', label: 'Orange', class: 'text-rainbow-orange', icon: 'A', adjClass: true },
+            { id: 'pink', label: 'Pink', class: 'text-rainbow-pink', icon: 'A', adjClass: true }
+        ],
+    };
+
+    const BACKGROUND_TOOLS = {
+        'Background': [
+            { id: 'bg-default', label: 'No Background', class: '', icon: '□', adjClass: false },
+            { id: 'bg-red', label: 'Red Background', class: 'bg-rainbow-red', icon: '■', adjClass: false },
+            { id: 'bg-blue', label: 'Blue Background', class: 'bg-rainbow-blue', icon: '■', adjClass: false },
+            { id: 'bg-green', label: 'Green Background', class: 'bg-rainbow-green', icon: '■', adjClass: false },
+            { id: 'bg-yellow', label: 'Yellow Background', class: 'bg-rainbow-yellow', icon: '■', adjClass: false },
+            { id: 'bg-purple', label: 'Purple Background', class: 'bg-rainbow-purple', icon: '■', adjClass: false },
+            { id: 'bg-orange', label: 'Orange Background', class: 'bg-rainbow-orange', icon: '■', adjClass: false },
+            { id: 'bg-pink', label: 'Pink Background', class: 'bg-rainbow-pink', icon: '■', adjClass:false }
+        ],
     };
 
     const ANCHOR_TEXT_TOOLS = {
         'settings': [
-            { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' },
+            { id: 'delete', icon:'🗑️' ,class:'delete' ,label:'Delete' ,action:'delete' },
             { id: 'edit', icon: '✏️', class: 'edit', label: 'Edit Link', action: 'edit' }
         ],
         'Color': [
-            { id: 'default', label: 'Default', class: '', icon: 'A' },
-            { id: 'red', label: 'Red', class: 'text-rainbow-red', icon: 'A' },
-            { id: 'blue', label: 'Blue', class: 'text-rainbow-blue', icon: 'A' },
-            { id: 'green', label: 'Green', class: 'text-rainbow-green', icon: 'A' },
-            { id: 'yellow', label: 'Yellow', class: 'text-rainbow-yellow', icon: 'A' },
-            { id: 'purple', label: 'Purple', class: 'text-rainbow-purple', icon: 'A' },
-            { id: 'orange', label: 'Orange', class: 'text-rainbow-orange', icon: 'A' },
-            { id: 'pink', label: 'Pink', class: 'text-rainbow-pink', icon: 'A' }
+            { id: 'default', label: 'Default', class: '', icon: 'A', adjClass: true},
+            { id: 'red', label: 'Red', class: 'text-rainbow-red', icon: 'A', adjClass: true },
+            { id: 'blue', label: 'Blue', class: 'text-rainbow-blue', icon: 'A', adjClass: true },
+            { id: 'green', label: 'Green', class: 'text-rainbow-green', icon: 'A', adjClass: true },
+            { id: 'yellow', label: 'Yellow', class: 'text-rainbow-yellow', icon: 'A', adjClass: true },
+            { id: 'purple', label: 'Purple', class: 'text-rainbow-purple', icon: 'A', adjClass: true },
+            { id: 'orange', label: 'Orange', class: 'text-rainbow-orange', icon: 'A', adjClass: true },
+            { id: 'pink', label: 'Pink', class: 'text-rainbow-pink', icon: 'A', adjClass: true }
         ],
+        // 'background': [
+        //     { id: 'bg-default', label: 'No Background', class: '', icon: '□', adjClass: true },
+        //     { id: 'bg-red', label: 'Red Background', class: 'bg-notion-red', icon: '■', adjClass: true },
+        //     { id: 'bg-orange', label: 'Orange Background', class: 'bg-notion-orange', icon: '■', adjClass: true },
+        //     { id: 'bg-yellow', label: 'Yellow Background', class: 'bg-notion-yellow', icon: '■', adjClass: true },
+        //     { id: 'bg-green', label: 'Green Background', class: 'bg-notion-green', icon: '■', adjClass: true },
+        //     { id: 'bg-blue', label: 'Blue Background', class: 'bg-notion-blue', icon: '■', adjClass: true },
+        //     { id: 'bg-purple', label: 'Purple Background', class: 'bg-notion-purple', icon: '■', adjClass: true },
+        //     { id: 'bg-pink', label: 'Pink Background', class: 'bg-notion-pink', icon: '■', adjClass: true },
+        //     { id: 'bg-brown', label: 'Brown Background', class: 'bg-notion-brown', icon: '■', adjClass: true },
+        //     { id: 'bg-gray', label: 'Gray Background', class: 'bg-gray-50', icon: '■', adjClass: true }
+        // ],
         'Alignments': [
             { id: 'left', label: 'Left', class: 'text-left', icon: 'L' },
             { id: 'center', label: 'Center', class: 'text-center', icon: 'C' },
@@ -114,22 +138,39 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // load initial item
-    createTextItem('title');
-    initEmptyInputs();
-    syncInputToDataContent();
-    addEventListenerGroup();
+    
     recognizeElems();
+    syncInputToDataContent();
+        initEmptyInputs();
+        initLinkers();
+        initHiders();
+        initAddNoteBtns();
+    // addEventListenerGroup();
+
+        createTextItem('title');
+    function createRow(itemIndex) {
+        const itemDivRow = document.createElement('div');
+        itemDivRow.className = `board-item-row js-drop-content-${itemIndex}`;
+        itemDivRow.id = `item-row-${itemIndex}`;
+
+        if (printMode === 'board') {
+            const floaty = createAddToRowFloaty(itemIndex);
+            itemDivRow.appendChild(floaty);
+        }
+        return itemDivRow;
+    }
+
+
 
 
     // create items
     function createTextItem(type = 'normal-text', toBoard = true) {
-        const itemDivRow = document.createElement('div');
-        itemDivRow.className = 'board-item-row';
+        const itemIndex = document.querySelectorAll('.item').length + 1;
+        const itemDivRow = createRow(itemIndex);
 
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item';
 
-        const itemIndex = document.querySelectorAll('.item').length + 1;
         itemDivRow.id = `item-row-${itemIndex}`;
 
         const input = document.createElement('input');
@@ -185,6 +226,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return listmode;
         }
      }
+
+    function createCheckListItem() {
+        const itemIndex = document.querySelectorAll('.item').length + 1;
+        const itemDivRow = createRow(itemIndex);
+
+        // Checklist item structure
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item';
+
+        const holder = document.createElement('div');
+        holder.className = 'holder';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'simple-checkbox';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = `item-input-${itemIndex}`;
+        input.className = 'simple item-element normal-text empty';
+        input.placeholder = 'Type something...';
+        input.dataset.itemIndex = itemIndex;
+        input.autocomplete = 'off';
+
+        holder.appendChild(checkbox);
+        holder.appendChild(input);
+
+        const floaty = createFloaty(itemIndex, 'edit');
+        itemDiv.appendChild(floaty);
+        itemDiv.appendChild(holder);
+
+        itemDivRow.appendChild(itemDiv);
+        appendItemToBoard(itemDivRow);
+    }
+
 
      function createNewIdenticalInput() {
         const activeElementInput = document.activeElement;
@@ -287,11 +363,27 @@ function promptForLink(container = document.getElementById('boardItems')) {
     });
 }
 
+    function createResizeable(index) {
+        const sizable = document.createElement('div');
+        sizable.className = 'resizable';
+        sizable.id = `resizeable-${index}`;
+        return sizable;
+    }
+
     // create floaty edit button
-    function createFloaty(itemIndex, action = 'edit') {
+    function createFloaty(itemIndex, action = 'edit', position = 'left') {
         const floaty = document.createElement('div');
-        floaty.className = `floaty right ${action} js-uni-tools`;
+        floaty.className = `floaty ${position} ${action} js-uni-tools`;
         floaty.innerHTML = `<img src="icons/edit.png" alt="${action}" class="icono gray icon">`;
+        floaty.dataset.item = itemIndex;
+        return floaty;
+    }
+
+    function createAddToRowFloaty(itemIndex, action = 'add', position = 'left') {
+        const floaty = document.createElement('div');
+        floaty.className = `floaty ${position} ${action} js-uni-tools js-add-note-btn`;
+        floaty.id = `add-dropdown-${itemIndex}`;
+        floaty.innerHTML = `<img src="icons/add.png" alt="${action}" class="icono gray icon">`;
         floaty.dataset.item = itemIndex;
         return floaty;
     }
@@ -318,7 +410,8 @@ function promptForLink(container = document.getElementById('boardItems')) {
                     tool.label,
                     tool.class,
                     itemIndex,
-                    tool.action ? tool.action : sectionName
+                    tool.action ? tool.action : sectionName,
+                    tool.adjClass ? tool.class : ''
                 )
             );
         });
@@ -331,7 +424,7 @@ function promptForLink(container = document.getElementById('boardItems')) {
 
 
     // Single tool button
-    function genColElement(icon, img, label, colorClass, itemIndex, sectionName) {
+    function genColElement(icon, img, label, colorClass, itemIndex, sectionName, adjClass = '') {
         const iconHtml = img ? `<img src="${img}" alt="${label}" class="icono icon small">` : `<span class="letter small">${icon}</span>`;
         return `
             <div class="conelem profile hover js-trigger-action" 
@@ -339,26 +432,24 @@ function promptForLink(container = document.getElementById('boardItems')) {
                  data-value="${colorClass}" 
                  data-item="${itemIndex}">
                 ${iconHtml}
-                <span class="fx-full">${label}</span>
+                <span class="fx-full ${adjClass}">${label}</span>
             </div>`;
     }
 
     function createDropdown() {
     const index = document.querySelectorAll('.item').length + 1;
 
-    const itemDivRow = document.createElement('div');
-    itemDivRow.className = 'board-item-row';
+    const itemDivRow = createRow(index);
 
     itemDivRow.innerHTML = `
         <div class="dropdown item fl-c g-5" id="item-${index}">
             <div class="drop-name fl-r g-5 fx-full">
-                <img src="icons/dropdown.png" alt="dropdown" data-target="dd-hide-${index}" class="hide-part icono gray icon drop-icon btn-space btn-set" />
-                <input type="text" class="drop-input item-element simple" placeholder="Name" />
+                <img src="icons/dropdown.png" alt="dropdown" data-target="dd-hide-${index}" class="hide-part icono gray icon drop-icon btn-space hover" />
+                <input type="text" class="drop-input item-element simple heading3" placeholder="Name" />
             </div>
-            <div class="drop-content dd-hide-${index}" id="drop-content-${index}"></div>
-            <div class="addNote js-uni-tools add-drop nAvoid dd-hide-${index}" id="add-dropdown-${index}">
+            <div class="drop-content dd-hide-${index} js-drop-content-${index}" id="drop-content-${index}"></div>
+            <div class="js-add-note-btn addNote js-uni-tools add-drop nAvoid dd-hide-${index}" id="add-dropdown-${index}">
                 <img src="icons/add.png" alt="add" class="icono gray icon small">
-                <span class="tx-secondary"></span>
             </div>
         </div>
     `;
@@ -487,6 +578,9 @@ allCheckboxes.forEach(checkbox => {
             e.stopPropagation();
             closeAllToolsMenus();
 
+            u_Tool.classList.toggle('active');
+
+
             const itemIndex = u_Tool.dataset.item;
             let existing = u_Tool.querySelector('.tools-container');
             if (existing) {
@@ -494,7 +588,6 @@ allCheckboxes.forEach(checkbox => {
             return;
             }
 
-            
             if (u_Tool.classList.contains('simple')) {
             const toolsMenu = openConElemTools(DEFAULT, itemIndex);
             u_Tool.appendChild(toolsMenu);
@@ -512,6 +605,7 @@ allCheckboxes.forEach(checkbox => {
             u_Tool.appendChild(toolsMenu);
             requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
             }
+
 
             if (u_Tool.classList.contains('add-drop')) {
             const toolsMenu = openConElemTools(ADD_DROP_BLOCKS, itemIndex);
@@ -545,6 +639,7 @@ allCheckboxes.forEach(checkbox => {
         if (action === 'Size') changeTextSize(itemIndex, value);
         if (action === 'Color') changeTextColor(itemIndex, value);
         if (action === 'Alignments') changeTextAlignment(itemIndex, value);
+        if (action === 'Background') changeTextBackground(itemIndex, value);
     
 
         if (action === 'normal') createTextItem('normal-text');
@@ -559,6 +654,10 @@ allCheckboxes.forEach(checkbox => {
 
         if (action === 'separator') {
             createSeparator();
+        }
+
+        if (action === 'checklist') {
+            createCheckListItem();
         }
 
         if (action === 'link') {
@@ -608,6 +707,15 @@ allCheckboxes.forEach(checkbox => {
             if (c.class) input.classList.remove(c.class);
         });
         if (colorClass) input.classList.add(colorClass);
+    }
+
+    function changeTextBackground(itemIndex, bgClass) {
+        const input = document.getElementById(`item-input-${itemIndex}`);
+        if (!input) return;
+        TEXT_TOOLS['background'].forEach(b => {
+            if (b.class) input.classList.remove(b.class);
+        });
+        if (bgClass) input.classList.add(bgClass);
     }
 
     function changeTextAlignment(itemIndex, alignClass) {
@@ -758,9 +866,8 @@ allCheckboxes.forEach(checkbox => {
 });
 
      function appendItemToBoard(itemDivRow) {
-        const printer = boardItemsSection;
         if (printMode != 'board') {
-            const dropdownContent = document.getElementById(`drop-content-${printMode}`);
+            const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
             if (dropdownContent) {
                 dropdownContent.appendChild(itemDivRow);
             } else {
@@ -778,7 +885,6 @@ document.addEventListener('click', (e) => {
     if (!e.target.closest('.js-uni-tools') && !e.target.closest('.tools-container')) {
         closeAllToolsMenus();
     }
-    
 });
 
 
@@ -789,23 +895,37 @@ function addEventListenerGroup() {
         initEmptyInputs();
         initLinkers();
         initHiders();
-    const allAddNoteBtns = document.querySelectorAll('.addNote');
-    allAddNoteBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const itemID = btn.id 
-        if (!itemID || itemID === 'add-note') return;
-        const itemIndex = itemID.split('-').pop();
-        printMode = itemIndex;
-        console.log('Set printMode to:', printMode);
-    })
-});
+        initAddNoteBtns();
+
 }
+
+function initItemBoardSized(index) {
+    
+}
+
+function initAddNoteBtns() {
+    const allAddNoteBtns = document.querySelectorAll('.js-add-note-btn');
+    allAddNoteBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const itemID = btn.id;
+                if (itemID === 'add-note') {
+                    printMode = 'board';
+                } else {
+                    const itemIndex = itemID.split('-').pop();
+                    printMode = itemIndex;
+                    console.log('Set printMode to:', printMode);
+                }
+            });
+        });
+    }
 
 // =========== Additional Features ===========
 
 function closeAllToolsMenus() {
     document.querySelectorAll('.tools-container').forEach(menu => {
         menu.classList.add('dn');
+        const allFloaties = document.querySelectorAll('.floaty');
+        allFloaties.forEach(floaty => floaty.classList.remove('active'));
     });
 }
 
@@ -966,5 +1086,10 @@ function addListener(elements, event, handler) {
         elements.addEventListener(event, handler);
     }
 }
+
+document.getElementById('add-note').addEventListener('click', () => {
+    printMode = 'board'; // reset back to default
+});
+
 
 
