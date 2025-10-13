@@ -348,7 +348,6 @@ font-size: 16px;
 /* ===== fxclasses ===== */
 
 .fx-full {
-    flex-grow: 1;
     width: 100%;
 }
 
@@ -933,13 +932,16 @@ html {
     /* border: solid 0.1rem var(--border-color); */
     border-radius: var(--border-radius-lg);
     width: 33%; 
+    display: flex;
     align-items: flex-start;
+    justify-content: flex-start;
 
     margin-left: 2.8rem;
  }
 
  .drop-name {
-
+    display: flex;
+    align-items: flex-start
  }
 
  .drop-content {

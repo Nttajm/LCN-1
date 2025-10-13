@@ -19,6 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
     };
 
+    const resizeTools = {
+        'Resize': [
+            { id: 'resize50', icon: '↔️', class: 'resize50', label: '1/2', action: 'resize' },
+            { id: 'resize25', icon: '↔️', class: 'resize25', label: '1/4', action: 'resize' },
+            { id: 'resize75', icon: '↔️', class: 'resize75', label: '3/4', action: 'resize' },
+            { id: 'resize100', icon: '↔️', class: 'resize100', label: '100%', action: 'resize' },
+        ],
+    };
+
     const TEXT_TOOLS = {
         'settings': [
             { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' }
@@ -119,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Note Block': [
             {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
             { id: 'dropdown', icon: '▼', class: 'note-block', label: 'Drop down' , action: 'dropdown' },
+            { id: 'section', icon: '▭', class: 'section', label: 'Section', action: 'section' }
         ],
         'Media': [
             { id: 'link', icon: '🔗', class: 'link', label: 'Link', action: 'link' },
@@ -148,20 +158,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // addEventListenerGroup();
 
         createTextItem('title');
-    function createRow(itemIndex) {
-        const itemDivRow = document.createElement('div');
-        itemDivRow.className = `board-item-row js-drop-content-${itemIndex}`;
-        itemDivRow.id = `item-row-${itemIndex}`;
-
-        if (printMode === 'board') {
-            const floaty = createAddToRowFloaty(itemIndex);
-            itemDivRow.appendChild(floaty);
-        }
-        return itemDivRow;
-    }
 
 
+function createRow(itemIndex = 'none') {
+    // only make row if printMode is 'board'
+    if (printMode !== 'board') return null;
 
+    const itemDivRow = document.createElement('div');
+    itemDivRow.className = `board-item-row js-drop-content-${itemIndex}`;
+    itemDivRow.id = `item-row-${itemIndex}`;
+
+    const floaty = createAddToRowFloaty(itemIndex);
+    itemDivRow.appendChild(floaty);
+
+    return itemDivRow;
+}
 
     // create items
     function createTextItem(type = 'normal-text', toBoard = true) {
@@ -171,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item';
 
-        itemDivRow.id = `item-row-${itemIndex}`;
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -181,53 +191,44 @@ document.addEventListener('DOMContentLoaded', () => {
         input.dataset.itemIndex = itemIndex;
         input.autocomplete = 'off';
 
-        if (checkList() == 'checkList') {
-            const holder = document.createElement('div');
-            holder.className = 'holder';
+        input.dataset.printMode = printMode;
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'simple-checkbox';
+         if (checkList() === 'checkList') {
+        const holder = document.createElement('div');
+        holder.className = 'holder';
 
-            holder.appendChild(checkbox);
-            holder.appendChild(input);
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'simple-checkbox';
 
-            itemDiv.appendChild(createFloaty(itemIndex, 'edit'));
-            itemDiv.appendChild(holder);
-            itemDivRow.appendChild(itemDiv);
-            appendItemToBoard(itemDivRow);
-            initEmptyInputs();
+        holder.appendChild(checkbox);
+        holder.appendChild(input);
 
-            // Add strike-through toggle for this checkbox
-            checkbox.addEventListener('change', () => {
-                input.classList.toggle('strike', checkbox.checked);
-            });
+        itemDiv.appendChild(createFloaty(itemIndex, 'edit'));
+        itemDiv.appendChild(holder);
 
+        checkbox.addEventListener('change', () => {
+            input.classList.toggle('strike', checkbox.checked);
+        });
         } else {
             input.value = checkList();
             const floaty = createFloaty(itemIndex, 'edit');
-
             itemDiv.appendChild(floaty);
             itemDiv.appendChild(input);
+        }
+
+        if (itemDivRow) {
             itemDivRow.appendChild(itemDiv);
             appendItemToBoard(itemDivRow);
-            initEmptyInputs();
-        } // Ensure new inputs are initialized
-     }
-
-     function checkList() {
-        if (listmode === 'dash') {
-            return '- ';
-        } else if (listmode === 'bullet') {
-            return '• ';
-        } else if (listmode === 'numbered') {
-            
-        } else {
-            return listmode;
+        } 
+        else {
+            appendItemToBoard(itemDiv);
         }
+
+        initEmptyInputs();
      }
 
-    function createCheckListItem() {
+     function createCheckListItem() {
         const itemIndex = document.querySelectorAll('.item').length + 1;
         const itemDivRow = createRow(itemIndex);
 
@@ -257,9 +258,31 @@ document.addEventListener('DOMContentLoaded', () => {
         itemDiv.appendChild(floaty);
         itemDiv.appendChild(holder);
 
-        itemDivRow.appendChild(itemDiv);
-        appendItemToBoard(itemDivRow);
+        checkbox.addEventListener('change', () => {
+            input.classList.toggle('strike', checkbox.checked);
+            });
+
+        if (itemDivRow) {
+            itemDivRow.appendChild(itemDiv);
+            appendItemToBoard(itemDivRow);
+        } else {
+            appendItemToBoard(itemDiv);
+        }
+
+        listmode = 'checkList';
     }
+
+     function checkList() {
+        if (listmode === 'dash') {
+            return '- ';
+        } else if (listmode === 'bullet') {
+            return '• ';
+        } else if (listmode === 'quote') {
+            return '➤ ';
+        } else {
+            return listmode;
+        }
+     }
 
 
      function createNewIdenticalInput() {
@@ -274,8 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         function createSeparator() {
-        const itemDivRow = document.createElement('div');
-        itemDivRow.className = 'board-item-row';
+        const itemDivRow = createRow();
+
         itemDivRow.innerHTML = `
                     <div class="item">
                     </div>`;
@@ -294,8 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
      
 function createAnchorTextItem(type = 'normal-text', link = '#', name = '') {
-        const itemDivRow = document.createElement('div');
-        itemDivRow.className = 'board-item-row';
+        const itemDivRow = createRow();
 
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item';
@@ -365,7 +387,7 @@ function promptForLink(container = document.getElementById('boardItems')) {
 
     function createResizeable(index) {
         const sizable = document.createElement('div');
-        sizable.className = 'resizable';
+        sizable.className = 'resizable js-uni-tools resize';
         sizable.id = `resizeable-${index}`;
         return sizable;
     }
@@ -437,31 +459,40 @@ function promptForLink(container = document.getElementById('boardItems')) {
     }
 
     function createDropdown() {
-    const index = document.querySelectorAll('.item').length + 1;
+    const index = document.querySelectorAll('.item').length + 2;
 
-    const itemDivRow = createRow(index);
+    const itemDivRow = createRow(index - 1);
 
-    itemDivRow.innerHTML = `
-        <div class="dropdown item fl-c g-5" id="item-${index}">
+    const itemDiv = document.createElement('div');
+    itemDiv.className = `dropdown item fl-c g-5 js-set-print-mode`;
+    itemDiv.id = `item-${index}`;
+    itemDiv.dataset.setPrintMode = index;
+
+
+    itemDiv.innerHTML = `
             <div class="drop-name fl-r g-5 fx-full">
                 <img src="icons/dropdown.png" alt="dropdown" data-target="dd-hide-${index}" class="hide-part icono gray icon drop-icon btn-space hover" />
-                <input type="text" class="drop-input item-element simple heading3" placeholder="Name" />
+                <input type="text" class="drop-input item-element simple heading3 js-set-print-mode" data-set-print-mode=${index} placeholder="Name" />
             </div>
             <div class="drop-content dd-hide-${index} js-drop-content-${index}" id="drop-content-${index}"></div>
             <div class="js-add-note-btn addNote js-uni-tools add-drop nAvoid dd-hide-${index}" id="add-dropdown-${index}">
                 <img src="icons/add.png" alt="add" class="icono gray icon small">
             </div>
-        </div>
     `;
 
-    appendItemToBoard(itemDivRow);
+    if (itemDivRow) {
+        itemDivRow.appendChild(itemDiv);
+        appendItemToBoard(itemDivRow);
+    } else {
+        appendItemToBoard(itemDiv);
+    }
+    
 }
 
 function createBox() {
     const index = document.querySelectorAll('.item').length + 1;
 
-    const itemDivRow = document.createElement('div');
-    itemDivRow.className = 'board-item-row';
+    const itemDivRow = createRow(index);
 
     itemDivRow.innerHTML = `
         <div class="item box" id="item-${index}">
@@ -473,37 +504,6 @@ function createBox() {
 
     appendItemToBoard(itemDivRow);
 }
-
-
-function createChecklistItem() {
-    const itemIndex = document.querySelectorAll('.item').length + 1;
-    const html = `
-        <div class="board-item-row" id="item-row-${itemIndex}">
-            <div class="item">
-                <div class="floaty right edit js-uni-tools" data-item="${itemIndex}">
-                    <img src="icons/edit.png" alt="edit" class="icono gray icon">
-                </div>
-                <div class="holder">
-                    <input type="checkbox" class="simple-checkbox">
-                    <input type="text" id="item-input-${itemIndex}" class="simple item-element normal-text" placeholder="Type something..." data-item-index="${itemIndex}" autocomplete="off">
-                </div>
-            </div>
-        </div>
-    `;
-    boardItemsSection.insertAdjacentHTML('beforeend', html);
-    initEmptyInputs();
-    listmode = 'checkList';
-    syncInputToDataContent();
-
-    // Add strike-through toggle for this checkbox
-    const row = document.getElementById(`item-row-${itemIndex}`);
-    const checkbox = row.querySelector('.simple-checkbox');
-    const input = row.querySelector('.item-element');
-    checkbox.addEventListener('change', () => {
-        input.classList.toggle('strike', checkbox.checked);
-    });
-}
-
 
 function turnToChecklist(itemIndex) {
     const row = document.getElementById(`item-row-${itemIndex}`);
@@ -569,7 +569,8 @@ allCheckboxes.forEach(checkbox => {
         }
     });
 });
-    
+
+
 
     // Event delegation for floaty (edit) button clicks
     document.addEventListener('click', (e) => {
@@ -577,6 +578,15 @@ allCheckboxes.forEach(checkbox => {
         if (u_Tool) {
             e.stopPropagation();
             closeAllToolsMenus();
+
+            // document.addEventListener('focusin', (e) => {
+            //     const elWithMode = e.target.closest('[data-set-print-mode]');
+            //     if (!elWithMode) return;
+            //     const mode = elWithMode.dataset.setPrintMode;
+            //     if (mode) {
+            //         printMode = mode;
+            //     }
+            // });
 
             u_Tool.classList.toggle('active');
 
@@ -646,20 +656,34 @@ allCheckboxes.forEach(checkbox => {
         if (action === 'title') createTextItem('title');
         if (action === 'heading2') createTextItem('heading2');
         if (action === 'heading3') createTextItem('heading3');
-        if (action === 'checklist') createChecklistItem();
+        if (action === 'checklist') createCheckListItem();
         if (action === 'delete') {
+            // Try to remove row, item, or input by itemIndex
             const row = document.getElementById(`item-row-${itemIndex}`);
-            if (row) row.remove();
+            if (row) return row.remove();
+
+            const item = document.getElementById(`item-${itemIndex}`);
+            if (item) return item.remove();
+
+            const input = document.getElementById(`item-input-${itemIndex}`);
+            if (input) {
+                const itemEl = input.closest('.item');
+                const rowEl = input.closest('.board-item-row');
+                if (rowEl) {
+                    const itemsInRow = rowEl.querySelectorAll('.item');
+                    return (itemEl && itemsInRow.length > 1) ? itemEl.remove() : rowEl.remove();
+                }
+                return itemEl ? itemEl.remove() : input.remove();
+            }
+
+            // Fallback: remove closest .item or .board-item-row from floaty
+            const floaty = document.querySelector(`.floaty[data-item="${itemIndex}"]`);
+            if (floaty) (floaty.closest('.item') || floaty.closest('.board-item-row'))?.remove();
         }
 
         if (action === 'separator') {
             createSeparator();
         }
-
-        if (action === 'checklist') {
-            createCheckListItem();
-        }
-
         if (action === 'link') {
             promptForLink();
         }
@@ -785,9 +809,13 @@ allCheckboxes.forEach(checkbox => {
             const activeElement = document.activeElement;
             if (activeElement && activeElement.classList.contains('item-element') && activeElement.value.trim() !== '') {
                 e.preventDefault();
-                createTextItem();
-                const allInputs = document.querySelectorAll('.item-element');
-                allInputs[allInputs.length - 1].focus();
+                if (listmode === 'checkList') {
+                    createCheckListItem();
+                } else {
+                    createTextItem();
+                }
+                const lastInput = document.getElementById(`item-input-${document.querySelectorAll('.item-element').length}`);
+                if (lastInput) lastInput.focus();
             }
         }
 
@@ -802,13 +830,27 @@ allCheckboxes.forEach(checkbox => {
                 e.preventDefault();
                 const parentRow = activeElement.closest('.board-item-row');
                 if (parentRow) {
-                    const inputIndex = Array.from(allInputs).indexOf(activeElement);
-                    parentRow.remove();
-                    const updatedInputs = document.querySelectorAll('.item-element');
-                    if (updatedInputs.length > inputIndex) {
-                        updatedInputs[inputIndex].focus();
-                    } else if (updatedInputs.length > 0) {
-                        updatedInputs[updatedInputs.length - 1].focus();
+                    const inputsInRow = parentRow.querySelectorAll('.item-element');
+                    const itemDiv = activeElement.closest('.item');
+
+                    if (inputsInRow.length > 1) {
+                        // Remove the entire .item container that holds the focused input (not just the input itself)
+                        if (itemDiv) itemDiv.remove();
+
+                        // Focus the last .item-element in the DOM
+                        const updatedInputs = document.querySelectorAll('.item-element');
+                        if (updatedInputs.length > 0) {
+                            updatedInputs[updatedInputs.length - 1].focus();
+                        }
+                    } else {
+                        // Only one input in the row -> remove the whole row
+                        parentRow.remove();
+                        listmode = ''; // reset listmode to default
+                        // Focus the last .item-element in the DOM
+                        const updatedInputs = document.querySelectorAll('.item-element');
+                        if (updatedInputs.length > 0) {
+                            updatedInputs[updatedInputs.length - 1].focus();
+                        }
                     }
                 }
             }
@@ -862,6 +904,8 @@ allCheckboxes.forEach(checkbox => {
         });
     }
 
+    
+
 
 });
 
@@ -896,6 +940,13 @@ function addEventListenerGroup() {
         initLinkers();
         initHiders();
         initAddNoteBtns();
+        const allSetPrintBtns = document.querySelectorAll('.js-set-print-mode');
+allSetPrintBtns.forEach(btn => {
+    btn.addEventListener('input', () => {
+        const targetIndex = btn.dataset.setPrintMode;
+        printMode = targetIndex;
+    });
+});
 
 }
 
@@ -1024,6 +1075,9 @@ function syncInputToDataContent() {
 // Dynamic bullet/marker detector
 const BULLET_MARKERS = [
     { trigger: '-', replace: '• ', mode: 'bullet' },
+    { trigger: '*', replace: '• ', mode: 'checklist' },
+    { trigger: '>', replace: '➤', mode: 'quote' },
+    
     // Add more markers here in the future, e.g. { trigger: '*', replace: '• ' }
 ];
 document.addEventListener('keydown', (e) => {
@@ -1055,6 +1109,11 @@ document.addEventListener('keydown', (e) => {
         }
         // Cancel bullet if Enter is pressed and only marker is present
         if (e.key === 'Enter') {
+            if (activeElement.value.trim() === '') {
+                listmode = '';
+                // let other handlers proceed
+                return;
+            }
             for (const marker of BULLET_MARKERS) {
                 if (activeElement.value.trim() === marker.replace.trim()) {
                     activeElement.value = '';
@@ -1066,6 +1125,7 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+
 
 
 function recognizeElems() {
