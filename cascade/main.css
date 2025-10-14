@@ -949,11 +949,12 @@ html {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    margin-top: 0.2rem;    
+    margin-top: 0.2rem;  
+      
  }
 
  .add-drop {
-        margin-left: 1.5rem;
+        margin-left: 1.5rem; 
  }
 
  .btn-space {

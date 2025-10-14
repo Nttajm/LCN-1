@@ -121,7 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const ADD_BLOCKS = {
-        'text': [
+        
+        'text': [ 
             { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal' },
             { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true, action: 'checklist' },
         ],
