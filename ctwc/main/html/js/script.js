@@ -74,3 +74,30 @@ extraLink.forEach(element => {
     }
 });
 
+document.querySelectorAll('.js-reveal').forEach(btn => {
+    btn.addEventListener('click', event => {
+        event.stopPropagation();
+        const targetId = btn.dataset.reveal;
+        if (!targetId) return;
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        const opening = !btn.classList.contains('active');
+
+        // close others
+        document.querySelectorAll('.js-reveal.active').forEach(other => {
+            if (other !== btn) other.classList.remove('active');
+        });
+        document.querySelectorAll('.content.show').forEach(c => {
+            if (c !== target) {
+                c.classList.remove('show');
+                c.classList.add('dn'); // ensure closed contents get 'dn'
+            }
+        });
+
+        // toggle this one
+        btn.classList.toggle('active', opening);
+        target.classList.toggle('show', opening);
+        target.classList.toggle('dn', !opening); // toggle the 'dn' class
+    });
+});

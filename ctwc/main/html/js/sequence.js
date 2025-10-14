@@ -1,7 +1,7 @@
 const coverTags = [
     {
-        title: 'CTWC Cover',
-        desc: 'This is the cover image for the CTWC website.',
+        title: 'Overnight Prayer',
+        desc: 'Join us for our monthly overnight prayer every last Friday of the month from 9pm to 6am.',
         img: 'images/w-4.jpg'
     },
     {
@@ -10,8 +10,8 @@ const coverTags = [
         img: 'images/w-3.jpg'
     },
     {
-        title: 'CTWC Cover Min',
-        desc: 'This is the minimized cover image for the CTWC website.',
+        title: 'womens conference',
+        desc: 'Join us for the annual womens conference on the first weekend of March.',
         img: 'images/w-5.jpg'
     }
 ]

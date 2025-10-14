@@ -176,8 +176,15 @@ function createRow(itemIndex = 'none') {
     return itemDivRow;
 }
 
-function theUsual() {
+function theUsual(index) {
     closeAllToolsMenus();
+
+    const input = document.getElementById(`item-input-${index}`);
+    if (input) {
+        input.addEventListener('focus', () => {
+            printMode = input.dataset.printMode || 'board';
+        });
+    }
 }
 
     // create items
@@ -188,7 +195,6 @@ function theUsual() {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item'; 
 
-        theUsual();
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -197,6 +203,7 @@ function theUsual() {
         input.placeholder = type === 'title' ? 'Title' : 'Type something...';
         input.dataset.itemIndex = itemIndex;
         input.autocomplete = 'off';
+        input.focus();
 
         input.dataset.printMode = printMode;
 
@@ -233,6 +240,7 @@ function theUsual() {
         }
 
         initEmptyInputs();
+        theUsual(itemIndex);
         return itemDiv;
      }
 
@@ -258,6 +266,7 @@ function theUsual() {
         input.placeholder = 'Type something...';
         input.dataset.itemIndex = itemIndex;
         input.autocomplete = 'off';
+        input.focus();
 
         holder.appendChild(checkbox);
         holder.appendChild(input);
@@ -276,6 +285,9 @@ function theUsual() {
         } else {
             appendItemToBoard(itemDiv);
         }
+
+        theUsual(itemIndex);
+
 
         listmode = 'checkList';
     }
@@ -329,13 +341,12 @@ function theUsual() {
 
      
 function createAnchorTextItem(type = 'normal-text', link = '#', name = '') {
+        const itemIndex = document.querySelectorAll('.item').length + 1;
         const itemDivRow = createRow();
 
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item';
 
-        const itemIndex = document.querySelectorAll('.item').length + 1;
-        itemDivRow.id = `item-row-${itemIndex}`;
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -350,21 +361,29 @@ function createAnchorTextItem(type = 'normal-text', link = '#', name = '') {
         }
         input.setAttribute('data-link', link);
 
+        input.dataset.printMode = printMode;
+
         const floaty = createFloaty(itemIndex, 'anchor');
 
         itemDiv.appendChild(floaty);
         itemDiv.appendChild(input);
-        itemDivRow.appendChild(itemDiv);
-        appendItemToBoard(itemDivRow);
+        
+        if (itemDivRow) {
+            itemDivRow.appendChild(itemDiv);
+            appendItemToBoard(itemDivRow);
+        } 
+        else {
+            appendItemToBoard(itemDiv);
+        }
         syncInputToDataContent();
      }
 
 
 // prompters 
 function promptForLink(container = document.getElementById('boardItems')) {
-    const row = document.createElement('div');
-    row.className = 'board-item-row';
-    appendItemToBoard(row);
+    let index = document.querySelectorAll('.item').length + 1 + 'a';
+    const row = createRow(index);
+
 
 
     const removePrompt = () => row.remove();
@@ -882,53 +901,16 @@ allCheckboxes.forEach(checkbox => {
 
         if (e.key === 'Backspace') {
             const activeElement = document.activeElement;
-            const allInputs = document.querySelectorAll('.item-element');
             if (
                 activeElement &&
                 activeElement.classList.contains('item-element') &&
                 activeElement.value.trim() === ''
             ) {
                 e.preventDefault();
-                const parentRow = activeElement.closest('.board-item-row');
-                if (parentRow) {
-                    const inputsInRow = parentRow.querySelectorAll('.item-element');
-                    const itemDiv = activeElement.closest('.item');
+               activeElement.closest('.item')?.remove();
+                deleteEmptyRows();
 
-                    if (inputsInRow.length > 1) {
-                        // Remove the entire .item container that holds the focused input (not just the input itself)
-                        if (itemDiv) itemDiv.remove();
-
-                        // Focus the last .item-element in the DOM
-                        const updatedInputs = document.querySelectorAll('.item-element');
-                        if (updatedInputs.length > 0) {
-                            updatedInputs[updatedInputs.length - 1].focus();
-                        }
-                    } else {
-                        // Only one input in the row -> remove the whole row
-                        parentRow.remove();
-                        listmode = ''; // reset listmode to default
-                        // Focus the last .item-element in the appropriate context
-                            if (printMode != 'board') {
-                    const inputsWithin = document.querySelectorAll(`.js-drop-content-${printMode} .item-element`);
-                    if (inputsWithin.length > 0) {
-                        inputsWithin[inputsWithin.length + 1].focus();
-                    }
-                } else{
-                    const allInputs = document.querySelectorAll('.item-element');
-                    const lastInput = allInputs[allInputs.length + 1];
-                    if (lastInput) lastInput.focus();
-                }
-                }
-                }
-
-                const itemParent = activeElement.closest('.group-content, .drop-content');
-                if (itemParent) {
-                    const inputsWithin = itemParent.querySelectorAll('.item-element');
-                    if (inputsWithin.length > 0) {
-                        inputsWithin[inputsWithin.length - 1].focus();
-                    }
-
-                }
+                focusInputLatest();
             }
         }
     });
@@ -994,17 +976,29 @@ allCheckboxes.forEach(checkbox => {
     
 
     function focusInputLatest() {
-        const allInputs = document.querySelectorAll('.item-element');
+        let allInputs;
+        const contentDiv = document.querySelector(`.js-drop-content-${printMode}`);
+        const contentDivInputs = contentDiv ? contentDiv.querySelectorAll('.item-element') : [];
+        if (printMode != 'board' && contentDiv) {
+            allInputs = contentDiv ? contentDiv.querySelectorAll('.item-element') : [];
+            if (contentDivInputs.length < 1) {
+                allInputs = document.querySelectorAll('.item-element');
+            }
+        } else {
+            allInputs = document.querySelectorAll('.item-element');
+        }
         const aiLength = allInputs.length;
-        const latest = document.getElementById(`item-input-${aiLength}`);
-        if (latest) latest.focus();
-
+        const latest = allInputs[aiLength - 1];
+        if (latest) {
+            latest.focus();
+        }
     }
 
 
 });
 
      function appendItemToBoard(itemDivRow) {
+        deleteEmptyRows();
         if (printMode != 'board') {
             const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
             if (dropdownContent) {
@@ -1042,11 +1036,28 @@ function addEventListenerGroup() {
         printMode = targetIndex;
     });
 });
+deleteEmptyRows();
 
 }
 
-function initItemBoardSized(index) {
-    
+function deleteEmptyRows() {
+    deleteEmptyGroups();
+    document.querySelectorAll('.board-item-row').forEach(row => {
+        const items = row.querySelectorAll('.item');
+        if (items.length === 0) {
+            row.remove();
+        }
+    });
+
+}
+
+function deleteEmptyGroups() {
+    document.querySelectorAll('.group').forEach(group => {
+        const groupContent = group.querySelector('.group-content');
+        if (groupContent && groupContent.querySelectorAll('.item').length === 0) {
+            group.remove();
+        }
+    });
 }
 
 function initAddNoteBtns() {
@@ -1254,3 +1265,6 @@ document.getElementById('add-note').addEventListener('click', () => {
 
 
 
+setInterval(() => {
+    console.log('Current printMode:', printMode);
+}, 500);

@@ -6,7 +6,7 @@
     <title>Give</title>
     <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="give.css">
+    <link rel="stylesheet" href="css/give.css">
 </head>
 <body>
     <nav id="mobile-nav">
@@ -57,11 +57,11 @@
             </div>
             
         </div>
-        <div class="simpay" id="airtel">
+        <div class="simpay" id="airtel">    
             <div class="s-1">
-                <img src="icons/airtel.jpg" alt="mtn logo">
+                <img src="icons/airtel.jpg" alt="Airtel logo">
                 <span>
-                    MoMo Pay
+                    Airtel Money
                 </span>
             </div>
             <div class="dropdown">
@@ -69,9 +69,49 @@
             </div>
             
         </div>
+        <div class="simpay" id="credit">
+            <div class="name">
+                <div class="s-1">
+                    <img src="icons/cred.png" alt="mtn logo">
+                    <span>
+                        Credit/Debit Card
+                    </span>
+                </div>
+                <div class="dropdownI js-reveal" data-reveal="js-reval-credit">
+                    <img src="icons/dropdown.svg" alt="dropdown">
+                </div>
+            </div>
+            <div class="content credit" id="js-reval-credit">
+                <div class="dontypes">
+                    <div class="dontype js-sel" data-amount="5">
+                        <span>$5</span>
+                    </div>
+                    <div class="dontype js-sel" data-amount="15">
+                        <span>$15</span>
+                    </div>
+                    <div class="dontype js-sel" data-amount="35">
+                        <span>$35</span>
+                    </div>
+                </div>
+                <div class="custom">
+                    <input type="number" placeholder="Custom Amount">
+                </div>
+                <div class="isReaccuring">
+                    <div class="reaccuring-btn js-sel">
+                        <span>Make this a reaccuring donation</span>
+                    </div>
+                </div>
+                <div class="give-btn">
+                    <button>Give Now</button>
+                </div>
+                <a href="" class="u">cancel existing reaccuring?</a>
+            </div>
+        </div> 
     </div>
     
 </body>
-<script src="script.js"></script>
-<script src="foolsreact.js"></script>
+<script src="./js/foolsreact.js"></script>
+<script src="./js/script.js"></script>
+<script src="./js/give.js"></script>
+
 </html>
