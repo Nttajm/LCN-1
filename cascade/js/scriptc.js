@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Note Block': [
             {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
             { id: 'dropdown', icon: '▼', class: 'note-block', label: 'Drop down' , action: 'dropdown' },
-            { id: 'section', icon: '▭', class: 'section', label: 'Section', action: 'section' }
+            { id: 'group', icon: '▭', class: 'group', label: 'Group', action: 'group' }
         ],
         'Media': [
             { id: 'link', icon: '🔗', class: 'link', label: 'Link', action: 'link' },
@@ -164,6 +164,7 @@ function createRow(itemIndex = 'none') {
     // only make row if printMode is 'board'
     if (printMode !== 'board') return null;
 
+    itemIndex = itemIndex + 2;
     const itemDivRow = document.createElement('div');
     itemDivRow.className = `board-item-row js-drop-content-${itemIndex}`;
     itemDivRow.id = `item-row-${itemIndex}`;
@@ -174,14 +175,19 @@ function createRow(itemIndex = 'none') {
     return itemDivRow;
 }
 
+function theUsual() {
+    closeAllToolsMenus();
+}
+
     // create items
     function createTextItem(type = 'normal-text', toBoard = true) {
         const itemIndex = document.querySelectorAll('.item').length + 1;
         const itemDivRow = createRow(itemIndex);
 
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'item';
+        itemDiv.className = 'item'; 
 
+        theUsual();
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -226,6 +232,7 @@ function createRow(itemIndex = 'none') {
         }
 
         initEmptyInputs();
+        return itemDiv;
      }
 
      function createCheckListItem() {
@@ -295,24 +302,28 @@ function createRow(itemIndex = 'none') {
         }
         }
 
-
         function createSeparator() {
-        const itemDivRow = createRow();
+            const itemDivRow = createRow();
 
-        itemDivRow.innerHTML = `
-                    <div class="item">
-                    </div>`;
+            const itemIndex = document.querySelectorAll('.item').length + 1;
 
-                    
-        const itemIndex = document.querySelectorAll('.item').length + 1;
-        itemDivRow.id = `item-row-${itemIndex}`;
-        const floaty = createFloaty(itemIndex, 'simple');
-        const itemDiv = itemDivRow.querySelector('.item');
-        itemDiv.appendChild(floaty);
-        appendItemToBoard(itemDivRow); 
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
 
-        const hr = document.createElement('hr');
-        itemDivRow.querySelector('.item').appendChild(hr);
+            const floaty = createFloaty(itemIndex, 'simple');
+            itemDiv.appendChild(floaty);
+
+            const hr = document.createElement('hr');
+            itemDiv.appendChild(hr);
+
+
+            if (itemDivRow) {
+                itemDivRow.appendChild(itemDiv);
+                appendItemToBoard(itemDivRow);
+            } else {
+                appendItemToBoard(itemDiv);
+            }
+            syncInputToDataContent();
         }
 
      
@@ -459,13 +470,14 @@ function promptForLink(container = document.getElementById('boardItems')) {
     }
 
     function createDropdown() {
-    const index = document.querySelectorAll('.item').length + 2;
+    let index = document.querySelectorAll('.item').length + 1;
 
-    const itemDivRow = createRow(index - 1);
+    const itemDivRow = createRow(index);
 
     const itemDiv = document.createElement('div');
     itemDiv.className = `dropdown item fl-c g-5 js-set-print-mode`;
     itemDiv.id = `item-${index}`;
+    index += Math.random().toString(36).substring(2, 5);
     itemDiv.dataset.setPrintMode = index;
 
 
@@ -489,20 +501,42 @@ function promptForLink(container = document.getElementById('boardItems')) {
     
 }
 
-function createBox() {
-    const index = document.querySelectorAll('.item').length + 1;
+
+
+function createGroup() {
+    let index = document.querySelectorAll('.item').length + 1;
 
     const itemDivRow = createRow(index);
 
-    itemDivRow.innerHTML = `
-        <div class="item box" id="item-${index}">
-            <div class="drop-name fl-r g-5 fx-full">
-                <input type="text" class="drop-input item-element simple" placeholder="Name" />
-            </div>
-        </div>
-    `;
+    const itemDiv = document.createElement('div');
+    itemDiv.className = `group item fl-c g-5 js-set-print-mode`;
+    itemDiv.id = `item-${index}`;
+    index += Math.random().toString(36).substring(2, 5);
+    itemDiv.dataset.setPrintMode = index;
+    const textItem = createTextItem();
 
-    appendItemToBoard(itemDivRow);
+    const groupContent = document.createElement('div');
+    groupContent.className = `group-content fx-full js-drop-content-${index} fl-c`;
+    groupContent.id = `group-content-${index}`;
+    groupContent.appendChild(textItem);
+    itemDiv.appendChild(groupContent);
+
+    itemDiv.addEventListener('click', (e) => {
+        printMode = index;
+    });
+
+    itemDiv.addEventListener('focus', (e) => {
+        printMode = index;
+    });
+
+
+    if (itemDivRow) {
+        itemDivRow.appendChild(itemDiv);
+        appendItemToBoard(itemDivRow);
+    } else {
+        appendItemToBoard(itemDiv);
+    }
+
 }
 
 function turnToChecklist(itemIndex) {
@@ -692,6 +726,10 @@ allCheckboxes.forEach(checkbox => {
             createDropdown();
         }
 
+        if (action === 'group') {
+            createGroup();
+        }
+
         if (action === 'edit') {
             focusInput(itemIndex);
         }
@@ -814,10 +852,32 @@ allCheckboxes.forEach(checkbox => {
                 } else {
                     createTextItem();
                 }
-                const lastInput = document.getElementById(`item-input-${document.querySelectorAll('.item-element').length}`);
-                if (lastInput) lastInput.focus();
+                // Focus on the newly created input
+                if (printMode != 'board') {
+                    const inputsWithin = document.querySelectorAll(`.js-drop-content-${printMode} .item-element`);
+                    if (inputsWithin.length > 0) {
+                        inputsWithin[inputsWithin.length - 1].focus();
+                    }
+                } else{
+                    const allInputs = document.querySelectorAll('.item-element');
+                    const lastInput = allInputs[allInputs.length - 1];
+                    if (lastInput) lastInput.focus();
+                }
             }
+
+            if (activeElement && activeElement.value.trim() === '') {
+                const existingMenu = activeElement.parentElement.querySelector('.tools-container');
+                if (!existingMenu) {
+                    const toolsMenu = openConElemTools(ADD_BLOCKS, 'lol');
+                    activeElement.parentElement.appendChild(toolsMenu);
+                    requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
+                } else {
+                    existingMenu.classList.toggle('dn');
+                }
+            }
+
         }
+
 
         if (e.key === 'Backspace') {
             const activeElement = document.activeElement;
@@ -846,16 +906,34 @@ allCheckboxes.forEach(checkbox => {
                         // Only one input in the row -> remove the whole row
                         parentRow.remove();
                         listmode = ''; // reset listmode to default
-                        // Focus the last .item-element in the DOM
-                        const updatedInputs = document.querySelectorAll('.item-element');
-                        if (updatedInputs.length > 0) {
-                            updatedInputs[updatedInputs.length - 1].focus();
-                        }
+                        // Focus the last .item-element in the appropriate context
+                            if (printMode != 'board') {
+                    const inputsWithin = document.querySelectorAll(`.js-drop-content-${printMode} .item-element`);
+                    if (inputsWithin.length > 0) {
+                        inputsWithin[inputsWithin.length + 1].focus();
                     }
+                } else{
+                    const allInputs = document.querySelectorAll('.item-element');
+                    const lastInput = allInputs[allInputs.length + 1];
+                    if (lastInput) lastInput.focus();
+                }
+                }
+                }
+
+                const itemParent = activeElement.closest('.group-content, .drop-content');
+                if (itemParent) {
+                    const inputsWithin = itemParent.querySelectorAll('.item-element');
+                    if (inputsWithin.length > 0) {
+                        inputsWithin[inputsWithin.length - 1].focus();
+                    }
+
                 }
             }
         }
     });
+
+    // genrations
+
 
 
     // icons stuff
@@ -904,7 +982,23 @@ allCheckboxes.forEach(checkbox => {
         });
     }
 
+
+    document.addEventListener('keydown', (e) => {
+        if (e.shiftKey && e.key === 'A') {
+            e.preventDefault(); // Prevent the letter from being typed in the input
+            createTextItem();
+            focusInputLatest();
+        }
+    });
     
+
+    function focusInputLatest() {
+        const allInputs = document.querySelectorAll('.item-element');
+        const aiLength = allInputs.length;
+        const latest = document.getElementById(`item-input-${aiLength}`);
+        if (latest) latest.focus();
+
+    }
 
 
 });
@@ -940,8 +1034,8 @@ function addEventListenerGroup() {
         initLinkers();
         initHiders();
         initAddNoteBtns();
-        const allSetPrintBtns = document.querySelectorAll('.js-set-print-mode');
-allSetPrintBtns.forEach(btn => {
+    const allSetPrintBtns = document.querySelectorAll('.js-set-print-mode');
+    allSetPrintBtns.forEach(btn => {
     btn.addEventListener('input', () => {
         const targetIndex = btn.dataset.setPrintMode;
         printMode = targetIndex;
@@ -994,7 +1088,13 @@ function addCover(imgUrl) {
 
 const coverBtn = document.querySelector('.add-cover-btn');
 if (coverBtn) {
-    coverBtn.addEventListener('click', () => addCover());
+    coverBtn.addEventListener('click', () => {
+        addCover();
+        coverBtn.innerHTML = 'Change cover';
+        coverBtn.classList.remove('add-cover-btn');
+        coverBtn.removeEventListener('click', this);
+        coverBtn.classList.add('js-uni-tools', 'edit');
+    });
 }
 
 function initLinkers() {

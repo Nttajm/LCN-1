@@ -960,3 +960,17 @@ html {
     padding: 0.2rem !important;
  }
 
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    border: 0.1rem var(--border-color);
+    padding: 0.3rem;
+    border-radius: var(--border-radius-lg);
+}
+
+.group:hover {
+    border: solid 0.1rem var(--border-color);
+}
