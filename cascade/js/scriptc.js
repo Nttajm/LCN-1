@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'resize50', icon: '↔️', class: 'resize50', label: '1/2', action: 'resize' },
             { id: 'resize25', icon: '↔️', class: 'resize25', label: '1/4', action: 'resize' },
             { id: 'resize75', icon: '↔️', class: 'resize75', label: '3/4', action: 'resize' },
-            { id: 'resize100', icon: '↔️', class: 'resize100', label: '100%', action: 'resize' },
+            { id: 'resize100', icon: '↔️', class: 'resize100', label: '4/4', action: 'resize' },
         ],
     };
 
@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'text': [ 
             { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal' },
             { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true, action: 'checklist' },
+            { id: 'callout', icon: '💡', class: 'callout', label: 'Callout', action: 'callout' }
         ],
         'Note Block': [
             {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
@@ -244,6 +245,64 @@ function theUsual(index) {
         return itemDiv;
      }
 
+     function createCallOut(type = 'normal-text', toBoard = true) {
+        const itemIndex = document.querySelectorAll('.item').length + 1;
+        const itemDivRow = createRow(itemIndex);
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item callout';
+
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = `item-input-${itemIndex}`;
+        input.className = `simple item-element fx-full ${type || 'normal-text'}`;
+        input.placeholder = type === 'title' ? 'Title' : 'Type something...';
+        input.dataset.itemIndex = itemIndex;
+        input.autocomplete = 'off';
+        input.value = '💡 ';
+        input.dataset.content = '💡 ';
+        input.focus();
+
+        input.dataset.printMode = printMode;
+
+         if (checkList() === 'checkList') {
+        const holder = document.createElement('div');
+        holder.className = 'holder';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'simple-checkbox';
+
+        holder.appendChild(checkbox);
+        holder.appendChild(input);
+
+        itemDiv.appendChild(createFloaty(itemIndex, 'edit'));
+        itemDiv.appendChild(holder);
+
+        checkbox.addEventListener('change', () => {
+            input.classList.toggle('strike', checkbox.checked);
+        });
+        } else {
+            input.value = checkList();
+            const floaty = createFloaty(itemIndex, 'edit');
+            itemDiv.appendChild(floaty);
+            itemDiv.appendChild(input);
+        }
+
+        if (itemDivRow) {
+            itemDivRow.appendChild(itemDiv);
+            appendItemToBoard(itemDivRow);
+        } 
+        else {
+            appendItemToBoard(itemDiv);
+        }
+
+        initEmptyInputs();
+        theUsual(itemIndex);
+        return itemDiv;
+     }
+
      function createCheckListItem() {
         const itemIndex = document.querySelectorAll('.item').length + 1;
         const itemDivRow = createRow(itemIndex);
@@ -313,7 +372,7 @@ function theUsual(index) {
             const allInputs = document.querySelectorAll('.item-element');
             allInputs[allInputs.length - 1].focus();
         }
-        }
+    }
 
         function createSeparator() {
             const itemDivRow = createRow();
@@ -742,6 +801,10 @@ allCheckboxes.forEach(checkbox => {
             promptForLink();
         }
 
+        if (action === 'callout') {
+            createCallOut();
+        }
+
         if (action === 'dropdown') {
             createDropdown();
         }
@@ -858,9 +921,9 @@ allCheckboxes.forEach(checkbox => {
 
         const activeElementInput = document.activeElement;
 
-        if (activeElementInput.scrollWidth > activeElementInput.clientWidth) {
-            createNewIdenticalInput();
-        }
+        // if (activeElementInput.scrollWidth > activeElementInput.clientWidth) {
+        //     createNewIdenticalInput();
+        // }
 
 
         if (e.key === 'Enter') {
@@ -999,6 +1062,7 @@ allCheckboxes.forEach(checkbox => {
 
      function appendItemToBoard(itemDivRow) {
         deleteEmptyRows();
+        addEventListenerGroup();
         if (printMode != 'board') {
             const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
             if (dropdownContent) {
@@ -1262,8 +1326,6 @@ function addListener(elements, event, handler) {
 document.getElementById('add-note').addEventListener('click', () => {
     printMode = 'board'; // reset back to default
 });
-
-
 
 setInterval(() => {
     console.log('Current printMode:', printMode);
