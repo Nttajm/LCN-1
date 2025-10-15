@@ -46,6 +46,16 @@
 
     <div class="navBuffer"></div>
 
+    <div class="banner dn">
+        <div class="tab">
+            <div class="loader"></div>
+            <span class="title">Processing your order...</span>
+            <span>
+                <span class="note">Transfers from the US to Uganda may take a little longer due to international bank processing and currency conversion. Thank you for your patience.</span>
+            </span>
+        </div>
+    </div>
+
     <div class="conter p-15-nav g-10">
         <div class="simpay" id="mtn">
             <div class="name">
@@ -104,19 +114,24 @@
                 </div>
                 <div class="isReaccuring">
                     <div class="reaccuring-btn js-sel">
-                        <span>Make this a reaccuring donation</span>
+                        <span>Make this a recurring donation</span>
                     </div>
                 </div>
                 <div class="give-btn">
                     <button>Give Now</button>
                 </div>
-                <span class="u" id="manage-donations">Cancel existing reaccuring donation?</span>
+                <div class="sign-btn button">
+                    <button>Sign in and Give</button>
+                </div>
+<div class="cancel-container">
+  <button id="cancel-recurring" class="cur u">Cancel Existing Recurring Donation?</button>
+</div>
             </div>
         </div>
     </div>
 
     <script src="./js/foolsreact.js"></script>
     <script src="./js/script.js"></script>
-    <script src="./js/give.js"></script>
+    <script src="./js/give.js" type="module"></script>
 </body>
 </html>
