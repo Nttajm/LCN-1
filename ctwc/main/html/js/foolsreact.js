@@ -25,13 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         desktopNav.innerHTML = `
-            <a href="${fixLInkDesktop}index.html" class="logo fadeIn">
-                <img src="images/logo-long-long.png" alt="CTWC">
-                </a>
-                <ul class="nav-links fadeIn">
-                <li><a href="${fixLInkDesktop}about.html" class="cur uh">About us</a></li>
-                <li><a href="${fixLInkDesktop}events.html" class="cur uh">Missions & Events</a></li>
-                <li><a href="${fixLInkDesktop}events.html" class="cur uh">Ministries</a></li>
+                    <a href="${fixLInkDesktop}index.html" class="logo fadeIn">
+                        CTWC
+                    </a>
+                    <ul class="nav-links fadeIn">
+                        <li><a href="${fixLInkDesktop}about.html" class="cur uh">About us</a></li>
+                        <li><a href="${fixLInkDesktop}events.html" class="cur uh">Missions & Events</a></li>
+                        <li><a href="${fixLInkDesktop}events.html" class="cur uh">Contact</a></li>
                 <li><a href="${fixLInkDesktop}give.html" class="cur uh">Give</a></li>
                 </ul>
         `;
