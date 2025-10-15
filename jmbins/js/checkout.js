@@ -6,7 +6,7 @@ products;
 async function init() {
   await loadProducts();   // wait until products are loaded
   loadprices();           // only then calculate totals
-}
+} 
 init();
 
 let userid;

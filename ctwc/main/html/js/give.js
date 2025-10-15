@@ -30,13 +30,36 @@ recurringBtn.addEventListener('click', () => {
 });
 
 // Return final object
-giveBtn.addEventListener('click', () => {
-  const amount = selectedAmount || parseFloat(customInput.value) || 0;
-  const result = {
-    amount: amount,
-    recurring: isRecurring
-  };
-  console.log(result);
-});
+giveBtn.addEventListener("click", async () => {
+  const amount = selectedAmount || parseFloat(customInput.value);
+  const isRecurring = recurringBtn.classList.contains("active");
 
+  if (!amount || amount <= 0) {
+    alert("Please select or enter a valid donation amount.");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://backend2-b76r.onrender.com/create-donation-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount,
+        recurring: isRecurring
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to create donation session");
+    }
+
+    const { url } = await res.json();
+    window.location = url;
+
+  } catch (err) {
+    console.error("Donation checkout error:", err.message);
+    alert("Something went wrong. Please try again.");
+  }
+});
 

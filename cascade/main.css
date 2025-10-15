@@ -598,6 +598,12 @@ hr {
     z-index: 1;
 }
 
+.callout {
+    background-color: var(--notion-yellow-bg);
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem;
+}
+
 .resizable {
     background-color: var(--bg-secondary);
     border: var(--border-width) solid var(--border-color);
