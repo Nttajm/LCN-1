@@ -1,7 +1,14 @@
+import {
+    saveNotes,
+    loadNote
+} from './backend.js';
 
 let printMode = 'board'; // or 'page'
 let listmode = ''; // or 'numbered'
-const boardItemsSection = document.getElementById('boardItems');
+let boardItemsSection = null;
+
+let inputFocusHistory = [];
+const globalEventListeners = [];
 
 let covers = [
 'covers/cover1.jpg',
@@ -11,7 +18,11 @@ let covers = [
 let randomIcons = [
 '🏞️', '📘', '📗', '📕', '📒', '📓', '📔', '📚', '🖼️', '🎨', '🎭', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '📷', '📹', '🎥', '📺', '💻', '🖥️', '🖨️', '⌨️', '🖱️', '🖲️', '💡', '🔦', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️'
 ]
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
+     boardItemsSection = document.getElementById('boardItems');
 
     const DEFAULT = {
         'settings': [
@@ -159,7 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
         initAddNoteBtns();
     // addEventListenerGroup();
 
-        createTextItem('title');
+        if (document.querySelectorAll('.item').length === 0) {
+            createTextItem('title');
+        }
 
 
 function createRow(itemIndex = 'none') {
@@ -535,7 +548,6 @@ function promptForLink(container = document.getElementById('boardItems')) {
 }
 
 
-    // Single tool button
     function genColElement(icon, img, label, colorClass, itemIndex, sectionName, adjClass = '') {
         const iconHtml = img ? `<img src="${img}" alt="${label}" class="icono icon small">` : `<span class="letter small">${icon}</span>`;
         return `
@@ -547,6 +559,8 @@ function promptForLink(container = document.getElementById('boardItems')) {
                 <span class="fx-full ${adjClass}">${label}</span>
             </div>`;
     }
+
+    
 
     function createDropdown() {
     let index = document.querySelectorAll('.item').length + 1;
@@ -684,22 +698,12 @@ allCheckboxes.forEach(checkbox => {
 });
 
 
-
     // Event delegation for floaty (edit) button clicks
-    document.addEventListener('click', (e) => {
+    registerListener(document, 'click', (e) => {
         const u_Tool = e.target.closest('.js-uni-tools');
         if (u_Tool) {
             e.stopPropagation();
             closeAllToolsMenus();
-
-            // document.addEventListener('focusin', (e) => {
-            //     const elWithMode = e.target.closest('[data-set-print-mode]');
-            //     if (!elWithMode) return;
-            //     const mode = elWithMode.dataset.setPrintMode;
-            //     if (mode) {
-            //         printMode = mode;
-            //     }
-            // });
 
             u_Tool.classList.toggle('active');
 
@@ -751,7 +755,7 @@ allCheckboxes.forEach(checkbox => {
         });
 
     // Event delegation for all .js-trigger-action clicks
-    document.addEventListener('click', (e) => {
+    registerListener(document, 'click', (e) => {
         const trigger = e.target.closest('.js-trigger-action');
         if (!trigger) return;
 
@@ -876,7 +880,7 @@ allCheckboxes.forEach(checkbox => {
     }
 
     // Add new item when clicking below last input
-    document.addEventListener('click', (e) => {
+    registerListener(document, 'click', (e) => {
         const boardContainer = document.querySelector('.board-content');
         const activeInput = document.activeElement;
         const allInputs = Array.from(document.querySelectorAll('.item-element'));
@@ -902,7 +906,7 @@ allCheckboxes.forEach(checkbox => {
     });
 
     // Enter + Backspace shortcuts
-    document.addEventListener('keydown', (e) => {
+    registerListener(document, 'keydown', (e) => {
         if (
             (e.key === 'ArrowDown' || e.key === 'ArrowUp') &&
             document.activeElement.classList.contains('item-element')
@@ -930,6 +934,9 @@ allCheckboxes.forEach(checkbox => {
             const activeElement = document.activeElement;
             if (activeElement && activeElement.classList.contains('item-element') && activeElement.value.trim() !== '') {
                 e.preventDefault();
+                if (!printMode || printMode === 'none' || !document.querySelector(`.js-drop-content-${printMode}`)) {
+                        printMode = 'board';
+                    }
                 if (listmode === 'checkList') {
                     createCheckListItem();
                 } else {
@@ -1029,13 +1036,14 @@ allCheckboxes.forEach(checkbox => {
     }
 
 
-    document.addEventListener('keydown', (e) => {
+    registerListener(document, 'keydown', (e) => {
         if (e.shiftKey && e.key === 'A') {
             e.preventDefault(); // Prevent the letter from being typed in the input
             createTextItem();
             focusInputLatest();
         }
     });
+
     
 
     function focusInputLatest() {
@@ -1057,27 +1065,51 @@ allCheckboxes.forEach(checkbox => {
         }
     }
 
+    // Always reset printMode to 'board' when focusing a top-level input
+document.addEventListener('focusin', e => {
+    if (e.target.classList.contains('item-element') && !e.target.closest('.js-drop-content-')) {
+        printMode = 'board';
+    }
+});
+
+
 
 });
 
+
+setInterval(saveNotes, 200);
+loadNote();
+
+
+registerListener(document, 'keydown', e => {
+    if (e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveNotes();
+        alert('Notes saved!');
+    }
+});
+
      function appendItemToBoard(itemDivRow) {
-        deleteEmptyRows();
-        addEventListenerGroup();
-        if (printMode != 'board') {
-            const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
-            if (dropdownContent) {
-                dropdownContent.appendChild(itemDivRow);
+         if (printMode !== 'board') {
+             const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
+             if (dropdownContent) {
+                 dropdownContent.appendChild(itemDivRow);
+                } else {
+                    boardItemsSection.appendChild(itemDivRow);
+                }
             } else {
                 boardItemsSection.appendChild(itemDivRow);
             }
-        } else {
-            boardItemsSection.appendChild(itemDivRow);
-        }
+            
+        deleteEmptyRows();
+        setTimeout(() => {
+            addEventListenerGroup();
+        }, 10);
     } 
 
 // =========== Additional Features ===========
 
-document.addEventListener('click', (e) => {
+registerListener(document, 'click', (e) => {
         addEventListenerGroup();
     if (!e.target.closest('.js-uni-tools') && !e.target.closest('.tools-container')) {
         closeAllToolsMenus();
@@ -1086,7 +1118,7 @@ document.addEventListener('click', (e) => {
 
 
 
-function addEventListenerGroup() {
+export function addEventListenerGroup() {
      recognizeElems();
     syncInputToDataContent();
         initEmptyInputs();
@@ -1101,6 +1133,8 @@ function addEventListenerGroup() {
     });
 });
 deleteEmptyRows();
+adjustBoardRowsizes();
+// initfocusHistory();
 
 }
 
@@ -1115,6 +1149,39 @@ function deleteEmptyRows() {
 
 }
 
+function initfocusHistory() {
+    const allInputs = document.querySelectorAll('.item-element');
+    allInputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            focusHistory.push(input.dataset.itemIndex);
+        });
+    });
+}
+
+function adjustBoardRowsizes() {
+    document.querySelectorAll('.board-item-row').forEach(row => {
+        const items = Array.from(row.querySelectorAll('.item'));
+        row.classList.remove('resizable-row', 'js-items-50', 'js-items-33', 'js-items-25');
+
+        items.forEach(it => it.classList.remove('resizeable', 'resizable'));
+
+        const count = items.length;
+        if (count === 0) return;
+
+        items.forEach((it, idx) => {
+            if (idx > 1) it.classList.add('resizeable');
+        });
+
+        if (count === 2) {
+            row.classList.add('resizable-row', 'js-items-40');
+        } else if (count === 3) {
+            row.classList.add('resizable-row', 'js-items-33');
+        } else if (count >= 4) {
+            row.classList.add('resizable-row', 'js-items-25');
+        }
+    });
+}
+
 function deleteEmptyGroups() {
     document.querySelectorAll('.group').forEach(group => {
         const groupContent = group.querySelector('.group-content');
@@ -1127,7 +1194,7 @@ function deleteEmptyGroups() {
 function initAddNoteBtns() {
     const allAddNoteBtns = document.querySelectorAll('.js-add-note-btn');
     allAddNoteBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
+            registerListener(btn, 'click', () => {
                 const itemID = btn.id;
                 if (itemID === 'add-note') {
                     printMode = 'board';
@@ -1228,7 +1295,7 @@ initEmptyInputs();
 
 // Sync input value to data-content on keydown
 function syncInputToDataContent() {
-    document.addEventListener('keydown', (e) => {
+    registerListener(document, 'keydown', (e) => {
         const activeElement = document.activeElement;
         if (activeElement && activeElement.classList.contains('item-element')) {
             setTimeout(() => {
@@ -1256,7 +1323,7 @@ const BULLET_MARKERS = [
     
     // Add more markers here in the future, e.g. { trigger: '*', replace: '• ' }
 ];
-document.addEventListener('keydown', (e) => {
+registerListener(document, 'keydown', (e) => {
     const activeElement = document.activeElement;
 
     if (
@@ -1268,15 +1335,15 @@ document.addEventListener('keydown', (e) => {
             for (const marker of BULLET_MARKERS) {
                 const trimmedValue = activeElement.value.trim();
                 if (trimmedValue.endsWith(marker.trigger)) {
-                    // Remove the marker and insert the bullet
+
                     const cursorPos = activeElement.selectionStart;
-                    // Remove marker from value before cursor
+
                     const before = activeElement.value.substring(0, cursorPos - marker.trigger.length);
                     const after = activeElement.value.substring(cursorPos);
                     activeElement.value = before + marker.replace + after;
-                    // Set cursor after bullet
+
                     activeElement.selectionStart = activeElement.selectionEnd = before.length + marker.replace.length;
-                    // Switch listmode to corresponding
+
                     listmode = marker.mode;
                     e.preventDefault();
                     break;
@@ -1327,6 +1394,31 @@ document.getElementById('add-note').addEventListener('click', () => {
     printMode = 'board'; // reset back to default
 });
 
+function registerListener(target, event, handler, options) {
+    target.addEventListener(event, handler, options);
+    globalEventListeners.push({ target, event, handler, options });
+}
+
+
+function reapplyAllEventListeners() {
+    globalEventListeners.forEach(({ target, event, handler, options }) => {
+        target.removeEventListener(event, handler, options);
+        target.addEventListener(event, handler, options);
+    });
+    console.log('All global listeners reapplied.');
+    console.log('Total listeners reapplied:', globalEventListeners.length);
+}
+
+
+reapplyAllEventListeners();
+
+
+    const observer = new MutationObserver(() => {
+        reapplyAllEventListeners();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
 setInterval(() => {
     console.log('Current printMode:', printMode);
 }, 500);
+

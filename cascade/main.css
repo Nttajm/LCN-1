@@ -321,7 +321,9 @@ font-size: 16px;
   }
 }
 
-
+.add-sel-1.selected {
+    background-color: var(--bg-hover);
+}
 /* ui helper */
 
 .cursor-ui-helper {
@@ -449,7 +451,7 @@ body {
 }
 
 .name {
-    font: var(--font-select) !important;
+    font: bold 1rem var(--font-primary) !important;
     color: var(--text-primary);
 }
 
@@ -558,6 +560,18 @@ hr {
 .board-item-row .item {
     flex: 1; /* Each item will take equal space */
     box-sizing: border-box; /* Ensure padding and border are included in total width/height */
+}
+
+.board-item-row.resizable-row.js-items-50 .item {
+    width: 50% !important;
+}
+
+.board-item-row.resizable-row.js-items-33 .item {
+    width: 33% !important;
+}
+
+.board-item-row.resizable-row.js-items-25 .item {
+    width: 25% !important;
 }
 
 .board-item-row .floaty {
@@ -973,11 +987,26 @@ html {
     gap: 0.2rem;
     margin-bottom: 0.5rem;
     transition: all 0.3s ease;
-    border: 0.1rem var(--border-color);
+    border: solid 0.1rem transparent;
     padding: 0.3rem;
     border-radius: var(--border-radius-lg);
 }
 
 .group:hover {
     border: solid 0.1rem var(--border-color);
+    border-radius: var(--border-radius-lg);
+}
+
+
+
+/* Show placeholder only for the focused input/textarea */
+input:not(.title):not(.drop-input)::placeholder,
+textarea:not(.title)::placeholder {
+    color: transparent;
+    transition: color 0.08s ease;
+}
+
+input:not(.title):not(.drop-input):focus::placeholder,
+textarea:not(.title):focus::placeholder {
+    color: var(--text-placeholder);
 }
