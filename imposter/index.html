@@ -344,6 +344,8 @@
             <div class="text-center">
                 <button class="btn" id="createPartyPageBtn">Create Party</button>
                 <button class="btn btn-secondary" id="joinPartyPageBtn">Join Party</button>
+                <button class="btn btn-secondary" id="joinSinglePlayerBtn">Single Player</button>
+
             </div>
         </div>
 
@@ -503,6 +505,11 @@
                 updateWordsPreview();
             }
         }
+
+        const joinSinglePlayerBtn = document.getElementById('joinSinglePlayerBtn');
+        joinSinglePlayerBtn.addEventListener('click', () => {
+            window.location.href = 'singleplayer.html';
+        });
 
         // Save words
         function saveWords() {
@@ -915,6 +922,11 @@
             const votingOptions = document.getElementById('votingOptions');
             const votingResults = document.getElementById('votingResults');
             
+            const roleIndicator = document.getElementById('roleIndicator');
+            roleIndicator.innerHTML += '<br>🗳️ Voting is in progress!';
+
+            const gameWord = document.getElementById('gameWord');
+            gameWord.textContent = 'vote now!';
             // Show voting buttons
             votingOptions.innerHTML = '';
             players.forEach(player => {
