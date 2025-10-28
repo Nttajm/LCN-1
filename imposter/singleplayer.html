@@ -290,6 +290,12 @@
             line-height: 1.5;
         }
 
+        .impostor-count-info {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 8px;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -333,7 +339,13 @@
             
             <div class="input-group">
                 <label for="playerCount">Number of Players:</label>
-                <input type="number" id="playerCount" min="2" max="20" onchange="generatePlayerNameInputs()">
+                <input type="number" id="playerCount" min="2" max="20" value="4" onchange="updateImpostorCountMax()">
+            </div>
+
+            <div class="input-group">
+                <label for="impostorCount">Number of Impostors:</label>
+                <input type="number" id="impostorCount" min="1" max="3" value="1" onchange="updateImpostorCountInfo()">
+                <div class="impostor-count-info" id="impostorCountInfo">1 impostor out of 4 players</div>
             </div>
 
             <div class="player-names-section">
@@ -422,19 +434,15 @@
         </div>
 
         <div id="discussionPage" class="page">
-  <h2>🕵️ Discussion Time</h2>
-  <p style="text-align:center; font-size:1.2em; margin:20px 0;">
-    The game has started! Discuss among yourselves and find the impostor.
-  </p>
-  <div class="text-center">
-    <button class="btn btn-success btn-large" onclick="endGame()">End Game</button>
-  </div>
-</div>
-
-
+            <h2>🕵️ Discussion Time</h2>
+            <p style="text-align:center; font-size:1.2em; margin:20px 0;">
+                The game has started! Discuss among yourselves and find the impostor<span id="impostorPlural">s</span>.
+            </p>
+            <div class="text-center">
+                <button class="btn btn-success btn-large" onclick="endGame()">End Game</button>
+            </div>
+        </div>
     </div>
-
-
 
     <script>
         // Game state
@@ -442,9 +450,10 @@
         let currentPlayerIndex = 0;
         let totalPlayers = 0;
         let gameWord = '';
-        let impostorIndex = -1;
+        let impostorIndices = [];
         let playerAssignments = [];
         let playerNames = [];
+        let numberOfImpostors = 1;
 
         // Default word bank
         const defaultWordBank = [
@@ -480,7 +489,34 @@
 
         function showSetupPage() {
             showPage('setupPage');
+            updateImpostorCountMax();
             generatePlayerNameInputs();
+        }
+
+        // Update impostor count constraints
+        function updateImpostorCountMax() {
+            const playerCount = parseInt(document.getElementById('playerCount').value) || 2;
+            const impostorInput = document.getElementById('impostorCount');
+            const maxImpostors = Math.max(1, playerCount - 1);
+            
+            impostorInput.max = maxImpostors;
+            
+            // Adjust current value if it exceeds the new max
+            if (parseInt(impostorInput.value) > maxImpostors) {
+                impostorInput.value = maxImpostors;
+            }
+            
+            updateImpostorCountInfo();
+            generatePlayerNameInputs();
+        }
+
+        function updateImpostorCountInfo() {
+            const playerCount = parseInt(document.getElementById('playerCount').value) || 2;
+            const impostorCount = parseInt(document.getElementById('impostorCount').value) || 1;
+            const info = document.getElementById('impostorCountInfo');
+            
+            const impostorWord = impostorCount === 1 ? 'impostor' : 'impostors';
+            info.textContent = `${impostorCount} ${impostorWord} out of ${playerCount} players`;
         }
 
         // Generate player name inputs
@@ -583,9 +619,15 @@
             }
 
             totalPlayers = parseInt(document.getElementById('playerCount').value);
+            numberOfImpostors = parseInt(document.getElementById('impostorCount').value);
             
             if (totalPlayers < 2) {
                 alert('You need at least 2 players!');
+                return;
+            }
+
+            if (numberOfImpostors >= totalPlayers) {
+                alert('Number of impostors must be less than total players!');
                 return;
             }
 
@@ -595,7 +637,16 @@
             // Setup game
             currentPlayerIndex = 0;
             gameWord = gameWords[Math.floor(Math.random() * gameWords.length)];
-            impostorIndex = Math.floor(Math.random() * totalPlayers);
+            
+            // Select random impostors
+            impostorIndices = [];
+            const availableIndices = Array.from({length: totalPlayers}, (_, i) => i);
+            
+            for (let i = 0; i < numberOfImpostors; i++) {
+                const randomIndex = Math.floor(Math.random() * availableIndices.length);
+                impostorIndices.push(availableIndices[randomIndex]);
+                availableIndices.splice(randomIndex, 1);
+            }
 
             // Create player assignments
             playerAssignments = [];
@@ -603,7 +654,7 @@
                 playerAssignments.push({
                     playerNumber: i + 1,
                     playerName: playerNames[i],
-                    isImpostor: i === impostorIndex,
+                    isImpostor: impostorIndices.includes(i),
                     word: gameWord
                 });
             }
@@ -612,73 +663,83 @@
         }
 
         function showPlayerTurn() {
-    showPage('gamePage');
-    
-    const playerInfo = document.getElementById('playerInfo');
-    const currentPlayer = playerAssignments[currentPlayerIndex];
-    playerInfo.textContent = `${currentPlayer.playerName} (${currentPlayerIndex + 1} of ${totalPlayers})`;
+            showPage('gamePage');
+            
+            const playerInfo = document.getElementById('playerInfo');
+            const currentPlayer = playerAssignments[currentPlayerIndex];
+            playerInfo.textContent = `${currentPlayer.playerName} (${currentPlayerIndex + 1} of ${totalPlayers})`;
 
-    // Reset card
-    document.getElementById('wordCard').classList.remove('flipped');
-    document.getElementById('revealBtn').style.display = 'inline-block';
-    const nextBtn = document.getElementById('nextBtn');
-    nextBtn.style.display = 'none';
+            // Reset card
+            document.getElementById('wordCard').classList.remove('flipped');
+            document.getElementById('revealBtn').style.display = 'inline-block';
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.style.display = 'none';
 
-    // Update button text depending on last player
-    if (currentPlayerIndex === totalPlayers - 1) {
-        nextBtn.textContent = 'Find the Impostor';
-    } else {
-        nextBtn.textContent = 'Next Player';
-    }
-}
+            // Update button text depending on last player
+            if (currentPlayerIndex === totalPlayers - 1) {
+                const impostorWord = numberOfImpostors === 1 ? 'Impostor' : 'Impostors';
+                nextBtn.textContent = `Find the ${impostorWord}`;
+            } else {
+                nextBtn.textContent = 'Next Player';
+            }
+        }
 
-function revealWord() {
-    const assignment = playerAssignments[currentPlayerIndex];
-    const cardBack = document.getElementById('cardBack');
-    const wordDisplay = document.getElementById('wordDisplay');
+        function revealWord() {
+            const assignment = playerAssignments[currentPlayerIndex];
+            const cardBack = document.getElementById('cardBack');
+            const wordDisplay = document.getElementById('wordDisplay');
 
-    if (assignment.isImpostor) {
-        cardBack.classList.add('impostor');
-        wordDisplay.innerHTML = '🕵️<br>IMPOSTOR<br>???';
-    } else {
-        cardBack.classList.remove('impostor');
-        wordDisplay.textContent = assignment.word.toUpperCase();
-    }
+            if (assignment.isImpostor) {
+                cardBack.classList.add('impostor');
+                wordDisplay.innerHTML = '🕵️<br>IMPOSTOR<br>???';
+            } else {
+                cardBack.classList.remove('impostor');
+                wordDisplay.textContent = assignment.word.toUpperCase();
+            }
 
-    // Flip card
-    document.getElementById('wordCard').classList.add('flipped');
-    document.getElementById('revealBtn').style.display = 'none';
-    document.getElementById('nextBtn').style.display = 'inline-block';
-}
+            // Flip card
+            document.getElementById('wordCard').classList.add('flipped');
+            document.getElementById('revealBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        }
 
-function nextPlayer() {
-    // If last player, go to discussion phase
-    if (currentPlayerIndex === totalPlayers - 1) {
-        showPage('discussionPage');
-        return;
-    }
+        function nextPlayer() {
+            // If last player, go to discussion phase
+            if (currentPlayerIndex === totalPlayers - 1) {
+                // Update plural text in discussion page
+                const pluralSpan = document.getElementById('impostorPlural');
+                pluralSpan.textContent = numberOfImpostors === 1 ? '' : 's';
+                showPage('discussionPage');
+                return;
+            }
 
-    // Otherwise move to next player
-    currentPlayerIndex++;
-    showPlayerTurn();
-}
+            // Otherwise move to next player
+            currentPlayerIndex++;
+            showPlayerTurn();
+        }
 
-function endGame() {
-    showResults();
-}
-
-
+        function endGame() {
+            showResults();
+        }
 
         function showResults() {
             showPage('resultsPage');
-            const impostorPlayer = playerAssignments[impostorIndex];
+            
             document.getElementById('finalWord').textContent = `The word was: ${gameWord.toUpperCase()}`;
-            document.getElementById('finalImpostor').textContent = `🕵️ The impostor was ${impostorPlayer.playerName}`;
+            
+            // Build impostor reveal text
+            const impostorPlayers = impostorIndices
+                .map(idx => playerAssignments[idx].playerName)
+                .join(', ');
+            
+            const impostorWord = numberOfImpostors === 1 ? 'impostor was' : 'impostors were';
+            document.getElementById('finalImpostor').textContent = `🕵️ The ${impostorWord} ${impostorPlayers}`;
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadSavedWords();
+            updateImpostorCountMax();
             generatePlayerNameInputs();
         });
     </script>
