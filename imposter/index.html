@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impostor - Online Impostor Game</title>
+    <link rel="stylesheet" href="/css/standard.css">
     <style>
         * {
             margin: 0;
@@ -923,7 +924,7 @@
             const votingResults = document.getElementById('votingResults');
             
             const roleIndicator = document.getElementById('roleIndicator');
-            roleIndicator.innerHTML = '<br>🗳️ Voting is in progress!';
+            roleIndicator.style.display = 'none';
 
             const gameWord = document.getElementById('gameWord');
             gameWord.textContent = 'vote now!';
