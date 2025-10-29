@@ -3,6 +3,10 @@ import {
     loadNote
 } from './backend.js';
 
+import {
+    CASCADE_HTMLS,
+} from './htmls.js';
+
 let printMode = 'board'; // or 'page'
 let listmode = ''; // or 'numbered'
 let boardItemsSection = null;
@@ -23,7 +27,9 @@ let randomIcons = [
 
 document.addEventListener('DOMContentLoaded', () => {
      boardItemsSection = document.getElementById('boardItems');
-
+    const boardContainer = document.querySelector('.board-content');
+    boardContainer.innerHTML = '';
+    boardContainer.innerHTML = loadingStates();
     const DEFAULT = {
         'settings': [
             { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' }
@@ -170,10 +176,10 @@ document.addEventListener('DOMContentLoaded', () => {
         initAddNoteBtns();
     // addEventListenerGroup();
 
-        if (document.querySelectorAll('.item').length === 0) {
-            createTextItem('title');
-        }
 
+    function loadingStates() {
+        return CASCADE_HTMLS.loadingBoard;
+    }
 
 function createRow(itemIndex = 'none') {
     // only make row if printMode is 'board'
@@ -907,6 +913,8 @@ allCheckboxes.forEach(checkbox => {
 
     // Enter + Backspace shortcuts
     registerListener(document, 'keydown', (e) => {
+          saveNotes();
+
         if (
             (e.key === 'ArrowDown' || e.key === 'ArrowUp') &&
             document.activeElement.classList.contains('item-element')
@@ -991,17 +999,6 @@ allCheckboxes.forEach(checkbox => {
 
     // icons stuff
 
-    function addIcon() {
-        const iconInput = document.getElementById('icon-input');
-        if (iconInput) {
-            iconInput.classList.remove('dn');
-            iconInput.classList.add('hasIcon');
-            const randomIcon = randomIcons[Math.floor(Math.random() * randomIcons.length)];
-            iconInput.value = randomIcon;
-            recognizeElems();
-        }
-    }
-
 
     function focusIconInput() {
         const iconInput = document.getElementById('icon-input');
@@ -1027,13 +1024,6 @@ allCheckboxes.forEach(checkbox => {
         }
     }
 
-
-    const addIconBtn = document.querySelector('.add-icon-btn');
-    if (addIconBtn) {
-        addIconBtn.addEventListener('click', () => {
-            addIcon();
-        });
-    }
 
 
     registerListener(document, 'keydown', (e) => {
@@ -1073,39 +1063,86 @@ document.addEventListener('focusin', e => {
 });
 
 
+    function addIcon() {
+        const iconInput = document.getElementById('icon-input');
+        if (iconInput) {
+            iconInput.classList.remove('dn');
+            iconInput.classList.add('hasIcon');
+            const randomIcon = randomIcons[Math.floor(Math.random() * randomIcons.length)];
+            iconInput.value = randomIcon;
+            recognizeElems();
+        }
+    }
+
+
+
+
+        const addIconBtn = document.querySelector('.add-icon-btn');
+    if (addIconBtn) {
+        registerListener(addIconBtn, 'click', () => {
+            addIcon();
+        });
+    } else {
+        console.warn('addIconBtn not found');
+    }
+
+
+
+    function addCover(imgUrl) {
+  const coverElem = document.querySelector('.cover');
+
+  imgUrl = imgUrl || covers[Math.floor(Math.random() * covers.length)];
+
+  if (coverElem) {
+    coverElem.style.backgroundImage = `url('${imgUrl}')`;
+  }
+}
+
+const coverBtn = document.querySelector('.add-cover-btn');
+if (coverBtn) {
+    coverBtn.addEventListener('click', () => {
+        addCover();
+        coverBtn.innerHTML = 'Change cover';
+        coverBtn.classList.remove('add-cover-btn');
+        coverBtn.removeEventListener('click', this);
+        coverBtn.classList.add('js-uni-tools', 'edit');
+    });
+}
+
+
+
+
+reapplyAllEventListeners();
+syncInputToDataContent(); // re-syncs input values to dataset.content
+initEmptyInputs();
 
 });
-
-
-setInterval(saveNotes, 200);
-loadNote();
 
 
 registerListener(document, 'keydown', e => {
     if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        saveNotes();
         alert('Notes saved!');
     }
 });
 
-     function appendItemToBoard(itemDivRow) {
-         if (printMode !== 'board') {
-             const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
-             if (dropdownContent) {
-                 dropdownContent.appendChild(itemDivRow);
-                } else {
-                    boardItemsSection.appendChild(itemDivRow);
-                }
-            } else {
-                boardItemsSection.appendChild(itemDivRow);
-            }
-            
-        deleteEmptyRows();
-        setTimeout(() => {
-            addEventListenerGroup();
-        }, 10);
-    } 
+function appendItemToBoard(itemDivRow) {
+  const boardItemsSection = document.getElementById('boardItems');
+  if (!boardItemsSection) return;
+
+  if (printMode && printMode !== 'board') {
+    const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
+    if (dropdownContent) {
+      dropdownContent.appendChild(itemDivRow);
+      return;
+    }
+  }
+  boardItemsSection.appendChild(itemDivRow);
+  deleteEmptyRows();
+  setTimeout(() => addEventListenerGroup(), 10);
+}
+
+
 
 // =========== Additional Features ===========
 
@@ -1217,28 +1254,6 @@ function closeAllToolsMenus() {
     });
 }
 
-
-
-function addCover(imgUrl) {
-  const coverElem = document.querySelector('.cover');
-
-  imgUrl = imgUrl || covers[Math.floor(Math.random() * covers.length)];
-
-  if (coverElem) {
-    coverElem.style.backgroundImage = `url('${imgUrl}')`;
-  }
-}
-
-const coverBtn = document.querySelector('.add-cover-btn');
-if (coverBtn) {
-    coverBtn.addEventListener('click', () => {
-        addCover();
-        coverBtn.innerHTML = 'Change cover';
-        coverBtn.classList.remove('add-cover-btn');
-        coverBtn.removeEventListener('click', this);
-        coverBtn.classList.add('js-uni-tools', 'edit');
-    });
-}
 
 function initLinkers() {
     const linkers = document.querySelectorAll('[data-link]');
@@ -1400,17 +1415,16 @@ function registerListener(target, event, handler, options) {
 }
 
 
-function reapplyAllEventListeners() {
+export function reapplyAllEventListeners() {
     globalEventListeners.forEach(({ target, event, handler, options }) => {
         target.removeEventListener(event, handler, options);
         target.addEventListener(event, handler, options);
     });
     console.log('All global listeners reapplied.');
     console.log('Total listeners reapplied:', globalEventListeners.length);
-}
+    addEventListenerGroup();
+} // ensures empty class works correctly
 
-
-reapplyAllEventListeners();
 
 
     const observer = new MutationObserver(() => {

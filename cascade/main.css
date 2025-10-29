@@ -364,6 +364,7 @@ body {
 
 .cascade-app {
     display: flex;
+    flex-direction: row;
     height: 100vh;
     width: 100vw;
 }
@@ -371,9 +372,10 @@ body {
 .side-nav {
     padding: 0.7rem;
     background-color: var(--bg-secondary);
-    width: 230px;
+    width: 190px;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
 .conelem {
@@ -1009,4 +1011,38 @@ textarea:not(.title)::placeholder {
 input:not(.title):not(.drop-input):focus::placeholder,
 textarea:not(.title):focus::placeholder {
     color: var(--text-placeholder);
+}
+
+
+.loading {
+  position: relative;
+  background: #3a3a3a4f;
+  overflow: hidden;
+  color: transparent;
+  border-radius: 10px;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    60deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(68, 68, 68, 0.24) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shine 1.6s infinite;
+}
+
+@keyframes shine {
+  0% {
+    left: -150%;
+  }
+  100% {
+    left: 150%;
+  }
 }
