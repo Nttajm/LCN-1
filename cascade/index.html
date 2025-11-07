@@ -39,7 +39,7 @@
                   <img src="icons/add.png" alt="home" class="icon">
                </div>
                <span class="discript fx-full">
-               Share
+               Collaborate
                </span>
             </div>
             <div class="section-title conelem">
@@ -60,6 +60,62 @@
             </div>
          </div>
          <div class="board-content">
+            <div class="board-controls g-10">
+               <span>x</span>
+               <div class="share-cont fl-c g-5">
+                  <div class="btn-set gray js-colab-btn">
+                     <span>Share</span>
+                  </div>
+                  <div class="people-share modal-box fl-c">
+                     <span class="normal-text  secondary-text">Add Collaborators to "New Board"</span>
+                     <div class="separator"></div>
+                     <div class="people-adder">
+                        <input type="text" class="simple highlighted fx-full normal-text rmdef" id="collab-input" placeholder="Enter email">
+                        <div class="btn-set add-collab-btn gray btn-action-1">
+                           <img src="icons/add.png" alt="add" class="icono gray small">
+                        </div>
+                        <div class="btn-set add-collab-btn gray btn-action-cancel">
+                           <span>Done</span>
+                        </div>
+                     </div>
+                     <div class="people-added">
+                        <div class="person-added bg-notion-orange">
+                           <div class="mini-pfp">
+                              <img src="images/pfpex.png" alt="ydistsoybiglasuigtitdystickyabvidyst">
+                           </div>
+                           <span>joelmulonde81@gmail.com</span>
+                           <div class="aswhat">
+                              <select name="roles" id="role-selector">
+                                 <option value="can-edit">View only</option>
+                                 <option value="can-view">Can edit</option>
+                                 <!-- <option value="can-comment">Can checkboxes</option> -->
+                              </select>
+                           </div>
+                           <div class="delete-icon">
+                              <img src="icons/delete.png" alt="delete" class="icono gray small">
+                           </div>
+                        </div>
+                        <div class="person-added bg-notion-blue">
+                           <div class="mini-pfp">
+                              <img src="images/pfpex.png" alt="ydistsoybiglasuigtitdystickyabvidyst">
+                           </div>
+                           <span>eloiuse.cadrous@en.org</span>
+                           <div class="aswhat">
+                              <select name="roles" id="role-selector">
+                                 <option value="can-edit">View only</option>
+                                 <option value="can-view">Can edit</option>
+                                 <!-- <option value="can-comment">Can checkboxes</option> -->
+                              </select>
+                              
+                           </div>
+                           <div class="delete-icon">
+                              <img src="icons/delete.png" alt="delete" class="icono gray small">
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
             <div class="cover">
                <div class="cover-icon op5-hover js-uni-tools edit-icon" id="change-icon">
                   <input type="text" class="simple dn" id="icon-input" maxlength="1" readonly value="">
@@ -109,6 +165,6 @@
          </div>
       </div>
    </body> 
-<script src="js/app.js" type="module"></script>
+<!-- <script src="js/app.js" type="module"></script> -->
 </body>
 </html>
