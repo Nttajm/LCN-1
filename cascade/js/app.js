@@ -420,7 +420,7 @@ function theUsual(index) {
      
 function createAnchorTextItem(type = 'normal-text', link = '#', name = '') {
         const itemIndex = document.querySelectorAll('.item').length + 1;
-        const itemDivRow = createRow();
+        const itemDivRow = createRow(itemIndex);
 
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item';
@@ -458,41 +458,91 @@ function createAnchorTextItem(type = 'normal-text', link = '#', name = '') {
 
 
 // prompters 
-function promptForLink(container = document.getElementById('boardItems')) {
-    let index = document.querySelectorAll('.item').length + 1 + 'a';
+function promptForLink(container) {
+    // resolve container at call time (safer than using it in the default param)
+    container = container || document.getElementById('boardItems');
+    // fallback if container still not found
+    if (!container) container = document.body;
+
+    // use a numeric index and add an 'a' suffix for uniqueness
+    const indexNum = document.querySelectorAll('.item').length + 1;
+    const index = `${indexNum}a`;
+
+    // try to create a row (may return null if printMode !== 'board')
     const row = createRow(index);
 
+    // append the row (or a safe fallback element) to the board
+    if (row) {
+        appendItemToBoard(row);
+    } else {
+        // create a minimal wrapper so we have a place to render prompt
+        const wrapper = document.createElement('div');
+        wrapper.className = `board-item-row js-drop-content-${index}`;
+        container.appendChild(wrapper);
+    }
 
+    // determine the actual row element we should render into
+    const actualRow = row || container.lastElementChild;
+    if (!actualRow) return; // nothing we can do
 
-    const removePrompt = () => row.remove();
-
-    const prompt = (placeholder, btnText, next) => {
-        row.innerHTML = `
+    const renderPrompt = (placeholder, buttonText, onSubmit) => {
+        actualRow.innerHTML = `
             <div class="await">
                 <input type="text" class="prompt-input" placeholder="${placeholder}">
-                <button class="go btn-sm">${btnText}</button>
-                <button class="cancel btn-sm">🗑️</button>
-            </div>`;
-        const input = row.querySelector('.prompt-input');
-        row.querySelector('.go').onclick = () => {
-            const val = input.value.trim();
-            if (!val) return alert('Please enter something.');
-            next(val);
+                <button type="button" class="go btn-sm">${buttonText}</button>
+                <button type="button" class="cancel btn-sm">🗑️</button>
+            </div>
+        `;
+
+        const input = actualRow.querySelector('.prompt-input');
+        const goBtn = actualRow.querySelector('.go');
+        const cancelBtn = actualRow.querySelector('.cancel');
+
+        const cleanup = () => {
+            if (actualRow && actualRow.parentNode) actualRow.parentNode.removeChild(actualRow);
         };
-        row.querySelector('.cancel').onclick = removePrompt;
+
+        goBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            const val = input.value.trim();
+            if (!val) {
+                return alert('Please enter something.');
+            }
+            onSubmit(val);
+        });
+
+        cancelBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            cleanup();
+        });
+
+        input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                goBtn.click();
+            } else if (ev.key === 'Escape') {
+                ev.preventDefault();
+                cancelBtn.click();
+            }
+        });
+
         input.focus();
     };
 
-    let link = '';
-    prompt('Type or paste link...', '➔', val => {
-        link = val;
-        prompt('Enter a name for the link...', 'Save', name => {
-            removePrompt();
-            createAnchorTextItem('link', link, name);
+    // two-step prompt: link -> name
+    renderPrompt('Type or paste link...', '➔', (link) => {
+        // normalize link quickly
+        const normalizedLink = (/^https?:\/\//i.test(link)) ? link : `https://${link}`;
+        renderPrompt('Enter a name for the link...', 'Save', (name) => {
+            // remove prompt row and create actual anchor item
+            if (actualRow && actualRow.parentNode) actualRow.parentNode.removeChild(actualRow);
+            createAnchorTextItem('link', normalizedLink, name);
             syncInputToDataContent();
         });
     });
 }
+
+
 
     function createResizeable(index) {
         const sizable = document.createElement('div');
