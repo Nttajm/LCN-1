@@ -36,30 +36,72 @@ const signinbtn = document.querySelector('.google-button');
 
 if (signinbtn) {
   signinbtn.addEventListener('click', async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    const userRef = doc(db, "users", user.uid);
 
-      // Check if user exists in Firestore
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
+    // ALWAYS merge user info
+    await setDoc(
+      userRef,
+      {
+        name: user.displayName || "Unknown User",
+        email: user.email || "",
+        photoURL: user.photoURL || "",
+        lastLogin: new Date().toISOString(),
+      },
+      { merge: true }
+    );
 
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          name: user.displayName || "Unknown User",
-          email: user.email || "",
-          photoURL: user.photoURL || "",
-          createdAt: new Date().toISOString()
-        });
-      }
+    // ---- CHECK PENDING INVITES ----
+    const pendingRef = collection(db, "pendingInvites");
+    const q = query(pendingRef, where("email", "==", user.email));
+    const snap = await getDocs(q);
 
-      // Redirect to main page
-      window.location.href = "index.html";
-    } catch (error) {
-      console.error("Sign-in failed:", error);
-      alert("Sign-in failed. Please try again.");
+    for (const docSnap of snap.docs) {
+      const invite = docSnap.data();
+      const boardId = invite.boardId;
+
+      // user → boards
+      await setDoc(
+        doc(db, "users", user.uid, "boards", boardId),
+        {
+          boardId,
+          role: invite.role || "viewer",
+          linkedAt: new Date()
+        },
+        { merge: true }
+      );
+
+      // board → users
+      await setDoc(
+        doc(db, "boards", boardId, "users", user.uid),
+        {
+          userId: user.uid,
+          role: invite.role || "viewer",
+          addedAt: new Date()
+        },
+        { merge: true }
+      );
+
+      // mark shared
+      await setDoc(
+        doc(db, "boards", boardId),
+        { type: "shared" },
+        { merge: true }
+      );
+
+      await deleteDoc(doc(db, "pendingInvites", docSnap.id));
     }
-  });
+
+    window.location.href = "index.html";
+
+  } catch (error) {
+    console.error("Sign-in failed:", error);
+    alert("Sign-in failed. Please try again.");
+  }
+});
+
 }
 
 // If user is already signed in, go to index.html
