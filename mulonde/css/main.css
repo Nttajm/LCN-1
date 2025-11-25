@@ -1,0 +1,200 @@
+body {
+  background-color: rgb(0, 0, 0);
+  color: rgb(255, 255, 255) ; 
+  margin-top: 2rem !important;
+} 
+
+:root {
+  font-size: 18px;
+  --coverDelay: 1s;
+  --defeyDely: calc(var(--coverDelay) + 350ms);
+  --font-reg: 'Roboto', sans-serif;
+}
+
+.cover {
+  background-color: rgb(243, 243, 243);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation:  coverFadeOut 1s var(--smooth-dept) forwards;
+  animation-delay: calc(var(--coverDelay) + 350ms);
+  scale: 1.3;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+@keyframes coverFadeOut {
+  to {
+     border-top-left-radius: 60%;
+    border-top-right-radius: 60%;
+    scale: 1;
+    transform: translateY(70%);
+    opacity: 0;    
+  }
+}
+
+.name-cont{
+  display: flex;
+  gap: 0.5rem;
+  transform: translate(2.2rem);
+}
+
+.name {
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: #000000;
+  font-family: roboto, sans-serif;
+
+  display: flex;
+  animation: dailupDefey 0.75s var(--smooth-dept) forwards;
+  animation-delay: var(--defeyDely);
+}
+
+#first .initial {
+  animation: firstInitialAnim 0.75s var(--smooth-dept) forwards;
+  animation-delay: var(--coverDelay);
+}
+
+#last .initial {
+  animation: lastInitialAnim 0.75s var(--smooth-dept) forwards;
+  animation-delay: var(--coverDelay);
+}
+
+@keyframes firstInitialAnim {
+  to {
+    transform: translateX(8rem);
+  }
+}
+
+@keyframes lastInitialAnim {
+  to {
+    transform: translateX(1.2rem);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.dail-up {
+  display: flex;
+}
+
+@keyframes dailupDefey {
+
+  to {
+      transform: translateY(-800%);
+  }
+}
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: -1rem;
+  position : relative;
+  overflow: hidden;
+  height: 4.3rem;
+}
+
+.bottom {
+  position: absolute;
+  top: 0;
+  transform: translateY(0%);
+  animation: slideDown 0.485s var(--smooth-dept) forwards;
+}
+
+.top {
+  opacity: 0;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0%);
+  }
+  to {
+    transform: translateY(-120%);
+    opacity: 0.2;
+  }
+}
+
+
+/* mian page */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 4rem;
+
+  font-size: 1.3rem;
+
+  display: flex;
+  justify-content: space-around;
+  font-family: roboto;
+
+  padding-top: 0.5rem;
+}
+
+.nav-links-cont .nav-link:hover{
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.card {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+
+  padding: 1rem;
+}
+.card-section {
+  height: 90%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: var(--font-reg);
+  flex: 1 1 50%;
+
+
+}
+.card-section .text {
+  width: 70%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+.text-image{
+  height: 4rem;
+  aspect-ratio: 16/9;
+}
+
+.img100{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sub-head {
+  font-size: 4rem;
+  font-weight: bold;
+  word-break: break-word;
+  white-space: normal;
+
+  letter-spacing: -0.2rem;
+  line-height: 4.5rem;
+  width: fit-content;
+}
+
+.discription {
+  margin-top: 1rem;
+  font-size: 1.3rem;
+}
