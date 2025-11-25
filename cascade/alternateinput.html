@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Div Input</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+
+        .editable-input {
+            width: 100%;
+            min-height: 44px;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            font-size: 16px;
+            line-height: 1.5;
+            cursor: text;
+            transition: border-color 0.2s;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .editable-input:focus {
+            border-color: #3b82f6;
+        }
+
+        /* Placeholder */
+        .editable-input:empty:before {
+            content: attr(data-placeholder);
+            color: #9ca3af;
+            pointer-events: none;
+        }
+
+        .info {
+            margin-top: 16px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .info strong {
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Leave this div EMPTY for placeholder to work -->
+        <div 
+            class="editable-input" 
+            contenteditable="true"
+            data-placeholder="Type something here..."
+            id="customInput">
+        </div>
+
+        <div class="info">
+            <strong>Features:</strong><br>
+            • Fully editable with cursor<br>
+            • Placeholder text<br>
+            • Focus styling<br>
+            • Text selection support
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('customInput');
+
+        // Prevent pasting HTML — text only
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text/plain');
+            document.execCommand('insertText', false, text);
+        });
+
+        input.focus();
+    </script>
+</body>
+</html>
