@@ -11,8 +11,10 @@ import {
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+
 import { CASCADE_HTMLS } from './htmls.js';
 import { reapplyAllEventListeners } from './app.js';
+import { serverTimestamp, query, where, addDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -109,7 +111,7 @@ async function loadBoardsHtml() {
     el.addEventListener('click', () => {
       container.querySelectorAll('.add-sel-1').forEach(x => x.classList.remove('selected'));
       el.classList.add('selected');
-      loadNote(el.dataset.boardId);
+      loadBoard(el.dataset.boardId);
     });
   });
 
@@ -136,7 +138,7 @@ async function loadMostRecentBoard() {
 
   boards.sort((a, b) => (b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0));
   currentBoardId = boards[0].id;
-  await loadNote(currentBoardId);
+  await loadBoard(currentBoardId);
 }
 
 // --- Create new board ---
@@ -147,7 +149,8 @@ async function createNewBoard() {
     owner: currentUser.uid,
     title: "New Board",
     content: CASCADE_HTMLS?.new || "<p>New board</p>",
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    type: 'board'
   };
 
   await setDoc(doc(db, "boards", id), data);
@@ -157,16 +160,22 @@ async function createNewBoard() {
     linkedAt: new Date()
   });
 
+  await setDoc(doc(db, "boards", id, "users", currentUser.uid), {
+    userId: currentUser.uid,
+    role: "owner",
+    addedAt: serverTimestamp()
+  });
+
   currentBoardId = id;
   await loadBoardsHtml();
-  await loadNote(id);
+  await loadBoard(id);
 }
 
 const newBoardBtn = document.querySelector('.js-new-board-btn');
 if (newBoardBtn) newBoardBtn.addEventListener('click', createNewBoard);
 
 // --- Load board content ---
-export async function loadNote(boardId = currentBoardId) {
+export async function loadBoard(boardId = currentBoardId) {
   if (!boardId || !currentUser) return;
   const boardEl = document.querySelector('.board-content');
   if (!boardEl) return;
@@ -179,9 +188,12 @@ export async function loadNote(boardId = currentBoardId) {
 
   const data = snap.data();
   boardEl.innerHTML = data.content || "<p>No content</p>";
-  reapplyAllEventListeners();
+
   currentBoardId = boardId;
+
+  document.dispatchEvent(new Event("board-loaded"));
 }
+
 
 // --- Save notes ---
 export async function saveNotes(boardId = currentBoardId) {
@@ -228,7 +240,7 @@ async function deleteBoard(boardId) {
   currentBoardId = boards[0].id;
 
   await loadBoardsHtml();
-  await loadNote(currentBoardId);
+  await loadBoard(currentBoardId);
 }
 
 // --- Auto-save ---
@@ -252,5 +264,72 @@ function toggleLoadingState(element) {
     element.classList.toggle('loading');
   }, 100);
 }
+
+
+// --- Collaboration Functions ---
+async function userExists(email) {
+    const q = query(
+        collection(db, "users"),
+        where("email", "==", email)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) return null;     // return null if not found
+
+    return {
+        id: snap.docs[0].id,
+        data: snap.docs[0].data()
+    };
+}
+
+export async function shareNote(users, boardId) {
+    await setDoc(
+        doc(db, "boards", boardId),
+        { type: "shared" },
+        { merge: true }
+    );
+
+    for (const user of users) {
+        const existingUser = await userExists(user.email);
+
+        if (existingUser) {
+            const uid = existingUser.id;
+
+            // --- 1. Add user under board's users list ---
+            await setDoc(
+                doc(db, "boards", boardId, "users", uid),
+                {
+                    userId: uid,
+                    role: user.role,
+                    addedAt: serverTimestamp()
+                },
+                { merge: true }
+            );
+
+            // --- 2. Add board to user's boards list ---
+            await setDoc(
+                doc(db, "users", uid, "boards", boardId),
+                {
+                    boardId,
+                    role: user.role,
+                    linkedAt: serverTimestamp()
+                },
+                { merge: true }
+            );
+
+        } else {
+            // user does NOT exist → add to pendingInvites
+            await addDoc(collection(db, "pendingInvites"), {
+                email: user.email,
+                role: user.role,
+                boardId,
+                timestamp: serverTimestamp(),
+            });
+        }
+    }
+}
+
+
 
 export { db, auth };

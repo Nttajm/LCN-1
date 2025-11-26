@@ -1,6 +1,6 @@
 import {
     saveNotes,
-    loadNote
+    loadBoard
 } from './backend.js';
 
 import {
@@ -10,6 +10,7 @@ import {
 let printMode = 'board'; // or 'page'
 let listmode = ''; // or 'numbered'
 let boardItemsSection = null;
+let boardId = await loadBoard();
 
 let inputFocusHistory = [];
 const globalEventListeners = [];
@@ -25,8 +26,14 @@ let randomIcons = [
 
 
 
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadBoard();
+});
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
-     boardItemsSection = document.getElementById('boardItems');
+    boardItemsSection = document.getElementById('boardItems');
     const boardContainer = document.querySelector('.board-content');
     boardContainer.innerHTML = '';
     boardContainer.innerHTML = loadingStates();
@@ -1470,8 +1477,8 @@ export function reapplyAllEventListeners() {
         target.removeEventListener(event, handler, options);
         target.addEventListener(event, handler, options);
     });
-    console.log('All global listeners reapplied.');
-    console.log('Total listeners reapplied:', globalEventListeners.length);
+    // console.log('All global listeners reapplied.');
+    // console.log('Total listeners reapplied:', globalEventListeners.length);
     addEventListenerGroup();
 } // ensures empty class works correctly
 
@@ -1482,7 +1489,6 @@ export function reapplyAllEventListeners() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-setInterval(() => {
-    console.log('Current printMode:', printMode);
-}, 500);
-
+// setInterval(() => {
+//     console.log('Current printMode:', printMode);
+// }, 500);

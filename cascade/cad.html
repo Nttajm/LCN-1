@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<<<<<<< HEAD
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>test</title>
@@ -146,5 +147,82 @@
             </div></div></div></div>
             </div>
          </div>
+=======
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embed Google Calendar</title>
+<style>
+</style>
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="board-content">
+   <div class="cover">
+      <div class="cover-icon op5-hover js-uni-tools edit-icon" id="change-icon">
+         <input type="text" class="simple dn" id="icon-input" maxlength="1" readonly="" value="">
+      </div>
+      <div class="cover-settings">
+         <div class="btn-set add-cover-btn gray">
+            <span>Add cover</span>
+         </div>
+         <div class="btn-set gray add-icon-btn">
+            <span>Add Icon</span>
+         </div>
+         <div class="btn-set">
+            <span>•••</span>
+         </div>
+      </div>
+   </div>
+   <div class="board-items" id="boardItems">
+      <div class="board-item-row loading js-drop-content-3" id="item-row-3">
+         <div class="floaty left add js-uni-tools js-add-note-btn" id="add-dropdown-3" data-item="3"><img src="icons/add.png" alt="add" class="icono gray icon"></div>
+         <div class="item">
+            <div class="floaty left edit js-uni-tools" data-item="1">
+               <img src="icons/edit.png" alt="edit" class="icono gray icon">
+            </div>
+            <input type="text" id="item-input-1" class="simple  item-element fx-full title empty" placeholder="" data-item-index="1" autocomplete="off" data-print-mode="board" data-content="">
+         </div>
+      </div>
+   </div>
+   <div class="extra_elems">
+      <div class="addNote loading js-add-note-btn js-uni-tools add nAvoid active" id="add-note">
+         <img src="icons/add.png" alt="add" class="icono gray small">
+         <span class="tx-secondary"></span>
+      </div>
+   </div>
+</div>
+
+<script>
+  const embedBtn = document.getElementById('embedBtn');
+  const popup = document.getElementById('popup');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const calendarPlaceholder = document.getElementById('calendar-placeholder');
+  const calendarLink = document.getElementById('calendarLink');
+
+  // Show popup
+  embedBtn.addEventListener('click', () => {
+    popup.style.display = 'flex';
+  });
+
+  // Confirm and embed calendar
+  confirmBtn.addEventListener('click', () => {
+    const link = calendarLink.value.trim();
+    if (!link) {
+      alert('Please enter a valid Google Calendar embed URL.');
+      return;
+    }
+
+    calendarPlaceholder.innerHTML = `<iframe src="${link}" style="border:0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>`;
+    popup.style.display = 'none';
+    calendarLink.value = '';
+  });
+
+  // Click outside popup to close
+  popup.addEventListener('click', (e) => {
+    if (e.target === popup) popup.style.display = 'none';
+  });
+</script>
+
 </body>
 </html>
