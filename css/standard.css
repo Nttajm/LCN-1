@@ -280,6 +280,10 @@ ul, li {
   filter: invert();
 }
 
+.stand_er-bw{
+  filter: grayscale(100%);
+}
+
 .stand_er-place {
   top: 50%;
   left: 50%;
