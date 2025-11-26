@@ -57,7 +57,10 @@ body {
     font-size: 16px;
     --bg-color: #04028d;
     --border: solid 1px rgb(80, 80, 80);
+<<<<<<< Updated upstream
     --textColor: white;
+=======
+>>>>>>> Stashed changes
 }
 
 .highlight {
@@ -97,8 +100,12 @@ body {
 .ps {
     padding: 8px;
     font-family:var(--font-ps);
+<<<<<<< Updated upstream
     padding-bottom: 350px;
     width: 50%;
+=======
+
+>>>>>>> Stashed changes
 }
 
 .dbk {
@@ -112,6 +119,10 @@ body {
     height: 100%;
     margin-left: 35px;
     z-index: -999;
+<<<<<<< Updated upstream
+=======
+    position: absolute;
+>>>>>>> Stashed changes
 }
 
 .db {

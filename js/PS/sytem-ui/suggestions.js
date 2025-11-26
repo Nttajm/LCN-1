@@ -4,7 +4,10 @@ var suggestions = [
   "help",
   "bk",
   "rec",
+<<<<<<< Updated upstream
   "rec ()",
+=======
+>>>>>>> Stashed changes
   "timex",
   "lcn",
   "reset",
@@ -28,11 +31,15 @@ var suggestions = [
   'system-valid',
   'stwatch stop',
   "change-theme",
+<<<<<<< Updated upstream
   "text-color",
+=======
+>>>>>>> Stashed changes
   "user.name",
   "db / ",
   "db / i",
   "db / s",
+<<<<<<< Updated upstream
   "db / a",
   'e /',
   'dis log',
@@ -44,6 +51,9 @@ var suggestions = [
   'bitly',
   't--devlOAD',
   't--et',
+=======
+  'e /',
+>>>>>>> Stashed changes
 ];
 
     // Function to create autocomplete suggestions
@@ -156,4 +166,8 @@ var suggestions = [
         });
     }
 
+<<<<<<< Updated upstream
     autocomplete(document.querySelector(".input"), suggestions);                                                              
+=======
+    autocomplete(document.querySelector(".input"), suggestions);
+>>>>>>> Stashed changes
