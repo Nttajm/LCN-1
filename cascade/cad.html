@@ -193,6 +193,36 @@
    </div>
 </div>
 
->>>>>>> 4bd7f73 (features for cascadein progross)
+<script>
+  const embedBtn = document.getElementById('embedBtn');
+  const popup = document.getElementById('popup');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const calendarPlaceholder = document.getElementById('calendar-placeholder');
+  const calendarLink = document.getElementById('calendarLink');
+
+  // Show popup
+  embedBtn.addEventListener('click', () => {
+    popup.style.display = 'flex';
+  });
+
+  // Confirm and embed calendar
+  confirmBtn.addEventListener('click', () => {
+    const link = calendarLink.value.trim();
+    if (!link) {
+      alert('Please enter a valid Google Calendar embed URL.');
+      return;
+    }
+
+    calendarPlaceholder.innerHTML = `<iframe src="${link}" style="border:0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>`;
+    popup.style.display = 'none';
+    calendarLink.value = '';
+  });
+
+  // Click outside popup to close
+  popup.addEventListener('click', (e) => {
+    if (e.target === popup) popup.style.display = 'none';
+  });
+</script>
+
 </body>
 </html>
