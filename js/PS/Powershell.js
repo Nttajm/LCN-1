@@ -58,6 +58,11 @@ let npmIObj = {
     }
 }
 
+<<<<<<< Updated upstream
+=======
+let dbArray = localStorage.getItem('dbArray') || [];
+
+>>>>>>> Stashed changes
 
 let fileArray = [];
 const firstFile = fileArray[0];
@@ -695,6 +700,7 @@ inputElement.addEventListener("keydown", function (event) {
                 const comdParts = command.split(" ");
                 const secp = comdParts[2];
                 const thrdp = comdParts[3];
+<<<<<<< Updated upstream
                 const th4 = comdParts[4];
                 const th5 = comdParts[5];
 
@@ -708,10 +714,23 @@ inputElement.addEventListener("keydown", function (event) {
                         type: th4,
                         file: th5
                     });
+=======
+                const lastfileIndex = dbArray.length;
+                const lastfileNum = dbArray.length + 1;
+                var savedDinfiner = 'not saved';
+
+                function save() {
+                    localStorage.setItem('dbArray', dbArray);
+                }
+
+                if (secp === 'i') {
+                    dbArray.push(secp);
+>>>>>>> Stashed changes
                     response = `<br>${thrdp} added`;
                     response += '<hr>';
                     setTimeout(() => {
                         response += delay(`DB: configuring project reqest`, 802);
+<<<<<<< Updated upstream
                         response += delay(`git connection : <span class="g">True</span>`, 802);
                         response += delay(`dir = ${lastfileIndex}`, 1302);
                         response += delay(`file number = ${lastfileNum}`, 1302);
@@ -740,10 +759,29 @@ inputElement.addEventListener("keydown", function (event) {
                     dbArray.forEach((db, index) => {
                         response += `<br> ${index + 1} (${index}). ${db.name}`;
                     });
+=======
+                        response += delay(`git connection : <span class="g">True</span>`, 1000);
+                        response += delay(`dir = ${lastfileIndex}`, 1302);
+                        response += delay(`file number = ${lastfileNum}`, 1302);
+                        response += delay(`DATA href?file?fileName: " ${thrdp} "`, 1550)
+                        response += delay('downloaded', 1800);
+                    }, 800);
+                    setTimeout(() => {
+                        createNotification(`db / start file "${thrdp}..." has been created`, 'downlaoded', 'check_circle', 'stat')
+                    }, 2600);
+                } else if (secp === 's') {
+                    save();
+                    response = 'saved.'
+                } else if (secp === '') {
+                    response = `porject saved:` + savedDinfiner;
+                    response += `<br> saved projects:` + lastfileNum;
+                    response += `<br> dir = ` + lastfileIndex;
+>>>>>>> Stashed changes
                 } else{
                     createNotification(system.error.syntax)
                     response = system.error.syntaxParts
                 }
+<<<<<<< Updated upstream
             } else if (command.toLowerCase().startsWith("rec ()")) {
                 const parts = command.split(" ");
                 let p1 = parts[2] || userData.name;
@@ -806,6 +844,8 @@ inputElement.addEventListener("keydown", function (event) {
                 response = `<div>Enter password:</div>`;
             } else if (command.toLowerCase() === 'r') {
                 location.reload();
+=======
+>>>>>>> Stashed changes
             } else if (command.toLowerCase().startsWith('e /')) {
                 response = 'test working'
             } else if (/^timeu \d+$/.test(command)) {
@@ -850,7 +890,11 @@ inputElement.addEventListener("keydown", function (event) {
                  explorCont.classList.toggle('dbe');
 
                  var display = localStorage.getItem('display-e');
+<<<<<<< Updated upstream
                  display = display === false ? true : false;
+=======
+                 display = display === 'false' ? 'true' : 'false';
+>>>>>>> Stashed changes
                  localStorage.setItem('display-e', display);
 
             } else if (command.toLowerCase().startsWith("config log")) {
@@ -1036,6 +1080,7 @@ inputElement.addEventListener("keydown", function (event) {
 
 // alternitive ui 
 
+<<<<<<< Updated upstream
 function rec(whof, fent, play) {
     const computerJargon = [
         "P7n_scr1pt executing neu-mx1nks 2 quan-srvr clstr",
@@ -1123,11 +1168,22 @@ function rec(whof, fent, play) {
   }
 
 console.log(rec())
+=======
+const display = localStorage.getItem('display-e')
+const eCont = document.querySelector('.explorer') 
+
+if (localStorage.getItem('display-e')) {
+    eCont.classList.add('dbe')
+} else {
+    eCont.classList.remove('dbe')
+}
+>>>>>>> Stashed changes
 
 function error() {
     response = system.error.syntax;
     createNotification(system.error.syntax);
 }
+<<<<<<< Updated upstream
 function renderLogs() {
     const outputHTML = document.getElementById('e-out');
     logEntries.forEach((logEntry) => {
@@ -1146,6 +1202,8 @@ function renderLogs() {
 
 renderLogs();
 renderApps();
+=======
+>>>>>>> Stashed changes
 
 
 function renderApps() {

@@ -9,11 +9,18 @@
   display: none;
   resize: horizontal;
   overflow: auto;
+<<<<<<< Updated upstream
   padding-bottom: 70px;
 }
 
 .dbe {
   display: block;
+=======
+}
+
+.dbe {
+  display: block !important;
+>>>>>>> Stashed changes
 }
 
 :root {
@@ -62,6 +69,7 @@
   height: 100%;
   background-color: var(--theme);
   cursor:col-resize;
+<<<<<<< Updated upstream
 }
 
 .explorer-area {
@@ -479,3 +487,6 @@
   25%  {background-color: rgba(49, 33, 192, 0.473);}
   100% {background-color: rgba(80, 80, 80, 0);}
 }
+=======
+}
+>>>>>>> Stashed changes
