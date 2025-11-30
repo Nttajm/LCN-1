@@ -1,6 +1,0 @@
-fix everything 
-ai ruined it
-
-following no work
-// appreances dosent work 
-// get team by player do not work
