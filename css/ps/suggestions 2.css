@@ -1,0 +1,42 @@
+
+:root {
+  --sug-f: 12px;
+}
+
+.char-u {
+color: rgb(83, 138, 255);
+}
+
+.autocomplete {
+  position: relative;
+}
+
+/* Style the input field */
+
+/* Style the autocomplete items */
+.autocomplete-items {
+  position: absolute;
+  /* position the autocomplete items to be the same width as the container */
+  top: 23px;
+  left: 0;
+  width: 100%;
+  border-color: solid 1px rgb(180, 0, 0);
+  font-size: var(--sug-f);
+}
+
+/* Style the autocomplete items when hovering */
+.autocomplete-items div {
+  padding: 2px;
+  cursor: pointer;
+  background-color: #353535;
+  border-color: solid 1px rgb(177, 177, 177);
+}
+
+.autocomplete-items div:first-child {
+  background-color: #626262;
+}
+
+/* Style the autocomplete items on focus */
+.autocomplete-items div:hover {
+  background-color: #626262;
+}

@@ -25,7 +25,6 @@ const options = { weekday: 'long', month: 'long', day: 'numeric' };
 const currentDate = new Date().toLocaleDateString('en-US', options);
 currentDateElement.textContent = currentDate;
 
-document
 
 enterBtn.addEventListener('click', function(event) {
     EnterByButton();
@@ -41,7 +40,7 @@ inputElem.addEventListener('keydown', function(event) {
 });
 
 function EnterByButton() {
-    const inputValue = document.querySelector('.input').value;
+    const inputValue = inputElem.value;
     if (inputValue === password) {
         info.innerHTML = "Good Job!";
     } else {
