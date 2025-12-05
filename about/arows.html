@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Animation</title>
+    <style>
+        .animated-span {
+            display: inline-block;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <span class="animated-span">Hover over this text! 
+      Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis 
+    </span>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const span = document.querySelector('.animated-span');
+            const originalText = span.textContent;
+            let revealedIndices = [];
+            let interval;
+
+            function getRandomIndices(length) {
+                let indices = [];
+                while (indices.length < 2 && revealedIndices.length < length) {
+                    let index = Math.floor(Math.random() * length);
+                    if (!revealedIndices.includes(index)) {
+                        indices.push(index);
+                        revealedIndices.push(index);
+                    }
+                }
+                return indices;
+            }
+
+            span.addEventListener('mouseenter', () => {
+                const chars = originalText.split('');
+                span.textContent = '-'.repeat(chars.length);
+                revealedIndices = [];
+
+                interval = setInterval(() => {
+                    if (revealedIndices.length >= chars.length) {
+                        clearInterval(interval);
+                        return;
+                    }
+
+                    const indices = getRandomIndices(chars.length);
+                    const spanText = span.textContent.split('');
+                    indices.forEach(index => {
+                        spanText[index] = chars[index];
+                    });
+
+                    span.textContent = spanText.join('');
+                }, 10); // Adjust the interval speed as needed
+            });
+
+            span.addEventListener('mouseleave', () => {
+                clearInterval(interval);
+                span.textContent = originalText;
+                revealedIndices = [];
+            });
+        });
+    </script>
+</body>
+</html>

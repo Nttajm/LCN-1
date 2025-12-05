@@ -1,0 +1,25 @@
+:root {
+    --ug:rgb(40, 40, 46);
+    --tlkk: rgb(0, 124, 120);
+    --ug2:  #1d1d1d;
+    --bkc:  hsl(213, 45%, 8%);
+    --idle: rgb(246, 160, 0);
+    --active:  rgb(131, 206, 20);
+    --notetext:  #808ea1;
+    --g: #333;
+    --midg: rgba(82, 82, 82, 0.747);
+    --lowg:  rgb(49, 49, 49);
+    --blueg:  rgb(34, 36, 43);
+    --lowerg:  rgb(35, 35, 35);
+    --textg: rgb(165, 164, 164);
+    --highg: rgb(133, 133, 133);
+    --ps-gray:  rgb(35, 35, 35);
+    --pail-nimb: rgb(141, 150, 172);
+    --border: solid 1px rgb(80, 80, 80);
+    --ps-color: #04028d;
+    --ps-light:  #0400ee;
+  }
+
+:root {
+  --ps-mono: Consolas, monospace;
+}

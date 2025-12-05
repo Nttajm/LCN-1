@@ -1,0 +1,118 @@
+body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .carousel {
+      position: absolute;
+      top: 47%;
+      left: 0;
+      transform: translateY(-50%);
+      width: 100vw;
+      height: 70vh;
+      overflow: hidden;
+      margin: 20px auto;
+      border-radius: 12px;
+      z-index: 102;
+      transition: all 0.3s var(--smooth-dept);
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .carousel.carousel-out {
+      opacity: 1;
+        pointer-events: auto;
+    }
+
+    .carousel.carousel-in {
+      opacity: 0;
+      pointer-events: none;
+      display: none;
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.3s var(--smooth-dept);
+      height: 100%;
+    }
+
+    .carousel img, .blank-slide {
+      width: 100%;
+      flex-shrink: 0;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .carousel img {
+        background: #0000008f;
+    }
+
+    .blank-slide {
+      background: transparent;
+    }
+
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      background: rgb(255, 238, 0);
+      color: rgb(0, 0, 0);
+      border: none;
+      font-size: 2rem;
+      padding: 0.7rem 1.2rem;
+      cursor: pointer;
+      border-radius: 10px 175px 169px 9px;
+      -webkit-border-radius: 10px 175px 169px 9px;
+      -moz-border-radius: 10px 175px 169px 9px;
+      border: 3px solid #000000;
+    }
+    .carousel-arrow.left { 
+        left: 0px; 
+        transform: translatex(-100%)
+    
+    }
+    .carousel-arrow.right {
+        transform: translatex(100%);
+      right: 0px;
+      border-radius: 175px 10px 9px 169px;
+      -webkit-border-radius: 175px 10px 9px 169px;
+      -moz-border-radius: 175px 10px 9px 169px;
+    }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      position: absolute;
+      bottom: 3rem;
+      width: 100%;
+    z-index: 105;
+        padding-bottom: 1rem;
+
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .dot.active { background: #ecd500; }
+
+    .carousel-counter {
+      position: absolute;
+      top: 7rem;
+      right: 8px;
+      background: rgb(255, 217, 0);
+      border: solid 2px #000000;
+      color: rgb(0, 0, 0);
+      font-size: 12px;
+      padding: 3px 6px;
+      border-radius: 6px;
+    }

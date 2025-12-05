@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Techstar Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+</head>
+<body>
+    <nav class="nav">
+        <h1>
+            Tech Star
+        </h1>
+    </nav>
+    <nav class="nav selected-info">
+        <h1>
+            Selected
+        </h1>
+        <input type="text" class="selinp" placeholder="Enter Custom point value.">
+            <div class="scroll-items">
+                <div class="s-item">
+                    <img src="/v2/stewy.png" alt="pfp" class="pfp">
+                    <span>Tyler</span>
+                </div>
+            </div>
+            <div class="close" id="selecting-close" data-toggle=".selected-info" data-togglecl="selecting">
+                <img src="x.png" alt="x" class="mini-pfp">
+            </div>
+            
+    </nav>
+    <nav class="nav-i">
+        <h1>
+            Tech Star
+        </h1>
+    </nav>
+    <div class="cont">
+        <nav class="side-nav">
+            <h5>Navigation</h5>
+            <ul>
+                <li class="sel">Admin config.</li>
+                <li>Shop</li>
+                <li>Leaderboard</li>
+            </ul>
+        </nav>
+        <div class="admin-config">
+            <div class="viewer dn">
+                <div class="v-top">
+                    <span>Class</span>
+                    <div class="close" data-toggle=".viewer" data-togglecl="dn">
+                        <img src="x.png" alt="x" class="mini-pfp">
+                    </div>
+                </div>
+                <div class="students" id="js-student-classes"></div>
+            </div>
+            <div class="search">
+                <input type="text" placeholder="Search students by name or ID" id="search">
+                <div id="results"></div>
+            </div>
+            <div class="students">
+                <div class="student dn ">
+                    <div class="blocket">
+                        <input type="checkbox" name="" id="">
+                    </div>
+                    <div class="blocket">
+                        <img src="stewy.png" alt="pfp" class="base-pfp">
+                    </div>
+                    <div class="st-name">
+                        <span>Joel Mulonde</span>
+                        <span>38711</span>
+                    </div>
+                    <button class="plus">
+                        +5
+                    </button>
+                    <button class="plus">
+                        +10
+                    </button>
+                </div>
+            </div>
+
+            <div class="manage mt-5">
+                <div class="class">
+                    <span>Create a class</span>
+                </div>
+            </div>
+            <h3 class="mt-5">Classes</h3>
+            <div class="classes-sec">
+                <div class="class" id="wh">
+                    <span>
+                        World History 7th
+                    </span>
+                    <span>Larry Mylander - 173 points</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="js/tspro.js" type="module">
+</script>
+</html>

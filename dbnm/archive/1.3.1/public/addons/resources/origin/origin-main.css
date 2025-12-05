@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+:root {
+    --bg-color: rgb(41, 41, 41) ; 
+}
+
+body {
+    padding: 0.3rem !important;
+}
+
+.js-origin-tab {
+    background-color: var(--bg-color);
+    border: solid rgb(85, 85, 85) 1px;
+    display: flex;
+    gap: 0.2rem;
+    padding: 0.2rem;
+    position: absolute;
+    bottom: 1rem;
+    width: 98%;
+
+}
+
+.js-o-apps {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: roboto;
+    font-size: 0.8rem;
+}
+
+
+.ajs-app {
+    background-color: rgb(32, 32, 32);
+    border: rgb(83, 83, 83) dashed 1px;
+    cursor: pointer;
+}
+
+.app-logo, .app-logo img {
+    width: 30px;
+    height: 30px;
+    padding: 0.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: cover;
+}
+
+.ajs-app .content {
+    background-color: rgb(58, 58, 58);
+    height: 12rem;
+    width: 7rem;
+    position: absolute;
+    bottom: 90%;
+    padding: 0.3em;
+    box-sizing: border-box;
+}
+
+.content .top {
+    display: flex;
+    justify-content: space-between;
+}
+
+.content .logo img{
+     width: 2.2rem;
+     height: 2.2rem;
+     object-fit: cover;
+     background-color: rgb(26, 26, 26);
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>selections</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/css/standard.css">
+</head>
+<body>
+    <div class="info">
+        <img src="0202.png" alt="sx">
+        <span>
+            Make sure you look for the CRV ( California Refund Value) label on the container before you recycle it.
+        </span>
+    </div>
+    <div class="bottles div">
+        <h1>How does your recycle look like?</h1>
+        <div class="bottle">
+            <img src="pet-bottles.png" alt="plastic_bottle">
+            <span>Plastic Bottles</span>
+        </div>
+        <div class="bottle">
+            <img src="can.png" alt="plastic_bottle">
+            <span>Cans</span>
+        </div>
+        <div class="bottle">
+            <img src="bing.png" alt="plastic_bottle">
+            <span>Green bottles</span>
+        </div>
+        <div class="bottle">
+            <img src="brwn.png" alt="plastic_bottle">
+            <span>Brown bottles</span>
+        </div>
+        <div class="bottle">
+            <img src="./61R3ANMXutL._AC_UF894,1000_QL80_.png" alt="plastic_bottle">
+            <span>cat food</span>
+        </div>
+        <div class="bottle">
+            <img src="./coco.png" alt="plastic_bottle">
+            <span>cat food</span>
+        </div>
+    </div>
+
+    <div class="lol">
+        <div class="bottom-utton">
+            Schudele my recyclebles (1.1 lbs)
+        </div>
+    </div>
+</body>
+<script>
+    document.querySelectorAll('.bottle').forEach(bottle => {
+        bottle.addEventListener('click', () => {
+            bottle.classList.toggle('selected');
+        });
+    });
+</script>
+</html>

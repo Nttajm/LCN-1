@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Cascade</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&family=Cal+Sans&family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Space+Grotesk:wght@300..700&family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="css/main.css">
+      <link rel="stylesheet" href="css/root.css">
+      <link rel="stylesheet" href="/css/standard.css">
+   </head>
+   <body>
+      <div class="cascade-app">
+         <div class="side-nav bgpreference g-5 ">
+            <div class="conelem profile hover">
+               <span class="letter js-auth-letter">
+               K
+               </span>
+               <span class="name fx-full js-auth-displayname">
+               John Doe
+               </span>
+            </div>
+            <div class="conelem profile hover js-content-home add-sel-1">
+               <div class="icono gray">
+                  <img src="icons/home.png" alt="home" class="icon">
+               </div>
+               <span class="discript fx-full">
+               Home
+               </span>
+            </div>
+            <div class="section-title conelem">
+               <span>
+               Shared
+               </span>
+            </div>
+            <div class="conelem profile hover">
+               <div class="icono gray">
+                  <img src="icons/add.png" alt="home" class="icon">
+               </div>
+               <span class="discript fx-full">
+               Collaborate
+               </span>
+            </div>
+            <div class="section-title conelem">
+               <span>
+               My flow
+               </span>
+            </div>
+            <div class="conelem hover js-new-board-btn">
+               <div class="icono gray">
+                  <img src="icons/add.png" alt="home" class="icon">
+               </div>
+               <span class="discript fx-full">
+                New Board
+               </span>
+            </div>
+            <div class="boards fl-c g-10">
+
+            </div>
+         </div>
+         <div class="board-content">
+            <div class="board-controls g-10">
+               <span>x</span>
+               <div class="share-cont fl-c g-5">
+                  <div class="btn-set gray js-colab-btn">
+                     <span>Share</span>
+                  </div>
+                  <div class="people-share modal-box fl-c">
+                     <span class="normal-text  secondary-text">Add Collaborators to "New Board"</span>
+                     <div class="separator"></div>
+                     <div class="people-adder">
+                        <input type="text" class="simple highlighted fx-full normal-text rmdef" id="collab-input" placeholder="Enter email">
+                        <div class="btn-set add-collab-btn gray btn-action-1">
+                           <img src="icons/add.png" alt="add" class="icono gray small">
+                        </div>
+                        <div class="btn-set add-collab-btn gray btn-action-cancel">
+                           <span>Done</span>
+                        </div>
+                     </div>
+                     <div class="people-added">
+                        <div class="person-added bg-notion-orange dn">
+                        <div class="person-added bg-notion-orange dn">
+                           <div class="mini-pfp">
+                              <img src="images/pfpex.png" alt="ydistsoybiglasuigtitdystickyabvidyst">
+                           </div>
+                           <span>joelmulonde81@gmail.com</span>
+                           <div class="aswhat">
+                              <select name="roles" id="role-selector">
+                                 <option value="can-edit">View only</option>
+                                 <option value="can-view">Can edit</option>
+                                 <!-- <option value="can-comment">Can checkboxes</option> -->
+                              </select>
+                           </div>
+                           <div class="delete-icon">
+                              <img src="icons/delete.png" alt="delete" class="icono gray small">
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="cover">
+               <div class="cover-icon op5-hover js-uni-tools edit-icon" id="change-icon">
+                  <input type="text" class="simple dn" id="icon-input" maxlength="1" readonly value="">
+               </div>
+               <div class="cover-settings">
+                  <div class="btn-set add-cover-btn gray">
+                     <span>Add cover</span>
+                  </div>
+                  <div class="btn-set gray add-icon-btn">
+                     <span>Add Icon</span>
+                  </div>
+                  <div class="btn-set">
+                     <span>•••</span>
+                  </div>
+               </div>
+            </div>
+            <div class="board-items" id="boardItems">
+                  <!-- <div class="board-item-row" id="item-row-2">
+                      <div class="item"><div class="floaty left edit js-uni-tools" data-item="4"><img src="icons/edit.png" alt="edit" class="icono gray icon"></div><input type="text" id="item-input-4" class="simple item-element fx-full normal-text empty" placeholder="Type something..." data-item-index="4" autocomplete="off" data-content=""></div>
+                      <div class="item">
+                        <div class="floaty right edit js-uni-tools" data-item="2">
+                          <img src="icons/edit.png" alt="edit" class="icono gray icon">
+                        </div>
+                        <div class="holder">
+                          <input type="checkbox" name="" id="" class="simple-checkbox">
+                          <input type="text" id="item-input-2" class="simple item-element normal-text empty" placeholder="Type something..." data-item-index="2" autocomplete="off">
+                        </div>
+                      </div>
+                   </div>
+                    <div class="item">
+                      <div class="floaty right edit js-uni-tools" data-item="2">
+                        <img src="icons/edit.png" alt="edit" class="icono gray icon">
+                      </div>
+                      <div class="holder">
+                        <input type="checkbox" name="" id="" class="simple-checkbox">
+                        <input type="text" id="item-input-2" class="simple item-element normal-text empty" placeholder="Type something..." data-item-index="2" autocomplete="off">
+                      </div>
+                    </div>
+                    </div> -->
+            </div>
+            <div class="extra_elems">
+               <div class="addNote js-add-note-btn js-uni-tools add nAvoid" id="add-note">
+                  <img src="icons/add.png" alt="add" class="icono gray small">
+                  <span class="tx-secondary">Note</span>
+               </div>
+            </div>
+         </div>
+      </div>
+   </body>
+   <script src="js/app.js" type="module"></script>
+   <script src="js/keyboardBinds.js" type="module"></script>
+   <script src="js/tester.js" defer type="module"></script>
+</html>

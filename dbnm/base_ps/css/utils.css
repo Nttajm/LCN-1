@@ -1,0 +1,203 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: monospace, Arial, Helvetica, sans-serif;
+    letter-spacing: -0.3px;
+}
+
+:root {
+    font-size: 17px;
+}
+
+.fl-r {
+    display: flex;
+    flex-direction: row;
+}
+
+.prompt {
+    color: rgb(81, 231, 211);
+}
+
+.js_cont {
+    display: flex;
+    gap: 0.3rem;
+}
+
+input {
+    outline: none;
+    border: none;
+    background-color: transparent;
+    color: inherit;
+    font-family: monospace;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.fl-c {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.g-1 {
+    gap: 1px;
+}
+
+.g-3 {
+    gap: 3px;
+}
+
+.g-5 {
+    gap: 5px;
+}
+
+.g-10 {
+    gap: 10px;
+}
+
+.g-20 {
+    gap: 20px;
+}
+
+.g-30 {
+    gap: 30px;
+}
+
+.u {
+    text-decoration: underline;
+}
+
+.b {
+    font-weight: bold;
+}
+
+.i {
+    font-style: italic;
+}
+
+.selected {
+    background-color: rgb(101, 181, 255);
+    color: black !important;
+}
+
+.coral {
+    color: coral;
+}
+
+.coral-bg {
+    background-color: coral;
+    color: black;
+}
+
+.pink {
+    color: pink;
+}
+
+.pink-bg {
+    background-color: pink;
+    color: black;
+}
+
+.blue {
+    color: rgb(64, 129, 204);
+}
+
+.blue-bg {
+    background-color: blue;
+    color: white;
+}
+
+.green {
+    color: rgb(91, 202, 91);
+}
+
+.green-bg {
+    background-color: green;
+    color: white;
+}
+
+.light-blue {
+    color: rgb(124, 182, 227);
+}
+
+.light-blue-bg {
+    background-color: lightblue;
+    color: black;
+}
+
+.black {
+    color: black;
+}
+
+.black-bg {
+    background-color: black;
+    color: white;
+}
+
+
+.white {
+    color: white;
+}
+
+.white-bg {
+    background-color: white;
+    color: black;
+}
+
+.red {
+    color: rgb(235, 57, 57);
+}
+
+.yellow {
+    color: rgb(215, 179, 0);
+}
+
+.red-bg {
+    background-color: red;
+    color: white;
+}
+
+.muted-yellow {
+    color: #d9d9a3;
+}
+
+.muted-yellow-bg {
+    background-color: #d9d9a3;
+    color: black;
+}
+
+.muted-orange {
+    color: #d5844d;
+}
+
+.muted-orange-bg {
+    background-color: #d9a37e;
+    color: black;
+}
+
+.muted-purple {
+    color: #b3a3d9;
+}
+
+.muted-purple-bg {
+    background-color: #b3a3d9;
+    color: black;
+}
+
+.muted-teal {
+    color: #a3d9d1;
+}
+
+.muted-teal-bg {
+    background-color: #a3d9d1;
+    color: black;
+}
+
+.muted-rose {
+    color: #d9a3b3;
+}
+
+.muted-rose-bg {
+    background-color: #d9a3b3;
+    color: black;
+}

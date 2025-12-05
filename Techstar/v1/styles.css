@@ -1,0 +1,95 @@
+body {
+    font-family: poppins;
+}
+
+.cont {
+    display: flex;
+    height: 100vh;
+    gap: 1rem;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    font-size: 23px;
+}
+
+.main-search {
+    flex: 75%;
+    border-right: 2px solid gray;
+    padding: 0.3rem;
+}
+
+.student-search {
+    background-color: rgb(224, 245, 250);
+    padding: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    border: solid rgba(141, 141, 141, 0.425) 1px;
+}
+.classes-sec {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.class {
+    background-color: rgb(146, 146, 146);
+    padding: 0.6rem;
+    border-radius: 0.3rem;
+    color: white;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.class span:nth-child(2) {
+    font-size: 0.6rem;
+    opacity: 0.5;
+}
+
+#geo {
+    background-color: rgb(50, 167, 128);
+}
+
+.esay-access {
+    flex: 25%;
+}
+
+.student {
+    background-color: rgb(190, 219, 219);
+    /* border: solid 1px gray; */
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    gap: 0.3rem;
+}
+
+.block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.1rem;
+    min-width: 2rem;
+}
+
+#student-name {
+    width: 100%;
+}
+
+.block#add {
+    background-color: rgb(74, 190, 74);
+    color: white;
+}
+
+.block#info {
+    background-color: rgb(151, 151, 151);
+}
+
+
+.icono {
+    width: 1rem;
+}

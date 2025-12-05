@@ -1,0 +1,227 @@
+:root {
+    --main-font: roboto;
+    font-size: 30px;
+}
+
+body {
+    background-image: url('assets/pexels-splitshire-1562.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: white;
+    overflow: hidden;
+}
+
+.login {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -90%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--main-font);
+    font-weight: 300;
+}
+
+#overlay{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    font-family: roboto;
+    font-weight: 400;
+    position: fixed;
+    z-index: 9999;
+    bottom: -150px;
+    left: 50px;
+    animation: fly-up 0.8s ease forwards;
+}
+
+.date {
+    font-size: 1.4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.time {
+    font-size: 5rem;
+    display: flex;
+}
+
+@keyframes fly-up {
+    0% {
+      transform: translateY(0); /* Start position */
+    }
+    100% {
+      transform: translateY(-100%); /* End position */
+    }
+  }
+
+@keyframes blur {
+    0% {
+        backdrop-filter: blur(0px);
+        transform: translateY(100%);
+    }
+    100% {
+        backdrop-filter: blur(15.2px);
+    }
+}
+
+@keyframes blur-2 {
+    0% {
+        backdrop-filter: blur(0px);
+    }
+    100% {
+        backdrop-filter: blur(15.2px);
+    }
+}
+
+
+.cont {
+    z-index: 3;
+    height: 100vh;
+    background: rgba(109, 109, 109, 0.164);
+}
+
+.animation-bur {
+    animation: blur-2 0.3s ease forwards;
+}
+
+.profile-img {
+    width: 130px;
+    border-radius: 65px;
+    margin-bottom: 5px;
+}
+
+.name {
+    margin-bottom: 15px;
+}
+
+.input-sec {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    border: solid var(--border);
+}
+
+.input-sec:hover {
+    border-color: rgb(255, 255, 255);
+}
+
+.input-sec:hover .input {
+    backdrop-filter: blur(15.2px);
+    color: rgb(110, 110, 110);
+}
+
+.input-sec:focus-within {
+    border: 2px solid rgb(255, 255, 255);
+}
+
+
+:root {
+    --border: rgb(119, 119, 119) 2px;
+    --tran: 0.035s;
+    --blur: blur(15.2px);
+}
+
+.btn {
+    margin-left: -2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.4rem;
+    border-style: none;
+    color: rgb(211, 211, 211);
+    background: rgba(122, 122, 122, 0.144);
+    backdrop-filter: blur(9.2px);
+    transition: var(--tran); 
+}
+
+.btn:active {
+    background: rgba(255, 255, 255, 0.795);
+}
+
+.hoveri:hover {
+    backdrop-filter: blur(15.2px);
+    background: rgba(212, 212, 212, 0.432);
+    color: white;
+}
+
+
+.input {
+    border-style: none;
+    border-radius: none;
+    padding: 3px 10px 3px 8px;
+    outline: none;
+    background: rgba(85, 85, 85, 0.432);
+    backdrop-filter: blur(9.2px);
+    caret-color: rgb(0, 0, 0);
+    color: white;
+}
+
+.input:focus {
+    backdrop-filter: blur(15.2px);
+    background: rgba(255, 255, 255, 0.795);
+    color: rgb(110, 110, 110);
+}
+
+.input::placeholder {
+    color: rgb(185, 185, 185);
+}
+
+.input:focus::placeholder {
+    color: rgb(153, 152, 152);
+}
+
+.info {
+    margin-top: 10px;
+    font-size: 0.6rem;
+    display: block;
+}
+
+.description {
+    font-weight: 100;
+    font-size: 0.5rem;
+}
+
+.incorrect-sec {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.i-btn {
+    width: 80px;
+    height: 35px;
+    font-size: 0.6rem;
+}
+
+.i-btn:hover {
+   border-color: rgb(255, 255, 255);
+}
+
+.i-btn:active {
+    background: rgba(255, 255, 255, 0.795);
+}
+
+.icons {
+    position: absolute;
+    bottom: 0;
+    right: 5px;
+}
+
+.icons ul {
+    display: flex;
+    list-style: none;
+}
+
+.icons li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.icon-sec li:hover {
+    background-color: rgba(184, 184, 184, 0.192);
+}

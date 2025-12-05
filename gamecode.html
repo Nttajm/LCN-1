@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decryptor UI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #0277bd;
+            color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 1.1rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px 0;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .output {
+            background-color: #01579b;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #0288d1;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #039be5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Decrypt Text</h1>
+        <label for="userInput">Enter encrypted text:</label>
+        <input type="text" id="userInput" placeholder="Enter encrypted text...">
+        <button onclick="showDecrypted()">Decrypt</button>
+
+        <div class="output" id="output">
+            <!-- Output will be shown here -->
+        </div>
+    </div>
+
+    <script>
+        // Automatically select the input field when clicked, making copy-pasting easier
+        document.getElementById('userInput').addEventListener('focus', function() {
+            this.select();
+        });
+
+        function decryptNumbers(encrypted) {
+            const digitToCode = [
+                'ILY', '1-MAG-1GU', 'WTG', 'AIG', 'ERX-82', 'IOITRN', '29-10', 'sigma', '13-14', 'JKSON',
+                'ILY', '1-MAG-1GU', 'WTG', 'AIG', 'ERX-82', 'IOITRN', '29-10', 'sigma', '13-14', 'JKSON',
+            ];
+
+            // Extract the shift value and encrypted string
+            let [reversedEncrypted, shift] = encrypted.split('*');
+            shift = parseInt(shift, 10);
+
+            // Reverse the encrypted string
+            let encryptedString = reversedEncrypted.split('').reverse().join('');
+
+            let decrypted = '';
+
+            let i = 0;
+            while (i < encryptedString.length) {
+                let matchFound = false;
+                for (let j = 0; j < digitToCode.length; j++) {
+                    let code = digitToCode[j];
+                    if (encryptedString.startsWith(code, i)) {
+                        let index = j;
+                        // Decrypt the number using the reverse of the Caesar cipher approach
+                        let originalIndex = (index - shift + 10) % 10;
+                        decrypted += String.fromCharCode('0'.charCodeAt(0) + originalIndex);
+                        i += code.length;
+                        matchFound = true;
+                        break;
+                    }
+                }
+                if (!matchFound) {
+                    decrypted += encryptedString[i];
+                    i++;
+                }
+            }
+
+            return decrypted;
+        }
+
+        function showDecrypted() {
+            const input = document.getElementById('userInput').value;
+            const output = document.getElementById('output');
+            if(input) {
+                let decrypted = decryptNumbers(input);
+                output.textContent = "Decrypted text: " + decrypted;
+            } else {
+                output.textContent = "Please enter some encrypted text!";
+            }
+        }
+    </script>
+
+</body>
+</html>

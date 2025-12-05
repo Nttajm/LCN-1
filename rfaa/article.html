@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        input[type="text"], input[type="url"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="url"]:focus, input[type="number"]:focus, 
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .tags-section {
+            margin-bottom: 25px;
+        }
+
+        .tag-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tag-input {
+            flex: 1;
+        }
+
+        .add-tag-btn {
+            padding: 12px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .add-tag-btn:hover {
+            background: #218838;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tag-remove {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tag-remove:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #0056b3;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .optional {
+            color: #888;
+            font-weight: normal;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Article Creator</h1>
+        
+        <form id="articleForm">
+            <div class="form-group">
+                <label for="title">Article Title</label>
+                <input type="text" id="title" name="title" required placeholder="Enter article title...">
+            </div>
+
+            <div class="form-group tags-section">
+                <label>Tags</label>
+                <div class="tag-input-container">
+                    <input type="text" id="tagInput" class="tag-input" placeholder="Enter a tag...">
+                    <button type="button" class="add-tag-btn" onclick="addTag()">Add Tag</button>
+                </div>
+                <div class="tags-container" id="tagsContainer"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="imageUrl">Image URL <span class="optional">(optional)</span></label>
+                <input type="url" id="imageUrl" name="imageUrl" placeholder="https://example.com/image.jpg">
+            </div>
+
+            <div class="form-group">
+                <label for="content">Article Content</label>
+                <textarea id="content" name="content" required placeholder="Write your article content here..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="seasonYear">Season Year</label>
+                <input type="number" id="seasonYear" name="seasonYear" required placeholder="e.g., 1998" min="1990" max="2030">
+            </div>
+
+            <div class="form-group">
+                <label for="matchSelect">Match <span class="optional">(optional)</span></label>
+                <select id="matchSelect" name="matchSelect">
+                    <option value="">Select a match (optional)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn">Create Article</button>
+        </form>
+
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script type="module">
+        import { seasons, teams } from './js/acl-index.js';
+
+        let currentTags = [];
+
+        // Add tag functionality
+        window.addTag = function() {
+            const tagInput = document.getElementById('tagInput');
+            const tagValue = tagInput.value.trim();
+            
+            if (tagValue && !currentTags.includes(tagValue)) {
+                currentTags.push(tagValue);
+                renderTags();
+                tagInput.value = '';
+            }
+        };
+
+        // Remove tag functionality
+        window.removeTag = function(index) {
+            currentTags.splice(index, 1);
+            renderTags();
+        };
+
+        // Render tags
+        function renderTags() {
+            const container = document.getElementById('tagsContainer');
+            container.innerHTML = '';
+            
+            currentTags.forEach((tag, index) => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'tag';
+                tagElement.innerHTML = `
+                    <span>${tag}</span>
+                    <button type="button" class="tag-remove" onclick="removeTag(${index})">×</button>
+                `;
+                container.appendChild(tagElement);
+            });
+        }
+
+        // Handle Enter key in tag input
+        document.getElementById('tagInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addTag();
+            }
+        });        // Update matches when season year changes
+        const seasonYearInput = document.getElementById('seasonYear');
+        
+        // Add both input and change event listeners for better responsiveness
+        seasonYearInput.addEventListener('input', function() {
+            updateMatches(this.value);
+        });
+        
+        seasonYearInput.addEventListener('change', function() {
+            updateMatches(this.value);
+        });
+
+        // Update matches dropdown based on season
+        function updateMatches(seasonYear) {
+            const matchSelect = document.getElementById('matchSelect');
+            matchSelect.innerHTML = '<option value="">Select a match (optional)</option>';
+            
+            console.log('Updating matches for season:', seasonYear);
+            
+            if (!seasonYear) {
+                console.log('No season year provided');
+                return;
+            }
+            
+            // Get fresh seasons data from localStorage
+            const seasonsData = JSON.parse(localStorage.getItem('seasons')) || [];
+            const season = seasonsData.find(s => s.year == seasonYear);
+            
+            console.log('Found season:', season);
+            
+            if (season && season.matchdays && season.matchdays.length > 0) {
+                let matchCount = 0;
+                season.matchdays.forEach((matchday, mdIndex) => {
+                    if (matchday.matches && matchday.matches.length > 0) {
+                        matchday.matches.forEach((match, matchIndex) => {
+                            const homeTeam = teams.find(t => t.id === match.home)?.name || match.home;
+                            const awayTeam = teams.find(t => t.id === match.away)?.name || match.away;
+                            const option = document.createElement('option');
+                            option.value = JSON.stringify({
+                                matchdayIndex: mdIndex,
+                                matchIndex: matchIndex,
+                                match: match
+                            });
+                            
+                            // Show score if match is completed
+                            let scoreText = '';
+                            if (match.homeScore !== undefined && match.awayScore !== undefined) {
+                                scoreText = ` (${match.homeScore}-${match.awayScore})`;
+                            }
+                            
+                            option.textContent = `MD ${mdIndex + 1}: ${homeTeam} vs ${awayTeam}${scoreText}`;
+                            matchSelect.appendChild(option);
+                            matchCount++;
+                        });
+                    }
+                });
+                console.log(`Added ${matchCount} matches to dropdown`);
+            } else {
+                console.log('No season found or no matchdays available for year:', seasonYear);
+                // Add a message option when no matches are found
+                const noMatchesOption = document.createElement('option');
+                noMatchesOption.value = '';
+                noMatchesOption.textContent = 'No matches found for this season';
+                noMatchesOption.disabled = true;
+                matchSelect.appendChild(noMatchesOption);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('articleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const title = formData.get('title');
+            const imageUrl = formData.get('imageUrl');
+            const content = formData.get('content');
+            const seasonYear = parseInt(formData.get('seasonYear'));
+            const matchData = formData.get('matchSelect');
+            
+            // Validate required fields
+            if (!title || !content || !seasonYear) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            // Create article object
+            const article = {
+                id: Date.now().toString(),
+                title: title,
+                tags: [...currentTags],
+                imageUrl: imageUrl || null,
+                content: content,
+                seasonYear: seasonYear,
+                match: matchData ? JSON.parse(matchData) : null,
+                createdAt: new Date().toISOString(),
+                author: localStorage.getItem('username') || 'Anonymous'
+            };
+            
+            // Save article to season
+            saveArticleToSeason(article, seasonYear);
+        });
+
+        // Save article to season
+        function saveArticleToSeason(article, seasonYear) {
+            try {
+                let seasonsData = JSON.parse(localStorage.getItem('seasons')) || [];
+                
+                // Find or create season
+                let season = seasonsData.find(s => s.year == seasonYear);
+                if (!season) {
+                    season = {
+                        year: seasonYear,
+                        matchdays: [],
+                        articles: {}
+                    };
+                    seasonsData.push(season);
+                }
+                
+                // Initialize articles object if it doesn't exist
+                if (!season.articles) {
+                    season.articles = {};
+                }
+                
+                // Save article with title as key
+                season.articles[article.title] = article;
+                
+                // Save back to localStorage
+                localStorage.setItem('seasons', JSON.stringify(seasonsData));
+                
+                showSuccess(`Article "${article.title}" has been successfully created and saved to season ${seasonYear}!`);
+                
+                // Reset form
+                document.getElementById('articleForm').reset();
+                currentTags = [];
+                renderTags();
+                
+                console.log('Article saved:', article);
+                console.log('Updated seasons:', seasonsData);
+                
+            } catch (error) {
+                console.error('Error saving article:', error);
+                showError('Failed to save article. Please try again.');
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            errorDiv.style.display = 'none';
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            const successDiv = document.getElementById('successMessage');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            successDiv.style.display = 'none';
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Article Creator loaded');
+            console.log('Available seasons:', seasons);
+            
+            // Initialize match dropdown if season year is already filled
+            const seasonYearInput = document.getElementById('seasonYear');
+            if (seasonYearInput.value) {
+                updateMatches(seasonYearInput.value);
+            }
+            
+            // Debug: Show available seasons
+            const seasonsData = JSON.parse(localStorage.getItem('seasons')) || [];
+            console.log('Available seasons in localStorage:', seasonsData.map(s => s.year));
+        });
+    </script>
+</body>
+</html>

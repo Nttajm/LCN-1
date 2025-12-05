@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/bp/inspo/overunder/ou.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="/bp/inspo/overunder/map.css">
+</head>
+<body>
+    <div class="snow">
+        <img src="/bp/EE/assets/ouths/snow02.gif" alt="">
+      </div>
+    <div class="conter">
+        <img src="../bp/EE/assets/ouths/graph-paper-grid-png-4.png" alt="" class="grid">
+    <div class="news-cont card gwl-div">
+        <h1>News</h1>
+        <div class="news-section">
+            <div class="news" id="alert">
+                <span class="disc">
+                    BUY stuff from the marketplace!!!
+                </span>
+                <img src="/bp/EE/assets/ouths/proof-4.JPG" alt="alert">
+            </div>
+            <div class="news" id="alert">
+                <span class="disc">
+                    Rank up by interacting with the OU site, and earn 3 keys each time you win a bet.
+                </span>
+                <img src="/bp/EE/assets/ouths/keysrank.png" alt="alert">
+            </div>
+
+
+        </div>
+        <!-- <div class="vote-sec">
+            <div class="vote">
+                <span class="vote-name">
+                    What do you want in the next overunder update after thanksgiving?
+                </span>
+                <div class="button-sec" id="reg-votes">
+                    <button class="vote-button " id="vote-1" data-vote="f1">Feature 1</button>
+                    <button class="vote-button " id="vote-2" data-vote="f2">Feature 2</button>
+                </div>
+                <div class="button-sec dn" id="disc-sec">
+                    <button class="vote-button linker " id="vote-3" data-linker="map.html">
+                        <span>Vote more on discord</span>
+                        <img src="/bp/EE/assets/ouths/discord.jpg" alt="" class="pfp"> >
+                    </button>
+             </div>
+            </div>
+        </div> -->
+
+    </div>
+    <div class="multi-tag-2 boo">
+        <h2>Boo List</h2>
+        <span class="boo-disc"> The following people misused overunder innaopropriatly and cheated, they're the reason we cant have nice things.</span>
+        <div class="sepa"></div>
+        <div class="boos">
+            <div class="booer">
+                <span class="boo-name">Jacob Khoury</span>                
+            </div>
+            <div class="booer">
+                <span class="boo-name">Daniel Tanguay</span>                
+            </div>
+
+        </div>
+    </div>
+
+    <div class="items">
+        <div class="invest linkthing mi " data-link="stocks.html">
+            <span class="linker">Investments</span>
+            <img src="/bp/EE/assets/ouths/stock.png" alt="">
+        </div>
+        <div class="Casino linkthing mi dn" data-link="casino.html">
+            <span class="linker">Casino</span>
+            <img src="/bp/EE/assets/ouths/pngtree-many-exquisite-diamonds-png-image_9099718.png" alt="">
+  
+        </div>
+        <div class="Marketplace linkthing mi " data-link="marketplace.html">
+            <span class="linker">Marketplace</span>
+            <img src="/bp/EE/assets/ouths/mark.png" alt="">
+        </div>
+        <div class="bank linkthing mi" data-link="bank.html">
+            <span class="linker">Bank</span>
+            <img src="/bp/EE/assets/ouths/bank.jpg" alt="">
+        </div>
+        <div class="network linkthing mi" data-link="network.html">
+            <span class="linker">NetWork</span>
+            <img src="/bp/EE/assets/ouths/network.webp" alt="">
+        </div>
+        <div class="bank  mi R" data-link="network.html">
+            <span class="linker">Missions</span>
+            <img src="/bp/EE/assets/ouths/mission.avif" alt="">
+
+            <div class="overlay-message">
+                <span>Coming Soon</span>
+            </div> 
+        </div>
+        <div class="bank linkthing  mi" data-link="redeem.html">
+            <span class="linker">Redeem</span>
+            <img src="/bp/EE/assets/ouths/scan.png" alt="">
+        </div>
+        <!-- <div class="bank  mi" data-link="network.html">
+            <span class="linker">Trade</span>
+            <img src="/bp/EE/assets/ouths/trade.webp" alt="">
+        </div> -->
+    </div>
+    </div>
+
+
+      <div class="bottom-nav">
+        <div class="bn-item" data-linker="../overunderths.html">
+          <img src="/bp/EE/assets/ouths/icono (2).png" alt="" class="icon">
+          <span>OU</span>
+        </div>
+        <div class="bn-item" data-linker="../mybets.html">
+          <img src="/bp/EE/assets/ouths/icono (1).png" alt="" class="icon">
+          <span>Mybets</span>
+        </div>
+        <div class="bn-item sel" data-linker="map.html">
+          <img src="/bp/EE/assets/ouths/icono (4).png" alt="" class="icon">
+          <span>Map</span>
+        </div>
+        <div class="bn-item" data-linker="../leaders.html">
+          <img src="/bp/EE/assets/ouths/icono (3).png" alt="" class="icon">
+          <span>Leaders</span>
+        </div>
+      </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    const allLinkthings = document.querySelectorAll('.linkthing');
+    allLinkthings.forEach(element => {
+        element.addEventListener('click', (event) => {
+            const link = element.dataset.link;
+            window.location.href = link;
+        });
+    });
+</script>
+<script src="/bp/inspo/overunder/global.js" type="module"></script>
+</html>

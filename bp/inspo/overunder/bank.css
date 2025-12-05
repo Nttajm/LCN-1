@@ -1,0 +1,97 @@
+body {
+    font-family: var(--f-1);
+    color: white;
+}
+.pageTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-family: var(--f-1);
+    color: white;
+    background-image: url(/bp/EE/assets/ouths/bank.jpg);
+    background-repeat: no-repeat; 
+    background-position: 50% 50%;
+    background-size: cover;
+    background-blend-mode: overlay;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    border-radius: 1rem;
+    margin: 0.5rem;
+}
+
+.conter {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 0.5rem;
+}
+
+.bank {
+    background-color: var(--secondary-bg);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.7rem;
+}
+
+.bank-top {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.bank-top img {
+    width: 13rem;
+    border: solid 0.2rem var(--6-bg);
+    border-radius: 0.5rem;
+    margin-right: 0.5rem;
+    object-fit: contain;
+}
+
+.infos {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    background-color: var(--6-bg);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.box {
+    color: rgb(0, 0, 0);
+}
+
+.needed {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(27, 95, 36, 0.959);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loans {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.loan {
+    background-color: var(--7-bg);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+}
+
+.loan-info img {
+    width: 6rem;
+    border: solid 0.2rem var(--6-bg);
+    border-radius: 0.5rem;
+}

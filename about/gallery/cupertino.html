@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../ani.css">
+  <link rel="stylesheet" href="/css/standard.css">
+  <link rel="stylesheet" href="../gall.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cupertino</title>
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="../joel.html">HOME</a></li>
+      <li><a href="http://">ABOUT</a></li>
+      <li><a href="http://">contact me mulonde@lcnjoel.com</a></li>
+      <li><a href="http://">Dev: joel Mulonde</a></li>
+      <li><a href="http://">● galleries</a></li>
+    </ul>
+  </nav>
+  <div class="cont" id="scrollContainer">
+    <section >
+        <div class="img">
+            <img src="../assets/galleryAssests/curp(1).jpg" alt="">
+        </div>
+        <div class="head load-head">
+            <span>
+                NIKI HOBO
+            </span>
+        </div>
+        <div class="footNote">
+            <span>
+                taken by you for you.
+            </span>
+        </div>
+    </section>
+    <section class="js-bluredEle">
+        <div class="img">
+            <img src="../assets/galleryAssests/buil.jpg" alt="">
+        </div>
+        <div class="footNote">
+            <span>
+                taken by you for you.
+            </span>
+        </div>
+    </section>
+    <section class="js-bluredEle">
+        <div class="img">
+            <img src="../assets/galleryAssests/daft.jpg" alt="">
+        </div>
+        <div class="footNote">
+            <span>
+                taken by you for you.
+            </span>
+        </div>
+    </section>
+    <section class="js-bluredEle">
+        <div class="img">
+            <img src="../assets/galleryAssests/1081683410 (1).jpg" alt="">
+        </div>
+        <div class="footNote">
+            <span>
+                taken by you for you.
+            </span>
+        </div>
+    </section>
+    <div class="info ">
+        <div class="scrollbar" id="customScrollbar">
+            <div class="thumb" id="customScrollbarThumb"></div>
+        </div>
+    </div>
+  </div>
+</body>
+
+<script>
+    const scrollContainer = document.querySelector('.cont');
+
+    scrollContainer.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        scrollContainer.scrollLeft += event.deltaY;
+    });
+</script>
+
+<script src="../jsg.js"></script>
+
+
+</html>

@@ -1,0 +1,108 @@
+.nav-bar {
+    background-color: var(--lowerg);
+    height: 100vh;
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: all 0.122s ease;
+    font-family: roboto, arial !important;
+}
+
+.nav-before {
+    display: none;
+}
+
+#ie {
+    display: none;
+}
+
+.se {
+    font-size: 1rem;
+}
+
+
+.nav-bar:hover .nav-before {
+    display: block;
+}
+
+.nav-bar:hover #ie {
+    display: block;
+    color: gray;
+    content: 'right_panel_open';
+}
+
+.nav-bar:last-child {
+    align-items: flex-end;
+}
+
+.nav-bar:hover #il {
+    display: none;
+}
+
+.nav-bar:hover {
+    width: 130px;
+    border-right: solid rgb(0, 132, 255) 5px;
+    border-bottom: solid white 3px;
+    box-shadow:  28px 0px 52px -7px rgba(0,0,0,0.4);
+    align-items: start;
+}
+
+.nav-cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: none;
+}
+
+.nav-cont:hover {
+    border-left: solid rgb(0, 132, 255) 5px;
+    background-color: rgba(88, 88, 88, 0.3);
+}
+
+.profile>span {
+    font-family: poppins !important;
+}
+
+
+.profile {
+    padding: 10px;
+    background-color: var(--midg);
+    font-size: 0.7rem;
+    font-family: roboto;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    width: 95px;
+}
+
+.profile-head {
+    font-weight: 500;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-name-gray{ 
+    color: var(--highg);
+}
+
+.p-names {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    flex-wrap:wrap;
+}
+
+@media screen and only {width} {
+    
+}

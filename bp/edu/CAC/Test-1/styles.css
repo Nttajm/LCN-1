@@ -1,0 +1,118 @@
+:root {
+  font-family: inter;
+}
+
+body {
+  background-color: rgb(232, 232, 232);
+}
+
+.nav {
+  padding: 0.7rem;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.user-title {
+  font-weight: 600;
+}
+
+.subject {
+  color: gray;
+}
+
+.card {
+  margin: 0.7rem;
+  background-color: white;
+  padding: 0.5rem;
+  border-radius: 0.8rem;
+  box-shadow: 0px 0px 22px 0px rgba(0, 0, 0, 0.191);
+}
+
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.wr-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.title {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.sub {
+  color: rgb(104, 104, 104);
+  font-size: 0.7rem;
+}
+
+.dot {
+  padding: 1px;
+  background-color: teal;
+  color: white;
+  border-radius: 40rem;
+  font-size: 0.4rem;
+  padding: 5px;
+}
+
+.users {
+  display: flex;
+  flex-direction: column;
+}
+
+.tags {
+  font-family: roboto;
+  display: flex;
+  gap: 0.3rem;
+  font-size: 0.5rem;
+}
+
+.tag {
+  background-color: brown;
+  color: white;
+  border-radius: 0.2rem;
+  padding: 0.3rem;
+}
+
+.tag:nth-child(2) {
+  background-color: rgb(28, 146, 193);
+}
+
+.tag:nth-child(3) {
+  background-color: rgb(213, 135, 25);
+}
+
+.tag:nth-child(2) {
+  background-color: rgb(28, 146, 193);
+}
+
+.user {
+  padding: 1px;
+}
+
+.username {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.bar {
+  width: 100%;
+  background-color: gray;
+  height: 10px;
+  border-radius: 10px;
+}
+
+.inner-bar {
+  width: 87%;
+  background-color: rgb(226, 226, 226);
+  height: 10px;
+  border-radius: 10px;
+
+}

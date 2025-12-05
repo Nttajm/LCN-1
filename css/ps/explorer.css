@@ -1,0 +1,492 @@
+.explorer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background-color: var(--lowerg);
+  border: solid 1px rgb(150, 150, 150);
+  width: 50%;
+  display: none;
+  resize: horizontal;
+  overflow: auto;
+<<<<<<< Updated upstream
+  padding-bottom: 70px;
+}
+
+.dbe {
+  display: block;
+=======
+}
+
+.dbe {
+  display: block !important;
+>>>>>>> Stashed changes
+}
+
+:root {
+  --border: solid 1px rgb(80, 80, 80);
+}
+
+.e-top {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: solid 1px rgb(150, 150, 150);
+  background-color: var(--theme);
+  opacity: 0.7;
+}
+
+.e-top button {
+  padding: 5px;
+  background-color: var(--lowerg);
+  color: rgb(161, 161, 161);
+  border-style: none;
+  font-family: roboto;
+}
+
+.e-top button:hover {
+  background-color: darko;
+}
+
+.eOP {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  padding: 15px;
+}
+
+.eOP {
+  font-family: roboto;
+}
+
+.slidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 3px;
+  border-right: var(--border) solid;
+  z-index: 1;
+  height: 100%;
+  background-color: var(--theme);
+  cursor:col-resize;
+<<<<<<< Updated upstream
+}
+
+.explorer-area {
+  padding-left: 5px;
+  padding-bottom: 80px;
+  display: none;
+}
+
+.files {
+  font-family: roboto;
+}
+
+.h12 {
+  margin: 5px 0px 10px 5px;
+  font-size: 1.7rem;
+  font-family: poppins;
+  font-weight: 400;
+}
+
+#e-file {
+  padding: 10px 10px 10px 0px;
+  gap: 5px;
+  cursor: pointer;
+  border-bottom: solid 1px;
+  padding-left: 10px;
+}
+
+.file:hover {
+  background-color: rgba(75, 75, 75, 0.493);
+}
+
+#e-file:nth-of-type(1) {
+  border-top: solid 1px;
+}
+
+.react {
+  display: flex;
+  flex-direction: column;
+}
+
+.react-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 13px !important;
+  justify-content: space-between;
+}
+
+
+.f-sec1 {
+  display: flex;
+  flex-direction: column;
+}
+
+.f-sec1 span:first-child {
+  font-size: 1.3rem;
+  color: white;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.f-sec1 span:nth-child(2) {
+  font-size: 0.75rem;
+}
+
+#Javascript {
+  font-size: 0.75rem;
+  color: rgb(190, 190, 0);
+}
+
+#python {
+  color: rgb(101, 181, 228);
+  font-size: 0.75rem;
+}
+
+#java {
+  color: brown;
+  font-size: 0.75rem;
+}
+
+#node {
+  color: rgb(190, 190, 0);
+  font-size: 0.75rem;
+}
+
+#php {
+  color: rgb(174, 112, 231);
+  font-size: 0.75rem;
+}
+
+#config {
+  color: cornflowerblue;
+  font-size: 0.75rem;
+}
+
+.view-btn {
+  background-color: transparent !important;
+  display: inline-block;
+}
+
+.contents {
+  margin-top: 10px;
+  border-top: dashed var(--midg);
+  display: none;
+  column-gap: 3px;
+  background-color: var(--midg);
+
+}
+
+.f-content {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 3px;
+  color: rgb(180, 180, 180);
+  padding: 5px;
+  box-sizing: border-box;
+  opacity: 1;
+}
+
+.f-content:hover {
+  color: white;
+  background-color: var(--highg);
+}
+
+.tab-content {
+  display: none;
+  padding-left: 5px;
+  padding-bottom: 80px;
+}
+
+.tab-buttons {
+  padding: 10px 5px;
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+}
+
+.tab {
+  background-color: transparent;
+  color: var(--highg);
+  border-style: none;
+  padding-bottom: 5px;
+}
+
+.tab.selected {
+  border-bottom: solid var(--theme) 2px;
+}
+
+.tab:hover {
+  color: white;
+  cursor: pointer;
+}
+
+#tab2 {
+}
+
+.app {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 15px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.app:hover {
+  background-color: rgba(75, 75, 75, 0.493);
+}
+
+.app div {
+  display: flex;
+  flex-direction: column;
+}
+
+.app div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center
+}
+
+.app div span:nth-child(1) {
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.app div span:nth-child(2) {
+  color: var(--highg);
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+#tab3 {
+  background-color: black;
+  height: 100%;
+  margin: 20px;
+  padding: 0;
+  border: solid rgb(143, 143, 143) 1px;
+}
+
+.bold {
+  font-weight: 600;
+}
+
+.sys-info button {
+  background-color: transparent;
+}
+
+.app-head {
+  text-align: right;
+  padding-right: 10px;
+  padding-bottom: 5px;
+  font-family: var(--font-ps);
+  color: rgb(83, 83, 83);
+  border-bottom: var(--border);
+}
+
+.sys-output {
+  height: 100%;
+}
+
+.sys-info {
+  padding: 4px;
+  font-family: roboto;
+  font-weight: 300;
+  background-color: rgb(27, 27, 27);
+  margin: 10px;
+  border: var(--border);
+  cursor: disabled;
+}
+
+.sys-top {
+  font-size: 0.64rem;
+  border-bottom: var(--border);
+}
+
+.sys-middle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px;
+  color: rgb(122, 122, 122);
+}
+
+.sys-box {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  border: var(--border);
+  padding: 4px;
+  box-sizing: border-box;
+  color: white;
+  max-height: 34px;
+  background-color: transparent;
+}
+
+
+.sys-bottom {
+  padding: 4px;
+  font-family: roboto;
+  font-weight: 300;
+  background-color: rgb(27, 27, 27);
+  margin: 10px;
+  border: var(--border);
+  min-height: 500px;
+}
+
+#js-sys-out {
+  color: rgb(83, 83, 83);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-direction: column;
+  font-family: var(--font-ps);
+}
+
+#outtext {
+  color: white ;
+}
+
+.s-o-d {
+
+}
+
+.draggableArea {
+  width: 30px; /* Adjust as needed */
+  height: 30px; /* Adjust as needed */
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0); /* Semi-transparent for demonstration */
+  cursor: move;
+}
+
+
+.draggableDiv {
+  width: 200px;
+  height: 200px;
+  background-color: var(--lowerg);
+  position: absolute;
+  resize: both;
+  overflow: auto;
+  z-index: 1000;
+  font-family: roboto;
+  border: var(--border);
+  box-shadow: 0px 0px 23px 0px rgba(0, 0, 0, 0.549);
+}
+
+.dni {
+  display: none !important;
+}
+
+.top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+  align-items: center;
+  border-bottom: var(--border);
+  background-color: var(--lowerg);
+  padding: 3px;
+}
+
+.block {
+  background-color: transparent;
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1001;
+}
+
+.top button {
+  padding: 5px;
+  background-color: var(--lowerg);
+  color: rgb(161, 161, 161);
+  border-style: none;
+  font-family: roboto;
+}
+
+.name {
+  font-size: 0.6rem;
+}
+
+.top div {
+  display: flex;
+  align-items: center;
+}
+
+.top div:first-child {
+  gap: 5px;
+}
+
+.logo img {
+  width: 20px;
+}
+
+.window-area {
+  width: 100%;
+  height: 100%;
+  padding-top: 32px;
+}
+
+.amc-ani-ps {
+  animation: example 3s forwards;
+}
+
+.system-ani {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  font-size: 2rem;
+  animation: logo-ani 3s forwards;
+}
+
+#key {
+  font-family: var(--font-ps);
+  outline: none;
+  flex-grow: 1;
+}
+
+#key:focus {
+  border: rgb(204, 204, 204) solid 1px;
+}
+
+.sys-info button:hover {
+  box-sizing: border-box;
+  max-height: 34px;
+}
+
+.temporary-class {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+@keyframes logo-ani {
+  0%   {opacity: 0.4;}
+  25%  {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+@keyframes example {
+  0%   {background-color: rgb(131, 131, 131);}
+  25%  {background-color: rgba(49, 33, 192, 0.473);}
+  100% {background-color: rgba(80, 80, 80, 0);}
+}
+=======
+}
+>>>>>>> Stashed changes

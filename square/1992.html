@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/standard.css">
+  <link rel="stylesheet" href="1992.css">
+  <link rel="icon" href="/images/sqarelogo-mini.png" type="image/x-icon">
+  <title>Square</title>
+  <style>
+   
+  </style>
+</head>
+<body>
+  <div id="viewport">
+    <div id="grid-container"></div>
+  </div>
+  
+  <div class="info" id="select-place">
+    <div>
+      <!-- <span>Unclaimed</span> -->
+    </div>
+    <span class="place-a-square"></span>
+    <span id="computer-warning " class="dn">
+      For better experience, use a computer.
+    </span>
+
+  </div>
+
+  <div class="place " id="js_place">
+    <div class="color-section">
+      <div class="color selected" style="background-color: red;" data-color="red"></div>
+      <div class="color" style="background-color: orange;" data-color="orange"></div>
+      <div class="color" style="background-color: yellow;" data-color="yellow"></div>
+      <div class="color" style="background-color: green;" data-color="green"></div>
+      <div class="color" style="background-color: blue;" data-color="blue"></div>
+      <div class="color" style="background-color: purple;" data-color="purple"></div>
+      <div class="color" style="background-color: pink;" data-color="pink"></div>
+      <div class="color" style="background-color: brown;" data-color="brown"></div>
+      <div class="color" style="background-color: black;" data-color="black"></div>
+      <div class="color" style="background-color: white;" data-color="white"></div>
+      <div class="color" style="background-color: gray;" data-color="gray"></div>
+      <div class="color" style="background-color: teal;" data-color="teal"></div>
+      <div class="color" style="background-color: cyan;" data-color="cyan"></div>
+      <div class="color" style="background-color: magenta;" data-color="magenta"></div>
+    </div>
+    <div>
+        <button id="place-btn">Make color</button>
+        <button class="cancel" id="cancel-btn">Cancel</button>
+    </div>
+
+  </div>
+
+  <div class="loadboxes">    
+  </div>
+  <div class="loading">
+    <span>loading</span>
+    <div class="loader"></div>
+  </div>
+  
+  <script src="admin.js" type="module"></script>
+</body>
+</html>

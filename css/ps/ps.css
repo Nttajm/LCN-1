@@ -1,0 +1,463 @@
+body {
+    background-color: var(--bg-color);
+    color: #f8f8f8;
+    margin: 0;
+    padding: 0;
+}
+
+.wallpaper {
+    position: fixed;
+    background-repeat: repeat-y;
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    filter: brightness(0.8);
+}
+
+.js-app-wallp {
+
+}
+
+.js-app-btn {
+    min-width: 50px; 
+}
+
+.blur {
+    background-color: rgba(212, 212, 212, 0.37);
+  backdrop-filter: blur(10px);
+}
+
+.blurOverlay {
+    filter: blur(4px) brightness(0.8);
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-repeat: repeat-y;
+    background-size: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.test {
+    
+}
+
+::-webkit-scrollbar-thumb {
+    background: #0805a5;
+}
+
+.close:hover {
+    color: var(--textColor);
+}
+
+:root {
+    /* --font-ps: "IBM Plex Mono", monospace; */
+    --font-ps: "IBM Plex Mono";
+    font-size: 16px;
+    --bg-color: #04028d;
+    --border: solid 1px rgb(80, 80, 80);
+<<<<<<< Updated upstream
+    --textColor: white;
+=======
+>>>>>>> Stashed changes
+}
+
+.highlight {
+    color: yellow;
+    opacity: 0.87;
+}
+
+.purple {
+    color: rgb(104, 23, 179)!important;
+    opacity: 0.87;
+}
+
+.green {
+    color: rgb(24, 207, 0);
+    opacity: 0.87;
+}
+
+.blue {
+    color: rgb(0, 55, 206)!important;
+    opacity: 0.87;
+}
+
+.syan {
+    color: rgb(84, 0, 240)!important;
+    opacity: 0.87;
+}
+
+.skyblue {
+    color: rgb(131, 177, 230);
+}
+
+.p {
+    padding: 0;
+    margin: 0;
+}
+
+.ps {
+    padding: 8px;
+    font-family:var(--font-ps);
+<<<<<<< Updated upstream
+    padding-bottom: 350px;
+    width: 50%;
+=======
+
+>>>>>>> Stashed changes
+}
+
+.dbk {
+    display: block !important;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    height: 100%;
+    margin-left: 35px;
+    z-index: -999;
+<<<<<<< Updated upstream
+=======
+    position: absolute;
+>>>>>>> Stashed changes
+}
+
+.db {
+    display: inline;
+    padding-bottom: 500px;
+}
+
+#output {
+    font-size: 16px;
+}
+
+#response {
+   background-color: black; 
+}
+
+.input {
+    background-color:var(--ps-mono);
+    border-style: none;
+    outline: none;
+    color: white;
+    width: 100%;
+    font-family: var(--font-ps);
+}
+
+::selection {
+    background: rgb(0, 0, 0);
+    color: red;
+}
+
+.foot {
+    background-color: var(--ps-gray);
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+}
+
+.footer-index {
+    display: flex;
+    justify-content: space-between;
+}
+
+.f-l {
+    display: flex;
+    flex-direction: row;
+}
+
+.f-l-text {
+    display: flex;
+    align-items: center;
+}
+
+.tx {
+    padding-top: 2px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-family:var(--font-ps);
+}
+
+.tx:hover {
+    background-color: rgb(80, 80, 80);
+    cursor: pointer;
+}
+
+.ps-box{
+    background-color:  var(--theme);
+    font-family: var(--font-ps);
+    padding: 2px;
+    cursor: pointer;
+    margin-right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ps-btn {
+    border-style: none;
+    color: var(--textColor);
+    background-color: rgb(0, 110, 255);
+    padding-left: 20px;
+    padding-right: 20px;
+    font-weight: 600;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.ps-btn:hover {
+    background-color: rgb(32, 98, 184);
+    color: white;
+    cursor: pointer;
+}
+
+.ps-btn-mini {
+    border-style: none;
+    color: var(--textColor);
+    background-color: var(--theme);
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight: 600;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 11px;
+    margin-top: 10px;
+}
+
+.ps-btn-mini:hover {
+    background-color: rgb(32, 98, 184);
+    color: white;
+    cursor: pointer;
+}
+
+.ps-btn-mini:active {
+    background-color: rgb(20, 61, 116);
+}
+
+.btn-2 {
+    background-color: var(--theme);
+    color: var(--textColor);
+    font-family: var(--font-ps);
+}
+
+span a {
+    color: rgb(158, 158, 158);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.settings .foot {
+    z-index: 192;
+}
+
+.settings {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-bottom: solid 1px rgb(80, 80, 80);
+    justify-content: space-between;
+    align-items: center;
+    resize: both;
+}
+
+.settings-left {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-around;
+    gap: 5px;
+}
+
+
+#hiddenDiv {
+    display: none;
+}
+
+.settings span, .nav-item {
+    padding: 2px;
+    color: rgb(158, 158, 158);
+}
+
+.settings span:hover, .nav-item:hover {
+    background-color: var(--midg);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.s-span {
+    padding: 2px;
+    color: rgb(158, 158, 158);
+    margin-left: 5px;
+    display: flex;
+}
+
+.s-span:hover {
+    background-color: var(--midg);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.s-span:hover .material-symbols-outlined {
+    color: var(--textColor);
+}
+
+.output-btn {
+    padding: 2px;
+    background-color: var(--lowerg);
+    border-style: none;
+    font-size: 1rem;
+    font-family: roboto;
+} 
+
+.label-cont {
+    position: relative;
+    transition: all 0.125s;
+}
+
+.label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(10%, -100%);
+    background-color: var(--lowg);
+    padding: 15px;
+    width: 250px;
+    border: solid 1px;
+    font-family: roboto;
+    font-size: 1.1rem;
+    display: none;
+    transition: all 0.125s;
+}
+
+.label div {
+    display: flex;
+    justify-content: space-around;
+}
+
+.label-cont:hover .label {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.label div p {
+    font: var(--ps-mono);
+}
+
+.stat {
+    color: rgba(0, 196, 0, 0.493) !important;
+}
+
+.stat-error {
+    color: red !important;
+}
+
+.g {
+    color: rgb(0, 202, 0);
+    text-decoration: underline;
+}
+
+.r {
+    color: red;
+    text-decoration: underline;
+}
+
+.ind {
+    margin-left: 10px;
+}
+
+.jsoutput-cont {
+    display: flex;
+    flex-direction: column;
+    padding: 7px;
+    display: none;
+}
+
+.jso-c-t {
+    margin-bottom: 7px;
+}
+
+.jso-c-m {
+    display: flex;
+    font-family: 'roboto' !important;
+}
+
+.jso-c-m textarea {
+    background-color: var(--lowerg);
+    color: var(--textg);
+    outline: none;
+    width: 300px;
+    resize: vertical;
+    border-style: none;
+}
+
+textarea::-webkit-scrollbar-track {
+    color:darkgoldenrod
+}
+
+.jsoutput {
+    margin-left: 5px;
+    padding-left: 15px;
+    border-left: solid 2px var(--textg);
+}
+
+.notification {
+    background-color: var(--ps-gray);
+    padding: 15px 40px 15px 20px;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    right: 20px;
+    bottom: 90px;
+    animation: fadeOut 5s forwards;
+    border: solid 1px rgb(112, 112, 112);
+}
+
+.n-head {
+    font-family: roboto;
+    gap: 4px;
+    font-size: larger;
+    margin-bottom: 20px;
+}
+
+.n-info {
+    color: gray;
+    font-family: roboto;
+    font-size: 0.8rem;
+}
+
+.eicon {
+    font-size: 1.2rem;
+}
+
+
+@keyframes fadeOut {
+    0% {
+      opacity: 1; /* Start with full opacity */
+    }
+    70% {
+      opacity: 1; /* End with zero opacity */
+    }
+
+    100% {
+        opacity: 0;
+        display: none;
+    }
+  }
+
+
+  .loading-bar-container {
+    width: 100%; /* Adjust width as needed */
+    height: 3px; /* Adjust height as needed */
+    overflow: hidden; /* Hide overflow */
+  }
+
+  #loading-bar {
+    width: 0;
+    height: 100%;
+    background-color: var(--textColor); /* Loading bar color */
+    transition: width 2s ease-in-out; /* Smooth transition with ease-in-out */
+  }

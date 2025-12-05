@@ -1,0 +1,265 @@
+body {
+    background-color: rgb(26, 26, 26);
+    overflow-x: hidden;
+}
+:root {
+    font-size: 16px;
+}
+
+nav {
+    color: white;
+    margin: 17px 10px 20px 10px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0 12px;
+}
+
+.n-top {
+    display: flex;
+    justify-content: space-between;
+    font-family: roboto;
+    padding: 0 12px;
+}
+
+#indicator {
+    font-size: 0.7rem;
+    margin-top: -6px;
+}
+
+.sudo {
+    background-color: rgba(197, 167, 17, 0.724);
+    animation: off 0.324s ease forwards;
+}
+
+
+.lock-icon {
+    background-color: rgba(174, 174, 174, 0.414);
+    padding: 10px;
+    border-radius: 40px;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+    color: white;
+    position: absolute;
+}
+
+#lock-1 {
+    transform: translate(240%, 190%);
+}
+
+.appleIco {
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(1px);
+    background-color: rgba(242, 255, 0, 0.766);
+    transform: rotate(90deg);
+}
+
+.appleIco-lvl {
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(1px);
+    transform: rotate(90deg);
+    position: absolute;
+    background-color: rgba(242, 255, 0, 0.766);
+}
+
+#windsheild {
+    transform: translate(142%, -690%) rotate(90deg);
+}
+
+#windsheild-rear {
+    transform: translate(142%, -100%) rotate(90deg);
+}
+
+.apple-icono-img { 
+    filter: invert();
+    width: calc(100% - 8px) !important;
+}
+
+#icon-apple-1 {
+    transform: translate(270%, 80%) rotate(90deg);
+}
+
+#icon-apple-2 {
+    transform: translate(270%, 300%) rotate(90deg);
+}
+
+#icon-apple-3 {
+    transform: translate(200%, -600%) rotate(90deg);
+}
+
+#icon-apple-frunk {
+    transform: translate(320%, -700%) rotate(90deg);
+}
+
+
+#icon-apple-trunk{
+    transform: translate(270%, 350%) rotate(90deg);
+}
+
+#icon-apple-charge{
+    transform: translate(-10%, 150%) rotate(-90deg) rotateY(180deg);
+}
+
+
+.name {
+    font-weight: 300;
+    font-size: 1.2rem;
+}
+
+#user {
+    font-weight: 600;
+}
+
+.n-mid {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 4px;
+    font-family: roboto;
+
+}
+
+.mile {
+    font-size: 3.1rem;
+    margin-top: 10px;
+    font-family: roboto;
+    font-weight: 500 !important;
+}
+
+.n-mid span {
+    font-weight: 300;
+}
+
+.blob {
+    background-color: rgba(255, 255, 255, 0.328);
+    width: calc(80% - 80px);
+    border-radius: 600px;
+    height: 300px;
+    filter: blur(48.4px);
+    position: absolute;
+    z-index: -1;
+}
+
+.cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.icons {
+    display: flex;
+    gap: 10px;
+}
+
+.icon {
+    background-color: rgba(174, 174, 174, 0.414);
+    padding: 20px;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+}
+
+.icon span {
+    color: rgb(255, 255, 255);
+}
+
+.car {
+    width: calc(100% - 100px);
+}
+
+.other-settings {
+    margin-top: 20px;
+    background-color: rgba(13, 13, 13, 0.259);
+    width: calc(100% - 20px);
+    padding: 15px;
+    font-family: roboto;
+}
+
+.sett {
+    display: flex;
+    color: rgb(122, 122, 122);
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.s-icon span{
+    font-size: 2rem !important;
+}
+
+.info {
+    flex-grow: 1;
+}
+
+.info div:first-child {
+    font-size: 1.2rem;
+    color: rgb(181, 181, 181);
+}
+
+.material-symbols-outlined {
+    animation: ani 1s ease forwards;
+}
+
+#rot {
+    animation: rot 3s linear infinite;
+}
+
+.dis {
+    background-color: rgba(105, 105, 105, 0.414);
+}
+
+.green {
+    color: rgb(0, 201, 0) !important;
+}
+
+@keyframes ani {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes off {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.5;
+        background-color: rgba(79, 79, 79, 0.724);
+    }
+}
+
+@keyframes rot {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,135 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #282c34;
+    color: white;
+    margin: 0;
+    padding: 10px;
+padding-top: 4rem;
+}
+
+:root {
+    --avg-size: 4.7rem;
+}
+
+.sports {
+    overflow-x: hidden;
+    flex-wrap: nowrap !important;
+    max-width: 100%;
+}
+
+.sports::-webkit-scrollbar {
+    background-color: #282c34;
+    height: 10px;
+}
+
+.sports::-webkit-scrollbar-thumb {
+    background-color: #61fb7b;
+    border-radius: 10px;
+}
+
+.stats-i {
+    background-color: var(--secondary-bg);
+    margin: 0.5rem 0; 
+    padding: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 0.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+
+.sport-option {
+    min-width: 30%;
+}
+
+.game-container {
+    text-align: center;
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(5, var(--avg-size));
+    grid-gap: 5px;
+    margin: 20px auto;
+}
+
+.tile {
+    width: var(--avg-size);
+    height: var(--avg-size);
+    background-color: var(--3-bg);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 0.5rem;
+}
+
+.tile.revealed {
+    background-color: var(--lime);
+}
+
+@keyframes openii {
+    0% {
+        transform: scale(0.4);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.times {
+    background-color: rgb(136, 136, 136);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.timer {
+    transition: all 0.5s ease;
+}
+
+.gem-amount {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#reset-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+#status-message {
+    margin-top: 10px;
+    font-size: 1.2rem;
+}
+
+.t {
+    display: flex;
+    flex-direction:column;
+    align-items: center;
+    justify-content: center;
+}
+
+.title {
+    font-size: 2rem;
+    text-transform: capitalize;
+    font-weight: 600;
+}
+
+.stats-i span{
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.img-sec {
+    position: absolute;
+}

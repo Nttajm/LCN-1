@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts</title>
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="cards.css">
+</head>
+<body>
+    <div class="options">
+        <div class="mail icono option-item" id="mailIcon">
+            <img src="/images/bank/mail.webp" alt="">
+            <div class="notificationIcon">
+                <span>1</span>
+            </div>
+            <div class="mail container">
+                <ul class="mailList">
+                    <li>
+                        <span>LIveBank</span>
+                        <span>Welcome to banking with LiveBank...</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- <div class="settings icono option-item">
+            <img src="/images/bank/settings.png" alt="">
+        </div> -->
+    </div>
+    <div class="notif n-error">
+        
+    </div>
+    <div class="cont">
+        <div class="mid-cont">
+            <div class="nav">
+                <ul>
+                    <li >Accounts</li>
+                    <li><a href="investments.html">Investments</a></li>
+                    <li><a href="business.html">Business</a></li>
+                    <li class="selected"><a href="business.html">Cards</a></li>
+                </ul>
+            </div>
+            <div class="logo">
+                <img src="/images/bank/live-bank-logos-w.png" alt="logo" class="logo">
+                <img src="/images/bank/live-bank-logos-t.png" alt="" srcset="">
+            </div>
+            <div class="creditScore">
+                <div class="progress-container">
+                    <div class="creditText1">
+                        You're credit score is <span id="creditDefiner" class="it">Meh..</span>
+                    </div>
+                    <svg class="progress-circle" viewBox="0 0 36 18"> <!-- Adjusted viewBox for semi-circle -->
+                        <path class="circle-bg"
+                              d="M 18, 18
+                                 m -15.9155, 0
+                                 a 15.9155 15.9155 0 0 1 31.831 0" /> <!-- Semi-circle path -->
+                        <path class="circle"
+                              d="M 18, 18
+                                 m -15.9155, 0
+                                 a 15.9155 15.9155 0 0 1 31.831 0" />
+                    </svg>
+                    <div class="percentage"></div>
+                    <div class="creditText2">
+                        <span id="creditDefiner">Meh..</span>
+                    </div>
+                </div>
+            </div>
+            <div class="content" id="content">
+    
+            </div>
+        </div>
+    </div>  
+    <!-- <script src="js/global.js"></script> -->
+    <script src="js/cards.js" type="module"></script>
+</body>
+</html>

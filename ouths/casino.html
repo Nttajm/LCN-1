@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- <meta http-equiv="refresh" content="0; url=lcnjoel.com/ouths/beta.html"> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/bp/inspo/overunder/ou.css">
+    <link rel="stylesheet" href="/bp/inspo/overunder/casino.css">
+    <link rel="stylesheet" href="/css/standard.css">
+</head>
+<body>
+    <div class="settings-screen dn" id="js-revel-set">
+        <div class="setting" data-revel="js-revel-set">
+          <span class="s-title">&lsaquo; Back</span>
+        </div>
+        <div class="setting">
+          <span class="s-title" data-revel="s-1">Admin Controlls</span>
+          <div class="content dn" id="s-1">
+            <input type="text" placeholder="matchingbet" id="matchingBet-input">
+            <input type="text" placeholder="betstatus" id="option-input">
+            <button id="pushUserbetBtn">push</button>
+          </div>
+        </div>
+        <div class="setting">
+          <span class="s-title" data-revel="s-2">Clear all data</span>
+          <div class="content dn" id="s-2">
+            <span class="it bold">Are you sure?</span>
+            <button id="clearAllBtn">Yes, clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="nav-top">
+          <div class="img-sec" data-linker="map.html">
+            <img src="/bp/EE/assets/ouths/ou-logo-white-back (1).png" alt="logo">
+          </div>
+         <div class="log fl-r g-10 fl-ai">
+          <div class="settings-div" data-revel="js-revel-set">
+            <img src="bp/EE/assets/ouths/settings.png" alt="" class="icon">
+          </div>
+         </div>
+        </div>
+        <div class="multi-tag stats-main">
+          <div class="">
+            <span id="username">Loading</span>
+          </div>
+          <div class="stats" id="js-stats">
+            <div class="stat fl-ai">
+              <span></span>
+              <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+            </div>
+            <div class="stat fl-ai">
+              <span class="rank-1"></span>
+              <img src="/bp/EE/assets/ouths/rankk.png" alt="" class="icon">
+            </div>
+            <span class="balance money">$0</span>
+          </div>
+        </div>
+        <div class="multi-tag fl-c dn">
+            <span>Marketplace</span>
+            <div class="sepa"></div>
+            <div class="trade-cont">
+                <div class="trade">
+                    <div class="trade-item light-text">
+                        <img src="/bp/EE/assets/ouths/arizona.png" alt="" class="icon">
+                        <span>3x</span>
+                    </div>
+                    <div class="arrow">
+                        <span>
+                            &xrarr;
+                        </span>
+                    </div>
+                    <div class="trade-item light-text">
+                        <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+                        <span>1x</span>                
+                    </div>
+                </div>
+                <div class="trade">
+                    <div class="trade-item light-text">
+                        <img src="/bp/EE/assets/ouths/icons/TW-WEB-GRAPE.webp" alt="" class="icon">
+                        <span>3x</span>
+                    </div>
+                    <div class="arrow">
+                        <span>
+                            &xrarr;
+                        </span>
+                    </div>
+                    <div class="trade-item light-text">
+                        <img src="/bp/EE/assets/ouths/icons/95c.png" alt="" class="icon">
+                        <span>1x</span>                
+                    </div>
+                </div>
+                <div class="trade">
+                    <div class="trade-item light-text">
+                        <img src="/bp/EE/assets/ouths/icons/wlr.webp" alt="" class="icon">
+                        <span>5x</span>
+                    </div>
+                    <div class="arrow">
+                        <span>
+                            &xrarr;
+                        </span>
+                    </div>
+                    <div class="trade-item light-text">
+                        <img src="/bp/EE/assets/ouths/icons/d45gmj6-498919c0-48dd-479d-a0a8-6c819c23b641.png" alt="" class="icon">
+                        <span>1x</span>                
+                    </div>
+                </div>
+                <span class="ou-uh">Go to Market place</span>
+            </div>
+        </div>
+        <div class="casino-game cs-gems" data-linker="casino/gems-2.html">
+            <span>Gems</span>
+            <img src="/bp/EE/assets/ouths/gems.png" alt="">
+        </div>
+        <!-- <div class="casino-game cs-wheel">
+            <span>Wheel</span>
+            <img src="/bp/EE/assets/ouths/wheel-casino.avif" alt="">
+        </div> -->
+        <div class="casino-game cs-odds">
+            <span class="sub">More games will be added..</span>
+            <img src="/bp/EE/assets/ouths/40odds.jpg" alt="">
+        </div>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/bp/inspo/overunder/global.js" type="module"></script>
+
+<script>
+    const ctx = document.getElementById('myLineChart').getContext('2d');
+  
+    // Sample data for the line chart
+    const data = {
+      labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+      datasets: [{
+        label: 'Monthly Sales',
+        data: [65, 59, 80, 81, 56, 65],  // Example data points
+        fill: false,  // No fill under the line
+        borderColor: 'rgba(75, 192, 192, 1)',  // Line color
+        tension: 0.1  // Smooth curve line
+      }]
+    };
+  
+    // Create the line chart
+    new Chart(ctx, {
+      type: 'line',  // Specify the chart type
+      data: data,
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Months'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Sales'
+            }
+          }
+        }
+      }
+    });
+  </script>
+  
+</html>

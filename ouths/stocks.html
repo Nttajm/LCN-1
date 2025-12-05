@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investments</title>
+    <link rel="stylesheet" href="/bp/inspo/overunder/ou.css">
+    <link rel="stylesheet" href="/bp/inspo/overunder/stocks.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="/bp/inspo/overunder/leaders.css">
+</head>
+<body>
+    <div class="message-cont">
+    </div>
+        <!-- <div class="loading-cont investments">
+            <div class="loading-sec">
+                <img src="/bp/EE/assets/ouths/stock.png" alt="">
+                <div class="load-text">
+                    <span>Loading you in Investments...</span>
+                    <div class="lds-dual-ring"></div>
+                </div>
+            </div>
+        </div> -->
+    <div class="spliter">
+        <div class="sec1">
+            <div class="settings-screen dn" id="js-revel-set">
+                <div class="setting" data-revel="js-revel-set">
+                  <span class="s-title">&lsaquo; Back</span>
+                </div>
+                <div class="setting">
+                  <span class="s-title" data-revel="s-1">Admin Controlls</span>
+                  <div class="content dn" id="s-1">
+                    <input type="text" placeholder="matchingbet" id="matchingBet-input">
+                    <input type="text" placeholder="betstatus" id="option-input">
+                    <button id="pushUserbetBtn">push</button>
+                  </div>
+                </div>
+                <div class="setting">
+                  <span class="s-title" data-revel="s-2">Clear all data</span>
+                  <div class="content dn" id="s-2">
+                    <span class="it bold">Are you sure?</span>
+                    <button id="clearAllBtn">Yes, clear</button>
+                  </div>
+                </div>
+              </div>
+              <div class="nav">
+                <div class="nav-top">
+                    <div class="img-sec" data-linker="map.html">
+                        <img src="/bp/EE/assets/ouths/ou-logo-white-back (1).png" alt="logo">
+                      </div>
+                 <div class="log fl-r g-10 fl-ai">
+                  <div class="settings-div" data-revel="js-revel-set">
+                    <img src="bp/EE/assets/ouths/settings.png" alt="" class="icon">
+                  </div>
+                 </div>
+                </div>
+                <div class="multi-tag stats-main">
+                  <div class="">
+                    <span id="username">Loading</span>
+                  </div>
+                  <div class="stats" id="js-stats">
+                    <!-- <div class="stat fl-ai">
+                      <span>342</span>
+                      <img src="/bp/EE/assets/ouths/key.png" alt="" class="icon">
+                    </div>
+                    <div class="stat fl-ai">
+                      <span class="rank-1">9800</span>
+                      <img src="/bp/EE/assets/ouths/rank-1.png" alt="" class="icon">
+                    </div> -->
+                    <span class="balance money">$loading...</span>
+                  </div>
+                </div>
+                <div class="multi-tag online">
+                    <div class="onlineDot-cont">
+                        <span class="dot"></span>
+                        <span>Online users </span>
+                    </div>
+                    <div class="onlineUsers">
+                        <img src="/bp/EE/assets/ouths/person.png" class="icono-2 stand_er-invert" alt="" >
+                        <span id="js-online">0</span>
+                    </div>
+                </div>
+                <div class="notice blue">
+                    <div class="toratio">
+                    </div>
+                    <div class="sub fl-ai fl-c">
+                        <h1>2% commision fee<h1>
+                        <span class="sub">
+                            you will be charged 2% of the total amount you buy or sell.
+                        </span>
+                    </div>
+                </div>
+                <div class="multi-tag fl-c R2">
+                    <button id="js-toggle" data-target="js-stock">toggle view</button>
+                    <div class="portfolio-cont fl-c fl-ai ">
+                        <span id="portfolio"></span> 
+                        <span>Portfolio</span>
+                    </div>
+                    <div class="sepa"></div>
+                    <div class="bought fl-r dn" id="js-stock">
+                        
+                    </div>
+                </div>
+                <div class="multi-tag leader-port R2">
+                    <button id="js-toggle" data-target="toport">toggle view</button>
+                    <h3>Top portfolios</h3>
+                    <div class="leaders-sec fl-cl" id="toport">
+                    </div>
+                </div>
+                <div class="multi-tag fl-c R2">
+                    <button id="js-toggle" data-target="liveshares">toggle view</button>
+
+                    <div class="fl-r g-10 fl-ai">
+                        <span>Live shares (10secs) </span>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="sepa"></div>
+                    <div class="lievshares fl-r" id="liveshares">
+
+                    </div>
+                </div>
+    
+                <div class="multi-tag-2 fl-c R2">
+                    <button id="js-toggle" data-target="most-shared">toggle view</button>
+                    <h3>Most Shared Stocks</h3>
+                    <div class="mostShared dn" id="most-shared">
+                        <div class="coin">
+                            <div class="prices">
+                                <div class="">
+                                    <img src="/bp/EE/assets/ouths/shares.png" alt="" class="icono-2">
+                                    <span id="js-sharesd">9902</span>
+                                </div>
+                            </div>
+                            <div class="symbol">
+                                <span>WEA</span>
+                            </div>
+                        </div>
+                        <div class="coin">
+                            <div class="prices">
+                                <div class="">
+                                    <img src="/bp/EE/assets/ouths/shares.png" alt="" class="icono-2">
+                                    <span id="js-sharesd">4682</span>
+                                </div>
+                            </div>
+                            <div class="symbol">
+                                <span>RAP</span>
+                            </div>
+                        </div>
+                        <div class="coin">
+                            <div class="prices">
+                                <div class="">
+                                    <img src="/bp/EE/assets/ouths/shares.png" alt="" class="icono-2">
+                                    <span id="js-sharesd">9902</span>
+                                </div>
+                            </div>
+                            <div class="symbol">
+                                <span>WEA</span>
+                            </div>
+                        </div>
+                        <div class="coin">
+                            <div class="prices">
+                                <div class="">
+                                    <img src="/bp/EE/assets/ouths/shares.png" alt="" class="icono-2">
+                                    <span id="js-sharesd">9902</span>
+                                </div>
+                            </div>
+                            <div class="symbol">
+                                <span>WEA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class=" multi-tag fl-c R2">
+                    <button id="js-toggle" data-target="wl">toggle view</button>
+                    <h3>Winners and losers (last 3 stocks)</h3>
+                    <div class="sepa"></div>
+                    <div class="winners-loosers" id="wl">
+                        <div class="wins win-loose" id="js-winners">
+                            <div class="winner" id="js-winners">
+                                <div class="stock-info">
+                                    <span class="stock-name buy">Loading...</span>
+                                    <span class="stock-perent buy">Loading...</span>
+                                </div>
+                                <div class="stats-cont">
+                                    <div class="statsAlt">
+                                        <span>mkt cap: Loading...</span>
+                                        <span>shares: Loading...</span>
+                                    </div>
+                                    <div class="statsAlt">
+                                        <span class="stock-price">Loading...</span>
+                                    </div>
+                                </div>                                                                                                                          
+                            </div>
+                        </div>
+                        <div class="loosers win-loose" id="js-losers">
+                            <div class="looser">
+                                <div class="stock-info">
+                                    <span class="stock-name sell">Loading...</span>
+                                    <span class="stock-perent sell">Loading...</span>
+                                </div>
+                                <div class="stats-cont">
+                                    <div class="statsAlt">
+                                        <span>Loading...</span>
+                                        <span>shares: Loading...</span>
+                                    </div>
+                                    <div class="statsAlt">
+                                        <span class="stock-price">Loading...</span>
+                                    </div>
+                                </div>                                                                                                                          
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <button id="see-more-winlos">See more</button>
+                </div>
+                <div class="refund multi-tag fl-c fl-ai dn" id="js-refund">
+                    <span>Refund For JA</span>
+                    <div class="sepa"></div>
+                    <button id="refund">Refund</button>
+                </div>
+                
+                <span class="sub">All teachers and students were asked before being placed on this site.</span>
+                <div class="sports">
+                    <span class="selected sport-option-2" data-see="sports">Sports</span>
+                    <span class=" sport-option-2" data-see="teachers">Teachers/Student Made</span>
+                    <span class="sport-option-2 disabled" data-see="indexes">Indexes</span>
+                </div>
+                <div class="sepa"></div>
+                <div class="sports" id="sports-pickers">
+                    <span class="selected sport-option" data-write="soccer">(SCR)Soccer</span>
+                    <span class=" sport-option" data-write="volleyball" >(VOL)Volleyball</span>
+                    <span class=" sport-option disabled" data-write="basketball" >(BAS)Basketball</span>
+                </div>
+                <div class="multi-tag fl-c stockInfo">
+                    <div class="people-a fl-r fl-ai g-10">
+                        <span>Top Share Holders</span>
+                    <img src="/bp/EE/assets/ouths/person.png" class="icono-2 stand_er-invert" alt="" >
+                        <span class="amount-of-p" id="js-people">
+                        0
+                        </span>
+                    </div>
+                   <div class="sepa"></div>
+                   <div id="top-shareholders" class="fl-r g-10">
+                    
+                   </div>
+                </div>
+        </div>
+        </div>
+        <div class="sec2">
+            <div class="des multi-tag">
+                <div class="held-shares">
+                    <img src="/bp/EE/assets/ouths/shares.png" alt="">
+                    <span id="js-shares"></span>
+                </div>
+                <div class="studentOwned">
+                    <span>Stock was bought from marketplace</span>
+                </div>
+                
+                <span class="stk-title" id="js-symbol">
+                    Loading
+                </span>
+                <div class="based-on">
+                    <span class="op-5" id="js-name"></span>
+                    <span class="mini-box" id="js-based">Over and unders</span>
+                </div>
+                <div class="stk-prices">
+                    <span class="stk-price" id="js-price">
+                        $50.22
+                    </span>
+                    <span class="perc" id="js-up">
+                        9.12%
+                    </span>
+                    <span class="perc-money" id="js-money">
+                        $4.22
+                    </span>
+                </div>
+                <div class="sepa"></div>
+                <canvas id="myLineChart" width="400" height="200"></canvas>
+                <div class="buysell">
+                    <div class="times">
+                        <span class="selected" data-amount="1">1x</span>
+                        <span data-amount="3">3x</span>
+                        <span data-amount="5">5x</span>
+                        <span data-amount="10">10x</span>
+                        <span data-amount="100">100x</span>
+                    </div>
+                    <div class="g-10 fl-c">
+                        <div class="button-sec">
+                            <button class="buy" id="buy">Buy</button>
+                            <button class="sell" id="sell">Sell</button>
+                        </div>
+                        <div class="button-sec">
+                            <button class="buy" id="buy-max">Buy Max</button>
+                            <button class="sell" id="sell-max">Sell Max</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1"></script>
+<script src="/bp/inspo/overunder/stocks.js" type="module"></script>
+
+</html>

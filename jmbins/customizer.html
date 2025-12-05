@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Shirt Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Pacifico&family=Raleway:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Crimson+Text:wght@400;600;700&family=Lobster&family=Bebas+Neue&family=Righteous&family=Comfortaa:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/customizer.css">
+    <link rel="stylesheet" href="styles/tutorial.css">
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+</head>
+<body>
+    <nav>
+        <img src="icons/customizerlogo.png" alt="">
+        <button class="next" id="nextbtn">
+            NEXT $
+        </button>
+    </nav>
+    <div class="container">
+        <div class="tools-panel">
+            <div class="tools-section">
+                <h3>Add Elements</h3>
+                <div class="button-group">
+                    <button class="btn primary" id="addTextBtn">+ Text</button>
+                    <div class="file-upload">
+                        <button class="btn">+ Image</button>
+                        <input type="file" id="imageUpload" accept="image/*" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="tools-section ">
+                <h3>Canvas Actions</h3>
+                <div class="button-group">
+                    <button class="btn" onclick="clearDesign()">Clear All</button>
+                    <button class="btn primary" onclick="exportDesign()">Export Design</button>
+                    <button class="btn" id="showDataBtn">Show Data</button>
+                </div>
+            </div>
+
+            <div id="elementProperties" class="element-properties">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin-bottom: 0;">Element Properties</h3>
+                    <button class="btn danger" onclick="deleteSelectedElement()">Delete</button>
+                </div>
+                
+                <div id="textProperties" style="display: none;">
+                    <div class="form-group">
+                        <label>Text Content</label>
+                        <input type="text" id="textContent" class="form-control" placeholder="Enter text">
+                    </div>
+                    <div class="form-group">
+                        <label>Font Size</label>
+                        <div class="range-group">
+                            <input type="range" id="fontSize" min="12" max="100" value="24" class="form-control">
+                            <span id="fontSizeValue" class="range-value">24px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Text Color</label>
+                        <input type="color" id="textColor" value="#000000" class="color-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Background:</label>
+                        <input type="color" id="textBackground" value="#ffffff">
+                        <button id="toggleCutout" class="btn">Make Cutout $</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Rotation</label>
+                        <div class="range-group">
+                            <input type="range" id="textRotation" min="0" max="360" value="0" class="form-control">
+                            <span id="textRotationValue" class="range-value">0°</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Font Family *note: any fonts...</label>
+                        <div class="fonts-grid" id="fontsGrid">
+                            <div class="font-option selected" data-font="Inter" style="font-family: Inter">Inter</div>
+                            <div class="font-option" data-font="Roboto" style="font-family: Roboto">Roboto</div>
+                            <div class="font-option" data-font="Open Sans" style="font-family: 'Open Sans'">Open Sans</div>
+                            <div class="font-option" data-font="Poppins" style="font-family: Poppins">Poppins</div>
+                            <div class="font-option" data-font="Montserrat" style="font-family: Montserrat">Montserrat</div>
+                            <div class="font-option" data-font="Lato" style="font-family: Lato">Lato</div>
+                            <div class="font-option" data-font="Oswald" style="font-family: Oswald">Oswald</div>
+                            <div class="font-option" data-font="Playfair Display" style="font-family: 'Playfair Display'">Playfair</div>
+                            <div class="font-option" data-font="Dancing Script" style="font-family: 'Dancing Script'">Dancing</div>
+                            <div class="font-option" data-font="Pacifico" style="font-family: Pacifico">Pacifico</div>
+                            <div class="font-option" data-font="Raleway" style="font-family: Raleway">Raleway</div>
+                            <div class="font-option" data-font="Nunito" style="font-family: Nunito">Nunito</div>
+                            <div class="font-option" data-font="Merriweather" style="font-family: Merriweather">Merriweather</div>
+                            <div class="font-option" data-font="Crimson Text" style="font-family: 'Crimson Text'">Crimson</div>
+                            <div class="font-option" data-font="Lobster" style="font-family: Lobster">Lobster</div>
+                            <div class="font-option" data-font="Bebas Neue" style="font-family: 'Bebas Neue'">Bebas</div>
+                            <div class="font-option" data-font="Righteous" style="font-family: Righteous">Righteous</div>
+                            <div class="font-option" data-font="Comfortaa" style="font-family: Comfortaa">Comfortaa</div>
+                            <div class="font-option" data-font="Source Sans Pro" style="font-family: 'Source Sans Pro'">Source Sans</div>
+                            <div class="font-option" data-font="Ubuntu" style="font-family: Ubuntu">Ubuntu</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="imageProperties" style="display: none;">
+                    <div class="form-group">
+                        <label>Image Scale</label>
+                        <div class="range-group">
+                            <input type="range" id="imageScale" min="0.1" max="3" step="0.1" value="1" class="form-control">
+                            <span id="imageScaleValue" class="range-value">100%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Rotation</label>
+                        <div class="range-group">
+                            <input type="range" id="imageRotation" min="0" max="360" value="0" class="form-control">
+                            <span id="imageRotationValue" class="range-value">0°</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shirt-canvas">
+            <img src="shirts/shirt.png" alt="T-Shirt" class="shirt-image" id="shirtImage">
+            <div class="design-area" id="designArea"></div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="tools-toggle blob">⚙️</button>
+        <div class="blob" id="inspire">
+            <span>
+                Need Inspiration?
+            </span>
+        </div>
+    </div>
+
+        <div class="finalization-prices-cont dn">
+            <div class="finalization-prices">
+            <span class="section-title">
+            Pricing
+        </span>
+            <div class="price-cont">
+                <div class="price">
+                <span class="name">Item Price</span>
+                <span class="value" id="itemPrice">$6.00</span>
+            </div>
+            <div class="price">
+                <span class="name">Customization Fee</span>
+                <span class="value" id="customPrice">$3.00</span>
+            </div>
+            <div class="price total">
+                <span class="name">Text: "Hello World"</span>
+                <span class="value">$0.80</span>
+            </div>
+            <div class="price total">
+                <span class="name">Image: "logo.png"</span>
+                <span class="value">$2.50</span>
+            </div>
+            <div class="price grand-total">
+                <span class="name">Grand Total</span>
+                <span class="value">$12.30</span>
+            </div>
+            </div>
+            <div class="sincere">
+                <span>
+                    Please remember: Custom Designs will be reviewed before printing, designs that are deemed hate speech and highly inappropriate are rejected and will or not be refunded.
+                </span>
+            </div>
+            <button class="btn done" id="donebtn">
+                Add to Cart and Continue to jmbins
+            </button>
+        </div>
+
+        <script src="js/customizerutils.js" type="module"></script>
+    <script src="js/customizer.js" type="module"></script>
+    <script src="js/tutorial.js" type="module"></script>
+
+</body>
+</html>

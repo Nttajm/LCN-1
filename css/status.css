@@ -1,0 +1,101 @@
+body {
+    background-color: var(--lowg);
+}
+
+
+.text-1 {
+    font-size: 25px;
+    color: var(--textg);
+}
+
+.svg-1 {
+    width: 15px
+}
+
+.svg-1:hover {
+    color: white    ;
+}
+
+.nav {
+    background-color: var(--lowg);
+    display: flex;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    justify-content: space-between;
+    box-shadow: 0px 9px 6px 0px rgba(0,0,0,0.54);
+    border-bottom: solid  rgb(75, 75, 75);
+}
+
+.nav-logo {
+    color: rgb(187, 187, 187);
+    font-weight: 600;
+}
+
+.nav-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.nav-links li {
+    margin-left: 20px;
+}
+
+.nav-links li:last-child {
+    margin-right: 5px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: var(--tlkk);
+}
+
+.top-c-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    background-color: var(--blueg);
+}
+
+.main-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.status-head {
+    color: rgb(141, 150, 172);
+    font-size: 60px;
+    font-weight: 700;
+}
+
+.status-sub-head {
+    color: rgb(107, 107, 107);
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+} 
+
+.status-sub-head-info {
+    color: var(--pail-nimb);
+    font-size: 13px;
+}
+
+.active-or-not {
+    background-color: rgb(0, 104, 40);
+    color: white;
+    padding: 8px;
+    border-top: solid rgb(0, 71, 22) 10px;
+    font-weight: 500;
+    display: flex;
+    justify-content: center;
+}

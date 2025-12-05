@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="shortcut icon" href="images/bwsearchnet">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search</title>
+  <link rel="stylesheet" href="css/searchnet.css">
+</head>
+<body>
+  <div class="nav ">
+      <a class="" href="https://lcnjoel.com/help">about</a>
+      <a class="" href="https://lcnjoel.com">LCN</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="imgsec  ">
+      <img src="/images/bwsearchnet.png" alt="searchnet" class="img ">
+    </div>
+    <div class="searchsec">
+      <input class="searchbar h" type="text" id="searchInput" placeholder="Search a location  'projects/proj/searchnet' " autocomplete="off">
+      <div id="suggestions"></div>
+    </div>
+  </div>
+  <script>
+    var searchInput = document.getElementById('searchInput');
+    var suggestionsContainer = document.getElementById('suggestions');
+
+    var suggestions = [
+    'PowerShell',
+    'projects/searchnet',
+    'index',
+    'bp/edu/cs50a-mod-16',
+    'about',
+    'load',
+    'ths',
+    'indexold',
+    'network',
+    'bp',
+    'bp/edu/sharepoint-3',
+    'bp/edu/sharepoint-2',
+    'bp/edu/sharepoint-1',
+    'bp/edu/sharepoint',
+    'bp/edu/CAC/Test-1',
+    'bp/inspo/mycode',
+    'bp/edu/cookie_cliker_game',
+    'bp/edu/cookie_cliker_game/nbt/nbt',
+    'bp/ee/example',
+    'bp/ee/js/example',
+    'bp/ee/example-hyperlink',
+    'bp/unicef',
+    'about/joel',
+    'bp/EE/example',
+    'r/p/w',
+    'r/p',
+    'r/ps',
+    'r/p/a',
+    'bp/main',
+    'projects/home',
+    'projects/wiki/pg1',
+    'projects/info',
+    'overunderths',
+    'projects/home/all/pg1',
+    'projects/Type',
+    'projects/proj/getcode',
+    'projects/proj/chase',
+    'projects/proj/Jscodeditor',
+    'projects/proj/secaccount',
+    'projects/proj/searchindexDB&M',
+    'projects/proj/googlebr',
+    'projects/proj/inspo-1',
+    'projects/proj/datasaverDB&M',
+    'projects/proj/datasaver',
+    'projects/proj/reps/lcn-1',
+    'projects/proj/reps/Xtviewer',
+    'projects/proj/reps/Rand',
+    'projects/proj/syntaxhighliter',
+    'projects/proj/oat/oat-this',
+    'nothingyet',
+    'projects/proj/tm',
+    'projects/proj/comsat',
+    'projects/proj/lucid',
+    'projects/proj/tescript'
+];
+
+    searchInput.addEventListener('input', function() {
+        var userInput = searchInput.value.trim().toLowerCase();
+        var filteredSuggestions = suggestions.filter(function(suggestion) {
+            return suggestion.toLowerCase().includes(userInput);
+        });
+
+        displaySuggestions(filteredSuggestions.slice(0, 6), userInput);
+    });
+
+    function displaySuggestions(suggestionsArray, userInput) {
+        suggestionsContainer.innerHTML = '';
+
+        if (suggestionsArray.length > 0) {
+            suggestionsContainer.style.display = 'block'; // Show the suggestions container
+
+            suggestionsArray.forEach(function(suggestion) {
+                var suggestionElement = document.createElement('div');
+                suggestionElement.innerHTML = highlightMatchedCharacters(suggestion, userInput);
+
+                suggestionElement.addEventListener('click', function() {
+                    var redirectURL = "https://lcnjoel.com/" + suggestion;
+                    window.location.href = redirectURL;
+                });
+
+                suggestionsContainer.appendChild(suggestionElement);
+            });
+        } else {
+            suggestionsContainer.style.display = 'none'; // Hide the suggestions container
+        }
+    }
+
+    function highlightMatchedCharacters(suggestion, userInput) {
+        var regex = new RegExp(userInput, 'ig');
+        return suggestion.replace(regex, match => `<span style="background-color: blue; color: white;">${match}</span>`);
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+
+            var userInput = searchInput.value.trim();
+            var redirectURL = "https://lcnjoel.com/" + userInput;
+
+            window.location.href = redirectURL;
+        }
+    });
+
+    document.addEventListener('click', function(event) {
+        // Close suggestions if the user clicks outside the input and suggestions container
+        if (event.target !== searchInput && event.target !== suggestionsContainer) {
+            suggestionsContainer.style.display = 'none'; // Hide the suggestions container
+        }
+    });
+  </script>
+</body>
+</html>

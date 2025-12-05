@@ -1,0 +1,257 @@
+body {
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.conter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 5rem;
+}
+
+.grid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0.2;
+}
+
+.items {
+    font-family: roboto;
+    font-size: 1.3rem;
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1.6rem;
+    width: 100vw;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto 0;
+    margin-right: auto 0;
+}
+
+.mi  {
+    background-color: rgba(86, 86, 121, 0.315);
+    padding: 0.6rem;
+    border-radius: 0.3rem;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    width: calc(40% - 0.8rem);
+    align-content: flex-end;
+    height: 10rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.R .overlay-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    border-radius: 0.7rem;
+}
+
+.items div img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    transition: 0.5s;
+    filter: blur(5px);
+}
+
+.items span {
+    text-decoration: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.315);
+    padding: 0.5rem;
+    border-radius: 0.7rem;
+}
+
+.Casino {
+    background: radial-gradient(circle, rgb(0, 117, 82) 0%, rgba(0,21,61,1) 100%);
+}
+
+.Marketplace {
+    background: radial-gradient(circle, rgb(160, 41, 41) 0%, rgb(3, 30, 82) 100%);
+}
+
+.bank {
+    background: radial-gradient(circle, rgba(99, 35, 99, 0.582) 0%, rgb(25, 48, 90) 100%);
+}
+
+.network {
+    background: radial-gradient(circle, rgba(10, 7, 185, 0.5) 0%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.news-cont {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.news-section {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    width: 100%;
+}
+
+.news {
+    height: 10rem;
+    border: solid 0.1rem rgba(0, 0, 0, 0.5);
+    border-radius: 0.3rem;
+    padding: 0.5rem;
+    background-color:var(--3-bg);
+    position: relative;
+    width: 100%;
+
+}
+
+.news img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.3rem;
+}
+
+#off .disc {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: red;
+    color: white;
+    padding: 0.2rem;
+    border-radius: 0.3rem;
+    font-size: 0.7rem;
+}
+
+#off .price {
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: absolute;
+    bottom: 0;
+    right: 50%;
+    background-color: rgba(43, 255, 0, 0.5);
+    padding: 0.2rem;
+    border-radius: 0.3rem;
+    transform: translateX(50%);
+    color: rgb(0, 0, 0);
+}
+
+
+#alert  {
+    display: flex;
+    height: 6rem;
+    gap: 1rem;
+    width: calc(100% - 1rem);
+    justify-content: space-between;
+}
+
+#alert .disc {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+}
+
+#alert img {
+    height: 6rem;
+    width: 7rem;
+
+}
+
+.boo {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    max-width: 50rem;
+}
+
+.boo-disc {
+    font-size: 0.95rem;
+}
+
+.boos {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.booer {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    background-color: rgba(214, 201, 13, 0.5);
+    width: 10rem;
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+}
+
+.vote-sec {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.vote {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    width: 100%;
+    background-color: var(--3-bg);
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+}
+
+.vote-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.button-sec {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 600px) {
+    .vote {
+        flex-direction: column;
+    }
+}
+
+@media (width > 600px) {
+    .vote {
+        width: 73%;
+    }
+}
+
+#vote-1 {
+    background-color: rgb(11, 167, 102);
+    color: white;
+}
+
+#vote-2 {
+    background-color: rgb(167, 11, 11);
+    color: white;
+}
+
+#vote-3 {
+    background-color: rgb(11, 11, 167);
+    color: white;
+}

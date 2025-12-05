@@ -1,0 +1,51 @@
+body {
+    background: radial-gradient(circle, #9e8600, #c59614);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.cont {
+    margin-top: 5rem;
+    padding-top: 5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.ranked-title {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.473);
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ranked-title img {
+    width: 34%;
+}
+
+.reward {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: yellow;
+    padding: 0.5rem;
+    border-radius: 1.5rem;
+    
+}
+
+.lvl {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: black;
+    font-family: var(--f-1);
+}
+
+.reward-info {
+    display: flex;
+    padding: 0.5rem;
+    justify-content: space-between;
+}

@@ -1,0 +1,9 @@
+body {
+    background-color: var(--wh-1);
+}
+
+.table-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

@@ -1,0 +1,248 @@
+body {
+    background-color: rgb(234, 234, 234);
+    font-family: roboto;
+}
+
+.loader {
+  width: 30px;
+  padding: 8px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #d3cf00b4;
+  --_m: 
+    conic-gradient(#0000 10%,#000),
+    linear-gradient(#000 0 0) content-box;
+  -webkit-mask: var(--_m);
+          mask: var(--_m);
+  -webkit-mask-composite: source-out;
+          mask-composite: subtract;
+  animation: l3 1s infinite linear;
+}
+@keyframes l3 {to{transform: rotate(1turn)}}
+
+
+.banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0000004d;
+    color: #fff;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.banner .tab {
+    background: #ffffff;
+    color: black;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.banner .tab .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.banner .tab span {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #333333ce;
+}
+
+
+.simpay, .credpay {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+    justify-content: space-between;
+    flex-direction: column;
+}
+
+.simpay#mtn {
+    background-color: rgb(246, 246, 139);
+    border: solid 2px rgb(204, 204, 0);
+}
+
+.simpay#airtel {
+    background-color: rgb(236, 67, 67);
+    border: solid 2px rgb(153, 0, 0);
+}
+
+.simpay#credit {
+    background-color: rgb(221, 221, 221);
+    border: solid 2px rgb(82, 82, 82);
+}
+
+.simpay .s-1, .simpay#credit .s-1 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: roboto;
+    font-size: 1.7rem;
+    font-weight: 600;
+}
+
+.simpay img, .credpay img {
+    width: 75px;
+    height: 75px;
+    border-radius: 0.3rem;
+}
+
+.simpay .name {
+display: flex;
+justify-content: space-between;
+width: 100%;
+}
+
+.dropdownI {
+    filter: invert(1);
+    width: 120px;
+    cursor: pointer;
+}
+
+.dropdownI img {
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.dropdownI:hover {
+    filter: invert(0.7);
+}
+
+/* Base container */
+#js-reval-credit {
+  max-width: 800px;
+  width: 80%;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
+  background: #d4d4d4;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Donation type buttons container */
+.dontypes {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+/* Individual donation type button */
+.dontype {
+  flex: 1 1 30%;
+  text-align: center;
+  background: #f3f4f6;
+  padding: 14px 0;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  font-weight: 500;
+  user-select: none;
+}
+
+.dontype:hover {
+  background: #e9ecef;
+  transform: scale(1.03);
+}
+
+.dontype.active {
+  border-color: #007bff;
+  background: #e0f0ff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* Custom amount input */
+.custom input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* Recurring donation toggle */
+.reaccuring-btn {
+  text-align: center;
+  background: #f3f4f6;
+  padding: 12px;
+  margin-top: 18px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.reaccuring-btn:hover {
+  background: #e9ecef;
+}
+
+.reaccuring-btn.active {
+  border-color: #28a745;
+  background: #e6ffee;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
+}
+
+/* Give Now button */
+.give-btn {
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+
+/* Desktop adjustments */
+@media (min-width: 768px) {
+  #js-reval-airtel {
+    max-width: 500px;
+    padding: 30px;
+  }
+
+  .dontypes {
+    gap: 15px;
+  }
+
+  .dontype {
+    padding: 16px 0;
+    font-size: 20px;
+  }
+
+  .custom input {
+    font-size: 18px;
+  }
+
+  .give-btn button {
+    font-size: 18px;
+  }
+}

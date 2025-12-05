@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../css/oat.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="/css/root.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T | of all time</title>
+</head>
+<body>
+    <nav>
+        <div>
+            <img src="../images/logored.jpg" alt="pfp" class="pfp">
+            <span>OAT > 2024 > Music/Culture</span>
+        </div>
+    </nav>
+    <div class="cont">
+        <div class="post">
+            <div class="p-top">
+                <span class="genre uh">Music</span>
+                &bull;
+                <span>11 years ago</span>
+                &bull;
+                <span class="trending">
+                    trending
+                </span>
+            </div>
+            <div class="p-mid">
+                <img src="images/oat-photos/rockstar.webp" alt="photo" class="post-img">
+                <span>Just for now - Lil B (feat. Jm)</span>
+            </div>
+            <div class="p-bottum">
+                <button>
+                    <span class="material-symbols-outlined">
+                        swap_vert
+                    </span>
+                    8.4K
+                </button>
+                <span>
+                    49.3K views
+                </span>
+                <span>
+                    382 comments
+                </span>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="dataset.js"></script>
+ <script>
+    const postArray = [];
+
+    const titles = {
+        car: 'hello',
+        who: 'Overtime - Ken Carson',
+        lovr: 'Donk - beyoncé (feat. Jm)'
+    };
+
+    function getRandomTitle() {
+        const keys = Object.keys(titles);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        return titles[randomKey];
+    }
+
+function push(genre, date, name, likes, views, comments, rank, type, stat) {
+    postArray.push({
+        genre,
+        date,
+        name,
+        likes,
+        views,
+        comments,
+        rank,
+        type,
+        stat
+    });
+    postArray.sort((a, b) => a.rank - b.rank); // Sort the array based on rank after pushing
+}
+
+const usedIndexes = new Set();
+
+function getRandomPost() {
+    let randomIndex = Math.floor(Math.random() * posts.length);
+    while (usedIndexes.has(randomIndex)) {
+        randomIndex = Math.floor(Math.random() * posts.length);
+    }
+    usedIndexes.add(randomIndex);
+    if (usedIndexes.size === posts.length) {
+        usedIndexes.clear();
+    }
+    return posts[randomIndex];
+}
+
+function pushPost() {
+    const randomPost = getRandomPost(); // Get a random post
+    push(randomPost.genre, randomPost.date, randomPost.name, randomPost.likes, randomPost.views, randomPost.comments, randomPost.rank, randomPost.type, randomPost.stat);
+}
+
+function runMultipleTimes(numTimes) {
+    for (let i = 0; i < numTimes; i++) {
+        pushPost();
+    }
+}
+
+// Example usage:
+runMultipleTimes(8);
+
+    //
+
+    function renderPosts() {
+    const cont = document.querySelector('.cont');
+    cont.innerHTML = ``;
+    postArray.forEach((post) => {
+        let appListen = ``;
+        if (post.type === 'Spotify') { // Check if the 'type' property exists and its value is 'Spotify'
+            appListen = `
+            &bull;
+            <span class="Spotify">
+                Listen
+                <img src="../images/oat-photos/Spotify.png" alt="php">
+            </span>
+            `
+        }
+
+        if (post.stat) {
+            appListen += `
+                &bull;
+                <span class="trending">
+                trending
+                </span>
+            `
+        }
+        cont.innerHTML += `
+            <div class="post">
+                <div class="p-top">
+                    <span class="genre uh">${post.genre}</span>
+                    &bull;
+                    <span>${post.date}</span>
+                    ${appListen}
+                </div>
+                <div class="p-mid">
+                    <span class="uh">${post.name}</span>
+                </div>
+                <div class="p-bottum">
+                    <button>
+                        <span class="material-symbols-outlined">
+                            swap_vert
+                        </span>
+                        ${post.likes}
+                    </button>
+                    <span>
+                        ${post.views} views
+                    </span>
+                    <span>
+                        ${post.comments} comments
+                    </span>
+                </div>
+            </div>
+        `
+    });
+}
+
+
+    renderPosts();
+    
+
+ </script>
+</html>
