@@ -390,16 +390,6 @@ function theUsual(index) {
      }
 
 
-     function createNewIdenticalInput() {
-        const activeElementInput = document.activeElement;
-        if (activeElementInput && activeElementInput.classList.contains('item-element')) {
-            const currentType = Array.from(activeElementInput.classList).find(cls => ['normal-text', 'title', 'heading2', 'heading3'].includes(cls)) || 'normal-text';
-            createTextItem(currentType);
-            const allInputs = document.querySelectorAll('.item-element');
-            allInputs[allInputs.length - 1].focus();
-        }
-    }
-
         function createSeparator() {
             const itemDivRow = createRow();
 

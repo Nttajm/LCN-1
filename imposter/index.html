@@ -278,6 +278,145 @@
             color: #e17055;
         }
 
+        .chat-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            max-height: 300px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            min-height: 150px;
+        }
+
+        .chat-message {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .chat-message-sender {
+            font-weight: bold;
+            color: #ffd93d;
+        }
+
+        .chat-message-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 8px;
+        }
+
+        .chat-message-text {
+            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.9);
+            word-wrap: break-word;
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-group input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+        }
+
+        .chat-input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .chat-input-group button {
+            padding: 10px 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-toggle-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .chat-toggle-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-hidden {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 15px;
+            margin: 0;
+            transition: max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+        }
+
+        .chat-visible {
+            max-height: 300px;
+            padding: 15px;
+            margin: 15px 0;
+            transition: max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+        }
+
+        .chatroom-mode-indicator {
+            background: rgba(102, 126, 234, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .turn-indicator {
+            background: rgba(255, 217, 61, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #ffd93d;
+        }
+
+        .turn-content {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 5px 0;
+        }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -388,6 +527,24 @@
                 <div id="playersList"></div>
             </div>
 
+            <div class="text-center" style="margin: 10px 0;">
+                <button class="chat-toggle-btn" id="toggleChatroomMode">Enable Chatroom Mode</button>
+                <button class="chat-toggle-btn" id="toggleLobbyChat">Toggle Chat</button>
+            </div>
+
+            <div id="chatroom-mode-label" class="chatroom-mode-indicator" style="display: none;">
+                🎮 Chatroom Mode Enabled - Turn-Based Gameplay
+            </div>
+
+            <div id="lobbyChatContainer" class="chat-container chat-visible">
+                <h3>💬 Party Chat</h3>
+                <div id="chatMessages" class="chat-messages"></div>
+                <div class="chat-input-group">
+                    <input type="text" id="chatInput" placeholder="Type a message...">
+                    <button id="sendChatBtn">Send</button>
+                </div>
+            </div>
+
             <div class="word-bank-section">
                 <h3>Word Bank</h3>
                 <div class="word-bank-options" id="wordBankControls">
@@ -435,6 +592,21 @@
             <div id="roleIndicator" class="role-indicator"></div>
             <div class="game-word" id="gameWord"></div>
             
+            <div id="turnIndicator" class="turn-indicator" style="display: none;"></div>
+
+            <div class="text-center" style="margin: 10px 0;">
+                <button class="chat-toggle-btn" id="toggleGameChat">Toggle Chat</button>
+            </div>
+
+            <div id="gameChatContainer" class="chat-container chat-visible">
+                <h3>💬 Game Chat</h3>
+                <div id="gameChatMessages" class="chat-messages"></div>
+                <div class="chat-input-group">
+                    <input type="text" id="gameChatInput" placeholder="Type a message...">
+                    <button id="sendGameChatBtn">Send</button>
+                </div>
+            </div>
+            
             <div class="voting-section" id="votingSection" style="display: none;">
                 <h3>🗳️ Vote for the Impostor</h3>
                 <div id="votingOptions"></div>
@@ -467,6 +639,9 @@
         import { 
             serverTimestamp, arrayUnion, arrayRemove, deleteField 
         } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import {
+            collection, addDoc, query, where, orderBy, limit
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         // Firebase config
         const firebaseConfig = {
@@ -489,6 +664,11 @@
         let gameWords = [];
         let unsubscribeParty = null;
         let partyData = {};
+        let unsubscribeChat = null;
+        let unsubscribeGameChat = null;
+        let chatroomModeEnabled = false;
+        let currentTurn = 0;
+        let loadedMessageIds = new Set();
 
         // Default word bank
         const defaultWordBank = [
@@ -580,7 +760,7 @@
 
             try {
                 const partyCode = await generateUniquePartyCode();
-                const partyData = {
+                const newParty = {
                     name: partyName,
                     code: partyCode,
                     host: currentUser,
@@ -589,13 +769,15 @@
                     gameActive: false,
                     votingActive: false,
                     votes: {},
+                    currentTurn: 0,
                     createdAt: serverTimestamp()
                 };
 
-                await setDoc(doc(db, "parties", partyCode), partyData);
+                await setDoc(doc(db, "parties", partyCode), newParty);
 
                 currentParty = partyCode;
                 isHost = true;
+                currentTurn = 0;
                 showLobby();
             } catch (error) {
                 document.getElementById('createError').textContent = 'Error creating party: ' + error.message;
@@ -653,9 +835,16 @@
                 document.getElementById('playerControls').style.display = 'block';
             }
 
+            // Setup chat for lobby
+            setupChatListener(false);
+
             unsubscribeParty = onSnapshot(doc(db, "parties", currentParty), (docSnap) => {
                 if (docSnap.exists()) {
                     partyData = docSnap.data();
+                    // sync turn state from server
+                    if (typeof partyData.currentTurn !== 'undefined') {
+                        currentTurn = partyData.currentTurn;
+                    }
                     updatePlayersList(partyData.players, partyData.host);
                     
                     // Update words if not host
@@ -675,6 +864,8 @@
                     } else if (!partyData.gameActive && document.getElementById('gamePage').classList.contains('active')) {
                         showLobby();
                     }
+                    // Update turn indicator whenever partyData changes
+                    if (chatroomModeEnabled) updateTurnIndicator();
                 }
             });
         }
@@ -857,7 +1048,8 @@
                     gameWord: randomWord,
                     impostor: players[impostorIndex],
                     votes: {},
-                    gameEnded: false
+                    gameEnded: false,
+                    currentTurn: 0
                 });
             } catch (error) {
                 console.error('Error starting game:', error);
@@ -888,6 +1080,14 @@
             } else {
                 document.getElementById('hostGameControls').style.display = 'none';
                 document.getElementById('playerGameControls').style.display = 'block';
+            }
+
+            // Setup chat for game
+            setupChatListener(true);
+        
+            // Initialize turn indicator if in chatroom mode
+            if (chatroomModeEnabled) {
+                updateTurnIndicator();
             }
 
             // Handle voting
@@ -1045,10 +1245,186 @@
                     } catch (error) {
                         console.error('Error resetting game:', error);
                     }
-                }, 10000);
+                }, 1000);
                 
             } catch (error) {
                 console.error('Error ending game:', error);
+            }
+        }
+
+        // Chat functions
+        async function sendChatMessage(message, isGameChat = false) {
+            if (!message.trim() || !currentParty) return;
+
+            try {
+                const chatCollectionName = isGameChat ? 'gameChats' : 'chats';
+                await addDoc(collection(db, 'parties', currentParty, chatCollectionName), {
+                    sender: currentUser,
+                    message: message.trim(),
+                    timestamp: serverTimestamp()
+                });
+
+                // Clear input
+                const inputId = isGameChat ? 'gameChatInput' : 'chatInput';
+                document.getElementById(inputId).value = '';
+                // If chatroom mode is enabled and this is the game chat, advance turn when the rightful player speaks
+                if (isGameChat && chatroomModeEnabled && partyData.players && Array.isArray(partyData.players) && partyData.players.length > 0) {
+                    const playerCount = partyData.players.length;
+                    const serverTurn = typeof partyData.currentTurn === 'number' ? partyData.currentTurn : currentTurn;
+                    const currentPlayerIndex = serverTurn % playerCount;
+                    const currentPlayer = partyData.players[currentPlayerIndex];
+
+                    if (currentUser === currentPlayer) {
+                        // Advance turn on server
+                        const nextTurn = (serverTurn + 1) % playerCount;
+                        try {
+                            await updateDoc(doc(db, 'parties', currentParty), {
+                                currentTurn: nextTurn
+                            });
+                            // local update will be synced via onSnapshot, but update local value to be responsive
+                            currentTurn = nextTurn;
+                            updateTurnIndicator();
+                        } catch (err) {
+                            console.error('Error advancing turn:', err);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending chat message:', error);
+            }
+        }
+
+        function toggleChatroomMode() {
+            chatroomModeEnabled = !chatroomModeEnabled;
+            const btn = document.getElementById('toggleChatroomMode');
+            const label = document.getElementById('chatroom-mode-label');
+            
+            if (chatroomModeEnabled) {
+                btn.textContent = 'Disable Chatroom Mode';
+                label.style.display = 'block';
+            } else {
+                btn.textContent = 'Enable Chatroom Mode';
+                label.style.display = 'none';
+            }
+        }
+
+        function toggleChatVisibility(isGameChat = false) {
+            const containerId = isGameChat ? 'gameChatContainer' : 'lobbyChatContainer';
+            const btnId = isGameChat ? 'toggleGameChat' : 'toggleLobbyChat';
+            const container = document.getElementById(containerId);
+            const btn = document.getElementById(btnId);
+            
+            if (container.classList.contains('chat-visible')) {
+                container.classList.remove('chat-visible');
+                container.classList.add('chat-hidden');
+                btn.textContent = 'Show Chat';
+            } else {
+                container.classList.remove('chat-hidden');
+                container.classList.add('chat-visible');
+                btn.textContent = 'Hide Chat';
+            }
+        }
+
+        function updateTurnIndicator() {
+            if (!chatroomModeEnabled || !partyData.players) return;
+            
+            const turnIndicator = document.getElementById('turnIndicator');
+            if (!turnIndicator) return;
+            
+            const playerCount = partyData.players.length;
+            const currentPlayerIndex = currentTurn % playerCount;
+            const currentPlayer = partyData.players[currentPlayerIndex];
+            
+            turnIndicator.style.display = 'block';
+            turnIndicator.textContent = `🎮 Player ${currentPlayerIndex + 1} Turn: ${currentPlayer}`;
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = timestamp.toDate();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function displayChatMessage(message, containerId, isGameChat = false) {
+            const container = document.getElementById(containerId);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            
+            const senderSpan = document.createElement('span');
+            senderSpan.className = 'chat-message-sender';
+            senderSpan.textContent = message.sender;
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'chat-message-time';
+            timeSpan.textContent = formatTime(message.timestamp);
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.appendChild(senderSpan);
+            headerDiv.appendChild(timeSpan);
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'chat-message-text';
+            textDiv.textContent = message.message;
+            
+            messageDiv.appendChild(headerDiv);
+            messageDiv.appendChild(textDiv);
+            
+            // If in chatroom mode and it's game chat, show turn indicator
+            if (chatroomModeEnabled && isGameChat && partyData.players) {
+                const playerIndex = partyData.players.indexOf(message.sender);
+                const turnSpan = document.createElement('div');
+                turnSpan.className = 'turn-content';
+                turnSpan.style.fontSize = '12px';
+                turnSpan.textContent = `Turn #${playerIndex + 1}`;
+                messageDiv.appendChild(turnSpan);
+            }
+            
+            container.appendChild(messageDiv);
+            
+            // Auto-scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function setupChatListener(isGameChat = false) {
+            const chatCollectionName = isGameChat ? 'gameChats' : 'chats';
+            const containerId = isGameChat ? 'gameChatMessages' : 'chatMessages';
+            
+            if (!currentParty) return;
+
+            // Clear existing messages and reset tracking
+            document.getElementById(containerId).innerHTML = '';
+            loadedMessageIds.clear();
+
+            const q = query(
+                collection(db, 'parties', currentParty, chatCollectionName),
+                orderBy('timestamp', 'asc'),
+                limit(50)
+            );
+
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const container = document.getElementById(containerId);
+                
+                snapshot.docChanges().forEach((change) => {
+                    const docId = change.doc.id;
+                    
+                    // Only add if we haven't seen this message before
+                    if (!loadedMessageIds.has(docId)) {
+                        loadedMessageIds.add(docId);
+                        
+                        if (change.type === 'added') {
+                            const messageData = change.doc.data();
+                            displayChatMessage(messageData, containerId, isGameChat);
+                        }
+                    }
+                });
+            });
+
+            if (isGameChat) {
+                unsubscribeGameChat = unsubscribe;
+            } else {
+                unsubscribeChat = unsubscribe;
             }
         }
 
@@ -1083,17 +1459,38 @@
             document.getElementById('startVotingBtn').addEventListener('click', startVoting);
             document.getElementById('endGameBtn').addEventListener('click', endGame);
 
+            // Chat controls
+            document.getElementById('sendChatBtn').addEventListener('click', () => {
+                const message = document.getElementById('chatInput').value;
+                sendChatMessage(message, false);
+            });
+
+            document.getElementById('sendGameChatBtn').addEventListener('click', () => {
+                const message = document.getElementById('gameChatInput').value;
+                sendChatMessage(message, true);
+            });
+
+            document.getElementById('toggleChatroomMode').addEventListener('click', toggleChatroomMode);
+            document.getElementById('toggleLobbyChat').addEventListener('click', () => toggleChatVisibility(false));
+            document.getElementById('toggleGameChat').addEventListener('click', () => toggleChatVisibility(true));
+
             // Enter key handling
             document.getElementById('newWord').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') addWord();
             });
-            
-            document.getElementById('partyCode').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') joinParty();
+
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const message = document.getElementById('chatInput').value;
+                    sendChatMessage(message, false);
+                }
             });
 
-            document.getElementById('partyName').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') createParty();
+            document.getElementById('gameChatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const message = document.getElementById('gameChatInput').value;
+                    sendChatMessage(message, true);
+                }
             });
         }
 
@@ -1106,6 +1503,8 @@
         // Cleanup
         window.addEventListener('beforeunload', () => {
             if (unsubscribeParty) unsubscribeParty();
+            if (unsubscribeChat) unsubscribeChat();
+            if (unsubscribeGameChat) unsubscribeGameChat();
         });
     </script>
 </body>
