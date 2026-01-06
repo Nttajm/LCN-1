@@ -1,0 +1,327 @@
+/**
+ * ==========================================================================
+ * CASCADE - Design Tokens & CSS Variables
+ * ==========================================================================
+ * All design tokens in one place for easy theming and maintenance.
+ * Organized by category: colors, typography, spacing, borders, shadows, etc.
+ */
+
+:root {
+  /* ==========================================================================
+   * COLORS - Rainbow Palette (Calm/Soft)
+   * ========================================================================== */
+  --color-red: #ff6b6b;
+  --color-orange: #ffa06b;
+  --color-yellow: #ffd93d;
+  --color-green: #6bcf7f;
+  --color-teal: #4ecdc4;
+  --color-blue: #5dade2;
+  --color-indigo: #7b68ee;
+  --color-purple: #b084cc;
+  --color-pink: #ff85b3;
+
+  /* ==========================================================================
+   * COLORS - Notion-Style Brand Colors
+   * ========================================================================== */
+  --notion-red: #e03e3e;
+  --notion-orange: #d9730d;
+  --notion-yellow: #dfab01;
+  --notion-green: #0f7b6c;
+  --notion-blue: #0b6e99;
+  --notion-purple: #6940a5;
+  --notion-pink: #ad1a72;
+  --notion-brown: #64473a;
+
+  /* ==========================================================================
+   * COLORS - Notion-Style Background Colors
+   * ========================================================================== */
+  --notion-red-bg: #fbe4e4;
+  --notion-orange-bg: #faebdd;
+  --notion-yellow-bg: #fbf3db;
+  --notion-green-bg: #ddedea;
+  --notion-blue-bg: #ddebf1;
+  --notion-purple-bg: #eae4f2;
+  --notion-pink-bg: #f4dfeb;
+  --notion-brown-bg: #e9e5e3;
+
+  /* ==========================================================================
+   * COLORS - Gray Scale
+   * ========================================================================== */
+  --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+
+  /* ==========================================================================
+   * COLORS - Semantic Colors
+   * ========================================================================== */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f5;
+  --bg-tertiary: #f1f1ef;
+  --bg-hover: rgba(0, 0, 0, 0.03);
+  --bg-active: rgba(0, 0, 0, 0.05);
+  --bg-translucent: rgba(124, 124, 124, 0.068);
+
+  --text-primary: #37352f;
+  --text-secondary: #65635c;
+  --text-tertiary: #9b9a97;
+  --text-placeholder: #c2c1bd;
+  --text-white: #ffffff;
+
+  /* ==========================================================================
+   * BORDERS
+   * ========================================================================== */
+  --border-color: #e9e9e7;
+  --border-dark: #d3d3d1;
+  --border-light: #f1f1ef;
+  --border-width: 1px;
+  --border-radius-xs: 2px;
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 24px;
+  --border-radius-full: 9999px;
+
+  /* ==========================================================================
+   * SHADOWS
+   * ========================================================================== */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+  /* ==========================================================================
+   * SPACING
+   * ========================================================================== */
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* ==========================================================================
+   * TYPOGRAPHY
+   * ========================================================================== */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  --font-display: 'Cal Sans', var(--font-sans);
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 2rem;      /* 32px */
+  --text-4xl: 2.5rem;    /* 40px */
+  --text-5xl: 3rem;      /* 48px */
+
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* Font Weights */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* ==========================================================================
+   * TRANSITIONS
+   * ========================================================================== */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-slower: 400ms ease;
+
+  /* ==========================================================================
+   * Z-INDEX SCALE
+   * ========================================================================== */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+
+  /* ==========================================================================
+   * INVERTED COLORS (for toasts, dark overlays)
+   * ========================================================================== */
+  --bg-inverted: #37352f;
+  --text-inverted: #ffffff;
+
+  /* ==========================================================================
+   * LAYOUT
+   * ========================================================================== */
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 60px;
+  --content-max-width: 900px;
+  --content-padding: 15%;
+  --cover-height: 17rem;
+}
+
+/* ==========================================================================
+ * DARK MODE
+ * ========================================================================== */
+[data-theme="dark"] {
+  /* Rainbow Colors (brighter for dark mode) */
+  --color-red: #ff7b7b;
+  --color-orange: #ffb07b;
+  --color-yellow: #ffe14d;
+  --color-green: #7bdf8f;
+  --color-teal: #5eddd4;
+  --color-blue: #6dbdef;
+  --color-indigo: #8b78ff;
+  --color-purple: #c094dd;
+  --color-pink: #ff95c3;
+
+    /* Notion Colors (brighter for dark mode) */
+    --notion-red: #ff6b6b;
+    --notion-orange: #ffa344;
+    --notion-yellow: #ffcc00;
+    --notion-green: #4db896;
+    --notion-blue: #529cca;
+    --notion-purple: #9a6dd7;
+    --notion-pink: #e255a1;
+    --notion-brown: #9f7563;
+
+    /* Notion Background Colors (dark variants) */
+    --notion-red-bg: #4a2626;
+    --notion-orange-bg: #4a3426;
+    --notion-yellow-bg: #4a4126;
+    --notion-green-bg: #26403a;
+    --notion-blue-bg: #263a4a;
+    --notion-purple-bg: #352a4a;
+    --notion-pink-bg: #4a2640;
+    --notion-brown-bg: #3d332a;
+
+    /* Gray Scale (inverted) */
+    --gray-50: #171717;
+    --gray-100: #262626;
+    --gray-200: #404040;
+    --gray-300: #525252;
+    --gray-400: #737373;
+    --gray-500: #a3a3a3;
+    --gray-600: #d4d4d4;
+    --gray-700: #e5e5e5;
+    --gray-800: #f5f5f5;
+    --gray-900: #fafafa;
+
+    /* Semantic Colors */
+    --bg-primary: #191919;
+    --bg-secondary: #202020;
+    --bg-tertiary: #2a2a2a;
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-active: rgba(255, 255, 255, 0.08);
+    --bg-translucent: rgba(255, 255, 255, 0.05);
+
+    --text-primary: #e3e2e0;
+    --text-secondary: #9b9a97;
+    --text-tertiary: #6f6e69;
+    --text-placeholder: #4a4a48;
+
+    /* Borders */
+    --border-color: #3a3a3a;
+    --border-dark: #4a4a4a;
+    --border-light: #2f2f2f;
+
+    /* Shadows (more prominent for dark) */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Rainbow Colors (brighter for dark mode) */
+    --color-red: #ff7b7b;
+    --color-orange: #ffb07b;
+    --color-yellow: #ffe14d;
+    --color-green: #7bdf8f;
+    --color-teal: #5eddd4;
+    --color-blue: #6dbdef;
+    --color-indigo: #8b78ff;
+    --color-purple: #c094dd;
+    --color-pink: #ff95c3;
+
+    /* Notion Colors (brighter for dark mode) */
+    --notion-red: #ff6b6b;
+    --notion-orange: #ffa344;
+    --notion-yellow: #ffcc00;
+    --notion-green: #4db896;
+    --notion-blue: #529cca;
+    --notion-purple: #9a6dd7;
+    --notion-pink: #e255a1;
+    --notion-brown: #9f7563;
+
+    /* Notion Background Colors (dark variants) */
+    --notion-red-bg: #4a2626;
+    --notion-orange-bg: #4a3426;
+    --notion-yellow-bg: #4a4126;
+    --notion-green-bg: #26403a;
+    --notion-blue-bg: #263a4a;
+    --notion-purple-bg: #352a4a;
+    --notion-pink-bg: #4a2640;
+    --notion-brown-bg: #3d332a;
+
+    /* Gray Scale (inverted) */
+    --gray-50: #171717;
+    --gray-100: #262626;
+    --gray-200: #404040;
+    --gray-300: #525252;
+    --gray-400: #737373;
+    --gray-500: #a3a3a3;
+    --gray-600: #d4d4d4;
+    --gray-700: #e5e5e5;
+    --gray-800: #f5f5f5;
+    --gray-900: #fafafa;
+
+    /* Semantic Colors */
+    --bg-primary: #191919;
+    --bg-secondary: #202020;
+    --bg-tertiary: #2a2a2a;
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-active: rgba(255, 255, 255, 0.08);
+    --bg-translucent: rgba(255, 255, 255, 0.05);
+
+    --text-primary: #e3e2e0;
+    --text-secondary: #9b9a97;
+    --text-tertiary: #6f6e69;
+    --text-placeholder: #4a4a48;
+
+    /* Borders */
+    --border-color: #3a3a3a;
+    --border-dark: #4a4a4a;
+    --border-light: #2f2f2f;
+
+    /* Shadows (more prominent for dark) */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+  }
+}
