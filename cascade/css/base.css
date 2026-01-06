@@ -1,0 +1,248 @@
+/**
+ * ==========================================================================
+ * CASCADE - Base Styles & CSS Reset
+ * ==========================================================================
+ * Modern CSS reset and base element styling.
+ * Sets up sensible defaults for the entire application.
+ */
+
+/* ==========================================================================
+ * CSS RESET
+ * ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+/* ==========================================================================
+ * TYPOGRAPHY BASE
+ * ========================================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+}
+
+h1 { font-size: var(--text-5xl); }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-3xl); }
+h4 { font-size: var(--text-2xl); }
+h5 { font-size: var(--text-xl); }
+h6 { font-size: var(--text-lg); }
+
+p {
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--notion-blue);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+ * FORM ELEMENTS
+ * ========================================================================== */
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+input,
+textarea {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--bg-primary);
+  padding: var(--space-2) var(--space-3);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--notion-blue);
+  box-shadow: 0 0 0 2px rgba(11, 110, 153, 0.15);
+}
+
+/* Plain input - no border/background */
+input.plain,
+textarea.plain {
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+input.plain:focus,
+textarea.plain:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+select {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--notion-blue);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+ * MEDIA
+ * ========================================================================== */
+
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================================================================
+ * LISTS
+ * ========================================================================== */
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ==========================================================================
+ * TABLES
+ * ========================================================================== */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* ==========================================================================
+ * MISC
+ * ========================================================================== */
+
+hr {
+  border: none;
+  border-top: var(--border-width) solid var(--border-color);
+  margin: var(--space-4) 0;
+}
+
+::selection {
+  background-color: var(--notion-blue-bg);
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+ * SCROLLBARS
+ * ========================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: var(--border-radius-full);
+  transition: background-color var(--transition-base);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-dark);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ==========================================================================
+ * ACCESSIBILITY
+ * ========================================================================== */
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--notion-blue);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
