@@ -262,6 +262,17 @@
 .bg-notion-pink { background-color: var(--notion-pink-bg) !important; }
 .bg-notion-brown { background-color: var(--notion-brown-bg) !important; }
 
+/* Board Background Colors */
+.board-bg--gray { background-color: var(--gray-100) !important; }
+.board-bg--brown { background-color: var(--notion-brown-bg) !important; }
+.board-bg--orange { background-color: var(--notion-orange-bg) !important; }
+.board-bg--yellow { background-color: var(--notion-yellow-bg) !important; }
+.board-bg--green { background-color: var(--notion-green-bg) !important; }
+.board-bg--blue { background-color: var(--notion-blue-bg) !important; }
+.board-bg--purple { background-color: var(--notion-purple-bg) !important; }
+.board-bg--pink { background-color: var(--notion-pink-bg) !important; }
+.board-bg--red { background-color: var(--notion-red-bg) !important; }
+
 /* Gray Scale */
 .bg-gray-50 { background-color: var(--gray-50); }
 .bg-gray-100 { background-color: var(--gray-100); }

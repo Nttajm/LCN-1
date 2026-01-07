@@ -156,6 +156,9 @@ export const TOOLS = {
     ],
     'Media': [
       { id: 'link', icon: '🔗', label: 'Link', action: 'add-link' }
+    ],
+    'Embed': [
+      { id: 'gcal', img: 'appicons/gcal.png', label: 'Google Calendar', action: 'add-gcal' }
     ]
   },
 
@@ -193,6 +196,22 @@ export const TOOLS = {
       { id: 'bg-red', icon: '▨', label: 'Red', class: 'gcal-bg--red', action: 'gcal-bg', colorClass: 'gcal-bg--red' },
       { id: 'bg-purple', icon: '▨', label: 'Purple', class: 'gcal-bg--purple', action: 'gcal-bg', colorClass: 'gcal-bg--purple' }
     ]
+  },
+
+  // Board settings menu
+  BOARD_SETTINGS: {
+    'Background': [
+      { id: 'bg-default', icon: '▨', label: 'Default', class: '', action: 'board-bg', colorClass: '' },
+      { id: 'bg-gray', icon: '▨', label: 'Gray', class: 'board-bg--gray', action: 'board-bg', colorClass: 'board-bg--gray' },
+      { id: 'bg-brown', icon: '▨', label: 'Brown', class: 'board-bg--brown', action: 'board-bg', colorClass: 'board-bg--brown' },
+      { id: 'bg-orange', icon: '▨', label: 'Orange', class: 'board-bg--orange', action: 'board-bg', colorClass: 'board-bg--orange' },
+      { id: 'bg-yellow', icon: '▨', label: 'Yellow', class: 'board-bg--yellow', action: 'board-bg', colorClass: 'board-bg--yellow' },
+      { id: 'bg-green', icon: '▨', label: 'Green', class: 'board-bg--green', action: 'board-bg', colorClass: 'board-bg--green' },
+      { id: 'bg-blue', icon: '▨', label: 'Blue', class: 'board-bg--blue', action: 'board-bg', colorClass: 'board-bg--blue' },
+      { id: 'bg-purple', icon: '▨', label: 'Purple', class: 'board-bg--purple', action: 'board-bg', colorClass: 'board-bg--purple' },
+      { id: 'bg-pink', icon: '▨', label: 'Pink', class: 'board-bg--pink', action: 'board-bg', colorClass: 'board-bg--pink' },
+      { id: 'bg-red', icon: '▨', label: 'Red', class: 'board-bg--red', action: 'board-bg', colorClass: 'board-bg--red' }
+    ]
   }
 };
 
@@ -219,4 +238,9 @@ export const ALIGN_CLASSES = [
 export const BG_CLASSES = [
   'bg-notion-red', 'bg-notion-blue', 'bg-notion-green', 'bg-notion-yellow',
   'bg-notion-purple', 'bg-notion-orange', 'bg-notion-pink', 'bg-notion-brown', 'bg-notion-gray'
+];
+
+export const BOARD_BG_CLASSES = [
+  'board-bg--gray', 'board-bg--brown', 'board-bg--orange', 'board-bg--yellow',
+  'board-bg--green', 'board-bg--blue', 'board-bg--purple', 'board-bg--pink', 'board-bg--red'
 ];

@@ -26,11 +26,12 @@
  */
 export function serializeBoard() {
   const boardItems = document.getElementById('boardItems');
-  if (!boardItems) return { rows: [], cover: null, icon: null };
+  if (!boardItems) return { rows: [], cover: null, icon: null, boardBackground: null };
   
   // Get cover and icon data
   const cover = serializeCover();
   const icon = serializeIcon();
+  const boardBackground = serializeBoardBackground();
   
   // Serialize all rows
   const rows = [];
@@ -41,7 +42,7 @@ export function serializeBoard() {
     }
   });
   
-  return { rows, cover, icon };
+  return { rows, cover, icon, boardBackground };
 }
 
 /**
@@ -74,6 +75,27 @@ function serializeIcon() {
   } else if (bgImage && bgImage !== 'none') {
     const match = bgImage.match(/url\(['"]?([^'"]+)['"]?\)/);
     return match ? { type: 'image', value: match[1] } : null;
+  }
+  
+  return null;
+}
+
+/**
+ * Serialize board background data
+ */
+function serializeBoardBackground() {
+  const board = document.getElementById('board');
+  if (!board) return null;
+  
+  const bgClasses = [
+    'board-bg--gray', 'board-bg--brown', 'board-bg--orange', 'board-bg--yellow',
+    'board-bg--green', 'board-bg--blue', 'board-bg--purple', 'board-bg--pink', 'board-bg--red'
+  ];
+  
+  for (const cls of bgClasses) {
+    if (board.classList.contains(cls)) {
+      return cls;
+    }
   }
   
   return null;
@@ -366,7 +388,8 @@ function serializeSeparatorBlock(block, id) {
 }
 
 function serializeLinkBlock(block, id) {
-  const content = block.querySelector('[contenteditable]');
+  // Link blocks are NOT contenteditable, so we need to find the content div differently
+  const content = block.querySelector('.item__content--link');
   
   // Get text formatting classes from content element
   const textAlign = getTextAlignFromClasses(content);
@@ -565,21 +588,7 @@ function serializeGCalBlock(block, id) {
 // ==========================================================================
 // DESERIALIZATION (JSON → DOM)
 // ==========================================================================
-
-import { 
-  createRow as createRowElement,
-  createTextBlock,
-  createChecklistBlock,
-  createCalloutBlock,
-  createQuoteBlock,
-  createSeparatorBlock,
-  createLinkTextBlock,
-  createDropdownBlock,
-  createGroupBlock,
-  createGalleryBlock
-} from './blocks.js';
 import { generateId, createElement } from './utils.js';
-import { state } from './app.js';
 
 /**
  * Deserialize board data and render to DOM
@@ -605,6 +614,9 @@ export function deserializeBoard(data) {
   
   // Clear and restore icon (clear first to prevent persistence)
   deserializeIcon(data.icon || null);
+  
+  // Clear and restore board background
+  deserializeBoardBackground(data.boardBackground || null);
   
   // Render rows and blocks
   if (data.rows && Array.isArray(data.rows)) {
@@ -661,6 +673,27 @@ function deserializeIcon(iconData) {
     iconDisplay.style.backgroundImage = `url('${iconData.value}')`;
     iconDisplay.style.backgroundSize = 'cover';
     iconDisplay.style.backgroundPosition = 'center';
+  }
+}
+
+/**
+ * Deserialize and set board background
+ */
+function deserializeBoardBackground(bgClass) {
+  const board = document.getElementById('board');
+  if (!board) return;
+  
+  const bgClasses = [
+    'board-bg--gray', 'board-bg--brown', 'board-bg--orange', 'board-bg--yellow',
+    'board-bg--green', 'board-bg--blue', 'board-bg--purple', 'board-bg--pink', 'board-bg--red'
+  ];
+  
+  // Remove all existing background classes
+  bgClasses.forEach(cls => board.classList.remove(cls));
+  
+  // Add new background class if provided
+  if (bgClass) {
+    board.classList.add(bgClass);
   }
 }
 

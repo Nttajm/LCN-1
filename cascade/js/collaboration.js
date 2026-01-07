@@ -249,8 +249,23 @@ function setupSharePanelHandlers() {
         
         // Load existing collaborators
         loadAndRenderExistingCollaborators();
+        
+        // Load link sharing state
+        loadLinkSharingState();
       }
     });
+  }
+  
+  // Link sharing toggle
+  const linkToggle = document.querySelector('.js-link-toggle');
+  if (linkToggle) {
+    linkToggle.addEventListener('change', handleLinkSharingToggle);
+  }
+  
+  // Copy link button
+  const copyBtn = document.querySelector('.js-copy-link');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', handleCopyLink);
   }
   
   // Add collaborator button (the + button)
@@ -1186,6 +1201,210 @@ export function subscribeToCollaborators(boardId, onUpdate) {
 function renderCollaboratorsList(collaborators) {
   // This is called by subscribeToCollaborators
   // The main rendering is done by loadAndRenderExistingCollaborators
+}
+
+// ============================================================
+// LINK SHARING
+// ============================================================
+
+/**
+ * Generate a unique share code for a board
+ * Format: {username_prefix}_{random_code}
+ */
+function generateShareCode() {
+  // Get username prefix (first 4 chars of display name or email, alphanumeric only)
+  const displayName = state.currentUser?.displayName || state.currentUser?.email || 'user';
+  const prefix = displayName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().slice(0, 4);
+  
+  // Generate random code (8 alphanumeric characters)
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  
+  return `${prefix}_${code}`;
+}
+
+/**
+ * Load link sharing state when share panel opens
+ */
+async function loadLinkSharingState() {
+  if (!state.currentBoardId || !state.db) return;
+  
+  try {
+    const boardRef = doc(state.db, 'boards', state.currentBoardId);
+    const boardSnap = await getDoc(boardRef);
+    
+    if (!boardSnap.exists()) return;
+    
+    const data = boardSnap.data();
+    const toggle = document.getElementById('linkSharingToggle');
+    const content = document.getElementById('linkSharingContent');
+    const linkInput = document.getElementById('shareLinkInput');
+    
+    if (data.publicShareCode && data.publicShareEnabled) {
+      // Link sharing is enabled
+      if (toggle) toggle.checked = true;
+      if (content) content.style.display = 'block';
+      if (linkInput) {
+        const shareUrl = buildShareUrl(data.publicShareCode);
+        linkInput.value = shareUrl;
+      }
+    } else {
+      // Link sharing is disabled
+      if (toggle) toggle.checked = false;
+      if (content) content.style.display = 'none';
+      if (linkInput) linkInput.value = '';
+    }
+  } catch (error) {
+    console.error('Error loading link sharing state:', error);
+  }
+}
+
+/**
+ * Build the share URL for a given share code
+ */
+function buildShareUrl(shareCode) {
+  const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+  return `${baseUrl}view.html?board=${shareCode}`;
+}
+
+/**
+ * Handle link sharing toggle
+ */
+async function handleLinkSharingToggle(e) {
+  const enabled = e.target.checked;
+  const content = document.getElementById('linkSharingContent');
+  const linkInput = document.getElementById('shareLinkInput');
+  
+  if (!state.currentBoardId || !state.db) {
+    e.target.checked = false;
+    showToast('No board selected', 'error');
+    return;
+  }
+  
+  try {
+    const boardRef = doc(state.db, 'boards', state.currentBoardId);
+    
+    if (enabled) {
+      // Enable link sharing - generate code if not exists
+      const boardSnap = await getDoc(boardRef);
+      const data = boardSnap.data();
+      
+      let shareCode = data?.publicShareCode;
+      if (!shareCode) {
+        shareCode = generateShareCode();
+      }
+      
+      // Update board with share code
+      await updateDoc(boardRef, {
+        publicShareCode: shareCode,
+        publicShareEnabled: true,
+        publicShareEnabledAt: serverTimestamp(),
+        publicShareEnabledBy: state.currentUser.uid
+      });
+      
+      // Show the link
+      const shareUrl = buildShareUrl(shareCode);
+      if (content) content.style.display = 'block';
+      if (linkInput) linkInput.value = shareUrl;
+      
+      showToast('Link sharing enabled');
+      
+    } else {
+      // Disable link sharing (keep the code for later re-enable)
+      await updateDoc(boardRef, {
+        publicShareEnabled: false
+      });
+      
+      if (content) content.style.display = 'none';
+      if (linkInput) linkInput.value = '';
+      
+      showToast('Link sharing disabled');
+    }
+  } catch (error) {
+    console.error('Error toggling link sharing:', error);
+    showToast('Failed to update sharing settings', 'error');
+    e.target.checked = !enabled; // Revert toggle
+  }
+}
+
+/**
+ * Handle copy link button click
+ */
+async function handleCopyLink() {
+  const linkInput = document.getElementById('shareLinkInput');
+  const link = linkInput?.value;
+  
+  if (!link) {
+    showToast('No link to copy', 'error');
+    return;
+  }
+  
+  try {
+    await navigator.clipboard.writeText(link);
+    showToast('Link copied to clipboard');
+  } catch (error) {
+    // Fallback for older browsers
+    linkInput.select();
+    document.execCommand('copy');
+    showToast('Link copied to clipboard');
+  }
+}
+
+/**
+ * Get board data by share code (for public viewing)
+ */
+export async function getBoardByShareCode(shareCode, db) {
+  if (!shareCode || !db) return null;
+  
+  try {
+    // Query boards collection for matching share code
+    const boardsRef = collection(db, 'boards');
+    const q = query(
+      boardsRef, 
+      where('publicShareCode', '==', shareCode),
+      where('publicShareEnabled', '==', true)
+    );
+    
+    const snap = await getDocs(q);
+    
+    if (snap.empty) {
+      return { error: 'Board not found or sharing is disabled' };
+    }
+    
+    const boardDoc = snap.docs[0];
+    const boardData = boardDoc.data();
+    
+    // Get owner info for display
+    let ownerInfo = null;
+    if (boardData.owner) {
+      try {
+        const ownerDoc = await getDoc(doc(db, 'users', boardData.owner));
+        if (ownerDoc.exists()) {
+          const ownerData = ownerDoc.data();
+          ownerInfo = {
+            displayName: ownerData.displayName,
+            photoURL: ownerData.photoURL
+          };
+        }
+      } catch (e) {
+        // Ignore owner fetch errors
+      }
+    }
+    
+    return {
+      id: boardDoc.id,
+      title: boardData.title || 'Untitled',
+      blocks: boardData.blocks,
+      owner: ownerInfo,
+      updatedAt: boardData.updatedAt
+    };
+  } catch (error) {
+    console.error('Error fetching board by share code:', error);
+    return { error: 'Failed to load board' };
+  }
 }
 
 // ============================================================

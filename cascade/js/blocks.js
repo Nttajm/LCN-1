@@ -1130,11 +1130,67 @@ export function deleteBlock(blockId) {
   if (!block) return;
   
   const row = block.closest('.item-row');
+  
+  // Check if block is inside a container (group, dropdown, or gallery panel)
+  const groupContent = block.closest('.group-block__content');
+  const dropdownContent = block.closest('.dropdown-block__content');
+  const galleryPanel = block.closest('.gallery-block__panel');
+  
+  const containerElement = groupContent || dropdownContent || galleryPanel;
+  
   block.remove();
   
   // Remove row if empty
   if (row && row.querySelectorAll('.item').length === 0) {
     row.remove();
+  }
+  
+  // Check if container is now empty and delete it if so
+  if (containerElement) {
+    // Count remaining blocks (excluding add-block buttons)
+    const remainingBlocks = containerElement.querySelectorAll('[data-block-id]');
+    
+    if (remainingBlocks.length === 0) {
+      // Find the parent container block and delete it
+      let parentBlock = null;
+      
+      if (groupContent) {
+        parentBlock = groupContent.closest('.group-block');
+      } else if (dropdownContent) {
+        parentBlock = dropdownContent.closest('.dropdown-block');
+      } else if (galleryPanel) {
+        // For gallery panels, we need to check if this was the last tab
+        const gallery = galleryPanel.closest('.gallery-block');
+        if (gallery) {
+          const remainingPanels = gallery.querySelectorAll('.gallery-block__panel');
+          if (remainingPanels.length <= 1) {
+            parentBlock = gallery;
+          } else {
+            // Remove the tab and panel, but keep the gallery
+            const tabId = galleryPanel.id;
+            const correspondingTab = gallery.querySelector(`[data-tab-id="${tabId}"]`);
+            if (correspondingTab) {
+              correspondingTab.remove();
+            }
+            galleryPanel.remove();
+            
+            // Activate the first remaining tab if current was active
+            const firstTab = gallery.querySelector('.gallery-block__tab');
+            const firstPanel = gallery.querySelector('.gallery-block__panel');
+            if (firstTab && firstPanel) {
+              firstTab.classList.add('is-active');
+              firstPanel.classList.add('is-active');
+            }
+            return;
+          }
+        }
+      }
+      
+      if (parentBlock && parentBlock.dataset.blockId) {
+        // Recursively delete the parent container
+        deleteBlock(parentBlock.dataset.blockId);
+      }
+    }
   }
 }
 
