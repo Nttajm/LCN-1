@@ -238,7 +238,7 @@ function setupSharePanelHandlers() {
   const dropdown = document.getElementById('shareDropdown');
   
   if (shareBtn && dropdown) {
-    shareBtn.addEventListener('click', (e) => {
+    shareBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       dropdown.classList.toggle('is-open');
       
@@ -250,8 +250,8 @@ function setupSharePanelHandlers() {
         // Load existing collaborators
         loadAndRenderExistingCollaborators();
         
-        // Load link sharing state
-        loadLinkSharingState();
+        // Load link sharing state (includes owner check)
+        await loadLinkSharingState();
       }
     });
   }
@@ -1228,6 +1228,7 @@ function generateShareCode() {
 
 /**
  * Load link sharing state when share panel opens
+ * Only show link sharing section to board owner
  */
 async function loadLinkSharingState() {
   if (!state.currentBoardId || !state.db) return;
@@ -1239,9 +1240,26 @@ async function loadLinkSharingState() {
     if (!boardSnap.exists()) return;
     
     const data = boardSnap.data();
+    const isOwner = data.owner === state.currentUser?.uid;
+    
+    // Get link sharing section
+    const linkSection = document.querySelector('.share-panel__link-section');
     const toggle = document.getElementById('linkSharingToggle');
     const content = document.getElementById('linkSharingContent');
     const linkInput = document.getElementById('shareLinkInput');
+    
+    // Only show link sharing section to owner
+    if (linkSection) {
+      linkSection.style.display = isOwner ? 'block' : 'none';
+    }
+    
+    // Hide separator after link section if not owner
+    const separator = linkSection?.nextElementSibling;
+    if (separator && separator.classList.contains('separator')) {
+      separator.style.display = isOwner ? 'block' : 'none';
+    }
+    
+    if (!isOwner) return; // Don't load link state for non-owners
     
     if (data.publicShareCode && data.publicShareEnabled) {
       // Link sharing is enabled
@@ -1271,7 +1289,7 @@ function buildShareUrl(shareCode) {
 }
 
 /**
- * Handle link sharing toggle
+ * Handle link sharing toggle (owner only)
  */
 async function handleLinkSharingToggle(e) {
   const enabled = e.target.checked;
@@ -1284,8 +1302,16 @@ async function handleLinkSharingToggle(e) {
     return;
   }
   
+  // Verify user is owner
+  const boardRef = doc(state.db, 'boards', state.currentBoardId);
+  const boardSnap = await getDoc(boardRef);
+  if (!boardSnap.exists() || boardSnap.data().owner !== state.currentUser?.uid) {
+    e.target.checked = false;
+    showToast('Only the board owner can configure link sharing', 'error');
+    return;
+  }
+  
   try {
-    const boardRef = doc(state.db, 'boards', state.currentBoardId);
     
     if (enabled) {
       // Enable link sharing - generate code if not exists
