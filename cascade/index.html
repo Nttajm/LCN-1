@@ -75,17 +75,54 @@
             </button>
             <div class="share-panel__dropdown" id="shareDropdown">
               <div class="share-panel__title">Share this board</div>
-              <div class="share-panel__input-row">
-                <input 
-                  type="email" 
-                  class="input share-panel__input" 
-                  id="collabInput" 
-                  placeholder="Add people by email"
-                >
-                <button class="btn btn--primary js-add-collab" type="button">
-                  Add
-                </button>
+              
+              <!-- Link Sharing Section -->
+              <div class="share-panel__section share-panel__link-section">
+                <div class="share-panel__link-header">
+                  <div class="share-panel__link-info">
+                    <span class="share-panel__link-icon">🔗</span>
+                    <span>Anyone with link</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="linkSharingToggle" class="toggle-switch__input js-link-toggle">
+                    <span class="toggle-switch__slider"></span>
+                  </label>
+                </div>
+                <div class="share-panel__link-content" id="linkSharingContent" style="display: none;">
+                  <p class="share-panel__link-desc">Anyone with this link can view this board without signing in.</p>
+                  <div class="share-panel__link-row">
+                    <input 
+                      type="text" 
+                      class="input share-panel__link-input" 
+                      id="shareLinkInput" 
+                      readonly
+                      placeholder="Generating link..."
+                    >
+                    <button class="btn btn--primary js-copy-link" type="button">
+                      Copy
+                    </button>
+                  </div>
+                </div>
               </div>
+              
+              <div class="separator" style="margin: var(--space-3) 0;"></div>
+              
+              <!-- Invite by Email Section -->
+              <div class="share-panel__section">
+                <div class="share-panel__subtitle">Invite by email</div>
+                <div class="share-panel__input-row">
+                  <input 
+                    type="email" 
+                    class="input share-panel__input" 
+                    id="collabInput" 
+                    placeholder="Add people by email"
+                  >
+                  <button class="btn btn--primary js-add-collab" type="button">
+                    Add
+                  </button>
+                </div>
+              </div>
+              
               <div class="share-panel__people" id="collabList">
                 <!-- Collaborators list rendered here by collaboration.js -->
               </div>
@@ -111,7 +148,7 @@
         <div class="cover__settings">
           <button class="btn js-add-cover" type="button">Add cover</button>
           <button class="btn js-add-icon" type="button">Add Icon</button>
-          <button class="btn" type="button">•••</button>
+          <button class="btn js-board-settings" type="button">•••</button>
         </div>
       </div>
 

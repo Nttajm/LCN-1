@@ -193,7 +193,7 @@ async function loadBoardList() {
       } else if (boardIcon?.type === 'image' && boardIcon?.value) {
         iconHtml = `<img src="${boardIcon.value}" alt="" class="nav-item__icon-img">`;
       } else {
-        iconHtml = `<img src="icons/${isShared ? 'shared' : 'document'}.png" alt="" onerror="this.src='icons/add.png'">`;
+        iconHtml = `<img src="icons/${isShared ? 'shared' : 'document'}.png" alt="" onerror="this.src='icons/dfr_1.png'">`;
       }
       
       return `

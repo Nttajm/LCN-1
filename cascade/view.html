@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Board - Cascade</title>
+  
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    /* View page specific styles */
+    .view-app {
+      min-height: 100vh;
+      background-color: var(--bg-primary);
+    }
+    
+    .view-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-5);
+      background-color: var(--bg-secondary);
+      border-bottom: var(--border-width) solid var(--border-color);
+    }
+    
+    .view-header__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: var(--font-semibold);
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+    
+    .view-header__logo {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .view-header__badge {
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      background-color: var(--bg-tertiary);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--border-radius-sm);
+    }
+    
+    .view-header__owner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    
+    .view-header__avatar {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: var(--border-radius-full);
+      background-color: var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-xs);
+      font-weight: var(--font-semibold);
+    }
+    
+    .view-header__avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: var(--border-radius-full);
+      object-fit: cover;
+    }
+    
+    .view-main {
+      margin: 0 auto;
+      padding: var(--space-5);
+    }
+    
+    .view-loading,
+    .view-error {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+    
+    .view-loading__spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--notion-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: var(--space-4);
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .view-error__icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-3);
+    }
+    
+    .view-error__title {
+      font-size: var(--text-lg);
+      font-weight: var(--font-semibold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    
+    .view-error__message {
+      margin-bottom: var(--space-4);
+    }
+    
+    /* Read-only styles */
+    .view-board [contenteditable] {
+      pointer-events: none;
+      user-select: text;
+      cursor: default;
+    }
+    
+    .view-board .floaty,
+    .view-board .add-block,
+    .view-board .btn-icon,
+    .view-board .item__handle,
+    .view-board .item__menu {
+      display: none !important;
+    }
+    
+    .view-board .item:hover {
+      background-color: transparent;
+    }
+    
+    .view-board .checklist__checkbox {
+      pointer-events: none;
+    }
+    
+    /* Cover settings hidden in view mode */
+    .view-board .cover__settings {
+      display: none !important;
+    }
+    
+    .view-footer {
+      text-align: center;
+      padding: var(--space-6);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+    
+    .view-footer a {
+      color: var(--notion-blue);
+      text-decoration: none;
+    }
+    
+    .view-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="view-app">
+    <!-- Header -->
+    <header class="view-header">
+      <a href="index.html" class="view-header__brand">
+        <img src="icons/cascade-logo.png" alt="Cascade" class="view-header__logo" onerror="this.style.display='none'">
+        <span>Cascade</span>
+        <span class="view-header__badge">View Only</span>
+      </a>
+      <div class="view-header__owner" id="ownerInfo"></div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="view-main">
+      <!-- Loading State -->
+      <div class="view-loading" id="loadingState">
+        <div class="view-loading__spinner"></div>
+        <p>Loading board...</p>
+      </div>
+      
+      <!-- Error State -->
+      <div class="view-error" id="errorState" style="display: none;">
+        <div class="view-error__icon">😕</div>
+        <h2 class="view-error__title">Board Not Found</h2>
+        <p class="view-error__message" id="errorMessage">This board doesn't exist or sharing has been disabled.</p>
+        <a href="index.html" class="btn btn--primary">Go to Cascade</a>
+      </div>
+      
+      <!-- Board Content -->
+      <div class="view-board" id="viewBoard" style="display: none;">
+        <!-- Use same IDs as main app so serializer.js can render without duplication -->
+        <div class="cover" id="boardCover">
+          <div class="cover__icon js-cover-icon" id="coverIcon">
+            <div 
+              class="cover__icon-input" 
+              id="iconDisplay"
+              contenteditable="false"
+              data-placeholder="📝"
+            ></div>
+          </div>
+          <div class="cover__settings">
+            <button class="btn js-add-cover" type="button">Add cover</button>
+            <button class="btn js-add-icon" type="button">Add Icon</button>
+            <button class="btn js-board-settings" type="button">•••</button>
+          </div>
+        </div>
+        <div class="board" id="board">
+          <div class="board__items" id="boardItems"></div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="view-footer" id="viewFooter" style="display: none;">
+      <p>Created with <a href="index.html">Cascade</a></p>
+    </footer>
+  </div>
+
+  <script type="module">
+    // ============================================================
+    // PUBLIC VIEW PAGE - No authentication required
+    // ============================================================
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      query, 
+      where, 
+      getDocs, 
+      doc, 
+      getDoc 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+    import { deserializeBoard } from "./js/serializer.js";
+    
+    // Firebase config (same as main app)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdV8dc3X5AKYMAkh6nQILYQUBpmJDGwf0",
+      authDomain: "joelsnotesapp.firebaseapp.com",
+      projectId: "joelsnotesapp",
+      storageBucket: "joelsnotesapp.appspot.com",
+      messagingSenderId: "1043222135072",
+      appId: "1:1043222135072:web:b0ec2fe65119dc38c2d745"
+    };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    // DOM Elements
+    const loadingState = document.getElementById('loadingState');
+    const errorState = document.getElementById('errorState');
+    const errorMessage = document.getElementById('errorMessage');
+    const viewBoard = document.getElementById('viewBoard');
+    const viewFooter = document.getElementById('viewFooter');
+    const ownerInfo = document.getElementById('ownerInfo');
+    const boardItems = document.getElementById('boardItems');
+
+
+    
+    // Get share code from URL
+    function getShareCode() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('board');
+    }
+    
+    // Fetch board by share code
+    async function fetchBoardByShareCode(shareCode) {
+      if (!shareCode) {
+        return { error: 'No share code provided' };
+      }
+      
+      try {
+        // Query boards collection for matching share code
+        const boardsRef = collection(db, 'boards');
+        const q = query(
+          boardsRef, 
+          where('publicShareCode', '==', shareCode),
+          where('publicShareEnabled', '==', true)
+        );
+        
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+          return { error: 'Board not found or sharing is disabled' };
+        }
+        
+        const boardDoc = snap.docs[0];
+        const boardData = boardDoc.data();
+        
+        // Get owner info for display
+        let ownerData = null;
+        if (boardData.owner) {
+          try {
+            const ownerDoc = await getDoc(doc(db, 'users', boardData.owner));
+            if (ownerDoc.exists()) {
+              ownerData = ownerDoc.data();
+            }
+          } catch (e) {
+            // Ignore owner fetch errors
+          }
+        }
+        
+        return {
+          id: boardDoc.id,
+          title: boardData.title || 'Untitled',
+          blocks: boardData.blocks,
+          owner: ownerData,
+          updatedAt: boardData.updatedAt
+        };
+      } catch (error) {
+        console.error('Error fetching board:', error);
+        return { error: 'Failed to load board' };
+      }
+    }
+    
+    function makeReadOnly() {
+      document.querySelectorAll('#viewBoard [contenteditable]').forEach(el => {
+        el.setAttribute('contenteditable', 'false');
+        // Remove placeholders in view mode
+        el.removeAttribute('data-placeholder');
+      });
+
+      document.querySelectorAll('#viewBoard input[type="checkbox"]').forEach(el => {
+        el.disabled = true;
+      });
+    }
+
+    // Render board using shared serializer
+    function renderBoard(data) {
+      // Update page title
+      document.title = `${data.title} - Cascade`;
+
+      // Show owner info
+      if (data.owner) {
+        const name = data.owner.displayName || 'Someone';
+        const initial = name[0]?.toUpperCase() || '?';
+        ownerInfo.innerHTML = `
+          <span>Shared by</span>
+          <div class="view-header__avatar">
+            ${data.owner.photoURL 
+              ? `<img src="${data.owner.photoURL}" alt="${name}">` 
+              : initial
+            }
+          </div>
+          <span>${name}</span>
+        `;
+      }
+
+      // Clear any previous content
+      if (boardItems) boardItems.innerHTML = '';
+
+      // Use the same deserializer as the main app
+      if (data.blocks && typeof data.blocks === 'object') {
+        deserializeBoard(data.blocks);
+      }
+
+      // Enforce read-only mode
+      makeReadOnly();
+
+      // Show content
+      viewBoard.style.display = 'block';
+      viewFooter.style.display = 'block';
+    }
+    
+    // Show error state
+    function showError(message) {
+      loadingState.style.display = 'none';
+      errorState.style.display = 'flex';
+      errorMessage.textContent = message;
+    }
+    
+    // Initialize
+    async function init() {
+      const shareCode = getShareCode();
+      
+      if (!shareCode) {
+        showError('No board specified. Please use a valid share link.');
+        return;
+      }
+      
+      const result = await fetchBoardByShareCode(shareCode);
+      
+      if (result.error) {
+        showError(result.error);
+        return;
+      }
+      
+      // Hide loading, render board
+      loadingState.style.display = 'none';
+      renderBoard(result);
+    }
+    
+    // Run on page load
+    init();
+  </script>
+</body>
+</html>

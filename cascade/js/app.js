@@ -6,7 +6,7 @@
  */
 
 import { $, $$, createElement, debounce, focusAtEnd, focusAdjacentBlock } from './utils.js';
-import { TOOLS, BULLET_MARKERS, SIZE_CLASSES, COLOR_CLASSES, ALIGN_CLASSES, BG_CLASSES, RANDOM_ICONS, COVER_IMAGES } from './config.js';
+import { TOOLS, BULLET_MARKERS, SIZE_CLASSES, COLOR_CLASSES, ALIGN_CLASSES, BG_CLASSES, BOARD_BG_CLASSES, RANDOM_ICONS, COVER_IMAGES } from './config.js';
 import { 
   createTextBlock, 
   createChecklistBlock, 
@@ -108,6 +108,13 @@ function initEventListeners() {
     e.preventDefault();
     e.stopPropagation();
     openIconPicker($('#iconDisplay'));
+  });
+  
+  // Board settings (background color)
+  $('.js-board-settings')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openBoardSettingsMenu(e.currentTarget);
   });
   
   // Add block buttons
@@ -617,6 +624,40 @@ function closeCoverPicker() {
   $$('.cover-picker').forEach(p => p.remove());
 }
 
+// ==========================================================================
+// BOARD SETTINGS MENU
+// ==========================================================================
+
+function openBoardSettingsMenu(anchor) {
+  if (!anchor) return;
+  closeAllMenus();
+  closeBoardSettingsMenu();
+  
+  const menu = createToolMenu(TOOLS.BOARD_SETTINGS, null);
+  positionMenu(menu, anchor);
+  menu.classList.add('board-settings-menu');
+  document.body.appendChild(menu);
+}
+
+function closeBoardSettingsMenu() {
+  $$('.board-settings-menu').forEach(m => m.remove());
+}
+
+function changeBoardBackground(bgClass) {
+  const board = $('#board');
+  if (!board) return;
+  
+  // Remove existing board background classes
+  BOARD_BG_CLASSES.forEach(cls => board.classList.remove(cls));
+  
+  // Add new background class
+  if (bgClass) {
+    board.classList.add(bgClass);
+  }
+  
+  debouncedSave();
+}
+
 function setBoardEmoji(emoji) {
   const iconDisplay = $('#iconDisplay');
   if (!iconDisplay) return;
@@ -991,6 +1032,10 @@ function handleToolAction(e) {
       break;
     case 'gcal-reconnect':
       reconnectGCal(blockId);
+      break;
+    // Board settings actions
+    case 'board-bg':
+      changeBoardBackground(value);
       break;
   }
 }
@@ -1369,8 +1414,8 @@ function handleKeydown(e) {
   const activeEl = document.activeElement;
   const isEditable = activeEl?.matches('[contenteditable="true"], input, textarea');
 
-  // Shift + A: create a new text item (robust across browsers)
-if (e.shiftKey && (
+  // Control/Command + A: create a new text item (robust across browsers)
+if ((e.ctrlKey || e.metaKey) && (
     (typeof e.code === 'string' && e.code.toLowerCase() === 'keya') ||
     (typeof e.key === 'string' && e.key.toLowerCase() === 'a')
 )) {
@@ -1627,12 +1672,14 @@ function handleOutsideClick(e) {
     !e.target.closest('.cover-picker') &&
     !e.target.closest('#iconDisplay') &&
     !e.target.closest('.js-cover-icon') &&
-    !e.target.closest('.js-add-cover')
+    !e.target.closest('.js-add-cover') &&
+    !e.target.closest('.js-board-settings')
   ) {
     closeAllMenus();
     closeSizeMenus();
     closeIconPicker();
     closeCoverPicker();
+    closeBoardSettingsMenu();
   }
   
   // Close share panel
