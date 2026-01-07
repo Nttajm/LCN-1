@@ -26,6 +26,7 @@ export const COVER_IMAGES = [
     'covers/cover7.png',
     'covers/cover8.png',
     'covers/cover9.jpeg',
+    'covers/cover10.png',
 ];
 
 // ==========================================================================
