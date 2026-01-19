@@ -1,0 +1,102 @@
+.imessage {
+  background-color: #fff;
+  border: 1px solid #e5e5ea;
+  border-radius: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  font-family: "SanFrancisco";
+  font-size: 1.25rem;
+  margin: 0 auto 1rem;
+  max-width: 600px;
+  padding: 0.5rem 1.5rem;
+}
+
+.imessage p {
+  border-radius: 1.15rem;
+  line-height: 1.25;
+  max-width: 75%;
+  padding: 0.5rem .875rem;
+  position: relative;
+  word-wrap: break-word;
+}
+
+p.from-me {
+  align-self: flex-end;
+  background-color: #248bf5;
+  color: #fff; 
+}
+
+p.from-them {
+  align-items: flex-start;
+  background-color: #e5e5ea;
+  color: #000;
+}
+
+p.from-me ~ p.from-me {
+  margin: 0.25rem 0 0;
+}
+
+p.from-me ~ p.from-me:not(:last-child) {
+  margin: 0.25rem 0 0;
+}
+
+p.from-me ~ p.from-me:last-child {
+  margin-bottom: 0.5rem;
+}
+
+p[class^="from-"] {
+  margin: 0.5rem 0;
+  width: fit-content;
+}
+
+.no-tail::before {
+  display: none;
+}
+
+.timestamp {
+  font-size: 0.3rem;
+  color: #888;
+  position: absolute;
+  bottom: 2px;
+  right: 10px;
+}
+
+p[class^="from-"].emoji {
+  background: none;
+  font-size: 2.5rem;
+}
+
+p[class^="from-"].emoji::before {
+  content: none; 
+}
+
+p.from-them ~ p.from-them {
+  margin: 0.25rem 0 0;
+}
+
+p.from-them ~ p.from-them:not(:last-child) {
+  margin: 0.25rem 0 0;
+}
+
+.from-them {
+  margin: 0.25rem 0;
+}
+p.from-them ~ p.from-them:last-child {
+  margin-bottom: 0.5rem;
+}
+
+.ani {
+  animation: text 0.4s forwards;
+}
+
+@keyframes text {
+  50% {
+    transform: translateY(30%);
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  100% {
+    transform: translateY(0%);
+  }
+}

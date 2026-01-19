@@ -1,0 +1,84 @@
+.tradeForm {
+    padding: 1rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#selectSymbol {
+    padding: 0.5rem;
+    color: rgb(45, 45, 45) !important;
+    text-transform: uppercase;
+}
+
+#selectSymbol option {
+    color: rgb(68, 68, 68) !important;
+    padding: 0.6rem;
+}
+
+.sec {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+#afterSelect {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.af-name p:first-child{
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.af-name div {
+    font-size: .5rem;
+    font-weight: 400;
+    color: gray;
+}
+
+.value {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.y {
+    color: rgb(153, 153, 12);
+}
+
+.value-number {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.af-other {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.7rem;
+    margin-left: 0.2rem;
+}
+
+.af-other span:nth-child(2) {
+    font-weight: 600;
+}
+
+.change {
+    margin-left: 0.5rem;
+    padding: 0.3rem;
+    font-family: monospace;
+}
+
+#myChart {
+   width: 10rem;
+   height: 8rem;
+}
+
+.loader {
+    background-color: red;
+    width: 100%;
+    height: 20px;
+}

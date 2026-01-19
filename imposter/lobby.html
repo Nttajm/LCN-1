@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impostor - Party Lobby</title>
+    <link rel="stylesheet" href="/css/standard.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            min-width: 400px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            backdrop-filter: blur(5px);
+        }
+
+        input[type="text"]::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e17055, #d63031);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+        }
+
+        .player-list {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player-item:last-child {
+            border-bottom: none;
+        }
+
+        .player-name {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .word-bank-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .word-bank-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .word-preview {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .party-code {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+
+        .host-only {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #00b894;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                min-width: 0;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="lobbyTitle">Party Lobby</h2>
+        <div class="party-code" id="lobbyCode"></div>
+        
+        <div class="player-list">
+            <h3>Players:</h3>
+            <div id="playersList"></div>
+        </div>
+
+        <div class="word-bank-section">
+            <h3>Word Bank</h3>
+            <div class="word-bank-options" id="wordBankControls">
+                <button class="btn btn-secondary" id="addWordsBtn">Add Words</button>
+                <button class="btn btn-secondary" id="pasteListBtn">Paste List</button>
+                <button class="btn btn-secondary" id="useDefaultBtn">Use Default</button>
+                <button class="btn" id="clearWordsBtn">Clear Word Bank</button>
+            </div>
+            
+            <div id="manualWords" style="display: none;">
+                <div class="input-group">
+                    <input type="text" id="newWord" placeholder="Enter a word">
+                    <button class="btn" id="addWordBtn">Add Word</button>
+                </div>
+            </div>
+            
+            <div id="pasteWords" style="display: none;">
+                <div class="input-group">
+                    <textarea id="wordList" placeholder="Paste words here (one per line or tab-separated)"></textarea>
+                    <button class="btn" id="addWordsFromListBtn">Add Words</button>
+                </div>
+            </div>
+            
+            <div id="defaultWords" style="display: none;">
+                <button class="btn" id="useDefaultWordsBtn">Use Default Word Bank</button>
+            </div>
+            
+            <div class="word-preview">
+                <strong>Current Words:</strong>
+                <div id="wordsPreview">No words added yet</div>
+            </div>
+        </div>
+
+        <div class="text-center" id="hostControls">
+            <button class="btn btn-success" id="startGameBtn">Start Game</button>
+            <button class="btn btn-danger" id="hostLeavePartyBtn">Leave Party</button>
+        </div>
+        <div class="text-center" id="playerControls" style="display: none;">
+            <button class="btn btn-danger" id="playerLeavePartyBtn">Leave Party</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { 
+            initializeApp 
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { 
+            getFirestore, doc, getDoc, updateDoc, onSnapshot, deleteDoc 
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { 
+            arrayUnion, arrayRemove, deleteField 
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkPsE0uD-1_V5_QfM-RhtaIviQlINW2DA",
+            authDomain: "lcntests.firebaseapp.com",
+            projectId: "lcntests",
+            storageBucket: "jmblanks.appspot.com",
+            messagingSenderId: "665856876392",
+            appId: "1:665856876392:web:c6274b52a9e90c3d6400dd"
+        }; 
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Game state
+        let currentUser = null;
+        let currentParty = null;
+        let isHost = false;
+        let gameWords = [];
+        let unsubscribeParty = null;
+        let partyData = {};
+
+        // Default word bank
+        const defaultWordBank = [
+            "apple","banana","ocean","mountain","computer","telephone","guitar","pizza",
+            "elephant","butterfly","rainbow","thunder","castle","dragon","wizard","robot",
+            "spaceship","treasure","island","forest","river","sunset","camera","bicycle",
+            "chocolate","diamond","flower","lighthouse","penguin","volcano"
+        ];
+
+        // Initialize from localStorage
+        function initializeFromStorage() {
+            currentUser = localStorage.getItem('currentUser');
+            currentParty = localStorage.getItem('currentParty');
+            isHost = localStorage.getItem('isHost') === 'true';
+            gameWords = JSON.parse(localStorage.getItem('gameWords') || '[]');
+
+            if (!currentUser || !currentParty) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Save to localStorage
+        function saveToStorage() {
+            localStorage.setItem('currentUser', currentUser);
+            localStorage.setItem('currentParty', currentParty);
+            localStorage.setItem('isHost', isHost);
+            localStorage.setItem('gameWords', JSON.stringify(gameWords));
+        }
+
+        // Initialize lobby
+        function initializeLobby() {
+            if (!initializeFromStorage()) return;
+
+            document.getElementById('lobbyCode').textContent = `Party Code: ${currentParty}`;
+            updateWordBankPermissions();
+            setupEventListeners();
+            setupPartyListener();
+        }
+
+        function updateWordBankPermissions() {
+            const wordBankControls = document.getElementById('wordBankControls');
+            if (!isHost) {
+                wordBankControls.classList.add('host-only');
+            } else {
+                wordBankControls.classList.remove('host-only');
+            }
+        }
+
+        function updatePlayersList(players, host) {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            players.forEach(player => {
+                const item = document.createElement('div');
+                item.className = 'player-item';
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'player-name';
+                
+                if (player === host) {
+                    nameDiv.innerHTML = `👑 ${player}`;
+                } else {
+                    nameDiv.textContent = player;
+                }
+                
+                item.appendChild(nameDiv);
+                playersList.appendChild(item);
+            });
+        }
+
+        function setupPartyListener() {
+            unsubscribeParty = onSnapshot(doc(db, "parties", currentParty), (docSnap) => {
+                if (docSnap.exists()) {
+                    partyData = docSnap.data();
+                    updatePlayersList(partyData.players, partyData.host);
+                    
+                    // Update words if not host
+                    if (!isHost && partyData.words) {
+                        gameWords = partyData.words;
+                        updateWordsPreview();
+                    }
+
+                    // Check if host changed
+                    if (partyData.host === currentUser && !isHost) {
+                        isHost = true;
+                        saveToStorage();
+                        location.reload();
+                    }
+
+                    // Check if game started
+                    if (partyData.gameActive && partyData.gameAssignments) {
+                        window.location.href = 'game.html';
+                    }
+                }
+            });
+        }
+
+        // Word bank functions
+        function showWordBankOption(option) {
+            document.getElementById('manualWords').style.display = 'none';
+            document.getElementById('pasteWords').style.display = 'none';
+            document.getElementById('defaultWords').style.display = 'none';
+            document.getElementById(option + 'Words').style.display = 'block';
+        }
+
+        function addWord() {
+            if (!isHost) return;
+            const newWord = document.getElementById('newWord').value.trim();
+            if (newWord && !gameWords.includes(newWord.toLowerCase())) {
+                gameWords.push(newWord.toLowerCase());
+                document.getElementById('newWord').value = '';
+                updateWordsPreview();
+                saveToStorage();
+                updatePartyWords();
+            }
+        }
+
+        function addWordsFromList() {
+            if (!isHost) return;
+            const wordList = document.getElementById('wordList').value.trim();
+            if (!wordList) return;
+
+            const words = wordList.split(/[\n\t,]+/)
+                .map(word => word.trim().toLowerCase())
+                .filter(word => word && !gameWords.includes(word));
+            
+            gameWords.push(...words);
+            document.getElementById('wordList').value = '';
+            updateWordsPreview();
+            saveToStorage();
+            updatePartyWords();
+        }
+
+        function useDefaultWords() {
+            if (!isHost) return;
+            gameWords = [...defaultWordBank];
+            updateWordsPreview();
+            saveToStorage();
+            updatePartyWords();
+        }
+
+        function clearWords() {
+            if (!isHost) return;
+            gameWords = [];
+            updateWordsPreview();
+            saveToStorage();
+            updatePartyWords();
+        }
+
+        function updateWordsPreview() {
+            const preview = document.getElementById('wordsPreview');
+            if (gameWords.length === 0) {
+                preview.textContent = 'No words added yet';
+            } else {
+                preview.textContent = gameWords.join(', ');
+            }
+        }
+
+        async function updatePartyWords() {
+            if (currentParty && isHost) {
+                try {
+                    await updateDoc(doc(db, "parties", currentParty), {
+                        words: gameWords
+                    });
+                } catch (error) {
+                    console.error('Error updating party words:', error);
+                }
+            }
+        }
+
+        // Game functions
+        async function startGame() {
+            if (gameWords.length === 0) {
+                alert('Please add some words to the word bank first!');
+                return;
+            }
+
+            try {
+                const ref = doc(db, "parties", currentParty);
+                const partyDoc = await getDoc(ref);
+                const players = partyDoc.data().players;
+
+                if (players.length < 2) {
+                    alert('You need at least 2 players to start the game!');
+                    return;
+                }
+
+                const randomWord = gameWords[Math.floor(Math.random() * gameWords.length)];
+                const impostorIndex = Math.floor(Math.random() * players.length);
+
+                const gameAssignments = {};
+                players.forEach((p, i) => {
+                    gameAssignments[p] = {
+                        word: randomWord,
+                        isImpostor: i === impostorIndex
+                    };
+                });
+
+                await updateDoc(ref, {
+                    gameActive: true,
+                    votingActive: false,
+                    gameAssignments: gameAssignments,
+                    gameWord: randomWord,
+                    impostor: players[impostorIndex],
+                    votes: {},
+                    gameEnded: false
+                });
+
+                // Redirect to game page
+                window.location.href = 'game.html';
+            } catch (error) {
+                console.error('Error starting game:', error);
+                alert('Error starting game');
+            }
+        }
+
+        async function promoteNewHost(players, currentHost) {
+            const remainingPlayers = players.filter(p => p !== currentHost);
+            if (remainingPlayers.length > 0) {
+                const newHost = remainingPlayers[0];
+                await updateDoc(doc(db, "parties", currentParty), {
+                    host: newHost,
+                    players: arrayRemove(currentHost)
+                });
+            }
+        }
+
+        async function leaveParty() {
+            if (!currentParty) return;
+
+            try {
+                const ref = doc(db, "parties", currentParty);
+                const partyDoc = await getDoc(ref);
+                const data = partyDoc.data();
+                
+                if (isHost && data.players.length > 1) {
+                    // Promote new host before leaving
+                    await promoteNewHost(data.players, currentUser);
+                } else if (isHost) {
+                    // Delete party if host is the only one
+                    await deleteDoc(ref);
+                } else {
+                    // Just remove player
+                    await updateDoc(ref, {
+                        players: arrayRemove(currentUser)
+                    });
+                }
+
+                // Clear storage and return to main page
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('currentParty');
+                localStorage.removeItem('isHost');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error leaving party:', error);
+            }
+        }
+
+        function setupEventListeners() {
+            // Word bank controls
+            document.getElementById('addWordsBtn').addEventListener('click', () => showWordBankOption('manual'));
+            document.getElementById('pasteListBtn').addEventListener('click', () => showWordBankOption('paste'));
+            document.getElementById('useDefaultBtn').addEventListener('click', () => showWordBankOption('default'));
+            
+            document.getElementById('addWordBtn').addEventListener('click', addWord);
+            document.getElementById('addWordsFromListBtn').addEventListener('click', addWordsFromList);
+            document.getElementById('useDefaultWordsBtn').addEventListener('click', useDefaultWords);
+            document.getElementById('clearWordsBtn').addEventListener('click', clearWords);
+
+            // Game controls
+            document.getElementById('startGameBtn').addEventListener('click', startGame);
+            document.getElementById('hostLeavePartyBtn').addEventListener('click', leaveParty);
+            document.getElementById('playerLeavePartyBtn').addEventListener('click', leaveParty);
+
+            // Host/Player controls
+            if (isHost) {
+                document.getElementById('hostControls').style.display = 'block';
+                document.getElementById('playerControls').style.display = 'none';
+            } else {
+                document.getElementById('hostControls').style.display = 'none';
+                document.getElementById('playerControls').style.display = 'block';
+            }
+
+            // Enter key handling
+            document.getElementById('newWord').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addWord();
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLobby();
+        });
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (unsubscribeParty) unsubscribeParty();
+        });
+    </script>
+</body>
+</html>

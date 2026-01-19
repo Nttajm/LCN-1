@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/oat.css">
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="/css/root.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T | of all time</title>
+</head>
+<body>
+    <nav>
+        <div>
+            <img src="images/logored.jpg" alt="pfp" class="pfp">
+            <span>OAT</span>
+        </div>
+    </nav>
+    <div class="cont">
+        <div class="post">
+            <div class="p-top">
+                <span class="genre uh">Music</span>
+                &bull;
+                <span>11 years ago</span>
+            </div>
+            <div class="p-mid">
+                <img src="images/oat-photos/rockstar.webp" alt="photo" class="post-img">
+                <span>Just for now - Lil B (feat. Jm)</span>
+            </div>
+            <div class="p-bottum">
+                <button>
+                    <span class="material-symbols-outlined">
+                        swap_vert
+                    </span>
+                    8.4K
+                </button>
+                <span>
+                    49.3K views
+                </span>
+                <span>
+                    382 comments
+                </span>
+            </div>
+        </div>
+    </div>
+</body>
+ <script>
+    const postArray = [];
+
+function push(genre, date, name, likes, views, comments, rank) {
+    postArray.push({
+        genre,
+        date,
+        name,
+        likes,
+        views,
+        comments,
+        rank
+    });
+    postArray.sort((a, b) => a.rank - b.rank); // Sort the array based on rank after pushing
+}
+
+    push('Music', '13 years ago', 'Just for now - Lil B (feat. Jm)', 
+    '72M','4.1B', '8M', 1);
+    push('Music', '4 years ago', 'Yendi - Jm', 
+        '34M', '1.1B', '1M', 2);
+    push('Chadwick', '4 years ago', 'KING...', 
+        '23M', '958M', '515k', 3);
+    push('SSL_melbie', '4 years ago', 'Un segundo - xlsd ft. Bad bunny', 
+        '13M', '958M', '515k', );
+    push('Eradl_2', '6 years ago', 'Can you read this? lol.',
+        '17M', '864M', '411k', 5);
+    push('t_Muller', '10 years ago', '10x',
+        '17M', '102M', '654k', 6)
+    push('BTS_red', '7 years ago', '백악관에서',
+        '15M', '18M', '122k')
+    push('TTe', '1 year ago', 'We did, again.',
+        '9M', '15M', '516k')
+    push('Gon_str_wide', '2 years ago', 'Seriously? I paid 80$ to have Vader locked?',
+        '886k', '17M', '916k')
+    push('BTS_red', '7 years ago', 'whats AMIA form the other pov?',
+        '5M', '38M', '1.1M')
+    push('BTS_red', '7 years ago', 'I know damn well he ',
+        '5M', '18M', '122k')
+    push('TTe', '5 years ago', 'We did.',
+        '3M', '13M', '516k')
+    push('Jm', '5 years ago', 'Still here.',
+        '1M', '5M', '116k')
+
+    renderPosts();
+
+    function renderPosts() {
+        const cont = document.querySelector('.cont');
+        cont.innerHTML = ``;
+        postArray.forEach((post) => {
+            cont.innerHTML += `
+                <div class="post">
+                    <div class="p-top">
+                        <span class="genre uh">${post.genre}</span>
+                        &bull;
+                        <span>${post.date}</span>
+                    </div>
+                    <div class="p-mid">
+                        <span class="uh">${post.name}</span>
+                    </div>
+                    <div class="p-bottum">
+                        <button>
+                            <span class="material-symbols-outlined">
+                                swap_vert
+                            </span>
+                            ${post.likes}
+                        </button>
+                        <span>
+                            ${post.views} views
+                        </span>
+                        <span>
+                            ${post.comments} comments
+                        </span>
+                    </div>
+                </div>
+            `
+    });
+
+    }
+
+    
+
+ </script>
+</html>

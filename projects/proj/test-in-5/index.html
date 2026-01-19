@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Investment Game</title>
+    <link rel="stylesheet" href="../bank/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/standard.css">
+</head>
+<body>
+    <div class="nav">
+        <ul>
+            <li><a href="../bank/bank.html">Accounts</a></li>
+            <li><a href="../bank/buisness.html">business</a></li>
+            <li class="sel"><a href="../test-in-5/index.html">Investments</a></li>
+            <li>Transactions</li>
+        </ul>
+    </div>
+    <div id="accounts"></div>
+    <button id="addAccount">Add New Account</button>
+    <div id="actions-c">
+        <div class="buysell">
+            <div id="stockLists"></div>
+            <div class="bs-cont">
+                <div id="investForm">
+                    <h3>Buy Stocks</h3>
+                    <label for="stockSelect">Select Stock:</label>
+                    <select id="stockSelect"></select>
+                    <label for="shares">Shares:</label>
+                    <input type="number" placeholder="Number of Shares" id="shares">
+                    <label for="investAccountSelect">Select Account:</label>
+                    <select id="investAccountSelect"></select>
+                    <button id="buyStock">Buy Stock</button>
+                </div>
+                <div id="sellForm">
+                    <h3>Sell Stocks</h3>
+                    <label for="sellStockSelect">Select Stock:</label>
+                    <select id="sellStockSelect"></select>
+                    <label for="sellShares">Shares:</label>
+                    <input type="number" id="sellShares">
+                    <label for="sellAccountSelect">Select Account:</label>
+                    <select id="sellAccountSelect"></select>
+                    <button id="sellStock">Sell Stock</button>
+                </div>
+            </div>
+        </div>
+        <div class="stock-sec sec">
+            <div id="stocks">
+                <h2>Your Stocks</h2>
+                <div id="portfolioTotal">Total Portfolio Value: $0.00</div>
+                <div id="stockList"></div>
+            </div>   
+        </div>
+        <div id="profitLossHistory" class="sec">
+            <h3>Profit and Loss History</h3>
+            <ul id="profitLossList"></ul>
+        </div>
+    </div>
+    <div id="investmentStats">
+        <h3>Investment Statistics</h3>
+        <p>Total Profits: $<span id="totalProfits">0.00</span></p>
+        <p>Total Volume: <span id="totalVolume">0</span> shares</p>
+        <p>Total Portfolio Value: $<span id="portfolioTotal">0.00</span></p>
+        <p>Average Profit Percentage: <span id="avgProfitPercent">0.00%</span></p>
+        <p>Percentage Change (Last Hour): <span id="percentChangeHour">0.00%</span></p>
+        <p>Number of Investments: <span id="numInvestments">0</span></p>
+    </div>
+    <div class="dn">
+        <h3>Sell Stock at Target Price</h3>
+<select id="sellStockSelectTarget"></select>
+<input type="number" id="sellSharesTarget" placeholder="Number of Shares" min="1">
+<input type="number" id="targetPrice" placeholder="Target Price" step="0.01">
+<button id="placeSellOrder">Place Sell Order</button>
+    <script src="script.js"></script>
+
+   <span class="shares"></span>
+</body>
+</html>

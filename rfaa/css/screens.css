@@ -1,0 +1,53 @@
+
+
+/* Small devices (phones, 576px and below) */
+@media (max-width: 576px) {
+    .md-match {
+        width: 100% !important;
+    }
+
+    :root {
+        font-size: 8px;
+    }
+}
+
+/* Medium devices (tablets, between 577px and 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+    .md-match {
+        width: 40% !important;
+    }
+
+    :root {
+        font-size: 11px;
+    }
+}
+
+/* Large devices (desktops, between 769px and 992px) */
+@media (min-width: 769px) and (max-width: 992px) {
+    /* Small desktop specific styles go here */
+}
+
+/* Extra large devices (large desktops, between 993px and 1200px) */
+@media (min-width: 993px) and (max-width: 1200px) {
+    /* Large desktop specific styles go here */
+}
+
+/* Super large devices (large screens, 1201px and up) */
+@media (min-width: 1201px) {
+    /* Extra large screen specific styles go here */
+}
+
+/* For print */
+@media print {
+    /* Print-specific styles go here */
+}
+
+/* For landscape orientation */
+@media (orientation: landscape) {
+    /* Landscape-specific styles go here */
+}
+
+/* For portrait orientation */
+@media (orientation: portrait) {
+    /* Portrait-specific styles go here */
+}

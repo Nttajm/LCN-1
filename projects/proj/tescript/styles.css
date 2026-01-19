@@ -1,0 +1,84 @@
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #2e2e2e;
+  overflow-x: hidden;
+}
+
+h1 {
+  color: #cecece;
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #ccc;
+  padding: 20px;
+  background-color: #121212;
+  overflow-y: auto;
+  white-space: pre;
+  font-family: monospace;
+  font-size: 16px;
+  line-height: 1.5;
+  outline: none;
+  color: #71afff;
+  text-shadow: 1px 1px 6px currentColor;
+}
+
+.surround {
+  width: 100%;
+  height: 100%;
+}
+
+.scrip-file {
+  border: solid 1px gray;
+  padding: 10px;
+  color: rgb(85, 110, 152);
+}
+
+.keyword {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.string {
+  color: #d9534f;
+}
+
+.comment {
+  color: #999;
+  font-style: italic;
+}
+
+.dents {
+  color: rgb(66, 88, 254);
+}
+
+.funs {
+  color: #dccc21f9;
+}
+
+.cores {
+  color: #00d16c;
+}
+
+.local {
+  color: rgb(255, 255, 107);
+}
+
+.next-word {
+  color: #5d0cff; /* Red color for the next word */
+}
+
+.brackets {
+  color: #cf532d;
+}
+
+.orange {
+  color: orange;
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/load.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load</title>
+</head>
+<body>
+    <nav>
+        <span class="c">about</span>
+    </nav>
+    <div class="cont">
+        <div class="head">
+            <span class="head">Your load time is:</span>
+            <span class="material-symbols-outlined"></span>
+        </div>
+        <div class="result-cont">
+            <div class="result">0.000</div>
+            <div class="secs">
+               <span>Seconds</span>
+            </div>
+        </div>
+        <div class="form">
+            <input type="text" id="iterationInput" value="1,323,500,000"> <!-- Added an id for the input -->
+            <button id="loadButton" class="btn" onclick="load();">Load</button> <!-- Added an id for the button -->
+        </div>
+        <button class="btn-m btn">More options</button>
+        <div class="options">
+        </div>
+    </div>
+    <script src="js/load.js"></script> <!-- Linked the JavaScript file -->
+</body>
+</html>

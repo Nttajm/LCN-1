@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="/bp/inspo/overunder/ou.css">
+    <link rel="stylesheet" href="css/users.css">
+</head>
+<body>
+    <div class="multi-tag-2 fl-c holder">
+        <a href="ouadmin.html">Orders</a>
+            <a href="addcode.html">Add Code</a>
+            <a href="users.html">users</a>
+            <a href="stock.html">stocks</a>
+        <h2>Users</h2>
+        <div class="filters">
+            <select  class="filter" name="filter" id="filter">
+                <option value="ABC">ABC _></option>
+                <option value="Balance">Balance</option>
+                <input type="text" id="searchInput" placeholder="Search by username...">
+            </select>
+            <select name="seachFilter" id="seachFilter">
+                <option value="username">username</option>
+                <option value="realname">realname</option>
+                <option value="email">email</option>
+            </select>
+        </div>
+        <div class="users-cont">
+            <div class="user" data-uid="goat">
+                <span class="user-name">joelm</span> - <span class="user-realname">Joel Mulonde</span>
+                <div class="sepa"></div>
+                <div class="info">
+                    <div class="info-hold">
+                        <span>Username : </span>
+                        <input type="text" class="config-1" placeholder="joelm">
+                        <button>Change</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="js/users.js" type="module"></script>
+<script src="js/standard.js" type="module"></script>
+</html>

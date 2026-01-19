@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Shirt Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Pacifico&family=Raleway:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Crimson+Text:wght@400;600;700&family=Lobster&family=Bebas+Neue&family=Righteous&family=Comfortaa:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fa;
+            color: #1a1a1a;
+            overflow-x: hidden;
+        }
+
+        /* Mobile Layout */
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .shirt-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .shirt-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            user-select: none;
+        }
+
+        .design-area {
+            position: absolute;
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(2px);
+            cursor: move;
+            width: 280px;
+            height: 320px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -65%);
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .design-element {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            z-index: 3;
+        }
+
+        .text-element {
+            font-size: 24px;
+            font-weight: 500;
+            color: #000;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .image-element {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .tools-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            z-index: 10;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            max-height: 35vh;
+            overflow-y: auto;
+        }
+
+        .tools-panel.open {
+            transform: translateY(0);
+        }
+
+        .tools-toggle {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 11;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .tools-toggle:hover {
+            background: #1d4ed8;
+            transform: scale(1.05);
+        }
+
+        .tools-section {
+            margin-bottom: 20px;
+        }
+
+        .tools-section h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #374151;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .btn.primary {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn.danger {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .btn.danger:hover {
+            background: #b91c1c;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+        }
+
+        .color-input {
+            width: 50px;
+            height: 35px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .element-properties {
+            display: none;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .element-properties.active {
+            display: block;
+        }
+
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 20;
+            max-width: 280px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #2563eb;
+            border-radius: 50%;
+            bottom: -6px;
+            right: -6px;
+            cursor: nw-resize;
+        }
+
+        .rotate-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #059669;
+            border-radius: 50%;
+            top: -6px;
+            right: -6px;
+            cursor: grab;
+        }
+
+        .delete-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #dc2626;
+            border-radius: 50%;
+            top: -6px;
+            left: -6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        /* Desktop Layout */
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+
+            .shirt-canvas {
+                position: relative;
+                flex: 1;
+                height: 100vh;
+            }
+
+            .tools-panel {
+                position: relative;
+                width: 350px;
+                height: 100vh;
+                background: white;
+                border-right: 1px solid #e5e7eb;
+                transform: none;
+                max-height: none;
+                order: -1;
+                padding: 20px;
+            }
+
+            .tools-toggle {
+                display: none;
+            }
+
+            .design-area {
+                width: 300px;
+                height: 400px;
+                top: 50%;
+                left: 50%;
+            }
+
+            .btn {
+                font-size: 14px;
+                padding: 10px 16px;
+            }
+
+            .form-control {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .tools-section h3 {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+            .tools-section {
+                margin-bottom: 25px;
+            }
+        }
+
+        .selected {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        .fonts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 6px;
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .font-option {
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .font-option:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .font-option.selected {
+            border-color: #2563eb;
+            background: #dbeafe;
+        }
+
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-group input {
+            flex: 1;
+        }
+
+        .range-value {
+            font-size: 12px;
+            color: #6b7280;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        @media (max-width: 767px) {
+            .fonts-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: 4px;
+            }
+
+            .font-option {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+
+            .range-group {
+                gap: 8px;
+            }
+
+            .range-value {
+                font-size: 11px;
+                min-width: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tools-panel">
+            <div class="tools-section">
+                <h3>Add Elements</h3>
+                <div class="button-group">
+                    <button class="btn primary" onclick="addTextElement()">+ Text</button>
+                    <div class="file-upload">
+                        <button class="btn">+ Image</button>
+                        <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tools-section">
+                <h3>Canvas Actions</h3>
+                <div class="button-group">
+                    <button class="btn" onclick="clearDesign()">Clear All</button>
+                    <button class="btn primary" onclick="exportDesign()">Export Design</button>
+                    <button class="btn" onclick="showDesignData()">Show Data</button>
+                </div>
+            </div>
+
+            <div id="elementProperties" class="element-properties">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin-bottom: 0;">Element Properties</h3>
+                    <button class="btn danger" onclick="deleteSelectedElement()">Delete</button>
+                </div>
+                
+                <div id="textProperties" style="display: none;">
+                    <div class="form-group">
+                        <label>Text Content</label>
+                        <input type="text" id="textContent" class="form-control" placeholder="Enter text">
+                    </div>
+                    <div class="form-group">
+                        <label>Font Size</label>
+                        <div class="range-group">
+                            <input type="range" id="fontSize" min="12" max="100" value="24" class="form-control">
+                            <span id="fontSizeValue" class="range-value">24px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Text Color</label>
+                        <input type="color" id="textColor" value="#000000" class="color-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Rotation</label>
+                        <div class="range-group">
+                            <input type="range" id="textRotation" min="0" max="360" value="0" class="form-control">
+                            <span id="textRotationValue" class="range-value">0°</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Font Family *note: any </label>
+                        <div class="fonts-grid" id="fontsGrid">
+                            <div class="font-option selected" data-font="Inter" style="font-family: Inter">Inter</div>
+                            <div class="font-option" data-font="Roboto" style="font-family: Roboto">Roboto</div>
+                            <div class="font-option" data-font="Open Sans" style="font-family: 'Open Sans'">Open Sans</div>
+                            <div class="font-option" data-font="Poppins" style="font-family: Poppins">Poppins</div>
+                            <div class="font-option" data-font="Montserrat" style="font-family: Montserrat">Montserrat</div>
+                            <div class="font-option" data-font="Lato" style="font-family: Lato">Lato</div>
+                            <div class="font-option" data-font="Oswald" style="font-family: Oswald">Oswald</div>
+                            <div class="font-option" data-font="Playfair Display" style="font-family: 'Playfair Display'">Playfair</div>
+                            <div class="font-option" data-font="Dancing Script" style="font-family: 'Dancing Script'">Dancing</div>
+                            <div class="font-option" data-font="Pacifico" style="font-family: Pacifico">Pacifico</div>
+                            <div class="font-option" data-font="Raleway" style="font-family: Raleway">Raleway</div>
+                            <div class="font-option" data-font="Nunito" style="font-family: Nunito">Nunito</div>
+                            <div class="font-option" data-font="Merriweather" style="font-family: Merriweather">Merriweather</div>
+                            <div class="font-option" data-font="Crimson Text" style="font-family: 'Crimson Text'">Crimson</div>
+                            <div class="font-option" data-font="Lobster" style="font-family: Lobster">Lobster</div>
+                            <div class="font-option" data-font="Bebas Neue" style="font-family: 'Bebas Neue'">Bebas</div>
+                            <div class="font-option" data-font="Righteous" style="font-family: Righteous">Righteous</div>
+                            <div class="font-option" data-font="Comfortaa" style="font-family: Comfortaa">Comfortaa</div>
+                            <div class="font-option" data-font="Source Sans Pro" style="font-family: 'Source Sans Pro'">Source Sans</div>
+                            <div class="font-option" data-font="Ubuntu" style="font-family: Ubuntu">Ubuntu</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="imageProperties" style="display: none;">
+                    <div class="form-group">
+                        <label>Image Scale</label>
+                        <div class="range-group">
+                            <input type="range" id="imageScale" min="0.1" max="3" step="0.1" value="1" class="form-control">
+                            <span id="imageScaleValue" class="range-value">100%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Rotation</label>
+                        <div class="range-group">
+                            <input type="range" id="imageRotation" min="0" max="360" value="0" class="form-control">
+                            <span id="imageRotationValue" class="range-value">0°</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shirt-canvas">
+            <img src="shirts/tee.webp" alt="T-Shirt" class="shirt-image" id="shirtImage">
+            <div class="design-area" id="designArea"></div>
+        </div>
+    </div>
+
+    <button class="tools-toggle" onclick="toggleTools()">⚙️</button>
+
+    <script>
+        let selectedElement = null;
+        let isDragging = false;
+        let isResizing = false;
+        let isRotating = false;
+        let dragOffset = { x: 0, y: 0 };
+        let elementCounter = 0;
+        let rotationCenter = { x: 0, y: 0 };
+        let initialAngle = 0;
+        let currentRotation = 0;
+
+        // Store all design elements data
+        let designElements = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Font selection
+            document.querySelectorAll('.font-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.font-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    if (selectedElement && selectedElement.classList.contains('text-element')) {
+                        selectedElement.style.fontFamily = this.dataset.font;
+                        updateElementData(selectedElement);
+                    }
+                });
+            });
+
+            // Property controls
+            document.getElementById('textContent').addEventListener('input', updateTextContent);
+            document.getElementById('fontSize').addEventListener('input', updateFontSize);
+            document.getElementById('textColor').addEventListener('input', updateTextColor);
+            document.getElementById('textRotation').addEventListener('input', updateTextRotation);
+            document.getElementById('imageScale').addEventListener('input', updateImageScale);
+            document.getElementById('imageRotation').addEventListener('input', updateImageRotation);
+
+            // File upload
+            document.querySelector('.file-upload').addEventListener('click', function() {
+                document.getElementById('imageUpload').click();
+            });
+        }
+
+        function toggleTools() {
+            const panel = document.querySelector('.tools-panel');
+            panel.classList.toggle('open');
+        }
+
+        function addTextElement() {
+            elementCounter++;
+            const textEl = document.createElement('div');
+            textEl.className = 'design-element text-element';
+            textEl.textContent = 'New Text';
+            textEl.style.left = '50px';
+            textEl.style.top = '50px';
+            textEl.style.fontSize = '24px';
+            textEl.style.color = '#000000';
+            textEl.style.fontFamily = 'Inter';
+            textEl.id = 'element-' + elementCounter;
+            
+            addElementEventListeners(textEl);
+            document.getElementById('designArea').appendChild(textEl);
+            selectElement(textEl);
+            
+            // Store element data
+            designElements[textEl.id] = {
+                type: 'text',
+                text: 'New Text',
+                fontSize: 24,
+                color: '#000000',
+                fontFamily: 'Inter',
+                x: 50,
+                y: 50,
+                rotation: 0
+            };
+        }
+
+        function handleImageUpload(event) {
+            showNotification('Tip: Use images with transparent backgrounds, simple icons, or PNGs for best results. Avoid complex photos.');
+            
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                elementCounter++;
+                const imgEl = document.createElement('img');
+                imgEl.className = 'design-element image-element';
+                imgEl.src = e.target.result;
+                imgEl.style.left = '50px';
+                imgEl.style.top = '50px';
+                imgEl.style.width = '100px';
+                imgEl.style.height = 'auto';
+                imgEl.id = 'element-' + elementCounter;
+                
+                addElementEventListeners(imgEl);
+                document.getElementById('designArea').appendChild(imgEl);
+                selectElement(imgEl);
+                
+                // Store element data
+                designElements[imgEl.id] = {
+                    type: 'image',
+                    src: e.target.result,
+                    width: 100,
+                    x: 50,
+                    y: 50,
+                    scale: 1,
+                    rotation: 0
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addElementEventListeners(element) {
+            element.addEventListener('mousedown', handleMouseDown);
+            element.addEventListener('touchstart', handleTouchStart, { passive: false });
+            
+            // Add control handles
+            addControlHandles(element);
+        }
+
+        function addControlHandles(element) {
+            // Delete handle
+            const deleteHandle = document.createElement('div');
+            deleteHandle.className = 'delete-handle';
+            deleteHandle.innerHTML = '×';
+            deleteHandle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteElement(element);
+            });
+            element.appendChild(deleteHandle);
+
+            // Rotate handle
+            const rotateHandle = document.createElement('div');
+            rotateHandle.className = 'rotate-handle';
+            rotateHandle.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                startRotation(e, element);
+            });
+            element.appendChild(rotateHandle);
+            
+            // Add resize handle for images
+            if (element.classList.contains('image-element')) {
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                resizeHandle.addEventListener('mousedown', function(e) {
+                    e.stopPropagation();
+                    isResizing = true;
+                    selectElement(element);
+                });
+                element.appendChild(resizeHandle);
+            }
+        }
+
+        function startRotation(e, element) {
+            isRotating = true;
+            selectElement(element);
+            
+            const rect = element.getBoundingClientRect();
+            rotationCenter.x = rect.left + rect.width / 2;
+            rotationCenter.y = rect.top + rect.height / 2;
+            
+            const angle = Math.atan2(e.clientY - rotationCenter.y, e.clientX - rotationCenter.x);
+            initialAngle = angle;
+            
+            const transform = element.style.transform;
+            const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
+            currentRotation = rotateMatch ? parseFloat(rotateMatch[1]) : 0;
+            
+            document.addEventListener('mousemove', handleRotationMove);
+            document.addEventListener('mouseup', handleRotationEnd);
+        }
+
+        function handleRotationMove(e) {
+            if (!isRotating) return;
+            
+            const angle = Math.atan2(e.clientY - rotationCenter.y, e.clientX - rotationCenter.x);
+            const deltaAngle = (angle - initialAngle) * (180 / Math.PI);
+            const newRotation = currentRotation + deltaAngle;
+            
+            applyRotation(selectedElement, newRotation);
+        }
+
+        function handleRotationEnd() {
+            isRotating = false;
+            document.removeEventListener('mousemove', handleRotationMove);
+            document.removeEventListener('mouseup', handleRotationEnd);
+        }
+
+        function applyRotation(element, rotation) {
+            const normalizedRotation = rotation % 360;
+            const otherTransforms = element.style.transform.replace(/rotate\([^)]*\)/g, '');
+            element.style.transform = `${otherTransforms} rotate(${normalizedRotation}deg)`.trim();
+            updateElementData(element);
+        }
+
+        function deleteElement(element) {
+            if (confirm('Delete this element?')) {
+                delete designElements[element.id];
+                element.remove();
+                if (selectedElement === element) {
+                    selectedElement = null;
+                    document.getElementById('elementProperties').classList.remove('active');
+                }
+            }
+        }
+
+        function deleteSelectedElement() {
+            if (selectedElement) {
+                deleteElement(selectedElement);
+            }
+        }
+
+        function handleMouseDown(e) {
+            if (isResizing || isRotating) return;
+            
+            e.preventDefault();
+            isDragging = true;
+            selectElement(e.currentTarget);
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        function handleTouchStart(e) {
+            if (isResizing || isRotating) return;
+            
+            e.preventDefault();
+            isDragging = true;
+            selectElement(e.currentTarget);
+            
+            const touch = e.touches[0];
+            const rect = e.currentTarget.getBoundingClientRect();
+            dragOffset.x = touch.clientX - rect.left;
+            dragOffset.y = touch.clientY - rect.top;
+            
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging && !isResizing) return;
+            
+            const designArea = document.getElementById('designArea');
+            const areaRect = designArea.getBoundingClientRect();
+            
+            if (isDragging && selectedElement) {
+                const x = e.clientX - areaRect.left - dragOffset.x;
+                const y = e.clientY - areaRect.top - dragOffset.y;
+                
+                selectedElement.style.left = Math.max(0, x) + 'px';
+                selectedElement.style.top = Math.max(0, y) + 'px';
+                updateElementData(selectedElement);
+            }
+            
+            if (isResizing && selectedElement) {
+                const width = e.clientX - areaRect.left - parseInt(selectedElement.style.left);
+                const height = e.clientY - areaRect.top - parseInt(selectedElement.style.top);
+                
+                selectedElement.style.width = Math.max(20, width) + 'px';
+                selectedElement.style.height = Math.max(20, height) + 'px';
+                updateElementData(selectedElement);
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging && !isResizing) return;
+            
+            e.preventDefault();
+            const touch = e.touches[0];
+            const designArea = document.getElementById('designArea');
+            const areaRect = designArea.getBoundingClientRect();
+            
+            if (isDragging && selectedElement) {
+                const x = touch.clientX - areaRect.left - dragOffset.x;
+                const y = touch.clientY - areaRect.top - dragOffset.y;
+                
+                selectedElement.style.left = Math.max(0, x) + 'px';
+                selectedElement.style.top = Math.max(0, y) + 'px';
+                updateElementData(selectedElement);
+            }
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+            isResizing = false;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        function handleTouchEnd() {
+            isDragging = false;
+            isResizing = false;
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        }
+
+        function selectElement(element) {
+            // Remove selection from all elements
+            document.querySelectorAll('.design-element').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            selectedElement = element;
+            element.classList.add('selected');
+            
+            // Show properties panel
+            showElementProperties(element);
+        }
+
+        function showElementProperties(element) {
+            const properties = document.getElementById('elementProperties');
+            const textProps = document.getElementById('textProperties');
+            const imageProps = document.getElementById('imageProperties');
+            
+            properties.classList.add('active');
+            
+            if (element.classList.contains('text-element')) {
+                textProps.style.display = 'block';
+                imageProps.style.display = 'none';
+                
+                document.getElementById('textContent').value = element.textContent;
+                document.getElementById('fontSize').value = parseInt(element.style.fontSize) || 24;
+                document.getElementById('fontSizeValue').textContent = (parseInt(element.style.fontSize) || 24) + 'px';
+                document.getElementById('textColor').value = rgbToHex(element.style.color) || '#000000';
+                
+                const rotation = getRotationFromTransform(element.style.transform);
+                document.getElementById('textRotation').value = rotation;
+                document.getElementById('textRotationValue').textContent = rotation + '°';
+            } else if (element.classList.contains('image-element')) {
+                textProps.style.display = 'none';
+                imageProps.style.display = 'block';
+                
+                const scale = getScaleFromTransform(element.style.transform);
+                document.getElementById('imageScale').value = scale;
+                document.getElementById('imageScaleValue').textContent = Math.round(scale * 100) + '%';
+                
+                const rotation = getRotationFromTransform(element.style.transform);
+                document.getElementById('imageRotation').value = rotation;
+                document.getElementById('imageRotationValue').textContent = rotation + '°';
+            }
+        }
+
+        function getRotationFromTransform(transform) {
+            const match = transform.match(/rotate\(([^)]+)\)/);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        function getScaleFromTransform(transform) {
+            const match = transform.match(/scale\(([^)]+)\)/);
+            return match ? parseFloat(match[1]) : 1;
+        }
+
+        function updateElementData(element) {
+            if (!designElements[element.id]) return;
+            
+            const data = designElements[element.id];
+            data.x = parseInt(element.style.left) || 0;
+            data.y = parseInt(element.style.top) || 0;
+            data.rotation = getRotationFromTransform(element.style.transform);
+            
+            if (element.classList.contains('text-element')) {
+                data.text = element.textContent;
+                data.fontSize = parseInt(element.style.fontSize) || 24;
+                data.color = element.style.color || '#000000';
+                data.fontFamily = element.style.fontFamily || 'Inter';
+            } else if (element.classList.contains('image-element')) {
+                data.width = parseInt(element.style.width) || 100;
+                data.scale = getScaleFromTransform(element.style.transform);
+            }
+        }
+
+        function updateTextContent() {
+            if (selectedElement && selectedElement.classList.contains('text-element')) {
+                selectedElement.textContent = this.value;
+                updateElementData(selectedElement);
+            }
+        }
+
+        function updateFontSize() {
+            if (selectedElement && selectedElement.classList.contains('text-element')) {
+                selectedElement.style.fontSize = this.value + 'px';
+                document.getElementById('fontSizeValue').textContent = this.value + 'px';
+                updateElementData(selectedElement);
+            }
+        }
+
+        function updateTextColor() {
+            if (selectedElement && selectedElement.classList.contains('text-element')) {
+                selectedElement.style.color = this.value;
+                updateElementData(selectedElement);
+            }
+        }
+
+        function updateTextRotation() {
+            if (selectedElement && selectedElement.classList.contains('text-element')) {
+                applyRotation(selectedElement, this.value);
+                document.getElementById('textRotationValue').textContent = this.value + '°';
+            }
+        }
+
+        function updateImageScale() {
+            if (selectedElement && selectedElement.classList.contains('image-element')) {
+                const rotation = getRotationFromTransform(selectedElement.style.transform);
+                selectedElement.style.transform = `scale(${this.value}) rotate(${rotation}deg)`;
+                document.getElementById('imageScaleValue').textContent = Math.round(this.value * 100) + '%';
+                updateElementData(selectedElement);
+            }
+        }
+
+        function updateImageRotation() {
+            if (selectedElement && selectedElement.classList.contains('image-element')) {
+                applyRotation(selectedElement, this.value);
+                document.getElementById('imageRotationValue').textContent = this.value + '°';
+            }
+        }
+
+        function clearDesign() {
+            if (confirm('Are you sure you want to clear all elements?')) {
+                document.getElementById('designArea').innerHTML = '';
+                selectedElement = null;
+                designElements = {};
+                document.getElementById('elementProperties').classList.remove('active');
+            }
+        }
+
+        function showDesignData() {
+            console.log('Design Elements:', designElements);
+            alert('Design data logged to console. Open developer tools to view.');
+        }
+
+        function exportDesign() {
+            const designArea = document.getElementById('designArea');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set high resolution
+            const scale = 6;
+            canvas.width = designArea.offsetWidth * scale;
+            canvas.height = designArea.offsetHeight * scale;
+            ctx.scale(scale, scale);
+            
+            // Fill background
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, designArea.offsetWidth, designArea.offsetHeight);
+            
+            const elements = designArea.querySelectorAll('.design-element');
+            let loadedImages = 0;
+            let totalImages = 0;
+            
+            // Count images
+            elements.forEach(el => {
+                if (el.classList.contains('image-element')) {
+                    totalImages++;
+                }
+            });
+            
+            function checkComplete() {
+                if (loadedImages === totalImages) {
+                    renderElements();
+                }
+            }
+            
+            function renderElements() {
+                elements.forEach(element => {
+                    const left = parseInt(element.style.left) || 0;
+                    const top = parseInt(element.style.top) || 0;
+                    const rotation = getRotationFromTransform(element.style.transform);
+                    
+                    ctx.save();
+                    
+                    if (element.classList.contains('text-element')) {
+                        const fontSize = parseInt(element.style.fontSize) || 24;
+                        const fontFamily = element.style.fontFamily || 'Inter';
+                        const color = element.style.color || '#000000';
+                        
+                        ctx.font = `${fontSize}px ${fontFamily}`;
+                        ctx.fillStyle = color;
+                        ctx.textBaseline = 'top';
+                        
+                        // Apply rotation
+                        if (rotation !== 0) {
+                            const textWidth = ctx.measureText(element.textContent).width;
+                            const centerX = left + textWidth / 2;
+                            const centerY = top + fontSize / 2;
+                            ctx.translate(centerX, centerY);
+                            ctx.rotate(rotation * Math.PI / 180);
+                            ctx.translate(-textWidth / 2, -fontSize / 2);
+                            ctx.fillText(element.textContent, 0, 0);
+                        } else {
+                            ctx.fillText(element.textContent, left, top);
+                        }
+                    } else if (element.classList.contains('image-element')) {
+                        const img = element;
+                        const scale = getScaleFromTransform(element.style.transform);
+                        const width = img.offsetWidth * scale;
+                        const height = img.offsetHeight * scale;
+                        
+                        // Apply rotation
+                        if (rotation !== 0) {
+                            const centerX = left + width / 2;
+                            const centerY = top + height / 2;
+                            ctx.translate(centerX, centerY);
+                            ctx.rotate(rotation * Math.PI / 180);
+                            ctx.translate(-width / 2, -height / 2);
+                            ctx.drawImage(img, 0, 0, width, height);
+                        } else {
+                            ctx.drawImage(img, left, top, width, height);
+                        }
+                    }
+                    
+                    ctx.restore();
+                });
+                
+                // Download
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'shirt-design.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            }
+            
+            if (totalImages === 0) {
+                renderElements();
+            } else {
+                elements.forEach(element => {
+                    if (element.classList.contains('image-element')) {
+                        element.onload = function() {
+                            loadedImages++;
+                            checkComplete();
+                        };
+                        if (element.complete) {
+                            loadedImages++;
+                            checkComplete();
+                        }
+                    }
+                });
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 10000);
+        }
+
+        function rgbToHex(rgb) {
+            if (!rgb) return null;
+            
+            const result = rgb.match(/\d+/g);
+            if (!result) return null;
+            
+            const r = parseInt(result[0]);
+            const g = parseInt(result[1]);
+            const b = parseInt(result[2]);
+            
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        // Click outside to deselect
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.design-element') && !e.target.closest('.tools-panel')) {
+                if (selectedElement) {
+                    selectedElement.classList.remove('selected');
+                    selectedElement = null;
+                    document.getElementById('elementProperties').classList.remove('active');
+                }
+            }
+        });
+    </script> 
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impostor - Game</title>
+    <link rel="stylesheet" href="/css/standard.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            min-width: 400px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e17055, #d63031);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+        }
+
+        .btn-vote {
+            background: linear-gradient(45deg, #fdcb6e, #e17055);
+            font-size: 14px;
+            padding: 8px 16px;
+            margin: 2px;
+        }
+
+        .btn-vote.voted {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+        }
+
+        .role-indicator {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .role-civilian {
+            background: rgba(0, 184, 148, 0.3);
+        }
+
+        .role-impostor {
+            background: rgba(231, 76, 60, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .game-word {
+            text-align: center;
+            font-size: 3em;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .voting-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .vote-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .vote-count {
+            font-weight: bold;
+            color: #ffd93d;
+        }
+
+        .voters {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 5px;
+        }
+
+        .game-results {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .impostor-reveal {
+            font-size: 1.5em;
+            color: #e17055;
+            margin: 10px 0;
+        }
+
+        .word-reveal {
+            font-size: 2em;
+            color: #00cec9;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .voting-result {
+            font-size: 1.2em;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .voting-success {
+            background: rgba(0, 184, 148, 0.3);
+            color: #00b894;
+        }
+
+        .voting-failure {
+            background: rgba(231, 76, 60, 0.3);
+            color: #e17055;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                min-width: 0;
+            }
+            
+            .game-word {
+                font-size: 2em;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="roleIndicator" class="role-indicator"></div>
+        <div class="game-word" id="gameWord"></div>
+        
+        <div class="voting-section" id="votingSection" style="display: none;">
+            <h3>🗳️ Vote for the Impostor</h3>
+            <div id="votingOptions"></div>
+            <div id="votingResults"></div>
+        </div>
+
+        <div class="game-results" id="gameResults" style="display: none;">
+            <div id="wordReveal" class="word-reveal"></div>
+            <div id="impostorReveal" class="impostor-reveal"></div>
+            <div id="votingResultMessage" class="voting-result"></div>
+        </div>
+        
+        <div class="text-center" id="hostGameControls">
+            <button class="btn btn-secondary" id="startVotingBtn">Start Voting</button>
+            <button class="btn" id="endGameBtn">End Game</button>
+        </div>
+        <div class="text-center" id="playerGameControls" style="display: none;">
+            <p>Waiting for host to start voting or end the game...</p>
+        </div>
+    </div>
+
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  updateDoc,
+  onSnapshot,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+/* ===============================
+   FIREBASE
+================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDkPsE0uD-1_V5_QfM-RhtaIviQlINW2DA",
+  authDomain: "lcntests.firebaseapp.com",
+  projectId: "lcntests",
+  storageBucket: "jmblanks.appspot.com",
+  messagingSenderId: "665856876392",
+  appId: "1:665856876392:web:c6274b52a9e90c3d6400dd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ===============================
+   STATE
+================================ */
+let currentUser = null;
+let currentParty = null;
+let isHost = false;
+let unsubscribeParty = null;
+
+/* ===============================
+   INIT
+================================ */
+function initFromStorage() {
+  currentUser = localStorage.getItem("currentUser");
+  currentParty = localStorage.getItem("currentParty");
+  isHost = localStorage.getItem("isHost") === "true";
+
+  if (!currentUser || !currentParty) {
+    window.location.href = "index.html";
+    return false;
+  }
+  return true;
+}
+
+function init() {
+  if (!initFromStorage()) return;
+  setupListeners();
+  setupGameListener();
+}
+
+document.addEventListener("DOMContentLoaded", init);
+
+/* ===============================
+   SNAPSHOT LISTENER (MASTER LOGIC)
+================================ */
+function setupGameListener() {
+  unsubscribeParty = onSnapshot(doc(db, "parties", currentParty), snap => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+
+    // FULL RESET → LOBBY
+    if (!data.gameActive && !data.gameEnded) {
+      window.location.href = "lobby.html";
+      return;
+    }
+
+    // SHOW GAME
+    if (data.gameActive && data.gameAssignments) {
+      showGameScreen(data.gameAssignments);
+    }
+
+    // VOTING
+    if (data.votingActive) {
+      showVotingSection(data.players, data.votes || {});
+    }
+
+    // RESULTS
+    if (data.gameEnded) {
+      showGameResults(data);
+    }
+  });
+}
+
+/* ===============================
+   GAME UI
+================================ */
+function showGameScreen(assignments) {
+  const assignment = assignments[currentUser];
+  const roleIndicator = document.getElementById("roleIndicator");
+  const gameWord = document.getElementById("gameWord");
+
+  if (assignment.isImpostor) {
+    roleIndicator.textContent = "🕵️ You are the IMPOSTOR!";
+    roleIndicator.className = "role-indicator role-impostor";
+    gameWord.textContent = "???";
+  } else {
+    roleIndicator.textContent = "👥 You are a CIVILIAN";
+    roleIndicator.className = "role-indicator role-civilian";
+    gameWord.textContent = assignment.word.toUpperCase();
+  }
+
+  document.getElementById("hostGameControls").style.display = isHost ? "block" : "none";
+  document.getElementById("playerGameControls").style.display = isHost ? "none" : "block";
+}
+
+/* ===============================
+   VOTING
+================================ */
+async function startVoting() {
+  if (!isHost) return;
+
+  await updateDoc(doc(db, "parties", currentParty), {
+    votingActive: true,
+    votes: {}
+  });
+}
+
+function showVotingSection(players, votes) {
+  document.getElementById("votingSection").style.display = "block";
+  const votingOptions = document.getElementById("votingOptions");
+  const votingResults = document.getElementById("votingResults");
+
+  document.getElementById("roleIndicator").style.display = "none";
+  document.getElementById("gameWord").textContent = "VOTE NOW";
+
+  votingOptions.innerHTML = "";
+
+  players.forEach(player => {
+    if (player !== currentUser) {
+      const btn = document.createElement("button");
+      btn.className = "btn btn-vote";
+      btn.textContent = votes[currentUser] === player
+        ? `✓ Voted ${player}`
+        : `Vote ${player}`;
+      btn.onclick = () => voteForPlayer(player);
+      votingOptions.appendChild(btn);
+    }
+  });
+
+  votingResults.innerHTML = "<h4>Current Votes:</h4>";
+  const counts = {};
+
+  Object.values(votes).forEach(v => counts[v] = (counts[v] || 0) + 1);
+
+  players.forEach(p => {
+    const count = counts[p] || 0;
+    const div = document.createElement("div");
+    div.className = "vote-item";
+    div.innerHTML = `<div>${p}</div><div class="vote-count">${count}</div>`;
+    votingResults.appendChild(div);
+  });
+}
+
+async function voteForPlayer(player) {
+  const ref = doc(db, "parties", currentParty);
+  const snap = await getDoc(ref);
+  const votes = snap.data().votes || {};
+
+  votes[currentUser] = player;
+
+  await updateDoc(ref, { votes });
+}
+
+/* ===============================
+   RESULTS
+================================ */
+function showGameResults(data) {
+  document.getElementById("gameResults").style.display = "block";
+  document.getElementById("votingSection").style.display = "none";
+
+  document.getElementById("wordReveal").textContent =
+    `The word was: ${data.gameWord?.toUpperCase()}`;
+
+  document.getElementById("impostorReveal").textContent =
+    `🕵️ Impostor: ${data.impostor}`;
+
+  const votes = data.votes || {};
+  const counts = {};
+  Object.values(votes).forEach(v => counts[v] = (counts[v] || 0) + 1);
+
+  const impostorVotes = counts[data.impostor] || 0;
+  const totalVotes = Object.keys(votes).length;
+  const needed = Math.ceil(totalVotes / 2);
+
+  const msg = document.getElementById("votingResultMessage");
+
+  if (impostorVotes >= needed && totalVotes > 0) {
+    msg.className = "voting-result voting-success";
+    msg.textContent = "🎉 Impostor Caught!";
+  } else {
+    msg.className = "voting-result voting-failure";
+    msg.textContent = "❌ Impostor Escaped!";
+  }
+}
+
+/* ===============================
+   END GAME (SAFE RESET)
+================================ */
+async function endGame() {
+  if (!isHost) return;
+
+  const ref = doc(db, "parties", currentParty);
+
+  // SHOW RESULTS
+  await updateDoc(ref, {
+    gameEnded: true,
+    votingActive: false
+  });
+
+  // HARD RESET AFTER 3s
+  setTimeout(async () => {
+    await updateDoc(ref, {
+      gameActive: false,
+      votingActive: false,
+      gameEnded: false,
+      votes: {},
+      gameAssignments: {},
+      gameWord: "",
+      impostor: ""
+    });
+
+    window.location.href = "lobby.html";
+  }, 3000);
+}
+
+/* ===============================
+   EVENTS
+================================ */
+function setupListeners() {
+  document.getElementById("startVotingBtn")?.addEventListener("click", startVoting);
+  document.getElementById("endGameBtn")?.addEventListener("click", endGame);
+}
+
+window.addEventListener("beforeunload", () => {
+  if (unsubscribeParty) unsubscribeParty();
+});
+</script>
+
+</body>
+</html>

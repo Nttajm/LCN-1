@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts</title>
+    <link rel="stylesheet" href="/css/standard.css">
+    <link rel="stylesheet" href="global-styles.css">
+</head>
+<body>
+    <div class="options">
+        <div class="mail icono option-item" id="mailIcon">
+            <img src="/images/bank/mail.webp" alt="">
+            <div class="notificationIcon">
+                <span>1</span>
+            </div>
+            <div class="mail container">
+                <ul class="mailList">
+                    <li>
+                        <span>LIveBank</span>
+                        <span>Welcome to banking with LiveBank...</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- <div class="settings icono option-item">
+            <img src="/images/bank/settings.png" alt="">
+        </div> -->
+    </div>
+    <div class="notif n-error">
+        
+    </div>
+    <div class="cont">
+        <div class="mid-cont">
+            <div class="nav">
+                <ul>
+                    <li class="selected">Accounts</li>
+                    <li><a href="investments.html">Investments</a></li>
+                    <li><a href="business.html">Business</a></li>
+                </ul>
+            </div>
+            <div class="logo">
+                <img src="/images/bank/live-bank-logos-w.png" alt="logo" class="logo">
+                <img src="/images/bank/live-bank-logos-t.png" alt="" srcset="">
+            </div>
+            <div class="content" id="content">
+                <div class="transfer w100">
+                    <div class="account">
+                        <div class="top">
+                            <span class="name"></span>
+                            <div>
+                                <span class="acc-name">transfer</span>
+                            </div>
+                        </div>
+                        <div class="acc-details fl-cl" id="transfer">
+                            <label for="">FROM:</label>
+                            <select name="account" id="accountSelecter" class="fromAccount">
+                                <option value="f">Account ...001</option>
+                            </select>
+                            <label for="">T0:</label>
+                            <select name="account" id="accountSelecter" class="toAccount">
+                                <option value="f">Account ...001</option>
+                            </select>
+                            <div class="sec">
+                                <input type="number" placeholder="Amount" id="amount">
+                                <button id="transferBtn" onclick="transferMoney();">Transfer</button>
+                            </div>
+                        </div>
+                </div>
+                <!-- <div class="message base-1">
+                    <span>Welcome to Live Bank. Start Investing, Manging, banking and much more today.</span>
+                    <input type="text" placeholder="Enter a name">
+                    <button>Open an account</button>
+                </div> -->
+                <!-- <div class="account">
+                    <div class="top">
+                        <span class="name"></span>
+                        <div>
+                            <span class="acc-name">Account</span>
+                            <span class="acc-number">...001</span>
+                        </div>
+                    </div>
+                    <div class="acc-details">
+                        <div class="balance">
+                            <span>Balance</span>
+                           <span> $5,030.12</span>
+                        </div>
+                        <div class="cards">
+                           <img src="/images/card-banking.png" alt="">
+                        </div>
+                        <div class="in-out">
+                            <div class="in-out-i">
+                                <span>Money in</span>
+                                <span>+$456.07</span>
+                            </div>
+                            <div class="in-out-i">
+                                <span>Money out</span>
+                                <span>-$16.33</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="transaction-div">
+                        <span class="uh">See all transactions ></span>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+    </div>
+    <script src="js/accounts.js"></script>
+    <script src="js/global.js"></script>
+</body>
+</html>

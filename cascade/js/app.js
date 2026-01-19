@@ -1,1494 +1,1784 @@
-import {
-    saveNotes,
-    loadBoard
-} from './backend.js';
+/**
+ * ==========================================================================
+ * CASCADE - Main Application
+ * ==========================================================================
+ * Main entry point and event handling for the Cascade notes app.
+ */
 
-import {
-    CASCADE_HTMLS,
-} from './htmls.js';
+import { $, $$, createElement, debounce, focusAtEnd, focusAdjacentBlock } from './utils.js';
+import { TOOLS, BULLET_MARKERS, SIZE_CLASSES, COLOR_CLASSES, ALIGN_CLASSES, BG_CLASSES, BOARD_BG_CLASSES, RANDOM_ICONS, COVER_IMAGES } from './config.js';
+import { 
+  createTextBlock, 
+  createChecklistBlock, 
+  createCalloutBlock,
+  createSeparatorBlock,
+  showLinkForm,
+  createDropdownBlock,
+  createGroupBlock,
+  createGalleryBlock,
+  createQuoteBlock,
+  createGCalBlock,
+  deleteBlock 
+} from './blocks.js';
+import { loadBoard, saveNotes, debouncedSave, applyPendingRemoteUpdates } from './backend.js';
+import { TEMPLATES } from './templates.js';
 
-let printMode = 'board'; // or 'page'
-let listmode = ''; // or 'numbered'
-let boardItemsSection = null;
-let boardId = await loadBoard();
+// ==========================================================================
+// APPLICATION STATE
+// ==========================================================================
 
-let inputFocusHistory = [];
-const globalEventListeners = [];
+export const state = {
+  printMode: 'board',      // 'board' or a container ID for nested blocks
+  listMode: '',            // '' | 'bullet' | 'checklist' | 'quote'
+  currentBoardId: null,
+  isLoading: false,
+  lastEdit: Date.now(),
+  targetRow: null          // Row ID to add blocks to (for row floaty button)
+};
 
-let covers = [
-'covers/cover1.jpg',
-'covers/cover2.png',
-];
+// Auto-save on UI-driven changes (e.g. size/color/align buttons) that don't fire an 'input' event
+let suppressMutationSaves = true;
+let mutationSaveObserver = null;
 
-let randomIcons = [
-'🏞️', '📘', '📗', '📕', '📒', '📓', '📔', '📚', '🖼️', '🎨', '🎭', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '📷', '📹', '🎥', '📺', '💻', '🖥️', '🖨️', '⌨️', '🖱️', '🖲️', '💡', '🔦', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️'
-]
+// ==========================================================================
+// INITIALIZATION
+// ==========================================================================
 
-
-
-document.addEventListener("DOMContentLoaded", async () => {
-    await loadBoard();
+document.addEventListener('DOMContentLoaded', async () => {
+  initializeApp();
 });
 
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    boardItemsSection = document.getElementById('boardItems');
-    const boardContainer = document.querySelector('.board-content');
-    boardContainer.innerHTML = '';
-    boardContainer.innerHTML = loadingStates();
-    const DEFAULT = {
-        'settings': [
-            { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' }
-        ],
-    };
-
-    const resizeTools = {
-        'Resize': [
-            { id: 'resize50', icon: '↔️', class: 'resize50', label: '1/2', action: 'resize' },
-            { id: 'resize25', icon: '↔️', class: 'resize25', label: '1/4', action: 'resize' },
-            { id: 'resize75', icon: '↔️', class: 'resize75', label: '3/4', action: 'resize' },
-            { id: 'resize100', icon: '↔️', class: 'resize100', label: '4/4', action: 'resize' },
-        ],
-    };
-
-    const TEXT_TOOLS = {
-        'settings': [
-            { id: 'delete', icon: '🗑️', class: 'delete', label: 'Delete', action: 'delete' }
-        ],
-        'Size': [
-            { id: 'title', label: 'Heading 1', class: 'title', icon: 'H1' },
-            { id: 'heading2', label: 'Heading 2', class: 'heading2', icon: 'H2' },
-            { id: 'heading3', label: 'Heading 3', class: 'heading3', icon: 'H3' },
-            { id: 'normal', label: 'Normal', class: 'normal-text', icon: 'T' }
-        ],'Alignments': [
-            { id: 'left', label: 'Left', class: 'text-left', icon: 'L' },
-            { id: 'center', label: 'Center', class: 'text-center', icon: 'C' },
-            { id: 'right', label: 'Right', class: 'text-right', icon: 'R' }
-        ],
-        'Color': [
-            { id: 'default', label: 'Default', class: '', icon: 'A', adjClass: true },
-            { id: 'red', label: 'Red', class: 'text-rainbow-red', icon: 'A', adjClass: true },
-            { id: 'blue', label: 'Blue', class: 'text-rainbow-blue', icon: 'A', adjClass: true },
-            { id: 'green', label: 'Green', class: 'text-rainbow-green', icon: 'A', adjClass: true },
-            { id: 'yellow', label: 'Yellow', class: 'text-rainbow-yellow', icon: 'A', adjClass: true },
-            { id: 'purple', label: 'Purple', class: 'text-rainbow-purple', icon: 'A', adjClass: true },
-            { id: 'orange', label: 'Orange', class: 'text-rainbow-orange', icon: 'A', adjClass: true },
-            { id: 'pink', label: 'Pink', class: 'text-rainbow-pink', icon: 'A', adjClass: true }
-        ],
-    };
-
-    const BACKGROUND_TOOLS = {
-        'Background': [
-            { id: 'bg-default', label: 'No Background', class: '', icon: '□', adjClass: false },
-            { id: 'bg-red', label: 'Red Background', class: 'bg-rainbow-red', icon: '■', adjClass: false },
-            { id: 'bg-blue', label: 'Blue Background', class: 'bg-rainbow-blue', icon: '■', adjClass: false },
-            { id: 'bg-green', label: 'Green Background', class: 'bg-rainbow-green', icon: '■', adjClass: false },
-            { id: 'bg-yellow', label: 'Yellow Background', class: 'bg-rainbow-yellow', icon: '■', adjClass: false },
-            { id: 'bg-purple', label: 'Purple Background', class: 'bg-rainbow-purple', icon: '■', adjClass: false },
-            { id: 'bg-orange', label: 'Orange Background', class: 'bg-rainbow-orange', icon: '■', adjClass: false },
-            { id: 'bg-pink', label: 'Pink Background', class: 'bg-rainbow-pink', icon: '■', adjClass:false }
-        ],
-    };
-
-    const ANCHOR_TEXT_TOOLS = {
-        'settings': [
-            { id: 'delete', icon:'🗑️' ,class:'delete' ,label:'Delete' ,action:'delete' },
-            { id: 'edit', icon: '✏️', class: 'edit', label: 'Edit Link', action: 'edit' }
-        ],
-        'Color': [
-            { id: 'default', label: 'Default', class: '', icon: 'A', adjClass: true},
-            { id: 'red', label: 'Red', class: 'text-rainbow-red', icon: 'A', adjClass: true },
-            { id: 'blue', label: 'Blue', class: 'text-rainbow-blue', icon: 'A', adjClass: true },
-            { id: 'green', label: 'Green', class: 'text-rainbow-green', icon: 'A', adjClass: true },
-            { id: 'yellow', label: 'Yellow', class: 'text-rainbow-yellow', icon: 'A', adjClass: true },
-            { id: 'purple', label: 'Purple', class: 'text-rainbow-purple', icon: 'A', adjClass: true },
-            { id: 'orange', label: 'Orange', class: 'text-rainbow-orange', icon: 'A', adjClass: true },
-            { id: 'pink', label: 'Pink', class: 'text-rainbow-pink', icon: 'A', adjClass: true }
-        ],
-        // 'background': [
-        //     { id: 'bg-default', label: 'No Background', class: '', icon: '□', adjClass: true },
-        //     { id: 'bg-red', label: 'Red Background', class: 'bg-notion-red', icon: '■', adjClass: true },
-        //     { id: 'bg-orange', label: 'Orange Background', class: 'bg-notion-orange', icon: '■', adjClass: true },
-        //     { id: 'bg-yellow', label: 'Yellow Background', class: 'bg-notion-yellow', icon: '■', adjClass: true },
-        //     { id: 'bg-green', label: 'Green Background', class: 'bg-notion-green', icon: '■', adjClass: true },
-        //     { id: 'bg-blue', label: 'Blue Background', class: 'bg-notion-blue', icon: '■', adjClass: true },
-        //     { id: 'bg-purple', label: 'Purple Background', class: 'bg-notion-purple', icon: '■', adjClass: true },
-        //     { id: 'bg-pink', label: 'Pink Background', class: 'bg-notion-pink', icon: '■', adjClass: true },
-        //     { id: 'bg-brown', label: 'Brown Background', class: 'bg-notion-brown', icon: '■', adjClass: true },
-        //     { id: 'bg-gray', label: 'Gray Background', class: 'bg-gray-50', icon: '■', adjClass: true }
-        // ],
-        'Alignments': [
-            { id: 'left', label: 'Left', class: 'text-left', icon: 'L' },
-            { id: 'center', label: 'Center', class: 'text-center', icon: 'C' },
-            { id: 'right', label: 'Right', class: 'text-right', icon: 'R' }
-        ]
-    };
-
-    const ADD_DROP_BLOCKS = {
-        'text': [
-            { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal', drop: true },
-            { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true, action: 'checklist' },
-        ],
-        'Note Block': [
-            {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
-        ],
-        'Media': [
-            { id: 'link', icon: '🔗', class: 'link', label: 'Link', action: 'link', drop: true },
-            { id: 'image', icon: '🖼️', class: 'image', label: 'Image', action: 'image', drop: true },
-            { id: 'video', icon: '🎥', class: 'video', label: 'Video', action: 'video', drop: true }
-        ],
-        'Embed': [
-            { id: 'gcal', img: 'appicons/gcal.png', class: 'embed', label: 'Google Calendar', drop: true },
-            { id: 'yt', img: 'appicons/yt.png', class: 'embed', label: 'YouTube', action: 'youtube', drop: true }
-        ]
-    }
-
-    const ADD_BLOCKS = {
-        
-        'text': [ 
-            { id: 'normal', icon: 'T', class: 'normal-text', label: 'Text', action: 'normal' },
-            { id: 'checklist', icon: '☐', class: 'checklist-block', label: 'Checklist', drop: true, action: 'checklist' },
-            { id: 'callout', icon: '💡', class: 'callout', label: 'Callout', action: 'callout' }
-        ],
-        'Note Block': [
-            {id: 'separator', icon: '─', class: 'separator', label: 'Separator', action: 'separator'},
-            { id: 'dropdown', icon: '▼', class: 'note-block', label: 'Drop down' , action: 'dropdown' },
-            { id: 'group', icon: '▭', class: 'group', label: 'Group', action: 'group' }
-        ],
-        'Media': [
-            { id: 'link', icon: '🔗', class: 'link', label: 'Link', action: 'link' },
-            { id: 'image', icon: '🖼️', class: 'image', label: 'Image', action: 'image' },
-            { id: 'video', icon: '🎥', class: 'video', label: 'Video', action: 'video' }
-        ],
-        'Embed': [
-            { id: 'gcal', img: 'appicons/gcal.png', class: 'embed', label: 'Google Calendar' },
-            { id: 'yt', img: 'appicons/yt.png', class: 'embed', label: 'YouTube', action: 'youtube' }
-        ]
-    }
-
-    const CHANGE_ICON_TOOLS = {
-        'Icon Settings': [
-            { id: 'edit', icon: '✏️', class: 'edit', label: 'Add emoji or Letter', action: 'edit-icon' },
-        ]
-    };
-
-    // load initial item
-    
-    recognizeElems();
-    syncInputToDataContent();
-        initEmptyInputs();
-        initLinkers();
-        initHiders();
-        initAddNoteBtns();
-    // addEventListenerGroup();
-
-
-    function loadingStates() {
-        return CASCADE_HTMLS.loadingBoard;
-    }
-
-function createRow(itemIndex = 'none') {
-    // only make row if printMode is 'board'
-    if (printMode !== 'board') return null;
-
-    itemIndex = itemIndex + 2;
-    const itemDivRow = document.createElement('div');
-    itemDivRow.className = `board-item-row js-drop-content-${itemIndex}`;
-    itemDivRow.id = `item-row-${itemIndex}`;
-
-    const floaty = createAddToRowFloaty(itemIndex);
-    itemDivRow.appendChild(floaty);
-
-    return itemDivRow;
-}
-
-function theUsual(index) {
-    closeAllToolsMenus();
-
-    const input = document.getElementById(`item-input-${index}`);
-    if (input) {
-        input.addEventListener('focus', () => {
-            printMode = input.dataset.printMode || 'board';
-        });
-    }
-}
-
-    // create items
-    function createTextItem(type = 'normal-text', toBoard = true) {
-        const itemIndex = document.querySelectorAll('.item').length + 1;
-        const itemDivRow = createRow(itemIndex);
-
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'item'; 
-
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = `item-input-${itemIndex}`;
-        input.className = `simple item-element fx-full ${type || 'normal-text'}`;
-        input.placeholder = type === 'title' ? 'Title' : 'Type something...';
-        input.dataset.itemIndex = itemIndex;
-        input.autocomplete = 'off';
-        input.focus();
-
-        input.dataset.printMode = printMode;
-
-         if (checkList() === 'checkList') {
-        const holder = document.createElement('div');
-        holder.className = 'holder';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'simple-checkbox';
-
-        holder.appendChild(checkbox);
-        holder.appendChild(input);
-
-        itemDiv.appendChild(createFloaty(itemIndex, 'edit'));
-        itemDiv.appendChild(holder);
-
-        checkbox.addEventListener('change', () => {
-            input.classList.toggle('strike', checkbox.checked);
-        });
-        } else {
-            input.value = checkList();
-            const floaty = createFloaty(itemIndex, 'edit');
-            itemDiv.appendChild(floaty);
-            itemDiv.appendChild(input);
-        }
-
-        if (itemDivRow) {
-            itemDivRow.appendChild(itemDiv);
-            appendItemToBoard(itemDivRow);
-        } 
-        else {
-            appendItemToBoard(itemDiv);
-        }
-
-        initEmptyInputs();
-        theUsual(itemIndex);
-        return itemDiv;
-     }
-
-     function createCallOut(type = 'normal-text', toBoard = true) {
-        const itemIndex = document.querySelectorAll('.item').length + 1;
-        const itemDivRow = createRow(itemIndex);
-
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'item callout';
-
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = `item-input-${itemIndex}`;
-        input.className = `simple item-element fx-full ${type || 'normal-text'}`;
-        input.placeholder = type === 'title' ? 'Title' : 'Type something...';
-        input.dataset.itemIndex = itemIndex;
-        input.autocomplete = 'off';
-        input.value = '💡 ';
-        input.dataset.content = '💡 ';
-        input.focus();
-
-        input.dataset.printMode = printMode;
-
-         if (checkList() === 'checkList') {
-        const holder = document.createElement('div');
-        holder.className = 'holder';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'simple-checkbox';
-
-        holder.appendChild(checkbox);
-        holder.appendChild(input);
-
-        itemDiv.appendChild(createFloaty(itemIndex, 'edit'));
-        itemDiv.appendChild(holder);
-
-        checkbox.addEventListener('change', () => {
-            input.classList.toggle('strike', checkbox.checked);
-        });
-        } else {
-            input.value = checkList();
-            const floaty = createFloaty(itemIndex, 'edit');
-            itemDiv.appendChild(floaty);
-            itemDiv.appendChild(input);
-        }
-
-        if (itemDivRow) {
-            itemDivRow.appendChild(itemDiv);
-            appendItemToBoard(itemDivRow);
-        } 
-        else {
-            appendItemToBoard(itemDiv);
-        }
-
-        initEmptyInputs();
-        theUsual(itemIndex);
-        return itemDiv;
-     }
-
-     function createCheckListItem() {
-        const itemIndex = document.querySelectorAll('.item').length + 1;
-        const itemDivRow = createRow(itemIndex);
-
-        // Checklist item structure
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'item';
-
-        const holder = document.createElement('div');
-        holder.className = 'holder';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'simple-checkbox';
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = `item-input-${itemIndex}`;
-        input.className = 'simple item-element normal-text empty';
-        input.placeholder = 'Type something...';
-        input.dataset.itemIndex = itemIndex;
-        input.autocomplete = 'off';
-        input.focus();
-
-        holder.appendChild(checkbox);
-        holder.appendChild(input);
-
-        const floaty = createFloaty(itemIndex, 'edit');
-        itemDiv.appendChild(floaty);
-        itemDiv.appendChild(holder);
-
-        checkbox.addEventListener('change', () => {
-            input.classList.toggle('strike', checkbox.checked);
-            });
-
-        if (itemDivRow) {
-            itemDivRow.appendChild(itemDiv);
-            appendItemToBoard(itemDivRow);
-        } else {
-            appendItemToBoard(itemDiv);
-        }
-
-        theUsual(itemIndex);
-
-
-        listmode = 'checkList';
-    }
-
-     function checkList() {
-        if (listmode === 'dash') {
-            return '- ';
-        } else if (listmode === 'bullet') {
-            return '• ';
-        } else if (listmode === 'quote') {
-            return '➤ ';
-        } else {
-            return listmode;
-        }
-     }
-
-
-     function createNewIdenticalInput() {
-        const activeElementInput = document.activeElement;
-        if (activeElementInput && activeElementInput.classList.contains('item-element')) {
-            const currentType = Array.from(activeElementInput.classList).find(cls => ['normal-text', 'title', 'heading2', 'heading3'].includes(cls)) || 'normal-text';
-            createTextItem(currentType);
-            const allInputs = document.querySelectorAll('.item-element');
-            allInputs[allInputs.length - 1].focus();
-        }
-    }
-
-        function createSeparator() {
-            const itemDivRow = createRow();
-
-            const itemIndex = document.querySelectorAll('.item').length + 1;
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'item';
-
-            const floaty = createFloaty(itemIndex, 'simple');
-            itemDiv.appendChild(floaty);
-
-            const hr = document.createElement('hr');
-            itemDiv.appendChild(hr);
-
-
-            if (itemDivRow) {
-                itemDivRow.appendChild(itemDiv);
-                appendItemToBoard(itemDivRow);
-            } else {
-                appendItemToBoard(itemDiv);
-            }
-            syncInputToDataContent();
-        }
-
-     
-function createAnchorTextItem(type = 'normal-text', link = '#', name = '') {
-        const itemIndex = document.querySelectorAll('.item').length + 1;
-        const itemDivRow = createRow(itemIndex);
-
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'item';
-
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = `item-input-${itemIndex}`;
-        input.className = `simple item-element ${type || 'normal-text'} board-link cur `;
-        input.placeholder = 'link description...';
-        input.dataset.itemIndex = itemIndex;
-        input.autocomplete = 'off';
-        input.value = name;
-        if (link && !/^https?:\/\//i.test(link)) {
-            link = 'https://' + link;
-        }
-        input.setAttribute('data-link', link);
-
-        input.dataset.printMode = printMode;
-
-        const floaty = createFloaty(itemIndex, 'anchor');
-
-        itemDiv.appendChild(floaty);
-        itemDiv.appendChild(input);
-        
-        if (itemDivRow) {
-            itemDivRow.appendChild(itemDiv);
-            appendItemToBoard(itemDivRow);
-        } 
-        else {
-            appendItemToBoard(itemDiv);
-        }
-        syncInputToDataContent();
-     }
-
-
-// prompters 
-function promptForLink(container) {
-    // resolve container at call time (safer than using it in the default param)
-    container = container || document.getElementById('boardItems');
-    // fallback if container still not found
-    if (!container) container = document.body;
-
-    // use a numeric index and add an 'a' suffix for uniqueness
-    const indexNum = document.querySelectorAll('.item').length + 1;
-    const index = `${indexNum}a`;
-
-    // try to create a row (may return null if printMode !== 'board')
-    const row = createRow(index);
-
-    // append the row (or a safe fallback element) to the board
-    if (row) {
-        appendItemToBoard(row);
-    } else {
-        // create a minimal wrapper so we have a place to render prompt
-        const wrapper = document.createElement('div');
-        wrapper.className = `board-item-row js-drop-content-${index}`;
-        container.appendChild(wrapper);
-    }
-
-    // determine the actual row element we should render into
-    const actualRow = row || container.lastElementChild;
-    if (!actualRow) return; // nothing we can do
-
-    const renderPrompt = (placeholder, buttonText, onSubmit) => {
-        actualRow.innerHTML = `
-            <div class="await">
-                <input type="text" class="prompt-input" placeholder="${placeholder}">
-                <button type="button" class="go btn-sm">${buttonText}</button>
-                <button type="button" class="cancel btn-sm">🗑️</button>
-            </div>
-        `;
-
-        const input = actualRow.querySelector('.prompt-input');
-        const goBtn = actualRow.querySelector('.go');
-        const cancelBtn = actualRow.querySelector('.cancel');
-
-        const cleanup = () => {
-            if (actualRow && actualRow.parentNode) actualRow.parentNode.removeChild(actualRow);
-        };
-
-        goBtn.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            const val = input.value.trim();
-            if (!val) {
-                return alert('Please enter something.');
-            }
-            onSubmit(val);
-        });
-
-        cancelBtn.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            cleanup();
-        });
-
-        input.addEventListener('keydown', (ev) => {
-            if (ev.key === 'Enter') {
-                ev.preventDefault();
-                goBtn.click();
-            } else if (ev.key === 'Escape') {
-                ev.preventDefault();
-                cancelBtn.click();
-            }
-        });
-
-        input.focus();
-    };
-
-    // two-step prompt: link -> name
-    renderPrompt('Type or paste link...', '➔', (link) => {
-        // normalize link quickly
-        const normalizedLink = (/^https?:\/\//i.test(link)) ? link : `https://${link}`;
-        renderPrompt('Enter a name for the link...', 'Save', (name) => {
-            // remove prompt row and create actual anchor item
-            if (actualRow && actualRow.parentNode) actualRow.parentNode.removeChild(actualRow);
-            createAnchorTextItem('link', normalizedLink, name);
-            syncInputToDataContent();
-        });
-    });
-}
-
-
-
-    function createResizeable(index) {
-        const sizable = document.createElement('div');
-        sizable.className = 'resizable js-uni-tools resize';
-        sizable.id = `resizeable-${index}`;
-        return sizable;
-    }
-
-    // create floaty edit button
-    function createFloaty(itemIndex, action = 'edit', position = 'left') {
-        const floaty = document.createElement('div');
-        floaty.className = `floaty ${position} ${action} js-uni-tools`;
-        floaty.innerHTML = `<img src="icons/edit.png" alt="${action}" class="icono gray icon">`;
-        floaty.dataset.item = itemIndex;
-        return floaty;
-    }
-
-    function createAddToRowFloaty(itemIndex, action = 'add', position = 'left') {
-        const floaty = document.createElement('div');
-        floaty.className = `floaty ${position} ${action} js-uni-tools js-add-note-btn`;
-        floaty.id = `add-dropdown-${itemIndex}`;
-        floaty.innerHTML = `<img src="icons/add.png" alt="${action}" class="icono gray icon">`;
-        floaty.dataset.item = itemIndex;
-        return floaty;
-    }
-
-    // Build tools menu
-    function openConElemTools(tools, itemIndex) {
-    const toolsContainer = document.createElement('div');
-    toolsContainer.className = 'tools-container dn';
-
-    const toolsDiv = document.createElement('div');
-    toolsDiv.className = 'tools taboff';
-
-    const cursorGap = document.createElement('div');
-    cursorGap.className = 'cursor-gap';
-    toolsContainer.appendChild(cursorGap);
-
-    Object.entries(tools).forEach(([sectionName, sectionItems]) => {
-        const sectionHTML = [`<div class="section-title conelem"><span>${sectionName}</span></div>`];
-        sectionItems.forEach(tool => {
-            sectionHTML.push(
-                genColElement(
-                    tool.icon,
-                    tool.img,
-                    tool.label,
-                    tool.class,
-                    itemIndex,
-                    tool.action ? tool.action : sectionName,
-                    tool.adjClass ? tool.class : ''
-                )
-            );
-        });
-        toolsDiv.innerHTML += sectionHTML.join('');
-    });
-
-    toolsContainer.appendChild(toolsDiv);
-    return toolsContainer;
-}
-
-
-    function genColElement(icon, img, label, colorClass, itemIndex, sectionName, adjClass = '') {
-        const iconHtml = img ? `<img src="${img}" alt="${label}" class="icono icon small">` : `<span class="letter small">${icon}</span>`;
-        return `
-            <div class="conelem profile hover js-trigger-action" 
-                 data-action="${sectionName}" 
-                 data-value="${colorClass}" 
-                 data-item="${itemIndex}">
-                ${iconHtml}
-                <span class="fx-full ${adjClass}">${label}</span>
-            </div>`;
-    }
-
-    
-
-    function createDropdown() {
-    let index = document.querySelectorAll('.item').length + 1;
-
-    const itemDivRow = createRow(index);
-
-    const itemDiv = document.createElement('div');
-    itemDiv.className = `dropdown item fl-c g-5 js-set-print-mode`;
-    itemDiv.id = `item-${index}`;
-    index += Math.random().toString(36).substring(2, 5);
-    itemDiv.dataset.setPrintMode = index;
-
-
-    itemDiv.innerHTML = `
-            <div class="drop-name fl-r g-5 fx-full">
-                <img src="icons/dropdown.png" alt="dropdown" data-target="dd-hide-${index}" class="hide-part icono gray icon drop-icon btn-space hover" />
-                <input type="text" class="drop-input item-element simple heading3 js-set-print-mode" data-set-print-mode=${index} placeholder="Name" />
-            </div>
-            <div class="drop-content dd-hide-${index} js-drop-content-${index}" id="drop-content-${index}"></div>
-            <div class="js-add-note-btn addNote js-uni-tools add-drop nAvoid dd-hide-${index}" id="add-dropdown-${index}">
-                <img src="icons/add.png" alt="add" class="icono gray icon small">
-            </div>
-    `;
-
-    if (itemDivRow) {
-        itemDivRow.appendChild(itemDiv);
-        appendItemToBoard(itemDivRow);
-    } else {
-        appendItemToBoard(itemDiv);
-    }
-    
-}
-
-
-
-function createGroup() {
-    let index = document.querySelectorAll('.item').length + 1;
-
-    const itemDivRow = createRow(index);
-
-    const itemDiv = document.createElement('div');
-    itemDiv.className = `group item fl-c g-5 js-set-print-mode`;
-    itemDiv.id = `item-${index}`;
-    index += Math.random().toString(36).substring(2, 5);
-    itemDiv.dataset.setPrintMode = index;
-    const textItem = createTextItem();
-
-    const groupContent = document.createElement('div');
-    groupContent.className = `group-content fx-full js-drop-content-${index} fl-c`;
-    groupContent.id = `group-content-${index}`;
-    groupContent.appendChild(textItem);
-    itemDiv.appendChild(groupContent);
-
-    itemDiv.addEventListener('click', (e) => {
-        printMode = index;
-    });
-
-    itemDiv.addEventListener('focus', (e) => {
-        printMode = index;
-    });
-
-
-    if (itemDivRow) {
-        itemDivRow.appendChild(itemDiv);
-        appendItemToBoard(itemDivRow);
-    } else {
-        appendItemToBoard(itemDiv);
-    }
-
-}
-
-function turnToChecklist(itemIndex) {
-    const row = document.getElementById(`item-row-${itemIndex}`);
-    if (!row) return;
-    const itemDiv = row.querySelector('.item');
-    if (!itemDiv) return;
-    const oldInput = itemDiv.querySelector('.item-element');
-    if (!oldInput) return;
-
-    // Preserve value and classes
-    const value = oldInput.value;
-    const inputClasses = oldInput.className;
-    const inputId = oldInput.id;
-    const inputDataset = { ...oldInput.dataset };
-
-    // Remove old input
-    oldInput.remove();
-
-    // Create holder
-    const holder = document.createElement('div');
-    holder.className = 'holder';
-
-    // Create checkbox
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'simple-checkbox';
-
-    // Create new input
-    const newInput = document.createElement('input');
-    newInput.type = 'text';
-    newInput.id = inputId;
-    newInput.className = inputClasses;
-    newInput.placeholder = 'Type something...';
-    newInput.value = value;
-    Object.entries(inputDataset).forEach(([k, v]) => newInput.dataset[k] = v);
-    newInput.autocomplete = 'off';
-
-    // Add strike-through toggle
-    checkbox.addEventListener('change', () => {
-        newInput.classList.toggle('strike', checkbox.checked);
-    });
-
-    // Append to holder and itemDiv
-    holder.appendChild(checkbox);
-    holder.appendChild(newInput);
-
-    // Remove any existing holder to avoid duplicates
-    const existingHolder = itemDiv.querySelector('.holder');
-    if (existingHolder) existingHolder.remove();
-
-    itemDiv.appendChild(holder);
-
-    // Optionally focus the input
-    newInput.focus();
-}
-
-const allCheckboxes = document.querySelectorAll('.simple-checkbox');
-allCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-        const input = checkbox.closest('.board-item-row')?.querySelector('.item-element');
-        if (input) {
-            input.classList.toggle('strike', checkbox.checked);
-        }
-    });
+document.addEventListener('board-loaded', () => {
+  initializeBlocks();
+  ensureInitialTitleBlock();
 });
 
+async function initializeApp() {
+  // Load board content
+  await loadBoard();
+  
+  // Initialize event listeners
+  initEventListeners();
+  
+  // Initialize existing blocks
+  initializeBlocks();
 
-    // Event delegation for floaty (edit) button clicks
-    registerListener(document, 'click', (e) => {
-        const u_Tool = e.target.closest('.js-uni-tools');
-        if (u_Tool) {
-            e.stopPropagation();
-            closeAllToolsMenus();
+  // Ensure there's a title block on empty boards
+  ensureInitialTitleBlock();
+  
+  console.log('Cascade initialized');
+}
 
-            u_Tool.classList.toggle('active');
+function ensureInitialTitleBlock() {
+  const container = document.getElementById('boardItems');
+  if (!container) return;
 
+  const hasBlocks = !!container.querySelector('[data-block-id]');
+  if (hasBlocks) return;
 
-            const itemIndex = u_Tool.dataset.item;
-            let existing = u_Tool.querySelector('.tools-container');
-            if (existing) {
-            existing.classList.toggle('dn');
-            return;
-            }
+  state.printMode = 'board';
+  state.targetRow = null;
+  state.listMode = '';
+  createTextBlock({ type: 'title', placeholder: 'Title', content: '' });
+}
 
-            if (u_Tool.classList.contains('simple')) {
-            const toolsMenu = openConElemTools(DEFAULT, itemIndex);
-            u_Tool.appendChild(toolsMenu);
-            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
-            }
+// ==========================================================================
+// EVENT LISTENERS
+// ==========================================================================
 
-            if (u_Tool.classList.contains('edit')) {
-            const toolsMenu = openConElemTools(TEXT_TOOLS, itemIndex);
-            u_Tool.appendChild(toolsMenu);
-            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
-            }
+function initEventListeners() {
+  // Share panel is now handled by collaboration.js
+  
+  // Sidebar toggle
+  $('#sidebarToggle')?.addEventListener('click', toggleSidebar);
+  
+  // Cover & Icon
+  $('.js-add-cover')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openCoverPicker(e.currentTarget);
+  });
+  $('.js-add-icon')?.addEventListener('click', addRandomIcon);
+  $('.js-cover-icon')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openIconPicker($('#iconDisplay'));
+  });
+  $('#iconDisplay')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openIconPicker($('#iconDisplay'));
+  });
+  
+  // Board settings (background color)
+  $('.js-board-settings')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openBoardSettingsMenu(e.currentTarget);
+  });
+  
+  // Add block buttons
+  document.addEventListener('click', handleAddBlockClick);
+  
+  // Block menu (floaty buttons)
+  document.addEventListener('click', handleBlockMenuClick);
+  
+  // Size menu (for groups/galleries)
+  document.addEventListener('click', handleSizeMenuClick);
+  
+  // Tool menu actions
+  document.addEventListener('click', handleToolAction);
+  
+  // Close menus when clicking outside
+  document.addEventListener('click', handleOutsideClick);
+  
+  // Reset printMode when clicking on the main board area
+  document.addEventListener('click', handleBoardClick);
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown', handleKeydown);
+  
+  // Content changes (for auto-save and real-time sync)
+  document.addEventListener('input', handleInput);
 
-            if (u_Tool.classList.contains('add')) {
-            const toolsMenu = openConElemTools(ADD_BLOCKS, itemIndex);
-            u_Tool.appendChild(toolsMenu);
-            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
-            }
+  // Suppress mutation-based auto-saves while deserializing (load/remote updates)
+  document.addEventListener('cascade-deserialize-start', () => {
+    suppressMutationSaves = true;
+  });
+  document.addEventListener('cascade-deserialize-end', () => {
+    // Let the DOM settle for a tick before enabling
+    setTimeout(() => {
+      suppressMutationSaves = false;
+    }, 0);
+  });
 
+  // Fallback: start observing once listeners are attached
+  setupMutationAutoSave();
+  
+  // Focus tracking for nested blocks
+  document.addEventListener('focusin', handleFocusIn);
+  
+  // Apply pending remote updates when user stops editing
+  document.addEventListener('focusout', handleFocusOut);
+  
+  // Auto-save interval (backup for debounced save)
+  setInterval(() => {
+    if (Date.now() - state.lastEdit < 500 && state.currentBoardId) {
+      saveNotes();
+    }
+  }, 500);
+}
 
-            if (u_Tool.classList.contains('add-drop')) {
-            const toolsMenu = openConElemTools(ADD_DROP_BLOCKS, itemIndex);
-            u_Tool.appendChild(toolsMenu);
-            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
-            }
+function setupMutationAutoSave() {
+  if (mutationSaveObserver) {
+    mutationSaveObserver.disconnect();
+    mutationSaveObserver = null;
+  }
 
-            if (u_Tool.classList.contains('anchor')) {
-            const toolsMenu = openConElemTools(ANCHOR_TEXT_TOOLS, itemIndex);
-            u_Tool.appendChild(toolsMenu);
-            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
-            }
+  const boardItems = document.getElementById('boardItems');
+  const cover = document.getElementById('boardCover');
+  const iconDisplay = document.getElementById('iconDisplay');
 
-            if (u_Tool.classList.contains('edit-icon')) {
-            const toolsMenu = openConElemTools(CHANGE_ICON_TOOLS, itemIndex);
-            u_Tool.appendChild(toolsMenu);
-            requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
-            }
-        }
-        });
+  const relevantAttributes = new Set([
+    'class',
+    'style',
+    'data-url',
+    'data-placeholder',
+    'data-content-id',
+    'data-tab-id',
+    'data-row-id',
+    'data-block-id',
+    'data-block-type'
+  ]);
 
-    // Event delegation for all .js-trigger-action clicks
-    registerListener(document, 'click', (e) => {
-        const trigger = e.target.closest('.js-trigger-action');
-        if (!trigger) return;
+  mutationSaveObserver = new MutationObserver((mutations) => {
+    if (suppressMutationSaves) return;
 
-        const action = trigger.dataset.action;
-        const value = trigger.dataset.value;
-        const itemIndex = trigger.dataset.item;
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes') {
+        if (!relevantAttributes.has(mutation.attributeName)) continue;
+      }
 
-        if (action === 'Size') changeTextSize(itemIndex, value);
-        if (action === 'Color') changeTextColor(itemIndex, value);
-        if (action === 'Alignments') changeTextAlignment(itemIndex, value);
-        if (action === 'Background') changeTextBackground(itemIndex, value);
-    
+      // Any meaningful UI-driven change should mark as edited and save
+      state.lastEdit = Date.now();
+      debouncedSave();
+      break;
+    }
+  });
 
-        if (action === 'normal') createTextItem('normal-text');
-        if (action === 'title') createTextItem('title');
-        if (action === 'heading2') createTextItem('heading2');
-        if (action === 'heading3') createTextItem('heading3');
-        if (action === 'checklist') createCheckListItem();
-        if (action === 'delete') {
-            // Try to remove row, item, or input by itemIndex
-            const row = document.getElementById(`item-row-${itemIndex}`);
-            if (row) return row.remove();
-
-            const item = document.getElementById(`item-${itemIndex}`);
-            if (item) return item.remove();
-
-            const input = document.getElementById(`item-input-${itemIndex}`);
-            if (input) {
-                const itemEl = input.closest('.item');
-                const rowEl = input.closest('.board-item-row');
-                if (rowEl) {
-                    const itemsInRow = rowEl.querySelectorAll('.item');
-                    return (itemEl && itemsInRow.length > 1) ? itemEl.remove() : rowEl.remove();
-                }
-                return itemEl ? itemEl.remove() : input.remove();
-            }
-
-            // Fallback: remove closest .item or .board-item-row from floaty
-            const floaty = document.querySelector(`.floaty[data-item="${itemIndex}"]`);
-            if (floaty) (floaty.closest('.item') || floaty.closest('.board-item-row'))?.remove();
-        }
-
-        if (action === 'separator') {
-            createSeparator();
-        }
-        if (action === 'link') {
-            promptForLink();
-        }
-
-        if (action === 'callout') {
-            createCallOut();
-        }
-
-        if (action === 'dropdown') {
-            createDropdown();
-        }
-
-        if (action === 'group') {
-            createGroup();
-        }
-
-        if (action === 'edit') {
-            focusInput(itemIndex);
-        }
-
-        if (action === 'yotube') {
-            alert('YouTube embed feature coming soon!');
-        }
-
-        if (action === 'edit-icon') {
-            focusIconInput();
-        }
-
-
-        closeAllToolsMenus();
+  if (boardItems) {
+    mutationSaveObserver.observe(boardItems, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeOldValue: false
     });
+  }
 
-
-    // Helpers
-    function closeAllToolsMenus() {
-        document.querySelectorAll('.tools-container').forEach(menu => {
-            menu.classList.add('dn');
-        });
-    }
-
-    // Change functions
-    function changeTextSize(itemIndex, sizeClass) {
-        const input = document.getElementById(`item-input-${itemIndex}`);
-        if (!input) return;
-        TEXT_TOOLS['Size'].forEach(s => input.classList.remove(s.class));
-        if (sizeClass) input.classList.add(sizeClass);
-    }
-
-    function changeTextColor(itemIndex, colorClass) {
-        const input = document.getElementById(`item-input-${itemIndex}`);
-        if (!input) return;
-        TEXT_TOOLS['Color'].forEach(c => {
-            if (c.class) input.classList.remove(c.class);
-        });
-        if (colorClass) input.classList.add(colorClass);
-    }
-
-    function changeTextBackground(itemIndex, bgClass) {
-        const input = document.getElementById(`item-input-${itemIndex}`);
-        if (!input) return;
-        TEXT_TOOLS['background'].forEach(b => {
-            if (b.class) input.classList.remove(b.class);
-        });
-        if (bgClass) input.classList.add(bgClass);
-    }
-
-    function changeTextAlignment(itemIndex, alignClass) {
-        const input = document.getElementById(`item-input-${itemIndex}`);
-        if (!input) return;
-        TEXT_TOOLS['Alignments'].forEach(a => input.classList.remove(a.class));
-        if (alignClass) input.classList.add(alignClass);
-    }
-
-    function focusInput(itemIndex) {
-        const input = document.getElementById(`item-input-${itemIndex}`);
-        if (input) input.focus();
-    }
-
-    // Add new item when clicking below last input
-    registerListener(document, 'click', (e) => {
-        const boardContainer = document.querySelector('.board-content');
-        const activeInput = document.activeElement;
-        const allInputs = Array.from(document.querySelectorAll('.item-element'));
-        const lastInput = allInputs[allInputs.length - 1];
-        if (!lastInput) return;
-
-        const boardItemChildren = Array.from(boardContainer.children);
-
-        const rect = lastInput.getBoundingClientRect();
-        const clickY = e.clientY;
-        const belowLast = clickY > rect.bottom;
-
-        if (
-            belowLast &&
-            !e.target.closest('.floaty') &&
-            !e.target.closest('.board-item-row') &&
-            !e.target.closest('.extra_elems') &&
-            !lastInput.classList.contains('empty')
-        ) {
-            if (activeInput && activeInput === lastInput) return;
-            createTextItem();
-        }
+  // Cover/icon changes also need persistence (they typically don't emit 'input')
+  if (cover) {
+    mutationSaveObserver.observe(cover, {
+      attributes: true,
+      attributeOldValue: false
     });
-
-    // Enter + Backspace shortcuts
-    registerListener(document, 'keydown', (e) => {
-          saveNotes();
-
-        if (
-            (e.key === 'ArrowDown' || e.key === 'ArrowUp') &&
-            document.activeElement.classList.contains('item-element')
-        ) {
-            const allInputs = Array.from(document.querySelectorAll('.item-element'));
-            const currentIndex = allInputs.indexOf(document.activeElement);
-            if (e.key === 'ArrowDown' && currentIndex < allInputs.length - 1) {
-                e.preventDefault();
-                allInputs[currentIndex + 1].focus();
-            }
-            if (e.key === 'ArrowUp' && currentIndex > 0) {
-                e.preventDefault();
-                allInputs[currentIndex - 1].focus();
-            }
-        }
-
-        const activeElementInput = document.activeElement;
-
-        // if (activeElementInput.scrollWidth > activeElementInput.clientWidth) {
-        //     createNewIdenticalInput();
-        // }
-
-
-        if (e.key === 'Enter') {
-            const activeElement = document.activeElement;
-            if (activeElement && activeElement.classList.contains('item-element') && activeElement.value.trim() !== '') {
-                e.preventDefault();
-                if (!printMode || printMode === 'none' || !document.querySelector(`.js-drop-content-${printMode}`)) {
-                        printMode = 'board';
-                    }
-                if (listmode === 'checkList') {
-                    createCheckListItem();
-                } else {
-                    createTextItem();
-                }
-                // Focus on the newly created input
-                if (printMode != 'board') {
-                    const inputsWithin = document.querySelectorAll(`.js-drop-content-${printMode} .item-element`);
-                    if (inputsWithin.length > 0) {
-                        inputsWithin[inputsWithin.length - 1].focus();
-                    }
-                } else{
-                    const allInputs = document.querySelectorAll('.item-element');
-                    const lastInput = allInputs[allInputs.length - 1];
-                    if (lastInput) lastInput.focus();
-                }
-            }
-
-            if (activeElement && activeElement.value.trim() === '') {
-                const existingMenu = activeElement.parentElement.querySelector('.tools-container');
-                if (!existingMenu) {
-                    const toolsMenu = openConElemTools(ADD_BLOCKS, 'lol');
-                    activeElement.parentElement.appendChild(toolsMenu);
-                    requestAnimationFrame(() => toolsMenu.classList.remove('dn'));
-                } else {
-                    existingMenu.classList.toggle('dn');
-                }
-            }
-
-        }
-
-
-        if (e.key === 'Backspace') {
-            const activeElement = document.activeElement;
-            if (
-                activeElement &&
-                activeElement.classList.contains('item-element') &&
-                activeElement.value.trim() === ''
-            ) {
-                e.preventDefault();
-               activeElement.closest('.item')?.remove();
-                deleteEmptyRows();
-
-                focusInputLatest();
-            }
-        }
+  }
+  if (iconDisplay) {
+    mutationSaveObserver.observe(iconDisplay, {
+      attributes: true,
+      attributeOldValue: false,
+      childList: true,
+      subtree: true
     });
-
-    // genrations
-
-
-
-    // icons stuff
-
-
-    function focusIconInput() {
-        const iconInput = document.getElementById('icon-input');
-        if (iconInput) {
-            iconInput.removeAttribute('readonly');
-            iconInput.focus();
-
-            // Handler to set readonly back
-            function setReadonlyBack() {
-                iconInput.setAttribute('readonly', true);
-                iconInput.removeEventListener('blur', setReadonlyBack);
-                iconInput.removeEventListener('keydown', onEnter);
-            }
-
-            function onEnter(e) {
-                if (e.key === 'Enter') {
-                    setReadonlyBack();
-                }
-            }
-
-            iconInput.addEventListener('blur', setReadonlyBack);
-            iconInput.addEventListener('keydown', onEnter);
-        }
-    }
-
-
-
-    registerListener(document, 'keydown', (e) => {
-        if (e.shiftKey && e.key === 'A') {
-            e.preventDefault(); // Prevent the letter from being typed in the input
-            createTextItem();
-            focusInputLatest();
-        }
-    });
-
-    
-
-    function focusInputLatest() {
-        let allInputs;
-        const contentDiv = document.querySelector(`.js-drop-content-${printMode}`);
-        const contentDivInputs = contentDiv ? contentDiv.querySelectorAll('.item-element') : [];
-        if (printMode != 'board' && contentDiv) {
-            allInputs = contentDiv ? contentDiv.querySelectorAll('.item-element') : [];
-            if (contentDivInputs.length < 1) {
-                allInputs = document.querySelectorAll('.item-element');
-            }
-        } else {
-            allInputs = document.querySelectorAll('.item-element');
-        }
-        const aiLength = allInputs.length;
-        const latest = allInputs[aiLength - 1];
-        if (latest) {
-            latest.focus();
-        }
-    }
-
-    // Always reset printMode to 'board' when focusing a top-level input
-document.addEventListener('focusin', e => {
-    if (e.target.classList.contains('item-element') && !e.target.closest('.js-drop-content-')) {
-        printMode = 'board';
-    }
-});
-
-
-    function addIcon() {
-        const iconInput = document.getElementById('icon-input');
-        if (iconInput) {
-            iconInput.classList.remove('dn');
-            iconInput.classList.add('hasIcon');
-            const randomIcon = randomIcons[Math.floor(Math.random() * randomIcons.length)];
-            iconInput.value = randomIcon;
-            recognizeElems();
-        }
-    }
-
-
-
-
-        const addIconBtn = document.querySelector('.add-icon-btn');
-    if (addIconBtn) {
-        registerListener(addIconBtn, 'click', () => {
-            addIcon();
-        });
-    } else {
-        console.warn('addIconBtn not found');
-    }
-
-
-
-    function addCover(imgUrl) {
-  const coverElem = document.querySelector('.cover');
-
-  imgUrl = imgUrl || covers[Math.floor(Math.random() * covers.length)];
-
-  if (coverElem) {
-    coverElem.style.backgroundImage = `url('${imgUrl}')`;
   }
 }
 
-const coverBtn = document.querySelector('.add-cover-btn');
-if (coverBtn) {
-    coverBtn.addEventListener('click', () => {
-        addCover();
-        coverBtn.innerHTML = 'Change cover';
-        coverBtn.classList.remove('add-cover-btn');
-        coverBtn.removeEventListener('click', this);
-        coverBtn.classList.add('js-uni-tools', 'edit');
-    });
+// ==========================================================================
+// SHARE PANEL (Legacy - now handled by collaboration.js)
+// ==========================================================================
+
+// Share panel functionality has been moved to collaboration.js
+// which provides full Google Docs-like collaboration features
+
+// ==========================================================================
+// COVER & ICON
+// ==========================================================================
+
+function addRandomCover() {
+  const cover = $('#boardCover');
+  const btn = $('.js-add-cover');
+  
+  if (cover) {
+    const randomCover = COVER_IMAGES[Math.floor(Math.random() * COVER_IMAGES.length)];
+    cover.style.backgroundImage = `url('${randomCover}')`;
+    cover.classList.add('cover--has-image');
+    
+    if (btn) {
+      btn.textContent = 'Change cover';
+    }
+  }
 }
 
+function setBoardCoverImage(src) {
+  const cover = $('#boardCover');
+  const btn = $('.js-add-cover');
+  if (!cover) return;
+  cover.style.backgroundImage = src ? `url('${src}')` : '';
+  cover.classList.toggle('cover--has-image', !!src);
+  if (btn) btn.textContent = src ? 'Change cover' : 'Add cover';
+}
 
+function removeBoardCover() {
+  setBoardCoverImage('');
+}
 
-
-reapplyAllEventListeners();
-syncInputToDataContent(); // re-syncs input values to dataset.content
-initEmptyInputs();
-
-});
-
-
-registerListener(document, 'keydown', e => {
-    if (e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        alert('Notes saved!');
+function addRandomIcon() {
+  const iconDisplay = $('#iconDisplay');
+  const btn = $('.js-add-icon');
+  
+  if (iconDisplay) {
+    const randomIcon = RANDOM_ICONS[Math.floor(Math.random() * RANDOM_ICONS.length)];
+    iconDisplay.textContent = randomIcon;
+    iconDisplay.contentEditable = 'true';
+    
+    if (btn) {
+      btn.classList.add('hidden');
     }
-});
+  }
+}
 
-function appendItemToBoard(itemDivRow) {
-  const boardItemsSection = document.getElementById('boardItems');
-  if (!boardItemsSection) return;
+function handleIconClick() {
+  const iconDisplay = $('#iconDisplay');
+  if (iconDisplay && iconDisplay.contentEditable === 'true') {
+    focusAtEnd(iconDisplay);
+  }
+}
 
-  if (printMode && printMode !== 'board') {
-    const dropdownContent = document.querySelector(`.js-drop-content-${printMode}`);
-    if (dropdownContent) {
-      dropdownContent.appendChild(itemDivRow);
+// ==========================================================================
+// ICON PICKER (Emoji | Icons | Upload | Remove)
+// ==========================================================================
+
+function openIconPicker(anchor) {
+  if (!anchor) return;
+  closeIconPicker();
+
+  const picker = createElement('div', { className: 'icon-picker' });
+
+  // Header tabs
+  const header = createElement('div', { className: 'icon-picker__header' });
+  const tabs = [
+    { id: 'emoji', label: 'Emoji' },
+    { id: 'icons', label: 'Icons' },
+    { id: 'upload', label: 'Upload' },
+    { id: 'remove', label: 'Remove' }
+  ];
+  const tabBtns = {};
+  tabs.forEach((t, i) => {
+    const btn = createElement('button', {
+      className: `icon-picker__tab ${i === 0 ? 'is-active' : ''}`,
+      text: t.label,
+      attrs: { type: 'button', 'data-tab': t.id }
+    });
+    tabBtns[t.id] = btn;
+    header.appendChild(btn);
+  });
+  picker.appendChild(header);
+
+  // Toolbar
+  const toolbar = createElement('div', { className: 'icon-picker__toolbar' });
+  const shuffle = createElement('button', {
+    className: 'icon-picker__shuffle',
+    html: '&#x1F500;',
+    attrs: { type: 'button', title: 'Shuffle' }
+  });
+  toolbar.appendChild(shuffle);
+  picker.appendChild(toolbar);
+
+  // Content areas
+  const contentEmoji = createElement('div', { className: 'icon-picker__content is-active', attrs: { 'data-content': 'emoji' } });
+  const contentIcons = createElement('div', { className: 'icon-picker__content', attrs: { 'data-content': 'icons' } });
+  const contentUpload = createElement('div', { className: 'icon-picker__content', attrs: { 'data-content': 'upload' } });
+  const contentRemove = createElement('div', { className: 'icon-picker__content', attrs: { 'data-content': 'remove' } });
+
+  // Emoji grid
+  let emojiList = [];
+  const gridEmoji = createElement('div', { className: 'icon-picker__grid' });
+  const emojiLoading = createElement('div', { className: 'text-sm text-secondary', text: 'Loading…' });
+  contentEmoji.appendChild(emojiLoading);
+  contentEmoji.appendChild(gridEmoji);
+
+  // Icons grid
+  let iconList = [];
+  const gridIcons = createElement('div', { className: 'icon-picker__grid' });
+  const iconLoading = createElement('div', { className: 'text-sm text-secondary', text: 'Loading…' });
+  contentIcons.appendChild(iconLoading);
+  contentIcons.appendChild(gridIcons);
+
+  // Upload
+  const uploadWrap = createElement('div', { className: 'icon-picker__upload' });
+  const fileInput = createElement('input', { attrs: { type: 'file', accept: 'image/*' } });
+  const uploadBtn = createElement('button', { className: 'btn btn--primary', text: 'Use Image', attrs: { type: 'button' } });
+  uploadBtn.addEventListener('click', () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setBoardIconImage(reader.result);
+    reader.readAsDataURL(file);
+  });
+  uploadWrap.appendChild(fileInput);
+  uploadWrap.appendChild(uploadBtn);
+  contentUpload.appendChild(uploadWrap);
+
+  // Remove
+  const removeBtn = createElement('button', { className: 'btn btn--danger', text: 'Remove Icon', attrs: { type: 'button' } });
+  removeBtn.addEventListener('click', removeBoardIcon);
+  contentRemove.appendChild(removeBtn);
+
+  picker.appendChild(contentEmoji);
+  picker.appendChild(contentIcons);
+  picker.appendChild(contentUpload);
+  picker.appendChild(contentRemove);
+
+  // Interactions
+  Object.values(tabBtns).forEach(btn => btn.addEventListener('click', () => switchIconTab(btn.dataset.tab)));
+  shuffle.addEventListener('click', () => {
+    if (!emojiList.length) return;
+    const random = emojiList[Math.floor(Math.random() * emojiList.length)];
+    setBoardEmoji(random);
+  });
+
+  // Helpers
+  function switchIconTab(tab) {
+    Object.values(tabBtns).forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab));
+    [contentEmoji, contentIcons, contentUpload, contentRemove].forEach(c => c.classList.toggle('is-active', c.dataset.content === tab));
+  }
+
+  function renderEmojiGrid() {
+    gridEmoji.replaceChildren();
+    emojiList.forEach(e => {
+      const cell = createElement('button', { className: 'icon-picker__cell', text: e, attrs: { type: 'button' } });
+      cell.addEventListener('click', () => setBoardEmoji(e));
+      gridEmoji.appendChild(cell);
+    });
+  }
+
+  function renderIconGrid() {
+    gridIcons.replaceChildren();
+    iconList.forEach(src => {
+      const cell = createElement('button', { className: 'icon-picker__cell', attrs: { type: 'button' } });
+      cell.innerHTML = `<img src="${src}" alt="icon" class="icon-picker__img">`;
+      cell.addEventListener('click', () => setBoardIconImage(src));
+      gridIcons.appendChild(cell);
+    });
+  }
+
+  document.body.appendChild(picker);
+  positionPopover(picker, anchor);
+
+  // Load data (async)
+  loadEmojis();
+  loadIcons();
+
+  async function loadEmojis() {
+    emojiLoading.textContent = 'Loading…';
+    try {
+      const cacheKey = 'cascade_emoji_list_v1';
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length) {
+          emojiList = parsed;
+          emojiLoading.remove();
+          renderEmojiGrid();
+          return;
+        }
+      }
+
+      // External dataset (Unicode emojis)
+      const res = await fetch('https://cdn.jsdelivr.net/npm/emoji.json@13.1.0/emoji.json', { cache: 'force-cache' });
+      if (!res.ok) throw new Error(`emoji fetch failed: ${res.status}`);
+      const data = await res.json();
+
+      // emoji.json entries look like: { char: "😀", name: "grinning face", ... }
+      const list = Array.isArray(data) ? data.map(x => x?.char).filter(Boolean) : [];
+      emojiList = list.length ? list : ['😀','😃','😄'];
+      try { localStorage.setItem(cacheKey, JSON.stringify(emojiList)); } catch {}
+      emojiLoading.remove();
+      renderEmojiGrid();
+    } catch {
+      emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇'];
+      emojiLoading.textContent = 'Offline emoji list';
+      renderEmojiGrid();
+    }
+  }
+
+  async function loadIcons() {
+    iconLoading.textContent = 'Loading…';
+    try {
+      const res = await fetch('./assets/icons-manifest.json', { cache: 'no-cache' });
+      if (!res.ok) throw new Error(`icon manifest fetch failed: ${res.status}`);
+      const data = await res.json();
+      iconList = Array.isArray(data) ? data.filter(Boolean) : [];
+      iconLoading.remove();
+      renderIconGrid();
+    } catch {
+      iconList = ['appicons/yt.png','appicons/gcal.png'];
+      iconLoading.textContent = 'No icon manifest';
+      renderIconGrid();
+    }
+  }
+}
+
+function positionPopover(pop, anchor) {
+  const rect = anchor.getBoundingClientRect();
+  pop.style.position = 'fixed';
+  pop.style.left = `${rect.left}px`;
+  pop.style.top = `${rect.bottom + 6}px`;
+  pop.style.bottom = '';
+  pop.style.zIndex = '1000';
+
+  const vh = window.innerHeight;
+  const h = pop.offsetHeight || 0;
+  if (rect.bottom + 6 + h > vh - 8) {
+    pop.style.top = '';
+    pop.style.bottom = `${vh - rect.top + 6}px`;
+  }
+  const vw = window.innerWidth;
+  const w = pop.offsetWidth || 0;
+  if (rect.left + w > vw - 8) {
+    pop.style.left = `${Math.max(8, vw - w - 8)}px`;
+  }
+}
+
+function closeIconPicker() {
+  $$('.icon-picker').forEach(p => p.remove());
+}
+
+// ==========================================================================
+// COVER PICKER (Gallery | Unsplash | Upload | Remove)
+// ==========================================================================
+
+function openCoverPicker(anchor) {
+  if (!anchor) return;
+  closeCoverPicker();
+  closeIconPicker();
+
+  const picker = createElement('div', { className: 'icon-picker cover-picker' });
+
+  const header = createElement('div', { className: 'icon-picker__header' });
+  const tabs = [
+    { id: 'gallery', label: 'Gallery' },
+    { id: 'unsplash', label: 'Unsplash' },
+    { id: 'upload', label: 'Upload' },
+    { id: 'remove', label: 'Remove' }
+  ];
+  const tabBtns = {};
+  tabs.forEach((t, i) => {
+    const btn = createElement('button', {
+      className: `icon-picker__tab ${i === 0 ? 'is-active' : ''}`,
+      text: t.label,
+      attrs: { type: 'button', 'data-tab': t.id }
+    });
+    tabBtns[t.id] = btn;
+    header.appendChild(btn);
+  });
+  picker.appendChild(header);
+
+  const contentGallery = createElement('div', { className: 'icon-picker__content is-active', attrs: { 'data-content': 'gallery' } });
+  const contentUnsplash = createElement('div', { className: 'icon-picker__content', attrs: { 'data-content': 'unsplash' } });
+  const contentUpload = createElement('div', { className: 'icon-picker__content', attrs: { 'data-content': 'upload' } });
+  const contentRemove = createElement('div', { className: 'icon-picker__content', attrs: { 'data-content': 'remove' } });
+
+  // Gallery grid (local covers)
+  const gridGallery = createElement('div', { className: 'icon-picker__grid cover-picker__grid' });
+  COVER_IMAGES.forEach((src) => {
+    const cell = createElement('button', { className: 'icon-picker__cell cover-picker__cell', attrs: { type: 'button' } });
+    cell.innerHTML = `<img src="${src}" alt="cover" class="cover-picker__img">`;
+    cell.addEventListener('click', () => {
+      setBoardCoverImage(src);
+      closeCoverPicker();
+    });
+    gridGallery.appendChild(cell);
+  });
+  contentGallery.appendChild(gridGallery);
+
+  // Unsplash grid (no-key via source.unsplash.com)
+  const unsplashLoading = createElement('div', { className: 'text-sm text-secondary', text: 'Loading…' });
+  const gridUnsplash = createElement('div', { className: 'icon-picker__grid cover-picker__grid' });
+  contentUnsplash.appendChild(unsplashLoading);
+  contentUnsplash.appendChild(gridUnsplash);
+  let unsplashLoaded = false;
+
+  // Upload
+  const uploadWrap = createElement('div', { className: 'icon-picker__upload' });
+  const fileInput = createElement('input', { attrs: { type: 'file', accept: 'image/*' } });
+  const uploadBtn = createElement('button', { className: 'btn btn--primary', text: 'Use Image', attrs: { type: 'button' } });
+  uploadBtn.addEventListener('click', () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setBoardCoverImage(String(reader.result || ''));
+      closeCoverPicker();
+    };
+    reader.readAsDataURL(file);
+  });
+  uploadWrap.appendChild(fileInput);
+  uploadWrap.appendChild(uploadBtn);
+  contentUpload.appendChild(uploadWrap);
+
+  // Remove
+  const removeBtn = createElement('button', { className: 'btn btn--danger', text: 'Remove cover', attrs: { type: 'button' } });
+  removeBtn.addEventListener('click', () => {
+    removeBoardCover();
+    closeCoverPicker();
+  });
+  contentRemove.appendChild(removeBtn);
+
+  picker.appendChild(contentGallery);
+  picker.appendChild(contentUnsplash);
+  picker.appendChild(contentUpload);
+  picker.appendChild(contentRemove);
+
+  Object.values(tabBtns).forEach(btn => btn.addEventListener('click', () => switchCoverTab(btn.dataset.tab)));
+
+  function switchCoverTab(tab) {
+    Object.values(tabBtns).forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab));
+    [contentGallery, contentUnsplash, contentUpload, contentRemove].forEach(c => c.classList.toggle('is-active', c.dataset.content === tab));
+    if (tab === 'unsplash' && !unsplashLoaded) loadUnsplash();
+  }
+
+  function loadUnsplash() {
+    unsplashLoaded = true;
+    unsplashLoading.textContent = 'Loading…';
+
+    const topics = ['nature', 'space', 'abstract', 'gradient', 'texture'];
+    const topic = topics[Math.floor(Math.random() * topics.length)];
+    const count = 12;
+    const urls = Array.from({ length: count }, (_, i) => `https://source.unsplash.com/random/800x400?${encodeURIComponent(topic)}&sig=${Date.now() + i}`);
+
+    gridUnsplash.replaceChildren();
+    urls.forEach((url) => {
+      const cell = createElement('button', { className: 'icon-picker__cell cover-picker__cell', attrs: { type: 'button' } });
+      const img = document.createElement('img');
+      img.className = 'cover-picker__img';
+      img.alt = 'Unsplash cover';
+      img.loading = 'lazy';
+      img.src = url;
+      cell.appendChild(img);
+      cell.addEventListener('click', () => {
+        const chosen = img.currentSrc || img.src;
+        if (chosen) setBoardCoverImage(chosen);
+        closeCoverPicker();
+      });
+      gridUnsplash.appendChild(cell);
+    });
+
+    unsplashLoading.remove();
+  }
+
+  document.body.appendChild(picker);
+  positionPopover(picker, anchor);
+}
+
+function closeCoverPicker() {
+  $$('.cover-picker').forEach(p => p.remove());
+}
+
+// ==========================================================================
+// BOARD SETTINGS MENU
+// ==========================================================================
+
+function openBoardSettingsMenu(anchor) {
+  if (!anchor) return;
+  closeAllMenus();
+  closeBoardSettingsMenu();
+  
+  const menu = createToolMenu(TOOLS.BOARD_SETTINGS, null);
+  positionMenu(menu, anchor);
+  menu.classList.add('board-settings-menu');
+  document.body.appendChild(menu);
+}
+
+function closeBoardSettingsMenu() {
+  $$('.board-settings-menu').forEach(m => m.remove());
+}
+
+function changeBoardBackground(bgClass) {
+  const board = $('#board');
+  if (!board) return;
+  
+  // Remove existing board background classes
+  BOARD_BG_CLASSES.forEach(cls => board.classList.remove(cls));
+  
+  // Add new background class
+  if (bgClass) {
+    board.classList.add(bgClass);
+  }
+  
+  debouncedSave();
+}
+
+function setBoardEmoji(emoji) {
+  const iconDisplay = $('#iconDisplay');
+  if (!iconDisplay) return;
+  iconDisplay.textContent = emoji;
+  iconDisplay.style.backgroundImage = '';
+  closeIconPicker();
+}
+
+function setBoardIconImage(src) {
+  const iconDisplay = $('#iconDisplay');
+  if (!iconDisplay) return;
+  iconDisplay.textContent = '';
+  iconDisplay.style.backgroundImage = `url('${src}')`;
+  iconDisplay.style.backgroundSize = 'cover';
+  iconDisplay.style.backgroundPosition = 'center';
+  closeIconPicker();
+}
+
+function removeBoardIcon() {
+  const iconDisplay = $('#iconDisplay');
+  if (!iconDisplay) return;
+  iconDisplay.textContent = '';
+  iconDisplay.style.backgroundImage = '';
+  closeIconPicker();
+}
+
+// ==========================================================================
+// ADD BLOCK HANDLING
+// ==========================================================================
+
+function handleAddBlockClick(e) {
+  const addBtn = e.target.closest('.js-add-block, .js-add-block-row, .js-add-block-nested');
+  if (!addBtn) return;
+  
+  e.stopPropagation();
+  closeAllMenus();
+  
+  // Determine which menu to show
+  const isNested = addBtn.classList.contains('js-add-block-nested');
+  const isRowButton = addBtn.classList.contains('js-add-block-row');
+  const tools = isNested ? TOOLS.ADD_BLOCKS_NESTED : TOOLS.ADD_BLOCKS;
+  
+  // Set print mode and target row
+  if (isNested) {
+    state.printMode = addBtn.dataset.parentId;
+    state.targetRow = null;
+  } else if (isRowButton && addBtn.dataset.rowId) {
+    // Row button - add to this specific row
+    state.printMode = 'board';
+    state.targetRow = addBtn.dataset.rowId;
+  } else {
+    state.printMode = 'board';
+    state.targetRow = null;
+  }
+  
+  // Create and show menu
+  const menu = createToolMenu(tools, null);
+  positionMenu(menu, addBtn);
+  document.body.appendChild(menu);
+}
+
+// ==========================================================================
+// BLOCK MENU (EDIT)
+// ==========================================================================
+
+function handleBlockMenuClick(e) {
+  const menuBtn = e.target.closest('.js-block-menu');
+  if (!menuBtn) return;
+  
+  e.stopPropagation();
+  closeAllMenus();
+  
+  const blockId = menuBtn.dataset.blockId;
+  const blockType = menuBtn.dataset.blockType || 'text';
+  
+  // Get appropriate tools
+  let tools;
+  switch (blockType) {
+    case 'link':
+      tools = TOOLS.LINK;
+      break;
+    case 'separator':
+      tools = TOOLS.DEFAULT;
+      break;
+    case 'gcal':
+      tools = TOOLS.GCAL;
+      break;
+    default:
+      tools = TOOLS.TEXT;
+  }
+  
+  const menu = createToolMenu(tools, blockId);
+  positionMenu(menu, menuBtn);
+  document.body.appendChild(menu);
+}
+
+// ==========================================================================
+// SIZE MENU (Groups/Galleries)
+// ==========================================================================
+
+function handleSizeMenuClick(e) {
+  const menuBtn = e.target.closest('.js-size-menu');
+  if (!menuBtn) return;
+  
+  e.stopPropagation();
+  closeAllMenus();
+  closeSizeMenus();
+  
+  const blockId = menuBtn.dataset.blockId;
+  const menu = createSizeMenu(blockId);
+  positionMenu(menu, menuBtn);
+  document.body.appendChild(menu);
+}
+
+function createSizeMenu(blockId) {
+  const menu = createElement('div', {
+    className: 'size-menu',
+    data: { blockId }
+  });
+  
+  const sizes = [
+    { id: 'quarter', label: '1/4', width: '25%' },
+    { id: 'half', label: '1/2', width: '50%' },
+    { id: 'three-quarter', label: '3/4', width: '75%' },
+    { id: 'three-fifth', label: '3/5', width: '60%' }
+  ];
+  
+  sizes.forEach(size => {
+    const item = createElement('div', {
+      className: 'size-menu__item',
+      text: size.label,
+      data: { blockId, width: size.width }
+    });
+    
+    item.addEventListener('click', () => {
+      const block = document.querySelector(`[data-block-id="${blockId}"]`);
+      if (block) {
+        block.style.width = size.width;
+        block.style.flex = 'none';
+      }
+      closeSizeMenus();
+    });
+    
+    menu.appendChild(item);
+  });
+  
+  return menu;
+}
+
+function closeSizeMenus() {
+  $$('.size-menu').forEach(menu => menu.remove());
+}
+
+// ==========================================================================
+// TOOL MENU CREATION
+// ==========================================================================
+
+function createToolMenu(tools, blockId) {
+  const menu = createElement('div', {
+    className: 'tools-menu',
+    data: { blockId: blockId || '' }
+  });
+  
+  Object.entries(tools).forEach(([sectionName, items]) => {
+    // Check if this section has tabs
+    if (items && typeof items === 'object' && items.tabs) {
+      const section = createElement('div', { className: 'tools-menu__section' });
+      
+      // Section label
+      const label = createElement('div', {
+        className: 'tools-menu__label',
+        text: sectionName
+      });
+      section.appendChild(label);
+      
+      // Create tabs container
+      const tabsContainer = createElement('div', { className: 'tools-menu__tabs' });
+      
+      Object.entries(items).forEach(([tabName, tabItems]) => {
+        if (tabName === 'tabs') return; // Skip the tabs flag
+        
+        // Create tab button with popover
+        const tabBtn = createElement('div', {
+          className: 'tools-menu__tab',
+          text: tabName
+        });
+        
+        // Create popover
+        const popover = createElement('div', {
+          className: 'tools-menu__tab-popover'
+        });
+        
+        // Add items to popover
+        tabItems.forEach(item => {
+          const itemEl = createElement('div', {
+            className: `tools-menu__item ${item.colorClass || ''} ${item.action === 'delete' ? 'tools-menu__item--danger' : ''}`,
+            data: {
+              action: item.action,
+              value: item.class || '',
+              blockId: blockId || ''
+            }
+          });
+          
+          // Icon
+          const iconEl = createElement('span', { className: 'tools-menu__icon' });
+          if (item.img) {
+            iconEl.innerHTML = `<img src="${item.img}" alt="${item.label}" class="icon icon--sm">`;
+          } else {
+            iconEl.textContent = item.icon;
+          }
+          
+          // Label
+          const labelEl = createElement('span', { text: item.label });
+          
+          itemEl.appendChild(iconEl);
+          itemEl.appendChild(labelEl);
+          popover.appendChild(itemEl);
+        });
+        
+        // Position popover on hover with bottom clipping prevention
+        tabBtn.addEventListener('mouseenter', () => {
+          const rect = tabBtn.getBoundingClientRect();
+          popover.style.left = `${rect.right + 4}px`;
+          popover.style.top = `${rect.top}px`;
+          popover.style.bottom = '';
+
+          // Measure and adjust if clipping bottom
+          const viewportHeight = window.innerHeight;
+          const popHeight = popover.offsetHeight || 0;
+          const popBottomY = rect.top + popHeight;
+          if (popBottomY > viewportHeight - 8) {
+            popover.style.top = '';
+            popover.style.bottom = `${viewportHeight - rect.bottom + 4}px`;
+          }
+        });
+        
+        tabBtn.appendChild(popover);
+        tabsContainer.appendChild(tabBtn);
+      });
+      
+      section.appendChild(tabsContainer);
+      menu.appendChild(section);
+      
+    } else {
+      // Regular section (no tabs)
+      const section = createElement('div', { className: 'tools-menu__section' });
+      
+      // Section label
+      const label = createElement('div', {
+        className: 'tools-menu__label',
+        text: sectionName
+      });
+      section.appendChild(label);
+      
+      // Section items
+      items.forEach(item => {
+        const itemEl = createElement('div', {
+          className: `tools-menu__item ${item.colorClass || ''} ${item.action === 'delete' ? 'tools-menu__item--danger' : ''}`,
+          data: {
+            action: item.action,
+            value: item.class || '',
+            blockId: blockId || ''
+          }
+        });
+        
+        // Icon
+        const iconEl = createElement('span', { className: 'tools-menu__icon' });
+        if (item.img) {
+          iconEl.innerHTML = `<img src="${item.img}" alt="${item.label}" class="icon icon--sm">`;
+        } else {
+          iconEl.textContent = item.icon;
+        }
+        
+        // Label
+        const labelEl = createElement('span', { text: item.label });
+        
+        itemEl.appendChild(iconEl);
+        itemEl.appendChild(labelEl);
+        section.appendChild(itemEl);
+      });
+      
+      menu.appendChild(section);
+    }
+  });
+  
+  return menu;
+}
+
+function positionMenu(menu, anchor) {
+  const rect = anchor.getBoundingClientRect();
+  menu.style.position = 'fixed';
+  menu.style.left = `${rect.left}px`;
+  menu.style.top = `${rect.bottom + 4}px`;
+  menu.style.bottom = '';
+  menu.style.zIndex = '1000';
+
+  // Ensure the element is in the DOM to measure height
+  let appendedTemporarily = false;
+  if (!menu.isConnected) {
+    appendedTemporarily = true;
+    menu.style.visibility = 'hidden';
+    document.body.appendChild(menu);
+  }
+
+  const viewportHeight = window.innerHeight;
+  const menuHeight = menu.offsetHeight || 0;
+  const bottomY = rect.bottom + 4 + menuHeight;
+
+  // If the menu would clip past the bottom, anchor from bottom (open upward)
+  if (bottomY > viewportHeight - 8) {
+    menu.style.top = '';
+    menu.style.bottom = `${viewportHeight - rect.top + 4}px`;
+  }
+
+  if (appendedTemporarily) {
+    menu.style.visibility = '';
+  }
+}
+
+// ==========================================================================
+// TOOL ACTIONS
+// ==========================================================================
+
+function handleToolAction(e) {
+  const item = e.target.closest('.tools-menu__item');
+  if (!item) return;
+  
+  const action = item.dataset.action;
+  const value = item.dataset.value;
+  const blockId = item.dataset.blockId;
+  
+  closeAllMenus();
+  
+  // Add block actions
+  if (action.startsWith('add-')) {
+    handleAddAction(action);
+    return;
+  }
+  
+  // Block modification actions
+  switch (action) {
+    case 'delete':
+      deleteBlock(blockId);
+      break;
+    case 'size':
+      changeBlockSize(blockId, value);
+      break;
+    case 'color':
+      changeBlockColor(blockId, value);
+      break;
+    case 'align':
+      changeBlockAlign(blockId, value);
+      break;
+    case 'edit-link':
+      editLinkBlock(blockId);
+      break;
+    case 'edit-icon':
+      openIconPicker(document.getElementById('iconDisplay'));
+      break;
+    case 'remove-icon':
+      removeBoardIcon();
+      break;
+    // Google Calendar block actions
+    case 'gcal-size':
+      changeGCalSize(blockId, value);
+      break;
+    case 'gcal-height':
+      changeGCalHeight(blockId, value);
+      break;
+    case 'gcal-bg':
+      changeGCalBackground(blockId, value);
+      break;
+    case 'gcal-reconnect':
+      reconnectGCal(blockId);
+      break;
+    // Board settings actions
+    case 'board-bg':
+      changeBoardBackground(value);
+      break;
+  }
+}
+
+function handleAddAction(action) {
+  switch (action) {
+    case 'add-text':
+      createTextBlock();
+      break;
+    case 'add-checklist':
+      createChecklistBlock();
+      break;
+    case 'add-callout':
+      createCalloutBlock();
+      break;
+    case 'add-quote':
+      createQuoteBlock();
+      break;
+    case 'add-separator':
+      createSeparatorBlock();
+      break;
+    case 'add-link':
+      showLinkForm();
+      break;
+    case 'add-dropdown':
+      createDropdownBlock();
+      break;
+    case 'add-group':
+      createGroupBlock();
+      break;
+    case 'add-gallery':
+      createGalleryBlock();
+      break;
+    case 'add-gcal':
+      createGCalBlock();
+      break;
+    case 'add-image':
+    case 'add-video':
+    case 'add-youtube':
+      alert(`${action.replace('add-', '').toUpperCase()} embed coming soon!`);
+      break;
+  }
+}
+
+// ==========================================================================
+// BLOCK MODIFICATIONS
+// ==========================================================================
+
+function changeBlockSize(blockId, sizeClass) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  const content = block.querySelector('.item__content');
+  if (!content) return;
+  
+  // Remove existing size classes
+  SIZE_CLASSES.forEach(cls => content.classList.remove(cls));
+  
+  // Add new size class
+  if (sizeClass) {
+    content.classList.add(sizeClass);
+  }
+}
+
+function changeBlockColor(blockId, colorClass) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  const content = block.querySelector('.item__content');
+  if (!content) return;
+  
+  // Remove existing text color classes
+  COLOR_CLASSES.forEach(cls => content.classList.remove(cls));
+  
+  // Remove existing background color classes
+  BG_CLASSES.forEach(cls => content.classList.remove(cls));
+  
+  // Add new color class (can be text or background)
+  if (colorClass) {
+    content.classList.add(colorClass);
+  }
+}
+
+function changeBlockAlign(blockId, alignClass) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  const content = block.querySelector('.item__content');
+  if (!content) return;
+  
+  // Remove existing align classes
+  ALIGN_CLASSES.forEach(cls => content.classList.remove(cls));
+  
+  // Add new align class
+  if (alignClass) {
+    content.classList.add(alignClass);
+  }
+}
+
+function editLinkBlock(blockId) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  const contentDiv = block.querySelector('.item__content--link');
+  if (!contentDiv) return;
+  
+  // Get current values
+  const currentText = contentDiv.textContent || '';
+  const currentUrl = block.dataset.url || contentDiv.dataset.url || '';
+  
+  // Create edit form using the same floating form style
+  const existingOverlay = document.querySelector('.link-form-overlay');
+  if (existingOverlay) existingOverlay.remove();
+  
+  const overlay = createElement('div', {
+    className: 'link-form-overlay'
+  });
+  
+  const form = createElement('div', {
+    className: 'link-form',
+    html: `
+      <div class="link-form__header">Edit Link</div>
+      <input type="text" class="link-form__input" id="editLinkTitle" placeholder="Link title..." value="${currentText}">
+      <input type="text" class="link-form__input" id="editLinkUrl" placeholder="URL..." value="${currentUrl}">
+      <div class="link-form__actions">
+        <button type="button" class="link-form__btn link-form__btn--cancel">Cancel</button>
+        <button type="button" class="link-form__btn link-form__btn--done">Save</button>
+      </div>
+    `
+  });
+  
+  overlay.appendChild(form);
+  document.body.appendChild(overlay);
+  
+  const titleInput = form.querySelector('#editLinkTitle');
+  const urlInput = form.querySelector('#editLinkUrl');
+  const saveBtn = form.querySelector('.link-form__btn--done');
+  const cancelBtn = form.querySelector('.link-form__btn--cancel');
+  
+  const cleanup = () => overlay.remove();
+  
+  const save = () => {
+    const newText = titleInput.value.trim();
+    const newUrl = urlInput.value.trim();
+    
+    if (!newText || !newUrl) {
+      if (!newText) titleInput.focus();
+      else urlInput.focus();
       return;
     }
-  }
-  boardItemsSection.appendChild(itemDivRow);
-  deleteEmptyRows();
-  setTimeout(() => addEventListenerGroup(), 10);
-}
-
-
-
-// =========== Additional Features ===========
-
-registerListener(document, 'click', (e) => {
-        addEventListenerGroup();
-    if (!e.target.closest('.js-uni-tools') && !e.target.closest('.tools-container')) {
-        closeAllToolsMenus();
-    }
-});
-
-
-
-export function addEventListenerGroup() {
-     recognizeElems();
-    syncInputToDataContent();
-        initEmptyInputs();
-        initLinkers();
-        initHiders();
-        initAddNoteBtns();
-    const allSetPrintBtns = document.querySelectorAll('.js-set-print-mode');
-    allSetPrintBtns.forEach(btn => {
-    btn.addEventListener('input', () => {
-        const targetIndex = btn.dataset.setPrintMode;
-        printMode = targetIndex;
-    });
-});
-deleteEmptyRows();
-adjustBoardRowsizes();
-// initfocusHistory();
-
-}
-
-function deleteEmptyRows() {
-    deleteEmptyGroups();
-    document.querySelectorAll('.board-item-row').forEach(row => {
-        const items = row.querySelectorAll('.item');
-        if (items.length === 0) {
-            row.remove();
-        }
-    });
-
-}
-
-function initfocusHistory() {
-    const allInputs = document.querySelectorAll('.item-element');
-    allInputs.forEach(input => {
-        input.addEventListener('focus', () => {
-            focusHistory.push(input.dataset.itemIndex);
-        });
-    });
-}
-
-function adjustBoardRowsizes() {
-    document.querySelectorAll('.board-item-row').forEach(row => {
-        const items = Array.from(row.querySelectorAll('.item'));
-        row.classList.remove('resizable-row', 'js-items-50', 'js-items-33', 'js-items-25');
-
-        items.forEach(it => it.classList.remove('resizeable', 'resizable'));
-
-        const count = items.length;
-        if (count === 0) return;
-
-        items.forEach((it, idx) => {
-            if (idx > 1) it.classList.add('resizeable');
-        });
-
-        if (count === 2) {
-            row.classList.add('resizable-row', 'js-items-40');
-        } else if (count === 3) {
-            row.classList.add('resizable-row', 'js-items-33');
-        } else if (count >= 4) {
-            row.classList.add('resizable-row', 'js-items-25');
-        }
-    });
-}
-
-function deleteEmptyGroups() {
-    document.querySelectorAll('.group').forEach(group => {
-        const groupContent = group.querySelector('.group-content');
-        if (groupContent && groupContent.querySelectorAll('.item').length === 0) {
-            group.remove();
-        }
-    });
-}
-
-function initAddNoteBtns() {
-    const allAddNoteBtns = document.querySelectorAll('.js-add-note-btn');
-    allAddNoteBtns.forEach(btn => {
-            registerListener(btn, 'click', () => {
-                const itemID = btn.id;
-                if (itemID === 'add-note') {
-                    printMode = 'board';
-                } else {
-                    const itemIndex = itemID.split('-').pop();
-                    printMode = itemIndex;
-                    console.log('Set printMode to:', printMode);
-                }
-            });
-        });
-    }
-
-// =========== Additional Features ===========
-
-function closeAllToolsMenus() {
-    document.querySelectorAll('.tools-container').forEach(menu => {
-        menu.classList.add('dn');
-        const allFloaties = document.querySelectorAll('.floaty');
-        allFloaties.forEach(floaty => floaty.classList.remove('active'));
-    });
-}
-
-
-function initLinkers() {
-    const linkers = document.querySelectorAll('[data-link]');
-    linkers.forEach(linker => {
-        linker.addEventListener('click', (e) => {
-            const url = linker.dataset.link;
-            if (url) {
-                window.open(url, '_blank');
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-    });
-}
-
-function initHiders() {
-    const hiders = document.querySelectorAll('.hide-part');
-    hiders.forEach(hider => {
-        hider.addEventListener('click', () => {
-            const targetId = hider.dataset.target;
-            if (!targetId) return;
-            const targetElems = document.querySelectorAll(`.${targetId}`);
-            targetElems.forEach(targetElem => {
-                targetElem.classList.toggle('dn');
-            });
-            hider.classList.toggle('active');
-        });
-    });
-}
-
-// Call these after DOM is ready or after dynamic content is added
-initLinkers();
-initHiders();
-
-function initEmptyInputs() {
-    document.querySelectorAll('.item-element').forEach(input => {
-        const checkEmpty = () => {
-            if (input.value.trim() === '') {
-                input.classList.add('empty');
-            } else {
-                input.classList.remove('empty');
-            }
-        };
-        input.classList.add('empty');
-        input.removeEventListener('input', checkEmpty); // Prevent duplicate listeners
-        input.addEventListener('input', checkEmpty);
-        checkEmpty();
-    });
-}
-
-
-initEmptyInputs();
-
-
-// Sync input value to data-content on keydown
-function syncInputToDataContent() {
-    registerListener(document, 'keydown', (e) => {
-        const activeElement = document.activeElement;
-        if (activeElement && activeElement.classList.contains('item-element')) {
-            setTimeout(() => {
-                activeElement.setAttribute('data-content', activeElement.value);
-            }, 0);
-        }
-    });
-
-    // On DOMContentLoaded, set input value from data-content if present
-        document.querySelectorAll('.item-element[data-content]').forEach(input => {
-            if (input.dataset.content) {
-                input.value = input.dataset.content;
-            }
-        });
-}
-
-// Call the function to enable syncing
-
-// detectors 
-// Dynamic bullet/marker detector
-const BULLET_MARKERS = [
-    { trigger: '-', replace: '• ', mode: 'bullet' },
-    { trigger: '*', replace: '• ', mode: 'checklist' },
-    { trigger: '>', replace: '➤', mode: 'quote' },
     
-    // Add more markers here in the future, e.g. { trigger: '*', replace: '• ' }
-];
-registerListener(document, 'keydown', (e) => {
-    const activeElement = document.activeElement;
-
-    if (
-        activeElement &&
-        activeElement.classList.contains('item-element')
-    ) {
-        // Bullet marker on space
-        if (e.key === ' ') {
-            for (const marker of BULLET_MARKERS) {
-                const trimmedValue = activeElement.value.trim();
-                if (trimmedValue.endsWith(marker.trigger)) {
-
-                    const cursorPos = activeElement.selectionStart;
-
-                    const before = activeElement.value.substring(0, cursorPos - marker.trigger.length);
-                    const after = activeElement.value.substring(cursorPos);
-                    activeElement.value = before + marker.replace + after;
-
-                    activeElement.selectionStart = activeElement.selectionEnd = before.length + marker.replace.length;
-
-                    listmode = marker.mode;
-                    e.preventDefault();
-                    break;
-                }
-            }
-        }
-        // Cancel bullet if Enter is pressed and only marker is present
-        if (e.key === 'Enter') {
-            if (activeElement.value.trim() === '') {
-                listmode = '';
-                // let other handlers proceed
-                return;
-            }
-            for (const marker of BULLET_MARKERS) {
-                if (activeElement.value.trim() === marker.replace.trim()) {
-                    activeElement.value = '';
-                    listmode = '';
-                    e.preventDefault();
-                    break;
-                }
-            }
-        }
+    // Update the block
+    contentDiv.textContent = newText;
+    const normalizedUrl = newUrl.startsWith('http') ? newUrl : `https://${newUrl}`;
+    block.dataset.url = normalizedUrl;
+    contentDiv.dataset.url = normalizedUrl;
+    
+    cleanup();
+    debouncedSave();
+  };
+  
+  saveBtn.addEventListener('click', save);
+  cancelBtn.addEventListener('click', cleanup);
+  
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) cleanup();
+  });
+  
+  titleInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      urlInput.focus();
+      urlInput.select();
+    } else if (e.key === 'Escape') {
+      cleanup();
     }
-});
-
-
-
-function recognizeElems() {
-    const iconInput = document.getElementById('icon-input');
-    const addIconBtn = document.querySelector('.add-icon-btn');
-
-    if (iconInput && iconInput.classList.contains('hasIcon')) {
-        addIconBtn.classList.add('dn');
+  });
+  
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      save();
+    } else if (e.key === 'Escape') {
+      cleanup();
     }
+  });
+  
+  // Select the title input text
+  titleInput.focus();
+  titleInput.select();
 }
 
-function addListener(elements, event, handler) {
-    if (NodeList.prototype.isPrototypeOf(elements) || Array.isArray(elements)) {
-        elements.forEach(element => {
-            if (element) element.addEventListener(event, handler);
+// ==========================================================================
+// GOOGLE CALENDAR BLOCK MODIFICATIONS
+// ==========================================================================
+
+const GCAL_SIZE_CLASSES = ['gcal--full', 'gcal--three-quarter', 'gcal--half', 'gcal--quarter'];
+const GCAL_HEIGHT_CLASSES = ['gcal--tall', 'gcal--medium', 'gcal--short'];
+const GCAL_BG_CLASSES = ['gcal-bg--gray', 'gcal-bg--blue', 'gcal-bg--green', 'gcal-bg--yellow', 'gcal-bg--red', 'gcal-bg--purple'];
+
+function changeGCalSize(blockId, sizeClass) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  // Remove existing size classes
+  GCAL_SIZE_CLASSES.forEach(cls => block.classList.remove(cls));
+  
+  // Add new size class
+  if (sizeClass) {
+    block.classList.add(sizeClass);
+  }
+}
+
+function changeGCalHeight(blockId, heightClass) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  // Remove existing height classes
+  GCAL_HEIGHT_CLASSES.forEach(cls => block.classList.remove(cls));
+  
+  // Add new height class
+  if (heightClass) {
+    block.classList.add(heightClass);
+  }
+}
+
+function changeGCalBackground(blockId, bgClass) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  const wrapper = block.querySelector('.gcal-block__wrapper');
+  if (!wrapper) return;
+  
+  // Remove existing background classes
+  GCAL_BG_CLASSES.forEach(cls => wrapper.classList.remove(cls));
+  
+  // Add new background class
+  if (bgClass) {
+    wrapper.classList.add(bgClass);
+  }
+}
+
+function reconnectGCal(blockId) {
+  const block = $(`[data-block-id="${blockId}"]`);
+  if (!block) return;
+  
+  const content = block.querySelector('.gcal-block__content');
+  if (!content) return;
+  
+  // Clear the calendar ID and show setup prompt again
+  block.dataset.calendarId = '';
+  
+  content.innerHTML = `
+    <div class="gcal-block__setup">
+      <div class="gcal-block__instructions">
+        <p><strong>Connect your Google Calendar</strong></p>
+        <p class="text-secondary text-sm">Enter your calendar ID or the full embed URL from Google Calendar settings.</p>
+      </div>
+      <div class="gcal-block__input-wrapper">
+        <input type="text" class="gcal-block__input input" placeholder="Calendar ID or embed URL (e.g., your@email.com or full iframe URL)">
+        <div class="gcal-block__mode-wrapper">
+          <span class="text-sm text-secondary">View: </span>
+          <select class="gcal-block__mode-select input">
+            <option value="MONTH">Month</option>
+            <option value="WEEK">Week</option>
+            <option value="AGENDA">Agenda</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn--primary gcal-connect-btn">Connect</button>
+      </div>
+    </div>
+  `;
+  
+  // Re-attach event listeners
+  const connectBtn = content.querySelector('.gcal-connect-btn');
+  const input = content.querySelector('.gcal-block__input');
+  const modeSelect = content.querySelector('.gcal-block__mode-select');
+  
+  connectBtn.addEventListener('click', () => {
+    const value = input.value.trim();
+    if (!value) {
+      input.focus();
+      return;
+    }
+    
+    // Parse calendar ID
+    let parsedId = null;
+    if (/^[\w.-]+@[\w.-]+$/.test(value)) {
+      parsedId = value;
+    } else {
+      const srcMatch = value.match(/src=([^&]+)/i);
+      if (srcMatch) {
+        try { parsedId = decodeURIComponent(srcMatch[1]); } catch { parsedId = srcMatch[1]; }
+      } else {
+        const emailMatch = value.match(/([\w.-]+@[\w.-]+\.[a-z]{2,})/i);
+        if (emailMatch) parsedId = emailMatch[1];
+      }
+    }
+    
+    if (parsedId) {
+      block.dataset.calendarId = parsedId;
+      const selectedMode = modeSelect.value;
+      
+      const encodedId = encodeURIComponent(parsedId);
+      const embedUrl = `https://calendar.google.com/calendar/embed?src=${encodedId}&mode=${selectedMode}&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=1`;
+      
+      content.innerHTML = '';
+      
+      const iframe = document.createElement('iframe');
+      iframe.className = 'gcal-block__iframe';
+      iframe.src = embedUrl;
+      iframe.frameBorder = '0';
+      iframe.scrolling = 'no';
+      iframe.loading = 'lazy';
+      content.appendChild(iframe);
+      
+      // Add mode switcher
+      const switcher = document.createElement('div');
+      switcher.className = 'gcal-block__mode-switcher';
+      
+      const modes = [
+        { value: 'MONTH', label: 'Month' },
+        { value: 'WEEK', label: 'Week' },
+        { value: 'AGENDA', label: 'Agenda' }
+      ];
+      
+      modes.forEach(mode => {
+        const btn = document.createElement('button');
+        btn.className = `gcal-block__mode-btn ${mode.value === selectedMode ? 'is-active' : ''}`;
+        btn.textContent = mode.label;
+        btn.type = 'button';
+        btn.dataset.mode = mode.value;
+        
+        btn.addEventListener('click', () => {
+          switcher.querySelectorAll('.gcal-block__mode-btn').forEach(b => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          
+          const oldIframe = content.querySelector('.gcal-block__iframe');
+          if (oldIframe) {
+            const newUrl = `https://calendar.google.com/calendar/embed?src=${encodedId}&mode=${mode.value}&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=1`;
+            const newIframe = document.createElement('iframe');
+            newIframe.className = 'gcal-block__iframe';
+            newIframe.src = newUrl;
+            newIframe.frameBorder = '0';
+            newIframe.scrolling = 'no';
+            newIframe.loading = 'lazy';
+            oldIframe.replaceWith(newIframe);
+          }
         });
-    } else if (elements) {
-        elements.addEventListener(event, handler);
+        
+        switcher.appendChild(btn);
+      });
+      
+      content.appendChild(switcher);
+    } else {
+      alert('Invalid calendar ID or URL. Please check your input.');
+    }
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      connectBtn.click();
+    }
+  });
+  
+  // Focus the input
+  setTimeout(() => input.focus(), 10);
+}
+
+// ==========================================================================
+// KEYBOARD HANDLING
+// ==========================================================================
+
+function handleKeydown(e) {
+  const activeEl = document.activeElement;
+  const isEditable = activeEl?.matches('[contenteditable="true"], input, textarea');
+
+  // Control/Command + A: create a new text item (robust across browsers)
+if ((e.ctrlKey || e.metaKey) && (
+    (typeof e.code === 'string' && e.code.toLowerCase() === 'keya') ||
+    (typeof e.key === 'string' && e.key.toLowerCase() === 'a')
+)) {
+    e.preventDefault();
+    createTextBlock();
+    return;
+}
+// COMMAND + B: create nested text item when focused on dropdown header
+if (e.metaKey && typeof e.key === 'string' && e.key.toLowerCase() === 'b' && isEditable && activeEl?.isContentEditable) {
+    const dropdownHeader = activeEl.closest('.dropdown-block__header');
+    if (dropdownHeader) {
+        e.preventDefault();
+
+        const dropdownBlock = activeEl.closest('.dropdown-block');
+        const dropdownContent = dropdownBlock?.querySelector('.dropdown-block__content');
+        if (dropdownBlock && dropdownContent?.id) {
+            dropdownBlock.classList.add('is-open');
+            state.printMode = dropdownContent.id;
+            state.targetRow = null;
+            state.listMode = '';
+            createTextBlock({ type: 'text', placeholder: 'Type something...', content: '' });
+        }
+        return;
     }
 }
-
-document.getElementById('add-note').addEventListener('click', () => {
-    printMode = 'board'; // reset back to default
-});
-
-function registerListener(target, event, handler, options) {
-    target.addEventListener(event, handler, options);
-    globalEventListeners.push({ target, event, handler, options });
+  // Save shortcut
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveNotes();
+    return;
+  }
+  
+  // Navigation between blocks
+  if (isEditable && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    const content = activeEl.textContent || activeEl.value || '';
+    const atEnd = activeEl.selectionStart === content.length;
+    const atStart = activeEl.selectionStart === 0;
+    
+    if ((e.key === 'ArrowDown' && atEnd) || (e.key === 'ArrowUp' && atStart)) {
+      e.preventDefault();
+      focusAdjacentBlock(e.key === 'ArrowDown' ? 'next' : 'prev');
+    }
+    return;
+  }
+  
+  // Enter to create new block
+  if (e.key === 'Enter' && isEditable && !e.shiftKey) {
+    const content = activeEl.textContent?.trim() || activeEl.value?.trim() || '';
+    
+    if (content) {
+      e.preventDefault();
+      
+      // Validate printMode - ensure the target container exists
+      if (state.printMode && state.printMode !== 'board') {
+        const targetContainer = document.getElementById(state.printMode);
+        if (!targetContainer) {
+          // Container doesn't exist, reset to board
+          state.printMode = 'board';
+          state.targetRow = null;
+        }
+      }
+      
+      // Check if we're in a dropdown header - if so, create block inside the dropdown
+      const dropdownHeader = activeEl.closest('.dropdown-block__header');
+      if (dropdownHeader) {
+        const dropdownBlock = activeEl.closest('.dropdown-block');
+        const dropdownContent = dropdownBlock?.querySelector('.dropdown-block__content');
+        if (dropdownBlock && dropdownContent?.id) {
+          dropdownBlock.classList.add('is-open');
+          state.printMode = dropdownContent.id;
+          state.targetRow = null;
+        }
+      }
+      
+      // Determine block type based on listMode
+      if (state.listMode === 'checklist') {
+        createChecklistBlock();
+      } else {
+        createTextBlock();
+      }
+      
+      // Focus the new block (handled by createTextBlock/createChecklistBlock)
+    } else if (content === '') {
+      // Show add block menu on empty enter
+      e.preventDefault();
+      const block = activeEl.closest('.item');
+      if (block) {
+        const menu = createToolMenu(TOOLS.ADD_BLOCKS, null);
+        positionMenu(menu, activeEl);
+        document.body.appendChild(menu);
+      }
+    }
+    return;
+  }
+  
+  // Backspace to delete empty block
+  if (e.key === 'Backspace' && isEditable) {
+    const content = activeEl.textContent?.trim() || activeEl.value?.trim() || '';
+    
+    if (content === '') {
+      e.preventDefault();
+      
+      const block = activeEl.closest('[data-block-id]');
+      if (block) {
+        focusAdjacentBlock('prev');
+        deleteBlock(block.dataset.blockId);
+      }
+    }
+    return;
+  }
+  
+  // Space for bullet markers
+  if (e.key === ' ' && isEditable) {
+    const content = activeEl.textContent || activeEl.value || '';
+    
+    for (const marker of BULLET_MARKERS) {
+      if (content.trim() === marker.trigger) {
+        e.preventDefault();
+        
+        if (activeEl.isContentEditable) {
+          activeEl.textContent = marker.replace;
+        } else {
+          activeEl.value = marker.replace;
+        }
+        
+        state.listMode = marker.mode;
+        focusAtEnd(activeEl);
+        break;
+      }
+    }
+    return;
+  }
+  
+  // Escape to cancel bullet mode
+  if (e.key === 'Escape') {
+    state.listMode = '';
+    closeAllMenus();
+  }
 }
 
+// ==========================================================================
+// INPUT & FOCUS HANDLING
+// ==========================================================================
 
-export function reapplyAllEventListeners() {
-    globalEventListeners.forEach(({ target, event, handler, options }) => {
-        target.removeEventListener(event, handler, options);
-        target.addEventListener(event, handler, options);
+function handleInput(e) {
+  state.lastEdit = Date.now();
+  
+  // Handle empty state styling
+  const el = e.target;
+  if (el.matches('[contenteditable="true"]')) {
+    if (el.textContent.trim() === '') {
+      el.classList.add('is-empty');
+    } else {
+      el.classList.remove('is-empty');
+    }
+  }
+  
+  // Trigger debounced save for real-time collaboration
+  debouncedSave();
+}
+
+function handleFocusIn(e) {
+  const target = e.target;
+  
+  // Check if we're inside a nested container (dropdown content, group content, gallery panel)
+  // These containers have IDs and data-parent-id attributes
+  const dropdownContent = target.closest('.dropdown-block__content');
+  const groupContent = target.closest('.group-block__content');
+  const galleryPanel = target.closest('.gallery-block__panel');
+  
+  const nestedContainer = dropdownContent || groupContent || galleryPanel;
+  
+  if (nestedContainer && nestedContainer.id) {
+    // We're inside a nested container - set printMode to its ID
+    state.printMode = nestedContainer.id;
+    state.targetRow = null; // Nested blocks don't use rows
+  } else if (target.closest('.item-row')) {
+    // We're in a row on the main board
+    const row = target.closest('.item-row');
+    const items = row.querySelectorAll('.item');
+    // If row has multiple items, set targetRow so new blocks append to same row
+    if (items.length > 1) {
+      state.printMode = 'board';
+      state.targetRow = row.id;
+    } else {
+      state.printMode = 'board';
+      state.targetRow = null;
+    }
+  } else {
+    // Top-level or unknown - default to board
+    state.printMode = 'board';
+    state.targetRow = null;
+  }
+}
+
+/**
+ * Handle when user stops editing (loses focus)
+ * This is where we apply any pending remote updates
+ */
+function handleFocusOut(e) {
+  const target = e.target;
+  
+  // Only care about contenteditable elements
+  if (!target.matches('[contenteditable="true"]')) return;
+  
+  // Small delay to check if focus moved to another editable element
+  setTimeout(() => {
+    const activeEl = document.activeElement;
+    const isStillEditing = activeEl?.matches('[contenteditable="true"]');
+    
+    if (!isStillEditing) {
+      // User stopped editing - apply any pending remote updates
+      applyPendingRemoteUpdates();
+    }
+  }, 100);
+}
+
+/**
+ * Handle clicks on the main board area - reset printMode when clicking outside containers
+ */
+function handleBoardClick(e) {
+  const target = e.target;
+  
+  // If clicking directly on the board container or empty space
+  if (target.id === 'boardItems' || target.closest('.board-content')) {
+    // Check if we're NOT inside any nested container
+    const isInsideNested = target.closest('.dropdown-block__content') ||
+                           target.closest('.group-block__content') ||
+                           target.closest('.gallery-block__panel');
+    
+    // Check if we're NOT inside any block
+    const isInsideBlock = target.closest('[data-block-id]');
+    
+    if (!isInsideNested && !isInsideBlock) {
+      // Clicked on empty board space - reset to board mode
+      state.printMode = 'board';
+      state.targetRow = null;
+      state.listMode = '';
+    }
+  }
+}
+
+function handleOutsideClick(e) {
+  // Close menus when clicking outside
+  if (
+    !e.target.closest('.tools-menu') &&
+    !e.target.closest('.size-menu') &&
+    !e.target.closest('.js-block-menu') &&
+    !e.target.closest('.js-size-menu') &&
+    !e.target.closest('.js-add-block') &&
+    !e.target.closest('.js-add-block-row') &&
+    !e.target.closest('.js-add-block-nested') &&
+    !e.target.closest('.icon-picker') &&
+    !e.target.closest('.cover-picker') &&
+    !e.target.closest('#iconDisplay') &&
+    !e.target.closest('.js-cover-icon') &&
+    !e.target.closest('.js-add-cover') &&
+    !e.target.closest('.js-board-settings')
+  ) {
+    closeAllMenus();
+    closeSizeMenus();
+    closeIconPicker();
+    closeCoverPicker();
+    closeBoardSettingsMenu();
+  }
+  
+  // Close share panel
+  if (!e.target.closest('.share-panel')) {
+    closeSharePanel();
+  }
+}
+
+// ==========================================================================
+// HELPERS
+// ==========================================================================
+
+function closeAllMenus() {
+  $$('.tools-menu').forEach(menu => menu.remove());
+  closeIconPicker();
+  closeCoverPicker();
+}
+
+function closeSharePanel() {
+  const dropdown = document.getElementById('shareDropdown');
+  if (dropdown) {
+    dropdown.classList.remove('is-open');
+  }
+}
+
+// ==========================================================================
+// SIDEBAR TOGGLE
+// ==========================================================================
+
+function toggleSidebar() {
+  const sidebar = $('#sidebar');
+  if (!sidebar) return;
+  
+  const isCollapsed = sidebar.classList.toggle('is-collapsed');
+  
+  // Save preference to localStorage
+  try {
+    localStorage.setItem('cascade_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+  } catch (e) {
+    // localStorage not available
+  }
+}
+
+// Restore sidebar state on load
+function restoreSidebarState() {
+  try {
+    const isCollapsed = localStorage.getItem('cascade_sidebar_collapsed') === 'true';
+    if (isCollapsed) {
+      $('#sidebar')?.classList.add('is-collapsed');
+    }
+  } catch (e) {
+    // localStorage not available
+  }
+}
+
+// Call restore on script load
+restoreSidebarState();
+
+function initializeBlocks() {
+  // Initialize empty placeholders
+  $$('[contenteditable="true"]').forEach(el => {
+    if (el.textContent.trim() === '') {
+      el.classList.add('is-empty');
+    }
+  });
+  
+  // Initialize checkbox states
+  $$('.checklist__checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      const checklist = checkbox.closest('.checklist');
+      if (checklist) {
+        checklist.classList.toggle('is-checked', checkbox.checked);
+      }
     });
-    // console.log('All global listeners reapplied.');
-    // console.log('Total listeners reapplied:', globalEventListeners.length);
-    addEventListenerGroup();
-} // ensures empty class works correctly
-
-
-
-    const observer = new MutationObserver(() => {
-        reapplyAllEventListeners();
+  });
+  
+  // Initialize dropdown toggles
+  $$('.dropdown-block__toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const block = toggle.closest('.dropdown-block');
+      if (block) {
+        block.classList.toggle('is-open');
+      }
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+  });
+  
+  // Initialize link clicks
+  $$('[data-url]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      if (document.activeElement !== link) {
+        e.preventDefault();
+        window.open(link.dataset.url, '_blank');
+      }
+    });
+  });
+}
 
-// setInterval(() => {
-//     console.log('Current printMode:', printMode);
-// }, 500);
+// ==========================================================================
+// EXPORTS
+// ==========================================================================
+
+export { closeAllMenus, initializeBlocks };
