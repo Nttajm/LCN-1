@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UCLA Admission Decision</title>
+  <link rel="stylesheet" href="unis/ucla/css/ucla.css">
+  <link rel="stylesheet" href="../css/standard.css">
+  <link rel="icon" href="https://www.ucla.edu/favicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Initial decision screen -->
+  <div class="decision-screen" id="decisionScreen">
+    <div class="ucla-header">
+      <div class="ucla-logo-container">
+        <!-- UCLA Logo placeholder - add your image later -->
+        <img src="unis/ucla/icons/ucla-logo.png" alt="UCLA" class="ucla-logo">
+      </div>
+    </div>
+    
+    <div class="decision-content">
+      <div class="welcome-text name-insert">
+        <p class="greeting">Dear <span class="applicant-first">[Applicant Name:first]</span>,</p>
+        <p class="intro-text">Your admission decision is ready.</p>
+      </div>
+      
+      <button class="reveal-btn" id="revealBtn">
+        <span>View My Decision</span>
+      </button>
+    </div>
+    
+    <div class="footer-text">
+      <p>UCLA Undergraduate Admission</p>
+    </div>
+  </div>
+
+  <!-- UCLA Bound reveal screen -->
+  <div class="bound-screen hidden" id="boundScreen">
+    <!-- Confetti canvas -->
+    <canvas id="confettiCanvas"></canvas>
+    
+    <!-- Header -->
+    <nav class="ucla-nav">
+      <img src="unis/ucla/icons/ucla-logo-white.png" alt="UCLA" class="nav-logo">
+      <span class="nav-text">Undergraduate Admission</span>
+    </nav>
+
+    <!-- Main celebration content -->
+    <div class="celebration-container">
+      <div class="bound-animation">
+        <div class="bruin-mascot">
+          <!-- Bruin bear placeholder -->
+          <img src="unis/ucla/icons/bruin-bear.png" alt="Joe Bruin" class="bruin-img">
+        </div>
+        
+        <div class="bound-text-container">
+          <h1 class="bound-title">
+            <span class="you-are">You're</span>
+            <span class="ucla-bound">UCLA BOUND!</span>
+          </h1>
+          <div class="confetti-burst"></div>
+        </div>
+        
+        <div class="welcome-message name-insert">
+          <p class="congrats-text">Congratulations, <span class="highlight">[Applicant Name:first]</span>!</p>
+          <p class="class-text">Welcome to the UCLA Class of <span class="highlight">[Applicant Class]</span></p>
+        </div>
+      </div>
+
+      <button class="continue-btn" id="continueBtn">
+        Continue to Your Letter
+      </button>
+    </div>
+  </div>
+
+  <!-- Full admission letter -->
+  <div class="letter-screen hidden" id="letterScreen">
+    <nav class="ucla-nav">
+      <img src="unis/ucla/icons/ucla-logo-white.png" alt="UCLA" class="nav-logo">
+      <span class="nav-text">Undergraduate Admission</span>
+    </nav>
+
+    <div class="letter-container">
+      <div class="letter-header">
+        <img src="unis/ucla/icons/ucla-seal.png" alt="UCLA Seal" class="letter-seal">
+        <div class="letter-title">
+          <h2>Office of Undergraduate Admission</h2>
+          <p>University of California, Los Angeles</p>
+        </div>
+      </div>
+
+      <div class="letter-content">
+        <div class="letter-date name-insert">
+          <p>[Formal Date]</p>
+        </div>
+
+        <div class="letter-address name-insert">
+          <p><strong>[Applicant Name]</strong></p>
+          <p>Applicant ID: 2024-UCLA-789</p>
+        </div>
+
+        <div class="letter-body name-insert">
+          <p>Dear [Applicant Name:first],</p>
+
+          <p class="highlight-para">
+            <strong>Congratulations!</strong> I am thrilled to offer you admission to UCLA for Fall [Applicant Class]! You have been selected from the largest and most competitive applicant pool in UCLA's history, and you should be incredibly proud of this accomplishment.
+          </p>
+
+          <p>
+            Your application demonstrated the academic excellence, personal achievements, and unique perspectives that define our Bruin community. We were impressed by your accomplishments and are excited about the contributions you will make to our campus.
+          </p>
+
+          <p>
+            As a Bruin, you will join a community of scholars, artists, athletes, and leaders who are committed to making a positive impact on the world. UCLA offers an unparalleled education in one of the most dynamic cities on earth, with endless opportunities for growth, discovery, and connection.
+          </p>
+
+          <p>
+            <strong>Important Next Steps:</strong>
+          </p>
+          <ul>
+            <li>Submit your Statement of Intent to Register (SIR) by <strong>May 1, [Applicant Class]</strong></li>
+            <li>Complete your housing application</li>
+            <li>Join us for <strong>Bruin Day</strong> to experience campus life</li>
+            <li>Connect with fellow admits through our social media channels</li>
+          </ul>
+
+          <p>
+            Please visit <a href="https://admission.ucla.edu" class="ucla-link">admission.ucla.edu</a> to access your personalized portal, where you can complete your enrollment steps and learn more about becoming a Bruin.
+          </p>
+
+          <p>
+            If you applied for financial aid, you will receive a separate communication from our Financial Aid Office with your award details.
+          </p>
+
+          <p>
+            We know you have many choices, but we hope you'll choose to call UCLA home. Welcome to the Bruin family!
+          </p>
+
+          <p class="closing">
+            Go Bruins!
+          </p>
+
+          <div class="signature-block">
+            <img src="unis/ucla/icons/signature.png" alt="Signature" class="signature-img">
+            <p><strong>Gary W. Clark</strong></p>
+            <p>Associate Vice Provost and Director</p>
+            <p>Undergraduate Admission</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="letter-footer">
+        <div class="footer-icons">
+          <span class="footer-icon">🐻</span>
+          <span class="footer-text">UCLA Class of <span class="name-insert">[Applicant Class]</span></span>
+          <span class="footer-icon">💙💛</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/namefinder.js"></script>
+  <script src="unis/ucla/js/ucla.js"></script>
+</body>
+</html>

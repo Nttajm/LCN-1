@@ -1,0 +1,532 @@
+/* UCLA Brand Colors */
+:root {
+  --ucla-blue: #2774AE;
+  --ucla-gold: #FFD100;
+  --ucla-dark-blue: #005587;
+  --ucla-light-blue: #8BB8E8;
+  --ucla-white: #FFFFFF;
+  --ucla-black: #000000;
+  --ucla-gray: #666666;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background-color: var(--ucla-white);
+  overflow-x: hidden;
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+/* ==================== DECISION SCREEN ==================== */
+.decision-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--ucla-blue) 0%, var(--ucla-dark-blue) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem;
+}
+
+.ucla-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.ucla-logo-container {
+  background: var(--ucla-white);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+}
+
+.ucla-logo {
+  height: 60px;
+  object-fit: contain;
+}
+
+.decision-content {
+  text-align: center;
+  color: var(--ucla-white);
+  animation: fadeInUp 1s ease-out;
+}
+
+.welcome-text {
+  margin-bottom: 3rem;
+}
+
+.greeting {
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin-bottom: 1rem;
+}
+
+.applicant-first {
+  font-weight: 500;
+}
+
+.intro-text {
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.reveal-btn {
+  background: var(--ucla-gold);
+  color: var(--ucla-dark-blue);
+  border: none;
+  padding: 1.25rem 3rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.reveal-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  background: #ffe033;
+}
+
+.reveal-btn:active {
+  transform: translateY(0);
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+/* ==================== BOUND SCREEN ==================== */
+.bound-screen {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--ucla-blue) 0%, var(--ucla-dark-blue) 50%, #003366 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+#confettiCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.ucla-nav {
+  background: rgba(0, 85, 135, 0.9);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.nav-logo {
+  height: 40px;
+  object-fit: contain;
+}
+
+.nav-text {
+  color: var(--ucla-white);
+  font-size: 1.1rem;
+  font-weight: 300;
+  border-left: 2px solid var(--ucla-gold);
+  padding-left: 1rem;
+}
+
+.celebration-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 70px);
+  padding: 2rem;
+  text-align: center;
+}
+
+.bound-animation {
+  animation: bounceIn 1s ease-out;
+}
+
+.bruin-mascot {
+  margin-bottom: 2rem;
+}
+
+.bruin-img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  animation: bounce 2s infinite;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+}
+
+.bound-text-container {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.bound-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.you-are {
+  font-size: 2rem;
+  color: var(--ucla-white);
+  font-weight: 300;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.ucla-bound {
+  font-size: 4rem;
+  font-weight: 900;
+  background: linear-gradient(90deg, var(--ucla-gold) 0%, #ffe566 50%, var(--ucla-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  animation: scaleIn 0.6s ease-out 0.3s both, goldShimmer 3s linear infinite;
+  letter-spacing: 3px;
+}
+
+.welcome-message {
+  color: var(--ucla-white);
+  animation: fadeInUp 1s ease-out 0.8s both;
+}
+
+.congrats-text {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+}
+
+.class-text {
+  font-size: 1.25rem;
+  font-weight: 300;
+}
+
+.welcome-message .highlight {
+  color: var(--ucla-gold);
+  font-weight: 600;
+}
+
+.continue-btn {
+  background: var(--ucla-gold);
+  color: var(--ucla-dark-blue);
+  border: none;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+  animation: fadeInUp 1s ease-out 1.2s both;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.continue-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  background: #ffe033;
+}
+
+/* ==================== LETTER SCREEN ==================== */
+.letter-screen {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.letter-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  background: var(--ucla-white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.letter-header {
+  background: linear-gradient(135deg, var(--ucla-blue) 0%, var(--ucla-dark-blue) 100%);
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  color: var(--ucla-white);
+}
+
+.letter-seal {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  background: white;
+  border-radius: 50%;
+  padding: 5px;
+}
+
+.letter-title h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.letter-title p {
+  font-size: 0.9rem;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+.letter-content {
+  padding: 2.5rem;
+}
+
+.letter-date {
+  text-align: right;
+  color: var(--ucla-gray);
+  margin-bottom: 1.5rem;
+}
+
+.letter-address {
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.letter-body {
+  line-height: 1.8;
+}
+
+.letter-body p {
+  margin-bottom: 1.25rem;
+}
+
+.letter-body .highlight-para {
+  background: linear-gradient(90deg, rgba(39, 116, 174, 0.1) 0%, rgba(255, 209, 0, 0.1) 100%);
+  padding: 1rem;
+  border-left: 4px solid var(--ucla-gold);
+  border-radius: 0 8px 8px 0;
+}
+
+.letter-body ul {
+  margin: 1rem 0 1.5rem 2rem;
+}
+
+.letter-body li {
+  margin-bottom: 0.5rem;
+}
+
+.ucla-link {
+  color: var(--ucla-blue) !important;
+  text-decoration: underline !important;
+  font-weight: 500;
+}
+
+.closing {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ucla-blue);
+  margin-top: 2rem !important;
+}
+
+.signature-block {
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+.signature-img {
+  height: 60px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
+.signature-block p {
+  margin-bottom: 0.25rem !important;
+  line-height: 1.4;
+}
+
+.letter-footer {
+  background: linear-gradient(90deg, var(--ucla-blue) 0%, var(--ucla-gold) 100%);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.footer-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  color: var(--ucla-white);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.footer-icon {
+  font-size: 1.5rem;
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media screen and (max-width: 768px) {
+  .decision-screen {
+    padding: 1rem;
+  }
+  
+  .greeting {
+    font-size: 1.25rem;
+  }
+  
+  .intro-text {
+    font-size: 1.5rem;
+  }
+  
+  .reveal-btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+  
+  .ucla-bound {
+    font-size: 2.5rem;
+  }
+  
+  .you-are {
+    font-size: 1.5rem;
+  }
+  
+  .bruin-img {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .letter-container {
+    margin: 1rem;
+    border-radius: 0;
+  }
+  
+  .letter-content {
+    padding: 1.5rem;
+  }
+  
+  .letter-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .ucla-bound {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+  
+  .congrats-text {
+    font-size: 1.25rem;
+  }
+  
+  .class-text {
+    font-size: 1rem;
+  }
+  
+  .nav-text {
+    font-size: 0.9rem;
+  }
+  
+  .letter-body {
+    font-size: 0.95rem;
+  }
+}

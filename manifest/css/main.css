@@ -127,6 +127,20 @@ button {
   color: white;
 }
 
+.ucla .banner {
+  background-image: linear-gradient(rgba(39, 116, 174, 0.6), rgba(0, 85, 135, 0.8)), url('https://admission.ucla.edu/sites/default/files/2023-09/UCLA-Royce-Hall.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.9;
+  color: white;
+}
+
+.ucla .banner .logo {
+  background: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
 .banner img {
   width: 100%;
 }
