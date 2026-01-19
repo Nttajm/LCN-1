@@ -14,16 +14,23 @@
     <div class="wipe wipe-lr"></div>
     <div class="d-cont-1 stand_er-scroll scroller" data-scroll-container>
             <div class="vid">
-                <video id="videoPlayer" data-src="/images/aero/seq-aero-6.mp4" data-next="/images/aero/Leo Messi -- There Will Be Haters -- adidas Football.mp4" autoplay loop >
+                <video id="videoPlayer" 
+                    data-src="/images/aero/seq-aero-6.mp4" 
+                    data-next="/images/aero/Leo Messi -- There Will Be Haters -- adidas Football.mp4" 
+                    data-title="Musiala"
+                    data-subtitle="NIKE Football | turning your defenders into spectators"
+                    data-next-title="Adidas"
+                    data-next-subtitle="Adidas Football | There Will Be Haters ft. Messi"
+                    autoplay loop muted playsinline>
                     <source src="/images/aero/seq-aero-6.mp4" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
             </div>
             <div class="info">
-                <span class="title">
+                <span class="title" id="infoTitle">
                     Musiala 
                 </span>
-                <span class="subtitle">
+                <span class="subtitle" id="infoSubtitle">
                     NIKE Football | turning your defenders into spectators
                 </span>
             </div>
@@ -40,7 +47,10 @@
                     <span class="title">
                         THIS PROJECT WAS CREATED FOR THE NIKE FOOTBALL BRAND, FEATURING THE YOUNG TALENT JAMAL MUSIALA.
                     </span>
-                    <img src="/images/aero/musiala1.jpg" alt="">
+                    <span class="description">
+                        A dynamic visual showcase celebrating the explosive talent and creative flair of Bayern Munich's rising star. The project captures the essence of modern football through innovative cinematography.
+                    </span>
+                    <img src="/images/aero/musiala1.jpg" alt="Musiala Nike Campaign">
                 </div>
             </div>
             <div class="level h-cont stand_er-scroll">
@@ -48,7 +58,10 @@
                     <span class="title">
                         THE RISING STAR OF YOUNG TALENT IN FOOTBALL
                     </span>
-                    <img src="/images/aero/musiala2.jpg" alt="">
+                    <span class="description">
+                        Highlighting the next generation of football excellence. Musiala represents the future of the beautiful game—technical brilliance combined with fearless creativity.
+                    </span>
+                    <img src="/images/aero/musiala2.jpg" alt="Musiala Rising Star">
                 </div>
             </div>
             <div class="fader reversed"></div>
@@ -60,7 +73,13 @@
                 </div>
             </div>
     </div>
-</div>
+    <div class="next-project" id="nextProject">
+        <a href="/aero/work/addidas-messi.html">
+            <span class="next-label">Next Project</span>
+            <span class="next-title">Adidas × Messi</span>
+            <span class="arrow">→</span>
+        </a>
+    </div>
     <script src="../js/locomotiv-scroll.min.js" defer></script>
     <script src="../js/doc.js"></script>
 </body>
