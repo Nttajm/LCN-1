@@ -59,16 +59,17 @@ function transformSingleWords() {
 
 transformSingleWords();
 
-// Circular loader animation
+// Circular loader animation for item-0 only
 function initCircularLoader() {
-  const item = document.getElementById("item-0");
-  const loaderProgress = item.querySelector(".loader-progress");
+  const item = document.getElementById('item-0');
   const loaderText = item.querySelector(".loader-text");
+  const loaderProgress = item.querySelector(".loader-progress");
   
-  let progress = 0;
-  const duration = 3000; // 3 seconds
+  const duration = 2000; // 2 seconds
   const interval = 30; // Update every 30ms
   const increment = 100 / (duration / interval);
+  
+  let progress = 0;
   
   const timer = setInterval(() => {
     progress += increment;
@@ -82,9 +83,10 @@ function initCircularLoader() {
       const offset = 283 - (283 * (progress / 100));
       loaderProgress.style.strokeDashoffset = offset;
       
-      // Flip the card after a short delay
+      // Trigger CSS flip animation after loader completes
       setTimeout(() => {
-        item.classList.add("flipped");
+        const grid = document.querySelector(".grid");
+        grid.classList.add("flip-on");
       }, 300);
     } else {
       // Update progress

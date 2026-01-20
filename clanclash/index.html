@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clan Clash - 2D Battle Arena</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="player-info">
+                <div class="player-avatar">🛡️</div>
+                <div class="crown-count">
+                    <span class="crown-icon">👑</span>
+                    <span id="playerCrowns">0</span>
+                </div>
+                <div class="elixir-bar">
+                    <div class="elixir-fill" id="elixirFill"></div>
+                    <span class="elixir-count" id="elixirCount">5</span>
+                </div>
+            </div>
+            <div class="timer" id="timer">3:00</div>
+            <div class="enemy-info">
+                <div class="elixir-bar enemy">
+                    <div class="elixir-fill" id="enemyElixirFill"></div>
+                    <span class="elixir-count" id="enemyElixirCount">5</span>
+                </div>
+                <div class="crown-count">
+                    <span class="crown-icon">👑</span>
+                    <span id="enemyCrowns">0</span>
+                </div>
+                <div class="enemy-avatar">⚔️</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="1400" height="700"></canvas>
+
+        <div class="card-deck">
+            <div class="next-card" id="nextCard">
+                <div class="next-label">NEXT</div>
+                <div class="card mini" data-card="knight" data-cost="3">
+                    <div class="card-image">⚔️</div>
+                </div>
+            </div>
+            <div class="card" data-card="knight" data-cost="3">
+                <div class="card-cost">3</div>
+                <div class="card-image">⚔️</div>
+                <div class="card-name">Knight</div>
+            </div>
+            <div class="card" data-card="archer" data-cost="3">
+                <div class="card-cost">3</div>
+                <div class="card-image">🏹</div>
+                <div class="card-name">Archer</div>
+            </div>
+            <div class="card" data-card="giant" data-cost="5">
+                <div class="card-cost">5</div>
+                <div class="card-image">🗿</div>
+                <div class="card-name">Giant</div>
+            </div>
+            <div class="card" data-card="fireball" data-cost="4">
+                <div class="card-cost">4</div>
+                <div class="card-image">🔥</div>
+                <div class="card-name">Fireball</div>
+            </div>
+        </div>
+
+        <div class="game-over-screen" id="gameOverScreen">
+            <div class="game-over-content">
+                <h1 id="gameOverTitle">Victory!</h1>
+                <div class="crowns-earned">
+                    <span id="crownsEarned">3</span> 👑
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-label">Damage Dealt</span>
+                        <span class="stat-value" id="damageDealt">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Units Deployed</span>
+                        <span class="stat-value" id="unitsDeployed">0</span>
+                    </div>
+                </div>
+                <button id="playAgainBtn">Play Again</button>
+            </div>
+        </div>
+
+        <div class="notification" id="notification"></div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
