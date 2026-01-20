@@ -107,21 +107,19 @@ export function renderStandingsTable(standingsData) {
         `;
     }
 
-    reapplyTeamLinkListeners();
-    
     const tableRows = standingsData.map((team, index) => {
         // Determine row class based on position
         let rowClass = "pos";
         if (index < 16) rowClass = "wpos"; // Top 4 teams
         
         return `
-        <tr class="${rowClass} js-team-link cur"  data-team-id="${team.id}">
+        <tr class="${rowClass}">
             <td>${index + 1}</td>
             <td>
-                <div class="team-name-cell">
+                <a href="team-info.html?team=${team.id}" class="team-name-cell cur">
                     <img src="${team.img}" alt="${team.name}" class="team-icon">
                     ${team.name}
-                </div> 
+                </a> 
             </td>
             <td>${team.gamesPlayed}</td>
             <td>${team.wins}</td>

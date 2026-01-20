@@ -58,3 +58,45 @@ function transformSingleWords() {
 }
 
 transformSingleWords();
+
+// Circular loader animation
+function initCircularLoader() {
+  const item = document.getElementById("item-0");
+  const loaderProgress = item.querySelector(".loader-progress");
+  const loaderText = item.querySelector(".loader-text");
+  
+  let progress = 0;
+  const duration = 3000; // 3 seconds
+  const interval = 30; // Update every 30ms
+  const increment = 100 / (duration / interval);
+  
+  const timer = setInterval(() => {
+    progress += increment;
+    
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(timer);
+      
+      // Update to 100%
+      loaderText.textContent = "100%";
+      const offset = 283 - (283 * (progress / 100));
+      loaderProgress.style.strokeDashoffset = offset;
+      
+      // Flip the card after a short delay
+      setTimeout(() => {
+        item.classList.add("flipped");
+      }, 300);
+    } else {
+      // Update progress
+      loaderText.textContent = Math.floor(progress) + "%";
+      const offset = 283 - (283 * (progress / 100));
+      loaderProgress.style.strokeDashoffset = offset;
+    }
+  }, interval);
+}
+
+// Initialize loader when page loads
+window.addEventListener("load", () => {
+  setTimeout(initCircularLoader, 500);
+});
+
