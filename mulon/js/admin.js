@@ -5,7 +5,7 @@
 import { MulonData, Auth } from './data.js';
 
 // Admin email whitelist
-const ADMIN_EMAILS = ['joelmulonde81@gmail.com'];
+const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org'];
 
 function isAdmin(email) {
   return ADMIN_EMAILS.includes(email?.toLowerCase());
