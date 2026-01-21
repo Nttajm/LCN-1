@@ -2575,25 +2575,25 @@ class Game {
         ctx.clearRect(0, 0, config.canvas.width, config.canvas.height);
         
         // Draw arena background (two sides separated by river)
-        // Player side (left - blue/green grass)
+        // Player side (left - soft green floor)
         const gradient1 = ctx.createLinearGradient(0, 0, this.riverX - this.riverWidth/2, 0);
-        gradient1.addColorStop(0, '#2d5a3d');
-        gradient1.addColorStop(0.5, '#3a6b4a');
-        gradient1.addColorStop(1, '#4a7d5a');
+        gradient1.addColorStop(0, '#4a7a5a');
+        gradient1.addColorStop(0.5, '#5a8a6a');
+        gradient1.addColorStop(1, '#6a9a7a');
         ctx.fillStyle = gradient1;
         ctx.fillRect(0, 0, this.riverX - this.riverWidth/2, config.canvas.height);
         
-        // Enemy side (right - red/brown)
+        // Enemy side (right - soft warm floor)
         const gradient2 = ctx.createLinearGradient(this.riverX + this.riverWidth/2, 0, config.canvas.width, 0);
-        gradient2.addColorStop(0, '#5a4a3a');
-        gradient2.addColorStop(0.5, '#6b5040');
-        gradient2.addColorStop(1, '#7a5a4a');
+        gradient2.addColorStop(0, '#7a6a5a');
+        gradient2.addColorStop(0.5, '#8a7560');
+        gradient2.addColorStop(1, '#9a8570');
         ctx.fillStyle = gradient2;
         ctx.fillRect(this.riverX + this.riverWidth/2, 0, config.canvas.width / 2, config.canvas.height);
         
-        // Draw grass texture pattern
-        this.drawGrassPattern(ctx, 0, 0, this.riverX - this.riverWidth/2, config.canvas.height, 'player');
-        this.drawGrassPattern(ctx, this.riverX + this.riverWidth/2, 0, config.canvas.width / 2, config.canvas.height, 'enemy');
+        // Draw checkered floor pattern (matches grid)
+        this.drawCheckeredFloor(ctx, 0, 0, this.riverX - this.riverWidth/2, config.canvas.height, 'player');
+        this.drawCheckeredFloor(ctx, this.riverX + this.riverWidth/2, 0, config.canvas.width / 2, config.canvas.height, 'enemy');
         
         // Draw RIVER
         const riverGradient = ctx.createLinearGradient(this.riverX - this.riverWidth/2, 0, this.riverX + this.riverWidth/2, 0);
@@ -3042,18 +3042,59 @@ class Game {
         ctx.restore();
     }
     
-    // Draw grass texture pattern
-    drawGrassPattern(ctx, x, y, width, height, team) {
-        const grassColor = team === 'player' ? 'rgba(60, 120, 60, 0.3)' : 'rgba(100, 70, 50, 0.3)';
-        ctx.fillStyle = grassColor;
+    // Draw checkered floor pattern that matches the grid
+    drawCheckeredFloor(ctx, startX, startY, width, height, team) {
+        const cellSize = config.grid.cellSize;
         
-        // Draw small grass tufts
-        for (let i = 0; i < 100; i++) {
-            const gx = x + Math.random() * width;
-            const gy = y + Math.random() * height;
+        // Light and slightly lighter colors for checkered pattern
+        let color1, color2;
+        if (team === 'player') {
+            // Soft green tones for player side
+            color1 = 'rgba(85, 140, 95, 0.4)';
+            color2 = 'rgba(100, 160, 110, 0.4)';
+        } else {
+            // Soft warm tones for enemy side
+            color1 = 'rgba(140, 100, 85, 0.4)';
+            color2 = 'rgba(160, 115, 95, 0.4)';
+        }
+        
+        const cols = Math.ceil(width / cellSize) + 1;
+        const rows = Math.ceil(height / cellSize) + 1;
+        
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const x = startX + col * cellSize;
+                const y = startY + row * cellSize;
+                
+                // Alternate colors in a checkered pattern
+                const isLight = (row + col) % 2 === 0;
+                ctx.fillStyle = isLight ? color1 : color2;
+                
+                // Draw the cell
+                ctx.fillRect(x, y, cellSize, cellSize);
+            }
+        }
+        
+        // Add subtle grid lines
+        ctx.strokeStyle = team === 'player' ? 'rgba(70, 120, 80, 0.25)' : 'rgba(120, 85, 70, 0.25)';
+        ctx.lineWidth = 1;
+        
+        // Vertical lines
+        for (let col = 0; col <= cols; col++) {
+            const x = startX + col * cellSize;
             ctx.beginPath();
-            ctx.arc(gx, gy, 2 + Math.random() * 3, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(x, startY);
+            ctx.lineTo(x, startY + height);
+            ctx.stroke();
+        }
+        
+        // Horizontal lines
+        for (let row = 0; row <= rows; row++) {
+            const y = startY + row * cellSize;
+            ctx.beginPath();
+            ctx.moveTo(startX, y);
+            ctx.lineTo(startX + width, y);
+            ctx.stroke();
         }
     }
     
@@ -3142,7 +3183,7 @@ class Game {
     drawUnit(ctx, unit) {
         const isTunneling = unit.tunneling && unit.tunnelTime > 0;
         const alpha = isTunneling ? 0.4 : 1.0;
-        const size = unit.size || 30;
+        const size = unit.size || 45;
         
         ctx.save();
         ctx.globalAlpha = alpha;
@@ -3319,7 +3360,7 @@ class Game {
     // Draw Clash Royale style health bar
     drawHealthBar(ctx, unit, drawY) {
         const healthPercent = unit.currentHp / unit.maxHp;
-        const size = unit.size || 30;
+        const size = unit.size || 45;
         const barWidth = size * 1.2;
         const barHeight = 6;
         const barX = unit.x - barWidth / 2;
