@@ -48,6 +48,7 @@ const marketsRef = collection(db, 'mulon');
 const ordersRef = collection(db, 'mulon_orders');
 const tradesRef = collection(db, 'mulon_trades');
 const usersRef = collection(db, 'mulon_users');
+const categoriesRef = collection(db, 'mulon_categories');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
 
 // ========================================
@@ -897,12 +898,103 @@ const MulonData = {
     }
   ],
 
-  // Category configuration
-  categories: {
+  // Category configuration (loaded from Firebase)
+  categories: {},
+  
+  // Default categories (used if Firebase is empty)
+  defaultCategories: {
     school: { icon: '🎓', label: 'Tech High', color: 'school' },
     sports: { icon: '⚽', label: 'Sports', color: 'sports' },
     politics: { icon: '🏛️', label: 'Politics', color: 'politics' },
     grading: { icon: '📝', label: 'Grading', color: 'grading' }
+  },
+  
+  // Fetch categories from Firebase
+  async fetchCategories() {
+    try {
+      const querySnapshot = await getDocs(categoriesRef);
+      const categories = {};
+      querySnapshot.forEach((doc) => {
+        categories[doc.id] = doc.data();
+      });
+      
+      // If no categories in Firebase, initialize with defaults
+      if (Object.keys(categories).length === 0) {
+        console.log('No categories in Firebase, initializing with defaults...');
+        await this.initializeCategoriesWithDefaults();
+        this.categories = { ...this.defaultCategories };
+      } else {
+        this.categories = categories;
+      }
+      
+      return this.categories;
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      this.categories = { ...this.defaultCategories };
+      return this.categories;
+    }
+  },
+  
+  // Initialize Firebase with default categories
+  async initializeCategoriesWithDefaults() {
+    try {
+      for (const [id, category] of Object.entries(this.defaultCategories)) {
+        await setDoc(doc(categoriesRef, id), category);
+      }
+      console.log('Categories initialized in Firebase');
+    } catch (error) {
+      console.error('Error initializing categories:', error);
+    }
+  },
+  
+  // Add a new category
+  async addCategory(id, icon, label, color) {
+    try {
+      const categoryData = { icon, label, color: color || id };
+      await setDoc(doc(categoriesRef, id), categoryData);
+      this.categories[id] = categoryData;
+      console.log('Category added:', id);
+      return { success: true, category: categoryData };
+    } catch (error) {
+      console.error('Error adding category:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Update a category
+  async updateCategory(id, updates) {
+    try {
+      await updateDoc(doc(categoriesRef, id), updates);
+      this.categories[id] = { ...this.categories[id], ...updates };
+      console.log('Category updated:', id);
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating category:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Delete a category
+  async deleteCategory(id) {
+    try {
+      await deleteDoc(doc(categoriesRef, id));
+      delete this.categories[id];
+      console.log('Category deleted:', id);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Get all categories
+  getCategories() {
+    return this.categories;
+  },
+  
+  // Get a single category
+  getCategory(id) {
+    return this.categories[id] || { icon: '📊', label: 'Other', color: 'other' };
   },
 
   // Initialize data - load from Firebase
@@ -912,6 +1004,9 @@ const MulonData = {
     }
     
     try {
+      // Load categories first
+      await this.fetchCategories();
+      
       const markets = await this.fetchMarketsFromFirebase();
       
       // If no markets in Firebase, initialize with defaults
@@ -1239,4 +1334,4 @@ const MulonData = {
 window.MulonData = MulonData;
 
 // Export for ES modules
-export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef };
+export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef };

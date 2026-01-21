@@ -37,8 +37,15 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Render markets list
   renderMarketList();
   
+  // Populate category dropdown and list
+  populateCategoryDropdown();
+  renderCategoryList();
+  
   // Setup form
   setupForm();
+  
+  // Setup category form
+  setupCategoryForm();
   
   // Setup delete modal
   setupDeleteModal();
@@ -567,4 +574,97 @@ function showToast(message, type = 'success') {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);
+}
+
+// ========================================
+// CATEGORY MANAGEMENT
+// ========================================
+function populateCategoryDropdown() {
+  const categorySelect = document.getElementById('category');
+  if (!categorySelect) return;
+  
+  const categories = MulonData.getCategories();
+  
+  // Clear existing options except first
+  categorySelect.innerHTML = '<option value="">Select category</option>';
+  
+  // Add categories
+  Object.entries(categories).forEach(([id, cat]) => {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = `${cat.icon} ${cat.label}`;
+    categorySelect.appendChild(option);
+  });
+}
+
+function renderCategoryList() {
+  const categoryList = document.getElementById('categoryList');
+  if (!categoryList) return;
+  
+  const categories = MulonData.getCategories();
+  
+  if (Object.keys(categories).length === 0) {
+    categoryList.innerHTML = '<p class="empty-message">No categories yet</p>';
+    return;
+  }
+  
+  categoryList.innerHTML = Object.entries(categories).map(([id, cat]) => `
+    <div class="category-item" data-category-id="${id}">
+      <span class="category-icon">${cat.icon}</span>
+      <span class="category-label">${cat.label}</span>
+      <span class="category-id">${id}</span>
+      <button class="btn-icon delete-category" data-id="${id}" title="Delete">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+  
+  // Attach delete listeners
+  categoryList.querySelectorAll('.delete-category').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const catId = this.dataset.id;
+      if (confirm(`Delete category "${catId}"? Markets using this category won't be deleted but may display incorrectly.`)) {
+        const result = await MulonData.deleteCategory(catId);
+        if (result.success) {
+          showToast('Category deleted', 'success');
+          renderCategoryList();
+          populateCategoryDropdown();
+        } else {
+          showToast('Error deleting category', 'error');
+        }
+      }
+    });
+  });
+}
+
+function setupCategoryForm() {
+  const form = document.getElementById('categoryForm');
+  if (!form) return;
+  
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const id = document.getElementById('catId').value.trim().toLowerCase().replace(/\s+/g, '-');
+    const icon = document.getElementById('catIcon').value.trim();
+    const label = document.getElementById('catLabel').value.trim();
+    
+    if (!id || !icon || !label) {
+      showToast('Please fill in all fields', 'error');
+      return;
+    }
+    
+    const result = await MulonData.addCategory(id, icon, label, id);
+    
+    if (result.success) {
+      showToast('Category added!', 'success');
+      form.reset();
+      renderCategoryList();
+      populateCategoryDropdown();
+    } else {
+      showToast('Error adding category: ' + result.error, 'error');
+    }
+  });
 }

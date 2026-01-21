@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize data from Firebase
   await MulonData.init();
   
+  // Render nav categories
+  renderNavCategories();
+  
   // Render markets
   renderMarkets();
   
@@ -360,43 +363,197 @@ function showLoading() {
 }
 
 // ========================================
+// RENDER NAV CATEGORIES
+// ========================================
+function renderNavCategories() {
+  const navCategories = document.getElementById('navCategories');
+  if (!navCategories) return;
+  
+  const categories = MulonData.getCategories();
+  const currentCat = getCurrentCategory();
+  
+  // Inject dynamic CSS for categories
+  injectCategoryStyles(categories);
+  
+  navCategories.innerHTML = Object.entries(categories).map(([id, cat]) => `
+    <li><a href="index.html?cat=${id}" class="cat-pill ${id} ${currentCat === id ? 'active' : ''}">${cat.icon} ${cat.label}</a></li>
+  `).join('');
+  
+  // Update nav links active state
+  updateNavLinksActive();
+}
+
+// Get current category from URL
+function getCurrentCategory() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('cat') || null;
+}
+
+// Update nav links active state based on URL
+function updateNavLinksActive() {
+  const currentCat = getCurrentCategory();
+  const currentPath = window.location.pathname;
+  const navLinks = document.querySelectorAll('.nav-links .nav-link');
+  
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    const href = link.getAttribute('href');
+    
+    // Check if we're on leaderboard page
+    if (currentPath.includes('leaderbaord') && href.includes('leaderbaord')) {
+      link.classList.add('active');
+    }
+    // Home page with no category filter
+    else if (!currentCat && !currentPath.includes('leaderbaord') && href === 'index.html') {
+      link.classList.add('active');
+    }
+    // All Markets selected
+    else if (currentCat === 'all' && href === 'index.html?cat=all') {
+      link.classList.add('active');
+    }
+  });
+}
+
+// Inject dynamic CSS for categories that don't have predefined styles
+function injectCategoryStyles(categories) {
+  // Check if style element already exists
+  let styleEl = document.getElementById('dynamicCategoryStyles');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'dynamicCategoryStyles';
+    document.head.appendChild(styleEl);
+  }
+  
+  // Generate colors for categories
+  const colors = [
+    { bg: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' },   // Indigo
+    { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },   // Amber
+    { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' },   // Purple
+    { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' },   // Emerald
+    { bg: 'rgba(236, 72, 153, 0.1)', color: '#ec4899' },   // Pink
+    { bg: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' },   // Sky
+    { bg: 'rgba(249, 115, 22, 0.1)', color: '#f97316' },   // Orange
+    { bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' },    // Green
+  ];
+  
+  let css = '';
+  let colorIndex = 0;
+  
+  Object.entries(categories).forEach(([id, cat]) => {
+    const colorSet = colors[colorIndex % colors.length];
+    css += `
+      .category-tag.${id} { background: ${colorSet.bg}; color: ${colorSet.color}; }
+      .cat-pill.${id} { background: ${colorSet.bg}; color: ${colorSet.color}; }
+      .cat-pill.${id}:hover { background: ${colorSet.bg.replace('0.1', '0.2')}; }
+    `;
+    colorIndex++;
+  });
+  
+  styleEl.textContent = css;
+}
+
+// ========================================
 // RENDER MARKETS
 // ========================================
 let currentSlide = 0;
 let featuredMarketsData = [];
 
 function renderMarkets() {
-  const markets = MulonData.getActiveMarkets();
-  const featuredMarkets = markets.filter(m => m.featured);
-  const allMarkets = markets.filter(m => !m.featured);
+  const currentCat = getCurrentCategory();
+  let markets = MulonData.getActiveMarkets();
   
-  // Store featured markets for slider
-  featuredMarketsData = featuredMarkets.length > 0 ? featuredMarkets : (markets.length > 0 ? [markets[0]] : []);
-  
-  // Render featured slider
-  const featuredContainer = document.getElementById('featuredContainer');
-  if (featuredContainer) {
-    if (featuredMarketsData.length > 0) {
-      featuredContainer.innerHTML = renderFeaturedSlider(featuredMarketsData);
-      setupSlider();
-    } else {
-      featuredContainer.innerHTML = '<div class="empty-state">No markets available yet.</div>';
-    }
+  // Filter by category if specified
+  const isFiltered = currentCat && currentCat !== 'all';
+  if (isFiltered) {
+    markets = markets.filter(m => m.category === currentCat);
   }
   
-  // Render market grid
+  // Update section titles based on filter
+  updateSectionTitles(currentCat);
+  
+  const featuredSection = document.querySelector('.section:first-of-type');
+  const featuredContainer = document.getElementById('featuredContainer');
   const marketGrid = document.getElementById('marketGrid');
-  if (marketGrid) {
-    const gridMarkets = featuredMarkets.length > 0 ? allMarkets : markets.slice(1);
-    if (gridMarkets.length > 0) {
-      marketGrid.innerHTML = gridMarkets.map(market => renderMarketCard(market)).join('');
-    } else {
-      marketGrid.innerHTML = '';
+  
+  // When viewing a category OR "all markets", hide featured slider and show all in grid
+  if (isFiltered || currentCat === 'all') {
+    // Hide featured section
+    if (featuredSection) {
+      featuredSection.style.display = 'none';
+    }
+    
+    // Show all markets in grid
+    if (marketGrid) {
+      if (markets.length > 0) {
+        marketGrid.innerHTML = markets.map(market => renderMarketCard(market)).join('');
+      } else {
+        marketGrid.innerHTML = '<div class="empty-state">No markets in this category.</div>';
+      }
+    }
+  } else {
+    // Home page - show featured section
+    if (featuredSection) {
+      featuredSection.style.display = 'block';
+    }
+    
+    const featuredMarkets = markets.filter(m => m.featured);
+    const allMarkets = markets.filter(m => !m.featured);
+    
+    // Store featured markets for slider
+    featuredMarketsData = featuredMarkets.length > 0 ? featuredMarkets : (markets.length > 0 ? [markets[0]] : []);
+    
+    // Render featured slider
+    if (featuredContainer) {
+      if (featuredMarketsData.length > 0) {
+        featuredContainer.innerHTML = renderFeaturedSlider(featuredMarketsData);
+        setupSlider();
+      } else {
+        featuredContainer.innerHTML = '<div class="empty-state">No markets available yet.</div>';
+      }
+    }
+    
+    // Render market grid
+    if (marketGrid) {
+      const gridMarkets = featuredMarkets.length > 0 ? allMarkets : markets.slice(1);
+      if (gridMarkets.length > 0) {
+        marketGrid.innerHTML = gridMarkets.map(market => renderMarketCard(market)).join('');
+      } else {
+        marketGrid.innerHTML = '';
+      }
     }
   }
   
   // Re-attach event listeners
   attachBetButtonListeners();
+}
+
+// Update section titles based on current filter
+function updateSectionTitles(currentCat) {
+  const trendingTitle = document.querySelector('.section-title');
+  const gridTitle = document.querySelectorAll('.section-title')[1];
+  
+  if (currentCat && currentCat !== 'all') {
+    // Category filter - only grid title matters (featured is hidden)
+    const category = MulonData.getCategory(currentCat);
+    if (gridTitle) {
+      gridTitle.textContent = `${category.icon} ${category.label} Markets`;
+    }
+  } else if (currentCat === 'all') {
+    if (trendingTitle) {
+      trendingTitle.textContent = '📊 Featured Markets';
+    }
+    if (gridTitle) {
+      gridTitle.textContent = 'All Markets';
+    }
+  } else {
+    // Home page
+    if (trendingTitle) {
+      trendingTitle.textContent = '🔥 Trending Markets';
+    }
+    if (gridTitle) {
+      gridTitle.textContent = '📊 All Markets';
+    }
+  }
 }
 
 function renderFeaturedSlider(markets) {
@@ -432,7 +589,7 @@ function renderFeaturedSlider(markets) {
 }
 
 function renderFeaturedSlide(market, index) {
-  const category = MulonData.categories[market.category] || { icon: '📊', label: 'Other', color: 'school' };
+  const category = MulonData.getCategory(market.category);
   
   // Check market status
   const now = new Date();
@@ -590,7 +747,7 @@ function goToSlide(index) {
 }
 
 function renderMarketCard(market) {
-  const category = MulonData.categories[market.category] || { icon: '📊', label: 'Other', color: 'school' };
+  const category = MulonData.getCategory(market.category);
   
   // Check market status
   const now = new Date();
@@ -854,7 +1011,7 @@ function attachBetButtonListeners() {
       currentChoice = choice;
       
       // Update modal content
-      const category = MulonData.categories[market.category] || { icon: '📊' };
+      const category = MulonData.getCategory(market.category);
       
       if (modalTitle) modalTitle.textContent = market.title;
       document.querySelector('.modal-market-icon').textContent = category.icon;
@@ -1140,7 +1297,7 @@ function updateWatchlistDisplay() {
       const market = MulonData.getMarket(marketId);
       if (!market) return '';
       
-      const category = MulonData.categories[market.category] || { icon: '📊' };
+      const category = MulonData.getCategory(market.category);
       
       return `
         <div class="watchlist-item" data-market-id="${marketId}">
@@ -1182,7 +1339,7 @@ function updateWatchlistDisplay() {
           currentNoPrice = market.noPrice;
           currentChoice = 'yes';
           
-          const category = MulonData.categories[market.category] || { icon: '📊' };
+          const category = MulonData.getCategory(market.category);
           if (modalTitle) modalTitle.textContent = market.title;
           document.querySelector('.modal-market-icon').textContent = category.icon;
           if (yesPrice) yesPrice.textContent = market.yesPrice + '¢';

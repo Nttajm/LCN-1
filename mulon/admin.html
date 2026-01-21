@@ -68,10 +68,7 @@
               <label for="category">Category *</label>
               <select id="category" name="category" required>
                 <option value="">Select category</option>
-                <option value="school">🎓 Tech High</option>
-                <option value="sports">⚽ Sports</option>
-                <option value="politics">🏛️ Politics</option>
-                <option value="grading">📝 Grading</option>
+                <!-- Categories loaded dynamically from Firebase -->
               </select>
             </div>
 
@@ -135,6 +132,26 @@
 
         <div class="market-list" id="marketList">
           <!-- Markets rendered dynamically -->
+        </div>
+      </div>
+      
+      <!-- Categories Panel -->
+      <div class="admin-panel categories-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">🏷️ Categories</h2>
+        </div>
+        
+        <form id="categoryForm" class="category-form">
+          <div class="category-form-row">
+            <input type="text" id="catId" placeholder="ID (e.g., school)" required>
+            <input type="text" id="catIcon" placeholder="Emoji (e.g., 🎓)" required maxlength="4">
+            <input type="text" id="catLabel" placeholder="Label (e.g., Tech High)" required>
+            <button type="submit" class="btn btn-primary btn-sm">Add</button>
+          </div>
+        </form>
+        
+        <div class="category-list" id="categoryList">
+          <!-- Categories rendered dynamically -->
         </div>
       </div>
     </div>

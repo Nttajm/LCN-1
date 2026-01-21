@@ -702,10 +702,16 @@ body.sidebar-open {
   padding: 0.5rem 1rem !important;
   font-size: 0.8rem !important;
   border-bottom: none !important;
+  transition: all 0.2s ease;
 }
 
 .cat-pill:hover {
   background: var(--bg-tertiary);
+}
+
+.cat-pill.active {
+  box-shadow: 0 0 0 2px currentColor;
+  font-weight: 600;
 }
 
 /* ========================================
