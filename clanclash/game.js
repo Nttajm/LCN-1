@@ -29,83 +29,6 @@ const config = {
     }
 };
 
-// Sound System (using Web Audio API for game sounds)
-class SoundSystem {
-    constructor() {
-        this.enabled = true;
-        this.sounds = {};
-    }
-    
-    play(type) {
-        if (!this.enabled) return;
-        
-        // Create audio context on first interaction
-        if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        // Different sounds for different actions
-        switch(type) {
-            case 'deploy':
-                oscillator.frequency.value = 400;
-                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
-                oscillator.start();
-                oscillator.stop(this.audioContext.currentTime + 0.1);
-                break;
-            case 'hit':
-                oscillator.frequency.value = 200;
-                oscillator.type = 'square';
-                gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.05);
-                oscillator.start();
-                oscillator.stop(this.audioContext.currentTime + 0.05);
-                break;
-            case 'explosion':
-                oscillator.frequency.value = 100;
-                oscillator.type = 'sawtooth';
-                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
-                oscillator.start();
-                oscillator.stop(this.audioContext.currentTime + 0.3);
-                break;
-            case 'tower-destroy':
-                oscillator.frequency.value = 150;
-                oscillator.type = 'sawtooth';
-                gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
-                oscillator.start();
-                oscillator.stop(this.audioContext.currentTime + 0.5);
-                break;
-            case 'victory':
-                this.playMelody([523, 659, 784, 1047], [0, 0.1, 0.2, 0.3]);
-                return;
-        }
-    }
-    
-    playMelody(frequencies, timings) {
-        if (!this.audioContext) return;
-        
-        frequencies.forEach((freq, i) => {
-            const osc = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(this.audioContext.destination);
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.2, this.audioContext.currentTime + timings[i]);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + timings[i] + 0.2);
-            osc.start(this.audioContext.currentTime + timings[i]);
-            osc.stop(this.audioContext.currentTime + timings[i] + 0.2);
-        });
-    }
-}
-
 // Particle System
 class Particle {
     constructor(x, y, vx, vy, color, lifetime, size = 3) {
@@ -917,7 +840,6 @@ class EnemyAIController {
         this.cycleCard(cardId);
         
         // Effects
-        this.game.soundSystem.play('deploy');
         this.game.particleSystem.emit(x, y, 8, { color: 'rgb(239, 68, 68)', speed: 2 });
         
         return true;
@@ -959,7 +881,6 @@ class Game {
         this.lastTime = Date.now();
         
         // Systems
-        this.soundSystem = new SoundSystem();
         this.particleSystem = new ParticleSystem();
         
         // Player state
@@ -1435,13 +1356,11 @@ class Game {
     deployUnit(unitType, x, y, team) {
         if (unitType === 'fireball') {
             this.castFireball(x, y);
-            this.soundSystem.play('explosion');
             return;
         }
         
         if (unitType === 'arrows') {
             this.castArrows(x, y);
-            this.soundSystem.play('explosion');
             return;
         }
         
@@ -1453,7 +1372,6 @@ class Game {
             if (team === 'player' && this.playerElixir >= template.cost) {
                 this.playerElixir -= template.cost;
                 this.createBuilding(template, x, y, team);
-                this.soundSystem.play('deploy');
                 this.particleSystem.emit(x, y, 15, { color: 'rgb(150, 100, 50)', speed: 4 });
             }
             return;
@@ -1462,7 +1380,6 @@ class Game {
         if (team === 'player' && this.playerElixir >= template.cost) {
             this.playerElixir -= template.cost;
             this.createUnit(template, x, y, team);
-            this.soundSystem.play('deploy');
             this.particleSystem.emit(x, y, 10, { color: 'rgb(102, 126, 234)', speed: 3 });
         }
     }
@@ -1585,7 +1502,6 @@ class Game {
     
     // Building attacks a target
     buildingAttack(building, target) {
-        this.soundSystem.play('hit');
         
         let damage = building.damage;
         
@@ -1717,7 +1633,6 @@ class Game {
             // Bomb Tower explosion
             this.damageInRadius(building.x, building.y, 150, building.deathDamage, 
                 building.team === 'player' ? 'enemy' : 'player');
-            this.soundSystem.play('explosion');
         }
         
         if (building.spawnsSkeletons && building.skeletonSpawnCount) {
@@ -2303,7 +2218,6 @@ class Game {
     }
     
     attack(attacker, target) {
-        this.soundSystem.play('hit');
         
         // Apply reduced tower damage for certain units (like Miner in real CR)
         let damage = attacker.damage;
@@ -2523,7 +2437,6 @@ class Game {
             if (target && now - tower.lastAttack >= tower.attackSpeed) {
                 tower.lastAttack = now;
                 target.currentHp -= tower.damage;
-                this.soundSystem.play('hit');
                 
                 // Show damage number for tower attacks
                 this.createDamageNumber(target.x, target.y, tower.damage, tower.team);
@@ -2565,7 +2478,6 @@ class Game {
     }
     
     onTowerDestroyed(tower) {
-        this.soundSystem.play('tower-destroy');
         this.particleSystem.emit(
             tower.x + tower.width / 2, 
             tower.y + tower.height / 2, 
@@ -2586,618 +2498,6 @@ class Game {
                 this.endGame('victory');
             }
         }
-    }
-    
-    enemyAI(deltaTime) {
-        this.enemyAITimer += deltaTime;
-        
-        // Variable AI cooldown based on game state (faster reactions when under pressure)
-        const baseCooldown = 1800;
-        const pressureFactor = this.getEnemyPressureLevel();
-        const adaptiveCooldown = baseCooldown * (1 - pressureFactor * 0.6);
-        
-        if (this.enemyAITimer < adaptiveCooldown) return;
-        this.enemyAITimer = 0;
-        
-        // AI State Analysis
-        const gameState = this.analyzeGameState();
-        
-        // ===== CLASH ROYALE STRATEGIC AI =====
-        // Priority order:
-        // 1. Emergency defense (tower about to die)
-        // 2. Spell value (cluster of enemies)
-        // 3. Counter-push (surviving defenders + support)
-        // 4. Lane pressure / punishment
-        // 5. Build push behind king tower
-        // 6. Cycle cheap cards if high elixir
-        
-        // EMERGENCY: Tower critical - must defend!
-        if (gameState.towerEmergency && this.enemyElixir >= 2) {
-            this.aiEmergencyDefense(gameState);
-            return;
-        }
-        
-        // HIGH VALUE: Spell cluster opportunity
-        if (this.aiTrySpellValue(gameState)) {
-            return;
-        }
-        
-        // COUNTER-PUSH: Build off surviving defenders
-        if (gameState.hasDefendersAlive && this.enemyElixir >= 3) {
-            this.aiCounterPush(gameState);
-            return;
-        }
-        
-        // DEFEND: Under attack, place defensive units
-        if (gameState.underHeavyAttack && this.enemyElixir >= 3) {
-            this.aiDefend(gameState);
-            return;
-        }
-        
-        // PUNISH: Opposite lane when player overcommits
-        if (gameState.playerOvercommitted && this.enemyElixir >= 4) {
-            this.aiPunishOpposite(gameState);
-            return;
-        }
-        
-        // BUILD PUSH: Start tank from back when elixir advantage
-        if (gameState.hasElixirAdvantage && this.enemyElixir >= 6) {
-            this.aiBuildPush(gameState);
-            return;
-        }
-        
-        // BALANCED: Standard play
-        if (this.enemyElixir >= 4) {
-            this.aiBalancedPlay(gameState);
-            return;
-        }
-        
-        // CHEAP DEFENSE: Low elixir but need something
-        if (this.enemyElixir >= 2 && gameState.underAttack) {
-            this.aiCheapDefense(gameState);
-        }
-        // Otherwise: Save elixir (leak prevention at 10)
-    }
-    
-    // Enhanced game state analysis with CR strategies
-    analyzeGameState() {
-        const playerUnits = this.units.filter(u => u.team === 'player');
-        const enemyUnits = this.units.filter(u => u.team === 'enemy');
-        
-        // Units threatening enemy side (past river toward enemy)
-        const threateningUnits = playerUnits.filter(u => u.x > config.bridge.x - 150);
-        const unitsNearTowers = playerUnits.filter(u => u.x > config.bridge.x + 100);
-        
-        // Lane analysis
-        const topLaneY = config.canvas.height * 0.3;
-        const bottomLaneY = config.canvas.height * 0.7;
-        
-        const topLaneThreat = threateningUnits.filter(u => u.y < topLaneY + 50);
-        const bottomLaneThreat = threateningUnits.filter(u => u.y > bottomLaneY - 50);
-        
-        // Cluster detection for spell value
-        const clusters = this.findUnitClusters(playerUnits);
-        
-        // Tower health analysis
-        const enemyTowers = this.towers.filter(t => t.team === 'enemy' && !t.destroyed);
-        const playerTowers = this.towers.filter(t => t.team === 'player' && !t.destroyed);
-        const lowestEnemyTower = enemyTowers.reduce((lowest, t) => 
-            (t.hp / t.maxHp < (lowest?.hp / lowest?.maxHp || 1)) ? t : lowest, null);
-        const lowestPlayerTower = playerTowers.reduce((lowest, t) => 
-            (t.hp / t.maxHp < (lowest?.hp / lowest?.maxHp || 1)) ? t : lowest, null);
-        
-        // Calculate threat levels
-        const topThreatLevel = this.calculateThreatLevel(topLaneThreat);
-        const bottomThreatLevel = this.calculateThreatLevel(bottomLaneThreat);
-        const totalThreat = topThreatLevel + bottomThreatLevel;
-        
-        // Check if there's a big push happening
-        const bigPush = threateningUnits.length >= 3 || 
-                        threateningUnits.some(u => u.hp > 2000);
-        
-        // Check for surviving defenders that can counter-push
-        const defendersAlive = enemyUnits.filter(u => 
-            u.x > config.bridge.x && 
-            u.currentHp > u.hp * 0.3 &&
-            !u.targetBuildings
-        );
-        
-        // Player overcommit detection (lots of elixir on field)
-        const playerElixirOnField = playerUnits.reduce((sum, u) => sum + (u.cost || 3), 0);
-        const playerOvercommitted = playerElixirOnField >= 10 && threateningUnits.length >= 2;
-        
-        // Tower emergency - need immediate defense
-        const towerEmergency = lowestEnemyTower && lowestEnemyTower.hp < 500 && unitsNearTowers.length > 0;
-        
-        // Find tanks in player's push
-        const playerTanks = threateningUnits.filter(u => u.role === 'tank' || u.hp > 2500);
-        
-        return {
-            playerUnits,
-            enemyUnits,
-            threateningUnits,
-            unitsNearTowers,
-            topLaneThreat,
-            bottomLaneThreat,
-            topThreatLevel,
-            bottomThreatLevel,
-            mostDangerousLane: topThreatLevel > bottomThreatLevel ? 'top' : 'bottom',
-            lessDangerousLane: topThreatLevel > bottomThreatLevel ? 'bottom' : 'top',
-            underAttack: threateningUnits.length > 0,
-            underHeavyAttack: bigPush || totalThreat > 2000,
-            hasElixirAdvantage: this.enemyElixir > this.playerElixir + 2,
-            lowestEnemyTower,
-            lowestPlayerTower,
-            canFinishTower: lowestPlayerTower && lowestPlayerTower.hp < 800,
-            enemyUnitsOnField: enemyUnits.length,
-            playerUnitsOnField: playerUnits.length,
-            hasDefendersAlive: defendersAlive.length > 0,
-            defenders: defendersAlive,
-            playerOvercommitted,
-            towerEmergency,
-            clusters,
-            playerTanks,
-            playerElixirOnField
-        };
-    }
-    
-    // Find clusters of units for spell value calculation
-    findUnitClusters(units) {
-        const clusters = [];
-        const clusterRadius = 120; // Fireball radius
-        
-        for (const unit of units) {
-            const nearbyUnits = units.filter(u => 
-                u !== unit && Math.hypot(u.x - unit.x, u.y - unit.y) < clusterRadius
-            );
-            
-            if (nearbyUnits.length >= 2) {
-                const allUnits = [unit, ...nearbyUnits];
-                const totalCost = allUnits.reduce((sum, u) => sum + (u.cost || 3), 0);
-                const centerX = allUnits.reduce((sum, u) => sum + u.x, 0) / allUnits.length;
-                const centerY = allUnits.reduce((sum, u) => sum + u.y, 0) / allUnits.length;
-                
-                clusters.push({
-                    units: allUnits,
-                    totalCost,
-                    centerX,
-                    centerY,
-                    count: allUnits.length
-                });
-            }
-        }
-        
-        // Return best cluster by value
-        return clusters.sort((a, b) => b.totalCost - a.totalCost);
-    }
-    
-    // Calculate threat level of units
-    calculateThreatLevel(units) {
-        return units.reduce((total, unit) => {
-            let threat = unit.damage * (unit.currentHp / unit.hp);
-            if (unit.targetBuildings) threat *= 1.5; // Building targeters are more dangerous
-            if (unit.fast) threat *= 1.3; // Fast units need quick response
-            if (unit.isAir) threat *= 1.2; // Air units harder to defend
-            return total + threat;
-        }, 0);
-    }
-    
-    // Get pressure level (0-1)
-    getEnemyPressureLevel() {
-        const playerUnits = this.units.filter(u => u.team === 'player');
-        const nearRiver = playerUnits.filter(u => u.x > config.bridge.x - 200);
-        return Math.min(nearRiver.length / 5, 1);
-    }
-    
-    // ===== CLASH ROYALE AI STRATEGIES =====
-    
-    // Emergency defense - tower about to fall
-    aiEmergencyDefense(gameState) {
-        const lane = gameState.mostDangerousLane;
-        const threats = lane === 'top' ? gameState.topLaneThreat : gameState.bottomLaneThreat;
-        
-        // Use whatever we can afford immediately
-        const COUNTER_MAP = window.ClanClashData?.COUNTER_MAP || {};
-        
-        // Find best counter for the main threat
-        const mainThreat = threats[0];
-        if (mainThreat) {
-            const counters = COUNTER_MAP[mainThreat.type] || [];
-            for (const counter of counters) {
-                if (unitTemplates[counter] && unitTemplates[counter].cost <= this.enemyElixir) {
-                    this.deployEnemyUnit({...unitTemplates[counter], type: counter}, lane, 'defense');
-                    return;
-                }
-            }
-        }
-        
-        // Fallback: cheapest available unit
-        const cheapest = Object.entries(unitTemplates)
-            .filter(([_, u]) => u.cost <= this.enemyElixir && !u.isBuilding && !u.isSpell)
-            .sort((a, b) => a[1].cost - b[1].cost)[0];
-        
-        if (cheapest) {
-            this.deployEnemyUnit({...cheapest[1], type: cheapest[0]}, lane, 'defense');
-        }
-    }
-    
-    // Try to get spell value - returns true if spell used
-    aiTrySpellValue(gameState) {
-        if (gameState.clusters.length === 0) return false;
-        
-        const bestCluster = gameState.clusters[0];
-        const fireball = unitTemplates.fireball;
-        const arrows = unitTemplates.arrows;
-        const fireballCost = fireball?.cost ?? 4;
-        const fireballDamage = fireball?.damage ?? 572;
-        const fireballRadius = fireball?.radius ?? 150;
-        const arrowsCost = arrows?.cost ?? 3;
-        const arrowsDamage = arrows?.damage ?? 303;
-        const arrowsRadius = arrows?.radius ?? 200;
-        
-        // Fireball value: 4 elixir spell for 4+ elixir of troops (or splash + tower damage)
-        if (bestCluster.totalCost >= fireballCost && this.enemyElixir >= fireballCost) {
-            // Check if any unit would die to fireball
-            const wouldKill = bestCluster.units.some(u => u.currentHp <= fireballDamage);
-            if (wouldKill || bestCluster.totalCost >= fireballCost + 1) {
-                this.enemyElixir -= fireballCost;
-                this.damageInRadius(bestCluster.centerX, bestCluster.centerY, fireballRadius, fireballDamage, 'player');
-                this.createSpellEffect('fireball', bestCluster.centerX, bestCluster.centerY);
-                return true;
-            }
-        }
-        
-        // Arrows value: 3 elixir for swarms
-        const swarmCluster = gameState.clusters.find(c => 
-            c.units.some(u => u.spawnsMultiple || u.hp < 300) && c.count >= 3
-        );
-        
-        if (swarmCluster && this.enemyElixir >= arrowsCost) {
-            this.enemyElixir -= arrowsCost;
-            this.damageInRadius(swarmCluster.centerX, swarmCluster.centerY, arrowsRadius, arrowsDamage, 'player');
-            this.createSpellEffect('arrows', swarmCluster.centerX, swarmCluster.centerY);
-            return true;
-        }
-        
-        return false;
-    }
-    
-    // Counter-push with surviving defenders
-    aiCounterPush(gameState) {
-        const defenders = gameState.defenders;
-        if (defenders.length === 0) return;
-        
-        // Determine lane based on where defenders are
-        const avgY = defenders.reduce((sum, d) => sum + d.y, 0) / defenders.length;
-        const lane = avgY < config.canvas.height / 2 ? 'top' : 'bottom';
-        
-        // Check what type of support we need
-        const hasTank = defenders.some(d => d.role === 'tank' || d.role === 'miniTank');
-        const hasSplash = defenders.some(d => d.splashRadius);
-        
-        let supportType;
-        if (!hasTank) {
-            // Add tank in front
-            supportType = ['knight', 'valkyrie'].find(s => 
-                unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
-            );
-        } else if (!hasSplash) {
-            // Add splash behind
-            supportType = ['wizard', 'dragon', 'witch'].find(s => 
-                unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
-            );
-        } else {
-            // Add DPS
-            supportType = ['musketeer', 'archer', 'minipekka'].find(s => 
-                unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
-            );
-        }
-        
-        if (supportType) {
-            this.deployEnemyUnit({...unitTemplates[supportType], type: supportType}, lane, 'support');
-        }
-    }
-    
-    // Punish opposite lane when player overcommits
-    aiPunishOpposite(gameState) {
-        const oppositeLane = gameState.lessDangerousLane;
-        
-        // Fast win conditions are best for punishment
-        const punishCards = ['hogrider', 'balloon', 'miner', 'minipekka'].filter(
-            p => unitTemplates[p] && unitTemplates[p].cost <= this.enemyElixir
-        );
-        
-        if (punishCards.length > 0) {
-            const card = punishCards[0]; // Prioritize hog rider
-            this.deployEnemyUnit({...unitTemplates[card], type: card}, oppositeLane, 'attack');
-        }
-    }
-    
-    // Build a push from the back (like real CR players)
-    aiBuildPush(gameState) {
-        const targetLane = gameState.lowestPlayerTower?.id.includes('top') ? 'top' : 'bottom';
-        
-        // Check if we already have units building
-        const backUnits = this.units.filter(u => 
-            u.team === 'enemy' && u.x > config.canvas.width - 200
-        );
-        
-        // Start with tank from back
-        if (backUnits.length === 0 && this.enemyElixir >= 5) {
-            const tanks = ['golem', 'giant', 'pekka'].filter(
-                t => unitTemplates[t] && unitTemplates[t].cost <= this.enemyElixir
-            );
-            
-            if (tanks.length > 0) {
-                // Golem only if 8+ elixir (don't leak)
-                const tank = (this.enemyElixir >= 8 && tanks.includes('golem')) 
-                    ? 'golem' 
-                    : tanks.find(t => t !== 'golem') || tanks[0];
-                this.deployEnemyUnit({...unitTemplates[tank], type: tank}, targetLane, 'back');
-                return;
-            }
-        }
-        
-        // Add support behind existing tank
-        if (backUnits.length > 0 && this.enemyElixir >= 4) {
-            const supports = ['wizard', 'witch', 'musketeer', 'dragon'].filter(
-                s => unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
-            );
-            
-            if (supports.length > 0) {
-                const support = supports[Math.floor(Math.random() * supports.length)];
-                this.deployEnemyUnit({...unitTemplates[support], type: support}, targetLane, 'support');
-            }
-        }
-    }
-    
-    // Standard defensive play
-    aiDefend(gameState) {
-        const lane = gameState.mostDangerousLane;
-        const threats = lane === 'top' ? gameState.topLaneThreat : gameState.bottomLaneThreat;
-        
-        // Get counters based on threat composition
-        const COUNTER_MAP = window.ClanClashData?.COUNTER_MAP || {};
-        
-        // Analyze threats
-        const hasAir = threats.some(t => t.isAir);
-        const hasTank = gameState.playerTanks.length > 0;
-        const hasSwarm = threats.some(t => t.spawnsMultiple);
-        const hasBuildingTargeter = threats.some(t => t.targetBuildings);
-        
-        // Select counter based on threat type
-        let counterType = null;
-        
-        if (hasBuildingTargeter && threats[0]?.targetBuildings) {
-            // Use building to pull aggro, or high DPS
-            const buildingDefenses = ['cannon', 'tesla', 'tombstone', 'infernotower'].filter(
-                b => unitTemplates[b] && unitTemplates[b].cost <= this.enemyElixir
-            );
-            
-            if (buildingDefenses.length > 0) {
-                const building = hasTank ? 'infernotower' : buildingDefenses[0];
-                if (unitTemplates[building] && unitTemplates[building].cost <= this.enemyElixir) {
-                    this.deployEnemyBuilding(building, lane);
-                    return;
-                }
-            }
-            
-            // Or use high DPS unit
-            counterType = hasTank 
-                ? ['minipekka', 'pekka', 'skeleton', 'barbarian'].find(c => 
-                    unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir)
-                : ['cannon', 'knight', 'minipekka'].find(c => 
-                    unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir);
-        } else if (hasSwarm) {
-            // Use splash
-            counterType = ['valkyrie', 'wizard', 'dragon', 'bombtower'].find(c => 
-                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
-            );
-        } else if (hasAir) {
-            // Use air targeters
-            counterType = ['musketeer', 'wizard', 'archer', 'tesla'].find(c => 
-                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
-            );
-        } else if (hasTank) {
-            // Use swarm or high DPS
-            counterType = ['skeleton', 'minipekka', 'barbarian'].find(c => 
-                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
-            );
-        }
-        
-        // Fallback to best counter from map
-        if (!counterType && threats[0]) {
-            const counters = COUNTER_MAP[threats[0].type] || [];
-            counterType = counters.find(c => 
-                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
-            );
-        }
-        
-        // Deploy the counter
-        if (counterType) {
-            if (unitTemplates[counterType].isBuilding) {
-                this.deployEnemyBuilding(counterType, lane);
-            } else {
-                this.deployEnemyUnit({...unitTemplates[counterType], type: counterType}, lane, 'defense');
-            }
-        }
-    }
-    
-    // Cheap defense for low elixir
-    aiCheapDefense(gameState) {
-        const cheapUnits = Object.entries(unitTemplates)
-            .filter(([_, u]) => u.cost <= 3 && u.cost <= this.enemyElixir && !u.isBuilding && !u.isSpell)
-            .map(([key, u]) => ({...u, type: key}));
-        
-        if (cheapUnits.length > 0) {
-            // Prioritize by defensive value
-            const sorted = cheapUnits.sort((a, b) => {
-                let scoreA = a.damage;
-                let scoreB = b.damage;
-                if (a.splashRadius) scoreA *= 1.5;
-                if (b.splashRadius) scoreB *= 1.5;
-                return scoreB - scoreA;
-            });
-            
-            this.deployEnemyUnit(sorted[0], gameState.mostDangerousLane, 'defense');
-        }
-    }
-    
-    // Balanced play - cycle and pressure
-    aiBalancedPlay(gameState) {
-        // Counter-push after defending
-        if (gameState.enemyUnitsOnField > 0 && gameState.playerUnitsOnField < 2) {
-            const supports = ['archer', 'musketeer', 'wizard', 'minipekka'].filter(
-                s => unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
-            );
-            if (supports.length > 0) {
-                const support = supports[Math.floor(Math.random() * supports.length)];
-                const existingUnit = gameState.enemyUnits[0];
-                const lane = existingUnit.y < config.canvas.height / 2 ? 'top' : 'bottom';
-                this.deployEnemyUnit({...unitTemplates[support], type: support}, lane, 'support');
-                return;
-            }
-        }
-        
-        // Light pressure with win condition
-        if (this.enemyElixir >= 4 && gameState.playerUnitsOnField < 3) {
-            const winCons = ['hogrider', 'miner', 'balloon'].filter(
-                w => unitTemplates[w] && unitTemplates[w].cost <= this.enemyElixir
-            );
-            
-            if (winCons.length > 0 && Math.random() > 0.5) {
-                const winCon = winCons[Math.floor(Math.random() * winCons.length)];
-                const lane = Math.random() > 0.5 ? 'top' : 'bottom';
-                this.deployEnemyUnit({...unitTemplates[winCon], type: winCon}, lane, 'attack');
-                return;
-            }
-        }
-        
-        // Standard deployment
-        const available = Object.entries(unitTemplates)
-            .filter(([_, u]) => u.cost <= this.enemyElixir && u.cost >= 3 && !u.isBuilding && !u.isSpell)
-            .map(([key, u]) => ({...u, type: key}));
-        
-        if (available.length > 0) {
-            const unit = available[Math.floor(Math.random() * available.length)];
-            const lane = Math.random() > 0.5 ? 'top' : 'bottom';
-            this.deployEnemyUnit(unit, lane, 'attack');
-        }
-    }
-    
-    // Deploy enemy building (for defensive purposes)
-    deployEnemyBuilding(buildingType, lane) {
-        const template = unitTemplates[buildingType];
-        if (!template || this.enemyElixir < template.cost) return;
-        
-        this.enemyElixir -= template.cost;
-        
-        // Place building to pull units - in the middle toward appropriate lane
-        const bridgeIndex = lane === 'top' ? 0 : 1;
-        const targetBridge = this.bridges[bridgeIndex];
-        
-        // Buildings placed to pull building-targeting units
-        const x = config.canvas.width - 150; // In front of tower
-        const y = targetBridge.centerY + (lane === 'top' ? 30 : -30); // Offset to pull
-        
-        // Snap to grid
-        const gridX = Math.round(x / this.grid.cellSize) * this.grid.cellSize + this.grid.cellSize / 2;
-        const gridY = Math.round(y / this.grid.cellSize) * this.grid.cellSize + this.grid.cellSize / 2;
-        
-        this.createBuilding(template, gridX, gridY, 'enemy');
-        this.soundSystem.play('deploy');
-    }
-    
-    // Get defensive unit options
-    getDefensiveUnits() {
-        return Object.entries(unitTemplates)
-            .filter(([_, u]) => u.cost <= this.enemyElixir && !u.isBuilding && !u.isSpell)
-            .map(([key, u]) => ({...u, type: key}))
-            .sort((a, b) => {
-                // Prioritize high damage, splash, and ranged units for defense
-                let scoreA = a.damage || 0;
-                let scoreB = b.damage || 0;
-                if (a.splashRadius) scoreA *= 1.5;
-                if (b.splashRadius) scoreB *= 1.5;
-                if (a.isRanged) scoreA *= 1.3;
-                if (b.isRanged) scoreB *= 1.3;
-                return scoreB - scoreA;
-            });
-    }
-    
-    // Select best counter for threats
-    selectBestCounter(threats, availableUnits) {
-        if (availableUnits.length === 0) return null;
-        
-        const hasAirUnits = threats.some(t => t.isAir);
-        const hasSwarm = threats.length >= 3 || threats.some(t => t.spawnsMultiple);
-        const hasTank = threats.some(t => t.hp > 2000);
-        
-        // Filter and score units
-        return availableUnits.find(unit => {
-            // Can target air if needed
-            if (hasAirUnits && unit.isRanged) return true;
-            // Splash for swarms
-            if (hasSwarm && unit.splashRadius) return true;
-            // High damage for tanks
-            if (hasTank && unit.damage > 300) return true;
-            // Default fallback
-            return unit.cost <= 4;
-        }) || availableUnits[0];
-    }
-    
-    // Deploy enemy unit helper
-    deployEnemyUnit(unitData, lane, deployType) {
-        const template = unitTemplates[unitData.type] || unitData;
-        if (this.enemyElixir < template.cost) return;
-        
-        this.enemyElixir -= template.cost;
-        
-        const bridgeIndex = lane === 'top' ? 0 : 1;
-        const targetBridge = this.bridges[bridgeIndex];
-        
-        let x, y;
-        
-        switch(deployType) {
-            case 'defense':
-                // Deploy near tower
-                x = config.canvas.width - 100;
-                y = targetBridge.centerY + (Math.random() - 0.5) * 60;
-                break;
-            case 'back':
-                // Deploy at very back (behind king tower) - for building big pushes
-                x = config.canvas.width - 50;
-                y = targetBridge.centerY;
-                break;
-            case 'push':
-                // Deploy at back (near princess tower)
-                x = config.canvas.width - 80;
-                y = targetBridge.centerY;
-                break;
-            case 'support':
-                // Deploy behind existing units (ranged support positioning)
-                const allyUnits = this.units.filter(u => u.team === 'enemy');
-                if (allyUnits.length > 0) {
-                    const frontUnit = allyUnits.reduce((front, u) => u.x < front.x ? u : front, allyUnits[0]);
-                    // Support stays behind the tank
-                    x = Math.min(frontUnit.x + 80, config.canvas.width - 100);
-                    y = frontUnit.y + (Math.random() - 0.5) * 40;
-                } else {
-                    x = config.canvas.width - 120;
-                    y = targetBridge.centerY;
-                }
-                break;
-            case 'attack':
-            default:
-                // Deploy at bridge for immediate attack
-                x = config.canvas.width - 120;
-                y = targetBridge.centerY + (Math.random() - 0.5) * 30;
-                break;
-        }
-        
-        this.createUnit(template, x, y, 'enemy');
-        this.soundSystem.play('deploy');
-        this.particleSystem.emit(x, y, 10, { color: 'rgb(239, 68, 68)', speed: 3 });
     }
     
     // Create spell visual effect
@@ -3244,10 +2544,6 @@ class Game {
             } else {
                 result = 'draw';
             }
-        }
-        
-        if (result === 'victory') {
-            this.soundSystem.play('victory');
         }
         
         const gameOverScreen = document.getElementById('gameOverScreen');
