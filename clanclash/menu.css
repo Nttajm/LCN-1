@@ -1,0 +1,524 @@
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Luckiest Guy', 'Comic Sans MS', cursive, sans-serif;
+  background-image: url(assets/bg.png);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.menu-cont {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ====== TOP BAR ====== */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: 
+    linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%);
+  border-bottom: 3px solid rgba(255,215,0,0.3);
+}
+
+.player-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-frame {
+  width: 50px;
+  height: 50px;
+  background: 
+    radial-gradient(ellipse at 30% 30%, #4a90c2 0%, #2a5a8a 50%, #1a3a5a 100%);
+  border-radius: 50%;
+  border: 3px solid;
+  border-color: #FFD700 #B8860B #8B6914 #FFD700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.2),
+    0 0 10px rgba(255,215,0,0.3);
+}
+
+.avatar-emoji {
+  font-size: 28px;
+}
+
+.player-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.player-name {
+  color: #fff;
+  font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.player-clan {
+  color: #aaa;
+  font-size: 11px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.trophy-display {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: 
+    linear-gradient(180deg, #4a3520 0%, #2a1a10 100%);
+  padding: 5px 12px;
+  border-radius: 15px;
+  border: 2px solid #8B6914;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.trophy-icon {
+  font-size: 18px;
+}
+
+.trophy-count {
+  color: #FFD700;
+  font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* ====== CURRENCY BAR ====== */
+.currency-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.currency {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px 5px 12px;
+  border-radius: 20px;
+  border: 2px solid;
+  box-shadow: 
+    inset 0 2px 4px rgba(0,0,0,0.5),
+    0 2px 4px rgba(0,0,0,0.3);
+}
+
+.currency.gold {
+  background: linear-gradient(180deg, #5a4520 0%, #3a2510 100%);
+  border-color: #B8860B #8B6914 #6B4914 #B8860B;
+}
+
+.currency.gems {
+  background: linear-gradient(180deg, #2a4a5a 0%, #1a2a3a 100%);
+  border-color: #5DADE2 #3498DB #2980B9 #5DADE2;
+}
+
+.currency-icon {
+  font-size: 18px;
+}
+
+.currency-amount {
+  color: #fff;
+  font-size: 14px;
+  min-width: 35px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.currency-add {
+  width: 20px;
+  height: 20px;
+  background: 
+    linear-gradient(180deg, #27AE60 0%, #1E8449 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  border: 2px solid #2ECC71;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.currency-add:hover {
+  transform: scale(1.1);
+}
+
+/* ====== PASS BANNER ====== */
+.pass-banner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 10px 15px;
+  padding: 10px 15px;
+  background: 
+    linear-gradient(90deg, #1a3a5a 0%, #2a5a7a 50%, #1a3a5a 100%);
+  border-radius: 10px;
+  border: 3px solid;
+  border-color: #FFD700 #B8860B #6B4914 #FFD700;
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.1),
+    0 0 15px rgba(255,215,0,0.2);
+}
+
+.pass-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: 
+    linear-gradient(180deg, #9B59B6 0%, #6C3483 100%);
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 2px solid #D2B4DE;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.pass-badge span {
+  color: #fff;
+  font-size: 10px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  line-height: 1;
+}
+
+.pass-royale {
+  font-size: 12px !important;
+  color: #FFD700 !important;
+}
+
+.pass-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.lock-icon {
+  font-size: 16px;
+}
+
+/* ====== CENTER ARENA ====== */
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.arena-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.arena-img {
+  position: relative;
+  width: 280px;
+  height: 200px;
+  
+}
+
+.arena-img img {
+  width: 90%;
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.arena-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: 
+    linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 100%);
+  padding: 8px 15px;
+  border-radius: 20px;
+  border: 2px solid #5D4037;
+}
+
+.progress-bar {
+  width: 150px;
+  height: 12px;
+  background: 
+    linear-gradient(180deg, #1a1a2a 0%, #2a2a3a 100%);
+  border-radius: 6px;
+  border: 2px solid #4a4a5a;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.progress-fill {
+  height: 100%;
+  background: 
+    linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(255,215,0,0.5);
+}
+
+/* ====== BATTLE BUTTONS ====== */
+.buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn {
+  padding: 18px 40px;
+  border-radius: 12px;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.battle-btn {
+  background: 
+    linear-gradient(180deg, #F4A020 0%, #E67E00 50%, #CC6600 100%);
+  border: 4px solid;
+  border-color: #FFD700 #DAA520 #B8860B #FFD700;
+  color: #fff;
+  text-shadow: 
+    0 2px 0 #8B4513,
+    0 4px 8px rgba(0,0,0,0.5);
+  box-shadow: 
+    0 6px 0 #8B4513,
+    0 8px 15px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+.battle-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 9px 0 #8B4513,
+    0 12px 20px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.3),
+    0 0 20px rgba(255,165,0,0.4);
+}
+
+.battle-btn:active {
+  transform: translateY(3px);
+  box-shadow: 
+    0 3px 0 #8B4513,
+    0 5px 10px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+.party-btn {
+  background: 
+    linear-gradient(180deg, #5DADE2 0%, #3498DB 50%, #2980B9 100%);
+  border: 4px solid;
+  border-color: #85C1E9 #5DADE2 #2980B9 #85C1E9;
+  color: #fff;
+  text-shadow: 
+    0 2px 0 #1A5276,
+    0 4px 8px rgba(0,0,0,0.5);
+  box-shadow: 
+    0 6px 0 #1A5276,
+    0 8px 15px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+.party-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 9px 0 #1A5276,
+    0 12px 20px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.3),
+    0 0 20px rgba(52,152,219,0.4);
+}
+
+.party-btn:active {
+  transform: translateY(3px);
+  box-shadow: 
+    0 3px 0 #1A5276,
+    0 5px 10px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+/* ====== CHEST ROW ====== */
+.chest-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background: 
+    linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%);
+  border-top: 3px solid rgba(93,64,55,0.5);
+  border-bottom: 3px solid rgba(93,64,55,0.5);
+}
+
+.chest-slot {
+  width: 80px;
+  height: 80px;
+  background: 
+    linear-gradient(180deg, #2a3a4a 0%, #1a2a3a 50%, #0d1520 100%);
+  border-radius: 12px;
+  border: 3px solid;
+  border-color: #4a5a6a #3a4a5a #2a3a4a #4a5a6a;
+  box-shadow: 
+    inset 0 3px 8px rgba(0,0,0,0.8),
+    0 3px 6px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chest-slot:hover {
+  border-color: #5a6a7a #4a5a6a #3a4a5a #5a6a7a;
+  box-shadow: 
+    inset 0 3px 8px rgba(0,0,0,0.6),
+    0 4px 8px rgba(0,0,0,0.5),
+    0 0 10px rgba(100,150,200,0.2);
+}
+
+.chest-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #4a5a6a;
+  font-size: 11px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* ====== BOTTOM NAVIGATION ====== */
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: 
+    linear-gradient(180deg, #3a2a1a 0%, #2a1a0a 50%, #1a0a00 100%);
+  height: 75px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 4px solid;
+  border-image: linear-gradient(90deg, #8B6914, #FFD700, #8B6914) 1;
+  box-shadow: 
+    0 -4px 15px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,255,255,0.05);
+  padding: 0 10px;
+}
+
+.nav-el {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.nav-el:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.nav-el .icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  filter: grayscale(30%) brightness(0.8);
+  transition: all 0.2s;
+}
+
+.nav-el .icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(30%) brightness(0.8);
+}
+
+.nav-el.sel .icon,
+.nav-el.sel .icon img {
+  filter: none;
+  transform: scale(1.1);
+}
+
+.nav-el.sel .icon.battle-icon {
+  background: 
+    radial-gradient(ellipse at center, rgba(255,215,0,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.nav-label {
+  color: #8a7a6a;
+  font-size: 11px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  transition: color 0.2s;
+}
+
+.nav-el.sel .nav-label {
+  color: #FFD700;
+  text-shadow: 
+    0 0 10px rgba(255,215,0,0.5),
+    0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 480px) {
+  .top-bar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px;
+  }
+  
+  .currency-bar {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn {
+    padding: 15px 30px;
+    font-size: 20px;
+  }
+  
+  .arena-img {
+    width: 240px;
+    height: 170px;
+  }
+  
+  .chest-slot {
+    width: 70px;
+    height: 70px;
+  }
+}

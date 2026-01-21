@@ -1,93 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clan Clash - 2D Battle Arena</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clan Clash</title>
+  <link rel="stylesheet" href="menu.css">
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="game-container">
-        <div class="game-header">
-            <div class="player-info">
-                <div class="player-avatar">🛡️</div>
-                <div class="crown-count">
-                    <span class="crown-icon">👑</span>
-                    <span id="playerCrowns">0</span>
-                </div>
-                <div class="elixir-bar">
-                    <div class="elixir-fill" id="elixirFill"></div>
-                    <span class="elixir-count" id="elixirCount">5</span>
-                </div>
-            </div>
-            <div class="timer" id="timer">3:00</div>
-            <div class="enemy-info">
-                <div class="elixir-bar enemy">
-                    <div class="elixir-fill" id="enemyElixirFill"></div>
-                    <span class="elixir-count" id="enemyElixirCount">5</span>
-                </div>
-                <div class="crown-count">
-                    <span class="crown-icon">👑</span>
-                    <span id="enemyCrowns">0</span>
-                </div>
-                <div class="enemy-avatar">⚔️</div>
-            </div>
+  <div class="menu-cont">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="player-profile">
+        <div class="avatar-frame">
+          <span class="avatar-emoji">👤</span>
         </div>
-
-        <canvas id="gameCanvas" width="1400" height="700"></canvas>
-
-        <div class="card-deck">
-            <div class="next-card" id="nextCard">
-                <div class="next-label">NEXT</div>
-                <div class="card mini" data-card="knight" data-cost="3">
-                    <div class="card-image">⚔️</div>
-                </div>
-            </div>
-            <div class="card" data-card="knight" data-cost="3">
-                <div class="card-cost">3</div>
-                <div class="card-image">⚔️</div>
-                <div class="card-name">Knight</div>
-            </div>
-            <div class="card" data-card="archer" data-cost="3">
-                <div class="card-cost">3</div>
-                <div class="card-image">🏹</div>
-                <div class="card-name">Archer</div>
-            </div>
-            <div class="card" data-card="giant" data-cost="5">
-                <div class="card-cost">5</div>
-                <div class="card-image">🗿</div>
-                <div class="card-name">Giant</div>
-            </div>
-            <div class="card" data-card="fireball" data-cost="4">
-                <div class="card-cost">4</div>
-                <div class="card-image">🔥</div>
-                <div class="card-name">Fireball</div>
-            </div>
+        <div class="player-details">
+          <span class="player-name">Player</span>
+          <span class="player-clan">No Clan</span>
         </div>
-
-        <div class="game-over-screen" id="gameOverScreen">
-            <div class="game-over-content">
-                <h1 id="gameOverTitle">Victory!</h1>
-                <div class="crowns-earned">
-                    <span id="crownsEarned">3</span> 👑
-                </div>
-                <div class="stats">
-                    <div class="stat">
-                        <span class="stat-label">Damage Dealt</span>
-                        <span class="stat-value" id="damageDealt">0</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Units Deployed</span>
-                        <span class="stat-value" id="unitsDeployed">0</span>
-                    </div>
-                </div>
-                <button id="playAgainBtn">Play Again</button>
-            </div>
+        <div class="trophy-display">
+          <span class="trophy-icon">🏆</span>
+          <span class="trophy-count">0</span>
         </div>
-
-        <div class="notification" id="notification"></div>
+      </div>
+      <div class="currency-bar">
+        <div class="currency gold">
+          <span class="currency-icon">🪙</span>
+          <span class="currency-amount">500</span>
+          <div class="currency-add">+</div>
+        </div>
+        <div class="currency gems">
+          <span class="currency-icon">💎</span>
+          <span class="currency-amount">100</span>
+          <div class="currency-add">+</div>
+        </div>
+      </div>
     </div>
 
-    <script src="game.js"></script>
+    <!-- Pass Royale Banner -->
+    <div class="pass-banner">
+      <div class="pass-badge">
+        <span>PASS</span>
+        <span class="pass-royale">ROYALE</span>
+      </div>
+      <div class="pass-text">
+        <span class="lock-icon">🔒</span>
+        <span>Unlocks at King Level 4</span>
+      </div>
+    </div>
+
+    <!-- Center Arena Section -->
+    <div class="center">
+      <div class="arena-container">
+        <div class="arena-img">
+          <img src="assets/icons/Goblin_Stadium_Arena.png" alt="arena">
+        </div>
+        <div class="arena-progress">
+          <span class="trophy-icon">🏆</span>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 30%;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Battle Buttons -->
+      <div class="buttons">
+        <a href="game.html" class="btn battle-btn">
+          <span>Battle</span>
+        </a>
+        <div class="btn party-btn">
+          <span>Party!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chest Slots -->
+    <div class="chest-row">
+      <div class="chest-slot">
+        <div class="chest-placeholder">
+          <span>Chest</span>
+          <span>Slot</span>
+        </div>
+      </div>
+      <div class="chest-slot">
+        <div class="chest-placeholder">
+          <span>Chest</span>
+          <span>Slot</span>
+        </div>
+      </div>
+      <div class="chest-slot">
+        <div class="chest-placeholder">
+          <span>Chest</span>
+          <span>Slot</span>
+        </div>
+      </div>
+      <div class="chest-slot">
+        <div class="chest-placeholder">
+          <span>Chest</span>
+          <span>Slot</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="nav">
+      <div class="nav-el">
+        <div class="icon">
+          <span>🃏</span>
+        </div>
+        <span class="nav-label">Shop</span>
+      </div>
+      <div class="nav-el">
+        <div class="icon">
+          <img src="assets/icons/icon_menu_cards.png" alt="cards">
+        </div>
+        <span class="nav-label">Cards</span>
+      </div>
+      <div class="nav-el sel">
+        <div class="icon battle-icon">
+          <img src="assets/icons/icon_menu_battle.png" alt="battle">
+        </div>
+        <span class="nav-label">Battle</span>
+      </div>
+      <div class="nav-el">
+        <div class="icon">
+          <span>🏰</span>
+        </div>
+        <span class="nav-label">Clan</span>
+      </div>
+      <div class="nav-el">
+        <div class="icon">
+          <span>📊</span>
+        </div>
+        <span class="nav-label">Activity</span>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

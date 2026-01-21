@@ -184,7 +184,263 @@ body {
     50% { transform: translateY(-5px) rotate(5deg); }
 }
 
-/* ====== ELIXIR BAR - GLASS/LIQUID EFFECT ====== */
+/* ====== ELIXIR TRAY - CLASH ROYALE STYLE (Bottom) ====== */
+.elixir-tray {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 15px;
+    background: 
+        linear-gradient(180deg, 
+            #2a1a3a 0%, 
+            #1a0a2a 50%,
+            #0a0015 100%
+        );
+    border-top: 3px solid;
+    border-image: linear-gradient(90deg, #6B3CC6, #D946EF, #6B3CC6) 1;
+    box-shadow: 
+        inset 0 2px 8px rgba(217,70,239,0.3),
+        0 -3px 10px rgba(0,0,0,0.5);
+    order: 2; /* Position after cards */
+}
+
+.elixir-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(217,70,239,0.8));
+    animation: elixirIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes elixirIconPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 2px 4px rgba(217,70,239,0.8)); }
+    50% { transform: scale(1.1); filter: drop-shadow(0 4px 8px rgba(217,70,239,1)); }
+}
+
+.elixir-counter {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    font-weight: bold;
+    min-width: 50px;
+}
+
+.elixir-current {
+    font-size: 28px;
+    color: #E879F9;
+    text-shadow: 
+        0 0 8px rgba(232,121,249,0.8),
+        0 2px 0 #7C3AED,
+        0 3px 6px rgba(0,0,0,0.8);
+    animation: elixirNumberGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes elixirNumberGlow {
+    0% { text-shadow: 0 0 10px rgba(232,121,249,0.8), 0 2px 0 #7C3AED, 0 4px 8px rgba(0,0,0,0.8); }
+    100% { text-shadow: 0 0 20px rgba(232,121,249,1), 0 2px 0 #7C3AED, 0 4px 8px rgba(0,0,0,0.8); }
+}
+
+.elixir-slash {
+    font-size: 18px;
+    color: #8B5CF6;
+}
+
+.elixir-max {
+    font-size: 16px;
+    color: #6B3CC6;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.elixir-slots {
+    display: flex;
+    gap: 3px;
+    padding: 4px 8px;
+    background: 
+        linear-gradient(180deg, 
+            #1a0a2a 0%, 
+            #0d0518 50%,
+            #1a0a2a 100%
+        );
+    border-radius: 8px;
+    border: 2px solid;
+    border-color: #4B1C96 #3B0C76 #2B0056 #4B1C96;
+    box-shadow: 
+        inset 0 2px 8px rgba(0,0,0,0.8),
+        0 2px 4px rgba(0,0,0,0.5);
+}
+
+.elixir-slot {
+    width: 20px;
+    height: 28px;
+    background: 
+        linear-gradient(180deg, 
+            #0d0518 0%, 
+            #150820 50%,
+            #0d0518 100%
+        );
+    border-radius: 6px;
+    border: 2px solid #2B0056;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        inset 0 2px 6px rgba(0,0,0,0.8),
+        inset 0 -1px 3px rgba(139,92,246,0.2);
+}
+
+.elixir-slot::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(139,92,246,0.3);
+    border-radius: 0 0 4px 4px;
+}
+
+.elixir-liquid {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 0%;
+    background: 
+        linear-gradient(180deg, 
+            #F0ABFC 0%,
+            #E879F9 15%,
+            #D946EF 40%,
+            #A855F7 70%,
+            #8B5CF6 100%
+        );
+    border-radius: 0 0 4px 4px;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        inset 0 -2px 8px rgba(255,255,255,0.4),
+        0 0 10px rgba(217,70,239,0.6);
+}
+
+.elixir-liquid::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    height: 6px;
+    background: linear-gradient(180deg, 
+        rgba(255,255,255,0.6) 0%, 
+        transparent 100%
+    );
+    border-radius: 3px;
+}
+
+.elixir-liquid::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            rgba(255,255,255,0.1) 2px,
+            transparent 4px
+        );
+    animation: elixirBubbles 1s linear infinite;
+}
+
+@keyframes elixirBubbles {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+
+.elixir-slot.full .elixir-liquid {
+    height: 100%;
+}
+
+.elixir-slot.filling .elixir-liquid {
+    animation: liquidFill 0.3s ease-out forwards;
+}
+
+@keyframes liquidFill {
+    0% { height: 0%; }
+    100% { height: 100%; }
+}
+
+.elixir-slot.full {
+    border-color: #8B5CF6;
+    box-shadow: 
+        inset 0 2px 6px rgba(0,0,0,0.6),
+        0 0 8px rgba(217,70,239,0.5);
+}
+
+.elixir-slot.full .elixir-liquid {
+    box-shadow: 
+        inset 0 -2px 8px rgba(255,255,255,0.5),
+        0 0 15px rgba(217,70,239,0.8);
+}
+
+/* Elixir progress bar for partial elixir */
+.elixir-progress-container {
+    width: 60px;
+    height: 6px;
+    background: 
+        linear-gradient(180deg, #0d0518 0%, #1a0a2a 100%);
+    border-radius: 3px;
+    border: 2px solid #3B0C76;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.elixir-progress {
+    height: 100%;
+    width: 0%;
+    background: 
+        linear-gradient(90deg, 
+            #D946EF 0%, 
+            #E879F9 50%,
+            #F0ABFC 100%
+        );
+    transition: width 0.1s linear;
+    box-shadow: 0 0 8px rgba(217,70,239,0.8);
+    animation: progressGlow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes progressGlow {
+    0% { box-shadow: 0 0 8px rgba(217,70,239,0.8); }
+    100% { box-shadow: 0 0 15px rgba(232,121,249,1); }
+}
+
+/* Double elixir mode enhancement */
+.elixir-tray.double-elixir {
+    border-image: linear-gradient(90deg, #FFD700, #FFA500, #FFD700) 1;
+    animation: doubleElixirTray 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes doubleElixirTray {
+    0% { box-shadow: inset 0 -3px 10px rgba(255,165,0,0.3), 0 4px 15px rgba(0,0,0,0.5); }
+    100% { box-shadow: inset 0 -3px 15px rgba(255,215,0,0.5), 0 4px 20px rgba(255,165,0,0.3); }
+}
+
+.elixir-tray.double-elixir .elixir-current {
+    color: #FFD700;
+    text-shadow: 
+        0 0 15px rgba(255,215,0,0.8),
+        0 2px 0 #B8860B,
+        0 4px 8px rgba(0,0,0,0.8);
+}
+
+/* Max elixir flash effect */
+.elixir-tray.max-elixir .elixir-slots {
+    animation: maxElixirPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes maxElixirPulse {
+    0% { box-shadow: inset 0 3px 10px rgba(0,0,0,0.8), 0 0 10px rgba(217,70,239,0.5); }
+    100% { box-shadow: inset 0 3px 10px rgba(0,0,0,0.6), 0 0 25px rgba(232,121,249,0.8); }
+}
+
+/* ====== OLD ELIXIR BAR (keeping for enemy) ====== */
 .elixir-bar {
     position: relative;
     width: 140px;
@@ -337,33 +593,23 @@ body {
         inset 0 0 100px rgba(0,0,0,0.5);
 }
 
-/* ====== CARD DECK - WOODEN TRAY ====== */
+/* ====== CARD DECK - CLASH ROYALE BOTTOM BAR ====== */
 .card-deck {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 15px 20px;
+    padding: 12px 15px 8px 15px;
     background: 
-        repeating-linear-gradient(
-            90deg,
-            transparent 0px,
-            rgba(0,0,0,0.03) 2px,
-            transparent 4px,
-            transparent 40px
-        ),
         linear-gradient(180deg, 
-            #6D4C41 0%, 
-            #5D4037 20%, 
-            #4E342E 50%,
-            #3E2723 80%,
+            #4E342E 0%, 
+            #3E2723 40%,
             #2E1E18 100%
         );
-    border-top: 6px solid;
-    border-image: linear-gradient(90deg, #8B6914, #FFD700, #8B6914) 1;
-    gap: 15px;
+    border-top: 3px solid #8D6E63;
+    gap: 10px;
     box-shadow: 
-        inset 0 5px 15px rgba(0,0,0,0.5),
-        0 -5px 20px rgba(0,0,0,0.3);
+        inset 0 3px 8px rgba(0,0,0,0.4),
+        0 -2px 10px rgba(0,0,0,0.3);
     position: relative;
 }
 
@@ -373,11 +619,11 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
+    height: 1px;
     background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255,215,0,0.8), 
-        transparent
+        transparent 10%, 
+        rgba(255,215,0,0.5) 50%, 
+        transparent 90%
     );
 }
 
@@ -385,219 +631,216 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-right: 25px;
-    padding: 10px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 15px;
-    border: 2px solid #5D4037;
+    margin-right: 15px;
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.1);
 }
 
 .next-label {
-    font-size: 14px;
-    color: #FFD700;
-    margin-bottom: 8px;
+    font-size: 11px;
+    color: #A89078;
+    margin-bottom: 5px;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    letter-spacing: 1px;
+    font-weight: bold;
 }
 
-/* ====== CARDS - 3D SKEUOMORPHIC STYLE ====== */
+/* ====== CARDS - CLASH ROYALE AUTHENTIC STYLE ====== */
 .card {
     position: relative;
-    width: 110px;
-    height: 150px;
+    width: 100px;
+    height: 130px;
     background: 
-        linear-gradient(180deg, 
-            #4A6FA5 0%, 
-            #3A5F8A 20%, 
-            #2A4F7A 50%,
-            #1A3F6A 80%,
-            #0A2F5A 100%
+        linear-gradient(145deg, 
+            #4A7DB8 0%, 
+            #3A6DA8 15%, 
+            #2A5D98 35%,
+            #1A4D88 60%,
+            #0A3D78 100%
         );
-    border-radius: 15px;
-    border: 4px solid;
-    border-color: #7A9FCF #4A6FA5 #2A4F7A #7A9FCF;
+    border-radius: 12px;
+    border: 3px solid;
+    border-color: #7AADD8 #4A7DB8 #1A4D88 #6A9DC8;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    padding: 8px;
+    gap: 2px;
+    padding: 6px;
     box-shadow: 
-        inset 0 3px 8px rgba(255,255,255,0.3),
-        inset 0 -4px 10px rgba(0,0,0,0.4),
-        0 8px 20px rgba(0,0,0,0.6),
-        0 2px 0 #1A2F5A;
-    overflow: hidden;
+        inset 0 1px 0 rgba(255,255,255,0.3),
+        inset 0 -1px 0 rgba(0,0,0,0.3),
+        0 4px 0 #0A2D58,
+        0 6px 10px rgba(0,0,0,0.4);
+    overflow: visible;
 }
 
+/* Card inner frame - Clash style */
 .card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 50%;
-    background: linear-gradient(180deg, 
-        rgba(255,255,255,0.15) 0%, 
-        transparent 100%
-    );
-    border-radius: 12px 12px 0 0;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    background: 
+        linear-gradient(180deg, 
+            rgba(255,255,255,0.08) 0%, 
+            transparent 40%,
+            rgba(0,0,0,0.1) 100%
+        );
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
     pointer-events: none;
 }
 
+/* Card bottom shadow removed, using drop shadow instead */
 .card::after {
-    content: '';
-    position: absolute;
-    bottom: 5px;
-    left: 10px;
-    right: 10px;
-    height: 3px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(0,0,0,0.3), 
-        transparent
-    );
-    border-radius: 50%;
-    filter: blur(2px);
+    display: none;
 }
 
 .card.mini {
-    width: 55px;
-    height: 75px;
-    border-width: 3px;
+    width: 50px;
+    height: 65px;
+    border-width: 2px;
+    border-radius: 8px;
     box-shadow: 
-        inset 0 2px 4px rgba(255,255,255,0.2),
-        inset 0 -2px 4px rgba(0,0,0,0.3),
-        0 4px 10px rgba(0,0,0,0.5);
+        inset 0 1px 0 rgba(255,255,255,0.2),
+        0 2px 0 #0A2D58,
+        0 3px 6px rgba(0,0,0,0.3);
 }
 
 .card.mini .card-image {
-    font-size: 32px;
+    font-size: 28px;
+}
+
+.card.mini .card-cost {
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+    top: -6px;
+    right: -6px;
+    border-width: 2px;
 }
 
 .card:hover:not(.mini):not(.disabled) {
-    transform: translateY(-15px) scale(1.08) rotateX(5deg);
+    transform: translateY(-12px) scale(1.05);
     box-shadow: 
-        inset 0 3px 8px rgba(255,255,255,0.4),
-        inset 0 -4px 10px rgba(0,0,0,0.3),
-        0 20px 40px rgba(0,0,0,0.5),
-        0 0 30px rgba(255,215,0,0.4);
-    border-color: #FFD700 #B8860B #8B6914 #FFD700;
+        inset 0 1px 0 rgba(255,255,255,0.4),
+        0 4px 0 #0A2D58,
+        0 12px 20px rgba(0,0,0,0.4),
+        0 0 20px rgba(255,215,0,0.3);
+    border-color: #FFD700 #DAA520 #B8860B #FFD700;
 }
 
 .card.disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
-    filter: grayscale(80%) brightness(0.7);
-    transform: scale(0.95);
+    filter: grayscale(70%) brightness(0.6);
+    transform: scale(0.98);
 }
 
 .card.disabled:hover {
-    transform: scale(0.95);
-    box-shadow: 
-        inset 0 3px 8px rgba(255,255,255,0.1),
-        0 4px 10px rgba(0,0,0,0.4);
+    transform: scale(0.98);
 }
 
 .card.selected {
-    border-color: #FFD700 #B8860B #6B5510 #FFD700;
+    border-color: #FFD700 #DAA520 #B8860B #FFD700;
     box-shadow: 
-        inset 0 3px 8px rgba(255,255,255,0.4),
-        0 0 30px rgba(255,215,0,0.8),
-        0 0 60px rgba(255,215,0,0.4),
-        0 15px 30px rgba(0,0,0,0.5);
-    transform: translateY(-20px) scale(1.12);
-    animation: selectedPulse 0.5s ease-in-out infinite alternate;
+        inset 0 1px 0 rgba(255,255,255,0.4),
+        0 4px 0 #8B6914,
+        0 0 0 3px rgba(255,215,0,0.5),
+        0 0 25px rgba(255,215,0,0.6),
+        0 12px 20px rgba(0,0,0,0.4);
+    transform: translateY(-15px) scale(1.08);
+    animation: selectedGlow 0.8s ease-in-out infinite alternate;
 }
 
-@keyframes selectedPulse {
-    0% { box-shadow: 
-        inset 0 3px 8px rgba(255,255,255,0.4),
-        0 0 30px rgba(255,215,0,0.8),
-        0 0 60px rgba(255,215,0,0.4),
-        0 15px 30px rgba(0,0,0,0.5);
+@keyframes selectedGlow {
+    0% { 
+        box-shadow: 
+            inset 0 1px 0 rgba(255,255,255,0.4),
+            0 4px 0 #8B6914,
+            0 0 0 3px rgba(255,215,0,0.5),
+            0 0 25px rgba(255,215,0,0.6),
+            0 12px 20px rgba(0,0,0,0.4);
     }
-    100% { box-shadow: 
-        inset 0 3px 8px rgba(255,255,255,0.5),
-        0 0 40px rgba(255,215,0,1),
-        0 0 80px rgba(255,215,0,0.6),
-        0 15px 30px rgba(0,0,0,0.5);
+    100% { 
+        box-shadow: 
+            inset 0 1px 0 rgba(255,255,255,0.5),
+            0 4px 0 #8B6914,
+            0 0 0 4px rgba(255,215,0,0.7),
+            0 0 35px rgba(255,215,0,0.8),
+            0 12px 20px rgba(0,0,0,0.4);
     }
 }
 
-/* ====== ELIXIR COST BADGE - GEM STYLE ====== */
+/* ====== ELIXIR COST BADGE - CLASH ROYALE PURPLE DROP ====== */
 .card-cost {
     position: absolute;
-    top: -12px;
-    right: -12px;
-    width: 42px;
-    height: 42px;
+    top: -8px;
+    right: -8px;
+    width: 32px;
+    height: 32px;
     background: 
-        radial-gradient(ellipse at 30% 30%, 
-            #E879F9 0%, 
-            #D946EF 30%, 
-            #A855F7 60%,
+        radial-gradient(ellipse at 35% 25%, 
+            #F0ABFC 0%, 
+            #E879F9 20%, 
+            #D946EF 45%,
+            #A855F7 70%,
             #7C3AED 100%
         );
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: bold;
     color: white;
-    border: 3px solid;
-    border-color: #F5D0FE #C084FC #9333EA #F5D0FE;
+    border: 2px solid #F5D0FE;
     box-shadow: 
-        inset 0 3px 6px rgba(255,255,255,0.5),
-        inset 0 -2px 4px rgba(0,0,0,0.3),
-        0 3px 8px rgba(0,0,0,0.5),
-        0 0 15px rgba(168,85,247,0.5);
-    text-shadow: 0 2px 2px rgba(0,0,0,0.5);
-    animation: gemShine 3s ease-in-out infinite;
+        inset 0 2px 4px rgba(255,255,255,0.5),
+        inset 0 -2px 3px rgba(0,0,0,0.2),
+        0 2px 4px rgba(0,0,0,0.4),
+        0 0 8px rgba(168,85,247,0.4);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     z-index: 10;
 }
 
-@keyframes gemShine {
-    0%, 100% { 
-        filter: brightness(1);
-    }
-    50% { 
-        filter: brightness(1.2);
-    }
-}
-
+/* Card image container */
 .card-image {
-    font-size: 70px;
-    margin: 5px 0;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
-    transition: transform 0.2s ease;
+    font-size: 52px;
+    margin: 2px 0;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+    transition: transform 0.15s ease;
+    line-height: 1;
 }
 
 .card:hover:not(.disabled) .card-image {
     transform: scale(1.1);
-    animation: cardImageBounce 0.3s ease;
 }
 
-@keyframes cardImageBounce {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-    100% { transform: scale(1.1); }
-}
-
+/* Card name - bottom banner style */
 .card-name {
-    color: #FFE4B5;
+    color: #FFF;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 10px;
     text-align: center;
-    text-shadow: 
-        0 1px 0 #5D3A1A,
-        0 2px 4px rgba(0,0,0,0.8);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 2px;
+    width: calc(100% - 8px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ====== GAME OVER SCREEN - EPIC PARCHMENT ====== */
@@ -853,39 +1096,104 @@ body {
     }
 }
 
+/* ====== CARD RARITY COLORS ====== */
+.card[data-rarity="common"] {
+    background: linear-gradient(145deg, #6B7280 0%, #4B5563 50%, #374151 100%);
+    border-color: #9CA3AF #6B7280 #374151 #9CA3AF;
+}
+
+.card[data-rarity="rare"] {
+    background: linear-gradient(145deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+    border-color: #FCD34D #F59E0B #B45309 #FCD34D;
+}
+
+.card[data-rarity="epic"] {
+    background: linear-gradient(145deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%);
+    border-color: #A78BFA #8B5CF6 #6D28D9 #A78BFA;
+}
+
+.card[data-rarity="legendary"] {
+    background: linear-gradient(145deg, #EC4899 0%, #DB2777 50%, #BE185D 100%);
+    border-color: #F472B6 #EC4899 #BE185D #F472B6;
+    animation: legendaryShine 3s ease-in-out infinite;
+}
+
+@keyframes legendaryShine {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.15); }
+}
+
+/* Spell cards have different style */
+.card[data-type="spell"] {
+    background: linear-gradient(145deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%);
+    border-color: #FCA5A5 #EF4444 #B91C1C #FCA5A5;
+}
+
+.card[data-type="spell"] .card-image {
+    animation: spellPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spellPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 /* ====== RESPONSIVE ADJUSTMENTS ====== */
 @media (max-width: 768px) {
     .card {
-        width: 90px;
-        height: 120px;
+        width: 80px;
+        height: 105px;
     }
     
     .card-image {
-        font-size: 50px;
+        font-size: 40px;
     }
     
     .card-name {
-        font-size: 11px;
+        font-size: 8px;
+        padding: 2px 4px;
     }
     
     .card-cost {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+        top: -6px;
+        right: -6px;
     }
     
     .timer {
-        font-size: 36px;
-        padding: 10px 20px;
+        font-size: 32px;
+        padding: 8px 16px;
     }
     
     .crown-count {
-        font-size: 28px;
+        font-size: 24px;
+        padding: 5px 10px;
     }
     
     .player-avatar, .enemy-avatar {
-        width: 50px;
-        height: 50px;
-        font-size: 32px;
+        width: 45px;
+        height: 45px;
+        font-size: 28px;
+    }
+    
+    .card-deck {
+        padding: 8px 10px 6px 10px;
+        gap: 6px;
+    }
+    
+    .next-card {
+        margin-right: 8px;
+        padding: 4px 6px;
+    }
+    
+    .card.mini {
+        width: 40px;
+        height: 52px;
+    }
+    
+    .card.mini .card-image {
+        font-size: 22px;
     }
 }
