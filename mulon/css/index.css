@@ -536,6 +536,106 @@ body.sidebar-open {
   color: var(--red-primary);
 }
 
+/* Cash Outs Tab */
+.cashouts-summary {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cashout-won {
+  color: var(--green-primary) !important;
+}
+
+.cashout-lost {
+  color: var(--red-primary) !important;
+}
+
+.cashouts-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.cashout-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cashout-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cashout-icon.won {
+  background: var(--green-light);
+  color: var(--green-primary);
+}
+
+.cashout-icon.lost {
+  background: var(--red-light);
+  color: var(--red-primary);
+}
+
+.cashout-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.cashout-market {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cashout-position {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.cashout-amount {
+  text-align: right;
+}
+
+.cashout-payout {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cashout-payout.won {
+  color: var(--green-primary);
+}
+
+.cashout-payout.lost {
+  color: var(--red-primary);
+}
+
+.cashout-result {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.cashout-result.won {
+  color: var(--green-primary);
+}
+
+.cashout-result.lost {
+  color: var(--red-primary);
+}
+
 /* ========================================
    NAVIGATION
    ======================================== */
@@ -998,6 +1098,157 @@ body.sidebar-open {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Market Status States */
+.market-card.resolved,
+.featured-card.resolved {
+  opacity: 0.7;
+}
+
+.market-card.pending,
+.featured-card.pending {
+  border-color: #ffc107;
+}
+
+.card-status {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.card-status.pending {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.card-status.resolved.yes {
+  background: rgba(0, 200, 83, 0.2);
+  color: var(--green-primary);
+}
+
+.card-status.resolved.no {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.market-result {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.market-result.yes {
+  background: rgba(0, 200, 83, 0.2);
+  color: var(--green-primary);
+}
+
+.market-result.no {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.market-result.pending {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.market-closed-notice {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.market-closed-compact {
+  padding: 0.75rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+/* User Position Display (when already bet) */
+.user-position-display {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.user-position-display.yes {
+  background: var(--green-light);
+  border: 1px solid var(--green-primary);
+}
+
+.user-position-display.no {
+  background: var(--red-light);
+  border: 1px solid var(--red-primary);
+}
+
+.position-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.position-badge.yes {
+  color: var(--green-primary);
+}
+
+.position-badge.no {
+  color: var(--red-primary);
+}
+
+.position-badge .position-icon {
+  font-size: 1.25rem;
+}
+
+.position-details {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Compact version for market cards */
+.user-position-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.user-position-compact.yes {
+  background: var(--green-light);
+  color: var(--green-primary);
+  border: 1px solid var(--green-primary);
+}
+
+.user-position-compact.no {
+  background: var(--red-light);
+  color: var(--red-primary);
+  border: 1px solid var(--red-primary);
+}
+
+.user-position-compact .position-icon {
+  font-size: 1rem;
 }
 
 /* ========================================

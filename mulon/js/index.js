@@ -4,6 +4,7 @@
 
 import { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync } from './data.js';
 
+localStorage.setItem('lol', 'nice try, but i learnt from last time.');
 // Track pending Over Under sync data
 let pendingOUSyncData = null;
 
@@ -44,9 +45,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateAuthUI(user);
     updateUserUI();
   });
-  
-  // Setup deposit button
-  setupDeposit();
 });
 
 // ========================================
@@ -436,9 +434,31 @@ function renderFeaturedSlider(markets) {
 function renderFeaturedSlide(market, index) {
   const category = MulonData.categories[market.category] || { icon: '📊', label: 'Other', color: 'school' };
   
+  // Check market status
+  const now = new Date();
+  const endDateTime = new Date(`${market.endDate}T${market.endTime || '23:59'}`);
+  const isExpired = now > endDateTime;
+  const isResolved = market.resolved === true;
+  const isPending = isExpired && !isResolved;
+  
+  // Check if user already has a position in this market
+  const positions = UserData.getPositions();
+  const userPosition = positions.find(p => p.marketId === market.id);
+  const hasBet = !!userPosition;
+  const canBet = !isResolved && !isPending && !hasBet;
+  
+  // Status display
+  let statusBadge = '';
+  if (isResolved) {
+    const outcome = market.resolvedOutcome === 'yes' ? '✓ YES Won' : '✗ NO Won';
+    statusBadge = `<span class="market-result ${market.resolvedOutcome}">${outcome}</span>`;
+  } else if (isPending) {
+    statusBadge = `<span class="market-result pending">⏳ Awaiting Result</span>`;
+  }
+  
   return `
     <div class="featured-slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}">
-      <div class="featured-card" data-market-id="${market.id}">
+      <div class="featured-card ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
         <div class="card-header">
           <div class="card-category">
             <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
@@ -449,11 +469,12 @@ function renderFeaturedSlide(market, index) {
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
-            <span>${MulonData.getDaysUntil(market.endDate)}</span>
+            <span>${MulonData.getDaysUntil(market.endDate)}${market.endTime ? ' @ ' + market.endTime : ''}</span>
           </div>
         </div>
         <h3 class="card-title">${market.title}</h3>
         <p class="card-subtitle">${market.subtitle || ''}</p>
+        ${statusBadge}
         
         <div class="probability-bar">
           <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
@@ -463,20 +484,36 @@ function renderFeaturedSlide(market, index) {
           <span class="prob-no">${market.noPrice}% No</span>
         </div>
 
-        <div class="bet-buttons">
-          <button class="bet-btn yes" data-market-id="${market.id}" data-choice="yes">
-            <div class="bet-label">Yes</div>
-            <div class="bet-price">${market.yesPrice}¢</div>
-          </button>
-          <button class="bet-btn no" data-market-id="${market.id}" data-choice="no">
-            <div class="bet-label">No</div>
-            <div class="bet-price">${market.noPrice}¢</div>
-          </button>
-        </div>
-        <div class="payout-info">
-          <span class="payout yes-payout">$100 → $${Math.round(100 / (market.yesPrice / 100))}</span>
-          <span class="payout no-payout">$100 → $${Math.round(100 / (market.noPrice / 100))}</span>
-        </div>
+        ${canBet ? `
+          <div class="bet-buttons">
+            <button class="bet-btn yes" data-market-id="${market.id}" data-choice="yes">
+              <div class="bet-label">Yes</div>
+              <div class="bet-price">${market.yesPrice}¢</div>
+            </button>
+            <button class="bet-btn no" data-market-id="${market.id}" data-choice="no">
+              <div class="bet-label">No</div>
+              <div class="bet-price">${market.noPrice}¢</div>
+            </button>
+          </div>
+          <div class="payout-info">
+            <span class="payout yes-payout">$100 → $${Math.round(100 / (market.yesPrice / 100))}</span>
+            <span class="payout no-payout">$100 → $${Math.round(100 / (market.noPrice / 100))}</span>
+          </div>
+        ` : hasBet ? `
+          <div class="user-position-display ${userPosition.choice}">
+            <div class="position-badge ${userPosition.choice}">
+              <span class="position-icon">${userPosition.choice === 'yes' ? '✓' : '✗'}</span>
+              <span class="position-label">You picked ${userPosition.choice.toUpperCase()}</span>
+            </div>
+            <div class="position-details">
+              <span>${userPosition.shares} shares @ ${userPosition.avgPrice}¢</span>
+            </div>
+          </div>
+        ` : `
+          <div class="market-closed-notice">
+            ${isResolved ? 'Market Resolved' : 'Betting Closed'}
+          </div>
+        `}
       </div>
     </div>
   `;
@@ -555,28 +592,62 @@ function goToSlide(index) {
 function renderMarketCard(market) {
   const category = MulonData.categories[market.category] || { icon: '📊', label: 'Other', color: 'school' };
   
+  // Check market status
+  const now = new Date();
+  const endDateTime = new Date(`${market.endDate}T${market.endTime || '23:59'}`);
+  const isExpired = now > endDateTime;
+  const isResolved = market.resolved === true;
+  const isPending = isExpired && !isResolved;
+  
+  // Check if user already has a position in this market
+  const positions = UserData.getPositions();
+  const userPosition = positions.find(p => p.marketId === market.id);
+  const hasBet = !!userPosition;
+  const canBet = !isResolved && !isPending && !hasBet;
+  
+  // Status badge
+  let statusBadge = '';
+  if (isResolved) {
+    const outcome = market.resolvedOutcome === 'yes' ? '✓ YES' : '✗ NO';
+    statusBadge = `<span class="card-status resolved ${market.resolvedOutcome}">${outcome}</span>`;
+  } else if (isPending) {
+    statusBadge = `<span class="card-status pending">⏳ Pending</span>`;
+  }
+  
   return `
-    <div class="market-card" data-market-id="${market.id}">
+    <div class="market-card ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
       <div class="card-category">
         <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
+        ${statusBadge}
       </div>
       <h4 class="card-title">${market.title}</h4>
       <div class="card-time small">
-        <span>Ends ${MulonData.formatDate(market.endDate)}</span>
+        <span>Ends ${MulonData.formatDate(market.endDate)}${market.endTime ? ' @ ' + market.endTime : ''}</span>
       </div>
       <div class="probability-bar small">
         <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
       </div>
-      <div class="bet-buttons compact">
-        <button class="bet-btn yes compact" data-market-id="${market.id}" data-choice="yes">
-          <span>Yes</span>
-          <span class="price">${market.yesPrice}¢</span>
-        </button>
-        <button class="bet-btn no compact" data-market-id="${market.id}" data-choice="no">
-          <span>No</span>
-          <span class="price">${market.noPrice}¢</span>
-        </button>
-      </div>
+      ${canBet ? `
+        <div class="bet-buttons compact">
+          <button class="bet-btn yes compact" data-market-id="${market.id}" data-choice="yes">
+            <span>Yes</span>
+            <span class="price">${market.yesPrice}¢</span>
+          </button>
+          <button class="bet-btn no compact" data-market-id="${market.id}" data-choice="no">
+            <span>No</span>
+            <span class="price">${market.noPrice}¢</span>
+          </button>
+        </div>
+      ` : hasBet ? `
+        <div class="user-position-compact ${userPosition.choice}">
+          <span class="position-icon">${userPosition.choice === 'yes' ? '✓' : '✗'}</span>
+          <span>You picked ${userPosition.choice.toUpperCase()}</span>
+        </div>
+      ` : `
+        <div class="market-closed-compact">
+          ${isResolved ? 'Resolved' : 'Closed'}
+        </div>
+      `}
     </div>
   `;
 }
@@ -954,6 +1025,7 @@ function updateUserUI() {
   updateBalanceDisplay();
   updatePortfolioDisplay();
   updateWatchlistDisplay();
+  updateCashoutsDisplay();
 }
 
 function updateBalanceDisplay() {
@@ -1129,26 +1201,66 @@ function updateWatchlistDisplay() {
   }
 }
 
-// ========================================
-// DEPOSIT
-// ========================================
-function setupDeposit() {
-  const depositBtn = document.getElementById('depositBtn');
-  if (depositBtn) {
-    depositBtn.addEventListener('click', async () => {
-      // Check if user is signed in
-      if (!canTrade()) {
-        showSignInModal();
-        return;
-      }
-      
-      const amount = prompt('Enter amount to add:', '100');
-      if (amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0) {
-        await UserData.updateBalance(parseFloat(amount));
-        updateUserUI();
-        showNotification(`Added $${parseFloat(amount).toFixed(2)} to your balance!`, 'success');
-      }
+function updateCashoutsDisplay() {
+  const cashouts = UserData.getCashOuts();
+  const cashoutsList = document.getElementById('cashoutsList');
+  const emptyCashouts = document.getElementById('emptyCashouts');
+  const totalWonEl = document.getElementById('totalWon');
+  const totalLostEl = document.getElementById('totalLost');
+  const cashoutCount = document.getElementById('cashoutCount');
+  
+  // Calculate totals
+  let totalWon = 0;
+  let totalLost = 0;
+  
+  cashouts.forEach(co => {
+    if (co.won) {
+      totalWon += co.payout;
+    } else {
+      totalLost += co.cost;
+    }
+  });
+  
+  if (totalWonEl) totalWonEl.textContent = '$' + totalWon.toFixed(2);
+  if (totalLostEl) totalLostEl.textContent = '$' + totalLost.toFixed(2);
+  if (cashoutCount) cashoutCount.textContent = cashouts.length;
+  
+  if (cashouts.length === 0) {
+    if (emptyCashouts) emptyCashouts.style.display = 'flex';
+    if (cashoutsList) cashoutsList.innerHTML = '';
+    return;
+  }
+  
+  if (emptyCashouts) emptyCashouts.style.display = 'none';
+  
+  if (cashoutsList) {
+    // Sort by timestamp, most recent first
+    const sortedCashouts = [...cashouts].sort((a, b) => {
+      return new Date(b.timestamp) - new Date(a.timestamp);
     });
+    
+    cashoutsList.innerHTML = sortedCashouts.map(co => {
+      const market = MulonData.getMarket(co.marketId);
+      const marketTitle = market ? market.title : co.marketTitle || 'Unknown Market';
+      const resultText = co.won ? 'WON' : 'LOST';
+      const payoutText = co.won ? '+$' + co.payout.toFixed(2) : '-$' + co.cost.toFixed(2);
+      
+      return `
+        <div class="cashout-item">
+          <div class="cashout-icon ${co.won ? 'won' : 'lost'}">
+            ${co.won ? '✓' : '✗'}
+          </div>
+          <div class="cashout-details">
+            <div class="cashout-market">${marketTitle}</div>
+            <div class="cashout-position">${co.shares} ${co.position.toUpperCase()} shares @ ${co.avgPrice}¢</div>
+          </div>
+          <div class="cashout-amount">
+            <div class="cashout-payout ${co.won ? 'won' : 'lost'}">${payoutText}</div>
+            <div class="cashout-result ${co.won ? 'won' : 'lost'}">${resultText}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 }
 

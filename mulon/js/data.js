@@ -211,6 +211,7 @@ const UserData = {
       positions: [],
       watchlist: [],
       transactions: [],
+      cashOuts: [],
       // Metadata
       createdAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString()
@@ -316,6 +317,10 @@ const UserData = {
     return this.get().watchlist || [];
   },
   
+  getCashOuts() {
+    return this.get().cashOuts || [];
+  },
+
   async addToWatchlist(marketId) {
     if (!this.data) return [];
     if (!this.data.watchlist.includes(marketId)) {
@@ -1044,6 +1049,92 @@ const MulonData = {
     } catch (error) {
       console.error('Error updating market:', error);
       return null;
+    }
+  },
+
+  // Resolve a market and pay out winners
+  async resolveMarket(marketId, outcome) {
+    try {
+      const market = this.getMarket(marketId);
+      if (!market) {
+        return { success: false, error: 'Market not found' };
+      }
+      
+      if (market.resolved) {
+        return { success: false, error: 'Market already resolved' };
+      }
+      
+      // Get all users and find positions in this market
+      const usersSnapshot = await getDocs(usersRef);
+      let payoutCount = 0;
+      const cashOuts = [];
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        const positions = userData.positions || [];
+        
+        // Find positions for this market
+        const marketPositions = positions.filter(p => p.marketId === marketId);
+        
+        if (marketPositions.length > 0) {
+          let totalPayout = 0;
+          const newPositions = positions.filter(p => p.marketId !== marketId);
+          const resolvedPositions = [];
+          
+          for (const pos of marketPositions) {
+            const won = pos.choice === outcome;
+            const payout = won ? pos.shares : 0; // Each share pays $1 if correct
+            
+            resolvedPositions.push({
+              marketId: marketId,
+              marketTitle: market.title,
+              position: pos.choice,
+              shares: pos.shares,
+              avgPrice: pos.avgPrice || Math.round((pos.costBasis / pos.shares) * 100) / 100,
+              cost: pos.costBasis,
+              outcome: outcome,
+              won: won,
+              payout: payout,
+              timestamp: new Date().toISOString()
+            });
+            
+            if (won) {
+              totalPayout += payout;
+              payoutCount++;
+            }
+          }
+          
+          // Update user: remove positions, add payout to balance, add to cashOuts
+          const userCashOuts = userData.cashOuts || [];
+          const newBalance = (userData.balance || 0) + totalPayout;
+          
+          await updateDoc(doc(usersRef, userDoc.id), {
+            positions: newPositions,
+            balance: Math.round(newBalance * 100) / 100,
+            cashOuts: [...userCashOuts, ...resolvedPositions]
+          });
+          
+          cashOuts.push(...resolvedPositions);
+        }
+      }
+      
+      // Mark market as resolved
+      await this.updateMarket(marketId, {
+        resolved: true,
+        resolvedOutcome: outcome,
+        resolvedAt: new Date().toISOString()
+      });
+      
+      console.log(`Market ${marketId} resolved as ${outcome}. ${payoutCount} winning positions paid out.`);
+      
+      return { 
+        success: true, 
+        payoutCount: payoutCount,
+        cashOuts: cashOuts
+      };
+    } catch (error) {
+      console.error('Error resolving market:', error);
+      return { success: false, error: error.message };
     }
   },
 

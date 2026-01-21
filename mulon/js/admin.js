@@ -2,9 +2,32 @@
 // MULON - Admin Panel JavaScript
 // ========================================
 
-import { MulonData } from './data.js';
+import { MulonData, Auth } from './data.js';
+
+// Admin email whitelist
+const ADMIN_EMAILS = ['joelmulonde81@gmail.com'];
+
+function isAdmin(email) {
+  return ADMIN_EMAILS.includes(email?.toLowerCase());
+}
 
 document.addEventListener('DOMContentLoaded', async function() {
+  // Initialize Auth first
+  Auth.init();
+  
+  // Setup admin sign in button
+  const adminSignInBtn = document.getElementById('adminSignInBtn');
+  if (adminSignInBtn) {
+    adminSignInBtn.addEventListener('click', async () => {
+      await Auth.signInWithGoogle();
+    });
+  }
+  
+  // Listen for auth state changes
+  Auth.onAuthStateChange((user) => {
+    checkAdminAccess(user);
+  });
+  
   // Show loading state
   showLoading();
   
@@ -20,6 +43,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Setup delete modal
   setupDeleteModal();
   
+  // Setup resolve modal
+  setupResolveModal();
+  
   // Setup reset button
   setupResetButton();
   
@@ -29,6 +55,32 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Set default dates
   setDefaultDates();
 });
+
+// ========================================
+// ADMIN ACCESS CONTROL
+// ========================================
+function checkAdminAccess(user) {
+  const overlay = document.getElementById('accessOverlay');
+  const message = document.getElementById('accessMessage');
+  const signInBtn = document.getElementById('adminSignInBtn');
+  
+  if (!overlay) return;
+  
+  if (!user) {
+    // Not signed in
+    overlay.classList.add('active');
+    message.textContent = 'Please sign in with an admin account to continue.';
+    signInBtn.style.display = 'flex';
+  } else if (!isAdmin(user.email)) {
+    // Signed in but not admin
+    overlay.classList.add('active');
+    message.textContent = `Access denied. "${user.email}" is not an admin account.`;
+    signInBtn.style.display = 'none';
+  } else {
+    // Admin access granted
+    overlay.classList.remove('active');
+  }
+}
 
 function showLoading() {
   const listContainer = document.getElementById('marketList');
@@ -68,21 +120,54 @@ async function renderMarketList() {
 function renderMarketItem(market) {
   const category = MulonData.categories[market.category] || { icon: '📊', label: 'Other' };
   
+  // Check market status
+  const now = new Date();
+  const endDateTime = new Date(`${market.endDate}T${market.endTime || '23:59'}`);
+  const isExpired = now > endDateTime;
+  const isResolved = market.resolved === true;
+  const isPending = isExpired && !isResolved;
+  
+  // Status badge
+  let statusBadge = '';
+  if (isResolved) {
+    const outcome = market.resolvedOutcome === 'yes' ? '✓ YES' : '✗ NO';
+    const outcomeClass = market.resolvedOutcome === 'yes' ? 'resolved-yes' : 'resolved-no';
+    statusBadge = `<span class="market-status ${outcomeClass}">${outcome}</span>`;
+  } else if (isPending) {
+    statusBadge = `<span class="market-status pending">⏳ Pending</span>`;
+  } else {
+    statusBadge = `<span class="market-status active">🟢 Active</span>`;
+  }
+  
+  // Format end time
+  const endTimeDisplay = market.endTime || '23:59';
+  
   return `
-    <div class="market-item" data-market-id="${market.id}">
+    <div class="market-item ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
       <div class="market-item-content">
-        <div class="market-item-title">${market.title}</div>
+        <div class="market-item-header">
+          <div class="market-item-title">${market.title}</div>
+          ${statusBadge}
+        </div>
         <div class="market-item-meta">
           <span class="market-item-tag ${market.category}">${category.icon} ${category.label}</span>
           <span class="market-item-price">
             <span class="yes">${market.yesPrice}¢</span> / 
             <span class="no">${market.noPrice}¢</span>
           </span>
-          <span class="market-item-date">Ends ${MulonData.formatDate(market.endDate)}</span>
+          <span class="market-item-date">Ends ${MulonData.formatDate(market.endDate)} @ ${endTimeDisplay}</span>
           ${market.featured ? '<span class="market-item-featured">⭐ Featured</span>' : ''}
         </div>
       </div>
       <div class="market-item-actions">
+        ${!isResolved ? `
+          <button class="btn-icon resolve ${isPending ? 'highlight' : ''}" data-id="${market.id}" title="Resolve Market">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </button>
+        ` : ''}
         <button class="btn-icon edit" data-id="${market.id}" title="Edit">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
@@ -114,6 +199,14 @@ function attachMarketItemListeners() {
     btn.addEventListener('click', function() {
       const marketId = this.dataset.id;
       showDeleteModal(marketId);
+    });
+  });
+  
+  // Resolve buttons
+  document.querySelectorAll('.btn-icon.resolve').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const marketId = this.dataset.id;
+      showResolveModal(marketId);
     });
   });
 }
@@ -151,6 +244,7 @@ function setupForm() {
       noPrice: 100 - parseInt(document.getElementById('yesPrice').value),
       startDate: document.getElementById('startDate').value,
       endDate: document.getElementById('endDate').value,
+      endTime: document.getElementById('endTime').value || '15:00',
       volume: parseInt(document.getElementById('volume').value) || 0,
       featured: document.getElementById('featured').checked
     };
@@ -222,6 +316,7 @@ function editMarket(marketId) {
   document.getElementById('noPricePreview').textContent = market.noPrice;
   document.getElementById('startDate').value = market.startDate;
   document.getElementById('endDate').value = market.endDate;
+  document.getElementById('endTime').value = market.endTime || '15:00';
   document.getElementById('volume').value = market.volume || 0;
   document.getElementById('featured').checked = market.featured || false;
   
@@ -371,6 +466,88 @@ function setupTransferButton() {
       }
     }
   });
+}
+
+// ========================================
+// MARKET RESOLUTION
+// ========================================
+let resolvingMarketId = null;
+
+function setupResolveModal() {
+  const cancelBtn = document.getElementById('cancelResolve');
+  const resolveYesBtn = document.getElementById('resolveYes');
+  const resolveNoBtn = document.getElementById('resolveNo');
+  const modal = document.getElementById('resolveModal');
+  
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', hideResolveModal);
+  }
+  
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) hideResolveModal();
+    });
+  }
+  
+  if (resolveYesBtn) {
+    resolveYesBtn.addEventListener('click', () => resolveMarket('yes'));
+  }
+  
+  if (resolveNoBtn) {
+    resolveNoBtn.addEventListener('click', () => resolveMarket('no'));
+  }
+}
+
+function showResolveModal(marketId) {
+  const market = MulonData.getMarket(marketId);
+  if (!market) return;
+  
+  resolvingMarketId = marketId;
+  
+  const modal = document.getElementById('resolveModal');
+  const titleEl = document.getElementById('resolveMarketTitle');
+  
+  if (titleEl) titleEl.textContent = market.title;
+  if (modal) modal.classList.add('active');
+}
+
+function hideResolveModal() {
+  const modal = document.getElementById('resolveModal');
+  if (modal) modal.classList.remove('active');
+  resolvingMarketId = null;
+}
+
+async function resolveMarket(outcome) {
+  if (!resolvingMarketId) return;
+  
+  const market = MulonData.getMarket(resolvingMarketId);
+  if (!market) return;
+  
+  const resolveYesBtn = document.getElementById('resolveYes');
+  const resolveNoBtn = document.getElementById('resolveNo');
+  
+  // Disable buttons while processing
+  if (resolveYesBtn) resolveYesBtn.disabled = true;
+  if (resolveNoBtn) resolveNoBtn.disabled = true;
+  
+  try {
+    // Resolve the market and pay out winners
+    const result = await MulonData.resolveMarket(resolvingMarketId, outcome);
+    
+    if (result.success) {
+      showToast(`Market resolved as ${outcome.toUpperCase()}! ${result.payoutCount} positions paid out.`, 'success');
+      hideResolveModal();
+      await renderMarketList();
+    } else {
+      showToast('Error resolving market: ' + (result.error || 'Unknown error'), 'error');
+    }
+  } catch (error) {
+    console.error('Resolution error:', error);
+    showToast('Error resolving market: ' + error.message, 'error');
+  } finally {
+    if (resolveYesBtn) resolveYesBtn.disabled = false;
+    if (resolveNoBtn) resolveNoBtn.disabled = false;
+  }
 }
 
 // ========================================

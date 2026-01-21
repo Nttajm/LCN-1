@@ -274,7 +274,6 @@
           <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
         </div>
       </div>
-      <button class="deposit-btn" id="depositBtn">+ Add Funds</button>
       <div class="user-menu" id="userMenu">
         <div class="user-avatar" id="userAvatar">
           <span id="userInitials">?</span>
@@ -311,6 +310,7 @@
       <div class="sidebar-tabs">
         <button class="sidebar-tab active" data-tab="watchlist">Watchlist</button>
         <button class="sidebar-tab" data-tab="portfolio">Portfolio</button>
+        <button class="sidebar-tab" data-tab="cashouts">Cash Outs</button>
       </div>
     </div>
     
@@ -360,6 +360,39 @@
         </div>
         
         <div class="positions-list" id="positionsList"></div>
+      </div>
+      
+      <!-- Cash Outs Tab -->
+      <div class="sidebar-panel" id="cashoutsPanel">
+        <div class="cashouts-summary">
+          <div class="portfolio-stat">
+            <span class="stat-label">Total Won</span>
+            <span class="stat-value cashout-won" id="totalWon">$0.00</span>
+          </div>
+          <div class="portfolio-stat">
+            <span class="stat-label">Total Lost</span>
+            <span class="stat-value cashout-lost" id="totalLost">$0.00</span>
+          </div>
+        </div>
+        
+        <div class="positions-header">
+          <span>Resolved Positions</span>
+          <span class="position-count" id="cashoutCount">0</span>
+        </div>
+        
+        <div class="empty-sidebar" id="emptyCashouts">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M16 8l-4 4-4-4"></path>
+              <path d="M12 12v6"></path>
+            </svg>
+          </div>
+          <p>No resolved positions yet</p>
+          <span class="empty-hint">Your winnings will appear here</span>
+        </div>
+        
+        <div class="cashouts-list" id="cashoutsList"></div>
       </div>
     </div>
   </aside>

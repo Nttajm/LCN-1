@@ -2,6 +2,91 @@
    MULON ADMIN - Styles
    ======================================== */
 
+/* Admin Access Overlay */
+.admin-access-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.admin-access-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.access-content {
+  text-align: center;
+  color: white;
+  max-width: 400px;
+  width: 90%;
+  padding: 2rem;
+}
+
+.access-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.access-content h2 {
+  font-size: 1.75rem;
+  margin: 0 0 1rem;
+  font-weight: 700;
+}
+
+.access-content p {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 2rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.access-content .google-signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: white;
+  color: #333;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  font-family: inherit;
+  margin-bottom: 1.5rem;
+}
+
+.access-content .google-signin-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.back-home-link {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.back-home-link:hover {
+  color: white;
+}
+
+/* Admin Badge */
 .admin-badge {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
@@ -441,4 +526,157 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none !important;
+}
+
+/* ========================================
+   Market Status & Resolution
+   ======================================== */
+
+.market-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.market-status {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.market-status.active {
+  background: rgba(0, 200, 83, 0.15);
+  color: #00c853;
+}
+
+.market-status.pending {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+  animation: pulse 2s infinite;
+}
+
+.market-status.resolved-yes {
+  background: rgba(0, 200, 83, 0.2);
+  color: #00c853;
+}
+
+.market-status.resolved-no {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.market-item.resolved {
+  opacity: 0.7;
+}
+
+.market-item.pending {
+  border-left: 3px solid #ffc107;
+}
+
+/* Resolve button */
+.btn-icon.resolve {
+  color: var(--text-secondary);
+}
+
+.btn-icon.resolve:hover {
+  background: rgba(0, 200, 83, 0.1);
+  color: #00c853;
+}
+
+.btn-icon.resolve.highlight {
+  color: #ffc107;
+  animation: pulse 2s infinite;
+}
+
+.btn-icon.resolve.highlight:hover {
+  background: rgba(255, 193, 7, 0.2);
+}
+
+/* Resolution Modal */
+.resolve-modal {
+  max-width: 400px;
+  text-align: center;
+}
+
+.resolve-modal h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.resolve-market-title {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.resolve-question {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.resolve-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-resolve {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-resolve .resolve-icon {
+  font-size: 2rem;
+}
+
+.btn-resolve.btn-yes {
+  background: rgba(0, 200, 83, 0.1);
+  color: #00c853;
+  border-color: rgba(0, 200, 83, 0.3);
+}
+
+.btn-resolve.btn-yes:hover {
+  background: rgba(0, 200, 83, 0.2);
+  border-color: #00c853;
+  transform: scale(1.02);
+}
+
+.btn-resolve.btn-no {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.btn-resolve.btn-no:hover {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: #f44336;
+  transform: scale(1.02);
+}
+
+.resolve-warning {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-bottom: 1rem;
+}
+
+.resolve-cancel {
+  width: 100%;
 }
