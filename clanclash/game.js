@@ -22,6 +22,10 @@ const config = {
     bridges: {
         width: 80,
         height: 100
+    },
+    grid: {
+        cellSize: 50, // Size of each grid cell for building placement
+        showOnHover: true // Show grid when hovering with a building selected
     }
 };
 
@@ -162,238 +166,783 @@ class ParticleSystem {
     }
 }
 
-// Unit Templates with more variety
-const unitTemplates = {
-    knight: {
-        name: 'Knight',
-        emoji: '⚔️',
-        hp: 1400,
-        damage: 150,
-        speed: 1.2,
-        range: 40,
-        attackSpeed: 1200,
-        cost: 3,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1
-    },
-    archer: {
-        name: 'Archer',
-        emoji: '🏹',
-        hp: 300,
-        damage: 80,
-        speed: 1.0,
-        range: 200,
-        attackSpeed: 1000,
-        cost: 3,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1,
-        isRanged: true
-    },
-    giant: {
-        name: 'Giant',
-        emoji: '🗿',
-        hp: 3500,
-        damage: 200,
-        speed: 0.8,
-        range: 40,
-        attackSpeed: 1500,
-        cost: 5,
-        isGround: true,
-        targetBuildings: true,
-        hitCount: 1
-    },
-    hogrider: {
-        name: 'Hog Rider',
-        emoji: '🐷',
-        hp: 1500,
-        damage: 180,
-        speed: 2.5,
-        range: 40,
-        attackSpeed: 1400,
-        cost: 4,
-        isGround: true,
-        targetBuildings: true,
-        hitCount: 1,
-        fast: true
-    },
-    minipekka: {
-        name: 'Amani R.',
-        emoji: '🥷',
-        hp: 1200,
-        damage: 400,
-        speed: 1.5,
-        range: 40,
-        attackSpeed: 1700,
-        cost: 4,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1,
-        heavyHitter: true
-    },
-    wizard: {
-        name: 'Wizard',
-        emoji: '🧙',
-        hp: 600,
-        damage: 200,
-        speed: 1.0,
-        range: 250,
-        attackSpeed: 1500,
-        cost: 5,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1,
-        isRanged: true,
-        splashRadius: 100
-    },
-    dragon: {
-        name: 'Baby Dragon',
-        emoji: '🐉',
-        hp: 800,
-        damage: 180,
-        speed: 1.8,
-        range: 150,
-        attackSpeed: 1600,
-        cost: 4,
-        isGround: false,
-        isAir: true,
-        targetBuildings: false,
-        hitCount: 1,
-        isRanged: true,
-        splashRadius: 80
-    },
-    barbarian: {
-        name: 'Barbarian',
-        emoji: '🪓',
-        hp: 700,
-        damage: 180,
-        speed: 1.5,
-        range: 40,
-        attackSpeed: 1300,
-        cost: 5,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 4, // Spawns 4 barbarians
-        spawnsMultiple: true
-    },
-    skeleton: {
-        name: 'Skeletons',
-        emoji: '💀',
-        hp: 60,
-        damage: 70,
-        speed: 1.5,
-        range: 40,
-        attackSpeed: 1000,
-        cost: 1,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 3, // Spawns 3 skeletons
-        spawnsMultiple: true,
-        fast: true
-    },
-    musketeer: {
-        name: 'Musketeer',
-        emoji: '🔫',
-        hp: 500,
-        damage: 200,
-        speed: 1.0,
-        range: 300,
-        attackSpeed: 1100,
-        cost: 4,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1,
-        isRanged: true
-    },
-    pekka: {
-        name: 'P.E.K.K.A',
-        emoji: '🛡️',
-        hp: 3500,
-        damage: 800,
-        speed: 0.7,
-        range: 40,
-        attackSpeed: 1800,
-        cost: 7,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1,
-        heavyHitter: true
-    },
-    golem: {
-        name: 'Golem',
-        emoji: '🏔️',
-        hp: 4500,
-        damage: 250,
-        speed: 0.5,
-        range: 40,
-        attackSpeed: 2500,
-        cost: 8,
-        isGround: true,
-        targetBuildings: true,
-        hitCount: 1,
-        spawnsOnDeath: true
-    },
-    miner: {
-        name: 'Miner',
-        emoji: '⛏️',
-        hp: 1000,
-        damage: 160,
-        speed: 1.2,
-        range: 40,
-        attackSpeed: 1200,
-        cost: 3,
-        isGround: true,
-        targetBuildings: true,
-        hitCount: 1,
-        tunneling: true
-    },
-    balloon: {
-        name: 'Balloon',
-        emoji: '🎈',
-        hp: 1200,
-        damage: 800,
-        speed: 1.0,
-        range: 40,
-        attackSpeed: 3000,
-        cost: 5,
-        isGround: false,
-        isAir: true,
-        targetBuildings: true,
-        hitCount: 1,
-        deathDamage: 400
-    },
-    witch: {
-        name: 'Witch',
-        emoji: '🧪',
-        hp: 700,
-        damage: 80,
-        speed: 1.0,
-        range: 200,
-        attackSpeed: 1400,
-        cost: 5,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1,
-        isRanged: true,
-        spawnsSkeleton: true
-    },
-    valkyrie: {
-        name: 'Valkyrie',
-        emoji: '⚡',
-        hp: 1500,
-        damage: 200,
-        speed: 1.5,
-        range: 50,
-        attackSpeed: 1500,
-        cost: 4,
-        isGround: true,
-        targetBuildings: false,
-        hitCount: 1,
-        splashRadius: 120,
-        threeSixtyAttack: true
+// Shared templates (loaded via `shared-data.js`)
+const unitTemplates = (window.ClanClashData && window.ClanClashData.unitTemplates) ? window.ClanClashData.unitTemplates : {};
+
+// ===== ADVANCED ENEMY AI CONTROLLER =====
+// Inspired by Clash Royale pro-level gameplay:
+// - Proper elixir management and counting
+// - Deck cycling with strategic card rotation
+// - Push building and counter-push mechanics
+// - Lane pressure and punishment plays
+// - Defensive positioning and kiting
+// - Spell value timing
+
+class EnemyAIController {
+    constructor(game) {
+        this.game = game;
+        
+        // AI Deck (curated balanced deck)
+        this.deck = this.createDeck();
+        this.hand = [];
+        this.nextCard = null;
+        this.playedCards = [];
+        this.availableCards = [];
+        
+        // Initialize hand
+        this.initializeHand();
+        
+        // AI State Machine
+        this.state = 'neutral'; // 'neutral', 'defending', 'pushing', 'counter-pushing', 'waiting'
+        this.stateTimer = 0;
+        
+        // Decision timing (prevents spam)
+        this.lastDecisionTime = 0;
+        this.minDecisionInterval = 800; // Min ms between decisions
+        this.thinkingTime = 0;
+        this.reactionDelay = 300; // Simulate human reaction time
+        
+        // Elixir tracking
+        this.estimatedPlayerElixir = 5;
+        this.lastPlayerElixirUpdate = Date.now();
+        this.elixirLeakThreshold = 9.5;
+        
+        // Push tracking
+        this.currentPush = null;
+        this.pushLane = null;
+        this.pushStartTime = 0;
+        
+        // Memory and learning
+        this.playerPatterns = {
+            favoredLane: null,
+            avgPushSize: 0,
+            usesSpells: false,
+            playStyle: 'unknown', // 'aggressive', 'defensive', 'balanced'
+            lastCards: []
+        };
+        
+        // Strategic constants
+        this.SAFE_ELIXIR_THRESHOLD = 4;
+        this.PUSH_ELIXIR_THRESHOLD = 7;
+        this.PUNISH_WINDOW = 1500; // ms to punish after player deploys expensive card
+        this.lastPlayerDeploy = { time: 0, cost: 0, lane: null };
     }
-};
+    
+    createDeck() {
+        // Create a balanced Clash Royale style deck
+        // Structure: Win Condition, Tank/Mini-Tank, Splash, Air Defense, Swarm, Spell, Cycle, Flex
+        const deckOptions = [
+            // Hog Cycle style
+            ['hogrider', 'knight', 'musketeer', 'valkyrie', 'skeleton', 'fireball', 'arrows', 'archer'],
+            // Giant Beatdown
+            ['giant', 'wizard', 'minipekka', 'musketeer', 'skeleton', 'fireball', 'arrows', 'knight'],
+            // Golem Beatdown (late game)
+            ['golem', 'witch', 'minipekka', 'dragon', 'skeleton', 'fireball', 'arrows', 'knight'],
+            // PEKKA Bridge Spam
+            ['pekka', 'hogrider', 'wizard', 'minipekka', 'skeleton', 'fireball', 'arrows', 'archer'],
+            // Balanced Control
+            ['knight', 'musketeer', 'valkyrie', 'dragon', 'barbarian', 'fireball', 'arrows', 'skeleton']
+        ];
+        
+        // Pick a random deck archetype
+        const selectedDeck = deckOptions[Math.floor(Math.random() * deckOptions.length)];
+        
+        // Validate all cards exist
+        return selectedDeck.filter(card => unitTemplates[card] || card === 'fireball' || card === 'arrows');
+    }
+    
+    initializeHand() {
+        const shuffled = [...this.deck].sort(() => Math.random() - 0.5);
+        this.hand = shuffled.slice(0, 4);
+        this.nextCard = shuffled[4];
+        this.availableCards = shuffled.slice(5);
+        this.playedCards = [];
+    }
+    
+    cycleCard(playedCardId) {
+        // Add played card to the cycle queue
+        this.playedCards.push(playedCardId);
+        
+        // Remove from hand
+        const index = this.hand.indexOf(playedCardId);
+        if (index > -1) {
+            // Replace with next card
+            this.hand[index] = this.nextCard;
+            
+            // Find new next card
+            if (this.availableCards.length > 0) {
+                this.nextCard = this.availableCards.shift();
+            } else if (this.playedCards.length > 0) {
+                this.nextCard = this.playedCards.shift();
+            }
+        }
+    }
+    
+    getAffordableCards() {
+        return this.hand.filter(cardId => {
+            const template = unitTemplates[cardId];
+            return template && template.cost <= this.game.enemyElixir;
+        });
+    }
+    
+    getCardByRole(role) {
+        return this.hand.find(cardId => {
+            const template = unitTemplates[cardId];
+            return template && template.role === role && template.cost <= this.game.enemyElixir;
+        });
+    }
+    
+    getCheapestCard() {
+        let cheapest = null;
+        let cheapestCost = Infinity;
+        
+        for (const cardId of this.hand) {
+            const template = unitTemplates[cardId];
+            if (template && template.cost < cheapestCost && template.cost <= this.game.enemyElixir) {
+                cheapest = cardId;
+                cheapestCost = template.cost;
+            }
+        }
+        return cheapest;
+    }
+    
+    // Main AI update - called every frame
+    update(deltaTime) {
+        const now = Date.now();
+        
+        // Update estimated player elixir (simulate elixir counting)
+        this.updatePlayerElixirEstimate(deltaTime);
+        
+        // Add thinking time (prevents instant reactions)
+        this.thinkingTime += deltaTime;
+        
+        // Minimum decision interval to prevent spam
+        if (now - this.lastDecisionTime < this.minDecisionInterval) {
+            return;
+        }
+        
+        // State machine update
+        this.updateState();
+        
+        // Analyze current situation
+        const situation = this.analyzeSituation();
+        
+        // Make decision based on state and situation
+        const decision = this.makeDecision(situation);
+        
+        if (decision && this.thinkingTime >= this.reactionDelay) {
+            this.executeDecision(decision, situation);
+            this.lastDecisionTime = now;
+            this.thinkingTime = 0;
+        }
+    }
+    
+    updatePlayerElixirEstimate(deltaTime) {
+        // Estimate player's current elixir
+        const elixirPerSecond = this.game.gameTime <= 60 ? 2.8 : 1.4; // Double elixir in last minute
+        const secondsPassed = deltaTime / 1000;
+        
+        this.estimatedPlayerElixir = Math.min(10, this.estimatedPlayerElixir + elixirPerSecond * secondsPassed);
+    }
+    
+    trackPlayerDeploy(unit) {
+        // Called when player deploys a unit
+        const cost = unit.cost || 3;
+        this.estimatedPlayerElixir = Math.max(0, this.estimatedPlayerElixir - cost);
+        
+        this.lastPlayerDeploy = {
+            time: Date.now(),
+            cost: cost,
+            lane: unit.y < config.canvas.height / 2 ? 'top' : 'bottom'
+        };
+        
+        this.playerPatterns.lastCards.push(unit.type);
+        if (this.playerPatterns.lastCards.length > 8) {
+            this.playerPatterns.lastCards.shift();
+        }
+        
+        // Update play style detection
+        if (cost >= 5) {
+            this.playerPatterns.playStyle = 'heavy';
+        }
+    }
+    
+    updateState() {
+        const situation = this.analyzeSituation();
+        
+        // State transitions
+        switch(this.state) {
+            case 'neutral':
+                if (situation.underHeavyAttack) {
+                    this.state = 'defending';
+                } else if (this.game.enemyElixir >= this.PUSH_ELIXIR_THRESHOLD && !situation.underAttack) {
+                    this.state = 'pushing';
+                    this.pushLane = situation.weakerPlayerLane;
+                }
+                break;
+                
+            case 'defending':
+                if (!situation.underAttack && situation.hasDefendersAlive) {
+                    this.state = 'counter-pushing';
+                } else if (!situation.underAttack) {
+                    this.state = 'neutral';
+                }
+                break;
+                
+            case 'pushing':
+                if (situation.underHeavyAttack) {
+                    this.state = 'defending';
+                    this.currentPush = null;
+                } else if (situation.pushComplete) {
+                    this.state = 'neutral';
+                    this.currentPush = null;
+                }
+                break;
+                
+            case 'counter-pushing':
+                if (situation.underHeavyAttack) {
+                    this.state = 'defending';
+                } else if (!situation.hasDefendersAlive) {
+                    this.state = 'neutral';
+                }
+                break;
+                
+            case 'waiting':
+                // Wait for elixir
+                if (this.game.enemyElixir >= this.SAFE_ELIXIR_THRESHOLD) {
+                    this.state = 'neutral';
+                }
+                break;
+        }
+    }
+    
+    analyzeSituation() {
+        const game = this.game;
+        const playerUnits = game.units.filter(u => u.team === 'player');
+        const enemyUnits = game.units.filter(u => u.team === 'enemy');
+        
+        // River is in the middle
+        const riverX = config.bridge.x;
+        
+        // Units threatening enemy territory
+        const threateningUnits = playerUnits.filter(u => u.x > riverX - 100);
+        const unitsNearTowers = playerUnits.filter(u => u.x > riverX + 100);
+        
+        // Lane analysis
+        const canvasHeight = config.canvas.height;
+        const topLane = threateningUnits.filter(u => u.y < canvasHeight * 0.4);
+        const bottomLane = threateningUnits.filter(u => u.y > canvasHeight * 0.6);
+        
+        // Tower analysis
+        const enemyTowers = game.towers.filter(t => t.team === 'enemy' && !t.destroyed);
+        const playerTowers = game.towers.filter(t => t.team === 'player' && !t.destroyed);
+        
+        // Find weakest player tower (our target)
+        const weakestPlayerTower = playerTowers
+            .filter(t => !t.id.includes('king'))
+            .reduce((w, t) => (!w || t.hp < w.hp) ? t : w, null);
+        
+        // Surviving defenders that can counter-push
+        const defenders = enemyUnits.filter(u => 
+            u.x > riverX && 
+            u.currentHp > u.hp * 0.4 &&
+            !u.targetBuildings
+        );
+        
+        // Calculate threat levels
+        const topThreat = this.calculateThreatLevel(topLane);
+        const bottomThreat = this.calculateThreatLevel(bottomLane);
+        const totalThreat = topThreat + bottomThreat;
+        
+        // Cluster analysis for spells
+        const spellableCluster = this.findBestSpellTarget(playerUnits);
+        
+        // Check for punish opportunity
+        const now = Date.now();
+        const punishWindow = now - this.lastPlayerDeploy.time < this.PUNISH_WINDOW;
+        const canPunish = punishWindow && 
+                         this.lastPlayerDeploy.cost >= 4 && 
+                         this.game.enemyElixir >= 4;
+        
+        return {
+            playerUnits,
+            enemyUnits,
+            threateningUnits,
+            unitsNearTowers,
+            topLane,
+            bottomLane,
+            topThreat,
+            bottomThreat,
+            totalThreat,
+            mostDangerousLane: topThreat > bottomThreat ? 'top' : 'bottom',
+            weakerPlayerLane: weakestPlayerTower?.id.includes('top') ? 'top' : 'bottom',
+            underAttack: threateningUnits.length > 0,
+            underHeavyAttack: totalThreat > 800 || threateningUnits.length >= 3,
+            towerEmergency: unitsNearTowers.length > 0 && enemyTowers.some(t => t.hp < 800),
+            hasDefendersAlive: defenders.length > 0,
+            defenders,
+            spellableCluster,
+            canPunish,
+            punishLane: this.lastPlayerDeploy.lane === 'top' ? 'bottom' : 'top',
+            elixirAdvantage: this.game.enemyElixir - this.estimatedPlayerElixir,
+            pushComplete: this.currentPush && enemyUnits.filter(u => u.x < riverX).length === 0,
+            shouldWait: this.game.enemyElixir < 3
+        };
+    }
+    
+    calculateThreatLevel(units) {
+        return units.reduce((total, unit) => {
+            let threat = (unit.damage || 100) * ((unit.currentHp || unit.hp) / (unit.hp || 1));
+            if (unit.targetBuildings) threat *= 2; // Building targeters are most dangerous
+            if (unit.fast) threat *= 1.5;
+            if (unit.isAir) threat *= 1.3;
+            if (unit.splashRadius) threat *= 0.8; // Splash less threatening single target
+            return total + threat;
+        }, 0);
+    }
+    
+    findBestSpellTarget(units) {
+        if (units.length < 2) return null;
+        
+        const clusterRadius = 120;
+        let bestCluster = null;
+        let bestValue = 0;
+        
+        for (const unit of units) {
+            const nearby = units.filter(u => 
+                u !== unit && Math.hypot(u.x - unit.x, u.y - unit.y) < clusterRadius
+            );
+            
+            if (nearby.length >= 1) {
+                const allUnits = [unit, ...nearby];
+                const totalValue = allUnits.reduce((sum, u) => sum + (u.cost || 3), 0);
+                
+                // Extra value if any unit would die to fireball
+                const wouldKill = allUnits.filter(u => (u.currentHp || u.hp) <= 500).length;
+                const adjustedValue = totalValue + wouldKill * 2;
+                
+                if (adjustedValue > bestValue) {
+                    bestValue = adjustedValue;
+                    bestCluster = {
+                        units: allUnits,
+                        value: adjustedValue,
+                        centerX: allUnits.reduce((s, u) => s + u.x, 0) / allUnits.length,
+                        centerY: allUnits.reduce((s, u) => s + u.y, 0) / allUnits.length,
+                        wouldKill
+                    };
+                }
+            }
+        }
+        
+        return bestCluster;
+    }
+    
+    makeDecision(situation) {
+        // Priority-based decision making (like real CR)
+        
+        // PRIORITY 1: Emergency defense - tower about to die
+        if (situation.towerEmergency) {
+            return { type: 'emergency_defense', priority: 10 };
+        }
+        
+        // PRIORITY 2: Elixir leak prevention
+        if (this.game.enemyElixir >= this.elixirLeakThreshold && !situation.underAttack) {
+            return { type: 'prevent_leak', priority: 9 };
+        }
+        
+        // PRIORITY 3: High value spell opportunity
+        if (situation.spellableCluster && situation.spellableCluster.value >= 5) {
+            return { type: 'spell_value', priority: 8 };
+        }
+        
+        // PRIORITY 4: Counter push (most efficient way to attack)
+        if (this.state === 'counter-pushing' && situation.hasDefendersAlive) {
+            return { type: 'counter_push', priority: 7 };
+        }
+        
+        // PRIORITY 5: Defend
+        if (situation.underAttack && this.game.enemyElixir >= 2) {
+            return { type: 'defend', priority: 6 };
+        }
+        
+        // PRIORITY 6: Punish opposite lane
+        if (situation.canPunish && !situation.underAttack) {
+            return { type: 'punish', priority: 5 };
+        }
+        
+        // PRIORITY 7: Build push from back
+        if (this.state === 'pushing' || 
+            (this.game.enemyElixir >= this.PUSH_ELIXIR_THRESHOLD && !situation.underAttack)) {
+            return { type: 'build_push', priority: 4 };
+        }
+        
+        // PRIORITY 8: Light pressure
+        if (this.game.enemyElixir >= 5 && !situation.underAttack && 
+            situation.elixirAdvantage >= 2) {
+            return { type: 'pressure', priority: 3 };
+        }
+        
+        // PRIORITY 9: Wait and save elixir
+        return { type: 'wait', priority: 0 };
+    }
+    
+    executeDecision(decision, situation) {
+        switch (decision.type) {
+            case 'emergency_defense':
+                this.executeEmergencyDefense(situation);
+                break;
+            case 'prevent_leak':
+                this.executePreventLeak(situation);
+                break;
+            case 'spell_value':
+                this.executeSpellValue(situation);
+                break;
+            case 'counter_push':
+                this.executeCounterPush(situation);
+                break;
+            case 'defend':
+                this.executeDefend(situation);
+                break;
+            case 'punish':
+                this.executePunish(situation);
+                break;
+            case 'build_push':
+                this.executeBuildPush(situation);
+                break;
+            case 'pressure':
+                this.executePressure(situation);
+                break;
+            case 'wait':
+                // Do nothing - save elixir
+                break;
+        }
+    }
+    
+    executeEmergencyDefense(situation) {
+        const lane = situation.mostDangerousLane;
+        const threats = lane === 'top' ? situation.topLane : situation.bottomLane;
+        
+        if (threats.length === 0) return;
+        
+        // Find best counter in hand
+        const COUNTER_MAP = window.ClanClashData?.COUNTER_MAP || {};
+        const mainThreat = threats[0];
+        
+        // Try counters first
+        if (mainThreat?.type && COUNTER_MAP[mainThreat.type]) {
+            for (const counter of COUNTER_MAP[mainThreat.type]) {
+                if (this.hand.includes(counter)) {
+                    const template = unitTemplates[counter];
+                    if (template && template.cost <= this.game.enemyElixir) {
+                        this.deployCard(counter, lane, 'defense');
+                        return;
+                    }
+                }
+            }
+        }
+        
+        // Fallback to cheapest defensive option
+        const cheapest = this.getCheapestCard();
+        if (cheapest) {
+            this.deployCard(cheapest, lane, 'defense');
+        }
+    }
+    
+    executePreventLeak(situation) {
+        // Deploy something useful to not leak elixir
+        // Prefer starting a push from the back
+        const tanks = this.hand.filter(c => {
+            const t = unitTemplates[c];
+            return t && (t.role === 'tank' || t.hp > 2000) && t.cost <= this.game.enemyElixir;
+        });
+        
+        if (tanks.length > 0) {
+            this.deployCard(tanks[0], situation.weakerPlayerLane, 'back');
+            this.state = 'pushing';
+            this.pushLane = situation.weakerPlayerLane;
+        } else {
+            // Deploy any available card at the bridge for pressure
+            const available = this.getAffordableCards();
+            if (available.length > 0) {
+                this.deployCard(available[0], situation.weakerPlayerLane, 'bridge');
+            }
+        }
+    }
+    
+    executeSpellValue(situation) {
+        const cluster = situation.spellableCluster;
+        if (!cluster) return;
+        
+        const fireball = unitTemplates.fireball;
+        const arrows = unitTemplates.arrows;
+        
+        // Try fireball first for high value
+        if (cluster.value >= 5 && this.hand.includes('fireball') && 
+            this.game.enemyElixir >= (fireball?.cost || 4)) {
+            this.castSpell('fireball', cluster.centerX, cluster.centerY);
+            return;
+        }
+        
+        // Use arrows for swarms
+        if (cluster.units.some(u => u.spawnsMultiple || u.hp < 300) && 
+            this.hand.includes('arrows') && 
+            this.game.enemyElixir >= (arrows?.cost || 3)) {
+            this.castSpell('arrows', cluster.centerX, cluster.centerY);
+        }
+    }
+    
+    executeCounterPush(situation) {
+        if (situation.defenders.length === 0) return;
+        
+        // Determine lane based on defenders
+        const avgY = situation.defenders.reduce((s, d) => s + d.y, 0) / situation.defenders.length;
+        const lane = avgY < config.canvas.height / 2 ? 'top' : 'bottom';
+        
+        // Check what we need
+        const hasTank = situation.defenders.some(d => d.role === 'tank' || d.hp > 1500);
+        const hasSplash = situation.defenders.some(d => d.splashRadius);
+        const hasRanged = situation.defenders.some(d => d.isRanged);
+        
+        // Add what's missing
+        let cardToPlay = null;
+        
+        if (!hasTank) {
+            // Add tank in front
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && (t.role === 'tank' || t.role === 'miniTank') && t.cost <= this.game.enemyElixir;
+            });
+        } else if (!hasRanged) {
+            // Add ranged DPS behind
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && t.isRanged && t.cost <= this.game.enemyElixir;
+            });
+        } else if (!hasSplash) {
+            // Add splash
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && t.splashRadius && t.cost <= this.game.enemyElixir;
+            });
+        }
+        
+        if (cardToPlay) {
+            this.deployCard(cardToPlay, lane, 'support');
+        }
+    }
+    
+    executeDefend(situation) {
+        const lane = situation.mostDangerousLane;
+        const threats = lane === 'top' ? situation.topLane : situation.bottomLane;
+        
+        if (threats.length === 0) return;
+        
+        // Analyze threat composition
+        const hasAir = threats.some(t => t.isAir);
+        const hasTank = threats.some(t => t.hp > 2000);
+        const hasSwarm = threats.some(t => t.spawnsMultiple) || threats.length >= 3;
+        const hasBuildingTargeter = threats.some(t => t.targetBuildings);
+        
+        // Select appropriate counter
+        let cardToPlay = null;
+        
+        if (hasBuildingTargeter && hasTank) {
+            // High DPS for building-targeting tanks
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && (c === 'minipekka' || c === 'pekka' || t.damage > 300) && 
+                       t.cost <= this.game.enemyElixir;
+            });
+        } else if (hasSwarm) {
+            // Splash damage
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && t.splashRadius && t.cost <= this.game.enemyElixir;
+            });
+            // Or use arrows spell
+            if (!cardToPlay && this.hand.includes('arrows') && this.game.enemyElixir >= 3) {
+                const avgX = threats.reduce((s, t) => s + t.x, 0) / threats.length;
+                const avgY = threats.reduce((s, t) => s + t.y, 0) / threats.length;
+                this.castSpell('arrows', avgX, avgY);
+                return;
+            }
+        } else if (hasAir) {
+            // Air targeting
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && t.canTargetAir && t.cost <= this.game.enemyElixir;
+            });
+        } else if (hasTank) {
+            // Swarm or high DPS for tanks
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && (t.spawnsMultiple || t.damage > 300) && t.cost <= this.game.enemyElixir;
+            });
+        }
+        
+        // Fallback to best available defensive card
+        if (!cardToPlay) {
+            cardToPlay = this.hand.find(c => {
+                const t = unitTemplates[c];
+                return t && !t.targetBuildings && !t.isSpell && t.cost <= this.game.enemyElixir;
+            });
+        }
+        
+        if (cardToPlay) {
+            this.deployCard(cardToPlay, lane, 'defense');
+        }
+    }
+    
+    executePunish(situation) {
+        // Punish opposite lane with fast win condition
+        const lane = situation.punishLane;
+        
+        const punishCards = ['hogrider', 'balloon', 'miner', 'minipekka', 'prince'];
+        const cardToPlay = this.hand.find(c => 
+            punishCards.includes(c) && 
+            unitTemplates[c]?.cost <= this.game.enemyElixir
+        );
+        
+        if (cardToPlay) {
+            this.deployCard(cardToPlay, lane, 'attack');
+        }
+    }
+    
+    executeBuildPush(situation) {
+        const lane = this.pushLane || situation.weakerPlayerLane;
+        
+        // Check if we already have units building
+        const backUnits = this.game.units.filter(u => 
+            u.team === 'enemy' && u.x > config.canvas.width - 150
+        );
+        
+        if (backUnits.length === 0) {
+            // Start with tank from back
+            const tanks = ['golem', 'giant', 'pekka'].filter(c => 
+                this.hand.includes(c) && unitTemplates[c]?.cost <= this.game.enemyElixir
+            );
+            
+            if (tanks.length > 0) {
+                // Golem only at 10 elixir
+                const tank = (this.game.enemyElixir >= 10 && tanks.includes('golem')) 
+                    ? 'golem' 
+                    : tanks.find(t => t !== 'golem') || tanks[0];
+                
+                if (tank) {
+                    this.deployCard(tank, lane, 'back');
+                    this.currentPush = { tank, lane };
+                    this.pushStartTime = Date.now();
+                }
+            }
+        } else {
+            // Add support behind tank
+            const supports = ['wizard', 'witch', 'musketeer', 'dragon', 'archer'].filter(c =>
+                this.hand.includes(c) && unitTemplates[c]?.cost <= this.game.enemyElixir
+            );
+            
+            if (supports.length > 0) {
+                this.deployCard(supports[0], lane, 'support');
+            }
+        }
+    }
+    
+    executePressure(situation) {
+        // Light pressure with win condition or cheap units
+        const lane = Math.random() > 0.5 ? 'top' : 'bottom';
+        
+        const pressureCards = ['hogrider', 'miner', 'knight', 'minipekka'];
+        const cardToPlay = this.hand.find(c => 
+            pressureCards.includes(c) && 
+            unitTemplates[c]?.cost <= this.game.enemyElixir
+        );
+        
+        if (cardToPlay) {
+            this.deployCard(cardToPlay, lane, 'attack');
+        }
+    }
+    
+    deployCard(cardId, lane, deployType) {
+        const template = unitTemplates[cardId];
+        if (!template || template.cost > this.game.enemyElixir) return false;
+        
+        // Spend elixir
+        this.game.enemyElixir -= template.cost;
+        
+        // Calculate position
+        const bridgeIndex = lane === 'top' ? 0 : 1;
+        const targetBridge = this.game.bridges[bridgeIndex];
+        
+        let x, y;
+        
+        switch(deployType) {
+            case 'defense':
+                // Close to tower for defense
+                x = config.canvas.width - 80;
+                y = targetBridge.centerY + (Math.random() - 0.5) * 50;
+                break;
+            case 'back':
+                // Behind king tower for big pushes
+                x = config.canvas.width - 40;
+                y = targetBridge.centerY;
+                break;
+            case 'support':
+                // Behind existing units
+                const allyUnits = this.game.units.filter(u => u.team === 'enemy');
+                if (allyUnits.length > 0) {
+                    const frontUnit = allyUnits.reduce((f, u) => u.x < f.x ? u : f, allyUnits[0]);
+                    x = Math.min(frontUnit.x + 60, config.canvas.width - 80);
+                    y = frontUnit.y + (Math.random() - 0.5) * 30;
+                } else {
+                    x = config.canvas.width - 100;
+                    y = targetBridge.centerY;
+                }
+                break;
+            case 'bridge':
+                // At the bridge for immediate attack
+                x = targetBridge.centerX + 60;
+                y = targetBridge.centerY + (Math.random() - 0.5) * 40;
+                break;
+            case 'attack':
+            default:
+                // Slightly behind bridge
+                x = config.canvas.width - 100;
+                y = targetBridge.centerY + (Math.random() - 0.5) * 30;
+                break;
+        }
+        
+        // Create the unit
+        this.game.createUnit(template, x, y, 'enemy');
+        
+        // Cycle the card
+        this.cycleCard(cardId);
+        
+        // Effects
+        this.game.soundSystem.play('deploy');
+        this.game.particleSystem.emit(x, y, 8, { color: 'rgb(239, 68, 68)', speed: 2 });
+        
+        return true;
+    }
+    
+    castSpell(spellId, x, y) {
+        const template = unitTemplates[spellId];
+        if (!template || template.cost > this.game.enemyElixir) return false;
+        if (!this.hand.includes(spellId)) return false;
+        
+        this.game.enemyElixir -= template.cost;
+        
+        // Apply spell damage
+        const radius = template.radius || (spellId === 'fireball' ? 150 : 200);
+        const damage = template.damage || (spellId === 'fireball' ? 572 : 303);
+        
+        this.game.damageInRadius(x, y, radius, damage, 'player');
+        this.game.createSpellEffect(spellId, x, y);
+        
+        // Cycle the card
+        this.cycleCard(spellId);
+        
+        return true;
+    }
+}
 
 // Game State
 class Game {
@@ -432,10 +981,14 @@ class Game {
         this.damageNumbers = []; // Floating damage numbers
         this.towers = this.initTowers();
         
-        // Card system - player gets 8 random unique cards
-        this.allCards = ['knight', 'archer', 'giant', 'hogrider', 'minipekka', 'wizard', 'fireball', 'arrows', 
-                     'dragon', 'barbarian', 'skeleton', 'musketeer', 'pekka', 'golem', 'miner', 'balloon', 'witch', 'valkyrie'];
-        this.deck = this.selectRandomDeck(8); // Player's 8-card deck
+        // Card system - load deck from localStorage or use default
+        this.allCards = (window.ClanClashData && window.ClanClashData.cardIds)
+            ? [...window.ClanClashData.cardIds]
+            : ['knight', 'archer', 'giant', 'hogrider', 'minipekka', 'wizard', 'fireball', 'arrows'];
+        
+        // Placed buildings array
+        this.buildings = [];
+        this.deck = this.loadDeckFromStorage(); // Load player's saved deck
         this.hand = [];
         this.nextCard = null;
         this.shuffleDeck();
@@ -448,7 +1001,8 @@ class Game {
         this.elixirTimer = 0;
         this.elixirRegenRate = config.elixir.regenRate;
         
-        // Enemy AI
+        // Advanced Enemy AI System
+        this.enemyAI = new EnemyAIController(this);
         this.enemyAITimer = 0;
         this.enemyAICooldown = 3000;
         
@@ -517,6 +1071,26 @@ class Game {
         }
     }
     
+    // Load deck from localStorage or use default/random
+    loadDeckFromStorage() {
+        const saved = localStorage.getItem('clanclash_deck');
+        if (saved) {
+            try {
+                const deck = JSON.parse(saved);
+                // Validate deck - must be array of 8 valid cards
+                if (Array.isArray(deck) && deck.length === 8 && 
+                    deck.every(c => unitTemplates[c] || c === 'fireball' || c === 'arrows')) {
+                    console.log('Loaded deck from storage:', deck);
+                    return deck;
+                }
+            } catch (e) {
+                console.error('Error loading deck:', e);
+            }
+        }
+        // Fall back to random deck if no valid saved deck
+        return this.selectRandomDeck(8);
+    }
+
     // Select random unique cards for the player's deck
     selectRandomDeck(count) {
         const shuffled = [...this.allCards].sort(() => Math.random() - 0.5);
@@ -530,36 +1104,56 @@ class Game {
         this.nextCard = shuffled[4];
         // Track which cards are available to draw (not in hand or next)
         this.availableCards = shuffled.slice(5);
+        // Track cards that have been played and are waiting to cycle back
+        this.playedCards = [];
     }
     
     drawCard() {
-        // Get the next card
-        const card = this.nextCard;
+        // The card that will replace the played card in hand
+        const newHandCard = this.nextCard;
         
-        // If no available cards, recycle the deck (excluding current hand)
-        if (this.availableCards.length === 0) {
-            // All 8 cards cycle: 4 in hand + 1 next + 3 available
-            // When available is empty, the card we just played goes back to available
-            this.availableCards = [card]; // Start recycling
-        }
+        // Find the next card to queue up (must not be in hand or the card we're adding)
+        // First check available cards
+        let foundNext = false;
         
-        // Pick next card from available cards (ensuring no duplicates in hand)
-        // Find a card that's not currently in the hand
-        let nextCardIndex = 0;
-        for (let i = 0; i < this.availableCards.length; i++) {
-            if (!this.hand.includes(this.availableCards[i]) && this.availableCards[i] !== card) {
-                nextCardIndex = i;
-                break;
+        if (this.availableCards.length > 0) {
+            // Find a card from available that's not in the current hand
+            for (let i = 0; i < this.availableCards.length; i++) {
+                const candidate = this.availableCards[i];
+                // Make sure this card won't create a duplicate
+                if (!this.hand.includes(candidate) && candidate !== newHandCard) {
+                    this.nextCard = candidate;
+                    this.availableCards.splice(i, 1);
+                    foundNext = true;
+                    break;
+                }
             }
         }
         
-        this.nextCard = this.availableCards[nextCardIndex];
-        this.availableCards.splice(nextCardIndex, 1);
+        // If no valid card found in available, pull from played cards (cycle)
+        if (!foundNext && this.playedCards.length > 0) {
+            for (let i = 0; i < this.playedCards.length; i++) {
+                const candidate = this.playedCards[i];
+                if (!this.hand.includes(candidate) && candidate !== newHandCard) {
+                    this.nextCard = candidate;
+                    this.playedCards.splice(i, 1);
+                    foundNext = true;
+                    break;
+                }
+            }
+        }
         
-        // Add the played card back to available pool
-        this.availableCards.push(card);
+        // Fallback: if still no card found, just take any from played
+        if (!foundNext && this.playedCards.length > 0) {
+            this.nextCard = this.playedCards.shift();
+        }
         
-        return card;
+        return newHandCard;
+    }
+    
+    // Called when a card is actually played - adds it to the cycle queue
+    onCardPlayed(cardId) {
+        this.playedCards.push(cardId);
     }
     
     init() {
@@ -746,17 +1340,35 @@ class Game {
             if (!this.selectedCard) return;
             
             const rect = this.canvas.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * config.canvas.width;
-            const y = ((e.clientY - rect.top) / rect.height) * config.canvas.height;
+            let x = ((e.clientX - rect.left) / rect.width) * config.canvas.width;
+            let y = ((e.clientY - rect.top) / rect.height) * config.canvas.height;
+            
+            const template = unitTemplates[this.selectedCard.type];
+            const isBuilding = template && template.isBuilding;
+            const isSpell = template && template.isSpell;
+            
+            // Snap to grid for buildings
+            if (isBuilding) {
+                const snapped = this.snapToGrid(x, y);
+                x = snapped.x;
+                y = snapped.y;
+            }
             
             // Miners can be deployed anywhere (they tunnel), other units only on player's side
             const isMiner = this.selectedCard.type === 'miner';
-            const isValidPosition = isMiner || x < config.bridge.x + 50;
+            let isValidPosition = isMiner || isSpell || x < config.bridge.x + 50;
+            
+            // Additional check for buildings - can't overlap other buildings
+            if (isBuilding && isValidPosition) {
+                isValidPosition = !this.isBuildingOverlap(x, y);
+            }
             
             if (isValidPosition) {
                 this.deployUnit(this.selectedCard.type, x, y, 'player');
                 
-                // Replace card in hand
+                // Add played card to the cycle queue, then draw replacement
+                const playedCardId = this.hand[this.selectedCard.index];
+                this.onCardPlayed(playedCardId);
                 this.hand[this.selectedCard.index] = this.drawCard();
                 this.updateCardDisplay();
                 
@@ -775,12 +1387,30 @@ class Game {
             }
             
             const rect = this.canvas.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * config.canvas.width;
-            const y = ((e.clientY - rect.top) / rect.height) * config.canvas.height;
+            let x = ((e.clientX - rect.left) / rect.width) * config.canvas.width;
+            let y = ((e.clientY - rect.top) / rect.height) * config.canvas.height;
+            
+            const template = unitTemplates[this.selectedCard.type];
+            const isBuilding = template && template.isBuilding;
+            const isSpell = template && template.isSpell;
+            
+            // Snap to grid for buildings
+            if (isBuilding) {
+                const snapped = this.snapToGrid(x, y);
+                x = snapped.x;
+                y = snapped.y;
+            }
             
             // Miners can be deployed anywhere (they tunnel to enemy territory)
             const isMiner = this.selectedCard && this.selectedCard.type === 'miner';
-            this.deploymentPreview = { x, y, valid: isMiner || x < config.bridge.x + 50 };
+            let valid = isMiner || isSpell || x < config.bridge.x + 50;
+            
+            // Additional check for buildings - can't overlap other buildings
+            if (isBuilding && valid) {
+                valid = !this.isBuildingOverlap(x, y);
+            }
+            
+            this.deploymentPreview = { x, y, valid, isBuilding };
         });
         
         this.canvas.addEventListener('mouseleave', () => {
@@ -818,11 +1448,301 @@ class Game {
         const template = unitTemplates[unitType];
         if (!template) return;
         
+        // Handle building deployment
+        if (template.isBuilding) {
+            if (team === 'player' && this.playerElixir >= template.cost) {
+                this.playerElixir -= template.cost;
+                this.createBuilding(template, x, y, team);
+                this.soundSystem.play('deploy');
+                this.particleSystem.emit(x, y, 15, { color: 'rgb(150, 100, 50)', speed: 4 });
+            }
+            return;
+        }
+        
         if (team === 'player' && this.playerElixir >= template.cost) {
             this.playerElixir -= template.cost;
             this.createUnit(template, x, y, team);
             this.soundSystem.play('deploy');
             this.particleSystem.emit(x, y, 10, { color: 'rgb(102, 126, 234)', speed: 3 });
+        }
+    }
+    
+    // Snap position to grid for building placement
+    snapToGrid(x, y) {
+        const cellSize = config.grid.cellSize;
+        const snappedX = Math.round(x / cellSize) * cellSize;
+        const snappedY = Math.round(y / cellSize) * cellSize;
+        return { x: snappedX, y: snappedY };
+    }
+    
+    // Check if building would overlap with existing buildings
+    isBuildingOverlap(x, y) {
+        const minDistance = config.grid.cellSize * 1.2; // Minimum distance between buildings
+        for (const building of this.buildings) {
+            const dist = Math.hypot(building.x - x, building.y - y);
+            if (dist < minDistance) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Create a placed building
+    createBuilding(template, x, y, team) {
+        const building = {
+            ...template,
+            x,
+            y,
+            team,
+            maxHp: template.hp,
+            currentHp: template.hp,
+            target: null,
+            lastAttack: 0,
+            lastSpawn: Date.now(),
+            size: 55,
+            id: Math.random(),
+            createdAt: Date.now(),
+            lifetime: template.lifetime || 30000,
+            hidden: template.hidden || false,
+            isHiding: false,
+            infernoTarget: null,
+            infernoDamageStack: 0
+        };
+        this.buildings.push(building);
+    }
+    
+    // Update placed buildings (lifetime, attacks, spawns)
+    updateBuildings(now, deltaTime) {
+        // Remove expired or destroyed buildings
+        this.buildings = this.buildings.filter(building => {
+            const age = now - building.createdAt;
+            
+            // Check lifetime expiration
+            if (age >= building.lifetime) {
+                this.onBuildingDestroyed(building, 'expired');
+                return false;
+            }
+            
+            // Check HP
+            if (building.currentHp <= 0) {
+                this.onBuildingDestroyed(building, 'destroyed');
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Update each building
+        this.buildings.forEach(building => {
+            // Spawner buildings (Tombstone, Goblin Hut)
+            if (building.spawnsSkeletons || building.spawnsGoblins) {
+                if (now - building.lastSpawn >= building.attackSpeed) {
+                    building.lastSpawn = now;
+                    this.spawnFromBuilding(building);
+                }
+            }
+            
+            // Attack buildings (Cannon, Tesla, Inferno Tower, Bomb Tower)
+            if (building.damage > 0) {
+                // Tesla hiding logic
+                if (building.hidden) {
+                    const hasTarget = this.findBuildingTarget(building);
+                    building.isHiding = !hasTarget;
+                }
+                
+                // Find and attack targets
+                if (!building.isHiding) {
+                    const target = this.findBuildingTarget(building);
+                    if (target && now - building.lastAttack >= building.attackSpeed) {
+                        building.lastAttack = now;
+                        this.buildingAttack(building, target);
+                    }
+                }
+            }
+        });
+    }
+    
+    // Find target for a building
+    findBuildingTarget(building) {
+        let closestTarget = null;
+        let closestDistance = building.range;
+        
+        this.units.forEach(unit => {
+            if (unit.team !== building.team) {
+                // Check if building can target this unit type
+                if (unit.isAir && !building.targetAir) return;
+                
+                const dist = Math.hypot(unit.x - building.x, unit.y - building.y);
+                if (dist < closestDistance) {
+                    closestDistance = dist;
+                    closestTarget = unit;
+                }
+            }
+        });
+        
+        return closestTarget;
+    }
+    
+    // Building attacks a target
+    buildingAttack(building, target) {
+        this.soundSystem.play('hit');
+        
+        let damage = building.damage;
+        
+        // Inferno Tower ramping damage
+        if (building.infernoDamage) {
+            if (building.infernoTarget === target.id) {
+                building.infernoDamageStack = Math.min(building.infernoDamageStack + 1, 20);
+                damage = building.damage * (1 + building.infernoDamageStack * 0.5);
+            } else {
+                building.infernoTarget = target.id;
+                building.infernoDamageStack = 0;
+            }
+        }
+        
+        const actualDamage = Math.min(damage, target.currentHp);
+        target.currentHp -= damage;
+        
+        if (building.team === 'player') {
+            this.stats.damageDealt += actualDamage;
+        }
+        
+        // Show damage number
+        this.createDamageNumber(target.x, target.y, actualDamage, building.team);
+        
+        // Splash damage (Bomb Tower)
+        if (building.splashRadius) {
+            this.units.forEach(unit => {
+                if (unit.team !== building.team && unit !== target) {
+                    const dist = Math.hypot(unit.x - target.x, unit.y - target.y);
+                    if (dist < building.splashRadius) {
+                        const splashDamage = Math.min(damage * 0.5, unit.currentHp);
+                        unit.currentHp -= splashDamage;
+                        this.createDamageNumber(unit.x, unit.y, splashDamage, building.team);
+                    }
+                }
+            });
+        }
+        
+        // Create projectile visual
+        this.projectiles.push({
+            x: building.x,
+            y: building.y,
+            targetX: target.x,
+            targetY: target.y,
+            speed: 10,
+            color: building.infernoDamage ? '#FF4500' : building.splashRadius ? '#8B4513' : building.hidden ? '#FFD700' : '#808080'
+        });
+        
+        this.particleSystem.emit(target.x, target.y, 5, {
+            color: building.infernoDamage ? 'rgb(255, 69, 0)' : 'rgb(255, 150, 50)',
+            speed: 2
+        });
+    }
+    
+    // Spawn units from spawner buildings
+    spawnFromBuilding(building) {
+        if (building.spawnsSkeletons) {
+            const skeletonTemplate = unitTemplates.skeleton;
+            const spawnX = building.x + (Math.random() - 0.5) * 40;
+            const spawnY = building.y + 40;
+            
+            // Create a single skeleton
+            const skeleton = {
+                ...skeletonTemplate,
+                type: 'skeleton',
+                x: spawnX,
+                y: spawnY,
+                team: building.team,
+                maxHp: skeletonTemplate.hp,
+                currentHp: skeletonTemplate.hp,
+                target: null,
+                lastAttack: 0,
+                size: 28,
+                id: Math.random(),
+                hitCount: 1,
+                role: skeletonTemplate.role || 'swarm',
+                aggroPriority: skeletonTemplate.aggroPriority || 0
+            };
+            this.units.push(skeleton);
+            this.particleSystem.emit(spawnX, spawnY, 5, { color: 'rgb(200, 200, 200)', speed: 2 });
+        }
+        
+        if (building.spawnsGoblins) {
+            // Create a spear goblin-like unit
+            const spawnX = building.x + (Math.random() - 0.5) * 40;
+            const spawnY = building.y + 40;
+            
+            const goblin = {
+                name: 'Spear Goblin',
+                emoji: '🦝',
+                type: 'speargoblin',
+                hp: 100,
+                damage: 50,
+                speed: 1.8,
+                range: 180,
+                attackSpeed: 1000,
+                isRanged: true,
+                isGround: true,
+                targetBuildings: false,
+                x: spawnX,
+                y: spawnY,
+                team: building.team,
+                maxHp: 100,
+                currentHp: 100,
+                target: null,
+                lastAttack: 0,
+                size: 30,
+                id: Math.random(),
+                hitCount: 1,
+                role: 'swarm',
+                aggroPriority: 0,
+                canTargetAir: true
+            };
+            this.units.push(goblin);
+            this.particleSystem.emit(spawnX, spawnY, 5, { color: 'rgb(100, 200, 100)', speed: 2 });
+        }
+    }
+    
+    // Handle building destruction
+    onBuildingDestroyed(building, reason) {
+        this.particleSystem.emit(building.x, building.y, 20, {
+            color: 'rgb(150, 100, 50)',
+            speed: 4,
+            lifetime: 40
+        });
+        
+        // Death effects
+        if (building.deathDamage) {
+            // Bomb Tower explosion
+            this.damageInRadius(building.x, building.y, 150, building.deathDamage, 
+                building.team === 'player' ? 'enemy' : 'player');
+            this.soundSystem.play('explosion');
+        }
+        
+        if (building.spawnsSkeletons && building.skeletonSpawnCount) {
+            // Tombstone spawns skeletons on death
+            for (let i = 0; i < building.skeletonSpawnCount; i++) {
+                const skeletonTemplate = unitTemplates.skeleton;
+                const angle = (Math.PI * 2 * i) / building.skeletonSpawnCount;
+                const spawnX = building.x + Math.cos(angle) * 30;
+                const spawnY = building.y + Math.sin(angle) * 30;
+                
+                const skeleton = {
+                    ...skeletonTemplate,
+                    x: spawnX,
+                    y: spawnY,
+                    team: building.team,
+                    maxHp: skeletonTemplate.hp,
+                    currentHp: skeletonTemplate.hp,
+                    target: null,
+                    lastAttack: 0,
+                    size: 28,
+                    id: Math.random(),
+                    hitCount: 1
+                };
+                this.units.push(skeleton);
+            }
         }
     }
     
@@ -873,16 +1793,20 @@ class Game {
     }
     
     castFireball(x, y) {
-        if (this.playerElixir < 4) return;
-        
-        this.playerElixir -= 4;
+        const template = unitTemplates.fireball;
+        const cost = template?.cost ?? 4;
+        const damage = template?.damage ?? 572;
+        const radius = template?.radius ?? 150;
+
+        if (this.playerElixir < cost) return;
+        this.playerElixir -= cost;
         
         // Create explosion effect
         this.effects.push({
             type: 'explosion',
             x, y,
-            radius: 150,
-            damage: 500,
+            radius,
+            damage,
             lifetime: 500,
             createdAt: Date.now()
         });
@@ -894,20 +1818,24 @@ class Game {
             size: 5 
         });
         
-        this.damageInRadius(x, y, 150, 500, 'enemy');
+        this.damageInRadius(x, y, radius, damage, 'enemy');
     }
     
     castArrows(x, y) {
-        if (this.playerElixir < 3) return;
-        
-        this.playerElixir -= 3;
+        const template = unitTemplates.arrows;
+        const cost = template?.cost ?? 3;
+        const damage = template?.damage ?? 303;
+        const radius = template?.radius ?? 200;
+
+        if (this.playerElixir < cost) return;
+        this.playerElixir -= cost;
         
         // Create arrow storm effect
         this.effects.push({
             type: 'arrows',
             x, y,
-            radius: 250,
-            damage: 300,
+            radius,
+            damage,
             lifetime: 600,
             createdAt: Date.now()
         });
@@ -919,7 +1847,7 @@ class Game {
             size: 3 
         });
         
-        this.damageInRadius(x, y, 200, 300, 'enemy');
+        this.damageInRadius(x, y, radius, damage, 'enemy');
     }
     
     damageInRadius(x, y, radius, damage, targetTeam) {
@@ -956,6 +1884,24 @@ class Game {
                     }
                     this.particleSystem.emit(tower.x + tower.width/2, tower.y + tower.height/2, 10, { 
                         color: 'rgb(255, 100, 0)', 
+                        speed: 3 
+                    });
+                }
+            }
+        });
+        
+        // Damage placed buildings (Cannon, Tesla, etc.)
+        this.buildings.forEach(building => {
+            if (building.team === targetTeam) {
+                const dist = Math.hypot(building.x - x, building.y - y);
+                if (dist < radius) {
+                    const actualDamage = Math.min(damage, building.currentHp);
+                    building.currentHp -= damage;
+                    this.stats.damageDealt += actualDamage;
+                    // Show damage number
+                    this.createDamageNumber(building.x, building.y, actualDamage, attackerTeam);
+                    this.particleSystem.emit(building.x, building.y, 8, { 
+                        color: 'rgb(150, 100, 50)', 
                         speed: 3 
                     });
                 }
@@ -1001,14 +1947,15 @@ class Game {
         
         // Update systems
         this.updateUnits(deltaTime);
+        this.updateBuildings(now, deltaTime);
         this.updateTowers(now);
         this.updateProjectiles(deltaTime);
         this.updateEffects(now);
         this.updateDamageNumbers(deltaTime);
         this.particleSystem.update(deltaTime);
         
-        // Enemy AI
-        this.enemyAI(deltaTime);
+        // Advanced Enemy AI
+        this.enemyAI.update(deltaTime);
         
         // Render
         this.render();
@@ -1049,7 +1996,7 @@ class Game {
                         attackSpeed: 1500,
                         cost: 0,
                         isGround: true,
-                        targetBuildings: false,
+                        targetBuildings: true, // Golemites also target buildings like Golem
                         hitCount: 1,
                         x: golemiteX,
                         y: golemiteY,
@@ -1059,9 +2006,16 @@ class Game {
                         target: null,
                         lastAttack: 0,
                         size: 25,
-                        id: Math.random()
+                        id: Math.random(),
+                        deathDamage: 100, // Golemites also do death damage
+                        role: 'tank',
+                        aggroPriority: 3
                     };
                     this.units.push(golemite);
+                    this.particleSystem.emit(golemiteX, golemiteY, 10, { 
+                        color: 'rgb(128, 128, 128)', 
+                        speed: 2 
+                    });
                 }
             }
         });
@@ -1208,33 +2162,133 @@ class Game {
         return closest;
     }
     
+    // Clash Royale authentic targeting system
+    // Key mechanics:
+    // 1. Building-targeting units (Giant, Golem, Hog, Balloon, Miner) COMPLETELY IGNORE troops
+    // 2. Units target the closest enemy (with air-targeting checks)
+    // 3. Tanks have higher aggroPriority, so they get targeted first when in range
+    // 4. Ground-only units cannot target air units
+    // 5. Retargeting happens when current target dies or moves out of range
+    
     findTarget(unit) {
-        let closestTarget = null;
-        let closestDistance = Infinity;
+        let bestTarget = null;
+        let bestScore = Infinity;
         
-        // Check units
-        if (!unit.targetBuildings) {
-            this.units.forEach(other => {
-                if (other.team !== unit.team) {
-                    const dist = Math.hypot(other.x - unit.x, other.y - unit.y);
-                    if (dist < closestDistance && dist <= unit.range + 300) {
-                        closestDistance = dist;
-                        closestTarget = other;
+        const canAttackTarget = (attacker, target) => {
+            // Check air targeting
+            if (target.isAir && !attacker.canTargetAir && !attacker.isAir) {
+                // Ground units that can't target air skip air targets
+                // Unless it's a spell-like unit or has canTargetAir
+                const template = unitTemplates[attacker.type];
+                if (template && !template.canTargetAir && !attacker.isRanged) {
+                    return false;
+                }
+                // Ranged units typically can target air (archer, musketeer, wizard)
+                if (!attacker.isRanged) return false;
+            }
+            return true;
+        };
+        
+        // ===== BUILDING-TARGETING UNITS =====
+        // These units COMPLETELY ignore enemy troops - go straight for buildings/towers
+        if (unit.targetBuildings) {
+            // First check player-placed buildings (Tesla, Cannon, etc.) - they pull aggro!
+            this.buildings.forEach(building => {
+                if (building.team !== unit.team) {
+                    const dist = Math.hypot(building.x - unit.x, building.y - unit.y);
+                    // Buildings have highest priority for building-targeters
+                    if (dist < bestScore) {
+                        bestScore = dist;
+                        bestTarget = {
+                            x: building.x,
+                            y: building.y,
+                            currentHp: building.currentHp,
+                            isPlacedBuilding: true,
+                            buildingRef: building
+                        };
                     }
                 }
             });
+            
+            // Then check towers if no building is closer
+            this.towers.forEach(tower => {
+                if (tower.team !== unit.team && !tower.destroyed) {
+                    const towerCenterX = tower.x + tower.width / 2;
+                    const towerCenterY = tower.y + tower.height / 2;
+                    const dist = Math.hypot(towerCenterX - unit.x, towerCenterY - unit.y);
+                    
+                    if (dist < bestScore) {
+                        bestScore = dist;
+                        bestTarget = {
+                            x: towerCenterX,
+                            y: towerCenterY,
+                            currentHp: tower.hp,
+                            isTower: true,
+                            towerRef: tower
+                        };
+                    }
+                }
+            });
+            
+            return bestTarget;
         }
         
-        // Check towers
+        // ===== NORMAL UNITS (target troops, then buildings, then towers) =====
+        
+        // Priority 1: Enemy troops (with aggro priority consideration)
+        this.units.forEach(other => {
+            if (other.team !== unit.team && other.currentHp > 0) {
+                // Check if this unit can attack the target
+                if (!canAttackTarget(unit, other)) return;
+                
+                const dist = Math.hypot(other.x - unit.x, other.y - unit.y);
+                
+                // Only consider targets within aggro range (range + detection radius)
+                if (dist > unit.range + 300) return;
+                
+                // Score based on distance, but tanks (higher aggroPriority) attract more attention
+                // Lower score = higher priority target
+                const aggroPriority = other.aggroPriority || 1;
+                // Tanks are preferred targets (subtract their priority from score)
+                const score = dist - (aggroPriority * 20);
+                
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestTarget = other;
+                }
+            }
+        });
+        
+        // If we found a troop target, return it
+        if (bestTarget) return bestTarget;
+        
+        // Priority 2: Placed buildings (if no troops in range)
+        this.buildings.forEach(building => {
+            if (building.team !== unit.team) {
+                const dist = Math.hypot(building.x - unit.x, building.y - unit.y);
+                if (dist < bestScore) {
+                    bestScore = dist;
+                    bestTarget = {
+                        x: building.x,
+                        y: building.y,
+                        currentHp: building.currentHp,
+                        isPlacedBuilding: true,
+                        buildingRef: building
+                    };
+                }
+            }
+        });
+        
+        // Priority 3: Towers (if no troops or buildings)
         this.towers.forEach(tower => {
             if (tower.team !== unit.team && !tower.destroyed) {
                 const towerCenterX = tower.x + tower.width / 2;
                 const towerCenterY = tower.y + tower.height / 2;
                 const dist = Math.hypot(towerCenterX - unit.x, towerCenterY - unit.y);
                 
-                if (dist < closestDistance) {
-                    closestDistance = dist;
-                    closestTarget = {
+                if (dist < bestScore) {
+                    bestScore = dist;
+                    bestTarget = {
                         x: towerCenterX,
                         y: towerCenterY,
                         currentHp: tower.hp,
@@ -1245,18 +2299,34 @@ class Game {
             }
         });
         
-        return closestTarget;
+        return bestTarget;
     }
     
     attack(attacker, target) {
         this.soundSystem.play('hit');
         
+        // Apply reduced tower damage for certain units (like Miner in real CR)
+        let damage = attacker.damage;
+        if (target.isTower && attacker.reducedTowerDamage) {
+            damage = Math.floor(damage * attacker.reducedTowerDamage);
+        }
+        
+        // Inferno tower ramping damage
+        if (attacker.infernoDamage && attacker.infernoTarget === target) {
+            attacker.infernoDamageLevel = Math.min((attacker.infernoDamageLevel || 1) * 1.15, 16);
+            damage = Math.floor(attacker.damage * attacker.infernoDamageLevel);
+        } else if (attacker.infernoDamage) {
+            // Reset inferno on new target
+            attacker.infernoTarget = target;
+            attacker.infernoDamageLevel = 1;
+        }
+        
         if (target.isTower) {
-            target.towerRef.hp -= attacker.damage;
-            this.stats.damageDealt += attacker.damage;
+            target.towerRef.hp -= damage;
+            this.stats.damageDealt += damage;
             
             // Show damage number
-            this.createDamageNumber(target.x, target.y, attacker.damage, attacker.team);
+            this.createDamageNumber(target.x, target.y, damage, attacker.team);
             
             if (target.towerRef.hp <= 0) {
                 target.towerRef.destroyed = true;
@@ -1265,6 +2335,22 @@ class Game {
             
             this.particleSystem.emit(target.x, target.y, 8, { 
                 color: 'rgb(255, 150, 0)', 
+                speed: 3 
+            });
+        } else if (target.isPlacedBuilding) {
+            // Attacking a placed building (Cannon, Tesla, etc.)
+            const actualDamage = Math.min(attacker.damage, target.buildingRef.currentHp);
+            target.buildingRef.currentHp -= attacker.damage;
+            
+            // Show damage number
+            this.createDamageNumber(target.x, target.y, actualDamage, attacker.team);
+            
+            if (attacker.team === 'player') {
+                this.stats.damageDealt += actualDamage;
+            }
+            
+            this.particleSystem.emit(target.x, target.y, 8, { 
+                color: 'rgb(150, 100, 50)', 
                 speed: 3 
             });
         } else {
@@ -1506,9 +2592,9 @@ class Game {
         this.enemyAITimer += deltaTime;
         
         // Variable AI cooldown based on game state (faster reactions when under pressure)
-        const baseCooldown = 2000;
+        const baseCooldown = 1800;
         const pressureFactor = this.getEnemyPressureLevel();
-        const adaptiveCooldown = baseCooldown * (1 - pressureFactor * 0.5);
+        const adaptiveCooldown = baseCooldown * (1 - pressureFactor * 0.6);
         
         if (this.enemyAITimer < adaptiveCooldown) return;
         this.enemyAITimer = 0;
@@ -1516,25 +2602,69 @@ class Game {
         // AI State Analysis
         const gameState = this.analyzeGameState();
         
-        // Decision priority based on game state
+        // ===== CLASH ROYALE STRATEGIC AI =====
+        // Priority order:
+        // 1. Emergency defense (tower about to die)
+        // 2. Spell value (cluster of enemies)
+        // 3. Counter-push (surviving defenders + support)
+        // 4. Lane pressure / punishment
+        // 5. Build push behind king tower
+        // 6. Cycle cheap cards if high elixir
+        
+        // EMERGENCY: Tower critical - must defend!
+        if (gameState.towerEmergency && this.enemyElixir >= 2) {
+            this.aiEmergencyDefense(gameState);
+            return;
+        }
+        
+        // HIGH VALUE: Spell cluster opportunity
+        if (this.aiTrySpellValue(gameState)) {
+            return;
+        }
+        
+        // COUNTER-PUSH: Build off surviving defenders
+        if (gameState.hasDefendersAlive && this.enemyElixir >= 3) {
+            this.aiCounterPush(gameState);
+            return;
+        }
+        
+        // DEFEND: Under attack, place defensive units
         if (gameState.underHeavyAttack && this.enemyElixir >= 3) {
             this.aiDefend(gameState);
-        } else if (gameState.hasElixirAdvantage && this.enemyElixir >= 6) {
-            this.aiPushAttack(gameState);
-        } else if (this.enemyElixir >= 4) {
+            return;
+        }
+        
+        // PUNISH: Opposite lane when player overcommits
+        if (gameState.playerOvercommitted && this.enemyElixir >= 4) {
+            this.aiPunishOpposite(gameState);
+            return;
+        }
+        
+        // BUILD PUSH: Start tank from back when elixir advantage
+        if (gameState.hasElixirAdvantage && this.enemyElixir >= 6) {
+            this.aiBuildPush(gameState);
+            return;
+        }
+        
+        // BALANCED: Standard play
+        if (this.enemyElixir >= 4) {
             this.aiBalancedPlay(gameState);
-        } else if (this.enemyElixir >= 2 && gameState.underAttack) {
+            return;
+        }
+        
+        // CHEAP DEFENSE: Low elixir but need something
+        if (this.enemyElixir >= 2 && gameState.underAttack) {
             this.aiCheapDefense(gameState);
         }
-        // Otherwise save elixir
+        // Otherwise: Save elixir (leak prevention at 10)
     }
     
-    // Analyze current game state for AI decision making
+    // Enhanced game state analysis with CR strategies
     analyzeGameState() {
         const playerUnits = this.units.filter(u => u.team === 'player');
         const enemyUnits = this.units.filter(u => u.team === 'enemy');
         
-        // Units threatening enemy side
+        // Units threatening enemy side (past river toward enemy)
         const threateningUnits = playerUnits.filter(u => u.x > config.bridge.x - 150);
         const unitsNearTowers = playerUnits.filter(u => u.x > config.bridge.x + 100);
         
@@ -1542,8 +2672,11 @@ class Game {
         const topLaneY = config.canvas.height * 0.3;
         const bottomLaneY = config.canvas.height * 0.7;
         
-        const topLaneThreat = threateningUnits.filter(u => u.y < topLaneY);
-        const bottomLaneThreat = threateningUnits.filter(u => u.y > bottomLaneY);
+        const topLaneThreat = threateningUnits.filter(u => u.y < topLaneY + 50);
+        const bottomLaneThreat = threateningUnits.filter(u => u.y > bottomLaneY - 50);
+        
+        // Cluster detection for spell value
+        const clusters = this.findUnitClusters(playerUnits);
         
         // Tower health analysis
         const enemyTowers = this.towers.filter(t => t.team === 'enemy' && !t.destroyed);
@@ -1562,6 +2695,23 @@ class Game {
         const bigPush = threateningUnits.length >= 3 || 
                         threateningUnits.some(u => u.hp > 2000);
         
+        // Check for surviving defenders that can counter-push
+        const defendersAlive = enemyUnits.filter(u => 
+            u.x > config.bridge.x && 
+            u.currentHp > u.hp * 0.3 &&
+            !u.targetBuildings
+        );
+        
+        // Player overcommit detection (lots of elixir on field)
+        const playerElixirOnField = playerUnits.reduce((sum, u) => sum + (u.cost || 3), 0);
+        const playerOvercommitted = playerElixirOnField >= 10 && threateningUnits.length >= 2;
+        
+        // Tower emergency - need immediate defense
+        const towerEmergency = lowestEnemyTower && lowestEnemyTower.hp < 500 && unitsNearTowers.length > 0;
+        
+        // Find tanks in player's push
+        const playerTanks = threateningUnits.filter(u => u.role === 'tank' || u.hp > 2500);
+        
         return {
             playerUnits,
             enemyUnits,
@@ -1572,6 +2722,7 @@ class Game {
             topThreatLevel,
             bottomThreatLevel,
             mostDangerousLane: topThreatLevel > bottomThreatLevel ? 'top' : 'bottom',
+            lessDangerousLane: topThreatLevel > bottomThreatLevel ? 'bottom' : 'top',
             underAttack: threateningUnits.length > 0,
             underHeavyAttack: bigPush || totalThreat > 2000,
             hasElixirAdvantage: this.enemyElixir > this.playerElixir + 2,
@@ -1579,8 +2730,45 @@ class Game {
             lowestPlayerTower,
             canFinishTower: lowestPlayerTower && lowestPlayerTower.hp < 800,
             enemyUnitsOnField: enemyUnits.length,
-            playerUnitsOnField: playerUnits.length
+            playerUnitsOnField: playerUnits.length,
+            hasDefendersAlive: defendersAlive.length > 0,
+            defenders: defendersAlive,
+            playerOvercommitted,
+            towerEmergency,
+            clusters,
+            playerTanks,
+            playerElixirOnField
         };
+    }
+    
+    // Find clusters of units for spell value calculation
+    findUnitClusters(units) {
+        const clusters = [];
+        const clusterRadius = 120; // Fireball radius
+        
+        for (const unit of units) {
+            const nearbyUnits = units.filter(u => 
+                u !== unit && Math.hypot(u.x - unit.x, u.y - unit.y) < clusterRadius
+            );
+            
+            if (nearbyUnits.length >= 2) {
+                const allUnits = [unit, ...nearbyUnits];
+                const totalCost = allUnits.reduce((sum, u) => sum + (u.cost || 3), 0);
+                const centerX = allUnits.reduce((sum, u) => sum + u.x, 0) / allUnits.length;
+                const centerY = allUnits.reduce((sum, u) => sum + u.y, 0) / allUnits.length;
+                
+                clusters.push({
+                    units: allUnits,
+                    totalCost,
+                    centerX,
+                    centerY,
+                    count: allUnits.length
+                });
+            }
+        }
+        
+        // Return best cluster by value
+        return clusters.sort((a, b) => b.totalCost - a.totalCost);
     }
     
     // Calculate threat level of units
@@ -1601,92 +2789,261 @@ class Game {
         return Math.min(nearRiver.length / 5, 1);
     }
     
-    // Defensive play
-    aiDefend(gameState) {
+    // ===== CLASH ROYALE AI STRATEGIES =====
+    
+    // Emergency defense - tower about to fall
+    aiEmergencyDefense(gameState) {
         const lane = gameState.mostDangerousLane;
         const threats = lane === 'top' ? gameState.topLaneThreat : gameState.bottomLaneThreat;
         
-        // Check for spell value (multiple units clustered)
-        if (threats.length >= 3 && this.enemyElixir >= 4) {
-            const centerX = threats.reduce((sum, u) => sum + u.x, 0) / threats.length;
-            const centerY = threats.reduce((sum, u) => sum + u.y, 0) / threats.length;
+        // Use whatever we can afford immediately
+        const COUNTER_MAP = window.ClanClashData?.COUNTER_MAP || {};
+        
+        // Find best counter for the main threat
+        const mainThreat = threats[0];
+        if (mainThreat) {
+            const counters = COUNTER_MAP[mainThreat.type] || [];
+            for (const counter of counters) {
+                if (unitTemplates[counter] && unitTemplates[counter].cost <= this.enemyElixir) {
+                    this.deployEnemyUnit({...unitTemplates[counter], type: counter}, lane, 'defense');
+                    return;
+                }
+            }
+        }
+        
+        // Fallback: cheapest available unit
+        const cheapest = Object.entries(unitTemplates)
+            .filter(([_, u]) => u.cost <= this.enemyElixir && !u.isBuilding && !u.isSpell)
+            .sort((a, b) => a[1].cost - b[1].cost)[0];
+        
+        if (cheapest) {
+            this.deployEnemyUnit({...cheapest[1], type: cheapest[0]}, lane, 'defense');
+        }
+    }
+    
+    // Try to get spell value - returns true if spell used
+    aiTrySpellValue(gameState) {
+        if (gameState.clusters.length === 0) return false;
+        
+        const bestCluster = gameState.clusters[0];
+        const fireball = unitTemplates.fireball;
+        const arrows = unitTemplates.arrows;
+        const fireballCost = fireball?.cost ?? 4;
+        const fireballDamage = fireball?.damage ?? 572;
+        const fireballRadius = fireball?.radius ?? 150;
+        const arrowsCost = arrows?.cost ?? 3;
+        const arrowsDamage = arrows?.damage ?? 303;
+        const arrowsRadius = arrows?.radius ?? 200;
+        
+        // Fireball value: 4 elixir spell for 4+ elixir of troops (or splash + tower damage)
+        if (bestCluster.totalCost >= fireballCost && this.enemyElixir >= fireballCost) {
+            // Check if any unit would die to fireball
+            const wouldKill = bestCluster.units.some(u => u.currentHp <= fireballDamage);
+            if (wouldKill || bestCluster.totalCost >= fireballCost + 1) {
+                this.enemyElixir -= fireballCost;
+                this.damageInRadius(bestCluster.centerX, bestCluster.centerY, fireballRadius, fireballDamage, 'player');
+                this.createSpellEffect('fireball', bestCluster.centerX, bestCluster.centerY);
+                return true;
+            }
+        }
+        
+        // Arrows value: 3 elixir for swarms
+        const swarmCluster = gameState.clusters.find(c => 
+            c.units.some(u => u.spawnsMultiple || u.hp < 300) && c.count >= 3
+        );
+        
+        if (swarmCluster && this.enemyElixir >= arrowsCost) {
+            this.enemyElixir -= arrowsCost;
+            this.damageInRadius(swarmCluster.centerX, swarmCluster.centerY, arrowsRadius, arrowsDamage, 'player');
+            this.createSpellEffect('arrows', swarmCluster.centerX, swarmCluster.centerY);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Counter-push with surviving defenders
+    aiCounterPush(gameState) {
+        const defenders = gameState.defenders;
+        if (defenders.length === 0) return;
+        
+        // Determine lane based on where defenders are
+        const avgY = defenders.reduce((sum, d) => sum + d.y, 0) / defenders.length;
+        const lane = avgY < config.canvas.height / 2 ? 'top' : 'bottom';
+        
+        // Check what type of support we need
+        const hasTank = defenders.some(d => d.role === 'tank' || d.role === 'miniTank');
+        const hasSplash = defenders.some(d => d.splashRadius);
+        
+        let supportType;
+        if (!hasTank) {
+            // Add tank in front
+            supportType = ['knight', 'valkyrie'].find(s => 
+                unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
+            );
+        } else if (!hasSplash) {
+            // Add splash behind
+            supportType = ['wizard', 'dragon', 'witch'].find(s => 
+                unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
+            );
+        } else {
+            // Add DPS
+            supportType = ['musketeer', 'archer', 'minipekka'].find(s => 
+                unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
+            );
+        }
+        
+        if (supportType) {
+            this.deployEnemyUnit({...unitTemplates[supportType], type: supportType}, lane, 'support');
+        }
+    }
+    
+    // Punish opposite lane when player overcommits
+    aiPunishOpposite(gameState) {
+        const oppositeLane = gameState.lessDangerousLane;
+        
+        // Fast win conditions are best for punishment
+        const punishCards = ['hogrider', 'balloon', 'miner', 'minipekka'].filter(
+            p => unitTemplates[p] && unitTemplates[p].cost <= this.enemyElixir
+        );
+        
+        if (punishCards.length > 0) {
+            const card = punishCards[0]; // Prioritize hog rider
+            this.deployEnemyUnit({...unitTemplates[card], type: card}, oppositeLane, 'attack');
+        }
+    }
+    
+    // Build a push from the back (like real CR players)
+    aiBuildPush(gameState) {
+        const targetLane = gameState.lowestPlayerTower?.id.includes('top') ? 'top' : 'bottom';
+        
+        // Check if we already have units building
+        const backUnits = this.units.filter(u => 
+            u.team === 'enemy' && u.x > config.canvas.width - 200
+        );
+        
+        // Start with tank from back
+        if (backUnits.length === 0 && this.enemyElixir >= 5) {
+            const tanks = ['golem', 'giant', 'pekka'].filter(
+                t => unitTemplates[t] && unitTemplates[t].cost <= this.enemyElixir
+            );
             
-            // Use fireball for high HP units, arrows for swarms
-            const hasHighHp = threats.some(u => u.currentHp > 500);
-            if (hasHighHp && this.enemyElixir >= 4) {
-                this.enemyElixir -= 4;
-                this.damageInRadius(centerX, centerY, 150, 500, 'player');
-                this.createSpellEffect('fireball', centerX, centerY);
-                return;
-            } else if (this.enemyElixir >= 3) {
-                this.enemyElixir -= 3;
-                this.damageInRadius(centerX, centerY, 200, 300, 'player');
-                this.createSpellEffect('arrows', centerX, centerY);
+            if (tanks.length > 0) {
+                // Golem only if 8+ elixir (don't leak)
+                const tank = (this.enemyElixir >= 8 && tanks.includes('golem')) 
+                    ? 'golem' 
+                    : tanks.find(t => t !== 'golem') || tanks[0];
+                this.deployEnemyUnit({...unitTemplates[tank], type: tank}, targetLane, 'back');
                 return;
             }
         }
         
-        // Deploy defensive unit
-        const defensiveUnits = this.getDefensiveUnits();
-        const bestDefender = this.selectBestCounter(threats, defensiveUnits);
+        // Add support behind existing tank
+        if (backUnits.length > 0 && this.enemyElixir >= 4) {
+            const supports = ['wizard', 'witch', 'musketeer', 'dragon'].filter(
+                s => unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
+            );
+            
+            if (supports.length > 0) {
+                const support = supports[Math.floor(Math.random() * supports.length)];
+                this.deployEnemyUnit({...unitTemplates[support], type: support}, targetLane, 'support');
+            }
+        }
+    }
+    
+    // Standard defensive play
+    aiDefend(gameState) {
+        const lane = gameState.mostDangerousLane;
+        const threats = lane === 'top' ? gameState.topLaneThreat : gameState.bottomLaneThreat;
         
-        if (bestDefender && this.enemyElixir >= bestDefender.cost) {
-            this.deployEnemyUnit(bestDefender, lane, 'defense');
+        // Get counters based on threat composition
+        const COUNTER_MAP = window.ClanClashData?.COUNTER_MAP || {};
+        
+        // Analyze threats
+        const hasAir = threats.some(t => t.isAir);
+        const hasTank = gameState.playerTanks.length > 0;
+        const hasSwarm = threats.some(t => t.spawnsMultiple);
+        const hasBuildingTargeter = threats.some(t => t.targetBuildings);
+        
+        // Select counter based on threat type
+        let counterType = null;
+        
+        if (hasBuildingTargeter && threats[0]?.targetBuildings) {
+            // Use building to pull aggro, or high DPS
+            const buildingDefenses = ['cannon', 'tesla', 'tombstone', 'infernotower'].filter(
+                b => unitTemplates[b] && unitTemplates[b].cost <= this.enemyElixir
+            );
+            
+            if (buildingDefenses.length > 0) {
+                const building = hasTank ? 'infernotower' : buildingDefenses[0];
+                if (unitTemplates[building] && unitTemplates[building].cost <= this.enemyElixir) {
+                    this.deployEnemyBuilding(building, lane);
+                    return;
+                }
+            }
+            
+            // Or use high DPS unit
+            counterType = hasTank 
+                ? ['minipekka', 'pekka', 'skeleton', 'barbarian'].find(c => 
+                    unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir)
+                : ['cannon', 'knight', 'minipekka'].find(c => 
+                    unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir);
+        } else if (hasSwarm) {
+            // Use splash
+            counterType = ['valkyrie', 'wizard', 'dragon', 'bombtower'].find(c => 
+                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
+            );
+        } else if (hasAir) {
+            // Use air targeters
+            counterType = ['musketeer', 'wizard', 'archer', 'tesla'].find(c => 
+                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
+            );
+        } else if (hasTank) {
+            // Use swarm or high DPS
+            counterType = ['skeleton', 'minipekka', 'barbarian'].find(c => 
+                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
+            );
+        }
+        
+        // Fallback to best counter from map
+        if (!counterType && threats[0]) {
+            const counters = COUNTER_MAP[threats[0].type] || [];
+            counterType = counters.find(c => 
+                unitTemplates[c] && unitTemplates[c].cost <= this.enemyElixir
+            );
+        }
+        
+        // Deploy the counter
+        if (counterType) {
+            if (unitTemplates[counterType].isBuilding) {
+                this.deployEnemyBuilding(counterType, lane);
+            } else {
+                this.deployEnemyUnit({...unitTemplates[counterType], type: counterType}, lane, 'defense');
+            }
         }
     }
     
     // Cheap defense for low elixir
     aiCheapDefense(gameState) {
         const cheapUnits = Object.entries(unitTemplates)
-            .filter(([_, u]) => u.cost <= 3 && u.cost <= this.enemyElixir)
+            .filter(([_, u]) => u.cost <= 3 && u.cost <= this.enemyElixir && !u.isBuilding && !u.isSpell)
             .map(([key, u]) => ({...u, type: key}));
         
         if (cheapUnits.length > 0) {
-            const unit = cheapUnits[Math.floor(Math.random() * cheapUnits.length)];
-            this.deployEnemyUnit(unit, gameState.mostDangerousLane, 'defense');
+            // Prioritize by defensive value
+            const sorted = cheapUnits.sort((a, b) => {
+                let scoreA = a.damage;
+                let scoreB = b.damage;
+                if (a.splashRadius) scoreA *= 1.5;
+                if (b.splashRadius) scoreB *= 1.5;
+                return scoreB - scoreA;
+            });
+            
+            this.deployEnemyUnit(sorted[0], gameState.mostDangerousLane, 'defense');
         }
     }
     
-    // Aggressive push
-    aiPushAttack(gameState) {
-        // Choose weaker lane to attack
-        const targetLane = gameState.lowestPlayerTower?.id.includes('top') ? 'top' : 'bottom';
-        
-        // Build a push - start with tank, then support
-        const tanks = ['giant', 'golem', 'pekka'].filter(
-            t => unitTemplates[t] && unitTemplates[t].cost <= this.enemyElixir
-        );
-        const supports = ['wizard', 'musketeer', 'witch', 'archer'].filter(
-            s => unitTemplates[s] && unitTemplates[s].cost <= this.enemyElixir
-        );
-        
-        // If we have a lot of elixir, deploy tank first
-        if (tanks.length > 0 && this.enemyElixir >= 5) {
-            const tank = tanks[Math.floor(Math.random() * tanks.length)];
-            this.deployEnemyUnit({...unitTemplates[tank], type: tank}, targetLane, 'push');
-            return;
-        }
-        
-        // Add support if we already have units pushing
-        const pushingUnits = gameState.enemyUnits.filter(u => u.x < config.bridge.x);
-        if (pushingUnits.length > 0 && supports.length > 0) {
-            const support = supports[Math.floor(Math.random() * supports.length)];
-            this.deployEnemyUnit({...unitTemplates[support], type: support}, targetLane, 'support');
-            return;
-        }
-        
-        // Win condition cards
-        const winConditions = ['hogrider', 'balloon', 'miner'].filter(
-            w => unitTemplates[w] && unitTemplates[w].cost <= this.enemyElixir
-        );
-        
-        if (winConditions.length > 0 && gameState.canFinishTower) {
-            const winCon = winConditions[Math.floor(Math.random() * winConditions.length)];
-            this.deployEnemyUnit({...unitTemplates[winCon], type: winCon}, targetLane, 'attack');
-        }
-    }
-    
-    // Balanced play
+    // Balanced play - cycle and pressure
     aiBalancedPlay(gameState) {
         // Counter-push after defending
         if (gameState.enemyUnitsOnField > 0 && gameState.playerUnitsOnField < 2) {
@@ -1695,7 +3052,6 @@ class Game {
             );
             if (supports.length > 0) {
                 const support = supports[Math.floor(Math.random() * supports.length)];
-                // Deploy behind existing units
                 const existingUnit = gameState.enemyUnits[0];
                 const lane = existingUnit.y < config.canvas.height / 2 ? 'top' : 'bottom';
                 this.deployEnemyUnit({...unitTemplates[support], type: support}, lane, 'support');
@@ -1703,22 +3059,23 @@ class Game {
             }
         }
         
-        // Pressure opposite lane when player pushes
-        if (gameState.underAttack && this.enemyElixir >= 4) {
-            const oppositeLane = gameState.mostDangerousLane === 'top' ? 'bottom' : 'top';
-            const pressureCards = ['hogrider', 'minipekka', 'knight', 'barbarian'].filter(
-                p => unitTemplates[p] && unitTemplates[p].cost <= this.enemyElixir
+        // Light pressure with win condition
+        if (this.enemyElixir >= 4 && gameState.playerUnitsOnField < 3) {
+            const winCons = ['hogrider', 'miner', 'balloon'].filter(
+                w => unitTemplates[w] && unitTemplates[w].cost <= this.enemyElixir
             );
-            if (pressureCards.length > 0) {
-                const card = pressureCards[Math.floor(Math.random() * pressureCards.length)];
-                this.deployEnemyUnit({...unitTemplates[card], type: card}, oppositeLane, 'attack');
+            
+            if (winCons.length > 0 && Math.random() > 0.5) {
+                const winCon = winCons[Math.floor(Math.random() * winCons.length)];
+                const lane = Math.random() > 0.5 ? 'top' : 'bottom';
+                this.deployEnemyUnit({...unitTemplates[winCon], type: winCon}, lane, 'attack');
                 return;
             }
         }
         
-        // Standard play - deploy something
+        // Standard deployment
         const available = Object.entries(unitTemplates)
-            .filter(([_, u]) => u.cost <= this.enemyElixir && u.cost >= 3)
+            .filter(([_, u]) => u.cost <= this.enemyElixir && u.cost >= 3 && !u.isBuilding && !u.isSpell)
             .map(([key, u]) => ({...u, type: key}));
         
         if (available.length > 0) {
@@ -1728,15 +3085,38 @@ class Game {
         }
     }
     
+    // Deploy enemy building (for defensive purposes)
+    deployEnemyBuilding(buildingType, lane) {
+        const template = unitTemplates[buildingType];
+        if (!template || this.enemyElixir < template.cost) return;
+        
+        this.enemyElixir -= template.cost;
+        
+        // Place building to pull units - in the middle toward appropriate lane
+        const bridgeIndex = lane === 'top' ? 0 : 1;
+        const targetBridge = this.bridges[bridgeIndex];
+        
+        // Buildings placed to pull building-targeting units
+        const x = config.canvas.width - 150; // In front of tower
+        const y = targetBridge.centerY + (lane === 'top' ? 30 : -30); // Offset to pull
+        
+        // Snap to grid
+        const gridX = Math.round(x / this.grid.cellSize) * this.grid.cellSize + this.grid.cellSize / 2;
+        const gridY = Math.round(y / this.grid.cellSize) * this.grid.cellSize + this.grid.cellSize / 2;
+        
+        this.createBuilding(template, gridX, gridY, 'enemy');
+        this.soundSystem.play('deploy');
+    }
+    
     // Get defensive unit options
     getDefensiveUnits() {
         return Object.entries(unitTemplates)
-            .filter(([_, u]) => u.cost <= this.enemyElixir)
+            .filter(([_, u]) => u.cost <= this.enemyElixir && !u.isBuilding && !u.isSpell)
             .map(([key, u]) => ({...u, type: key}))
             .sort((a, b) => {
                 // Prioritize high damage, splash, and ranged units for defense
-                let scoreA = a.damage;
-                let scoreB = b.damage;
+                let scoreA = a.damage || 0;
+                let scoreB = b.damage || 0;
                 if (a.splashRadius) scoreA *= 1.5;
                 if (b.splashRadius) scoreB *= 1.5;
                 if (a.isRanged) scoreA *= 1.3;
@@ -1784,16 +3164,22 @@ class Game {
                 x = config.canvas.width - 100;
                 y = targetBridge.centerY + (Math.random() - 0.5) * 60;
                 break;
+            case 'back':
+                // Deploy at very back (behind king tower) - for building big pushes
+                x = config.canvas.width - 50;
+                y = targetBridge.centerY;
+                break;
             case 'push':
-                // Deploy at back
+                // Deploy at back (near princess tower)
                 x = config.canvas.width - 80;
                 y = targetBridge.centerY;
                 break;
             case 'support':
-                // Deploy behind existing units
+                // Deploy behind existing units (ranged support positioning)
                 const allyUnits = this.units.filter(u => u.team === 'enemy');
                 if (allyUnits.length > 0) {
                     const frontUnit = allyUnits.reduce((front, u) => u.x < front.x ? u : front, allyUnits[0]);
+                    // Support stays behind the tank
                     x = Math.min(frontUnit.x + 80, config.canvas.width - 100);
                     y = frontUnit.y + (Math.random() - 0.5) * 40;
                 } else {
@@ -1803,7 +3189,7 @@ class Game {
                 break;
             case 'attack':
             default:
-                // Deploy at bridge
+                // Deploy at bridge for immediate attack
                 x = config.canvas.width - 120;
                 y = targetBridge.centerY + (Math.random() - 0.5) * 30;
                 break;
@@ -2002,6 +3388,11 @@ class Game {
             }
         });
         
+        // Draw placed buildings
+        this.buildings.forEach(building => {
+            this.drawBuilding(ctx, building);
+        });
+        
         // Draw units
         this.units.forEach(unit => {
             this.drawUnit(ctx, unit);
@@ -2105,24 +3496,254 @@ class Game {
         
         // Draw deployment preview
         if (this.deploymentPreview) {
-            ctx.strokeStyle = this.deploymentPreview.valid ? '#4ade80' : '#ef4444';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([8, 8]);
-            ctx.beginPath();
-            ctx.arc(this.deploymentPreview.x, this.deploymentPreview.y, 35, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            const isBuilding = this.deploymentPreview.isBuilding;
+            
+            // Draw grid overlay for building placement
+            if (isBuilding) {
+                this.drawPlacementGrid(ctx);
+            }
+            
+            // Draw placement indicator
+            if (isBuilding) {
+                // Square indicator for buildings
+                const size = config.grid.cellSize;
+                ctx.strokeStyle = this.deploymentPreview.valid ? '#4ade80' : '#ef4444';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([8, 8]);
+                ctx.strokeRect(
+                    this.deploymentPreview.x - size/2,
+                    this.deploymentPreview.y - size/2,
+                    size, size
+                );
+                ctx.setLineDash([]);
+                
+                // Building base preview
+                ctx.fillStyle = this.deploymentPreview.valid ? 'rgba(74, 222, 128, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+                ctx.fillRect(
+                    this.deploymentPreview.x - size/2,
+                    this.deploymentPreview.y - size/2,
+                    size, size
+                );
+            } else {
+                // Circle indicator for units
+                ctx.strokeStyle = this.deploymentPreview.valid ? '#4ade80' : '#ef4444';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([8, 8]);
+                ctx.beginPath();
+                ctx.arc(this.deploymentPreview.x, this.deploymentPreview.y, 35, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
             
             // Range indicator
             if (this.selectedCard && unitTemplates[this.selectedCard.type]) {
                 const template = unitTemplates[this.selectedCard.type];
-                ctx.strokeStyle = `rgba(102, 126, 234, 0.3)`;
-                ctx.lineWidth = 2;
+                if (template.range > 0) {
+                    ctx.strokeStyle = `rgba(102, 126, 234, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(this.deploymentPreview.x, this.deploymentPreview.y, template.range, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Fill range area lightly
+                    ctx.fillStyle = `rgba(102, 126, 234, 0.1)`;
+                    ctx.fill();
+                }
+            }
+        }
+    }
+    
+    // Draw grid overlay for building placement
+    drawPlacementGrid(ctx) {
+        const cellSize = config.grid.cellSize;
+        const maxX = config.bridge.x + 50; // Player's side only
+        
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 1;
+        
+        // Vertical lines
+        for (let x = cellSize; x < maxX; x += cellSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, config.canvas.height);
+            ctx.stroke();
+        }
+        
+        // Horizontal lines
+        for (let y = cellSize; y < config.canvas.height; y += cellSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(maxX, y);
+            ctx.stroke();
+        }
+        
+        // Highlight grid cells near existing buildings
+        ctx.fillStyle = 'rgba(255, 100, 100, 0.2)';
+        this.buildings.forEach(building => {
+            if (building.team === 'player') {
+                const cellX = Math.round(building.x / cellSize) * cellSize - cellSize/2;
+                const cellY = Math.round(building.y / cellSize) * cellSize - cellSize/2;
+                ctx.fillRect(cellX, cellY, cellSize, cellSize);
+            }
+        });
+    }
+    
+    // Draw a placed building
+    drawBuilding(ctx, building) {
+        const size = building.size || 55;
+        const now = Date.now();
+        const age = now - building.createdAt;
+        const remainingLife = building.lifetime - age;
+        const lifePercent = remainingLife / building.lifetime;
+        
+        ctx.save();
+        
+        // Tesla hiding effect
+        if (building.isHiding) {
+            ctx.globalAlpha = 0.4;
+        }
+        
+        // Building base shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(building.x + 3, building.y + size/2, size/2, size/4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Building base platform
+        const baseGradient = ctx.createLinearGradient(building.x - size/2, building.y, building.x + size/2, building.y);
+        baseGradient.addColorStop(0, '#5D4037');
+        baseGradient.addColorStop(0.5, '#8D6E63');
+        baseGradient.addColorStop(1, '#5D4037');
+        ctx.fillStyle = baseGradient;
+        ctx.beginPath();
+        ctx.ellipse(building.x, building.y + size/3, size/2, size/4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#3E2723';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Building body
+        const bodyGradient = ctx.createRadialGradient(
+            building.x - size/6, building.y - size/4, 0,
+            building.x, building.y, size/2
+        );
+        
+        // Color based on building type
+        let mainColor, highlightColor, shadowColor;
+        if (building.infernoDamage) {
+            mainColor = '#C62828';
+            highlightColor = '#FF5252';
+            shadowColor = '#7F0000';
+        } else if (building.hidden) {
+            mainColor = '#FFC107';
+            highlightColor = '#FFE082';
+            shadowColor = '#FF8F00';
+        } else if (building.spawnsSkeletons) {
+            mainColor = '#616161';
+            highlightColor = '#9E9E9E';
+            shadowColor = '#212121';
+        } else if (building.spawnsGoblins) {
+            mainColor = '#2E7D32';
+            highlightColor = '#66BB6A';
+            shadowColor = '#1B5E20';
+        } else if (building.splashRadius) {
+            mainColor = '#5D4037';
+            highlightColor = '#8D6E63';
+            shadowColor = '#3E2723';
+        } else {
+            mainColor = '#455A64';
+            highlightColor = '#78909C';
+            shadowColor = '#263238';
+        }
+        
+        bodyGradient.addColorStop(0, highlightColor);
+        bodyGradient.addColorStop(0.5, mainColor);
+        bodyGradient.addColorStop(1, shadowColor);
+        
+        ctx.fillStyle = bodyGradient;
+        ctx.beginPath();
+        ctx.arc(building.x, building.y - 5, size/2.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Team indicator ring
+        ctx.strokeStyle = building.team === 'player' ? '#3B82F6' : '#EF4444';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(building.x, building.y - 5, size/2.2 + 3, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Building emoji
+        ctx.font = `${size * 0.6}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillText(building.emoji, building.x + 1, building.y - 3);
+        ctx.fillStyle = '#FFF';
+        ctx.fillText(building.emoji, building.x, building.y - 5);
+        
+        ctx.globalAlpha = 1.0;
+        
+        // Health bar
+        const healthPercent = building.currentHp / building.maxHp;
+        const barWidth = size * 1.2;
+        const barHeight = 6;
+        const barX = building.x - barWidth/2;
+        const barY = building.y - size/2 - 20;
+        
+        // Health bar background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.roundRect(ctx, barX - 1, barY - 1, barWidth + 2, barHeight + 2, 3);
+        ctx.fill();
+        
+        // Health bar fill
+        const healthColor = healthPercent > 0.6 ? '#22C55E' : healthPercent > 0.3 ? '#EAB308' : '#EF4444';
+        ctx.fillStyle = healthColor;
+        if (healthPercent > 0) {
+            this.roundRect(ctx, barX, barY, barWidth * healthPercent, barHeight, 3);
+            ctx.fill();
+        }
+        
+        // Health bar border
+        ctx.strokeStyle = building.team === 'player' ? '#1E40AF' : '#991B1B';
+        ctx.lineWidth = 1.5;
+        this.roundRect(ctx, barX, barY, barWidth, barHeight, 3);
+        ctx.stroke();
+        
+        // Lifetime timer bar (below health)
+        const timerBarY = barY + barHeight + 3;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(barX, timerBarY, barWidth, 3);
+        ctx.fillStyle = lifePercent > 0.3 ? '#60A5FA' : '#F87171';
+        ctx.fillRect(barX, timerBarY, barWidth * lifePercent, 3);
+        
+        // Inferno beam effect when attacking
+        if (building.infernoDamage && building.infernoDamageStack > 0) {
+            const target = this.units.find(u => u.id === building.infernoTarget);
+            if (target) {
+                const beamWidth = 2 + building.infernoDamageStack * 0.5;
+                const gradient = ctx.createLinearGradient(building.x, building.y, target.x, target.y);
+                gradient.addColorStop(0, '#FF4500');
+                gradient.addColorStop(0.5, '#FF6347');
+                gradient.addColorStop(1, '#FFD700');
+                
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = beamWidth;
                 ctx.beginPath();
-                ctx.arc(this.deploymentPreview.x, this.deploymentPreview.y, template.range, 0, Math.PI * 2);
+                ctx.moveTo(building.x, building.y - 5);
+                ctx.lineTo(target.x, target.y);
+                ctx.stroke();
+                
+                // Glow effect
+                ctx.strokeStyle = 'rgba(255, 100, 0, 0.3)';
+                ctx.lineWidth = beamWidth + 4;
+                ctx.beginPath();
+                ctx.moveTo(building.x, building.y - 5);
+                ctx.lineTo(target.x, target.y);
                 ctx.stroke();
             }
         }
+        
+        ctx.restore();
     }
     
     // Draw grass texture pattern
