@@ -1,0 +1,1186 @@
+// ========================================
+// MULON - Main Site JavaScript
+// ========================================
+
+import { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync } from './data.js';
+
+// Track pending Over Under sync data
+let pendingOUSyncData = null;
+
+document.addEventListener('DOMContentLoaded', async function() {
+  // Initialize Firebase Auth
+  Auth.init();
+  
+  // Check if onboarding is needed
+  if (!OnboardingState.hasCompletedOnboarding()) {
+    showOnboarding();
+  } else {
+    hideOnboarding();
+  }
+  
+  // Setup onboarding handlers
+  setupOnboarding();
+  
+  // Setup auth UI
+  setupAuthUI();
+  
+  // Show loading state
+  showLoading();
+  
+  // Initialize data from Firebase
+  await MulonData.init();
+  
+  // Render markets
+  renderMarkets();
+  
+  // Setup modal
+  setupModal();
+  
+  // Setup sidebar
+  setupSidebar();
+  
+  // Listen for auth state changes
+  Auth.onAuthStateChange((user) => {
+    updateAuthUI(user);
+    updateUserUI();
+  });
+  
+  // Setup deposit button
+  setupDeposit();
+});
+
+// ========================================
+// ONBOARDING
+// ========================================
+let currentSegment = 0;
+
+function showOnboarding() {
+  const overlay = document.getElementById('onboardingOverlay');
+  if (overlay) {
+    overlay.classList.remove('hidden');
+    // Auto-advance from intro (segment 0) after animation completes
+    setTimeout(() => {
+      if (currentSegment === 0) {
+        goToSegment(1);
+      }
+    }, 2000); // 3.5 seconds for intro animation
+  }
+}
+
+function hideOnboarding() {
+  const overlay = document.getElementById('onboardingOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+  }
+}
+
+function goToSegment(segmentNum) {
+  const segments = document.querySelectorAll('.onboarding-segment');
+  const dots = document.querySelectorAll('.progress-dot');
+  const progressBar = document.getElementById('onboardingProgress');
+  
+  segments.forEach(seg => {
+    const num = parseInt(seg.dataset.segment);
+    if (num === currentSegment) {
+      seg.classList.add('exit');
+      seg.classList.remove('active');
+    } else if (num === segmentNum) {
+      setTimeout(() => {
+        seg.classList.add('active');
+        seg.classList.remove('exit');
+      }, 100);
+    } else {
+      seg.classList.remove('active', 'exit');
+    }
+  });
+  
+  // Hide progress dots during intro (segment 0)
+  if (progressBar) {
+    progressBar.style.opacity = segmentNum === 0 ? '0' : '1';
+  }
+  
+  // Progress dots start at segment 1 (intro has no dot)
+  dots.forEach(dot => {
+    const num = parseInt(dot.dataset.segment);
+    dot.classList.toggle('active', num === segmentNum);
+    dot.classList.toggle('completed', num < segmentNum && num >= 1);
+  });
+  
+  currentSegment = segmentNum;
+}
+
+function setupOnboarding() {
+  // Google Sign In button
+  const googleSignInBtn = document.getElementById('googleSignInBtn');
+  if (googleSignInBtn) {
+    googleSignInBtn.addEventListener('click', async () => {
+      const result = await Auth.signInWithGoogle();
+      if (result.success) {
+        // Check for Over Under account
+        const userEmail = result.user?.email;
+        if (userEmail) {
+          const ouAccount = await OverUnderSync.checkForOverUnderAccount(userEmail);
+          if (ouAccount.found && ouAccount.username) {
+            // Show sync modal
+            showOUSyncModal(ouAccount, result.user.uid);
+            return; // Don't advance yet, wait for user decision
+          }
+        }
+        goToSegment(2);
+      } else {
+        showNotification('Sign in failed. Please try again.', 'error');
+      }
+    });
+  }
+  
+  // Skip/Guest button
+  const skipSignInBtn = document.getElementById('skipSignInBtn');
+  if (skipSignInBtn) {
+    skipSignInBtn.addEventListener('click', () => {
+      Auth.setGuestMode();
+      goToSegment(2);
+    });
+  }
+  
+  // Over Under Sync modal buttons
+  setupOUSyncModal();
+  
+  // Next buttons
+  const nextBtns = document.querySelectorAll('.next-btn');
+  nextBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const nextSeg = parseInt(btn.dataset.next);
+      goToSegment(nextSeg);
+    });
+  });
+  
+  // Start trading button
+  const startTradingBtn = document.getElementById('startTradingBtn');
+  if (startTradingBtn) {
+    startTradingBtn.addEventListener('click', () => {
+      OnboardingState.setCompleted();
+      hideOnboarding();
+    });
+  }
+  
+  // Progress dots (clickable for navigation)
+  const dots = document.querySelectorAll('.progress-dot');
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const segNum = parseInt(dot.dataset.segment);
+      // Only allow going to completed segments or next one
+      if (segNum <= currentSegment || segNum === currentSegment + 1) {
+        goToSegment(segNum);
+      }
+    });
+  });
+}
+
+// ========================================
+// AUTHENTICATION UI
+// ========================================
+function setupAuthUI() {
+  // User menu toggle
+  const userMenu = document.getElementById('userMenu');
+  const userAvatar = document.getElementById('userAvatar');
+  
+  if (userAvatar && userMenu) {
+    userAvatar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userMenu.classList.toggle('open');
+    });
+    
+    // Close on outside click
+    document.addEventListener('click', () => {
+      userMenu.classList.remove('open');
+    });
+  }
+  
+  // Header sign in button
+  const headerSignInBtn = document.getElementById('headerSignInBtn');
+  if (headerSignInBtn) {
+    headerSignInBtn.addEventListener('click', async () => {
+      const result = await Auth.signInWithGoogle();
+      if (result.success) {
+        showNotification('Signed in successfully!', 'success');
+      }
+    });
+  }
+  
+  // Sign out button
+  const signOutBtn = document.getElementById('signOutBtn');
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', async () => {
+      await Auth.signOut();
+      showNotification('Signed out', 'success');
+    });
+  }
+  
+  // Modal sign in button
+  const modalSignInBtn = document.getElementById('modalSignInBtn');
+  if (modalSignInBtn) {
+    modalSignInBtn.addEventListener('click', async () => {
+      const result = await Auth.signInWithGoogle();
+      if (result.success) {
+        hideSignInModal();
+        showNotification('Signed in! You can now trade.', 'success');
+      }
+    });
+  }
+  
+  // Cancel sign in modal
+  const cancelSignInBtn = document.getElementById('cancelSignInBtn');
+  if (cancelSignInBtn) {
+    cancelSignInBtn.addEventListener('click', hideSignInModal);
+  }
+}
+
+function updateAuthUI(user) {
+  const userInitials = document.getElementById('userInitials');
+  const userPhoto = document.getElementById('userPhoto');
+  const userName = document.getElementById('userName');
+  const userEmail = document.getElementById('userEmail');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const headerSignInBtn = document.getElementById('headerSignInBtn');
+  
+  if (user && !user.isGuest) {
+    // Signed in
+    if (userPhoto && user.photoURL) {
+      userPhoto.src = user.photoURL;
+      userPhoto.style.display = 'block';
+      if (userInitials) userInitials.style.display = 'none';
+    } else if (userInitials) {
+      const initials = user.displayName 
+        ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        : '?';
+      userInitials.textContent = initials;
+      userInitials.style.display = 'flex';
+      if (userPhoto) userPhoto.style.display = 'none';
+    }
+    
+    if (userName) userName.textContent = user.displayName || 'User';
+    if (userEmail) userEmail.textContent = user.email || '';
+    if (signOutBtn) signOutBtn.style.display = 'flex';
+    if (headerSignInBtn) headerSignInBtn.style.display = 'none';
+  } else {
+    // Guest or signed out
+    if (userInitials) {
+      userInitials.textContent = user?.isGuest ? 'G' : '?';
+      userInitials.style.display = 'flex';
+    }
+    if (userPhoto) userPhoto.style.display = 'none';
+    if (userName) userName.textContent = user?.isGuest ? 'Guest' : 'Not signed in';
+    if (userEmail) userEmail.textContent = user?.isGuest ? 'Browsing only' : 'Sign in to trade';
+    if (signOutBtn) signOutBtn.style.display = 'none';
+    if (headerSignInBtn) headerSignInBtn.style.display = 'flex';
+  }
+}
+
+function showSignInModal() {
+  const modal = document.getElementById('signinRequiredModal');
+  if (modal) modal.classList.add('active');
+}
+
+function hideSignInModal() {
+  const modal = document.getElementById('signinRequiredModal');
+  if (modal) modal.classList.remove('active');
+}
+
+// ========================================
+// OVER UNDER SYNC
+// ========================================
+function showOUSyncModal(ouAccount, mulonUserId) {
+  const modal = document.getElementById('ouSyncModal');
+  const usernameEl = document.getElementById('ouSyncUsername');
+  
+  if (modal && usernameEl) {
+    // Display the username from Over Under
+    usernameEl.textContent = ouAccount.username;
+    
+    // Store data for when user clicks yes
+    pendingOUSyncData = {
+      mulonUserId: mulonUserId,
+      username: ouAccount.username,
+      name: ouAccount.name
+    };
+    
+    modal.classList.add('active');
+  }
+}
+
+function hideOUSyncModal() {
+  const modal = document.getElementById('ouSyncModal');
+  if (modal) modal.classList.remove('active');
+  pendingOUSyncData = null;
+}
+
+function setupOUSyncModal() {
+  const syncYesBtn = document.getElementById('ouSyncYes');
+  const syncNoBtn = document.getElementById('ouSyncNo');
+  
+  if (syncYesBtn) {
+    syncYesBtn.addEventListener('click', async () => {
+      if (pendingOUSyncData) {
+        // Sync the username
+        const result = await OverUnderSync.syncUsername(
+          pendingOUSyncData.mulonUserId,
+          pendingOUSyncData.username
+        );
+        
+        if (result.success) {
+          showNotification(`Welcome back, ${pendingOUSyncData.username}!`, 'success');
+        }
+      }
+      hideOUSyncModal();
+      goToSegment(2);
+    });
+  }
+  
+  if (syncNoBtn) {
+    syncNoBtn.addEventListener('click', () => {
+      hideOUSyncModal();
+      goToSegment(2);
+    });
+  }
+}
+
+// Check if user can trade (must be signed in, not guest)
+function canTrade() {
+  return Auth.isSignedIn();
+}
+
+function showLoading() {
+  const featuredContainer = document.getElementById('featuredContainer');
+  const marketGrid = document.getElementById('marketGrid');
+  
+  if (featuredContainer) {
+    featuredContainer.innerHTML = '<div class="loading">Loading markets...</div>';
+  }
+  if (marketGrid) {
+    marketGrid.innerHTML = '';
+  }
+}
+
+// ========================================
+// RENDER MARKETS
+// ========================================
+let currentSlide = 0;
+let featuredMarketsData = [];
+
+function renderMarkets() {
+  const markets = MulonData.getActiveMarkets();
+  const featuredMarkets = markets.filter(m => m.featured);
+  const allMarkets = markets.filter(m => !m.featured);
+  
+  // Store featured markets for slider
+  featuredMarketsData = featuredMarkets.length > 0 ? featuredMarkets : (markets.length > 0 ? [markets[0]] : []);
+  
+  // Render featured slider
+  const featuredContainer = document.getElementById('featuredContainer');
+  if (featuredContainer) {
+    if (featuredMarketsData.length > 0) {
+      featuredContainer.innerHTML = renderFeaturedSlider(featuredMarketsData);
+      setupSlider();
+    } else {
+      featuredContainer.innerHTML = '<div class="empty-state">No markets available yet.</div>';
+    }
+  }
+  
+  // Render market grid
+  const marketGrid = document.getElementById('marketGrid');
+  if (marketGrid) {
+    const gridMarkets = featuredMarkets.length > 0 ? allMarkets : markets.slice(1);
+    if (gridMarkets.length > 0) {
+      marketGrid.innerHTML = gridMarkets.map(market => renderMarketCard(market)).join('');
+    } else {
+      marketGrid.innerHTML = '';
+    }
+  }
+  
+  // Re-attach event listeners
+  attachBetButtonListeners();
+}
+
+function renderFeaturedSlider(markets) {
+  const slides = markets.map((market, index) => renderFeaturedSlide(market, index)).join('');
+  const dots = markets.length > 1 ? `
+    <div class="slider-dots">
+      ${markets.map((_, index) => `<button class="slider-dot ${index === 0 ? 'active' : ''}" data-slide="${index}"></button>`).join('')}
+    </div>
+  ` : '';
+  
+  return `
+    <div class="featured-slider">
+      ${markets.length > 1 ? `
+        <button class="slider-arrow slider-prev" aria-label="Previous">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      ` : ''}
+      <div class="slider-track">
+        ${slides}
+      </div>
+      ${markets.length > 1 ? `
+        <button class="slider-arrow slider-next" aria-label="Next">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      ` : ''}
+      ${dots}
+    </div>
+  `;
+}
+
+function renderFeaturedSlide(market, index) {
+  const category = MulonData.categories[market.category] || { icon: '📊', label: 'Other', color: 'school' };
+  
+  return `
+    <div class="featured-slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}">
+      <div class="featured-card" data-market-id="${market.id}">
+        <div class="card-header">
+          <div class="card-category">
+            <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
+            <span class="volume">${MulonData.formatVolume(market.volume)}</span>
+          </div>
+          <div class="card-time">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>${MulonData.getDaysUntil(market.endDate)}</span>
+          </div>
+        </div>
+        <h3 class="card-title">${market.title}</h3>
+        <p class="card-subtitle">${market.subtitle || ''}</p>
+        
+        <div class="probability-bar">
+          <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
+        </div>
+        <div class="prob-labels">
+          <span class="prob-yes">${market.yesPrice}% Yes</span>
+          <span class="prob-no">${market.noPrice}% No</span>
+        </div>
+
+        <div class="bet-buttons">
+          <button class="bet-btn yes" data-market-id="${market.id}" data-choice="yes">
+            <div class="bet-label">Yes</div>
+            <div class="bet-price">${market.yesPrice}¢</div>
+          </button>
+          <button class="bet-btn no" data-market-id="${market.id}" data-choice="no">
+            <div class="bet-label">No</div>
+            <div class="bet-price">${market.noPrice}¢</div>
+          </button>
+        </div>
+        <div class="payout-info">
+          <span class="payout yes-payout">$100 → $${Math.round(100 / (market.yesPrice / 100))}</span>
+          <span class="payout no-payout">$100 → $${Math.round(100 / (market.noPrice / 100))}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function setupSlider() {
+  const prevBtn = document.querySelector('.slider-prev');
+  const nextBtn = document.querySelector('.slider-next');
+  const dots = document.querySelectorAll('.slider-dot');
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => goToSlide(currentSlide - 1));
+  }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => goToSlide(currentSlide + 1));
+  }
+  
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      goToSlide(parseInt(dot.dataset.slide));
+    });
+  });
+  
+  // Touch/swipe support
+  const track = document.querySelector('.slider-track');
+  if (track) {
+    let startX = 0;
+    let isDragging = false;
+    
+    track.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    });
+    
+    track.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      const endX = e.changedTouches[0].clientX;
+      const diff = startX - endX;
+      
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          goToSlide(currentSlide + 1);
+        } else {
+          goToSlide(currentSlide - 1);
+        }
+      }
+      isDragging = false;
+    });
+  }
+}
+
+function goToSlide(index) {
+  const slides = document.querySelectorAll('.featured-slide');
+  const dots = document.querySelectorAll('.slider-dot');
+  
+  if (slides.length === 0) return;
+  
+  // Wrap around
+  if (index < 0) index = slides.length - 1;
+  if (index >= slides.length) index = 0;
+  
+  currentSlide = index;
+  
+  // Update slides
+  slides.forEach((slide, i) => {
+    slide.classList.toggle('active', i === index);
+  });
+  
+  // Update dots
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
+  });
+}
+
+function renderMarketCard(market) {
+  const category = MulonData.categories[market.category] || { icon: '📊', label: 'Other', color: 'school' };
+  
+  return `
+    <div class="market-card" data-market-id="${market.id}">
+      <div class="card-category">
+        <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
+      </div>
+      <h4 class="card-title">${market.title}</h4>
+      <div class="card-time small">
+        <span>Ends ${MulonData.formatDate(market.endDate)}</span>
+      </div>
+      <div class="probability-bar small">
+        <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
+      </div>
+      <div class="bet-buttons compact">
+        <button class="bet-btn yes compact" data-market-id="${market.id}" data-choice="yes">
+          <span>Yes</span>
+          <span class="price">${market.yesPrice}¢</span>
+        </button>
+        <button class="bet-btn no compact" data-market-id="${market.id}" data-choice="no">
+          <span>No</span>
+          <span class="price">${market.noPrice}¢</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ========================================
+// MODAL FUNCTIONALITY
+// ========================================
+let modal, closeBtn, modalTitle, modalChoice, yesPrice, noPrice;
+let priceYesBtn, priceNoBtn, amountInput, oddsValue, payoutValue, buyBtn, modalTabs;
+let currentChoice = 'yes';
+let currentYesPrice = 69;
+let currentNoPrice = 31;
+let currentMarketId = null;
+
+function setupModal() {
+  modal = document.getElementById('betModal');
+  closeBtn = document.getElementById('closeModal');
+  modalTitle = document.getElementById('modalTitle');
+  modalChoice = document.getElementById('modalChoice');
+  yesPrice = document.getElementById('yesPrice');
+  noPrice = document.getElementById('noPrice');
+  priceYesBtn = document.getElementById('priceYes');
+  priceNoBtn = document.getElementById('priceNo');
+  amountInput = document.getElementById('amountInput');
+  oddsValue = document.getElementById('oddsValue');
+  payoutValue = document.getElementById('payoutValue');
+  buyBtn = document.getElementById('buyBtn');
+  modalTabs = document.querySelectorAll('.modal-tab');
+
+  // Close modal events
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+  }
+  
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
+      closeModal();
+    }
+  });
+
+  // Price button toggle
+  if (priceYesBtn) {
+    priceYesBtn.addEventListener('click', function() {
+      currentChoice = 'yes';
+      updateModalChoice();
+      updatePayout();
+    });
+  }
+
+  if (priceNoBtn) {
+    priceNoBtn.addEventListener('click', function() {
+      currentChoice = 'no';
+      updateModalChoice();
+      updatePayout();
+    });
+  }
+
+  // Amount input change
+  if (amountInput) {
+    amountInput.addEventListener('input', updatePayout);
+  }
+
+  // Tab switching (Buy/Sell)
+  modalTabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      modalTabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      const tabType = this.dataset.tab;
+      if (tabType === 'sell') {
+        buyBtn.textContent = 'Sell';
+        buyBtn.classList.add('sell-mode');
+      } else {
+        buyBtn.textContent = 'Buy';
+        buyBtn.classList.remove('sell-mode');
+      }
+    });
+  });
+
+  // Buy button click - uses order book for price discovery
+  if (buyBtn) {
+    buyBtn.addEventListener('click', async function() {
+      // Check if user is signed in
+      if (!canTrade()) {
+        showSignInModal();
+        return;
+      }
+      
+      const amount = parseFloat(amountInput.value) || 0;
+      if (amount <= 0) {
+        showNotification('Please enter a valid amount', 'error');
+        return;
+      }
+      
+      if (amount < 0.10) {
+        showNotification('Minimum order is $0.10', 'error');
+        return;
+      }
+      
+      const balance = UserData.getBalance();
+      const isSelling = this.classList.contains('sell-mode');
+      
+      if (!isSelling && amount > balance) {
+        showNotification('Insufficient balance!', 'error');
+        return;
+      }
+      
+      const market = MulonData.getMarket(currentMarketId);
+      if (!market) {
+        showNotification('Market not found', 'error');
+        return;
+      }
+      
+      // Disable button while processing
+      buyBtn.disabled = true;
+      buyBtn.textContent = 'Processing...';
+      
+      try {
+        // Execute order through the order book (with user ID)
+        const userId = Auth.getUser()?.uid || 'anonymous';
+        const result = await OrderBook.executeMarketOrder(
+          currentMarketId,
+          isSelling ? 'sell' : 'buy',
+          currentChoice,
+          amount,
+          userId
+        );
+        
+        if (!result.filled) {
+          showNotification(result.error || 'Order could not be filled', 'error');
+          return;
+        }
+        
+        if (isSelling) {
+          // Add proceeds to balance
+          await UserData.updateBalance(amount);
+          showNotification(
+            `Sold ${result.shares} ${currentChoice.toUpperCase()} @ ${result.avgPrice}¢ for $${amount.toFixed(2)}! Price moved to ${result.newPrice}¢`, 
+            'success'
+          );
+        } else {
+          // Deduct from balance and add position
+          await UserData.updateBalance(-amount);
+          await UserData.addPosition(
+            currentMarketId,
+            market.title,
+            currentChoice,
+            result.shares,
+            amount,
+            result.avgPrice
+          );
+          
+          // Show price impact
+          const priceChangeText = result.priceChange !== 0 
+            ? ` (${result.priceChange > 0 ? '+' : ''}${result.priceChange}¢)` 
+            : '';
+          
+          showNotification(
+            `Bought ${result.shares} ${currentChoice.toUpperCase()} @ ${result.avgPrice}¢${priceChangeText} → Now ${result.newPrice}¢`, 
+            'success'
+          );
+        }
+        
+        // Update UI with new prices
+        updateUserUI();
+        renderMarkets(); // Re-render to show new prices
+        closeModal();
+        
+      } catch (error) {
+        console.error('Order execution error:', error);
+        showNotification('Order failed. Please try again.', 'error');
+      } finally {
+        buyBtn.disabled = false;
+        buyBtn.textContent = isSelling ? 'Sell' : 'Buy';
+      }
+    });
+  }
+}
+
+function attachBetButtonListeners() {
+  const betButtons = document.querySelectorAll('.bet-btn');
+  
+  betButtons.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      
+      const marketId = this.dataset.marketId;
+      const choice = this.dataset.choice;
+      const market = MulonData.getMarket(marketId);
+      
+      if (!market) return;
+      
+      currentMarketId = marketId;
+      currentYesPrice = market.yesPrice;
+      currentNoPrice = market.noPrice;
+      currentChoice = choice;
+      
+      // Update modal content
+      const category = MulonData.categories[market.category] || { icon: '📊' };
+      
+      if (modalTitle) modalTitle.textContent = market.title;
+      document.querySelector('.modal-market-icon').textContent = category.icon;
+      if (yesPrice) yesPrice.textContent = market.yesPrice + '¢';
+      if (noPrice) noPrice.textContent = market.noPrice + '¢';
+      
+      updateModalChoice();
+      updatePayout();
+      
+      // Show modal
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+
+  // Make market cards clickable
+  const marketCards = document.querySelectorAll('.market-card');
+  marketCards.forEach(card => {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.bet-btn')) return;
+      const yesBtn = this.querySelector('.bet-btn.yes');
+      if (yesBtn) yesBtn.click();
+    });
+  });
+}
+
+function closeModal() {
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+function updateModalChoice() {
+  if (currentChoice === 'yes') {
+    if (priceYesBtn) priceYesBtn.classList.add('active');
+    if (priceNoBtn) priceNoBtn.classList.remove('active');
+    if (modalChoice) {
+      modalChoice.textContent = 'Yes';
+      modalChoice.className = 'choice-yes';
+    }
+    if (oddsValue) oddsValue.textContent = currentYesPrice + '¢';
+  } else {
+    if (priceNoBtn) priceNoBtn.classList.add('active');
+    if (priceYesBtn) priceYesBtn.classList.remove('active');
+    if (modalChoice) {
+      modalChoice.textContent = 'No';
+      modalChoice.className = 'choice-no';
+    }
+    if (oddsValue) oddsValue.textContent = currentNoPrice + '¢';
+  }
+}
+
+function updatePayout() {
+  if (!amountInput || !payoutValue) return;
+  
+  const amount = parseFloat(amountInput.value) || 0;
+  const price = currentChoice === 'yes' ? currentYesPrice : currentNoPrice;
+  const pricePerShare = price / 100;
+  const shares = amount / pricePerShare;
+  const payout = Math.round(shares); // Each share pays $1 if correct
+  
+  // Update shares display
+  const sharesValue = document.getElementById('sharesValue');
+  if (sharesValue) {
+    sharesValue.textContent = shares.toFixed(2);
+  }
+  
+  // Update current price display
+  if (oddsValue) {
+    oddsValue.textContent = price + '¢';
+  }
+  
+  // Calculate estimated price after trade (price impact preview)
+  const market = MulonData.getMarket(currentMarketId);
+  const priceAfterValue = document.getElementById('priceAfterValue');
+  const priceImpactNotice = document.getElementById('priceImpactNotice');
+  
+  if (market && priceAfterValue) {
+    const liquidity = market.volume || 1000;
+    const impactFactor = Math.min(amount / liquidity, 0.15);
+    let newPrice;
+    
+    const isSelling = buyBtn && buyBtn.classList.contains('sell-mode');
+    
+    if (isSelling) {
+      newPrice = Math.max(1, Math.round(price - (impactFactor * 100)));
+    } else {
+      newPrice = Math.min(99, Math.round(price + (impactFactor * 100)));
+    }
+    
+    const priceChange = newPrice - price;
+    
+    if (priceChange !== 0) {
+      priceAfterValue.textContent = `${newPrice}¢ (${priceChange > 0 ? '+' : ''}${priceChange})`;
+      priceAfterValue.style.color = priceChange > 0 ? 'var(--green-primary)' : 'var(--red-primary)';
+    } else {
+      priceAfterValue.textContent = price + '¢';
+      priceAfterValue.style.color = 'var(--text-primary)';
+    }
+    
+    // Show/hide price impact warning for large orders
+    if (priceImpactNotice) {
+      if (Math.abs(priceChange) >= 5) {
+        priceImpactNotice.style.display = 'flex';
+        priceImpactNotice.classList.toggle('large-impact', Math.abs(priceChange) >= 10);
+      } else {
+        priceImpactNotice.style.display = 'none';
+      }
+    }
+  }
+  
+  // Update payout
+  payoutValue.textContent = '$' + payout;
+  
+  if (currentChoice === 'yes') {
+    payoutValue.style.color = 'var(--green-primary)';
+  } else {
+    payoutValue.style.color = 'var(--red-primary)';
+  }
+}
+
+// ========================================
+// SIDEBAR
+// ========================================
+function setupSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('sidebarOverlay');
+  const sidebarTabs = document.querySelectorAll('.sidebar-tab');
+  
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+      document.body.classList.toggle('sidebar-open');
+    });
+  }
+  
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+      document.body.classList.remove('sidebar-open');
+    });
+  }
+  
+  sidebarTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      sidebarTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      const tabName = tab.dataset.tab;
+      document.querySelectorAll('.sidebar-panel').forEach(panel => {
+        panel.classList.remove('active');
+      });
+      document.getElementById(tabName + 'Panel').classList.add('active');
+    });
+  });
+}
+
+// ========================================
+// USER UI UPDATES
+// ========================================
+function updateUserUI() {
+  updateBalanceDisplay();
+  updatePortfolioDisplay();
+  updateWatchlistDisplay();
+}
+
+function updateBalanceDisplay() {
+  const balanceEl = document.getElementById('userBalance');
+  const balance = UserData.getBalance();
+  
+  if (balanceEl) {
+    balanceEl.textContent = '$' + balance.toFixed(2);
+  }
+  
+  // Update max amount in modal
+  if (amountInput) {
+    amountInput.max = balance;
+  }
+}
+
+function updatePortfolioDisplay() {
+  const positions = UserData.getPositions();
+  const positionsList = document.getElementById('positionsList');
+  const emptyPortfolio = document.getElementById('emptyPortfolio');
+  const positionCount = document.getElementById('positionCount');
+  const portfolioValue = document.getElementById('portfolioValue');
+  const totalValue = document.getElementById('totalValue');
+  const totalPnl = document.getElementById('totalPnl');
+  
+  if (positionCount) {
+    positionCount.textContent = positions.length;
+  }
+  
+  // Calculate portfolio value
+  let portfolioTotal = 0;
+  let totalCost = 0;
+  
+  positions.forEach(pos => {
+    const market = MulonData.getMarket(pos.marketId);
+    if (market) {
+      const currentPrice = pos.choice === 'yes' ? market.yesPrice : market.noPrice;
+      portfolioTotal += (pos.shares * currentPrice) / 100;
+      totalCost += pos.costBasis;
+    }
+  });
+  
+  const pnl = portfolioTotal - totalCost;
+  const balance = UserData.getBalance();
+  
+  if (portfolioValue) {
+    portfolioValue.textContent = '$' + portfolioTotal.toFixed(2);
+  }
+  
+  if (totalValue) {
+    totalValue.textContent = '$' + (balance + portfolioTotal).toFixed(2);
+  }
+  
+  if (totalPnl) {
+    const pnlSign = pnl >= 0 ? '+' : '';
+    totalPnl.textContent = pnlSign + '$' + pnl.toFixed(2);
+    totalPnl.className = 'stat-value ' + (pnl >= 0 ? 'pnl-positive' : 'pnl-negative');
+  }
+  
+  if (positions.length === 0) {
+    if (emptyPortfolio) emptyPortfolio.style.display = 'flex';
+    if (positionsList) positionsList.innerHTML = '';
+    return;
+  }
+  
+  if (emptyPortfolio) emptyPortfolio.style.display = 'none';
+  
+  if (positionsList) {
+    positionsList.innerHTML = positions.map(pos => {
+      const market = MulonData.getMarket(pos.marketId);
+      const currentPrice = market ? (pos.choice === 'yes' ? market.yesPrice : market.noPrice) : pos.avgPrice;
+      const currentValue = (pos.shares * currentPrice) / 100;
+      const posPnl = currentValue - pos.costBasis;
+      const pnlPercent = ((currentValue / pos.costBasis - 1) * 100).toFixed(1);
+      
+      return `
+        <div class="position-item" data-market-id="${pos.marketId}">
+          <div class="position-market">${pos.marketTitle}</div>
+          <div class="position-details">
+            <div class="position-info">
+              <span class="position-badge ${pos.choice}">${pos.choice.toUpperCase()}</span>
+              <span class="position-shares">${pos.shares.toFixed(2)} shares @ ${pos.avgPrice}¢</span>
+            </div>
+            <div class="position-value">
+              <div class="position-current">$${currentValue.toFixed(2)}</div>
+              <div class="position-pnl ${posPnl >= 0 ? 'positive' : 'negative'}">
+                ${posPnl >= 0 ? '+' : ''}$${posPnl.toFixed(2)} (${pnlPercent}%)
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function updateWatchlistDisplay() {
+  const watchlist = UserData.getWatchlist();
+  const watchlistItems = document.getElementById('watchlistItems');
+  const emptyWatchlist = document.getElementById('emptyWatchlist');
+  
+  if (watchlist.length === 0) {
+    if (emptyWatchlist) emptyWatchlist.style.display = 'flex';
+    if (watchlistItems) watchlistItems.innerHTML = '';
+    return;
+  }
+  
+  if (emptyWatchlist) emptyWatchlist.style.display = 'none';
+  
+  if (watchlistItems) {
+    watchlistItems.innerHTML = watchlist.map(marketId => {
+      const market = MulonData.getMarket(marketId);
+      if (!market) return '';
+      
+      const category = MulonData.categories[market.category] || { icon: '📊' };
+      
+      return `
+        <div class="watchlist-item" data-market-id="${marketId}">
+          <div class="watchlist-icon">${category.icon}</div>
+          <div class="watchlist-info">
+            <div class="watchlist-title">${market.title}</div>
+            <div class="watchlist-price">
+              <span style="color: var(--green-primary)">Yes ${market.yesPrice}¢</span> · 
+              <span style="color: var(--red-primary)">No ${market.noPrice}¢</span>
+            </div>
+          </div>
+          <button class="watchlist-remove" data-market-id="${marketId}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      `;
+    }).join('');
+    
+    // Attach remove listeners
+    watchlistItems.querySelectorAll('.watchlist-remove').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await UserData.removeFromWatchlist(btn.dataset.marketId);
+        updateWatchlistDisplay();
+      });
+    });
+    
+    // Click to open market
+    watchlistItems.querySelectorAll('.watchlist-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const marketId = item.dataset.marketId;
+        const market = MulonData.getMarket(marketId);
+        if (market) {
+          currentMarketId = marketId;
+          currentYesPrice = market.yesPrice;
+          currentNoPrice = market.noPrice;
+          currentChoice = 'yes';
+          
+          const category = MulonData.categories[market.category] || { icon: '📊' };
+          if (modalTitle) modalTitle.textContent = market.title;
+          document.querySelector('.modal-market-icon').textContent = category.icon;
+          if (yesPrice) yesPrice.textContent = market.yesPrice + '¢';
+          if (noPrice) noPrice.textContent = market.noPrice + '¢';
+          
+          updateModalChoice();
+          updatePayout();
+          
+          if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
+        }
+      });
+    });
+  }
+}
+
+// ========================================
+// DEPOSIT
+// ========================================
+function setupDeposit() {
+  const depositBtn = document.getElementById('depositBtn');
+  if (depositBtn) {
+    depositBtn.addEventListener('click', async () => {
+      // Check if user is signed in
+      if (!canTrade()) {
+        showSignInModal();
+        return;
+      }
+      
+      const amount = prompt('Enter amount to add:', '100');
+      if (amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0) {
+        await UserData.updateBalance(parseFloat(amount));
+        updateUserUI();
+        showNotification(`Added $${parseFloat(amount).toFixed(2)} to your balance!`, 'success');
+      }
+    });
+  }
+}
+
+// ========================================
+// NOTIFICATIONS
+// ========================================
+function showNotification(message, type = 'success') {
+  // Remove existing notification
+  const existing = document.querySelector('.notification');
+  if (existing) existing.remove();
+  
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <span>${message}</span>
+    <button class="notification-close">×</button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => notification.classList.add('show'), 10);
+  
+  // Close button
+  notification.querySelector('.notification-close').addEventListener('click', () => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  });
+  
+  // Auto remove
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 4000);
+}

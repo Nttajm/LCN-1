@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mulon Admin - Manage Markets</title>
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon</span>
+      </a>
+      <span class="admin-badge">Admin Panel</span>
+    </div>
+    <div class="header-right">
+      <a href="index.html" class="back-link">← Back to Site</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="admin-content">
+    <div class="admin-layout">
+      <!-- Left Panel - Form -->
+      <div class="admin-panel form-panel">
+        <div class="panel-header">
+          <h2 class="panel-title" id="formTitle">➕ Create New Market</h2>
+        </div>
+        
+        <form id="marketForm" class="market-form">
+          <input type="hidden" id="marketId" value="">
+          
+          <div class="form-group">
+            <label for="title">Market Title *</label>
+            <input type="text" id="title" name="title" placeholder="e.g., Will the basketball team win Friday's game?" required>
+          </div>
+
+          <div class="form-group">
+            <label for="subtitle">Subtitle / Description</label>
+            <input type="text" id="subtitle" name="subtitle" placeholder="e.g., Tech High vs Central High">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Category *</label>
+              <select id="category" name="category" required>
+                <option value="">Select category</option>
+                <option value="school">🎓 Tech High</option>
+                <option value="sports">⚽ Sports</option>
+                <option value="politics">🏛️ Politics</option>
+                <option value="grading">📝 Grading</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="yesPrice">Starting Yes Price (%) *</label>
+              <input type="number" id="yesPrice" name="yesPrice" min="1" max="99" value="50" required>
+              <span class="form-hint">No price will be: <span id="noPricePreview">50</span>%</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startDate">Start Date *</label>
+              <input type="date" id="startDate" name="startDate" required>
+            </div>
+
+            <div class="form-group">
+              <label for="endDate">End Date *</label>
+              <input type="date" id="endDate" name="endDate" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="volume">Initial Volume ($)</label>
+              <input type="number" id="volume" name="volume" min="0" value="0" placeholder="0">
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="featured" name="featured">
+                <span class="checkmark"></span>
+                Featured Market
+              </label>
+              <span class="form-hint">Shows prominently on homepage</span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Create Market</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Panel - Market List -->
+      <div class="admin-panel list-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📊 All Markets</h2>
+          <div class="panel-actions">
+            <button class="btn btn-sm btn-secondary" id="transferBtn">Transfer from localStorage</button>
+            <button class="btn btn-sm btn-danger" id="resetBtn">Reset to Defaults</button>
+          </div>
+        </div>
+
+        <div class="market-list" id="marketList">
+          <!-- Markets rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal delete-modal">
+      <h3>Delete Market?</h3>
+      <p>Are you sure you want to delete this market? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+        <button class="btn btn-danger" id="confirmDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span class="toast-message" id="toastMessage">Market created successfully!</span>
+  </div>
+
+  <script type="module" src="js/data.js"></script>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mulon - Prediction Markets</title>
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/onboarding.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+  <!-- Onboarding/Tutorial Overlay -->
+  <div class="onboarding-overlay" id="onboardingOverlay">
+    <!-- Segment 0: From the Creator -->
+    <div class="onboarding-segment intro-segment active" data-segment="0">
+      <div class="onboarding-content intro-content">
+        <p class="intro-text">From the creator of</p>
+        <img src="assets/ou-logo-white-w.png" alt="Over Under" class="intro-logo-img">
+        <p class="intro-subtext">comes something new...</p>
+      </div>
+    </div>
+
+    <!-- Segment 1: Welcome & Sign In -->
+    <div class="onboarding-segment" data-segment="1">
+      <div class="onboarding-content">
+        <div class="onboarding-logo">
+          <h1>Mulon</h1>
+          <p class="tagline">Predict the future. Trade on outcomes.</p>
+        </div>
+        
+        <div class="onboarding-actions">
+          <button class="google-signin-btn" id="googleSignInBtn">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+          
+          <button class="skip-btn" id="skipSignInBtn">
+            Browse as Guest
+          </button>
+        </div>
+        
+        <p class="onboarding-note">Sign in to save your portfolio & trades</p>
+      </div>
+    </div>
+
+    <!-- Segment 2: What is Mulon -->
+    <div class="onboarding-segment" data-segment="2">
+      <div class="onboarding-content">
+        <div class="segment-header">
+          <span class="segment-number">1/4</span>
+          <h2>What is Mulon?</h2>
+        </div>
+        
+        <div class="explanation-card">
+          <div class="explanation-icon">🎯</div>
+          <h3>Prediction Markets</h3>
+          <p>Trade on the outcome of real events. If you think something will happen, buy <span class="highlight-yes">Yes</span>. If not, buy <span class="highlight-no">No</span>.</p>
+        </div>
+        
+        <div class="example-box">
+          <p class="example-question">"Will the cafeteria serve pizza Monday?"</p>
+          <div class="example-prices">
+            <span class="yes-price">Yes 75¢</span>
+            <span class="no-price">No 25¢</span>
+          </div>
+          <p class="example-explain">75% of traders think yes!</p>
+        </div>
+        
+        <button class="next-btn" data-next="3">Next →</button>
+      </div>
+    </div>
+
+    <!-- Segment 3: How Prices Work -->
+    <div class="onboarding-segment" data-segment="3">
+      <div class="onboarding-content">
+        <div class="segment-header">
+          <span class="segment-number">2/4</span>
+          <h2>How Prices Work</h2>
+        </div>
+        
+        <div class="explanation-card">
+          <div class="explanation-icon">📈</div>
+          <h3>Price = Probability</h3>
+          <p>Prices are set by <strong>supply and demand</strong>. No algorithms. No house setting lines. Just traders reacting to information.</p>
+        </div>
+        
+        <div class="price-demo">
+          <div class="price-step">
+            <span class="step-label">Current</span>
+            <div class="step-price">Yes 30¢</div>
+            <span class="step-note">~30% chance</span>
+          </div>
+          <div class="price-arrow">→</div>
+          <div class="price-step">
+            <span class="step-label">News drops</span>
+            <div class="step-price buying">People buy</div>
+          </div>
+          <div class="price-arrow">→</div>
+          <div class="price-step">
+            <span class="step-label">After</span>
+            <div class="step-price high">Yes 55¢</div>
+            <span class="step-note">~55% chance</span>
+          </div>
+        </div>
+        
+        <button class="next-btn" data-next="4">Next →</button>
+      </div>
+    </div>
+
+    <!-- Segment 4: Price Impact Example -->
+    <div class="onboarding-segment" data-segment="4">
+      <div class="onboarding-content">
+        <div class="segment-header">
+          <span class="segment-number">3/4</span>
+          <h2>Your Trades Move Prices</h2>
+        </div>
+        
+        <div class="trade-example">
+          <div class="trade-header">
+            <span class="trade-market">🍕 "Will pizza be served Monday?"</span>
+            <div class="trade-current">
+              <span>Yes <strong>82¢</strong></span>
+              <span class="divider">|</span>
+              <span>No <strong>18¢</strong></span>
+              <span class="volume">$850 Vol.</span>
+            </div>
+          </div>
+          
+          <div class="trade-action">
+            <span class="action-label">You buy $100 of Yes:</span>
+          </div>
+          
+          <div class="trade-breakdown">
+            <div class="breakdown-item">
+              <span class="breakdown-label">Impact</span>
+              <span class="breakdown-value">100/850 = <strong>11.7%</strong></span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Price moves</span>
+              <span class="breakdown-value">82¢ → <strong class="highlight-green">94¢</strong></span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">You get</span>
+              <span class="breakdown-value">$100 ÷ $0.82 = <strong>~122 shares</strong></span>
+            </div>
+            <div class="breakdown-item highlight-row">
+              <span class="breakdown-label">If correct</span>
+              <span class="breakdown-value">122 × $1 = <strong class="profit">$122 profit</strong></span>
+            </div>
+          </div>
+        </div>
+        
+        <button class="next-btn" data-next="5">Next →</button>
+      </div>
+    </div>
+
+    <!-- Segment 5: Get Started -->
+    <div class="onboarding-segment" data-segment="5">
+      <div class="onboarding-content">
+        <div class="segment-header">
+          <span class="segment-number">4/4</span>
+          <h2>Ready to Trade?</h2>
+        </div>
+        
+        <div class="final-tips">
+          <div class="tip-item">
+            <span class="tip-icon">💰</span>
+            <div class="tip-text">
+              <strong>Start with $500</strong>
+              <p>Virtual money to practice trading</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <span class="tip-icon">📊</span>
+            <div class="tip-text">
+              <strong>Watch the markets</strong>
+              <p>Prices change as people trade</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <span class="tip-icon">🏆</span>
+            <div class="tip-text">
+              <strong>Make predictions</strong>
+              <p>Buy Yes or No on any market</p>
+            </div>
+          </div>
+        </div>
+        
+        <button class="start-trading-btn" id="startTradingBtn">
+          Start Trading
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Dots -->
+    <div class="onboarding-progress" id="onboardingProgress">
+      <span class="progress-dot" data-segment="1"></span>
+      <span class="progress-dot" data-segment="2"></span>
+      <span class="progress-dot" data-segment="3"></span>
+      <span class="progress-dot" data-segment="4"></span>
+      <span class="progress-dot" data-segment="5"></span>
+    </div>
+  </div>
+
+  <!-- Sign In Required Modal -->
+  <div class="signin-required-modal" id="signinRequiredModal">
+    <div class="signin-modal-content">
+      <h3>Sign in to Trade</h3>
+      <p>You need to sign in to buy or sell contracts.</p>
+      <button class="google-signin-btn" id="modalSignInBtn">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <span>Sign in with Google</span>
+      </button>
+      <button class="cancel-btn" id="cancelSignInBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Over Under Sync Modal -->
+  <div class="ou-sync-modal" id="ouSyncModal">
+    <div class="ou-sync-content">
+      <div class="ou-sync-logo">
+        <img src="assets/ou-logo-white-w.png" alt="Over Under">
+      </div>
+      <h3>Welcome back!</h3>
+      <p class="ou-sync-message">We see you have an Over Under account. Would you like to sync your username?</p>
+      <div class="ou-sync-username" id="ouSyncUsername"></div>
+      <div class="ou-sync-actions">
+        <button class="ou-sync-btn yes" id="ouSyncYes">Yes, use this name</button>
+        <button class="ou-sync-btn no" id="ouSyncNo">No thanks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon</span>
+      </a>
+      <div class="search-box">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" placeholder="Search markets...">
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="balance-display">
+        <div class="balance-item">
+          <span class="balance-label">Balance</span>
+          <span class="balance-amount" id="userBalance">$500.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item">
+          <span class="balance-label">Portfolio</span>
+          <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
+        </div>
+      </div>
+      <button class="deposit-btn" id="depositBtn">+ Add Funds</button>
+      <div class="user-menu" id="userMenu">
+        <div class="user-avatar" id="userAvatar">
+          <span id="userInitials">?</span>
+          <img id="userPhoto" src="" alt="" style="display: none;">
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info" id="userInfo">
+            <span class="user-name" id="userName">Guest</span>
+            <span class="user-email" id="userEmail">Not signed in</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="signOutBtn" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+          </button>
+          <button class="dropdown-item signin" id="headerSignInBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            </svg>
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" data-tab="watchlist">Watchlist</button>
+        <button class="sidebar-tab" data-tab="portfolio">Portfolio</button>
+      </div>
+    </div>
+    
+    <div class="sidebar-content">
+      <!-- Watchlist Tab -->
+      <div class="sidebar-panel active" id="watchlistPanel">
+        <div class="empty-sidebar" id="emptyWatchlist">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              <line x1="4" y1="4" x2="20" y2="20"></line>
+            </svg>
+          </div>
+          <p>No bookmarked items</p>
+          <span class="empty-hint">Click the bookmark icon on any market</span>
+        </div>
+        <div class="sidebar-list" id="watchlistItems"></div>
+      </div>
+      
+      <!-- Portfolio Tab -->
+      <div class="sidebar-panel" id="portfolioPanel">
+        <div class="portfolio-summary">
+          <div class="portfolio-stat">
+            <span class="stat-label">Total Value</span>
+            <span class="stat-value" id="totalValue">$500.00</span>
+          </div>
+          <div class="portfolio-stat">
+            <span class="stat-label">Total P&L</span>
+            <span class="stat-value pnl-positive" id="totalPnl">+$0.00</span>
+          </div>
+        </div>
+        
+        <div class="positions-header">
+          <span>Your Positions</span>
+          <span class="position-count" id="positionCount">0</span>
+        </div>
+        
+        <div class="empty-sidebar" id="emptyPortfolio">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
+          <p>No positions yet</p>
+          <span class="empty-hint">Buy Yes or No on any market to start</span>
+        </div>
+        
+        <div class="positions-list" id="positionsList"></div>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- Sidebar Overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Navigation Categories -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="index.html?cat=all">All Markets</a></li>
+        <li><a href="leaderbaord.html">Leaderbaord</a></li>
+
+      </ul>
+      <div class="nav-divider"></div>
+      <ul class="nav-categories">
+        <li><a href="index.html?cat=school" class="cat-pill school">🎓 Tech High</a></li>
+        <li><a href="index.html?cat=sports" class="cat-pill sports">⚽ Sports</a></li>
+        <li><a href="index.html?cat=politics" class="cat-pill politics">🏛️ Politics</a></li>
+        <li><a href="index.html?cat=grading" class="cat-pill grading">📝 Grading</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Featured/Trending Section -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">🔥 Trending Markets</h2>
+        <a href="index.html?cat=all" class="see-all">See all →</a>
+      </div>
+      
+      <!-- Featured cards rendered dynamically -->
+      <div id="featuredContainer"></div>
+    </section>
+
+    <!-- Market Grid -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">📊 All Markets</h2>
+      </div>
+      
+      <div class="market-grid" id="marketGrid">
+        <!-- Market cards rendered dynamically -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">Mulon</span>
+      <span class="footer-text">© 2026 Mulon Markets. For educational use only.</span>
+    </div>
+  </footer>
+
+  <!-- Bet Modal -->
+  <div class="modal-overlay" id="betModal">
+    <div class="modal">
+      <button class="modal-close" id="closeModal">×</button>
+      
+      <div class="modal-header">
+        <div class="modal-market-icon">📝</div>
+        <div class="modal-market-info">
+          <h3 class="modal-market-title" id="modalTitle">When will Torre grade the next exam?</h3>
+          <p class="modal-market-subtitle">Buy <span id="modalChoice" class="choice-yes">Yes</span> · <span id="modalOutcome">Before Feb 1st</span></p>
+        </div>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="buy">Buy</button>
+        <button class="modal-tab" data-tab="sell">Sell</button>
+        <div class="modal-currency">
+          Dollars <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <div class="modal-price-buttons">
+        <button class="price-btn yes active" id="priceYes">
+          <span>Yes</span>
+          <span class="price-value" id="yesPrice">69¢</span>
+        </button>
+        <button class="price-btn no" id="priceNo">
+          <span>No</span>
+          <span class="price-value" id="noPrice">31¢</span>
+        </button>
+      </div>
+
+      <div class="modal-amount">
+        <div class="amount-header">
+          <span class="amount-label">Dollars</span>
+          <span class="amount-interest">Earn 3.25% Interest</span>
+        </div>
+        <div class="amount-input-wrapper">
+          <span class="amount-symbol">$</span>
+          <input type="number" class="amount-input" id="amountInput" value="1" min="1" max="500">
+        </div>
+      </div>
+
+      <div class="modal-info">
+        <div class="info-row">
+          <span class="info-label">Shares</span>
+          <span class="info-value" id="sharesValue">0</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Current Price</span>
+          <span class="info-value" id="oddsValue">69¢</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Est. Price After</span>
+          <span class="info-value" id="priceAfterValue">69¢</span>
+        </div>
+        <div class="info-row highlight">
+          <span class="info-label">Payout if Correct</span>
+          <span class="info-value payout-value" id="payoutValue">$0</span>
+        </div>
+      </div>
+      
+      <div class="price-impact-notice" id="priceImpactNotice">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Your trade will move the market price</span>
+      </div>
+
+      <button class="modal-buy-btn" id="buyBtn">Buy</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/data.js"></script>
+  <script type="module" src="js/index.js"></script>
+</body>
+</html>
