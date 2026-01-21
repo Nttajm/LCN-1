@@ -315,6 +315,53 @@ const UserData = {
     return this.get().positions || [];
   },
   
+  // Reduce or remove a position when selling
+  async sellPosition(marketId, choice, sharesToSell, saleAmount) {
+    if (!this.data) return null;
+    
+    const positionIndex = this.data.positions.findIndex(
+      p => p.marketId === marketId && p.choice === choice
+    );
+    
+    if (positionIndex === -1) return null;
+    
+    const position = this.data.positions[positionIndex];
+    
+    // Calculate proportional cost basis for the sold shares
+    const costBasisPerShare = position.costBasis / position.shares;
+    const soldCostBasis = costBasisPerShare * sharesToSell;
+    
+    if (sharesToSell >= position.shares) {
+      // Selling entire position - remove it
+      this.data.positions.splice(positionIndex, 1);
+    } else {
+      // Partial sell - reduce shares and cost basis
+      position.shares -= sharesToSell;
+      position.costBasis -= soldCostBasis;
+    }
+    
+    // Add transaction record
+    this.data.transactions = this.data.transactions || [];
+    this.data.transactions.unshift({
+      type: 'sell',
+      marketId,
+      choice,
+      shares: sharesToSell,
+      price: Math.round((saleAmount / sharesToSell) * 100),
+      proceeds: saleAmount,
+      profit: saleAmount - soldCostBasis,
+      timestamp: new Date().toISOString()
+    });
+    
+    await this.save();
+    return { soldCostBasis, profit: saleAmount - soldCostBasis };
+  },
+  
+  // Get a specific position
+  getPosition(marketId) {
+    return this.getPositions().find(p => p.marketId === marketId) || null;
+  },
+
   getWatchlist() {
     return this.get().watchlist || [];
   },

@@ -405,6 +405,33 @@ body.sidebar-open {
   background: var(--bg-secondary);
 }
 
+.position-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.position-sell-btn {
+  flex-shrink: 0;
+  padding: 0.35rem 0.75rem;
+  background: var(--red-light);
+  color: var(--red-primary);
+  border: 1px solid var(--red-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.position-sell-btn:hover {
+  background: var(--red-primary);
+  color: white;
+}
+
 .position-market {
   font-size: 0.85rem;
   font-weight: 500;
@@ -1106,6 +1133,50 @@ body.sidebar-open {
   overflow: hidden;
 }
 
+.card-description {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.card-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--green-primary);
+  font-weight: 500;
+}
+
+.card-volume::before {
+  content: "💰";
+  font-size: 0.7rem;
+}
+
+.card-time-text {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.card-time-text::before {
+  content: "⏱";
+  font-size: 0.7rem;
+}
+
 /* Market Status States */
 .market-card.resolved,
 .featured-card.resolved {
@@ -1719,6 +1790,23 @@ body.sidebar-open {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--green-primary);
+}
+
+.price-impact-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 1.25rem 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  color: #636363;
+}
+
+.price-impact-notice svg {
+  flex-shrink: 0;
 }
 
 .modal-buy-btn {

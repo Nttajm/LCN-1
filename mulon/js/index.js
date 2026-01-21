@@ -781,8 +781,10 @@ function renderMarketCard(market) {
         ${statusBadge}
       </div>
       <h4 class="card-title">${market.title}</h4>
-      <div class="card-time small">
-        <span>Ends ${MulonData.formatDate(market.endDate)}${market.endTime ? ' @ ' + market.endTime : ''}</span>
+      ${market.subtitle ? `<p class="card-description">${market.subtitle}</p>` : ''}
+      <div class="card-meta">
+        <span class="card-volume">${MulonData.formatVolume(market.volume)}</span>
+        <span class="card-time-text">Ends ${MulonData.formatDate(market.endDate)}${market.endTime ? ' @ ' + market.endTime : ''}</span>
       </div>
       <div class="probability-bar small">
         <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
@@ -881,17 +883,47 @@ function setupModal() {
   // Tab switching (Buy/Sell)
   modalTabs.forEach(tab => {
     tab.addEventListener('click', function() {
+      const tabType = this.dataset.tab;
+      
+      // Check if user has a position when switching to sell
+      if (tabType === 'sell' && currentMarketId) {
+        const position = UserData.getPosition(currentMarketId);
+        if (!position) {
+          showNotification('You don\'t have a position in this market to sell', 'error');
+          return;
+        }
+        // Auto-select the choice they have a position in
+        currentChoice = position.choice;
+        updateModalChoice();
+        
+        // Set max amount to their position value
+        const market = MulonData.getMarket(currentMarketId);
+        if (market) {
+          const currentPrice = position.choice === 'yes' ? market.yesPrice : market.noPrice;
+          const positionValue = (position.shares * currentPrice) / 100;
+          if (amountInput) {
+            amountInput.value = positionValue.toFixed(2);
+            amountInput.max = positionValue.toFixed(2);
+          }
+        }
+      }
+      
       modalTabs.forEach(t => t.classList.remove('active'));
       this.classList.add('active');
       
-      const tabType = this.dataset.tab;
       if (tabType === 'sell') {
         buyBtn.textContent = 'Sell';
         buyBtn.classList.add('sell-mode');
       } else {
         buyBtn.textContent = 'Buy';
         buyBtn.classList.remove('sell-mode');
+        // Reset max when going back to buy
+        if (amountInput) {
+          amountInput.max = UserData.getBalance();
+        }
       }
+      
+      updatePayout();
     });
   });
 
@@ -950,11 +982,29 @@ function setupModal() {
         }
         
         if (isSelling) {
-          // Add proceeds to balance
-          await UserData.updateBalance(amount);
+          // Check if user has a position to sell
+          const position = UserData.getPosition(currentMarketId);
+          if (!position || position.choice !== currentChoice) {
+            showNotification('You don\'t have a position to sell', 'error');
+            return;
+          }
+          
+          // Calculate shares being sold based on amount
+          const currentPrice = currentChoice === 'yes' ? market.yesPrice : market.noPrice;
+          const sharesToSell = Math.min(amount / (currentPrice / 100), position.shares);
+          const actualSaleAmount = (sharesToSell * currentPrice) / 100;
+          
+          // Remove/reduce position and add proceeds to balance
+          const sellResult = await UserData.sellPosition(currentMarketId, currentChoice, sharesToSell, actualSaleAmount);
+          await UserData.updateBalance(actualSaleAmount);
+          
+          const profitText = sellResult.profit >= 0 
+            ? `+$${sellResult.profit.toFixed(2)} profit` 
+            : `-$${Math.abs(sellResult.profit).toFixed(2)} loss`;
+          
           showNotification(
-            `Sold ${result.shares} ${currentChoice.toUpperCase()} @ ${result.avgPrice}¢ for $${amount.toFixed(2)}! Price moved to ${result.newPrice}¢`, 
-            'success'
+            `Sold ${sharesToSell.toFixed(2)} ${currentChoice.toUpperCase()} for $${actualSaleAmount.toFixed(2)} (${profitText})`, 
+            sellResult.profit >= 0 ? 'success' : 'error'
           );
         } else {
           // Deduct from balance and add position
@@ -1198,7 +1248,7 @@ function setupSuggestionModal() {
       }
       
       // Get user info if logged in
-      const user = Auth.getCurrentUser();
+      const user = Auth.currentUser;
       const userId = user ? user.uid : null;
       const userEmail = user ? user.email : null;
       const userName = user ? user.displayName : null;
@@ -1345,10 +1395,22 @@ function updatePortfolioDisplay() {
       const currentValue = (pos.shares * currentPrice) / 100;
       const posPnl = currentValue - pos.costBasis;
       const pnlPercent = ((currentValue / pos.costBasis - 1) * 100).toFixed(1);
+      const isResolved = market?.resolved === true;
       
       return `
         <div class="position-item" data-market-id="${pos.marketId}">
-          <div class="position-market">${pos.marketTitle}</div>
+          <div class="position-header">
+            <div class="position-market">${pos.marketTitle}</div>
+            ${!isResolved ? `
+              <button class="position-sell-btn" 
+                data-market-id="${pos.marketId}" 
+                data-choice="${pos.choice}"
+                data-shares="${pos.shares}"
+                data-avg-price="${pos.avgPrice}">
+                Sell
+              </button>
+            ` : ''}
+          </div>
           <div class="position-details">
             <div class="position-info">
               <span class="position-badge ${pos.choice}">${pos.choice.toUpperCase()}</span>
@@ -1364,7 +1426,67 @@ function updatePortfolioDisplay() {
         </div>
       `;
     }).join('');
+    
+    // Attach sell button listeners
+    attachPositionSellListeners();
   }
+}
+
+function attachPositionSellListeners() {
+  const sellBtns = document.querySelectorAll('.position-sell-btn');
+  
+  sellBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      const marketId = btn.dataset.marketId;
+      const choice = btn.dataset.choice;
+      const shares = parseFloat(btn.dataset.shares);
+      const market = MulonData.getMarket(marketId);
+      
+      if (!market) {
+        showNotification('Market not found', 'error');
+        return;
+      }
+      
+      // Set up modal for selling
+      currentMarketId = marketId;
+      currentYesPrice = market.yesPrice;
+      currentNoPrice = market.noPrice;
+      currentChoice = choice;
+      
+      // Update modal content
+      const category = MulonData.getCategory(market.category);
+      if (modalTitle) modalTitle.textContent = market.title;
+      document.querySelector('.modal-market-icon').textContent = category.icon;
+      if (yesPrice) yesPrice.textContent = market.yesPrice + '¢';
+      if (noPrice) noPrice.textContent = market.noPrice + '¢';
+      
+      // Switch to sell tab
+      modalTabs.forEach(t => t.classList.remove('active'));
+      const sellTab = document.querySelector('.modal-tab[data-tab="sell"]');
+      if (sellTab) sellTab.classList.add('active');
+      buyBtn.textContent = 'Sell';
+      buyBtn.classList.add('sell-mode');
+      
+      // Set amount to current value of shares
+      const currentPrice = choice === 'yes' ? market.yesPrice : market.noPrice;
+      const currentValue = (shares * currentPrice) / 100;
+      if (amountInput) {
+        amountInput.value = currentValue.toFixed(2);
+        amountInput.max = currentValue.toFixed(2);
+      }
+      
+      updateModalChoice();
+      updatePayout();
+      
+      // Show modal
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
 }
 
 function updateWatchlistDisplay() {
