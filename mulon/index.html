@@ -36,8 +36,8 @@
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            <span>Continue with Google</span>
-          </button>
+            <span>Continue with Google (OverUnderTHS link)</span>
+          </button> 
           
           <button class="skip-btn" id="skipSignInBtn">
             Browse as Guest
@@ -445,8 +445,40 @@
     <div class="footer-inner">
       <span class="footer-logo">Mulon</span>
       <span class="footer-text">© 2026 Mulon Markets. For educational use only.</span>
+      <button class="suggest-btn" id="suggestBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Suggest a Market
+      </button>
     </div>
   </footer>
+
+  <!-- Suggestion Modal -->
+  <div class="modal-overlay" id="suggestModal">
+    <div class="modal suggest-modal">
+      <button class="modal-close" id="closeSuggestModal">×</button>
+      <h3>💡 Suggest a Market</h3>
+      <p class="suggest-subtitle">Have an idea for a prediction? Let us know!</p>
+      <form id="suggestForm">
+        <div class="form-group">
+          <label for="suggestTitle">Market Question *</label>
+          <input type="text" id="suggestTitle" placeholder="e.g., Will the cafeteria serve pizza on Friday?" required>
+        </div>
+        <div class="form-group">
+          <label for="suggestCategory">Category</label>
+          <select id="suggestCategory">
+            <option value="">Select a category (optional)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="suggestReason">Why should we add this?</label>
+          <textarea id="suggestReason" rows="3" placeholder="Tell us why this would be interesting..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary suggest-submit">Submit Suggestion</button>
+      </form>
+    </div>
+  </div>
 
   <!-- Bet Modal -->
   <div class="modal-overlay" id="betModal">

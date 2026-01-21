@@ -49,6 +49,7 @@ const ordersRef = collection(db, 'mulon_orders');
 const tradesRef = collection(db, 'mulon_trades');
 const usersRef = collection(db, 'mulon_users');
 const categoriesRef = collection(db, 'mulon_categories');
+const suggestionsRef = collection(db, 'mulon_suggestions');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
 
 // ========================================
@@ -996,6 +997,74 @@ const MulonData = {
   getCategory(id) {
     return this.categories[id] || { icon: '📊', label: 'Other', color: 'other' };
   },
+  
+  // ========================================
+  // SUGGESTIONS
+  // ========================================
+  
+  // Submit a market suggestion
+  async submitSuggestion(title, category, reason, userId, userEmail, userName) {
+    try {
+      const suggestionId = 'sug_' + Date.now();
+      const suggestion = {
+        id: suggestionId,
+        title: title,
+        category: category || null,
+        reason: reason || '',
+        userId: userId || null,
+        userEmail: userEmail || 'Anonymous',
+        userName: userName || 'Anonymous',
+        status: 'pending', // pending, approved, rejected
+        createdAt: new Date().toISOString()
+      };
+      
+      await setDoc(doc(suggestionsRef, suggestionId), suggestion);
+      console.log('Suggestion submitted:', suggestionId);
+      return { success: true, id: suggestionId };
+    } catch (error) {
+      console.error('Error submitting suggestion:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Get all suggestions (for admin)
+  async getSuggestions() {
+    try {
+      const querySnapshot = await getDocs(suggestionsRef);
+      const suggestions = [];
+      querySnapshot.forEach((doc) => {
+        suggestions.push({ id: doc.id, ...doc.data() });
+      });
+      // Sort by date, newest first
+      suggestions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      return suggestions;
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      return [];
+    }
+  },
+  
+  // Update suggestion status
+  async updateSuggestionStatus(suggestionId, status) {
+    try {
+      await updateDoc(doc(suggestionsRef, suggestionId), { status });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating suggestion:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Delete a suggestion
+  async deleteSuggestion(suggestionId) {
+    try {
+      await deleteDoc(doc(suggestionsRef, suggestionId));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting suggestion:', error);
+      return { success: false, error: error.message };
+    }
+  },
 
   // Initialize data - load from Firebase
   async init() {
@@ -1334,4 +1403,4 @@ const MulonData = {
 window.MulonData = MulonData;
 
 // Export for ES modules
-export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef };
+export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef, suggestionsRef };

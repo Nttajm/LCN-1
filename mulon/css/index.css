@@ -1286,6 +1286,86 @@ body.sidebar-open {
   color: var(--text-muted);
 }
 
+.suggest-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--green-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggest-btn:hover {
+  background: var(--green-secondary);
+  transform: translateY(-1px);
+}
+
+/* Suggestion Modal */
+.suggest-modal {
+  max-width: 480px;
+  width: 90%;
+}
+
+.suggest-modal h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.suggest-subtitle {
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+}
+
+.suggest-modal .form-group {
+  margin-bottom: 1rem;
+}
+
+.suggest-modal label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.suggest-modal input,
+.suggest-modal select,
+.suggest-modal textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.suggest-modal input:focus,
+.suggest-modal select:focus,
+.suggest-modal textarea:focus {
+  outline: none;
+  border-color: var(--green-primary);
+}
+
+.suggest-modal textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.suggest-submit {
+  width: 100%;
+  padding: 0.875rem;
+  margin-top: 0.5rem;
+}
+
 /* ========================================
    RESPONSIVE
    ======================================== */

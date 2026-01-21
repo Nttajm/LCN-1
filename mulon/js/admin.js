@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   populateCategoryDropdown();
   renderCategoryList();
   
+  // Render suggestions
+  renderSuggestionList();
+  
   // Setup form
   setupForm();
   
@@ -666,5 +669,126 @@ function setupCategoryForm() {
     } else {
       showToast('Error adding category: ' + result.error, 'error');
     }
+  });
+}
+
+// ========================================
+// SUGGESTIONS
+// ========================================
+async function renderSuggestionList() {
+  const suggestionList = document.getElementById('suggestionList');
+  const suggestionCount = document.getElementById('suggestionCount');
+  if (!suggestionList) return;
+  
+  const suggestions = await MulonData.getSuggestions();
+  const pendingSuggestions = suggestions.filter(s => s.status === 'pending');
+  
+  if (suggestionCount) {
+    suggestionCount.textContent = pendingSuggestions.length;
+  }
+  
+  if (suggestions.length === 0) {
+    suggestionList.innerHTML = '<p class="empty-message">No suggestions yet</p>';
+    return;
+  }
+  
+  suggestionList.innerHTML = suggestions.map(sug => {
+    const category = sug.category ? MulonData.getCategory(sug.category) : null;
+    const categoryBadge = category ? `<span class="suggestion-category">${category.icon} ${category.label}</span>` : '';
+    const date = new Date(sug.createdAt).toLocaleDateString();
+    
+    let statusBadge = '';
+    if (sug.status === 'approved') {
+      statusBadge = '<span class="suggestion-status approved">✓ Approved</span>';
+    } else if (sug.status === 'rejected') {
+      statusBadge = '<span class="suggestion-status rejected">✗ Rejected</span>';
+    }
+    
+    return `
+      <div class="suggestion-item ${sug.status}" data-id="${sug.id}">
+        <div class="suggestion-content">
+          <div class="suggestion-header">
+            <span class="suggestion-title">${sug.title}</span>
+            ${statusBadge}
+          </div>
+          <div class="suggestion-meta">
+            ${categoryBadge}
+            <span class="suggestion-user">by ${sug.userName || sug.userEmail || 'Anonymous'}</span>
+            <span class="suggestion-date">${date}</span>
+          </div>
+          ${sug.reason ? `<p class="suggestion-reason">${sug.reason}</p>` : ''}
+        </div>
+        <div class="suggestion-actions">
+          ${sug.status === 'pending' ? `
+            <button class="btn-icon approve-suggestion" data-id="${sug.id}" title="Approve">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+            <button class="btn-icon reject-suggestion" data-id="${sug.id}" title="Reject">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          ` : ''}
+          <button class="btn-icon delete-suggestion" data-id="${sug.id}" title="Delete">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Attach event listeners
+  attachSuggestionListeners();
+}
+
+function attachSuggestionListeners() {
+  // Approve buttons
+  document.querySelectorAll('.approve-suggestion').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = this.dataset.id;
+      const result = await MulonData.updateSuggestionStatus(id, 'approved');
+      if (result.success) {
+        showToast('Suggestion approved', 'success');
+        renderSuggestionList();
+      } else {
+        showToast('Error approving suggestion', 'error');
+      }
+    });
+  });
+  
+  // Reject buttons
+  document.querySelectorAll('.reject-suggestion').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = this.dataset.id;
+      const result = await MulonData.updateSuggestionStatus(id, 'rejected');
+      if (result.success) {
+        showToast('Suggestion rejected', 'success');
+        renderSuggestionList();
+      } else {
+        showToast('Error rejecting suggestion', 'error');
+      }
+    });
+  });
+  
+  // Delete buttons
+  document.querySelectorAll('.delete-suggestion').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = this.dataset.id;
+      if (confirm('Delete this suggestion?')) {
+        const result = await MulonData.deleteSuggestion(id);
+        if (result.success) {
+          showToast('Suggestion deleted', 'success');
+          renderSuggestionList();
+        } else {
+          showToast('Error deleting suggestion', 'error');
+        }
+      }
+    });
   });
 }

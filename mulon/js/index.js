@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Setup sidebar
   setupSidebar();
   
+  // Setup suggestion modal
+  setupSuggestionModal();
+  
   // Listen for auth state changes
   Auth.onAuthStateChange((user) => {
     updateAuthUI(user);
@@ -1133,6 +1136,91 @@ function updatePayout() {
     payoutValue.style.color = 'var(--green-primary)';
   } else {
     payoutValue.style.color = 'var(--red-primary)';
+  }
+}
+
+// ========================================
+// SUGGESTION MODAL
+// ========================================
+function setupSuggestionModal() {
+  const suggestBtn = document.getElementById('suggestBtn');
+  const suggestModal = document.getElementById('suggestModal');
+  const closeSuggestModal = document.getElementById('closeSuggestModal');
+  const suggestForm = document.getElementById('suggestForm');
+  const suggestCategory = document.getElementById('suggestCategory');
+  
+  // Populate category dropdown
+  if (suggestCategory) {
+    const categories = MulonData.getCategories();
+    Object.entries(categories).forEach(([id, cat]) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = `${cat.icon} ${cat.label}`;
+      suggestCategory.appendChild(option);
+    });
+  }
+  
+  // Open modal
+  if (suggestBtn) {
+    suggestBtn.addEventListener('click', () => {
+      if (suggestModal) {
+        suggestModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  }
+  
+  // Close modal
+  if (closeSuggestModal) {
+    closeSuggestModal.addEventListener('click', closeSuggestionModal);
+  }
+  
+  if (suggestModal) {
+    suggestModal.addEventListener('click', (e) => {
+      if (e.target === suggestModal) {
+        closeSuggestionModal();
+      }
+    });
+  }
+  
+  // Form submission
+  if (suggestForm) {
+    suggestForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const title = document.getElementById('suggestTitle').value.trim();
+      const category = document.getElementById('suggestCategory').value;
+      const reason = document.getElementById('suggestReason').value.trim();
+      
+      if (!title) {
+        showNotification('Please enter a market question', 'error');
+        return;
+      }
+      
+      // Get user info if logged in
+      const user = Auth.getCurrentUser();
+      const userId = user ? user.uid : null;
+      const userEmail = user ? user.email : null;
+      const userName = user ? user.displayName : null;
+      
+      const result = await MulonData.submitSuggestion(title, category, reason, userId, userEmail, userName);
+      
+      if (result.success) {
+        showNotification('Thanks! Your suggestion has been submitted.', 'success');
+        suggestForm.reset();
+        closeSuggestionModal();
+      } else {
+        showNotification('Error submitting suggestion. Please try again.', 'error');
+      }
+    });
+  }
+}
+
+function closeSuggestionModal() {
+  const suggestModal = document.getElementById('suggestModal');
+  if (suggestModal) {
+    suggestModal.classList.remove('active');
+    document.body.style.overflow = '';
   }
 }
 
