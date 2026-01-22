@@ -47,6 +47,7 @@ const googleProvider = new GoogleAuthProvider();
 const marketsRef = collection(db, 'mulon');
 const ordersRef = collection(db, 'mulon_orders');
 const tradesRef = collection(db, 'mulon_trades');
+const positionsRef = collection(db, 'mulon_positions'); // Central positions collection
 const usersRef = collection(db, 'mulon_users');
 const categoriesRef = collection(db, 'mulon_categories');
 const suggestionsRef = collection(db, 'mulon_suggestions');
@@ -301,6 +302,9 @@ const UserData = {
   async addPosition(marketId, marketTitle, choice, shares, costBasis, price) {
     if (!this.data) return [];
     
+    const tradeId = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const timestamp = new Date().toISOString();
+    
     const existingIndex = this.data.positions.findIndex(
       p => p.marketId === marketId && p.choice === choice
     );
@@ -310,6 +314,9 @@ const UserData = {
       existing.shares += shares;
       existing.costBasis += costBasis;
       existing.avgPrice = Math.round((existing.costBasis / existing.shares) * 100) / 100;
+      // Track all trade IDs for this position
+      existing.tradeIds = existing.tradeIds || [];
+      existing.tradeIds.push(tradeId);
     } else {
       this.data.positions.push({
         marketId,
@@ -318,7 +325,8 @@ const UserData = {
         shares,
         costBasis,
         avgPrice: price,
-        purchaseDate: new Date().toISOString()
+        purchaseDate: timestamp,
+        tradeIds: [tradeId] // Track trade IDs
       });
     }
     
@@ -331,10 +339,30 @@ const UserData = {
       shares,
       price,
       cost: costBasis,
-      timestamp: new Date().toISOString()
+      tradeId,
+      timestamp
     });
     
     await this.save();
+    
+    // Save to central positions collection for tracking
+    try {
+      await setDoc(doc(positionsRef, tradeId), {
+        tradeId,
+        userId: this.userId,
+        marketId,
+        marketTitle,
+        choice,
+        shares,
+        costBasis,
+        price,
+        timestamp,
+        status: 'active'
+      });
+    } catch (error) {
+      console.warn('Could not save to central positions collection:', error);
+    }
+    
     return this.data.positions;
   },
   
@@ -1666,8 +1694,44 @@ const MulonData = {
   },
 
   // Reset a single user's positions (for admin)
+  // Also reduces market volumes and cleans up central positions
   async resetUserPositions(userId) {
     try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      const positions = userData.positions || [];
+      
+      // Reduce volume for each market and clean up
+      for (const position of positions) {
+        const volumeToRemove = Math.round(position.costBasis || 0);
+        
+        // Reduce market volume
+        if (volumeToRemove > 0) {
+          const market = this.getMarket(position.marketId);
+          if (market) {
+            const newVolume = Math.max(0, (market.volume || 0) - volumeToRemove);
+            await this.updateMarket(position.marketId, { volume: newVolume });
+          }
+        }
+        
+        // Delete from central positions collection
+        if (position.tradeIds) {
+          for (const tradeId of position.tradeIds) {
+            try {
+              await deleteDoc(doc(positionsRef, tradeId));
+              await deleteDoc(doc(tradesRef, tradeId));
+            } catch (err) {
+              console.warn('Could not delete position/trade:', tradeId);
+            }
+          }
+        }
+      }
+      
+      // Clear user's positions
       await updateDoc(doc(usersRef, userId), {
         positions: []
       });
@@ -1679,16 +1743,52 @@ const MulonData = {
   },
 
   // Reset ALL users' positions (for admin)
+  // Also resets all market volumes and cleans up central collections
   async resetAllUsersPositions() {
     try {
       const usersSnapshot = await getDocs(usersRef);
       let resetCount = 0;
       
+      // Collect all volume changes per market
+      const volumeChanges = {};
+      
       for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        const positions = userData.positions || [];
+        
+        // Sum up volume to remove per market
+        for (const position of positions) {
+          const volumeToRemove = Math.round(position.costBasis || 0);
+          if (volumeToRemove > 0) {
+            volumeChanges[position.marketId] = (volumeChanges[position.marketId] || 0) + volumeToRemove;
+          }
+          
+          // Delete from central positions collection
+          if (position.tradeIds) {
+            for (const tradeId of position.tradeIds) {
+              try {
+                await deleteDoc(doc(positionsRef, tradeId));
+                await deleteDoc(doc(tradesRef, tradeId));
+              } catch (err) {
+                console.warn('Could not delete position/trade:', tradeId);
+              }
+            }
+          }
+        }
+        
         await updateDoc(doc(usersRef, userDoc.id), {
           positions: []
         });
         resetCount++;
+      }
+      
+      // Apply volume reductions to markets
+      for (const [marketId, volumeToRemove] of Object.entries(volumeChanges)) {
+        const market = this.getMarket(marketId);
+        if (market) {
+          const newVolume = Math.max(0, (market.volume || 0) - volumeToRemove);
+          await this.updateMarket(marketId, { volume: newVolume });
+        }
       }
       
       return { success: true, resetCount };
@@ -1764,6 +1864,7 @@ const MulonData = {
   },
 
   // Delete a specific position for a user (for admin)
+  // Also reduces market volume and removes from central positions collection
   async deleteUserPosition(userId, marketId) {
     try {
       const userDoc = await getDoc(doc(usersRef, userId));
@@ -1773,10 +1874,55 @@ const MulonData = {
       
       const userData = userDoc.data();
       const positions = userData.positions || [];
-      const newPositions = positions.filter(p => p.marketId !== marketId);
+      const positionToDelete = positions.find(p => p.marketId === marketId);
       
+      if (!positionToDelete) {
+        return { success: false, error: 'Position not found' };
+      }
+      
+      // Get the cost basis (volume to subtract from market)
+      const volumeToRemove = Math.round(positionToDelete.costBasis || 0);
+      
+      // Remove from user's positions
+      const newPositions = positions.filter(p => p.marketId !== marketId);
       await updateDoc(doc(usersRef, userId), { positions: newPositions });
-      return { success: true };
+      
+      // Reduce market volume
+      if (volumeToRemove > 0) {
+        const market = this.getMarket(marketId);
+        if (market) {
+          const newVolume = Math.max(0, (market.volume || 0) - volumeToRemove);
+          await this.updateMarket(marketId, { volume: newVolume });
+        }
+      }
+      
+      // Delete from central positions collection (by trade IDs)
+      if (positionToDelete.tradeIds && positionToDelete.tradeIds.length > 0) {
+        for (const tradeId of positionToDelete.tradeIds) {
+          try {
+            await deleteDoc(doc(positionsRef, tradeId));
+            // Also delete from trades collection
+            await deleteDoc(doc(tradesRef, tradeId));
+          } catch (err) {
+            console.warn('Could not delete position/trade:', tradeId, err);
+          }
+        }
+      }
+      
+      // Also try to find and delete any trades by this user for this market
+      try {
+        const tradesSnapshot = await getDocs(tradesRef);
+        for (const tradeDoc of tradesSnapshot.docs) {
+          const trade = tradeDoc.data();
+          if (trade.userId === userId && trade.marketId === marketId) {
+            await deleteDoc(doc(tradesRef, tradeDoc.id));
+          }
+        }
+      } catch (err) {
+        console.warn('Could not clean up related trades:', err);
+      }
+      
+      return { success: true, volumeRemoved: volumeToRemove };
     } catch (error) {
       console.error('Error deleting user position:', error);
       return { success: false, error: error.message };
@@ -1812,4 +1958,4 @@ const MulonData = {
 window.MulonData = MulonData;
 
 // Export for ES modules
-export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef, suggestionsRef };
+export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef, suggestionsRef, positionsRef, tradesRef };
