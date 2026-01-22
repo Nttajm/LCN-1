@@ -413,23 +413,16 @@ body.sidebar-open {
   margin-bottom: 0.5rem;
 }
 
-.position-sell-btn {
+.position-resolved-badge {
   flex-shrink: 0;
-  padding: 0.35rem 0.75rem;
-  background: var(--red-light);
-  color: var(--red-primary);
-  border: 1px solid var(--red-primary);
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   border-radius: var(--radius-sm);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.position-sell-btn:hover {
-  background: var(--red-primary);
-  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .position-market {

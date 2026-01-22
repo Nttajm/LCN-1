@@ -1692,15 +1692,7 @@ function updatePortfolioDisplay() {
         <div class="position-item" data-market-id="${pos.marketId}">
           <div class="position-header">
             <div class="position-market">${pos.marketTitle}</div>
-            ${!isResolved ? `
-              <button class="position-sell-btn" 
-                data-market-id="${pos.marketId}" 
-                data-choice="${pos.choice}"
-                data-shares="${pos.shares}"
-                data-avg-price="${pos.avgPrice}">
-                Sell
-              </button>
-            ` : ''}
+            ${isResolved ? '<span class="position-resolved-badge">Resolved</span>' : ''}
           </div>
           <div class="position-details">
             <div class="position-info">
@@ -1717,67 +1709,7 @@ function updatePortfolioDisplay() {
         </div>
       `;
     }).join('');
-    
-    // Attach sell button listeners
-    attachPositionSellListeners();
   }
-}
-
-function attachPositionSellListeners() {
-  const sellBtns = document.querySelectorAll('.position-sell-btn');
-  
-  sellBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      
-      const marketId = btn.dataset.marketId;
-      const choice = btn.dataset.choice;
-      const shares = parseFloat(btn.dataset.shares);
-      const market = MulonData.getMarket(marketId);
-      
-      if (!market) {
-        showNotification('Market not found', 'error');
-        return;
-      }
-      
-      // Set up modal for selling
-      currentMarketId = marketId;
-      currentYesPrice = market.yesPrice;
-      currentNoPrice = market.noPrice;
-      currentChoice = choice;
-      
-      // Update modal content
-      const category = MulonData.getCategory(market.category);
-      if (modalTitle) modalTitle.textContent = market.title;
-      document.querySelector('.modal-market-icon').textContent = category.icon;
-      if (yesPrice) yesPrice.textContent = market.yesPrice + '¢';
-      if (noPrice) noPrice.textContent = market.noPrice + '¢';
-      
-      // Switch to sell tab
-      modalTabs.forEach(t => t.classList.remove('active'));
-      const sellTab = document.querySelector('.modal-tab[data-tab="sell"]');
-      if (sellTab) sellTab.classList.add('active');
-      buyBtn.textContent = 'Sell';
-      buyBtn.classList.add('sell-mode');
-      
-      // Set amount to current value of shares
-      const currentPrice = choice === 'yes' ? market.yesPrice : market.noPrice;
-      const currentValue = (shares * currentPrice) / 100;
-      if (amountInput) {
-        amountInput.value = currentValue.toFixed(2);
-        amountInput.max = currentValue.toFixed(2);
-      }
-      
-      updateModalChoice();
-      updatePayout();
-      
-      // Show modal
-      if (modal) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-    });
-  });
 }
 
 function updateWatchlistDisplay() {
