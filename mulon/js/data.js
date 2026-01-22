@@ -264,6 +264,33 @@ const UserData = {
     return this.get().balance;
   },
   
+  // Update user profile (displayName, avatarStyle)
+  async updateProfile(displayName, avatarStyle) {
+    if (!this.data) return { success: false, error: 'Not signed in' };
+    
+    try {
+      if (displayName !== undefined && displayName.trim() !== '') {
+        this.data.displayName = displayName.trim();
+      }
+      if (avatarStyle !== undefined) {
+        this.data.avatarStyle = avatarStyle;
+      }
+      await this.save();
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  getAvatarStyle() {
+    return this.get().avatarStyle || 'default';
+  },
+  
+  getDisplayName() {
+    return this.get().displayName || 'Anonymous';
+  },
+
   async updateBalance(amount) {
     if (!this.data) return 0;
     this.data.balance = Math.round((this.data.balance + amount) * 100) / 100;
@@ -1442,6 +1469,99 @@ const MulonData = {
     } catch (error) {
       console.error('Error resetting to defaults:', error);
       return this.cachedMarkets;
+    }
+  },
+
+  // Get all trades for a market with user information (for admin)
+  async getMarketTradesWithUsers(marketId) {
+    try {
+      // Get all trades for this market
+      const tradesSnapshot = await getDocs(tradesRef);
+      const trades = [];
+      const userIds = new Set();
+      
+      tradesSnapshot.forEach((document) => {
+        const trade = document.data();
+        if (trade.marketId === marketId) {
+          trades.push(trade);
+          if (trade.userId) {
+            userIds.add(trade.userId);
+          }
+        }
+      });
+      
+      // Sort by timestamp descending
+      trades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      
+      // Fetch user info for all unique users
+      const usersMap = {};
+      for (const userId of userIds) {
+        try {
+          const userDoc = await getDoc(doc(usersRef, userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            usersMap[userId] = {
+              displayName: userData.displayName || 'Anonymous',
+              email: userData.email || 'Unknown',
+              photoURL: userData.photoURL || null
+            };
+          } else {
+            usersMap[userId] = {
+              displayName: 'Unknown User',
+              email: 'N/A',
+              photoURL: null
+            };
+          }
+        } catch (err) {
+          usersMap[userId] = {
+            displayName: 'Unknown User',
+            email: 'N/A',
+            photoURL: null
+          };
+        }
+      }
+      
+      // Attach user info to each trade
+      const tradesWithUsers = trades.map(trade => ({
+        ...trade,
+        user: usersMap[trade.userId] || { displayName: 'Guest', email: 'N/A', photoURL: null }
+      }));
+      
+      return tradesWithUsers;
+    } catch (error) {
+      console.error('Error fetching market trades with users:', error);
+      return [];
+    }
+  },
+
+  // Get all positions for a market (who currently holds what)
+  async getMarketPositions(marketId) {
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      const positions = [];
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        const userPositions = userData.positions || [];
+        
+        const marketPos = userPositions.find(p => p.marketId === marketId);
+        if (marketPos) {
+          positions.push({
+            userId: userDoc.id,
+            displayName: userData.displayName || 'Anonymous',
+            email: userData.email || 'Unknown',
+            photoURL: userData.photoURL || null,
+            ...marketPos
+          });
+        }
+      }
+      
+      // Sort by shares descending
+      positions.sort((a, b) => b.shares - a.shares);
+      return positions;
+    } catch (error) {
+      console.error('Error fetching market positions:', error);
+      return [];
     }
   }
 };

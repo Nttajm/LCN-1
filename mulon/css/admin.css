@@ -932,3 +932,233 @@
   background: var(--red-light);
   color: var(--red-primary);
 }
+
+/* ========================================
+   Market Trades & Positions Section
+   ======================================== */
+
+.market-trades-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.trades-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.trades-section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.trades-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.trades-tab {
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trades-tab:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.trades-tab.active {
+  background: var(--text-primary);
+  color: white;
+  border-color: var(--text-primary);
+}
+
+.trades-tab-content {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.trades-loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.trades-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.trades-empty-icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.trades-empty p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Position Item */
+.position-item,
+.trade-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+  gap: 1rem;
+}
+
+.position-item:last-child,
+.trade-item:last-child {
+  border-bottom: none;
+}
+
+.position-user,
+.trade-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.position-avatar,
+.trade-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.position-avatar-placeholder,
+.trade-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.position-user-info,
+.trade-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.position-name,
+.trade-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.position-email,
+.trade-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.position-details,
+.trade-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.position-choice,
+.trade-choice {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.position-choice.yes,
+.trade-choice.yes {
+  background: var(--green-light);
+  color: var(--green-primary);
+}
+
+.position-choice.no,
+.trade-choice.no {
+  background: var(--red-light);
+  color: var(--red-primary);
+}
+
+.trade-action {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.trade-action.buy {
+  background: var(--green-light);
+  color: var(--green-primary);
+}
+
+.trade-action.sell {
+  background: var(--red-light);
+  color: var(--red-primary);
+}
+
+.position-shares,
+.trade-shares {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.position-cost,
+.trade-cost {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .position-item,
+  .trade-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .position-details,
+  .trade-details {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

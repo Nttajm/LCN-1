@@ -1,0 +1,444 @@
+/* ========================================
+   LEADER STYLES (From Over Under)
+   These are cosmetic styles that players can earn/purchase
+   ======================================== */
+
+/* ========================================
+   ANIMATION EFFECTS
+   ======================================== */
+
+/* Glow effect - Pulsing border glow */
+.leaderboard-row.glow {
+  animation: glowingBorder 3s infinite;
+}
+
+@keyframes glowingBorder {
+  0% {
+    box-shadow: 0 0 10px var(--green-primary), 0 0 20px var(--green-primary);
+  }
+  50% {
+    box-shadow: 0 0 20px #6366f1, 0 0 30px #6366f1;
+  }
+  100% {
+    box-shadow: 0 0 10px var(--green-primary), 0 0 20px var(--green-primary);
+  }
+}
+
+/* Glow-on rainbow effect */
+.leaderboard-row.glow-on {
+  background: linear-gradient(90deg, #ff7e5f, #feb47b) !important;
+  animation: glowing 5s linear infinite;
+  background-size: 400% 100%;
+}
+
+@keyframes glowing {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Shake effect */
+.leaderboard-row.shake {
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) infinite;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+/* Rotation effect */
+.leaderboard-row.rot {
+  animation: spin3d 3s infinite;
+  perspective: 1000px;
+}
+
+@keyframes spin3d {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(5deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+/* Spin effect */
+.leaderboard-row.spin {
+  animation: leaderSpin 4s linear infinite;
+}
+
+@keyframes leaderSpin {
+  0% {
+    box-shadow: 0 0 10px var(--green-primary);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 20px #6366f1;
+    opacity: 0.9;
+  }
+  100% {
+    box-shadow: 0 0 10px var(--green-primary);
+    opacity: 1;
+  }
+}
+
+/* 3D Rotate effect */
+.leaderboard-row.rotate-3d {
+  animation: rotate3d 3s infinite;
+}
+
+@keyframes rotate3d {
+  0% {
+    transform: rotate3d(1, 0, 0, 0deg);
+  }
+  50% {
+    transform: rotate3d(1, 0, 0, 3deg);
+  }
+  100% {
+    transform: rotate3d(1, 0, 0, 0deg);
+  }
+}
+
+/* Rainbow text effect */
+.leaderboard-row.rainbow .user-cell-name {
+  animation: rainbowText 5s linear infinite;
+}
+
+@keyframes rainbowText {
+  0% { color: #7b2f8a !important; }
+  14% { color: #3ea7c7 !important; }
+  28% { color: #0077ff !important; }
+  42% { color: #463dbe !important; }
+  57% { color: #0000ff !important; }
+  71% { color: #4b0082 !important; }
+  85% { color: #8b00ff !important; }
+  100% { color: #32ad93 !important; }
+}
+
+/* Pulse effect */
+.leaderboard-row.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* Slide-in effect */
+.leaderboard-row.slide-in {
+  animation: slideIn 1s ease-out;
+}
+
+@keyframes slideIn {
+  0% { transform: translateX(-20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* Rotate effect */
+.leaderboard-row.rotate {
+  animation: rotateEffect 6s linear infinite;
+}
+
+@keyframes rotateEffect {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Cool Effect 1 */
+.leaderboard-row.coolEffect {
+  animation: coolEffect 2.5s linear infinite;
+}
+
+@keyframes coolEffect {
+  0%, 100% {
+    transform: perspective(75em) rotateX(2deg) rotateY(0deg);
+    box-shadow: rgba(22, 31, 39, 0.42) 0px 30px 60px -15px;
+    border-radius: 10px;
+  }
+  50% {
+    transform: perspective(75em) rotateX(-2deg) rotateY(2deg);
+    box-shadow: rgba(22, 31, 39, 0.42) 0px 15px 30px -10px;
+    border-radius: 12px;
+  }
+}
+
+/* Cool Effect 2 */
+.leaderboard-row.coolEffect2 {
+  animation: coolEffect2 6s linear infinite;
+}
+
+@keyframes coolEffect2 {
+  0% {
+    transform: perspective(550px) rotateX(1deg) rotateY(0deg) scale(1);
+    box-shadow: rgba(22, 31, 39, 0.5) 0px 25px 50px -10px;
+    border: 2px solid rgba(133, 42, 218, 0.6);
+  }
+  25% {
+    transform: perspective(500px) rotateX(-1deg) rotateY(1deg) scale(1.01);
+    box-shadow: rgba(22, 31, 39, 0.5) 0px 15px 30px -10px;
+    border: 2px solid rgba(29, 96, 163, 0.7);
+  }
+  50% {
+    transform: perspective(550px) rotateX(1deg) rotateY(-1deg) scale(1.02);
+    box-shadow: rgba(22, 31, 39, 0.6) 0px 25px 50px -15px;
+    border: 2px solid rgba(133, 42, 218, 0.8);
+  }
+  75% {
+    transform: perspective(500px) rotateX(-1deg) rotateY(0.5deg) scale(1.01);
+    box-shadow: rgba(22, 31, 39, 0.5) 0px 15px 30px -10px;
+    border: 2px solid rgba(29, 96, 163, 0.6);
+  }
+  100% {
+    transform: perspective(550px) rotateX(1deg) rotateY(0deg) scale(1);
+    box-shadow: rgba(22, 31, 39, 0.5) 0px 25px 50px -10px;
+    border: 2px solid rgba(133, 42, 218, 0.6);
+  }
+}
+
+/* We Up - Green background */
+.leaderboard-row.weup {
+  background-color: var(--green-primary) !important;
+}
+
+.leaderboard-row.weup .user-cell-name,
+.leaderboard-row.weup .stat-cell {
+  color: white !important;
+}
+
+/* We Down - Red background */
+.leaderboard-row.wedown {
+  background-color: var(--red-primary) !important;
+}
+
+.leaderboard-row.wedown .user-cell-name,
+.leaderboard-row.wedown .stat-cell {
+  color: white !important;
+}
+
+/* ========================================
+   IMAGE BACKGROUND STYLES
+   ======================================== */
+
+/* Common styles for all image backgrounds */
+.leaderboard-row.lebron,
+.leaderboard-row.lebron2,
+.leaderboard-row.curry,
+.leaderboard-row.messi,
+.leaderboard-row.wiggins,
+.leaderboard-row.surj,
+.leaderboard-row.king,
+.leaderboard-row.pump,
+.leaderboard-row.bird,
+.leaderboard-row.peter,
+.leaderboard-row.teddy,
+.leaderboard-row.kanye,
+.leaderboard-row.ironman,
+.leaderboard-row.thanos,
+.leaderboard-row.rp1,
+.leaderboard-row.hellokitty,
+.leaderboard-row.nfs,
+.leaderboard-row.jermeylin,
+.leaderboard-row.hack {
+  background-size: cover !important;
+  background-position: center !important;
+  border-radius: 0.3rem;
+  position: relative;
+}
+
+/* Text readability for image backgrounds */
+.leaderboard-row.lebron .user-cell-name,
+.leaderboard-row.lebron .stat-cell,
+.leaderboard-row.lebron2 .user-cell-name,
+.leaderboard-row.lebron2 .stat-cell,
+.leaderboard-row.curry .user-cell-name,
+.leaderboard-row.curry .stat-cell,
+.leaderboard-row.messi .user-cell-name,
+.leaderboard-row.messi .stat-cell,
+.leaderboard-row.wiggins .user-cell-name,
+.leaderboard-row.wiggins .stat-cell,
+.leaderboard-row.surj .user-cell-name,
+.leaderboard-row.surj .stat-cell,
+.leaderboard-row.king .user-cell-name,
+.leaderboard-row.king .stat-cell,
+.leaderboard-row.pump .user-cell-name,
+.leaderboard-row.pump .stat-cell,
+.leaderboard-row.bird .user-cell-name,
+.leaderboard-row.bird .stat-cell,
+.leaderboard-row.peter .user-cell-name,
+.leaderboard-row.peter .stat-cell,
+.leaderboard-row.teddy .user-cell-name,
+.leaderboard-row.teddy .stat-cell,
+.leaderboard-row.kanye .user-cell-name,
+.leaderboard-row.kanye .stat-cell,
+.leaderboard-row.ironman .user-cell-name,
+.leaderboard-row.ironman .stat-cell,
+.leaderboard-row.thanos .user-cell-name,
+.leaderboard-row.thanos .stat-cell,
+.leaderboard-row.rp1 .user-cell-name,
+.leaderboard-row.rp1 .stat-cell,
+.leaderboard-row.hellokitty .user-cell-name,
+.leaderboard-row.hellokitty .stat-cell,
+.leaderboard-row.nfs .user-cell-name,
+.leaderboard-row.nfs .stat-cell,
+.leaderboard-row.jermeylin .user-cell-name,
+.leaderboard-row.jermeylin .stat-cell,
+.leaderboard-row.hack .user-cell-name,
+.leaderboard-row.hack .stat-cell {
+  color: white !important;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* LeBron */
+.leaderboard-row.lebron {
+  background: url(/bp/EE/assets/ouths/453223518_1228565591633172_5488051257223547212_n.jpg) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* LeBron 2 (animated) */
+.leaderboard-row.lebron2 {
+  background: url(/bp/EE/assets/ouths/lebron2.gif) no-repeat !important;
+  background-position: 50% 29% !important;
+  background-size: cover !important;
+}
+
+/* Curry */
+.leaderboard-row.curry {
+  background: url(/bp/EE/assets/ouths/curry.webp) no-repeat !important;
+  background-position: 20% 35% !important;
+  background-size: cover !important;
+}
+
+/* Messi */
+.leaderboard-row.messi {
+  background: url(/bp/EE/assets/ouths/messi.gif) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Wiggins */
+.leaderboard-row.wiggins {
+  background: url(/bp/EE/assets/ouths/wiggins.gif) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Surj */
+.leaderboard-row.surj {
+  background: url(/bp/EE/assets/ouths/surj.gif) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* King */
+.leaderboard-row.king {
+  background: url(/bp/EE/assets/ouths/king.gif) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Pump */
+.leaderboard-row.pump {
+  background: url(https://media.tenor.com/odgHhRJW1CIAAAAC/egonauts-egonaut.gif) no-repeat !important;
+  background-position: 50% 10% !important;
+  background-size: cover !important;
+}
+
+/* Bird */
+.leaderboard-row.bird {
+  background: url(/bp/EE/assets/ouths/bird.gif) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Peter */
+.leaderboard-row.peter {
+  background: url(/bp/EE/assets/ouths/peter.gif) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Teddy */
+.leaderboard-row.teddy {
+  background: url(/bp/EE/assets/ouths/teddy.jpg) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Kanye */
+.leaderboard-row.kanye {
+  background: url(/bp/EE/assets/ouths/ye.webp) no-repeat !important;
+  background-position: 50% 28% !important;
+  background-size: cover !important;
+}
+
+/* Iron Man */
+.leaderboard-row.ironman {
+  background: url(/bp/EE/assets/ouths/ironman.jpg) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Thanos */
+.leaderboard-row.thanos {
+  background: url(/bp/EE/assets/ouths/thanosgif.gif) no-repeat !important;
+  background-position: 50% 29% !important;
+  background-size: cover !important;
+}
+
+/* RP1 */
+.leaderboard-row.rp1 {
+  background: url(/bp/EE/assets/ouths/rp1.gif) no-repeat !important;
+  background-position: 20% 35% !important;
+  background-size: cover !important;
+}
+
+/* Hello Kitty */
+.leaderboard-row.hellokitty {
+  background: url(/bp/EE/assets/ouths/hellokitty.gif) no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+.leaderboard-row.hellokitty .user-cell-name {
+  color: rebeccapurple !important;
+}
+
+/* NFS */
+.leaderboard-row.nfs {
+  background: url('http://static.wikia.nocookie.net/nfs/images/d/db/NFSUB_Header_Pursuit.gif') no-repeat !important;
+  background-position: 50% 59% !important;
+  background-size: cover !important;
+}
+
+/* Jermey Lin */
+.leaderboard-row.jermeylin {
+  background: url(/bp/EE/assets/ouths/jermylin.gif) no-repeat !important;
+  background-position: 50% 29% !important;
+  background-size: cover !important;
+}
+
+/* Hack */
+.leaderboard-row.hack {
+  background: url(/bp/EE/assets/ouths/hack.gif) no-repeat !important;
+  background-position: 50% 29% !important;
+  background-size: cover !important;
+}

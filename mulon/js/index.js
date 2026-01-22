@@ -237,6 +237,9 @@ function setupAuthUI() {
   if (cancelSignInBtn) {
     cancelSignInBtn.addEventListener('click', hideSignInModal);
   }
+  
+  // Setup profile modal
+  setupProfileModal();
 }
 
 function updateAuthUI(user) {
@@ -246,25 +249,64 @@ function updateAuthUI(user) {
   const userEmail = document.getElementById('userEmail');
   const signOutBtn = document.getElementById('signOutBtn');
   const headerSignInBtn = document.getElementById('headerSignInBtn');
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  const userAvatar = document.getElementById('userAvatar');
   
   if (user && !user.isGuest) {
-    // Signed in
-    if (userPhoto && user.photoURL) {
-      userPhoto.src = user.photoURL;
-      userPhoto.style.display = 'block';
+    // Get avatar style from user data
+    const avatarStyle = UserData.getAvatarStyle();
+    const displayName = UserData.getDisplayName();
+    
+    // Apply avatar style
+    if (avatarStyle === 'default' && user.photoURL) {
+      if (userPhoto) {
+        userPhoto.src = user.photoURL;
+        userPhoto.style.display = 'block';
+      }
       if (userInitials) userInitials.style.display = 'none';
-    } else if (userInitials) {
-      const initials = user.displayName 
-        ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-        : '?';
-      userInitials.textContent = initials;
-      userInitials.style.display = 'flex';
+      if (userAvatar) userAvatar.style.background = '';
+    } else if (avatarStyle && avatarStyle.startsWith('gradient')) {
+      // Use gradient avatar
       if (userPhoto) userPhoto.style.display = 'none';
+      if (userInitials) {
+        const initials = displayName
+          ? displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+          : '?';
+        userInitials.textContent = initials;
+        userInitials.style.display = 'flex';
+      }
+      // Apply gradient background
+      const gradients = {
+        'gradient1': 'linear-gradient(135deg, #667eea, #764ba2)',
+        'gradient2': 'linear-gradient(135deg, #11998e, #38ef7d)',
+        'gradient3': 'linear-gradient(135deg, #fc4a1a, #f7b733)',
+        'gradient4': 'linear-gradient(135deg, #141e30, #243b55)',
+        'gradient5': 'linear-gradient(135deg, #ff9a9e, #fecfef)',
+        'gradient6': 'linear-gradient(135deg, #00c853, #00e676)',
+        'gradient7': 'linear-gradient(135deg, #232526, #414345)'
+      };
+      if (userAvatar) userAvatar.style.background = gradients[avatarStyle] || '';
+    } else {
+      // Default with photo
+      if (userPhoto && user.photoURL) {
+        userPhoto.src = user.photoURL;
+        userPhoto.style.display = 'block';
+        if (userInitials) userInitials.style.display = 'none';
+      } else if (userInitials) {
+        const initials = displayName
+          ? displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+          : '?';
+        userInitials.textContent = initials;
+        userInitials.style.display = 'flex';
+        if (userPhoto) userPhoto.style.display = 'none';
+      }
+      if (userAvatar) userAvatar.style.background = '';
     }
     
-    if (userName) userName.textContent = user.displayName || 'User';
+    if (userName) userName.textContent = displayName || 'User';
     if (userEmail) userEmail.textContent = user.email || '';
     if (signOutBtn) signOutBtn.style.display = 'flex';
+    if (editProfileBtn) editProfileBtn.style.display = 'flex';
     if (headerSignInBtn) headerSignInBtn.style.display = 'none';
   } else {
     // Guest or signed out
@@ -273,9 +315,11 @@ function updateAuthUI(user) {
       userInitials.style.display = 'flex';
     }
     if (userPhoto) userPhoto.style.display = 'none';
+    if (userAvatar) userAvatar.style.background = '';
     if (userName) userName.textContent = user?.isGuest ? 'Guest' : 'Not signed in';
     if (userEmail) userEmail.textContent = user?.isGuest ? 'Browsing only' : 'Sign in to trade';
     if (signOutBtn) signOutBtn.style.display = 'none';
+    if (editProfileBtn) editProfileBtn.style.display = 'none';
     if (headerSignInBtn) headerSignInBtn.style.display = 'flex';
   }
 }
@@ -288,6 +332,173 @@ function showSignInModal() {
 function hideSignInModal() {
   const modal = document.getElementById('signinRequiredModal');
   if (modal) modal.classList.remove('active');
+}
+
+// ========================================
+// PROFILE MODAL
+// ========================================
+let selectedAvatarStyle = 'default';
+
+function setupProfileModal() {
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  const profileModal = document.getElementById('profileModal');
+  const closeProfileModal = document.getElementById('closeProfileModal');
+  const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const avatarOptions = document.querySelectorAll('.avatar-option');
+  const profileUsername = document.getElementById('profileUsername');
+  
+  // Open modal
+  if (editProfileBtn) {
+    editProfileBtn.addEventListener('click', () => {
+      openProfileModal();
+    });
+  }
+  
+  // Close modal
+  if (closeProfileModal) {
+    closeProfileModal.addEventListener('click', closeProfileModalFn);
+  }
+  if (cancelProfileBtn) {
+    cancelProfileBtn.addEventListener('click', closeProfileModalFn);
+  }
+  
+  // Close on overlay click
+  if (profileModal) {
+    profileModal.addEventListener('click', (e) => {
+      if (e.target === profileModal) {
+        closeProfileModalFn();
+      }
+    });
+  }
+  
+  // Avatar option selection
+  avatarOptions.forEach(option => {
+    option.addEventListener('click', () => {
+      avatarOptions.forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      selectedAvatarStyle = option.dataset.avatar;
+      updateProfilePreview();
+    });
+  });
+  
+  // Update preview as user types
+  if (profileUsername) {
+    profileUsername.addEventListener('input', updateProfilePreview);
+  }
+  
+  // Save profile
+  if (saveProfileBtn) {
+    saveProfileBtn.addEventListener('click', async () => {
+      const newUsername = profileUsername.value.trim();
+      
+      if (newUsername.length === 0) {
+        showNotification('Please enter a display name', 'error');
+        return;
+      }
+      
+      if (newUsername.length > 20) {
+        showNotification('Display name must be 20 characters or less', 'error');
+        return;
+      }
+      
+      saveProfileBtn.disabled = true;
+      saveProfileBtn.textContent = 'Saving...';
+      
+      const result = await UserData.updateProfile(newUsername, selectedAvatarStyle);
+      
+      if (result.success) {
+        showNotification('Profile updated!', 'success');
+        closeProfileModalFn();
+        // Refresh UI
+        updateAuthUI(Auth.getUser());
+      } else {
+        showNotification('Failed to update profile', 'error');
+      }
+      
+      saveProfileBtn.disabled = false;
+      saveProfileBtn.textContent = 'Save Changes';
+    });
+  }
+}
+
+function openProfileModal() {
+  const profileModal = document.getElementById('profileModal');
+  const profileUsername = document.getElementById('profileUsername');
+  const avatarOptions = document.querySelectorAll('.avatar-option');
+  
+  if (!profileModal) return;
+  
+  // Load current values
+  const currentName = UserData.getDisplayName();
+  const currentAvatar = UserData.getAvatarStyle();
+  
+  if (profileUsername) {
+    profileUsername.value = currentName || '';
+  }
+  
+  // Select current avatar
+  selectedAvatarStyle = currentAvatar || 'default';
+  avatarOptions.forEach(option => {
+    option.classList.toggle('selected', option.dataset.avatar === selectedAvatarStyle);
+  });
+  
+  updateProfilePreview();
+  profileModal.classList.add('active');
+}
+
+function closeProfileModalFn() {
+  const profileModal = document.getElementById('profileModal');
+  if (profileModal) {
+    profileModal.classList.remove('active');
+  }
+}
+
+function updateProfilePreview() {
+  const previewInitials = document.getElementById('profilePreviewInitials');
+  const previewPhoto = document.getElementById('profilePreviewPhoto');
+  const previewContainer = document.getElementById('profileAvatarPreview');
+  const profileUsername = document.getElementById('profileUsername');
+  
+  const user = Auth.getUser();
+  const displayName = profileUsername?.value || UserData.getDisplayName() || 'User';
+  
+  const initials = displayName
+    ? displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+  
+  const gradients = {
+    'gradient1': 'linear-gradient(135deg, #667eea, #764ba2)',
+    'gradient2': 'linear-gradient(135deg, #11998e, #38ef7d)',
+    'gradient3': 'linear-gradient(135deg, #fc4a1a, #f7b733)',
+    'gradient4': 'linear-gradient(135deg, #141e30, #243b55)',
+    'gradient5': 'linear-gradient(135deg, #ff9a9e, #fecfef)',
+    'gradient6': 'linear-gradient(135deg, #00c853, #00e676)',
+    'gradient7': 'linear-gradient(135deg, #232526, #414345)'
+  };
+  
+  if (selectedAvatarStyle === 'default' && user?.photoURL) {
+    if (previewPhoto) {
+      previewPhoto.src = user.photoURL;
+      previewPhoto.style.display = 'block';
+    }
+    if (previewInitials) previewInitials.style.display = 'none';
+    if (previewContainer) previewContainer.style.background = '';
+  } else if (selectedAvatarStyle.startsWith('gradient')) {
+    if (previewPhoto) previewPhoto.style.display = 'none';
+    if (previewInitials) {
+      previewInitials.textContent = initials;
+      previewInitials.style.display = 'flex';
+    }
+    if (previewContainer) previewContainer.style.background = gradients[selectedAvatarStyle] || '';
+  } else {
+    if (previewPhoto) previewPhoto.style.display = 'none';
+    if (previewInitials) {
+      previewInitials.textContent = initials;
+      previewInitials.style.display = 'flex';
+    }
+    if (previewContainer) previewContainer.style.background = '';
+  }
 }
 
 // ========================================
@@ -510,6 +721,10 @@ function renderMarkets() {
       if (featuredMarketsData.length > 0) {
         featuredContainer.innerHTML = renderFeaturedSlider(featuredMarketsData);
         setupSlider();
+        // Load price graphs for featured markets (desktop only)
+        if (window.innerWidth >= 900) {
+          loadAndRenderPriceGraphs();
+        }
       } else {
         featuredContainer.innerHTML = '<div class="empty-state">No markets available yet.</div>';
       }
@@ -619,29 +834,57 @@ function renderFeaturedSlide(market, index) {
   return `
     <div class="featured-slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}">
       <div class="featured-card ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
-        <div class="card-header">
-          <div class="card-category">
-            <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
-            <span class="volume">${MulonData.formatVolume(market.volume)}</span>
+        <div class="featured-card-main">
+          <div class="featured-card-info">
+            <div class="card-header">
+              <div class="card-category">
+                <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
+                <span class="volume">${MulonData.formatVolume(market.volume)}</span>
+              </div>
+              <div class="card-time">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>${MulonData.getDaysUntil(market.endDate)}${market.endTime ? ' @ ' + market.endTime : ''}</span>
+              </div>
+            </div>
+            <h3 class="card-title">${market.title}</h3>
+            <p class="card-subtitle">${market.subtitle || ''}</p>
+            ${statusBadge}
+            
+            <div class="probability-bar">
+              <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
+            </div>
+            <div class="prob-labels">
+              <span class="prob-yes">${market.yesPrice}% Yes</span>
+              <span class="prob-no">${market.noPrice}% No</span>
+            </div>
           </div>
-          <div class="card-time">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span>${MulonData.getDaysUntil(market.endDate)}${market.endTime ? ' @ ' + market.endTime : ''}</span>
+          
+          <div class="featured-card-graph" data-market-id="${market.id}">
+            <div class="graph-header">
+              <span class="graph-price">${market.yesPrice}%</span>
+              <span class="graph-label">probability</span>
+            </div>
+            <div class="graph-container">
+              <svg class="price-graph" data-market-id="${market.id}" viewBox="0 0 200 80" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="graphGradient-${market.id}" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="var(--green-primary)" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="var(--green-primary)" stop-opacity="0.02"/>
+                  </linearGradient>
+                </defs>
+                <path class="graph-area" fill="url(#graphGradient-${market.id})" d=""></path>
+                <path class="graph-line" fill="none" stroke="var(--green-primary)" stroke-width="2" d=""></path>
+              </svg>
+              <div class="graph-loading">Loading...</div>
+            </div>
+            <div class="graph-dates">
+              <span class="graph-date-start"></span>
+              <span class="graph-date-end">Now</span>
+            </div>
           </div>
-        </div>
-        <h3 class="card-title">${market.title}</h3>
-        <p class="card-subtitle">${market.subtitle || ''}</p>
-        ${statusBadge}
-        
-        <div class="probability-bar">
-          <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
-        </div>
-        <div class="prob-labels">
-          <span class="prob-yes">${market.yesPrice}% Yes</span>
-          <span class="prob-no">${market.noPrice}% No</span>
         </div>
 
         ${canBet ? `
@@ -677,6 +920,120 @@ function renderFeaturedSlide(market, index) {
       </div>
     </div>
   `;
+}
+
+// ========================================
+// PRICE GRAPH RENDERING
+// ========================================
+async function loadAndRenderPriceGraphs() {
+  const graphContainers = document.querySelectorAll('.featured-card-graph');
+  
+  for (const container of graphContainers) {
+    const marketId = container.dataset.marketId;
+    if (!marketId) continue;
+    
+    try {
+      // Get trades for this market
+      const trades = await OrderBook.getRecentTrades(marketId, 50);
+      const market = MulonData.getMarket(marketId);
+      
+      renderPriceGraph(container, trades, market);
+    } catch (error) {
+      console.warn('Error loading price graph for market', marketId, error);
+      container.querySelector('.graph-loading').textContent = 'No data';
+    }
+  }
+}
+
+function renderPriceGraph(container, trades, market) {
+  const svg = container.querySelector('.price-graph');
+  const loadingEl = container.querySelector('.graph-loading');
+  const dateStartEl = container.querySelector('.graph-date-start');
+  const graphLine = svg.querySelector('.graph-line');
+  const graphArea = svg.querySelector('.graph-area');
+  
+  if (!svg || !market) return;
+  
+  // Build price history from trades (oldest to newest)
+  let priceHistory = [];
+  
+  if (trades.length > 0) {
+    // Sort trades oldest first
+    const sortedTrades = [...trades].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    sortedTrades.forEach(trade => {
+      // Use priceAfter if available, otherwise use price
+      const price = trade.choice === 'yes' 
+        ? (trade.priceAfter || trade.price)
+        : (100 - (trade.priceAfter || trade.price));
+      priceHistory.push({
+        timestamp: new Date(trade.timestamp),
+        price: price
+      });
+    });
+    
+    // Add current price as the last point
+    priceHistory.push({
+      timestamp: new Date(),
+      price: market.yesPrice
+    });
+  } else {
+    // No trades - show flat line at current price with starting point at 50%
+    const createdDate = market.createdAt ? new Date(market.createdAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    priceHistory = [
+      { timestamp: createdDate, price: 50 },
+      { timestamp: new Date(), price: market.yesPrice }
+    ];
+  }
+  
+  // Update start date
+  if (priceHistory.length > 0 && dateStartEl) {
+    const startDate = priceHistory[0].timestamp;
+    dateStartEl.textContent = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  
+  // Generate SVG path
+  const width = 200;
+  const height = 80;
+  const padding = 2;
+  
+  // Normalize data points
+  const minPrice = 0;
+  const maxPrice = 100;
+  const priceRange = maxPrice - minPrice;
+  
+  const timeStart = priceHistory[0].timestamp.getTime();
+  const timeEnd = priceHistory[priceHistory.length - 1].timestamp.getTime();
+  const timeRange = timeEnd - timeStart || 1;
+  
+  const points = priceHistory.map(point => {
+    const x = padding + ((point.timestamp.getTime() - timeStart) / timeRange) * (width - 2 * padding);
+    const y = height - padding - ((point.price - minPrice) / priceRange) * (height - 2 * padding);
+    return { x, y };
+  });
+  
+  // Create smooth line path
+  let linePath = '';
+  let areaPath = '';
+  
+  if (points.length > 1) {
+    linePath = `M ${points[0].x} ${points[0].y}`;
+    
+    for (let i = 1; i < points.length; i++) {
+      linePath += ` L ${points[i].x} ${points[i].y}`;
+    }
+    
+    // Area path (closed for fill)
+    areaPath = linePath + ` L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
+  }
+  
+  graphLine.setAttribute('d', linePath);
+  graphArea.setAttribute('d', areaPath);
+  
+  // Hide loading
+  if (loadingEl) {
+    loadingEl.style.display = 'none';
+  }
 }
 
 function setupSlider() {

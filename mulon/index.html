@@ -285,6 +285,13 @@
             <span class="user-email" id="userEmail">Not signed in</span>
           </div>
           <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="editProfileBtn" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit Profile
+          </button>
           <button class="dropdown-item" id="signOutBtn" style="display: none;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -560,6 +567,63 @@
       </div>
 
       <button class="modal-buy-btn" id="buyBtn">Buy</button>
+    </div>
+  </div>
+
+  <!-- Profile Edit Modal -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal profile-modal">
+      <button class="modal-close" id="closeProfileModal">×</button>
+      <h3>👤 Edit Profile</h3>
+      
+      <div class="profile-avatar-section">
+        <div class="profile-avatar-preview" id="profileAvatarPreview">
+          <span id="profilePreviewInitials">?</span>
+          <img id="profilePreviewPhoto" src="" alt="" style="display: none;">
+        </div>
+        <p class="profile-avatar-hint">Choose your avatar style</p>
+      </div>
+      
+      <div class="avatar-options" id="avatarOptions">
+        <button class="avatar-option" data-avatar="default" title="Default (Google Photo)">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          </svg>
+        </button>
+        <button class="avatar-option" data-avatar="gradient1" title="Purple Gradient">
+          <div class="avatar-gradient" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+        </button>
+        <button class="avatar-option" data-avatar="gradient2" title="Ocean">
+          <div class="avatar-gradient" style="background: linear-gradient(135deg, #11998e, #38ef7d);"></div>
+        </button>
+        <button class="avatar-option" data-avatar="gradient3" title="Sunset">
+          <div class="avatar-gradient" style="background: linear-gradient(135deg, #fc4a1a, #f7b733);"></div>
+        </button>
+        <button class="avatar-option" data-avatar="gradient4" title="Royal">
+          <div class="avatar-gradient" style="background: linear-gradient(135deg, #141e30, #243b55);"></div>
+        </button>
+        <button class="avatar-option" data-avatar="gradient5" title="Cotton Candy">
+          <div class="avatar-gradient" style="background: linear-gradient(135deg, #ff9a9e, #fecfef);"></div>
+        </button>
+        <button class="avatar-option" data-avatar="gradient6" title="Emerald">
+          <div class="avatar-gradient" style="background: linear-gradient(135deg, #00c853, #00e676);"></div>
+        </button>
+        <button class="avatar-option" data-avatar="gradient7" title="Midnight">
+          <div class="avatar-gradient" style="background: linear-gradient(135deg, #232526, #414345);"></div>
+        </button>
+      </div>
+      
+      <div class="form-group">
+        <label for="profileUsername">Display Name</label>
+        <input type="text" id="profileUsername" placeholder="Enter your display name" maxlength="20">
+        <span class="input-hint">This will appear on the leaderboard</span>
+      </div>
+      
+      <div class="profile-actions">
+        <button class="btn btn-secondary" id="cancelProfileBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+      </div>
     </div>
   </div>
 

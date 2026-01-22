@@ -1099,6 +1099,97 @@ body.sidebar-open {
 .no-payout { color: var(--red-primary); }
 
 /* ========================================
+   FEATURED CARD GRAPH (Desktop Only)
+   ======================================== */
+.featured-card-main {
+  display: flex;
+  gap: 2rem;
+}
+
+.featured-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.featured-card-graph {
+  display: none;
+  width: 280px;
+  flex-shrink: 0;
+}
+
+/* Show graph only on desktop (900px+) */
+@media (min-width: 900px) {
+  .featured-card-graph {
+    display: flex;
+    flex-direction: column;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--border-color);
+  }
+}
+
+.graph-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.graph-price {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--green-primary);
+  line-height: 1;
+}
+
+.graph-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.graph-container {
+  position: relative;
+  flex: 1;
+  min-height: 80px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.price-graph {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.graph-line {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.graph-area {
+  opacity: 0.6;
+}
+
+.graph-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.graph-dates {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ========================================
    MARKET GRID
    ======================================== */
 .market-grid {
@@ -1462,6 +1553,169 @@ body.sidebar-open {
   width: 100%;
   padding: 0.875rem;
   margin-top: 0.5rem;
+}
+
+/* ========================================
+   PROFILE MODAL
+   ======================================== */
+.profile-modal {
+  max-width: 420px;
+  width: 90%;
+}
+
+.profile-modal h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.profile-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.profile-avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  overflow: hidden;
+  border: 3px solid var(--green-primary);
+  margin-bottom: 0.75rem;
+}
+
+.profile-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.avatar-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.avatar-option {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.avatar-option:hover {
+  border-color: var(--green-primary);
+  transform: scale(1.1);
+}
+
+.avatar-option.selected {
+  border-color: var(--green-primary);
+  box-shadow: 0 0 0 3px var(--green-bg);
+}
+
+.avatar-option svg {
+  color: var(--text-secondary);
+}
+
+.avatar-gradient {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.profile-modal .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.profile-modal label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.profile-modal input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.profile-modal input:focus {
+  outline: none;
+  border-color: var(--green-primary);
+  box-shadow: 0 0 0 3px var(--green-bg);
+}
+
+.input-hint {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.profile-actions .btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-actions .btn-secondary {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.profile-actions .btn-secondary:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.profile-actions .btn-primary {
+  background: var(--green-primary);
+  border: none;
+  color: white;
+}
+
+.profile-actions .btn-primary:hover {
+  background: var(--green-hover);
 }
 
 /* ========================================

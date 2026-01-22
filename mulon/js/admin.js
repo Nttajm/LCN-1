@@ -335,8 +335,151 @@ function editMarket(marketId) {
   document.getElementById('submitBtn').textContent = 'Save Changes';
   document.querySelector('.form-panel').classList.add('editing');
   
+  // Show trades section and load trades
+  showMarketTrades(marketId);
+  
   // Scroll to form
   document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ========================================
+// MARKET TRADES & POSITIONS
+// ========================================
+async function showMarketTrades(marketId) {
+  const tradesSection = document.getElementById('marketTradesSection');
+  tradesSection.style.display = 'block';
+  
+  // Setup tabs
+  setupTradesTabs();
+  
+  // Setup refresh button
+  const refreshBtn = document.getElementById('refreshTradesBtn');
+  refreshBtn.onclick = () => loadMarketTradesAndPositions(marketId);
+  
+  // Load data
+  await loadMarketTradesAndPositions(marketId);
+}
+
+function setupTradesTabs() {
+  const tabs = document.querySelectorAll('.trades-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      // Update active tab
+      tabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Show corresponding content
+      const tabName = this.dataset.tab;
+      document.getElementById('positionsTab').style.display = tabName === 'positions' ? 'block' : 'none';
+      document.getElementById('tradesTab').style.display = tabName === 'trades' ? 'block' : 'none';
+    });
+  });
+}
+
+async function loadMarketTradesAndPositions(marketId) {
+  const positionsList = document.getElementById('positionsList');
+  const tradesList = document.getElementById('tradesList');
+  
+  // Show loading state
+  positionsList.innerHTML = '<div class="trades-loading">Loading positions...</div>';
+  tradesList.innerHTML = '<div class="trades-loading">Loading trades...</div>';
+  
+  // Load positions
+  const positions = await MulonData.getMarketPositions(marketId);
+  renderPositions(positions);
+  
+  // Load trades
+  const trades = await MulonData.getMarketTradesWithUsers(marketId);
+  renderTrades(trades);
+}
+
+function renderPositions(positions) {
+  const positionsList = document.getElementById('positionsList');
+  
+  if (positions.length === 0) {
+    positionsList.innerHTML = `
+      <div class="trades-empty">
+        <span class="trades-empty-icon">📭</span>
+        <p>No one has positions in this market yet</p>
+      </div>
+    `;
+    return;
+  }
+  
+  positionsList.innerHTML = positions.map(pos => `
+    <div class="position-item">
+      <div class="position-user">
+        ${pos.photoURL 
+          ? `<img src="${pos.photoURL}" alt="" class="position-avatar">`
+          : `<div class="position-avatar-placeholder">${(pos.displayName || 'A').charAt(0).toUpperCase()}</div>`
+        }
+        <div class="position-user-info">
+          <span class="position-name">${escapeHtml(pos.displayName)}</span>
+          <span class="position-email">${escapeHtml(pos.email)}</span>
+        </div>
+      </div>
+      <div class="position-details">
+        <span class="position-choice ${pos.choice}">${pos.choice.toUpperCase()}</span>
+        <span class="position-shares">${pos.shares.toFixed(2)} shares</span>
+        <span class="position-cost">$${pos.costBasis.toFixed(2)} invested</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTrades(trades) {
+  const tradesList = document.getElementById('tradesList');
+  
+  if (trades.length === 0) {
+    tradesList.innerHTML = `
+      <div class="trades-empty">
+        <span class="trades-empty-icon">📭</span>
+        <p>No trades have been made on this market yet</p>
+      </div>
+    `;
+    return;
+  }
+  
+  tradesList.innerHTML = trades.map(trade => {
+    const date = new Date(trade.timestamp);
+    const timeStr = date.toLocaleString();
+    const sideLabel = trade.side === 'buy' ? 'Bought' : 'Sold';
+    const sideClass = trade.side === 'buy' ? 'buy' : 'sell';
+    
+    return `
+      <div class="trade-item">
+        <div class="trade-user">
+          ${trade.user.photoURL 
+            ? `<img src="${trade.user.photoURL}" alt="" class="trade-avatar">`
+            : `<div class="trade-avatar-placeholder">${(trade.user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+          }
+          <div class="trade-user-info">
+            <span class="trade-name">${escapeHtml(trade.user.displayName)}</span>
+            <span class="trade-time">${timeStr}</span>
+          </div>
+        </div>
+        <div class="trade-details">
+          <span class="trade-action ${sideClass}">${sideLabel}</span>
+          <span class="trade-choice ${trade.choice}">${trade.choice.toUpperCase()}</span>
+          <span class="trade-shares">${trade.shares.toFixed(2)} @ ${trade.price}¢</span>
+          <span class="trade-cost">$${trade.cost.toFixed(2)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text || '';
+  return div.innerHTML;
+}
+
+function hideMarketTrades() {
+  const tradesSection = document.getElementById('marketTradesSection');
+  if (tradesSection) {
+    tradesSection.style.display = 'none';
+  }
 }
 
 function resetForm() {
@@ -352,6 +495,9 @@ function resetForm() {
   document.getElementById('formTitle').textContent = '➕ Create New Market';
   document.getElementById('submitBtn').textContent = 'Create Market';
   document.querySelector('.form-panel').classList.remove('editing');
+  
+  // Hide trades section
+  hideMarketTrades();
   
   // Reset dates
   setDefaultDates();
