@@ -171,35 +171,121 @@
         </div>
       </div>
       
-      <!-- Categories Panel -->
-      <div class="admin-panel categories-panel">
+      <!-- Management Panel with Tabs -->
+      <div class="admin-panel management-panel">
         <div class="panel-header">
-          <h2 class="panel-title">🏷️ Categories</h2>
+          <h2 class="panel-title">⚙️ Management</h2>
         </div>
         
-        <form id="categoryForm" class="category-form">
-          <div class="category-form-row">
-            <input type="text" id="catId" placeholder="ID (e.g., school)" required>
-            <input type="text" id="catIcon" placeholder="Emoji (e.g., 🎓)" required maxlength="4">
-            <input type="text" id="catLabel" placeholder="Label (e.g., Tech High)" required>
-            <button type="submit" class="btn btn-primary btn-sm">Add</button>
+        <!-- Management Tabs -->
+        <div class="management-tabs">
+          <button class="management-tab active" data-tab="categories">
+            <span class="tab-icon">🏷️</span>
+            Categories
+          </button>
+          <button class="management-tab" data-tab="users">
+            <span class="tab-icon">👥</span>
+            Users
+          </button>
+          <button class="management-tab" data-tab="suggestions">
+            <span class="tab-icon">💡</span>
+            Suggestions
+            <span class="tab-badge" id="suggestionBadge">0</span>
+          </button>
+        </div>
+        
+        <!-- Categories Tab Content -->
+        <div class="management-tab-content active" id="categoriesTabContent">
+          <form id="categoryForm" class="category-form">
+            <div class="category-form-row">
+              <input type="text" id="catId" placeholder="ID (e.g., school)" required>
+              <input type="text" id="catIcon" placeholder="Emoji (e.g., 🎓)" required maxlength="4">
+              <input type="text" id="catLabel" placeholder="Label (e.g., Tech High)" required>
+              <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </div>
+          </form>
+          
+          <div class="category-list" id="categoryList">
+            <!-- Categories rendered dynamically -->
           </div>
-        </form>
-        
-        <div class="category-list" id="categoryList">
-          <!-- Categories rendered dynamically -->
-        </div>
-      </div>
-      
-      <!-- Suggestions Panel -->
-      <div class="admin-panel suggestions-panel">
-        <div class="panel-header">
-          <h2 class="panel-title">💡 Suggestions</h2>
-          <span class="suggestion-count" id="suggestionCount">0</span>
         </div>
         
-        <div class="suggestion-list" id="suggestionList">
-          <!-- Suggestions rendered dynamically -->
+        <!-- Users Tab Content -->
+        <div class="management-tab-content" id="usersTabContent" style="display: none;">
+          <!-- Bulk Actions -->
+          <div class="bulk-actions-section">
+            <h4>💰 Bulk Balance Actions</h4>
+            <div class="bulk-actions-row">
+              <select id="bulkOperation">
+                <option value="add">Add to all</option>
+                <option value="subtract">Subtract from all</option>
+                <option value="set">Set all to</option>
+                <option value="multiply">Multiply all by</option>
+              </select>
+              <input type="number" id="bulkAmount" placeholder="Amount" step="0.01" min="0">
+              <button class="btn btn-primary btn-sm" id="applyBulkBtn">Apply to All</button>
+            </div>
+            
+            <div class="bulk-quick-actions">
+              <span class="quick-label">Quick Set:</span>
+              <button class="btn btn-sm btn-outline" data-set-amount="500">$500</button>
+              <button class="btn btn-sm btn-outline" data-set-amount="1000">$1000</button>
+              <button class="btn btn-sm btn-outline" data-set-amount="0">$0</button>
+            </div>
+          </div>
+          
+          <!-- Bulk Positions Actions -->
+          <div class="bulk-actions-section danger-section">
+            <h4>🗑️ Reset Positions</h4>
+            <p class="bulk-warning">Warning: This will delete user positions and cannot be undone!</p>
+            <div class="bulk-actions-row">
+              <button class="btn btn-danger btn-sm" id="resetAllPositionsBtn">
+                Reset ALL User Positions
+              </button>
+            </div>
+          </div>
+          
+          <!-- Search Users -->
+          <div class="users-search">
+            <input type="text" id="userSearch" placeholder="Search by name or email...">
+            <button class="btn btn-sm btn-secondary" id="refreshUsersBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                <path d="M16 21h5v-5"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          
+          <!-- Users Stats -->
+          <div class="users-stats">
+            <span class="stat-item">
+              <span class="stat-label">Total Users:</span>
+              <span class="stat-value" id="totalUsersCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Balance:</span>
+              <span class="stat-value" id="totalBalanceSum">$0.00</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Positions:</span>
+              <span class="stat-value" id="totalPositionsCount">0</span>
+            </span>
+          </div>
+          
+          <!-- Users List -->
+          <div class="users-list" id="usersList">
+            <div class="loading-state">Loading users...</div>
+          </div>
+        </div>
+        
+        <!-- Suggestions Tab Content -->
+        <div class="management-tab-content" id="suggestionsTabContent" style="display: none;">
+          <div class="suggestion-list" id="suggestionList">
+            <!-- Suggestions rendered dynamically -->
+          </div>
         </div>
       </div>
     </div>
@@ -235,6 +321,26 @@
       </div>
       <p class="resolve-warning">⚠️ This will pay out all winning positions and cannot be undone.</p>
       <button class="btn btn-secondary resolve-cancel" id="cancelResolve">Cancel</button>
+    </div>
+  </div>
+
+  <!-- User Positions Modal -->
+  <div class="modal-overlay" id="positionsModal">
+    <div class="modal positions-modal">
+      <div class="positions-modal-header">
+        <h3>📊 User Positions</h3>
+        <button class="modal-close" id="closePositionsModal">×</button>
+      </div>
+      <div class="positions-modal-user" id="positionsModalUser">
+        <!-- User info will be populated -->
+      </div>
+      <div class="positions-modal-list" id="positionsModalList">
+        <!-- Positions will be populated -->
+      </div>
+      <div class="positions-modal-actions">
+        <button class="btn btn-secondary" id="cancelPositionsModal">Close</button>
+        <button class="btn btn-danger" id="resetUserPositionsModal">Reset All Positions</button>
+      </div>
     </div>
   </div>
 

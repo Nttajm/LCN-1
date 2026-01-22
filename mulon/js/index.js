@@ -1237,49 +1237,11 @@ function setupModal() {
     amountInput.addEventListener('input', updatePayout);
   }
 
-  // Tab switching (Buy/Sell)
+  // Tab switching (Buy only - sell removed, cash out only)
   modalTabs.forEach(tab => {
     tab.addEventListener('click', function() {
-      const tabType = this.dataset.tab;
-      
-      // Check if user has a position when switching to sell
-      if (tabType === 'sell' && currentMarketId) {
-        const position = UserData.getPosition(currentMarketId);
-        if (!position) {
-          showNotification('You don\'t have a position in this market to sell', 'error');
-          return;
-        }
-        // Auto-select the choice they have a position in
-        currentChoice = position.choice;
-        updateModalChoice();
-        
-        // Set max amount to their position value
-        const market = MulonData.getMarket(currentMarketId);
-        if (market) {
-          const currentPrice = position.choice === 'yes' ? market.yesPrice : market.noPrice;
-          const positionValue = (position.shares * currentPrice) / 100;
-          if (amountInput) {
-            amountInput.value = positionValue.toFixed(2);
-            amountInput.max = positionValue.toFixed(2);
-          }
-        }
-      }
-      
       modalTabs.forEach(t => t.classList.remove('active'));
       this.classList.add('active');
-      
-      if (tabType === 'sell') {
-        buyBtn.textContent = 'Sell';
-        buyBtn.classList.add('sell-mode');
-      } else {
-        buyBtn.textContent = 'Buy';
-        buyBtn.classList.remove('sell-mode');
-        // Reset max when going back to buy
-        if (amountInput) {
-          amountInput.max = UserData.getBalance();
-        }
-      }
-      
       updatePayout();
     });
   });
@@ -1305,9 +1267,8 @@ function setupModal() {
       }
       
       const balance = UserData.getBalance();
-      const isSelling = this.classList.contains('sell-mode');
       
-      if (!isSelling && amount > balance) {
+      if (amount > balance) {
         showNotification('Insufficient balance!', 'error');
         return;
       }
@@ -1327,7 +1288,7 @@ function setupModal() {
         const userId = Auth.getUser()?.uid || 'anonymous';
         const result = await OrderBook.executeMarketOrder(
           currentMarketId,
-          isSelling ? 'sell' : 'buy',
+          'buy',
           currentChoice,
           amount,
           userId
@@ -1338,53 +1299,26 @@ function setupModal() {
           return;
         }
         
-        if (isSelling) {
-          // Check if user has a position to sell
-          const position = UserData.getPosition(currentMarketId);
-          if (!position || position.choice !== currentChoice) {
-            showNotification('You don\'t have a position to sell', 'error');
-            return;
-          }
-          
-          // Calculate shares being sold based on amount
-          const currentPrice = currentChoice === 'yes' ? market.yesPrice : market.noPrice;
-          const sharesToSell = Math.min(amount / (currentPrice / 100), position.shares);
-          const actualSaleAmount = (sharesToSell * currentPrice) / 100;
-          
-          // Remove/reduce position and add proceeds to balance
-          const sellResult = await UserData.sellPosition(currentMarketId, currentChoice, sharesToSell, actualSaleAmount);
-          await UserData.updateBalance(actualSaleAmount);
-          
-          const profitText = sellResult.profit >= 0 
-            ? `+$${sellResult.profit.toFixed(2)} profit` 
-            : `-$${Math.abs(sellResult.profit).toFixed(2)} loss`;
-          
-          showNotification(
-            `Sold ${sharesToSell.toFixed(2)} ${currentChoice.toUpperCase()} for $${actualSaleAmount.toFixed(2)} (${profitText})`, 
-            sellResult.profit >= 0 ? 'success' : 'error'
-          );
-        } else {
-          // Deduct from balance and add position
-          await UserData.updateBalance(-amount);
-          await UserData.addPosition(
-            currentMarketId,
-            market.title,
-            currentChoice,
-            result.shares,
-            amount,
-            result.avgPrice
-          );
-          
-          // Show price impact
-          const priceChangeText = result.priceChange !== 0 
-            ? ` (${result.priceChange > 0 ? '+' : ''}${result.priceChange}¢)` 
-            : '';
-          
-          showNotification(
-            `Bought ${result.shares} ${currentChoice.toUpperCase()} @ ${result.avgPrice}¢${priceChangeText} → Now ${result.newPrice}¢`, 
-            'success'
-          );
-        }
+        // Deduct from balance and add position
+        await UserData.updateBalance(-amount);
+        await UserData.addPosition(
+          currentMarketId,
+          market.title,
+          currentChoice,
+          result.shares,
+          amount,
+          result.avgPrice
+        );
+        
+        // Show price impact
+        const priceChangeText = result.priceChange !== 0 
+          ? ` (${result.priceChange > 0 ? '+' : ''}${result.priceChange}¢)` 
+          : '';
+        
+        showNotification(
+          `Bought ${result.shares} ${currentChoice.toUpperCase()} @ ${result.avgPrice}¢${priceChangeText} → Now ${result.newPrice}¢`, 
+          'success'
+        );
         
         // Update UI with new prices
         updateUserUI();
@@ -1396,7 +1330,7 @@ function setupModal() {
         showNotification('Order failed. Please try again.', 'error');
       } finally {
         buyBtn.disabled = false;
-        buyBtn.textContent = isSelling ? 'Sell' : 'Buy';
+        buyBtn.textContent = 'Buy';
       }
     });
   }

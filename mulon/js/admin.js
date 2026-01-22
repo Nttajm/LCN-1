@@ -50,6 +50,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Setup category form
   setupCategoryForm();
   
+  // Setup management tabs
+  setupManagementTabs();
+  
+  // Setup users management
+  setupUsersManagement();
+  
   // Setup delete modal
   setupDeleteModal();
   
@@ -819,18 +825,575 @@ function setupCategoryForm() {
 }
 
 // ========================================
+// MANAGEMENT TABS
+// ========================================
+function setupManagementTabs() {
+  const tabs = document.querySelectorAll('.management-tab');
+  const contents = {
+    categories: document.getElementById('categoriesTabContent'),
+    users: document.getElementById('usersTabContent'),
+    suggestions: document.getElementById('suggestionsTabContent')
+  };
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const tabName = this.dataset.tab;
+      
+      // Update active tab
+      tabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Show corresponding content
+      Object.keys(contents).forEach(key => {
+        if (contents[key]) {
+          contents[key].style.display = key === tabName ? 'block' : 'none';
+          contents[key].classList.toggle('active', key === tabName);
+        }
+      });
+      
+      // Load users on first switch to users tab
+      if (tabName === 'users' && !usersLoaded) {
+        loadAllUsers();
+      }
+    });
+  });
+}
+
+// ========================================
+// USERS MANAGEMENT
+// ========================================
+let usersLoaded = false;
+let allUsers = [];
+
+function setupUsersManagement() {
+  // Refresh button
+  const refreshBtn = document.getElementById('refreshUsersBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', loadAllUsers);
+  }
+  
+  // Search input
+  const searchInput = document.getElementById('userSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      filterAndRenderUsers(this.value);
+    });
+  }
+  
+  // Bulk action button
+  const bulkBtn = document.getElementById('applyBulkBtn');
+  if (bulkBtn) {
+    bulkBtn.addEventListener('click', applyBulkBalanceAction);
+  }
+  
+  // Quick set buttons
+  document.querySelectorAll('[data-set-amount]').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const amount = parseFloat(this.dataset.setAmount);
+      if (!confirm(`Set ALL users' balance to $${amount.toFixed(2)}? This cannot be undone.`)) {
+        return;
+      }
+      
+      this.disabled = true;
+      const originalText = this.textContent;
+      this.textContent = '...';
+      
+      const result = await MulonData.bulkUpdateBalances(amount, 'set');
+      
+      this.disabled = false;
+      this.textContent = originalText;
+      
+      if (result.success) {
+        showToast(`Set ${result.updatedCount} users to $${amount.toFixed(2)}!`, 'success');
+        await loadAllUsers();
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    });
+  });
+  
+  // Reset all positions button
+  const resetAllPositionsBtn = document.getElementById('resetAllPositionsBtn');
+  if (resetAllPositionsBtn) {
+    resetAllPositionsBtn.addEventListener('click', async function() {
+      if (!confirm('⚠️ Are you SURE you want to reset ALL user positions? This will delete all shares/holdings for every user and CANNOT be undone!')) {
+        return;
+      }
+      
+      if (!confirm('This is your FINAL confirmation. All positions will be permanently deleted. Continue?')) {
+        return;
+      }
+      
+      this.disabled = true;
+      this.textContent = 'Resetting...';
+      
+      const result = await MulonData.resetAllUsersPositions();
+      
+      this.disabled = false;
+      this.textContent = 'Reset ALL User Positions';
+      
+      if (result.success) {
+        showToast(`Reset positions for ${result.resetCount} users!`, 'success');
+        await loadAllUsers();
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    });
+  }
+}
+
+async function loadAllUsers() {
+  const usersList = document.getElementById('usersList');
+  if (usersList) {
+    usersList.innerHTML = '<div class="loading-state">Loading users...</div>';
+  }
+  
+  allUsers = await MulonData.getAllUsers();
+  usersLoaded = true;
+  
+  updateUsersStats();
+  renderUsersList(allUsers);
+}
+
+function updateUsersStats() {
+  const totalCount = document.getElementById('totalUsersCount');
+  const totalBalance = document.getElementById('totalBalanceSum');
+  const totalPositions = document.getElementById('totalPositionsCount');
+  
+  if (totalCount) {
+    totalCount.textContent = allUsers.length;
+  }
+  
+  if (totalBalance) {
+    const sum = allUsers.reduce((acc, user) => acc + (user.balance || 0), 0);
+    totalBalance.textContent = `$${sum.toFixed(2)}`;
+  }
+  
+  if (totalPositions) {
+    const posSum = allUsers.reduce((acc, user) => acc + (user.positions?.length || 0), 0);
+    totalPositions.textContent = posSum;
+  }
+}
+
+function filterAndRenderUsers(searchTerm) {
+  if (!searchTerm.trim()) {
+    renderUsersList(allUsers);
+    return;
+  }
+  
+  const term = searchTerm.toLowerCase();
+  const filtered = allUsers.filter(user => 
+    (user.displayName || '').toLowerCase().includes(term) ||
+    (user.email || '').toLowerCase().includes(term)
+  );
+  
+  renderUsersList(filtered);
+}
+
+function renderUsersList(users) {
+  const usersList = document.getElementById('usersList');
+  if (!usersList) return;
+  
+  if (users.length === 0) {
+    usersList.innerHTML = `
+      <div class="users-empty">
+        <span class="users-empty-icon">👥</span>
+        <p>No users found</p>
+      </div>
+    `;
+    return;
+  }
+  
+  usersList.innerHTML = users.map(user => `
+    <div class="user-admin-item" data-user-id="${user.id}">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="user-admin-avatar">`
+        : `<div class="user-admin-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="user-admin-info">
+        <span class="user-admin-name">${escapeHtml(user.displayName)}</span>
+        <span class="user-admin-email">${escapeHtml(user.email)}</span>
+      </div>
+      <button class="user-positions-count ${user.positions.length > 0 ? 'has-positions clickable' : ''}" data-user-id="${user.id}" ${user.positions.length > 0 ? 'title="Click to view/edit positions"' : ''}>
+        ${user.positions.length} position${user.positions.length !== 1 ? 's' : ''}
+        ${user.positions.length > 0 ? '<span class="edit-icon">✏️</span>' : ''}
+      </button>
+      <div class="user-admin-balance">
+        <span>$</span>
+        <input type="number" class="user-balance-input" value="${user.balance.toFixed(2)}" step="0.01" data-original="${user.balance.toFixed(2)}">
+      </div>
+      <div class="user-admin-actions">
+        <button class="btn-icon save-balance" data-user-id="${user.id}" title="Save Balance">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+        <button class="btn-icon reset-positions ${user.positions.length === 0 ? 'disabled' : ''}" data-user-id="${user.id}" title="Reset All Positions" ${user.positions.length === 0 ? 'disabled' : ''}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+  
+  // Attach positions view/edit listeners
+  usersList.querySelectorAll('.user-positions-count.clickable').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const userId = this.dataset.userId;
+      const user = allUsers.find(u => u.id === userId);
+      if (user && user.positions.length > 0) {
+        showUserPositionsModal(user);
+      }
+    });
+  });
+  
+  // Attach save button listeners
+  usersList.querySelectorAll('.save-balance').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const userId = this.dataset.userId;
+      const item = this.closest('.user-admin-item');
+      const input = item.querySelector('.user-balance-input');
+      const newBalance = parseFloat(input.value);
+      
+      if (isNaN(newBalance) || newBalance < 0) {
+        showToast('Please enter a valid balance', 'error');
+        return;
+      }
+      
+      this.disabled = true;
+      const result = await MulonData.updateUserBalance(userId, newBalance);
+      this.disabled = false;
+      
+      if (result.success) {
+        showToast('Balance updated!', 'success');
+        input.dataset.original = newBalance.toFixed(2);
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+          allUsers[userIndex].balance = newBalance;
+          updateUsersStats();
+        }
+      } else {
+        showToast('Error updating balance', 'error');
+      }
+    });
+  });
+  
+  // Attach reset positions button listeners
+  usersList.querySelectorAll('.reset-positions').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (this.disabled) return;
+      
+      const userId = this.dataset.userId;
+      const item = this.closest('.user-admin-item');
+      const userName = item.querySelector('.user-admin-name').textContent;
+      
+      if (!confirm(`Reset all positions for "${userName}"? This will delete all their shares and cannot be undone.`)) {
+        return;
+      }
+      
+      this.disabled = true;
+      const result = await MulonData.resetUserPositions(userId);
+      
+      if (result.success) {
+        showToast('Positions reset!', 'success');
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+          allUsers[userIndex].positions = [];
+          updateUsersStats();
+          // Update the positions count display
+          const posCount = item.querySelector('.user-positions-count');
+          posCount.textContent = '0 positions';
+          posCount.classList.remove('has-positions');
+        }
+      } else {
+        showToast('Error resetting positions', 'error');
+        this.disabled = false;
+      }
+    });
+  });
+  
+  // Highlight changed inputs
+  usersList.querySelectorAll('.user-balance-input').forEach(input => {
+    input.addEventListener('input', function() {
+      const original = parseFloat(this.dataset.original);
+      const current = parseFloat(this.value);
+      this.style.borderColor = current !== original ? 'var(--green-primary)' : '';
+    });
+  });
+}
+
+async function applyBulkBalanceAction() {
+  const operation = document.getElementById('bulkOperation').value;
+  const amount = parseFloat(document.getElementById('bulkAmount').value);
+  
+  if (isNaN(amount)) {
+    showToast('Please enter a valid amount', 'error');
+    return;
+  }
+  
+  const operationLabels = {
+    add: `add $${amount.toFixed(2)} to`,
+    subtract: `subtract $${amount.toFixed(2)} from`,
+    set: `set to $${amount.toFixed(2)} for`,
+    multiply: `multiply by ${amount} for`
+  };
+  
+  if (!confirm(`Are you sure you want to ${operationLabels[operation]} ALL ${allUsers.length} users? This cannot be undone.`)) {
+    return;
+  }
+  
+  const btn = document.getElementById('applyBulkBtn');
+  btn.disabled = true;
+  btn.textContent = 'Applying...';
+  
+  const result = await MulonData.bulkUpdateBalances(amount, operation);
+  
+  btn.disabled = false;
+  btn.textContent = 'Apply to All';
+  
+  if (result.success) {
+    showToast(`Updated ${result.updatedCount} users!`, 'success');
+    document.getElementById('bulkAmount').value = '';
+    await loadAllUsers();
+  } else {
+    showToast('Error updating balances: ' + result.error, 'error');
+  }
+}
+
+// ========================================
+// USER POSITIONS MODAL
+// ========================================
+let currentPositionsUser = null;
+
+function showUserPositionsModal(user) {
+  currentPositionsUser = user;
+  const modal = document.getElementById('positionsModal');
+  const userInfo = document.getElementById('positionsModalUser');
+  const positionsList = document.getElementById('positionsModalList');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-balance">Balance: $${user.balance.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+  
+  // Render positions
+  renderPositionsModalList(user.positions);
+  
+  // Setup event listeners
+  setupPositionsModalListeners();
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function renderPositionsModalList(positions) {
+  const positionsList = document.getElementById('positionsModalList');
+  
+  if (!positions || positions.length === 0) {
+    positionsList.innerHTML = '<p class="empty-message">No positions</p>';
+    return;
+  }
+  
+  positionsList.innerHTML = positions.map((pos, index) => {
+    const market = MulonData.getMarket(pos.marketId);
+    const marketTitle = market ? market.title : 'Unknown Market';
+    
+    return `
+      <div class="position-edit-item" data-market-id="${pos.marketId}" data-index="${index}">
+        <div class="position-edit-header">
+          <span class="position-market-title">${escapeHtml(marketTitle)}</span>
+          <span class="position-choice-badge ${pos.choice}">${pos.choice.toUpperCase()}</span>
+        </div>
+        <div class="position-edit-fields">
+          <div class="position-field">
+            <label>Shares</label>
+            <input type="number" class="position-shares-input" value="${pos.shares}" step="0.01" min="0" data-field="shares">
+          </div>
+          <div class="position-field">
+            <label>Cost Basis ($)</label>
+            <input type="number" class="position-cost-input" value="${pos.costBasis?.toFixed(2) || 0}" step="0.01" min="0" data-field="costBasis">
+          </div>
+          <div class="position-field">
+            <label>Avg Price (¢)</label>
+            <input type="number" class="position-avgprice-input" value="${pos.avgPrice || 50}" step="1" min="1" max="99" data-field="avgPrice">
+          </div>
+        </div>
+        <div class="position-edit-actions">
+          <button class="btn btn-sm btn-primary save-position-btn" data-market-id="${pos.marketId}">Save</button>
+          <button class="btn btn-sm btn-danger delete-position-btn" data-market-id="${pos.marketId}">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setupPositionsModalListeners() {
+  const modal = document.getElementById('positionsModal');
+  const closeBtn = document.getElementById('closePositionsModal');
+  const cancelBtn = document.getElementById('cancelPositionsModal');
+  const resetAllBtn = document.getElementById('resetUserPositionsModal');
+  
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('active');
+    currentPositionsUser = null;
+  };
+  
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = closeModal;
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
+  
+  // Reset all positions
+  resetAllBtn.onclick = async () => {
+    if (!currentPositionsUser) return;
+    
+    if (!confirm(`Reset ALL positions for ${currentPositionsUser.displayName}? This cannot be undone.`)) {
+      return;
+    }
+    
+    resetAllBtn.disabled = true;
+    resetAllBtn.textContent = 'Resetting...';
+    
+    const result = await MulonData.resetUserPositions(currentPositionsUser.id);
+    
+    resetAllBtn.disabled = false;
+    resetAllBtn.textContent = 'Reset All Positions';
+    
+    if (result.success) {
+      showToast('All positions reset!', 'success');
+      closeModal();
+      await loadAllUsers();
+    } else {
+      showToast('Error: ' + result.error, 'error');
+    }
+  };
+  
+  // Save individual position
+  document.querySelectorAll('.save-position-btn').forEach(btn => {
+    btn.onclick = async function() {
+      const marketId = this.dataset.marketId;
+      const item = this.closest('.position-edit-item');
+      
+      const shares = parseFloat(item.querySelector('[data-field="shares"]').value);
+      const costBasis = parseFloat(item.querySelector('[data-field="costBasis"]').value);
+      const avgPrice = parseInt(item.querySelector('[data-field="avgPrice"]').value);
+      
+      if (isNaN(shares) || shares < 0) {
+        showToast('Invalid shares value', 'error');
+        return;
+      }
+      
+      this.disabled = true;
+      this.textContent = 'Saving...';
+      
+      const result = await MulonData.updateUserPosition(currentPositionsUser.id, marketId, {
+        shares: Math.round(shares * 100) / 100,
+        costBasis: Math.round(costBasis * 100) / 100,
+        avgPrice: avgPrice
+      });
+      
+      this.disabled = false;
+      this.textContent = 'Save';
+      
+      if (result.success) {
+        showToast('Position updated!', 'success');
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === currentPositionsUser.id);
+        if (userIndex !== -1) {
+          const posIndex = allUsers[userIndex].positions.findIndex(p => p.marketId === marketId);
+          if (posIndex !== -1) {
+            allUsers[userIndex].positions[posIndex].shares = shares;
+            allUsers[userIndex].positions[posIndex].costBasis = costBasis;
+            allUsers[userIndex].positions[posIndex].avgPrice = avgPrice;
+          }
+        }
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    };
+  });
+  
+  // Delete individual position
+  document.querySelectorAll('.delete-position-btn').forEach(btn => {
+    btn.onclick = async function() {
+      const marketId = this.dataset.marketId;
+      const item = this.closest('.position-edit-item');
+      const marketTitle = item.querySelector('.position-market-title').textContent;
+      
+      if (!confirm(`Delete position for "${marketTitle}"?`)) {
+        return;
+      }
+      
+      this.disabled = true;
+      this.textContent = 'Deleting...';
+      
+      const result = await MulonData.deleteUserPosition(currentPositionsUser.id, marketId);
+      
+      if (result.success) {
+        showToast('Position deleted!', 'success');
+        // Remove from local cache
+        const userIndex = allUsers.findIndex(u => u.id === currentPositionsUser.id);
+        if (userIndex !== -1) {
+          allUsers[userIndex].positions = allUsers[userIndex].positions.filter(p => p.marketId !== marketId);
+          currentPositionsUser.positions = allUsers[userIndex].positions;
+          
+          // Re-render the list
+          renderPositionsModalList(currentPositionsUser.positions);
+          setupPositionsModalListeners();
+          updateUsersStats();
+          
+          // If no more positions, close modal
+          if (currentPositionsUser.positions.length === 0) {
+            document.getElementById('positionsModal').classList.remove('active');
+            await loadAllUsers();
+          }
+        }
+      } else {
+        this.disabled = false;
+        this.textContent = 'Delete';
+        showToast('Error: ' + result.error, 'error');
+      }
+    };
+  });
+}
+
+// ========================================
 // SUGGESTIONS
 // ========================================
 async function renderSuggestionList() {
   const suggestionList = document.getElementById('suggestionList');
   const suggestionCount = document.getElementById('suggestionCount');
+  const suggestionBadge = document.getElementById('suggestionBadge');
   if (!suggestionList) return;
   
   const suggestions = await MulonData.getSuggestions();
   const pendingSuggestions = suggestions.filter(s => s.status === 'pending');
   
+  // Update both old and new badge
   if (suggestionCount) {
     suggestionCount.textContent = pendingSuggestions.length;
+  }
+  if (suggestionBadge) {
+    suggestionBadge.textContent = pendingSuggestions.length;
+    suggestionBadge.style.display = pendingSuggestions.length > 0 ? 'inline' : 'none';
   }
   
   if (suggestions.length === 0) {

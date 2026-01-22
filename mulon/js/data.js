@@ -1563,6 +1563,248 @@ const MulonData = {
       console.error('Error fetching market positions:', error);
       return [];
     }
+  },
+
+  // Get all users (for admin)
+  async getAllUsers() {
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      const users = [];
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        users.push({
+          id: userDoc.id,
+          displayName: userData.displayName || 'Anonymous',
+          email: userData.email || 'Unknown',
+          photoURL: userData.photoURL || null,
+          balance: userData.balance || 0,
+          positions: userData.positions || [],
+          createdAt: userData.createdAt || null,
+          lastLoginAt: userData.lastLoginAt || null
+        });
+      }
+      
+      // Sort by balance descending
+      users.sort((a, b) => b.balance - a.balance);
+      return users;
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      return [];
+    }
+  },
+
+  // Update a user's balance (for admin)
+  async updateUserBalance(userId, newBalance) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        balance: Math.round(newBalance * 100) / 100
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user balance:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Add/subtract amount from user's balance (for admin)
+  async adjustUserBalance(userId, amount) {
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const currentBalance = userDoc.data().balance || 0;
+      const newBalance = Math.round((currentBalance + amount) * 100) / 100;
+      
+      await updateDoc(doc(usersRef, userId), {
+        balance: newBalance
+      });
+      
+      return { success: true, newBalance };
+    } catch (error) {
+      console.error('Error adjusting user balance:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Bulk update all users' balances (for admin)
+  async bulkUpdateBalances(amount, operation = 'add') {
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      let updatedCount = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        const currentBalance = userData.balance || 0;
+        
+        let newBalance;
+        if (operation === 'set') {
+          newBalance = amount;
+        } else if (operation === 'add') {
+          newBalance = currentBalance + amount;
+        } else if (operation === 'subtract') {
+          newBalance = Math.max(0, currentBalance - amount);
+        } else if (operation === 'multiply') {
+          newBalance = currentBalance * amount;
+        }
+        
+        newBalance = Math.round(newBalance * 100) / 100;
+        
+        await updateDoc(doc(usersRef, userDoc.id), {
+          balance: newBalance
+        });
+        updatedCount++;
+      }
+      
+      return { success: true, updatedCount };
+    } catch (error) {
+      console.error('Error bulk updating balances:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Reset a single user's positions (for admin)
+  async resetUserPositions(userId) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        positions: []
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error resetting user positions:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Reset ALL users' positions (for admin)
+  async resetAllUsersPositions() {
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      let resetCount = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        await updateDoc(doc(usersRef, userDoc.id), {
+          positions: []
+        });
+        resetCount++;
+      }
+      
+      return { success: true, resetCount };
+    } catch (error) {
+      console.error('Error resetting all positions:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Full user reset - balance and positions (for admin)
+  async resetUser(userId, newBalance = 500) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        balance: newBalance,
+        positions: []
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error resetting user:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Full reset for ALL users - balance and positions (for admin)
+  async resetAllUsers(newBalance = 500) {
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      let resetCount = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        await updateDoc(doc(usersRef, userDoc.id), {
+          balance: newBalance,
+          positions: []
+        });
+        resetCount++;
+      }
+      
+      return { success: true, resetCount };
+    } catch (error) {
+      console.error('Error resetting all users:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Update a specific position for a user (for admin)
+  async updateUserPosition(userId, marketId, updates) {
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      const positions = userData.positions || [];
+      const posIndex = positions.findIndex(p => p.marketId === marketId);
+      
+      if (posIndex === -1) {
+        return { success: false, error: 'Position not found' };
+      }
+      
+      // Update the position
+      positions[posIndex] = {
+        ...positions[posIndex],
+        ...updates
+      };
+      
+      await updateDoc(doc(usersRef, userId), { positions });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user position:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Delete a specific position for a user (for admin)
+  async deleteUserPosition(userId, marketId) {
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      const positions = userData.positions || [];
+      const newPositions = positions.filter(p => p.marketId !== marketId);
+      
+      await updateDoc(doc(usersRef, userId), { positions: newPositions });
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting user position:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Get fresh user data (for admin - bypasses cache)
+  async getUserById(userId) {
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return null;
+      }
+      const userData = userDoc.data();
+      return {
+        id: userDoc.id,
+        displayName: userData.displayName || 'Anonymous',
+        email: userData.email || 'Unknown',
+        photoURL: userData.photoURL || null,
+        balance: userData.balance || 0,
+        positions: userData.positions || [],
+        createdAt: userData.createdAt || null,
+        lastLoginAt: userData.lastLoginAt || null
+      };
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      return null;
+    }
   }
 };
 
