@@ -137,6 +137,45 @@
   transform: scale(0.98);
 }
 
+/* Auto Mode Buttons */
+.auto-btn {
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+}
+
+.auto-btn:hover {
+  background: linear-gradient(180deg, #4f46e5, #4338ca);
+}
+
+.stop-btn {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+}
+
+.stop-btn:hover {
+  background: linear-gradient(180deg, #dc2626, #b91c1c);
+}
+
+/* Auto Stats Box */
+.auto-stats-box {
+  padding: 12px 20px;
+  background: rgba(99, 102, 241, 0.1);
+  border-top: 1px solid #6366f1;
+}
+
+.auto-stats-box .stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.auto-stats-box .stat-label {
+  color: #a5b4fc;
+  font-size: 0.85rem;
+}
+
+.auto-stats-box .stat-value {
+  font-weight: 600;
+  color: #fff;
+}
 
 /* Results History */
 .results-box {

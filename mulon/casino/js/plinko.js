@@ -33,7 +33,7 @@ function waitForAuth() {
 // Stake percentages: Low 50%, Medium 30%, High 20%
 const multiplierTables = {
   low: {
-    16: [16, 9, 4, 2, 1.4, 1.2, 0.8, 0.3, 0.1, 0.3, 0.8, 1.2, 1.4, 2, 4, 9, 16],
+    16: [16, 9, 4, 2, 1.7, 1.4, 0.6, 0.3, 0.1, 0.3, 0.6, 1.4, 1.7, 2, 4, 9, 16],
     stake: 0.50 // 50% of stake
   },
   medium: {
@@ -469,8 +469,227 @@ function adjustBet(mult) {
   input.value = config.betAmount;
 }
 
+// ========================================
+// AUTO MODE
+// ========================================
+const autoConfig = {
+  isRunning: false,
+  intervalId: null,
+  dropsPerSecond: 3,
+  totalDrops: 50,
+  dropsRemaining: 0,
+  stopOnProfit: 100,
+  stopOnLoss: 50,
+  autoProfit: 0,
+  startingBalance: 0
+};
+
+function switchTab(tab) {
+  const manualTab = document.getElementById('tabManual');
+  const autoTab = document.getElementById('tabAuto');
+  const manualControls = document.getElementById('manualControls');
+  const autoControls = document.getElementById('autoControls');
+  
+  if (tab === 'manual') {
+    manualTab.classList.add('active');
+    autoTab.classList.remove('active');
+    manualControls.style.display = 'block';
+    autoControls.style.display = 'none';
+  } else {
+    manualTab.classList.remove('active');
+    autoTab.classList.add('active');
+    manualControls.style.display = 'none';
+    autoControls.style.display = 'block';
+    
+    // Sync bet amount from manual to auto
+    document.getElementById('autoBetAmount').value = config.betAmount;
+  }
+}
+
+function adjustAutoBet(mult) {
+  if (autoConfig.isRunning) return;
+  const input = document.getElementById('autoBetAmount');
+  let currentBet = parseFloat(input.value) || 10;
+  currentBet = Math.max(1, Math.min(1000, Math.round(currentBet * mult)));
+  input.value = currentBet;
+  config.betAmount = currentBet;
+}
+
+function startAuto() {
+  if (!config.isSignedIn) {
+    alert('Please sign in to play!');
+    return;
+  }
+  
+  // Get auto settings
+  config.betAmount = parseFloat(document.getElementById('autoBetAmount').value) || 10;
+  autoConfig.dropsPerSecond = parseInt(document.getElementById('autoSpeedSelect').value) || 3;
+  autoConfig.totalDrops = parseInt(document.getElementById('autoDropCount').value) || 50;
+  autoConfig.stopOnProfit = parseFloat(document.getElementById('autoStopProfit').value) || 0;
+  autoConfig.stopOnLoss = parseFloat(document.getElementById('autoStopLoss').value) || 0;
+  
+  autoConfig.dropsRemaining = autoConfig.totalDrops;
+  autoConfig.autoProfit = 0;
+  autoConfig.startingBalance = window.CasinoAuth.getBalance();
+  autoConfig.isRunning = true;
+  
+  // Update UI
+  document.getElementById('autoStartBtn').style.display = 'none';
+  document.getElementById('autoStopBtn').style.display = 'block';
+  document.getElementById('autoBetAmount').disabled = true;
+  document.getElementById('autoSpeedSelect').disabled = true;
+  document.getElementById('autoDropCount').disabled = true;
+  document.getElementById('autoStopProfit').disabled = true;
+  document.getElementById('autoStopLoss').disabled = true;
+  
+  updateAutoDisplay();
+  
+  // Calculate interval in ms
+  const intervalMs = 1000 / autoConfig.dropsPerSecond;
+  
+  // Start auto dropping
+  autoConfig.intervalId = setInterval(autoDropBall, intervalMs);
+}
+
+function stopAuto() {
+  autoConfig.isRunning = false;
+  
+  if (autoConfig.intervalId) {
+    clearInterval(autoConfig.intervalId);
+    autoConfig.intervalId = null;
+  }
+  
+  // Update UI
+  document.getElementById('autoStartBtn').style.display = 'block';
+  document.getElementById('autoStopBtn').style.display = 'none';
+  document.getElementById('autoBetAmount').disabled = false;
+  document.getElementById('autoSpeedSelect').disabled = false;
+  document.getElementById('autoDropCount').disabled = false;
+  document.getElementById('autoStopProfit').disabled = false;
+  document.getElementById('autoStopLoss').disabled = false;
+}
+
+async function autoDropBall() {
+  if (!autoConfig.isRunning) return;
+  
+  // Check if we should stop
+  if (autoConfig.totalDrops > 0 && autoConfig.dropsRemaining <= 0) {
+    stopAuto();
+    return;
+  }
+  
+  // Check stop conditions
+  const currentBalance = window.CasinoAuth.getBalance();
+  const profitSinceStart = currentBalance - autoConfig.startingBalance;
+  
+  if (autoConfig.stopOnProfit > 0 && profitSinceStart >= autoConfig.stopOnProfit) {
+    stopAuto();
+    alert(`Auto stopped: Profit target of $${autoConfig.stopOnProfit} reached!`);
+    return;
+  }
+  
+  if (autoConfig.stopOnLoss > 0 && profitSinceStart <= -autoConfig.stopOnLoss) {
+    stopAuto();
+    alert(`Auto stopped: Loss limit of $${autoConfig.stopOnLoss} reached!`);
+    return;
+  }
+  
+  // Check balance
+  if (currentBalance < config.betAmount) {
+    stopAuto();
+    alert('Auto stopped: Insufficient balance!');
+    return;
+  }
+  
+  // Drop the ball (similar to dropBall but without some checks)
+  const ballResult = await window.CasinoDB.usePlinkoBall();
+  if (!ballResult.success) {
+    stopAuto();
+    alert('Auto stopped: No more balls/keys available!');
+    return;
+  }
+  
+  updateKeysDisplay();
+  updateBallsDisplay();
+  
+  const result = await window.CasinoDB.placeBet(config.betAmount, 'plinko');
+  if (!result.success) {
+    stopAuto();
+    alert('Auto stopped: Failed to place bet');
+    return;
+  }
+  
+  updateBalanceDisplay();
+  
+  // Random offset for natural variation
+  const randomOffset = (Math.random() - 0.5) * 30;
+  
+  const ball = Bodies.circle(canvasWidth / 2 + randomOffset, 35, 7, {
+    restitution: 0.6,
+    friction: 0.05,
+    frictionAir: 0.01,
+    density: 0.001,
+    render: {
+      fillStyle: ballColor,
+      strokeStyle: '#fff',
+      lineWidth: 1.5
+    },
+    label: 'ball',
+    betAmount: config.betAmount
+  });
+  
+  Body.setVelocity(ball, { x: (Math.random() - 0.5) * 1, y: 2 });
+  balls.push(ball);
+  Composite.add(world, ball);
+  
+  await window.CasinoDB.setPendingPlinkoBalls(balls.length);
+  
+  config.ballsDropped++;
+  document.getElementById('ballsDropped').textContent = config.ballsDropped;
+  
+  // Decrement drops remaining
+  if (autoConfig.totalDrops > 0) {
+    autoConfig.dropsRemaining--;
+  }
+  
+  updateAutoDisplay();
+}
+
+function updateAutoDisplay() {
+  const dropsLeftEl = document.getElementById('autoDropsLeft');
+  const autoProfitEl = document.getElementById('autoProfit');
+  
+  if (dropsLeftEl) {
+    dropsLeftEl.textContent = autoConfig.totalDrops === 0 ? '∞' : autoConfig.dropsRemaining;
+  }
+  
+  if (autoProfitEl) {
+    const currentBalance = window.CasinoAuth?.getBalance() || 0;
+    const profit = currentBalance - autoConfig.startingBalance;
+    autoProfitEl.textContent = (profit >= 0 ? '+' : '') + '$' + profit.toFixed(2);
+    autoProfitEl.className = 'stat-value ' + (profit >= 0 ? 'profit' : 'loss');
+  }
+}
+
+// Make functions globally available
+window.switchTab = switchTab;
+window.adjustAutoBet = adjustAutoBet;
+
 // Event listeners
 document.getElementById('dropBtn').addEventListener('click', dropBall);
+
+// Auto mode event listeners
+document.getElementById('autoStartBtn').addEventListener('click', startAuto);
+document.getElementById('autoStopBtn').addEventListener('click', stopAuto);
+
+document.getElementById('autoBetAmount').addEventListener('change', (e) => {
+  if (autoConfig.isRunning) {
+    e.target.value = config.betAmount;
+    return;
+  }
+  config.betAmount = Math.max(1, Math.min(1000, parseFloat(e.target.value) || 10));
+  e.target.value = config.betAmount;
+});
 
 document.getElementById('betAmount').addEventListener('change', (e) => {
   if (hasBallsInPlay()) {

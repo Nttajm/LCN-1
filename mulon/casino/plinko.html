@@ -74,10 +74,12 @@
       
       <!-- Tabs -->
       <div class="tabs">
-        <button class="tab active">Manual</button>
-        <button class="tab">Auto</button>
+        <button class="tab active" id="tabManual" onclick="switchTab('manual')">Manual</button>
+        <button class="tab" id="tabAuto" onclick="switchTab('auto')">Auto</button>
       </div>
 
+      <!-- Manual Controls -->
+      <div id="manualControls">
       <!-- Bet Amount -->
       <div class="control-group">
         <label class="control-label">Bet Amount</label>
@@ -112,6 +114,82 @@
       <div class="control-group" style="border-bottom: none;">
         <button class="bet-btn" id="dropBtn">Bet</button>
       </div>
+      </div><!-- End Manual Controls -->
+
+      <!-- Auto Controls (hidden by default) -->
+      <div id="autoControls" style="display: none;">
+        <!-- Bet Amount (Auto) -->
+        <div class="control-group">
+          <label class="control-label">Bet Amount</label>
+          <div class="bet-input-wrap">
+            <div class="currency-icon">$</div>
+            <input type="number" class="bet-input" id="autoBetAmount" value="10" min="1" max="1000">
+            <div class="bet-btns">
+              <button class="bet-adj" onclick="adjustAutoBet(0.5)">½</button>
+              <button class="bet-adj" onclick="adjustAutoBet(2)">2×</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drop Speed -->
+        <div class="control-group">
+          <label class="control-label">Drops Per Second</label>
+          <select class="risk-select" id="autoSpeedSelect">
+            <option value="1">1 drop/second</option>
+            <option value="2">2 drops/second</option>
+            <option value="3" selected>3 drops/second</option>
+            <option value="5">5 drops/second</option>
+            <option value="10">10 drops/second</option>
+          </select>
+        </div>
+
+        <!-- Number of Drops -->
+        <div class="control-group">
+          <label class="control-label">Number of Drops</label>
+          <select class="risk-select" id="autoDropCount">
+            <option value="10">10 drops</option>
+            <option value="25">25 drops</option>
+            <option value="50" selected>50 drops</option>
+            <option value="100">100 drops</option>
+            <option value="0">Unlimited</option>
+          </select>
+        </div>
+
+        <!-- Stop on Profit/Loss -->
+        <div class="control-group">
+          <label class="control-label">Stop on Profit</label>
+          <div class="bet-input-wrap">
+            <div class="currency-icon">$</div>
+            <input type="number" class="bet-input" id="autoStopProfit" value="100" min="0">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Stop on Loss</label>
+          <div class="bet-input-wrap">
+            <div class="currency-icon">$</div>
+            <input type="number" class="bet-input" id="autoStopLoss" value="50" min="0">
+          </div>
+        </div>
+
+        <!-- Auto Bet Button -->
+        <div class="control-group" style="border-bottom: none;">
+          <button class="bet-btn auto-btn" id="autoStartBtn">Start Auto</button>
+          <button class="bet-btn stop-btn" id="autoStopBtn" style="display: none;">Stop Auto</button>
+        </div>
+
+        <!-- Auto Stats -->
+        <div class="auto-stats-box">
+          <div class="stat-row">
+            <span class="stat-label">Drops Left</span>
+            <span class="stat-value" id="autoDropsLeft">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Auto Profit</span>
+            <span class="stat-value" id="autoProfit">$0.00</span>
+          </div>
+        </div>
+      </div><!-- End Auto Controls -->
 
       <!-- Stats -->
       <div class="stats-box">
