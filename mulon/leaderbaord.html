@@ -34,11 +34,28 @@
           <span class="balance-label">Portfolio</span>
           <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
         </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item keys-item">
+          <span class="balance-label">Keys <span class="keys-info-btn" id="keysInfoBtn">?</span></span>
+          <span class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 15</span>
+          <div class="keys-tooltip" id="keysTooltip">
+            <h4><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> Keys</h4>
+            <p>Keys are a special currency that can be used for:</p>
+            <ul>
+              <li>Playing casino games</li>
+              <li>Buying collectables</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Earn Keys:</strong></p>
+            <ul>
+              <li>+3 keys for every winning prediction</li>
+              <li>+1 key per day (daily login)</li>
+            </ul>
+          </div>
+        </div>
       </div>
       <div class="user-menu" id="userMenu">
         <div class="user-avatar" id="userAvatar">
           <span id="userInitials">?</span>
-          <img id="userPhoto" src="" alt="" style="display: none;">
         </div>
         <div class="user-dropdown" id="userDropdown">
           <div class="user-info" id="userInfo">
@@ -72,6 +89,7 @@
         <li><a href="index.html" class="nav-link">Home</a></li>
         <li><a href="index.html?cat=all" class="nav-link">All Markets</a></li>
         <li><a href="leaderbaord.html" class="nav-link active">Leaderboard</a></li>
+        <li><a href="casino.html" class="nav-link">Casino</a></li>
       </ul>
     </div>
   </nav>

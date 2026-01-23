@@ -1,0 +1,326 @@
+/* ========================================
+   GEMS/MINES GAME - STAKE STYLE
+   Controls LEFT, Game RIGHT
+   ======================================== */
+
+/* Main Layout - Stake Style */
+.gems-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* Mines Selector */
+.mines-select {
+  width: 100%;
+  padding: 12px 14px;
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  margin-top: 4px;
+}
+
+.potential-win span {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* 3 Gems Preview */
+.preview-box {
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border: 1px solid #6366f1;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+
+.preview-label {
+  font-size: 0.8rem;
+  color: #a5b4fc;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.preview-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #6366f1;
+}
+
+.preview-win {
+  font-size: 0.9rem;
+  color: #22c55e;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* RIGHT PANEL - Game Area */
+.game-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background: #0f1419;
+  position: relative;
+}
+
+/* Gems Grid */
+.gems-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.gem-tile {
+  aspect-ratio: 1;
+  background: linear-gradient(145deg, #2a3441, #1f2937);
+  border: 2px solid #374151;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gem-tile:hover:not(.revealed):not(.disabled) {
+  border-color: #6366f1;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.gem-tile.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.gem-tile.revealed {
+  cursor: default;
+  transform: scale(1);
+}
+
+.gem-tile.gem {
+  background: linear-gradient(145deg, #065f46, #047857);
+  border-color: #10b981;
+  animation: gemReveal 0.4s ease;
+}
+
+.gem-tile.mine {
+  background: linear-gradient(145deg, #7f1d1d, #991b1b);
+  border-color: #ef4444;
+  animation: mineReveal 0.4s ease;
+}
+
+.gem-tile.mine-revealed {
+  background: linear-gradient(145deg, #4a1515, #5c1e1e);
+  border-color: #991b1b;
+  opacity: 0.7;
+}
+
+@keyframes gemReveal {
+  0% { transform: scale(0.8) rotateY(180deg); }
+  50% { transform: scale(1.1) rotateY(90deg); }
+  100% { transform: scale(1) rotateY(0deg); }
+}
+
+@keyframes mineReveal {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Tile content */
+.tile-content {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* Game Over Overlay */
+.game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 20, 25, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.game-over-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.game-over-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.game-over-title.win {
+  color: #22c55e;
+}
+
+.game-over-title.lose {
+  color: #ef4444;
+}
+
+.game-over-amount {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.play-again-btn {
+  padding: 12px 32px;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.play-again-btn:hover {
+  background: linear-gradient(180deg, #4f46e5, #4338ca);
+}
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+  .gems-layout {
+    flex-direction: column;
+  }
+
+  .controls-panel {
+    width: 100%;
+    min-width: auto;
+    border-right: none;
+    border-bottom: 1px solid #2a3441;
+    order: 2;
+  }
+
+  .game-panel {
+    padding: 20px;
+    order: 1;
+    min-height: 50vh;
+  }
+
+  .gems-grid {
+    max-width: 350px;
+  }
+
+  .gem-tile {
+    font-size: 1.5rem;
+  }
+
+}
+
+@media (max-width: 600px) {
+  .gems-layout {
+    flex-direction: column;
+  }
+
+  .controls-panel {
+    width: 100%;
+    order: 2;
+  }
+
+  .game-panel {
+    order: 1;
+    padding: 15px 10px;
+    min-height: 45vh;
+  }
+
+  .gems-grid {
+    max-width: 90vw;
+    gap: 5px;
+  }
+
+  .gem-tile {
+    font-size: 1.2rem;
+    border-radius: 8px;
+  }
+
+  .tile-content {
+    font-size: 1.6rem;
+  }
+
+  .mines-select {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .bet-btn,
+  .cashout-btn {
+    padding: 14px;
+    font-size: 0.9rem;
+  }
+
+  .multiplier-display {
+    padding: 12px;
+  }
+
+  .multiplier-value {
+    font-size: 1.5rem;
+  }
+
+  .game-over-title {
+    font-size: 1.5rem;
+  }
+
+  .game-over-amount {
+    font-size: 1.2rem;
+  }
+
+  .play-again-btn {
+    padding: 10px 24px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .gems-grid {
+    gap: 4px;
+  }
+
+  .gem-tile {
+    font-size: 1rem;
+    border-radius: 6px;
+  }
+
+  .tile-content {
+    font-size: 1.3rem;
+  }
+
+  .control-group {
+    padding: 10px 12px;
+  }
+
+  .bet-btn,
+  .cashout-btn {
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+}

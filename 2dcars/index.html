@@ -1,0 +1,2602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Road Builder - Cities Skylines Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+        }
+
+        /* Toolbox Panel */
+        #toolbox {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid #4a5568;
+            z-index: 100;
+        }
+
+        .road-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            min-width: 80px;
+        }
+
+        .road-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .road-option.selected {
+            background: rgba(66, 153, 225, 0.3);
+            border-color: #4299e1;
+        }
+
+        .road-preview {
+            width: 60px;
+            height: 60px;
+            background: #2d3436;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid #636e72;
+        }
+
+        .road-preview canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .road-label {
+            color: #e2e8f0;
+            font-size: 11px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .road-cost {
+            color: #68d391;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        /* Info Panel */
+        #infoPanel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(26, 32, 44, 0.95);
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-size: 13px;
+            border: 1px solid #4a5568;
+            z-index: 100;
+        }
+
+        #infoPanel h3 {
+            margin-bottom: 10px;
+            color: #4299e1;
+            font-size: 16px;
+        }
+
+        #infoPanel .stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        #infoPanel .stat-value {
+            color: #68d391;
+            font-weight: 600;
+        }
+
+        /* Controls Panel */
+        #controlsPanel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 32, 44, 0.95);
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-size: 12px;
+            border: 1px solid #4a5568;
+            z-index: 100;
+        }
+
+        #controlsPanel h4 {
+            margin-bottom: 10px;
+            color: #ed8936;
+        }
+
+        #controlsPanel .control {
+            margin: 4px 0;
+        }
+
+        #controlsPanel kbd {
+            background: #4a5568;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        /* Road Mode Toggle */
+        #modeToggle {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            background: #2d3748;
+            color: #e2e8f0;
+            border: 2px solid #4a5568;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            background: #4a5568;
+        }
+
+        .mode-btn.active {
+            background: #4299e1;
+            border-color: #63b3ed;
+        }
+
+        /* Notification */
+        #notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        #notification.show {
+            opacity: 1;
+        }
+
+        /* Grid overlay toggle */
+        #gridToggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: #2d3748;
+            color: #e2e8f0;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        #gridToggle:hover {
+            background: #4a5568;
+        }
+
+        /* Zoom controls */
+        #zoomControls {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 100;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: #2d3748;
+            color: #e2e8f0;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="infoPanel">
+            <h3>🚗 Road Builder</h3>
+            <div class="stat">
+                <span>Roads Built:</span>
+                <span class="stat-value" id="roadCount">0</span>
+            </div>
+            <div class="stat">
+                <span>Nodes:</span>
+                <span class="stat-value" id="nodeCount">0</span>
+            </div>
+            <div class="stat">
+                <span>Intersections:</span>
+                <span class="stat-value" id="intersectionCount">0</span>
+            </div>
+            <div class="stat">
+                <span>Total Length:</span>
+                <span class="stat-value" id="totalLength">0m</span>
+            </div>
+            <div class="stat">
+                <span>Budget:</span>
+                <span class="stat-value" id="budget">$1,000,000</span>
+            </div>
+        </div>
+
+        <div id="controlsPanel">
+            <h4>⌨️ Controls</h4>
+            <div class="control"><kbd>Click + Drag</kbd> Draw road</div>
+            <div class="control"><kbd>Click Node</kbd> Connect roads</div>
+            <div class="control"><kbd>Click Road</kbd> T-Junction</div>
+            <div class="control"><kbd>Right Click</kbd> Cancel/Pan</div>
+            <div class="control"><kbd>Delete</kbd> Delete mode</div>
+            <div class="control"><kbd>G</kbd> Toggle grid</div>
+            <div class="control"><kbd>Scroll</kbd> Zoom</div>
+            <div class="control"><kbd>1-6</kbd> Select road</div>
+        </div>
+
+        <div id="modeToggle">
+            <button class="mode-btn active" data-mode="straight">📏 Straight</button>
+            <button class="mode-btn" data-mode="curved">🔄 Curved</button>
+            <button class="mode-btn" data-mode="freeform">✏️ Freeform</button>
+        </div>
+
+        <div id="toolbox"></div>
+
+        <div id="zoomControls">
+            <button class="zoom-btn" id="zoomIn">+</button>
+            <button class="zoom-btn" id="zoomOut">−</button>
+        </div>
+
+        <button id="gridToggle">🔲 Grid</button>
+
+        <div id="notification"></div>
+    </div>
+
+    <script>
+        // ==================== GAME CONFIGURATION ====================
+        const CONFIG = {
+            gridSize: 50,
+            snapToGrid: true,
+            showGrid: true,
+            minRoadLength: 80,
+            intersectionRadius: 60,
+            worldSize: { width: 10000, height: 10000 }, // 10x larger world
+            colors: {
+                grass: '#3a7d32',
+                grassLight: '#4a9d42',
+                grassDark: '#2a5d22',
+                dirt: '#8b7355',
+                asphalt: '#2c2c2c',
+                asphaltLight: '#3d3d3d',
+                asphaltDark: '#1a1a1a',
+                asphaltWorn: '#454545',
+                marking: '#e8e8e8',
+                markingFaded: '#c0c0c0',
+                markingYellow: '#ffcc00',
+                markingYellowDark: '#cc9900',
+                curb: '#808080',
+                curbLight: '#a0a0a0',
+                sidewalk: '#b0b0a0',
+                sidewalkLines: '#909080',
+                intersection: '#282828',
+                highlight: '#4299e1',
+                delete: '#e53e3e',
+                manhole: '#1a1a1a',
+                drain: '#333333'
+            }
+        };
+
+        // ==================== ROAD TYPES ====================
+        const ROAD_TYPES = [
+            {
+                id: 'small_road',
+                name: 'Local Street',
+                lanes: 2,
+                width: 70,
+                hasMedian: false,
+                hasSidewalk: true,
+                sidewalkWidth: 18,
+                curbWidth: 4,
+                speedLimit: 30,
+                cost: 100,
+                asymmetric: false,
+                oneWay: false,
+                hasParkingLane: false,
+                hasGutter: true,
+                hasDrains: true
+            },
+            {
+                id: 'medium_road',
+                name: 'Collector Road',
+                lanes: 4,
+                width: 120,
+                hasMedian: true,
+                medianWidth: 12,
+                hasSidewalk: true,
+                sidewalkWidth: 20,
+                curbWidth: 5,
+                speedLimit: 50,
+                cost: 250,
+                asymmetric: false,
+                oneWay: false,
+                hasParkingLane: false,
+                hasGutter: true,
+                hasDrains: true,
+                hasReflectors: true
+            },
+            {
+                id: 'highway',
+                name: 'Highway',
+                lanes: 6,
+                width: 200,
+                hasMedian: true,
+                medianWidth: 30,
+                hasSidewalk: false,
+                hasShoulder: true,
+                shoulderWidth: 20,
+                speedLimit: 100,
+                cost: 500,
+                asymmetric: false,
+                oneWay: false,
+                hasBarrier: true,
+                hasReflectors: true,
+                hasRumbleStrips: true
+            },
+            {
+                id: 'asymmetric_3lane',
+                name: 'Turning Lane',
+                lanes: 3,
+                width: 100,
+                hasMedian: true,
+                medianWidth: 8,
+                hasSidewalk: true,
+                sidewalkWidth: 18,
+                curbWidth: 4,
+                speedLimit: 40,
+                cost: 200,
+                asymmetric: true,
+                lanesPerSide: [2, 1],
+                oneWay: false,
+                hasGutter: true,
+                hasTurnArrows: true
+            },
+            {
+                id: 'oneway_2lane',
+                name: 'One-Way Ave',
+                lanes: 2,
+                width: 80,
+                hasMedian: false,
+                hasSidewalk: true,
+                sidewalkWidth: 20,
+                curbWidth: 4,
+                speedLimit: 40,
+                cost: 150,
+                asymmetric: false,
+                oneWay: true,
+                hasGutter: true,
+                hasDrains: true,
+                hasParkingLane: true,
+                parkingWidth: 15
+            },
+            {
+                id: 'boulevard',
+                name: 'Grand Boulevard',
+                lanes: 6,
+                width: 220,
+                hasMedian: true,
+                medianWidth: 40,
+                hasSidewalk: true,
+                sidewalkWidth: 25,
+                curbWidth: 5,
+                speedLimit: 50,
+                cost: 750,
+                asymmetric: false,
+                oneWay: false,
+                hasTreeLine: true,
+                hasMedianTrees: true,
+                hasBenches: true,
+                hasStreetLights: true,
+                hasGutter: true,
+                hasDrains: true
+            }
+        ];
+
+        // ==================== NODE SYSTEM ====================
+        // Nodes are points where roads connect - like Cities Skylines
+        class RoadNode {
+            constructor(x, y, id = null) {
+                this.id = id || Date.now() + Math.random();
+                this.x = x;
+                this.y = y;
+                this.connections = []; // Array of {roadId, nodeId, angle}
+            }
+            
+            addConnection(roadId, otherNodeId, angle) {
+                this.connections.push({ roadId, nodeId: otherNodeId, angle });
+            }
+            
+            removeConnection(roadId) {
+                this.connections = this.connections.filter(c => c.roadId !== roadId);
+            }
+            
+            getPosition() {
+                return { x: this.x, y: this.y };
+            }
+        }
+        
+        // ==================== GAME STATE ====================
+        class GameState {
+            constructor() {
+                this.roads = [];
+                this.nodes = []; // NEW: Node-based system
+                this.intersections = [];
+                this.selectedRoadType = ROAD_TYPES[0];
+                this.drawMode = 'straight';
+                this.isDrawing = false;
+                this.startPoint = null;
+                this.currentPoint = null;
+                this.curveControlPoint = null;
+                this.freeformPoints = [];
+                this.budget = 10000000;
+                this.zoom = 0.3; // Start zoomed out to see more of the world
+                this.pan = { x: 0, y: 0 };
+                this.isPanning = false;
+                this.panStart = null;
+                this.deleteMode = false;
+                this.hoveredRoad = null;
+                // NEW: Node snapping state
+                this.snapNode = null; // Currently snapped-to node
+                this.snapPoint = null; // Point on road we're snapping to
+                this.snapRoad = null; // Road we're snapping to (for T-junctions)
+                this.startNode = null; // Node we started drawing from
+                this.nearbyNodes = []; // Nodes near cursor for visual feedback
+            }
+        }
+
+        // ==================== MAIN GAME CLASS ====================
+        class RoadBuilder {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.state = new GameState();
+                
+                this.resize();
+                this.setupEventListeners();
+                this.createToolbox();
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            // ==================== TOOLBOX CREATION ====================
+            createToolbox() {
+                const toolbox = document.getElementById('toolbox');
+                toolbox.innerHTML = '';
+
+                ROAD_TYPES.forEach((road, index) => {
+                    const option = document.createElement('div');
+                    option.className = `road-option ${index === 0 ? 'selected' : ''}`;
+                    option.dataset.roadId = road.id;
+
+                    const preview = document.createElement('div');
+                    preview.className = 'road-preview';
+                    
+                    const previewCanvas = document.createElement('canvas');
+                    previewCanvas.width = 60;
+                    previewCanvas.height = 60;
+                    this.drawRoadPreview(previewCanvas, road);
+                    preview.appendChild(previewCanvas);
+
+                    const label = document.createElement('div');
+                    label.className = 'road-label';
+                    label.textContent = road.name;
+
+                    const cost = document.createElement('div');
+                    cost.className = 'road-cost';
+                    cost.textContent = `$${road.cost}/u`;
+
+                    option.appendChild(preview);
+                    option.appendChild(label);
+                    option.appendChild(cost);
+
+                    option.addEventListener('click', () => this.selectRoadType(road, option));
+                    toolbox.appendChild(option);
+                });
+            }
+
+            drawRoadPreview(canvas, road) {
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width;
+                const h = canvas.height;
+
+                // Background
+                ctx.fillStyle = CONFIG.colors.grass;
+                ctx.fillRect(0, 0, w, h);
+
+                // Road surface
+                const roadWidth = Math.min(road.width * 0.6, 50);
+                const x = (w - roadWidth) / 2;
+                
+                ctx.fillStyle = CONFIG.colors.asphalt;
+                ctx.fillRect(x, 0, roadWidth, h);
+
+                // Sidewalks
+                if (road.hasSidewalk) {
+                    ctx.fillStyle = '#888';
+                    ctx.fillRect(x - 4, 0, 4, h);
+                    ctx.fillRect(x + roadWidth, 0, 4, h);
+                }
+
+                // Lane markings
+                const laneWidth = roadWidth / road.lanes;
+                ctx.strokeStyle = CONFIG.colors.marking;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+
+                for (let i = 1; i < road.lanes; i++) {
+                    const lx = x + i * laneWidth;
+                    
+                    // Center line is solid yellow for two-way roads
+                    if (!road.oneWay && i === Math.floor(road.lanes / 2)) {
+                        ctx.strokeStyle = CONFIG.colors.markingYellow;
+                        ctx.setLineDash([]);
+                        ctx.lineWidth = 2;
+                    } else {
+                        ctx.strokeStyle = CONFIG.colors.marking;
+                        ctx.setLineDash([4, 4]);
+                        ctx.lineWidth = 1;
+                    }
+
+                    ctx.beginPath();
+                    ctx.moveTo(lx, 0);
+                    ctx.lineTo(lx, h);
+                    ctx.stroke();
+                }
+
+                // Median for larger roads
+                if (road.hasMedian && !road.oneWay) {
+                    const medianWidth = 4;
+                    const mx = w / 2 - medianWidth / 2;
+                    ctx.fillStyle = CONFIG.colors.markingYellow;
+                    ctx.fillRect(mx, 0, medianWidth, h);
+                }
+
+                // Tree line for boulevard
+                if (road.hasTreeLine) {
+                    ctx.fillStyle = '#1a4d1a';
+                    for (let y = 5; y < h; y += 15) {
+                        ctx.beginPath();
+                        ctx.arc(x + 8, y, 4, 0, Math.PI * 2);
+                        ctx.arc(x + roadWidth - 8, y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // One-way arrows
+                if (road.oneWay) {
+                    ctx.fillStyle = CONFIG.colors.marking;
+                    for (let y = 10; y < h; y += 20) {
+                        ctx.beginPath();
+                        ctx.moveTo(w/2, y - 5);
+                        ctx.lineTo(w/2 + 5, y + 3);
+                        ctx.lineTo(w/2 - 5, y + 3);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+
+                ctx.setLineDash([]);
+            }
+
+            selectRoadType(road, element) {
+                document.querySelectorAll('.road-option').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+                this.state.selectedRoadType = road;
+                this.state.deleteMode = false;
+                this.showNotification(`Selected: ${road.name}`);
+            }
+
+            // ==================== EVENT LISTENERS ====================
+            setupEventListeners() {
+                // Mouse events
+                this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                this.canvas.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    this.cancelDrawing();
+                });
+                this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
+
+                // Keyboard events
+                document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+
+                // Window resize
+                window.addEventListener('resize', () => this.resize());
+
+                // Mode buttons
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.state.drawMode = btn.dataset.mode;
+                    });
+                });
+
+                // Grid toggle
+                document.getElementById('gridToggle').addEventListener('click', () => {
+                    CONFIG.showGrid = !CONFIG.showGrid;
+                });
+
+                // Zoom buttons
+                document.getElementById('zoomIn').addEventListener('click', () => {
+                    this.state.zoom = Math.min(5, this.state.zoom * 1.3);
+                });
+                document.getElementById('zoomOut').addEventListener('click', () => {
+                    this.state.zoom = Math.max(0.08, this.state.zoom / 1.3);
+                });
+            }
+
+            handleMouseDown(e) {
+                const pos = this.getWorldPos(e);
+
+                // Middle mouse button or right mouse button - start panning
+                if (e.button === 1 || e.button === 2) {
+                    this.state.isPanning = true;
+                    this.state.panStart = { x: e.clientX, y: e.clientY };
+                    this.canvas.style.cursor = 'grabbing';
+                    return;
+                }
+
+                // Left click
+                if (e.button === 0) {
+                    if (this.state.deleteMode) {
+                        this.deleteRoadAt(pos);
+                        return;
+                    }
+
+                    this.state.isDrawing = true;
+                    
+                    // Check if clicking on an existing node
+                    const nearestNode = this.findNearestNode(pos, 50);
+                    const snapInfo = this.findSnapPoint(pos);
+                    
+                    if (nearestNode) {
+                        // Start from existing node
+                        this.state.startPoint = nearestNode.getPosition();
+                        this.state.startNode = nearestNode;
+                    } else if (snapInfo) {
+                        // Create a new node on the road (T-junction)
+                        const newNode = new RoadNode(snapInfo.point.x, snapInfo.point.y);
+                        this.state.nodes.push(newNode);
+                        this.state.startPoint = snapInfo.point;
+                        this.state.startNode = newNode;
+                        
+                        // Split the road at this point
+                        this.splitRoadAtNode(snapInfo.road, newNode, snapInfo.segmentIndex, snapInfo.t);
+                    } else {
+                        // Create new node at grid position
+                        this.state.startPoint = this.snapToGrid(pos);
+                        const newNode = new RoadNode(this.state.startPoint.x, this.state.startPoint.y);
+                        this.state.nodes.push(newNode);
+                        this.state.startNode = newNode;
+                    }
+                    
+                    this.state.currentPoint = this.state.startPoint;
+                    
+                    if (this.state.drawMode === 'freeform') {
+                        this.state.freeformPoints = [this.state.startPoint];
+                    }
+                }
+            }
+
+            handleMouseMove(e) {
+                const pos = this.getWorldPos(e);
+
+                // Handle panning
+                if (this.state.isPanning) {
+                    this.state.pan.x += (e.clientX - this.state.panStart.x);
+                    this.state.pan.y += (e.clientY - this.state.panStart.y);
+                    this.state.panStart = { x: e.clientX, y: e.clientY };
+                    return;
+                }
+
+                // Find nearby nodes for visual feedback
+                this.state.nearbyNodes = this.findNodesInRadius(pos, 100);
+                
+                // Check for snap points
+                const nearestNode = this.findNearestNode(pos, 50);
+                const snapInfo = nearestNode ? null : this.findSnapPoint(pos);
+                
+                if (nearestNode) {
+                    this.state.snapNode = nearestNode;
+                    this.state.snapPoint = nearestNode.getPosition();
+                    this.state.snapRoad = null;
+                } else if (snapInfo) {
+                    this.state.snapNode = null;
+                    this.state.snapPoint = snapInfo.point;
+                    this.state.snapRoad = snapInfo.road;
+                } else {
+                    this.state.snapNode = null;
+                    this.state.snapPoint = null;
+                    this.state.snapRoad = null;
+                }
+
+                // Update current point while drawing
+                if (this.state.isDrawing) {
+                    // Snap to node or grid
+                    if (this.state.snapNode) {
+                        this.state.currentPoint = this.state.snapNode.getPosition();
+                    } else if (this.state.snapPoint) {
+                        this.state.currentPoint = this.state.snapPoint;
+                    } else {
+                        this.state.currentPoint = this.snapToGrid(pos);
+                    }
+
+                    if (this.state.drawMode === 'freeform') {
+                        const lastPoint = this.state.freeformPoints[this.state.freeformPoints.length - 1];
+                        const dist = this.distance(lastPoint, this.state.currentPoint);
+                        if (dist > 15) {
+                            this.state.freeformPoints.push(this.state.currentPoint);
+                        }
+                    }
+                }
+
+                // Check for road hover (for delete mode)
+                if (this.state.deleteMode) {
+                    this.state.hoveredRoad = this.findRoadAt(pos);
+                }
+            }
+
+            handleMouseUp(e) {
+                if (e.button === 1 || e.button === 2) {
+                    this.state.isPanning = false;
+                    this.canvas.style.cursor = 'crosshair';
+                    return;
+                }
+
+                if (e.button === 0 && this.state.isDrawing) {
+                    this.finishDrawing();
+                }
+            }
+
+            handleWheel(e) {
+                e.preventDefault();
+                const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+                this.state.zoom = Math.max(0.08, Math.min(5, this.state.zoom * zoomFactor));
+            }
+
+            handleKeyDown(e) {
+                switch(e.key) {
+                    case 'g':
+                    case 'G':
+                        CONFIG.showGrid = !CONFIG.showGrid;
+                        break;
+                    case 'Delete':
+                    case 'Backspace':
+                        this.state.deleteMode = !this.state.deleteMode;
+                        this.showNotification(this.state.deleteMode ? 'Delete Mode ON' : 'Delete Mode OFF');
+                        break;
+                    case 'Escape':
+                        this.cancelDrawing();
+                        this.state.deleteMode = false;
+                        break;
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                        const index = parseInt(e.key) - 1;
+                        if (ROAD_TYPES[index]) {
+                            const option = document.querySelectorAll('.road-option')[index];
+                            this.selectRoadType(ROAD_TYPES[index], option);
+                        }
+                        break;
+                }
+            }
+
+            // ==================== DRAWING LOGIC ====================
+            finishDrawing() {
+                if (!this.state.startPoint || !this.state.currentPoint) {
+                    this.state.isDrawing = false;
+                    return;
+                }
+
+                const distance = this.distance(this.state.startPoint, this.state.currentPoint);
+                
+                if (distance < CONFIG.minRoadLength && this.state.drawMode !== 'freeform') {
+                    this.showNotification('Road too short!');
+                    this.cancelDrawing();
+                    return;
+                }
+
+                // Determine end node
+                let endNode;
+                if (this.state.snapNode && this.state.snapNode !== this.state.startNode) {
+                    // Connect to existing node
+                    endNode = this.state.snapNode;
+                } else if (this.state.snapRoad && this.state.snapPoint) {
+                    // Create T-junction - new node on existing road
+                    endNode = new RoadNode(this.state.snapPoint.x, this.state.snapPoint.y);
+                    this.state.nodes.push(endNode);
+                    
+                    // Split the road at this point
+                    const snapInfo = this.findSnapPoint(this.state.currentPoint);
+                    if (snapInfo) {
+                        this.splitRoadAtNode(snapInfo.road, endNode, snapInfo.segmentIndex, snapInfo.t);
+                    }
+                } else {
+                    // Create new end node
+                    endNode = new RoadNode(this.state.currentPoint.x, this.state.currentPoint.y);
+                    this.state.nodes.push(endNode);
+                }
+
+                let roadPoints;
+                
+                // Generate path with smooth curves if connecting at angles
+                if (this.state.drawMode === 'freeform') {
+                    if (this.state.freeformPoints.length < 2) {
+                        this.cancelDrawing();
+                        return;
+                    }
+                    roadPoints = this.simplifyPath(this.state.freeformPoints);
+                } else {
+                    // Check if we need a smooth curve for the connection
+                    roadPoints = this.generateConnectionPath(
+                        this.state.startNode, 
+                        endNode,
+                        this.state.startPoint,
+                        this.state.currentPoint
+                    );
+                }
+
+                const cost = this.calculateRoadCost(roadPoints);
+                
+                if (cost > this.state.budget) {
+                    this.showNotification('Not enough budget!');
+                    this.cancelDrawing();
+                    return;
+                }
+
+                const roadId = Date.now();
+                const newRoad = {
+                    id: roadId,
+                    type: this.state.selectedRoadType,
+                    points: roadPoints,
+                    length: this.calculatePathLength(roadPoints),
+                    startNodeId: this.state.startNode.id,
+                    endNodeId: endNode.id
+                };
+
+                // Update node connections
+                const startAngle = Math.atan2(
+                    roadPoints[1].y - roadPoints[0].y,
+                    roadPoints[1].x - roadPoints[0].x
+                );
+                const endAngle = Math.atan2(
+                    roadPoints[roadPoints.length - 2].y - roadPoints[roadPoints.length - 1].y,
+                    roadPoints[roadPoints.length - 2].x - roadPoints[roadPoints.length - 1].x
+                );
+                
+                this.state.startNode.addConnection(roadId, endNode.id, startAngle);
+                endNode.addConnection(roadId, this.state.startNode.id, endAngle);
+
+                this.state.roads.push(newRoad);
+                this.state.budget -= cost;
+                
+                // Check for intersections with other roads
+                this.detectIntersections(newRoad);
+                
+                // Create intersection nodes at endpoints with multiple connections
+                this.updateNodeIntersections();
+                
+                this.updateStats();
+                this.cancelDrawing();
+            }
+
+            // Generate a smooth path that curves nicely into connected roads
+            generateConnectionPath(startNode, endNode, startPoint, endPoint) {
+                const startConnections = startNode ? startNode.connections.filter(c => c.nodeId !== endNode?.id) : [];
+                const endConnections = endNode ? endNode.connections.filter(c => c.nodeId !== startNode?.id) : [];
+                
+                const directAngle = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
+                const distance = this.distance(startPoint, endPoint);
+                
+                // Check if we need a curve at the start
+                let startTangentAngle = directAngle;
+                if (startConnections.length > 0) {
+                    // Average angle of existing connections, then pick tangent
+                    const avgAngle = startConnections.reduce((sum, c) => sum + c.angle, 0) / startConnections.length;
+                    // The new road should curve away from existing roads
+                    const angleDiff = this.normalizeAngle(directAngle - avgAngle);
+                    if (Math.abs(angleDiff) < Math.PI * 0.7) {
+                        // Blend toward the direct angle for smooth transition
+                        startTangentAngle = directAngle;
+                    }
+                }
+                
+                // Check if we need a curve at the end
+                let endTangentAngle = directAngle + Math.PI;
+                if (endConnections.length > 0) {
+                    const avgAngle = endConnections.reduce((sum, c) => sum + c.angle, 0) / endConnections.length;
+                    const angleDiff = this.normalizeAngle((directAngle + Math.PI) - avgAngle);
+                    if (Math.abs(angleDiff) < Math.PI * 0.7) {
+                        endTangentAngle = directAngle + Math.PI;
+                    }
+                }
+                
+                // If straight mode and angles are aligned, just return straight line
+                if (this.state.drawMode === 'straight') {
+                    // Calculate if we need curves based on connection angles
+                    const needsCurve = startConnections.length > 0 || endConnections.length > 0;
+                    
+                    if (!needsCurve) {
+                        return [startPoint, endPoint];
+                    }
+                    
+                    // Generate smooth S-curve or simple curve
+                    return this.generateSmoothCurve(startPoint, endPoint, startTangentAngle, endTangentAngle, distance);
+                } else if (this.state.drawMode === 'curved') {
+                    return this.generateCurvedPath(startPoint, endPoint);
+                }
+                
+                return [startPoint, endPoint];
+            }
+            
+            generateSmoothCurve(start, end, startAngle, endAngle, distance) {
+                const points = [];
+                const segments = Math.max(10, Math.floor(distance / 30));
+                
+                // Control point distances (1/3 of total distance for nice bezier)
+                const cp1Dist = distance * 0.35;
+                const cp2Dist = distance * 0.35;
+                
+                // Calculate control points based on tangent angles
+                const cp1 = {
+                    x: start.x + Math.cos(startAngle) * cp1Dist,
+                    y: start.y + Math.sin(startAngle) * cp1Dist
+                };
+                const cp2 = {
+                    x: end.x + Math.cos(endAngle) * cp2Dist,
+                    y: end.y + Math.sin(endAngle) * cp2Dist
+                };
+                
+                // Generate cubic bezier curve
+                for (let i = 0; i <= segments; i++) {
+                    const t = i / segments;
+                    const t2 = t * t;
+                    const t3 = t2 * t;
+                    const mt = 1 - t;
+                    const mt2 = mt * mt;
+                    const mt3 = mt2 * mt;
+                    
+                    const x = mt3 * start.x + 3 * mt2 * t * cp1.x + 3 * mt * t2 * cp2.x + t3 * end.x;
+                    const y = mt3 * start.y + 3 * mt2 * t * cp1.y + 3 * mt * t2 * cp2.y + t3 * end.y;
+                    
+                    points.push({ x, y });
+                }
+                
+                return points;
+            }
+            
+            normalizeAngle(angle) {
+                while (angle > Math.PI) angle -= Math.PI * 2;
+                while (angle < -Math.PI) angle += Math.PI * 2;
+                return angle;
+            }
+            
+            // Find nearest node to a point
+            findNearestNode(pos, maxDistance = 50) {
+                let nearest = null;
+                let minDist = maxDistance;
+                
+                for (const node of this.state.nodes) {
+                    const dist = this.distance(pos, node.getPosition());
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = node;
+                    }
+                }
+                
+                return nearest;
+            }
+            
+            // Find all nodes within a radius
+            findNodesInRadius(pos, radius) {
+                return this.state.nodes.filter(node => 
+                    this.distance(pos, node.getPosition()) < radius
+                );
+            }
+            
+            // Find a snap point on an existing road
+            findSnapPoint(pos, maxDistance = 40) {
+                for (const road of this.state.roads) {
+                    for (let i = 0; i < road.points.length - 1; i++) {
+                        const p1 = road.points[i];
+                        const p2 = road.points[i + 1];
+                        
+                        const snapResult = this.getClosestPointOnSegment(pos, p1, p2);
+                        if (snapResult.distance < maxDistance && snapResult.t > 0.1 && snapResult.t < 0.9) {
+                            return {
+                                road: road,
+                                segmentIndex: i,
+                                t: snapResult.t,
+                                point: snapResult.point
+                            };
+                        }
+                    }
+                }
+                return null;
+            }
+            
+            getClosestPointOnSegment(point, lineStart, lineEnd) {
+                const A = point.x - lineStart.x;
+                const B = point.y - lineStart.y;
+                const C = lineEnd.x - lineStart.x;
+                const D = lineEnd.y - lineStart.y;
+
+                const dot = A * C + B * D;
+                const lenSq = C * C + D * D;
+                let t = lenSq !== 0 ? dot / lenSq : 0;
+                t = Math.max(0, Math.min(1, t));
+
+                const closestPoint = {
+                    x: lineStart.x + t * C,
+                    y: lineStart.y + t * D
+                };
+                
+                return {
+                    point: closestPoint,
+                    distance: this.distance(point, closestPoint),
+                    t: t
+                };
+            }
+            
+            // Split a road at a node point (for T-junctions)
+            splitRoadAtNode(road, newNode, segmentIndex, t) {
+                // Get the original nodes
+                const startNode = this.state.nodes.find(n => n.id === road.startNodeId);
+                const endNode = this.state.nodes.find(n => n.id === road.endNodeId);
+                
+                if (!startNode || !endNode) return;
+                
+                // Calculate the split point in the points array
+                const p1 = road.points[segmentIndex];
+                const p2 = road.points[segmentIndex + 1];
+                const splitPoint = {
+                    x: p1.x + t * (p2.x - p1.x),
+                    y: p1.y + t * (p2.y - p1.y)
+                };
+                
+                // Update the new node position
+                newNode.x = splitPoint.x;
+                newNode.y = splitPoint.y;
+                
+                // Create first segment (from start to new node)
+                const points1 = [...road.points.slice(0, segmentIndex + 1), splitPoint];
+                const road1Id = Date.now() + 1;
+                const road1 = {
+                    id: road1Id,
+                    type: road.type,
+                    points: points1,
+                    length: this.calculatePathLength(points1),
+                    startNodeId: road.startNodeId,
+                    endNodeId: newNode.id
+                };
+                
+                // Create second segment (from new node to end)
+                const points2 = [splitPoint, ...road.points.slice(segmentIndex + 1)];
+                const road2Id = Date.now() + 2;
+                const road2 = {
+                    id: road2Id,
+                    type: road.type,
+                    points: points2,
+                    length: this.calculatePathLength(points2),
+                    startNodeId: newNode.id,
+                    endNodeId: road.endNodeId
+                };
+                
+                // Update node connections
+                startNode.removeConnection(road.id);
+                endNode.removeConnection(road.id);
+                
+                const angle1End = Math.atan2(points1[points1.length - 2].y - splitPoint.y, points1[points1.length - 2].x - splitPoint.x);
+                const angle2Start = Math.atan2(points2[1].y - splitPoint.y, points2[1].x - splitPoint.x);
+                
+                startNode.addConnection(road1Id, newNode.id, Math.atan2(points1[1].y - points1[0].y, points1[1].x - points1[0].x));
+                newNode.addConnection(road1Id, startNode.id, angle1End);
+                newNode.addConnection(road2Id, endNode.id, angle2Start);
+                endNode.addConnection(road2Id, newNode.id, Math.atan2(points2[points2.length - 2].y - points2[points2.length - 1].y, points2[points2.length - 2].x - points2[points2.length - 1].x));
+                
+                // Remove old road and add new segments
+                this.state.roads = this.state.roads.filter(r => r.id !== road.id);
+                this.state.roads.push(road1, road2);
+                
+                // Remove old intersections involving this road
+                this.state.intersections = this.state.intersections.filter(i => !i.roads.includes(road.id));
+            }
+            
+            // Update intersections based on node connections
+            updateNodeIntersections() {
+                // Create intersections for nodes with 3+ connections
+                for (const node of this.state.nodes) {
+                    if (node.connections.length >= 2) {
+                        // Check if intersection already exists at this node
+                        const existingInt = this.state.intersections.find(
+                            i => this.distance(i.point, node.getPosition()) < 30
+                        );
+                        
+                        if (!existingInt && node.connections.length >= 2) {
+                            // Get road data for intersection
+                            const roadData = [];
+                            const angles = [];
+                            
+                            for (const conn of node.connections) {
+                                const road = this.state.roads.find(r => r.id === conn.roadId);
+                                if (road) {
+                                    roadData.push({
+                                        id: road.id,
+                                        type: road.type,
+                                        angle: conn.angle
+                                    });
+                                    angles.push(conn.angle);
+                                }
+                            }
+                            
+                            if (roadData.length >= 2) {
+                                // Check if there's enough angle difference
+                                const angleDiff = Math.abs(this.normalizeAngle(angles[0] - angles[1]));
+                                if (angleDiff > 0.3 && angleDiff < Math.PI - 0.3) {
+                                    this.state.intersections.push({
+                                        id: node.id,
+                                        point: node.getPosition(),
+                                        roads: roadData.map(r => r.id),
+                                        roadData: roadData,
+                                        type: node.connections.length > 2 ? 'complex' : 'cross',
+                                        nodeId: node.id
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            cancelDrawing() {
+                this.state.isDrawing = false;
+                this.state.startPoint = null;
+                this.state.currentPoint = null;
+                this.state.curveControlPoint = null;
+                this.state.freeformPoints = [];
+                this.state.startNode = null;
+                this.state.snapNode = null;
+                this.state.snapPoint = null;
+                this.state.snapRoad = null;
+            }
+
+            // ==================== INTERSECTION DETECTION ====================
+            detectIntersections(newRoad) {
+                for (const road of this.state.roads) {
+                    if (road.id === newRoad.id) continue;
+
+                    for (let i = 0; i < newRoad.points.length - 1; i++) {
+                        for (let j = 0; j < road.points.length - 1; j++) {
+                            const intersection = this.lineIntersection(
+                                newRoad.points[i], newRoad.points[i + 1],
+                                road.points[j], road.points[j + 1]
+                            );
+
+                            if (intersection) {
+                                // Check if intersection already exists nearby
+                                const exists = this.state.intersections.some(
+                                    int => this.distance(int.point, intersection) < CONFIG.intersectionRadius
+                                );
+
+                                if (!exists) {
+                                    // Calculate angles of both roads at intersection
+                                    const angle1 = Math.atan2(
+                                        newRoad.points[i + 1].y - newRoad.points[i].y,
+                                        newRoad.points[i + 1].x - newRoad.points[i].x
+                                    );
+                                    const angle2 = Math.atan2(
+                                        road.points[j + 1].y - road.points[j].y,
+                                        road.points[j + 1].x - road.points[j].x
+                                    );
+                                    
+                                    this.state.intersections.push({
+                                        id: Date.now() + Math.random(),
+                                        point: intersection,
+                                        roads: [newRoad.id, road.id],
+                                        roadData: [
+                                            { id: newRoad.id, type: newRoad.type, angle: angle1 },
+                                            { id: road.id, type: road.type, angle: angle2 }
+                                        ],
+                                        type: this.determineIntersectionType([newRoad, road])
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            lineIntersection(p1, p2, p3, p4) {
+                const x1 = p1.x, y1 = p1.y;
+                const x2 = p2.x, y2 = p2.y;
+                const x3 = p3.x, y3 = p3.y;
+                const x4 = p4.x, y4 = p4.y;
+
+                const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+                if (Math.abs(denom) < 0.001) return null;
+
+                const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+                const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+
+                if (t > 0.05 && t < 0.95 && u > 0.05 && u < 0.95) {
+                    return {
+                        x: x1 + t * (x2 - x1),
+                        y: y1 + t * (y2 - y1)
+                    };
+                }
+
+                return null;
+            }
+
+            determineIntersectionType(roads) {
+                // Simple logic - could be expanded
+                if (roads.length === 2) return 'cross';
+                if (roads.length === 3) return 't-junction';
+                return 'complex';
+            }
+
+            // ==================== RENDERING ====================
+            animate() {
+                this.render();
+                requestAnimationFrame(() => this.animate());
+            }
+
+            render() {
+                const ctx = this.ctx;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+
+                // Clear and draw background
+                ctx.fillStyle = CONFIG.colors.grass;
+                ctx.fillRect(0, 0, w, h);
+
+                // Apply transformations
+                ctx.save();
+                ctx.translate(this.state.pan.x + w/2, this.state.pan.y + h/2);
+                ctx.scale(this.state.zoom, this.state.zoom);
+                ctx.translate(-w/2, -h/2);
+
+                // Draw grass pattern
+                this.drawGrassPattern();
+
+                // Draw grid
+                if (CONFIG.showGrid) {
+                    this.drawGrid();
+                }
+
+                // Draw existing roads
+                for (const road of this.state.roads) {
+                    this.drawRoad(road, road === this.state.hoveredRoad && this.state.deleteMode);
+                }
+
+                // Draw intersections
+                for (const intersection of this.state.intersections) {
+                    this.drawIntersection(intersection);
+                }
+                
+                // Draw nodes (endpoint indicators)
+                this.drawNodes();
+                
+                // Draw snap indicators
+                this.drawSnapIndicators();
+
+                // Draw preview while drawing
+                if (this.state.isDrawing && this.state.startPoint && this.state.currentPoint) {
+                    this.drawRoadPreviewOnCanvas();
+                }
+
+                ctx.restore();
+
+                // Draw cursor indicator
+                if (this.state.deleteMode) {
+                    this.canvas.style.cursor = 'not-allowed';
+                } else {
+                    this.canvas.style.cursor = 'crosshair';
+                }
+            }
+
+            drawGrassPattern() {
+                const ctx = this.ctx;
+                const world = CONFIG.worldSize;
+                
+                // Draw simple gray background
+                ctx.fillStyle = '#4a4a4a';
+                ctx.fillRect(-world.width/2, -world.height/2, world.width * 2, world.height * 2);
+            }
+
+            drawGrid() {
+                const ctx = this.ctx;
+                const world = CONFIG.worldSize;
+                const gridSize = CONFIG.gridSize;
+
+                // Major grid lines
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 1;
+
+                for (let x = -world.width/2; x < world.width * 1.5; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, -world.height/2);
+                    ctx.lineTo(x, world.height * 1.5);
+                    ctx.stroke();
+                }
+
+                for (let y = -world.height/2; y < world.height * 1.5; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(-world.width/2, y);
+                    ctx.lineTo(world.width * 1.5, y);
+                    ctx.stroke();
+                }
+                
+                // Super grid (larger squares)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.lineWidth = 2;
+                const superGridSize = gridSize * 10;
+
+                for (let x = -world.width/2; x < world.width * 1.5; x += superGridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, -world.height/2);
+                    ctx.lineTo(x, world.height * 1.5);
+                    ctx.stroke();
+                }
+
+                for (let y = -world.height/2; y < world.height * 1.5; y += superGridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(-world.width/2, y);
+                    ctx.lineTo(world.width * 1.5, y);
+                    ctx.stroke();
+                }
+            }
+            
+            // Draw connection nodes
+            drawNodes() {
+                const ctx = this.ctx;
+                
+                for (const node of this.state.nodes) {
+                    const pos = node.getPosition();
+                    const connections = node.connections.length;
+                    
+                    // Only draw nodes that are endpoints (1 connection) or intersections (3+)
+                    // Nodes with exactly 2 connections are part of a straight road
+                    if (connections === 1 || connections >= 3) {
+                        // Node base circle
+                        const isEndpoint = connections === 1;
+                        const radius = isEndpoint ? 12 : 18;
+                        
+                        // Glow effect
+                        ctx.fillStyle = isEndpoint ? 'rgba(66, 153, 225, 0.3)' : 'rgba(72, 187, 120, 0.3)';
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, radius + 8, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Main circle
+                        ctx.fillStyle = isEndpoint ? '#4299e1' : '#48bb78';
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Inner highlight
+                        ctx.fillStyle = isEndpoint ? '#63b3ed' : '#68d391';
+                        ctx.beginPath();
+                        ctx.arc(pos.x - 3, pos.y - 3, radius * 0.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Draw connection count for multi-way intersections
+                        if (connections >= 3 && this.state.zoom > 0.4) {
+                            ctx.fillStyle = '#fff';
+                            ctx.font = 'bold 14px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(connections.toString(), pos.x, pos.y);
+                        }
+                    }
+                }
+            }
+            
+            // Draw snap point indicators
+            drawSnapIndicators() {
+                const ctx = this.ctx;
+                
+                // Draw nearby nodes with highlight ring
+                for (const node of this.state.nearbyNodes) {
+                    const pos = node.getPosition();
+                    const dist = this.distance(pos, this.state.currentPoint || pos);
+                    const alpha = Math.max(0, 1 - dist / 100);
+                    
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                // Draw current snap indicator
+                if (this.state.snapPoint && !this.state.isDrawing) {
+                    const p = this.state.snapPoint;
+                    
+                    // Animated pulse effect
+                    const pulseSize = 20 + Math.sin(Date.now() / 100) * 5;
+                    
+                    // Outer glow
+                    ctx.fillStyle = this.state.snapNode ? 'rgba(66, 153, 225, 0.4)' : 'rgba(237, 137, 54, 0.4)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, pulseSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Inner circle
+                    ctx.fillStyle = this.state.snapNode ? '#4299e1' : '#ed8936';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Plus sign for T-junction
+                    if (this.state.snapRoad && !this.state.snapNode) {
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x - 6, p.y);
+                        ctx.lineTo(p.x + 6, p.y);
+                        ctx.moveTo(p.x, p.y - 6);
+                        ctx.lineTo(p.x, p.y + 6);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            drawRoad(road, isHovered = false) {
+                const ctx = this.ctx;
+                const type = road.type;
+                const points = road.points;
+
+                if (points.length < 2) return;
+
+                // Calculate road geometry for each segment
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const perpAngle = angle + Math.PI / 2;
+                    const halfWidth = type.width / 2;
+                    const segmentLength = this.distance(p1, p2);
+
+                    ctx.save();
+
+                    // ===== SIDEWALK LAYER =====
+                    if (type.hasSidewalk) {
+                        const swWidth = type.sidewalkWidth || 18;
+                        const swOffset = halfWidth + swWidth/2;
+                        
+                        // Sidewalk base
+                        ctx.fillStyle = CONFIG.colors.sidewalk;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x + Math.cos(perpAngle) * (halfWidth + swWidth), p1.y + Math.sin(perpAngle) * (halfWidth + swWidth));
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * (halfWidth + swWidth), p2.y + Math.sin(perpAngle) * (halfWidth + swWidth));
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * halfWidth, p2.y + Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p1.x + Math.cos(perpAngle) * halfWidth, p1.y + Math.sin(perpAngle) * halfWidth);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x - Math.cos(perpAngle) * (halfWidth + swWidth), p1.y - Math.sin(perpAngle) * (halfWidth + swWidth));
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * (halfWidth + swWidth), p2.y - Math.sin(perpAngle) * (halfWidth + swWidth));
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * halfWidth, p2.y - Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p1.x - Math.cos(perpAngle) * halfWidth, p1.y - Math.sin(perpAngle) * halfWidth);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Sidewalk tile lines
+                        ctx.strokeStyle = CONFIG.colors.sidewalkLines;
+                        ctx.lineWidth = 1;
+                        for (let d = 0; d < segmentLength; d += 40) {
+                            const t = d / segmentLength;
+                            const x = p1.x + (p2.x - p1.x) * t;
+                            const y = p1.y + (p2.y - p1.y) * t;
+                            
+                            // Left sidewalk tiles
+                            ctx.beginPath();
+                            ctx.moveTo(x + Math.cos(perpAngle) * halfWidth, y + Math.sin(perpAngle) * halfWidth);
+                            ctx.lineTo(x + Math.cos(perpAngle) * (halfWidth + swWidth), y + Math.sin(perpAngle) * (halfWidth + swWidth));
+                            ctx.stroke();
+                            
+                            // Right sidewalk tiles
+                            ctx.beginPath();
+                            ctx.moveTo(x - Math.cos(perpAngle) * halfWidth, y - Math.sin(perpAngle) * halfWidth);
+                            ctx.lineTo(x - Math.cos(perpAngle) * (halfWidth + swWidth), y - Math.sin(perpAngle) * (halfWidth + swWidth));
+                            ctx.stroke();
+                        }
+                    }
+                    
+                    // ===== SHOULDER (for highways) =====
+                    if (type.hasShoulder) {
+                        const shoulderW = type.shoulderWidth || 15;
+                        ctx.fillStyle = '#4a4a4a';
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x + Math.cos(perpAngle) * (halfWidth + shoulderW), p1.y + Math.sin(perpAngle) * (halfWidth + shoulderW));
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * (halfWidth + shoulderW), p2.y + Math.sin(perpAngle) * (halfWidth + shoulderW));
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * halfWidth, p2.y + Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p1.x + Math.cos(perpAngle) * halfWidth, p1.y + Math.sin(perpAngle) * halfWidth);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x - Math.cos(perpAngle) * (halfWidth + shoulderW), p1.y - Math.sin(perpAngle) * (halfWidth + shoulderW));
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * (halfWidth + shoulderW), p2.y - Math.sin(perpAngle) * (halfWidth + shoulderW));
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * halfWidth, p2.y - Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p1.x - Math.cos(perpAngle) * halfWidth, p1.y - Math.sin(perpAngle) * halfWidth);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+
+                    // ===== CURB =====
+                    const curbW = type.curbWidth || 4;
+                    ctx.fillStyle = CONFIG.colors.curb;
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x + Math.cos(perpAngle) * (halfWidth + curbW), p1.y + Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.lineTo(p2.x + Math.cos(perpAngle) * (halfWidth + curbW), p2.y + Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.lineTo(p2.x + Math.cos(perpAngle) * halfWidth, p2.y + Math.sin(perpAngle) * halfWidth);
+                    ctx.lineTo(p1.x + Math.cos(perpAngle) * halfWidth, p1.y + Math.sin(perpAngle) * halfWidth);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x - Math.cos(perpAngle) * (halfWidth + curbW), p1.y - Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.lineTo(p2.x - Math.cos(perpAngle) * (halfWidth + curbW), p2.y - Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.lineTo(p2.x - Math.cos(perpAngle) * halfWidth, p2.y - Math.sin(perpAngle) * halfWidth);
+                    ctx.lineTo(p1.x - Math.cos(perpAngle) * halfWidth, p1.y - Math.sin(perpAngle) * halfWidth);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Curb highlight
+                    ctx.strokeStyle = CONFIG.colors.curbLight;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x + Math.cos(perpAngle) * (halfWidth + curbW), p1.y + Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.lineTo(p2.x + Math.cos(perpAngle) * (halfWidth + curbW), p2.y + Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x - Math.cos(perpAngle) * (halfWidth + curbW), p1.y - Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.lineTo(p2.x - Math.cos(perpAngle) * (halfWidth + curbW), p2.y - Math.sin(perpAngle) * (halfWidth + curbW));
+                    ctx.stroke();
+
+                    // ===== GUTTER =====
+                    if (type.hasGutter) {
+                        ctx.fillStyle = CONFIG.colors.asphaltDark;
+                        const gutterW = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x + Math.cos(perpAngle) * halfWidth, p1.y + Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * halfWidth, p2.y + Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * (halfWidth - gutterW), p2.y + Math.sin(perpAngle) * (halfWidth - gutterW));
+                        ctx.lineTo(p1.x + Math.cos(perpAngle) * (halfWidth - gutterW), p1.y + Math.sin(perpAngle) * (halfWidth - gutterW));
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x - Math.cos(perpAngle) * halfWidth, p1.y - Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * halfWidth, p2.y - Math.sin(perpAngle) * halfWidth);
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * (halfWidth - gutterW), p2.y - Math.sin(perpAngle) * (halfWidth - gutterW));
+                        ctx.lineTo(p1.x - Math.cos(perpAngle) * (halfWidth - gutterW), p1.y - Math.sin(perpAngle) * (halfWidth - gutterW));
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+
+                    // ===== MAIN ASPHALT SURFACE =====
+                    // Base asphalt layer
+                    ctx.fillStyle = isHovered ? CONFIG.colors.delete : CONFIG.colors.asphalt;
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x + Math.cos(perpAngle) * halfWidth, p1.y + Math.sin(perpAngle) * halfWidth);
+                    ctx.lineTo(p2.x + Math.cos(perpAngle) * halfWidth, p2.y + Math.sin(perpAngle) * halfWidth);
+                    ctx.lineTo(p2.x - Math.cos(perpAngle) * halfWidth, p2.y - Math.sin(perpAngle) * halfWidth);
+                    ctx.lineTo(p1.x - Math.cos(perpAngle) * halfWidth, p1.y - Math.sin(perpAngle) * halfWidth);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // ===== MEDIAN =====
+                    if (type.hasMedian && !type.oneWay) {
+                        const medianW = type.medianWidth || 8;
+                        
+                        // Median with raised curb look
+                        ctx.fillStyle = type.hasMedianTrees ? CONFIG.colors.grassDark : CONFIG.colors.asphaltDark;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x + Math.cos(perpAngle) * (medianW/2), p1.y + Math.sin(perpAngle) * (medianW/2));
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * (medianW/2), p2.y + Math.sin(perpAngle) * (medianW/2));
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * (medianW/2), p2.y - Math.sin(perpAngle) * (medianW/2));
+                        ctx.lineTo(p1.x - Math.cos(perpAngle) * (medianW/2), p1.y - Math.sin(perpAngle) * (medianW/2));
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Median border lines
+                        ctx.strokeStyle = CONFIG.colors.markingYellow;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x + Math.cos(perpAngle) * (medianW/2 + 2), p1.y + Math.sin(perpAngle) * (medianW/2 + 2));
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * (medianW/2 + 2), p2.y + Math.sin(perpAngle) * (medianW/2 + 2));
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x - Math.cos(perpAngle) * (medianW/2 + 2), p1.y - Math.sin(perpAngle) * (medianW/2 + 2));
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * (medianW/2 + 2), p2.y - Math.sin(perpAngle) * (medianW/2 + 2));
+                        ctx.stroke();
+                    }
+                    
+                    // ===== HIGHWAY BARRIER =====
+                    if (type.hasBarrier) {
+                        ctx.fillStyle = '#555555';
+                        const barrierW = 4;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x + Math.cos(perpAngle) * barrierW, p1.y + Math.sin(perpAngle) * barrierW);
+                        ctx.lineTo(p2.x + Math.cos(perpAngle) * barrierW, p2.y + Math.sin(perpAngle) * barrierW);
+                        ctx.lineTo(p2.x - Math.cos(perpAngle) * barrierW, p2.y - Math.sin(perpAngle) * barrierW);
+                        ctx.lineTo(p1.x - Math.cos(perpAngle) * barrierW, p1.y - Math.sin(perpAngle) * barrierW);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Barrier top highlight
+                        ctx.strokeStyle = '#888888';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                    
+                    // ===== STORM DRAINS =====
+                    if (type.hasDrains && this.state.zoom > 0.4) {
+                        ctx.fillStyle = CONFIG.colors.drain;
+                        for (let d = 100; d < segmentLength; d += 200) {
+                            const t = d / segmentLength;
+                            const x = p1.x + (p2.x - p1.x) * t;
+                            const y = p1.y + (p2.y - p1.y) * t;
+                            
+                            // Left drain
+                            ctx.save();
+                            ctx.translate(x + Math.cos(perpAngle) * (halfWidth - 8), y + Math.sin(perpAngle) * (halfWidth - 8));
+                            ctx.rotate(angle);
+                            ctx.fillRect(-8, -4, 16, 8);
+                            ctx.strokeStyle = '#1a1a1a';
+                            ctx.lineWidth = 1;
+                            for (let g = -6; g <= 6; g += 3) {
+                                ctx.beginPath();
+                                ctx.moveTo(g, -3);
+                                ctx.lineTo(g, 3);
+                                ctx.stroke();
+                            }
+                            ctx.restore();
+                            
+                            // Right drain
+                            ctx.save();
+                            ctx.translate(x - Math.cos(perpAngle) * (halfWidth - 8), y - Math.sin(perpAngle) * (halfWidth - 8));
+                            ctx.rotate(angle);
+                            ctx.fillRect(-8, -4, 16, 8);
+                            ctx.strokeStyle = '#1a1a1a';
+                            ctx.lineWidth = 1;
+                            for (let g = -6; g <= 6; g += 3) {
+                                ctx.beginPath();
+                                ctx.moveTo(g, -3);
+                                ctx.lineTo(g, 3);
+                                ctx.stroke();
+                            }
+                            ctx.restore();
+                        }
+                    }
+
+                    ctx.restore();
+                }
+
+                // Draw lane markings
+                this.drawLaneMarkings(road);
+
+                // Draw direction arrows for one-way roads
+                if (type.oneWay) {
+                    this.drawDirectionArrows(road);
+                }
+
+                // Draw tree lines for boulevards
+                if (type.hasTreeLine) {
+                    this.drawTreeLine(road);
+                }
+                
+                // Draw street lights
+                if (type.hasStreetLights) {
+                    this.drawStreetLights(road);
+                }
+                
+                // Draw road reflectors
+                if (type.hasReflectors) {
+                    this.drawReflectors(road);
+                }
+            }
+
+            drawLaneMarkings(road) {
+                const ctx = this.ctx;
+                const type = road.type;
+                const points = road.points;
+                const halfWidth = type.width / 2;
+                const laneWidth = type.width / type.lanes;
+                const medianW = type.medianWidth || 0;
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const perpAngle = angle + Math.PI / 2;
+                    const segmentLength = this.distance(p1, p2);
+
+                    // Draw lane dividers
+                    for (let lane = 1; lane < type.lanes; lane++) {
+                        const offset = -halfWidth + lane * laneWidth;
+                        const isCenterLine = !type.oneWay && lane === Math.floor(type.lanes / 2);
+
+                        // Skip if this is in the median area
+                        if (type.hasMedian && Math.abs(offset) < medianW/2 + 5) continue;
+
+                        if (isCenterLine && !type.hasMedian) {
+                            // Double yellow center line
+                            ctx.strokeStyle = CONFIG.colors.markingYellow;
+                            ctx.lineWidth = 3;
+                            ctx.setLineDash([]);
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(p1.x + Math.cos(perpAngle) * (offset - 3), p1.y + Math.sin(perpAngle) * (offset - 3));
+                            ctx.lineTo(p2.x + Math.cos(perpAngle) * (offset - 3), p2.y + Math.sin(perpAngle) * (offset - 3));
+                            ctx.stroke();
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(p1.x + Math.cos(perpAngle) * (offset + 3), p1.y + Math.sin(perpAngle) * (offset + 3));
+                            ctx.lineTo(p2.x + Math.cos(perpAngle) * (offset + 3), p2.y + Math.sin(perpAngle) * (offset + 3));
+                            ctx.stroke();
+                        } else {
+                            // Dashed white lane dividers
+                            ctx.strokeStyle = CONFIG.colors.marking;
+                            ctx.lineWidth = 4;
+                            ctx.setLineDash([30, 50]);
+
+                            const lx1 = p1.x + Math.cos(perpAngle) * offset;
+                            const ly1 = p1.y + Math.sin(perpAngle) * offset;
+                            const lx2 = p2.x + Math.cos(perpAngle) * offset;
+                            const ly2 = p2.y + Math.sin(perpAngle) * offset;
+
+                            ctx.beginPath();
+                            ctx.moveTo(lx1, ly1);
+                            ctx.lineTo(lx2, ly2);
+                            ctx.stroke();
+                        }
+                    }
+
+                    // Edge lines (solid white)
+                    ctx.strokeStyle = CONFIG.colors.marking;
+                    ctx.lineWidth = 5;
+                    ctx.setLineDash([]);
+
+                    // Left edge with fog line effect
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x + Math.cos(perpAngle) * (halfWidth - 4), p1.y + Math.sin(perpAngle) * (halfWidth - 4));
+                    ctx.lineTo(p2.x + Math.cos(perpAngle) * (halfWidth - 4), p2.y + Math.sin(perpAngle) * (halfWidth - 4));
+                    ctx.stroke();
+
+                    // Right edge
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x - Math.cos(perpAngle) * (halfWidth - 4), p1.y - Math.sin(perpAngle) * (halfWidth - 4));
+                    ctx.lineTo(p2.x - Math.cos(perpAngle) * (halfWidth - 4), p2.y - Math.sin(perpAngle) * (halfWidth - 4));
+                    ctx.stroke();
+                    
+                    // Rumble strips for highways
+                    if (type.hasRumbleStrips && this.state.zoom > 0.35) {
+                        ctx.fillStyle = CONFIG.colors.asphaltDark;
+                        for (let d = 0; d < segmentLength; d += 12) {
+                            const t = d / segmentLength;
+                            const x = p1.x + (p2.x - p1.x) * t;
+                            const y = p1.y + (p2.y - p1.y) * t;
+                            
+                            // Left rumble strip
+                            ctx.save();
+                            ctx.translate(x + Math.cos(perpAngle) * (halfWidth - 12), y + Math.sin(perpAngle) * (halfWidth - 12));
+                            ctx.rotate(angle);
+                            ctx.fillRect(-3, -4, 6, 8);
+                            ctx.restore();
+                            
+                            // Right rumble strip
+                            ctx.save();
+                            ctx.translate(x - Math.cos(perpAngle) * (halfWidth - 12), y - Math.sin(perpAngle) * (halfWidth - 12));
+                            ctx.rotate(angle);
+                            ctx.fillRect(-3, -4, 6, 8);
+                            ctx.restore();
+                        }
+                    }
+                }
+
+                ctx.setLineDash([]);
+            }
+
+            drawDirectionArrows(road) {
+                const ctx = this.ctx;
+                const points = road.points;
+                const type = road.type;
+                const halfWidth = type.width / 2;
+                const laneWidth = type.width / type.lanes;
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const dist = this.distance(p1, p2);
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const perpAngle = angle + Math.PI / 2;
+
+                    // Draw arrows in each lane
+                    for (let lane = 0; lane < type.lanes; lane++) {
+                        const laneCenter = -halfWidth + laneWidth/2 + lane * laneWidth;
+                        
+                        for (let d = 80; d < dist; d += 200) {
+                            const t = d / dist;
+                            const baseX = p1.x + (p2.x - p1.x) * t;
+                            const baseY = p1.y + (p2.y - p1.y) * t;
+                            const x = baseX + Math.cos(perpAngle) * laneCenter;
+                            const y = baseY + Math.sin(perpAngle) * laneCenter;
+
+                            ctx.save();
+                            ctx.translate(x, y);
+                            ctx.rotate(angle);
+                            
+                            // Detailed arrow shape
+                            ctx.fillStyle = CONFIG.colors.marking;
+                            ctx.beginPath();
+                            // Arrow head
+                            ctx.moveTo(25, 0);
+                            ctx.lineTo(5, -12);
+                            ctx.lineTo(5, -5);
+                            ctx.lineTo(-25, -5);
+                            ctx.lineTo(-25, 5);
+                            ctx.lineTo(5, 5);
+                            ctx.lineTo(5, 12);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            ctx.restore();
+                        }
+                    }
+                }
+            }
+
+            drawTreeLine(road) {
+                const ctx = this.ctx;
+                const points = road.points;
+                const type = road.type;
+                const halfWidth = type.width / 2;
+                const medianW = type.medianWidth || 30;
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const perpAngle = angle + Math.PI / 2;
+                    const dist = this.distance(p1, p2);
+
+                    // Sidewalk trees
+                    const treeOffset = halfWidth + 12;
+                    for (let d = 50; d < dist; d += 100) {
+                        const t = d / dist;
+                        const x = p1.x + (p2.x - p1.x) * t;
+                        const y = p1.y + (p2.y - p1.y) * t;
+
+                        // Tree on left side
+                        const tx1 = x + Math.cos(perpAngle) * treeOffset;
+                        const ty1 = y + Math.sin(perpAngle) * treeOffset;
+                        
+                        // Tree on right side
+                        const tx2 = x - Math.cos(perpAngle) * treeOffset;
+                        const ty2 = y - Math.sin(perpAngle) * treeOffset;
+
+                        // Draw detailed trees with shadow
+                        this.drawTree(tx1, ty1, 14);
+                        this.drawTree(tx2, ty2, 14);
+                    }
+                    
+                    // Median trees
+                    if (type.hasMedianTrees) {
+                        for (let d = 80; d < dist; d += 120) {
+                            const t = d / dist;
+                            const x = p1.x + (p2.x - p1.x) * t;
+                            const y = p1.y + (p2.y - p1.y) * t;
+                            
+                            this.drawTree(x, y, 18);
+                        }
+                    }
+                }
+            }
+            
+            drawTree(x, y, size) {
+                const ctx = this.ctx;
+                
+                // Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.ellipse(x + 4, y + 4, size, size * 0.7, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Trunk
+                ctx.fillStyle = '#5d4037';
+                ctx.beginPath();
+                ctx.arc(x, y, size * 0.25, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Foliage layers
+                ctx.fillStyle = '#1b5e20';
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#2e7d32';
+                ctx.beginPath();
+                ctx.arc(x - size * 0.2, y - size * 0.2, size * 0.75, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#388e3c';
+                ctx.beginPath();
+                ctx.arc(x + size * 0.15, y - size * 0.25, size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            drawStreetLights(road) {
+                const ctx = this.ctx;
+                const points = road.points;
+                const type = road.type;
+                const halfWidth = type.width / 2;
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const perpAngle = angle + Math.PI / 2;
+                    const dist = this.distance(p1, p2);
+
+                    for (let d = 60; d < dist; d += 250) {
+                        const t = d / dist;
+                        const x = p1.x + (p2.x - p1.x) * t;
+                        const y = p1.y + (p2.y - p1.y) * t;
+
+                        // Left side light
+                        const lx = x + Math.cos(perpAngle) * (halfWidth + 8);
+                        const ly = y + Math.sin(perpAngle) * (halfWidth + 8);
+                        
+                        // Right side light
+                        const rx = x - Math.cos(perpAngle) * (halfWidth + 8);
+                        const ry = y - Math.sin(perpAngle) * (halfWidth + 8);
+
+                        this.drawStreetLight(lx, ly, angle - Math.PI/2);
+                        this.drawStreetLight(rx, ry, angle + Math.PI/2);
+                    }
+                }
+            }
+            
+            drawStreetLight(x, y, angle) {
+                const ctx = this.ctx;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                
+                // Pole
+                ctx.fillStyle = '#4a4a4a';
+                ctx.fillRect(-2, -2, 4, 4);
+                
+                // Arm
+                ctx.fillRect(0, -1, 15, 2);
+                
+                // Light fixture
+                ctx.fillStyle = '#666666';
+                ctx.beginPath();
+                ctx.ellipse(15, 0, 5, 3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Light glow (subtle)
+                ctx.fillStyle = 'rgba(255, 255, 200, 0.15)';
+                ctx.beginPath();
+                ctx.arc(15, 0, 25, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            drawReflectors(road) {
+                const ctx = this.ctx;
+                const points = road.points;
+                const type = road.type;
+                const medianW = type.medianWidth || 0;
+
+                if (this.state.zoom < 0.4) return; // Only show when zoomed in
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const perpAngle = angle + Math.PI / 2;
+                    const dist = this.distance(p1, p2);
+
+                    for (let d = 25; d < dist; d += 50) {
+                        const t = d / dist;
+                        const x = p1.x + (p2.x - p1.x) * t;
+                        const y = p1.y + (p2.y - p1.y) * t;
+
+                        if (type.hasMedian) {
+                            // Reflectors on median edges
+                            ctx.fillStyle = '#ffcc00';
+                            ctx.beginPath();
+                            ctx.arc(x + Math.cos(perpAngle) * (medianW/2 + 3), y + Math.sin(perpAngle) * (medianW/2 + 3), 2, 0, Math.PI * 2);
+                            ctx.arc(x - Math.cos(perpAngle) * (medianW/2 + 3), y - Math.sin(perpAngle) * (medianW/2 + 3), 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+
+            drawIntersection(intersection) {
+                const ctx = this.ctx;
+                const p = intersection.point;
+                const roadData = intersection.roadData || [];
+                
+                // Get road info
+                const angles = [];
+                const widths = [];
+                
+                for (const rd of roadData) {
+                    widths.push(rd.type.width / 2);
+                    angles.push(rd.angle);
+                }
+                
+                // Default values if no road data
+                if (angles.length < 2) {
+                    angles.push(0, Math.PI / 2);
+                    widths.push(35, 35);
+                }
+                
+                const maxWidth = Math.max(...widths) + 20;
+                
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                
+                // Calculate intersection boundary points
+                const perpAngle1 = angles[0] + Math.PI / 2;
+                const perpAngle2 = angles[1] + Math.PI / 2;
+                const w1 = widths[0] + 8;
+                const w2 = widths[1] + 8;
+                
+                // ===== SIDEWALK CORNERS =====
+                // Draw rounded corner sidewalks at each quadrant
+                const sidewalkW = 20;
+                ctx.fillStyle = CONFIG.colors.sidewalk;
+                
+                for (let q = 0; q < 4; q++) {
+                    const sign1 = (q === 0 || q === 1) ? 1 : -1;
+                    const sign2 = (q === 0 || q === 3) ? 1 : -1;
+                    
+                    const cornerX = Math.cos(perpAngle1) * (w1 + sidewalkW) * sign1 + Math.cos(perpAngle2) * (w2 + sidewalkW) * sign2;
+                    const cornerY = Math.sin(perpAngle1) * (w1 + sidewalkW) * sign1 + Math.sin(perpAngle2) * (w2 + sidewalkW) * sign2;
+                    
+                    // Draw corner sidewalk arc
+                    ctx.beginPath();
+                    ctx.arc(
+                        Math.cos(perpAngle1) * w1 * sign1 + Math.cos(perpAngle2) * w2 * sign2,
+                        Math.sin(perpAngle1) * w1 * sign1 + Math.sin(perpAngle2) * w2 * sign2,
+                        sidewalkW,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+                
+                // ===== CURB LAYER =====
+                ctx.fillStyle = CONFIG.colors.curb;
+                const curbW = 5;
+                for (let q = 0; q < 4; q++) {
+                    const sign1 = (q === 0 || q === 1) ? 1 : -1;
+                    const sign2 = (q === 0 || q === 3) ? 1 : -1;
+                    
+                    ctx.beginPath();
+                    ctx.arc(
+                        Math.cos(perpAngle1) * w1 * sign1 + Math.cos(perpAngle2) * w2 * sign2,
+                        Math.sin(perpAngle1) * w1 * sign1 + Math.sin(perpAngle2) * w2 * sign2,
+                        curbW,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+                
+                // ===== MAIN ASPHALT INTERSECTION =====
+                // Create a proper cross shape
+                ctx.fillStyle = CONFIG.colors.asphalt;
+                
+                // Road 1 direction strip
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(angles[0]) * maxWidth + Math.cos(perpAngle1) * w1, Math.sin(angles[0]) * maxWidth + Math.sin(perpAngle1) * w1);
+                ctx.lineTo(Math.cos(angles[0]) * maxWidth - Math.cos(perpAngle1) * w1, Math.sin(angles[0]) * maxWidth - Math.sin(perpAngle1) * w1);
+                ctx.lineTo(-Math.cos(angles[0]) * maxWidth - Math.cos(perpAngle1) * w1, -Math.sin(angles[0]) * maxWidth - Math.sin(perpAngle1) * w1);
+                ctx.lineTo(-Math.cos(angles[0]) * maxWidth + Math.cos(perpAngle1) * w1, -Math.sin(angles[0]) * maxWidth + Math.sin(perpAngle1) * w1);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Road 2 direction strip
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(angles[1]) * maxWidth + Math.cos(perpAngle2) * w2, Math.sin(angles[1]) * maxWidth + Math.sin(perpAngle2) * w2);
+                ctx.lineTo(Math.cos(angles[1]) * maxWidth - Math.cos(perpAngle2) * w2, Math.sin(angles[1]) * maxWidth - Math.sin(perpAngle2) * w2);
+                ctx.lineTo(-Math.cos(angles[1]) * maxWidth - Math.cos(perpAngle2) * w2, -Math.sin(angles[1]) * maxWidth - Math.sin(perpAngle2) * w2);
+                ctx.lineTo(-Math.cos(angles[1]) * maxWidth + Math.cos(perpAngle2) * w2, -Math.sin(angles[1]) * maxWidth + Math.sin(perpAngle2) * w2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // ===== CROSSWALKS =====
+                ctx.fillStyle = CONFIG.colors.marking;
+                for (let i = 0; i < angles.length; i++) {
+                    const angle = angles[i];
+                    const roadWidth = widths[i];
+                    
+                    for (let dir = -1; dir <= 1; dir += 2) {
+                        const crosswalkDist = roadWidth + 15;
+                        const stripeWidth = 6;
+                        const stripeLength = 20;
+                        const stripeGap = 10;
+                        const numStripes = Math.floor((roadWidth * 2 - 10) / stripeGap);
+                        
+                        ctx.save();
+                        ctx.rotate(angle);
+                        
+                        for (let s = 0; s < numStripes; s++) {
+                            const offset = -roadWidth + 8 + s * stripeGap;
+                            ctx.fillRect(
+                                dir * crosswalkDist - stripeLength/2,
+                                offset,
+                                stripeLength,
+                                stripeWidth
+                            );
+                        }
+                        
+                        ctx.restore();
+                    }
+                }
+                
+                // ===== STOP LINES =====
+                ctx.strokeStyle = CONFIG.colors.marking;
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'butt';
+                
+                for (let i = 0; i < angles.length; i++) {
+                    const angle = angles[i];
+                    const roadWidth = widths[i] - 5;
+                    const perpAngle = angle + Math.PI / 2;
+                    const stopDist = widths[i] + 35;
+                    
+                    for (let dir = -1; dir <= 1; dir += 2) {
+                        const x1 = Math.cos(angle) * stopDist * dir + Math.cos(perpAngle) * roadWidth;
+                        const y1 = Math.sin(angle) * stopDist * dir + Math.sin(perpAngle) * roadWidth;
+                        const x2 = Math.cos(angle) * stopDist * dir - Math.cos(perpAngle) * roadWidth;
+                        const y2 = Math.sin(angle) * stopDist * dir - Math.sin(perpAngle) * roadWidth;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    }
+                }
+                
+                // ===== TURN ARROWS IN INTERSECTION =====
+                if (this.state.zoom > 0.4) {
+                    ctx.fillStyle = CONFIG.colors.markingFaded;
+                    for (let i = 0; i < angles.length; i++) {
+                        const angle = angles[i];
+                        const roadWidth = widths[i];
+                        const laneWidth = roadWidth; // Simplified - one arrow per direction
+                        
+                        for (let dir = -1; dir <= 1; dir += 2) {
+                            const arrowDist = roadWidth + 50;
+                            
+                            ctx.save();
+                            ctx.translate(
+                                Math.cos(angle) * arrowDist * dir,
+                                Math.sin(angle) * arrowDist * dir
+                            );
+                            ctx.rotate(angle + (dir === 1 ? 0 : Math.PI));
+                            
+                            // Straight arrow
+                            ctx.beginPath();
+                            ctx.moveTo(15, 0);
+                            ctx.lineTo(0, -8);
+                            ctx.lineTo(0, -3);
+                            ctx.lineTo(-15, -3);
+                            ctx.lineTo(-15, 3);
+                            ctx.lineTo(0, 3);
+                            ctx.lineTo(0, 8);
+                            ctx.closePath();
+                            ctx.fill();
+                            
+                            ctx.restore();
+                        }
+                    }
+                }
+                
+                // ===== MANHOLE COVER =====
+                if (this.state.zoom > 0.5) {
+                    ctx.fillStyle = CONFIG.colors.manhole;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Manhole pattern
+                    ctx.beginPath();
+                    ctx.moveTo(-6, -6);
+                    ctx.lineTo(6, 6);
+                    ctx.moveTo(6, -6);
+                    ctx.lineTo(-6, 6);
+                    ctx.moveTo(-8, 0);
+                    ctx.lineTo(8, 0);
+                    ctx.moveTo(0, -8);
+                    ctx.lineTo(0, 8);
+                    ctx.stroke();
+                }
+                
+                // ===== TRAFFIC SIGNAL POLES =====
+                if (this.state.zoom > 0.4) {
+                    for (let q = 0; q < 4; q++) {
+                        const sign1 = (q === 0 || q === 1) ? 1 : -1;
+                        const sign2 = (q === 0 || q === 3) ? 1 : -1;
+                        
+                        const poleX = Math.cos(perpAngle1) * (w1 + 12) * sign1 + Math.cos(perpAngle2) * (w2 + 12) * sign2;
+                        const poleY = Math.sin(perpAngle1) * (w1 + 12) * sign1 + Math.sin(perpAngle2) * (w2 + 12) * sign2;
+                        
+                        // Pole
+                        ctx.fillStyle = '#333';
+                        ctx.beginPath();
+                        ctx.arc(poleX, poleY, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Signal box
+                        ctx.fillStyle = '#222';
+                        ctx.fillRect(poleX - 3, poleY - 15, 6, 12);
+                        
+                        // Lights
+                        ctx.fillStyle = '#440000';
+                        ctx.beginPath();
+                        ctx.arc(poleX, poleY - 12, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#444400';
+                        ctx.beginPath();
+                        ctx.arc(poleX, poleY - 8, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#004400';
+                        ctx.beginPath();
+                        ctx.arc(poleX, poleY - 4, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                
+                ctx.restore();
+            }
+
+            drawRoadPreviewOnCanvas() {
+                const ctx = this.ctx;
+                const type = this.state.selectedRoadType;
+                let points;
+
+                if (this.state.drawMode === 'freeform') {
+                    points = [...this.state.freeformPoints, this.state.currentPoint];
+                } else if (this.state.drawMode === 'curved') {
+                    points = this.generateCurvedPath(this.state.startPoint, this.state.currentPoint);
+                } else {
+                    points = [this.state.startPoint, this.state.currentPoint];
+                }
+
+                // Draw preview road with transparency
+                ctx.globalAlpha = 0.6;
+                
+                const tempRoad = {
+                    type: type,
+                    points: points
+                };
+                
+                this.drawRoad(tempRoad);
+                
+                ctx.globalAlpha = 1;
+
+                // Draw length indicator with larger text for bigger world
+                const totalLength = this.calculatePathLength(points);
+                const cost = Math.round(totalLength * type.cost / 10);
+                const lastPoint = points[points.length - 1];
+                
+                // Scale info box based on zoom
+                const boxScale = Math.max(1, 1.5 / this.state.zoom);
+                const boxWidth = 180 * boxScale;
+                const boxHeight = 70 * boxScale;
+                const fontSize = 18 * boxScale;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+                ctx.beginPath();
+                ctx.roundRect(lastPoint.x + 25, lastPoint.y - boxHeight/2, boxWidth, boxHeight, 8);
+                ctx.fill();
+                
+                ctx.strokeStyle = CONFIG.colors.highlight;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(lastPoint.x + 25, lastPoint.y - boxHeight/2, boxWidth, boxHeight, 8);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${fontSize}px Arial`;
+                ctx.fillText(`📏 ${Math.round(totalLength)}m`, lastPoint.x + 40, lastPoint.y - 5);
+                ctx.fillStyle = '#68d391';
+                ctx.font = `${fontSize}px Arial`;
+                ctx.fillText(`💰 $${cost.toLocaleString()}`, lastPoint.x + 40, lastPoint.y + fontSize + 5);
+            }
+
+            // ==================== UTILITY FUNCTIONS ====================
+            getWorldPos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const screenX = e.clientX - rect.left;
+                const screenY = e.clientY - rect.top;
+                
+                // Reverse the transformations
+                const worldX = (screenX - this.state.pan.x - this.canvas.width/2) / this.state.zoom + this.canvas.width/2;
+                const worldY = (screenY - this.state.pan.y - this.canvas.height/2) / this.state.zoom + this.canvas.height/2;
+                
+                return { x: worldX, y: worldY };
+            }
+
+            snapToGrid(pos) {
+                if (!CONFIG.snapToGrid) return pos;
+                return {
+                    x: Math.round(pos.x / CONFIG.gridSize) * CONFIG.gridSize,
+                    y: Math.round(pos.y / CONFIG.gridSize) * CONFIG.gridSize
+                };
+            }
+
+            distance(p1, p2) {
+                return Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+            }
+
+            calculatePathLength(points) {
+                let length = 0;
+                for (let i = 0; i < points.length - 1; i++) {
+                    length += this.distance(points[i], points[i + 1]);
+                }
+                return length;
+            }
+
+            calculateRoadCost(points) {
+                const length = this.calculatePathLength(points);
+                return Math.round(length * this.state.selectedRoadType.cost / 10);
+            }
+
+            generateCurvedPath(start, end) {
+                const points = [];
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+                
+                // Calculate control point perpendicular to the line
+                const dx = end.x - start.x;
+                const dy = end.y - start.y;
+                const dist = this.distance(start, end);
+                
+                // Control point offset
+                const offset = dist * 0.3;
+                const controlX = midX - dy * offset / dist;
+                const controlY = midY + dx * offset / dist;
+
+                // Generate bezier curve points
+                const segments = Math.max(10, Math.floor(dist / 20));
+                for (let i = 0; i <= segments; i++) {
+                    const t = i / segments;
+                    const x = (1-t)*(1-t)*start.x + 2*(1-t)*t*controlX + t*t*end.x;
+                    const y = (1-t)*(1-t)*start.y + 2*(1-t)*t*controlY + t*t*end.y;
+                    points.push(this.snapToGrid({ x, y }));
+                }
+
+                return points;
+            }
+
+            simplifyPath(points) {
+                if (points.length <= 2) return points;
+                
+                // Douglas-Peucker simplification
+                const tolerance = 10;
+                const simplified = [points[0]];
+                
+                for (let i = 1; i < points.length; i++) {
+                    const lastPoint = simplified[simplified.length - 1];
+                    const dist = this.distance(lastPoint, points[i]);
+                    if (dist > tolerance) {
+                        simplified.push(points[i]);
+                    }
+                }
+                
+                if (simplified.length < 2) {
+                    simplified.push(points[points.length - 1]);
+                }
+                
+                return simplified;
+            }
+
+            findRoadAt(pos) {
+                for (const road of this.state.roads) {
+                    for (let i = 0; i < road.points.length - 1; i++) {
+                        const dist = this.pointToLineDistance(pos, road.points[i], road.points[i + 1]);
+                        if (dist < road.type.width / 2 + 10) {
+                            return road;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            pointToLineDistance(point, lineStart, lineEnd) {
+                const A = point.x - lineStart.x;
+                const B = point.y - lineStart.y;
+                const C = lineEnd.x - lineStart.x;
+                const D = lineEnd.y - lineStart.y;
+
+                const dot = A * C + B * D;
+                const lenSq = C * C + D * D;
+                let param = -1;
+                
+                if (lenSq !== 0) param = dot / lenSq;
+
+                let xx, yy;
+
+                if (param < 0) {
+                    xx = lineStart.x;
+                    yy = lineStart.y;
+                } else if (param > 1) {
+                    xx = lineEnd.x;
+                    yy = lineEnd.y;
+                } else {
+                    xx = lineStart.x + param * C;
+                    yy = lineStart.y + param * D;
+                }
+
+                return this.distance(point, { x: xx, y: yy });
+            }
+
+            deleteRoadAt(pos) {
+                const road = this.findRoadAt(pos);
+                if (road) {
+                    // Remove road connections from nodes
+                    const startNode = this.state.nodes.find(n => n.id === road.startNodeId);
+                    const endNode = this.state.nodes.find(n => n.id === road.endNodeId);
+                    
+                    if (startNode) startNode.removeConnection(road.id);
+                    if (endNode) endNode.removeConnection(road.id);
+                    
+                    // Remove orphan nodes (nodes with no connections)
+                    this.state.nodes = this.state.nodes.filter(n => n.connections.length > 0);
+                    
+                    // Remove road
+                    this.state.roads = this.state.roads.filter(r => r.id !== road.id);
+                    
+                    // Remove associated intersections
+                    this.state.intersections = this.state.intersections.filter(
+                        int => !int.roads.includes(road.id)
+                    );
+                    
+                    // Refund some cost
+                    const refund = Math.round(this.calculateRoadCost(road.points) * 0.5);
+                    this.state.budget += refund;
+                    
+                    this.showNotification(`Road deleted! Refunded: $${refund}`);
+                    this.updateStats();
+                }
+            }
+
+            updateStats() {
+                document.getElementById('roadCount').textContent = this.state.roads.length;
+                document.getElementById('nodeCount').textContent = this.state.nodes.length;
+                document.getElementById('intersectionCount').textContent = this.state.intersections.length;
+                
+                let totalLength = 0;
+                for (const road of this.state.roads) {
+                    totalLength += road.length;
+                }
+                document.getElementById('totalLength').textContent = `${Math.round(totalLength)}m`;
+                document.getElementById('budget').textContent = `$${this.state.budget.toLocaleString()}`;
+            }
+
+            showNotification(message) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        // ==================== INITIALIZE GAME ====================
+        window.addEventListener('DOMContentLoaded', () => {
+            new RoadBuilder();
+        });
+    </script>
+</body>
+</html>

@@ -211,6 +211,7 @@ const UserData = {
       photoURL: userProfile.photoURL || null,
       // Trading data
       balance: 500.00,
+      keys: 15, // Keys currency - for casino, collectables, earned from predictions
       positions: [],
       watchlist: [],
       transactions: [],
@@ -233,6 +234,10 @@ const UserData = {
         this.data.displayName = userProfile.displayName || this.data.displayName;
         this.data.photoURL = userProfile.photoURL || this.data.photoURL;
         this.data.lastLoginAt = new Date().toISOString();
+        // Migrate existing users: add 15 keys if they don't have keys yet
+        if (this.data.keys === undefined) {
+          this.data.keys = 15;
+        }
         await this.save();
       } else {
         // Create new user document with profile info
@@ -263,6 +268,59 @@ const UserData = {
   
   getBalance() {
     return this.get().balance;
+  },
+  
+  getKeys() {
+    return this.get().keys || 0;
+  },
+  
+  async updateKeys(amount) {
+    if (!this.data) return 0;
+    this.data.keys = Math.max(0, (this.data.keys || 0) + amount);
+    await this.save();
+    return this.data.keys;
+  },
+  
+  // Daily key claim functions
+  getLastDailyKeyClaim() {
+    return this.get().lastDailyKeyClaim || null;
+  },
+  
+  canClaimDailyKey() {
+    const lastClaim = this.getLastDailyKeyClaim();
+    if (!lastClaim) return true;
+    
+    const lastClaimTime = new Date(lastClaim).getTime();
+    const now = Date.now();
+    const hoursPassed = (now - lastClaimTime) / (1000 * 60 * 60);
+    
+    return hoursPassed >= 24;
+  },
+  
+  getTimeUntilNextClaim() {
+    const lastClaim = this.getLastDailyKeyClaim();
+    if (!lastClaim) return 0;
+    
+    const lastClaimTime = new Date(lastClaim).getTime();
+    const nextClaimTime = lastClaimTime + (24 * 60 * 60 * 1000);
+    const now = Date.now();
+    
+    return Math.max(0, nextClaimTime - now);
+  },
+  
+  async claimDailyKey() {
+    if (!this.data) return { success: false, error: 'Not signed in' };
+    if (!this.canClaimDailyKey()) return { success: false, error: 'Already claimed today' };
+    
+    try {
+      this.data.keys = (this.data.keys || 0) + 3;
+      this.data.lastDailyKeyClaim = new Date().toISOString();
+      await this.save();
+      return { success: true, keys: this.data.keys };
+    } catch (error) {
+      console.error('Error claiming daily key:', error);
+      return { success: false, error: error.message };
+    }
   },
   
   // Update user profile (displayName, avatarStyle)

@@ -1,0 +1,372 @@
+/* ========================================
+   CASINO STYLES
+   ======================================== */
+
+/* Casino Header */
+.casino-header {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.casino-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.casino-header p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+}
+
+/* Games Grid */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+.game-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--green-primary);
+}
+
+.game-card.coming-soon {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.game-card.coming-soon:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-color);
+}
+
+.game-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-radius: var(--radius-md);
+  color: white;
+  margin: 0 auto;
+}
+
+.game-card.coming-soon .game-icon {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.game-info {
+  text-align: center;
+}
+
+.game-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.game-info p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.game-meta {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.game-tag {
+  padding: 0.35rem 0.75rem;
+  background: var(--green-bg);
+  color: var(--green-primary);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.game-tag.coming-soon-tag {
+  background: rgba(108, 117, 125, 0.1);
+  color: var(--text-secondary);
+}
+
+.game-multiplier {
+  padding: 0.35rem 0.75rem;
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ========================================
+   PLINKO GAME STYLES
+   ======================================== */
+
+.plinko-container {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.plinko-game-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.plinko-canvas-wrapper {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+#plinkoCanvas {
+  display: block;
+  border-radius: var(--radius-md);
+}
+
+.plinko-controls {
+  width: 300px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-group label {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.control-group input[type="number"] {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.control-group input[type="number"]:focus {
+  outline: none;
+  border-color: var(--green-primary);
+}
+
+.risk-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.risk-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.risk-btn:hover {
+  border-color: var(--text-secondary);
+}
+
+.risk-btn.active {
+  background: var(--green-primary);
+  color: white;
+  border-color: var(--green-primary);
+}
+
+.risk-btn.medium.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.risk-btn.high.active {
+  background: var(--red-primary);
+  border-color: var(--red-primary);
+}
+
+.rows-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.row-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.row-btn:hover {
+  border-color: var(--text-secondary);
+}
+
+.row-btn.active {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+}
+
+.drop-btn {
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-hover) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drop-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+}
+
+.drop-btn:active {
+  transform: translateY(0);
+}
+
+.drop-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.plinko-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-value.profit {
+  color: var(--green-primary);
+}
+
+.stat-value.loss {
+  color: var(--red-primary);
+}
+
+/* Multiplier buckets display */
+.multipliers-display {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.multiplier-bucket {
+  padding: 0.25rem 0.35rem;
+  border-radius: 4px;
+  min-width: 28px;
+  text-align: center;
+}
+
+/* Results history */
+.results-history {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.result-item.win {
+  background: var(--green-bg);
+}
+
+.result-item.loss {
+  background: var(--red-bg);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .plinko-container {
+    flex-direction: column;
+  }
+  
+  .plinko-controls {
+    width: 100%;
+  }
+  
+  .games-grid {
+    grid-template-columns: 1fr;
+  }
+}

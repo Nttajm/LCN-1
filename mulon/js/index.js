@@ -46,10 +46,17 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Setup suggestion modal
   setupSuggestionModal();
   
+  // Setup keys tooltip
+  setupKeysTooltip();
+  
+  // Setup daily key claim
+  setupDailyKeyClaim();
+  
   // Listen for auth state changes
   Auth.onAuthStateChange((user) => {
     updateAuthUI(user);
     updateUserUI();
+    updateDailyKeyUI();
   });
 });
 
@@ -1609,6 +1616,7 @@ function setupSidebar() {
 // ========================================
 function updateUserUI() {
   updateBalanceDisplay();
+  updateKeysDisplay();
   updatePortfolioDisplay();
   updateWatchlistDisplay();
   updateCashoutsDisplay();
@@ -1625,6 +1633,130 @@ function updateBalanceDisplay() {
   // Update max amount in modal
   if (amountInput) {
     amountInput.max = balance;
+  }
+}
+
+function updateKeysDisplay() {
+  const keysEl = document.getElementById('userKeys');
+  const keys = UserData.getKeys();
+  
+  if (keysEl) {
+    keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
+  }
+}
+
+function setupKeysTooltip() {
+  const keysInfoBtn = document.getElementById('keysInfoBtn');
+  const keysTooltip = document.getElementById('keysTooltip');
+  
+  if (keysInfoBtn && keysTooltip) {
+    keysInfoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      keysTooltip.classList.toggle('active');
+    });
+    
+    document.addEventListener('click', () => {
+      keysTooltip.classList.remove('active');
+    });
+  }
+}
+
+// ========================================
+// DAILY KEY CLAIM
+// ========================================
+let dailyKeyTimerInterval = null;
+
+function setupDailyKeyClaim() {
+  const claimBtn = document.getElementById('claimDailyKeyBtn');
+  
+  if (claimBtn) {
+    claimBtn.addEventListener('click', async () => {
+      if (!Auth.getUser()) {
+        // Show sign in modal
+        document.getElementById('signinRequiredModal').classList.add('active');
+        return;
+      }
+      
+      const result = await UserData.claimDailyKey();
+      if (result.success) {
+        updateKeysDisplay();
+        updateDailyKeyUI();
+        // Animate the button
+        claimBtn.classList.add('claimed');
+        claimBtn.querySelector('.claim-text').textContent = 'Claimed!';
+        setTimeout(() => {
+          claimBtn.classList.remove('claimed');
+        }, 1000);
+      }
+    });
+  }
+}
+
+function updateDailyKeyUI() {
+  const dailyKeyBox = document.getElementById('dailyKeyBox');
+  const claimBtn = document.getElementById('claimDailyKeyBtn');
+  const timerDiv = document.getElementById('dailyKeyTimer');
+  const timerValue = document.getElementById('timerValue');
+  const dailyKeyDesc = document.getElementById('dailyKeyDesc');
+  
+  // Only show for signed in users
+  if (!Auth.getUser()) {
+    if (dailyKeyBox) dailyKeyBox.style.display = 'none';
+    return;
+  }
+  
+  if (dailyKeyBox) dailyKeyBox.style.display = 'block';
+  
+  const canClaim = UserData.canClaimDailyKey();
+  
+  if (canClaim) {
+    // User can claim
+    if (claimBtn) {
+      claimBtn.style.display = 'flex';
+      claimBtn.disabled = false;
+      claimBtn.querySelector('.claim-text').textContent = 'Claim +1 Key';
+    }
+    if (timerDiv) timerDiv.style.display = 'none';
+    if (dailyKeyDesc) dailyKeyDesc.textContent = 'Claim your free key!';
+    
+    // Clear timer if running
+    if (dailyKeyTimerInterval) {
+      clearInterval(dailyKeyTimerInterval);
+      dailyKeyTimerInterval = null;
+    }
+  } else {
+    // User already claimed, show timer
+    if (claimBtn) claimBtn.style.display = 'none';
+    if (timerDiv) timerDiv.style.display = 'flex';
+    if (dailyKeyDesc) dailyKeyDesc.textContent = 'Come back tomorrow!';
+    
+    // Start timer update
+    updateDailyKeyTimer();
+    if (!dailyKeyTimerInterval) {
+      dailyKeyTimerInterval = setInterval(updateDailyKeyTimer, 1000);
+    }
+  }
+}
+
+function updateDailyKeyTimer() {
+  const timerValue = document.getElementById('timerValue');
+  const timeLeft = UserData.getTimeUntilNextClaim();
+  
+  if (timeLeft <= 0) {
+    // Timer done, can claim now
+    updateDailyKeyUI();
+    return;
+  }
+  
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+  
+  if (timerValue) {
+    timerValue.textContent = 
+      String(hours).padStart(2, '0') + ':' + 
+      String(minutes).padStart(2, '0') + ':' + 
+      String(seconds).padStart(2, '0');
   }
 }
 

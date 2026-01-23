@@ -376,6 +376,10 @@ function setupAuth() {
     const headerSignInBtn = document.getElementById('headerSignInBtn');
     const userBalance = document.getElementById('userBalance');
     const portfolioValue = document.getElementById('portfolioValue');
+    const userKeys = document.getElementById('userKeys');
+    
+    // Setup keys tooltip
+    setupKeysTooltip();
     
     // Toggle dropdown
     userAvatar.addEventListener('click', (e) => {
@@ -431,6 +435,11 @@ function setupAuth() {
                     userBalance.textContent = formatBalance(userData.balance || 500);
                     const pv = await calculatePortfolioValue(userData.positions || []);
                     portfolioValue.textContent = formatBalance(pv);
+                    // Update keys display
+                    const keys = userData.keys !== undefined ? userData.keys : 15;
+                    if (userKeys) {
+                        userKeys.innerHTML = '<img src=\"/bp/EE/assets/ouths/key.png\" alt=\"\" class=\"key-icon\"> ' + keys;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
@@ -450,10 +459,28 @@ function setupAuth() {
             headerSignInBtn.style.display = 'flex';
             userBalance.textContent = '$500.00';
             portfolioValue.textContent = '$0.00';
+            if (userKeys) {
+                userKeys.innerHTML = '<img src=\"/bp/EE/assets/ouths/key.png\" alt=\"\" class=\"key-icon\"> 15';
+            }
             
             renderLeaderboard();
         }
     });
+}
+
+// Keys tooltip setup
+function setupKeysTooltip() {
+    const keysInfoBtn = document.getElementById('keysInfoBtn');
+    const keysTooltip = document.getElementById('keysTooltip');
+    if (keysInfoBtn && keysTooltip) {
+        keysInfoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            keysTooltip.classList.toggle('active');
+        });
+        document.addEventListener('click', () => {
+            keysTooltip.classList.remove('active');
+        });
+    }
 }
 
 // ========================================
