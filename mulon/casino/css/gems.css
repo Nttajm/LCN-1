@@ -141,6 +141,14 @@
   display: none;
 }
 
+#cashoutBtn.show {
+  display: block;
+}
+
+#betBtn.hide {
+  display: none;
+}
+
 /* 3 Gems Preview */
 .preview-box {
   background: linear-gradient(135deg, #1a1f26, #0f1419);

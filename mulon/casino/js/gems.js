@@ -184,6 +184,13 @@ async function startGame() {
     return;
   }
   
+  // Check if user has keys
+  const currentKeys = window.CasinoAuth.getKeys();
+  if (currentKeys <= 0) {
+    alert('You need keys to play! Come back tomorrow for free keys.');
+    return;
+  }
+  
   const currentBalance = window.CasinoAuth.getBalance();
   if (currentBalance < config.betAmount) {
     alert('Insufficient balance!');
