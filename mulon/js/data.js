@@ -284,7 +284,7 @@ const UserData = {
   // Daily reward streak system
   // Streak multipliers: Day 1 = 1.0, Day 2 = 1.2, Day 3 = 1.4, Day 4 = 1.7, Day 5 = 2.0, Day 6+ = 2.4, 2.8, 3.2...
   STREAK_MULTIPLIERS: [1.0, 1.2, 1.4, 1.7, 2.0, 2.4, 2.8, 3.2, 3.6, 4.0],
-  BASE_KEY_REWARD: 3,
+  BASE_KEY_REWARD: 4,
   BASE_BALANCE_REWARD: 150,
   
   getStreakMultiplier(streak) {
