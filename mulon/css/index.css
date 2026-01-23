@@ -937,14 +937,37 @@ body.sidebar-open {
 }
 
 .daily-key-icon {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, #f7b733, #fc4a1a);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+}
+
+.streak-flame {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.streak-count {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .daily-key-img {
@@ -969,16 +992,57 @@ body.sidebar-open {
 .daily-key-desc {
   color: var(--text-secondary);
   font-size: 0.75rem;
-  margin: 0;
+  margin: 0 0 0.25rem 0;
+}
+
+.reward-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.reward-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+}
+
+.reward-item.keys {
+  background: rgba(247, 183, 51, 0.15);
+  color: #f7b733;
+}
+
+.reward-item.balance {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green-primary);
+}
+
+.mini-key-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.reward-multiplier {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fc4a1a;
+  background: rgba(252, 74, 26, 0.1);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
 }
 
 .daily-key-btn {
-  background: var(--green-primary);
+  background: linear-gradient(135deg, #f7b733, #fc4a1a);
   color: #fff;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: var(--radius-full);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -987,10 +1051,12 @@ body.sidebar-open {
   gap: 0.25rem;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(252, 74, 26, 0.25);
 }
 
 .daily-key-btn:hover {
-  background: var(--green-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(252, 74, 26, 0.35);
 }
 
 .daily-key-btn:active {
@@ -1038,11 +1104,22 @@ body.sidebar-open {
   
   .daily-key-content {
     gap: 0.5rem;
+    flex-wrap: wrap;
   }
   
   .daily-key-icon {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .streak-flame {
+    font-size: 1.2rem;
+  }
+  
+  .streak-count {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
   }
   
   .daily-key-img {
@@ -1058,8 +1135,26 @@ body.sidebar-open {
     font-size: 0.7rem;
   }
   
+  .reward-preview {
+    gap: 0.35rem;
+  }
+  
+  .reward-item {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.3rem;
+  }
+  
+  .mini-key-icon {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .reward-multiplier {
+    font-size: 0.65rem;
+  }
+  
   .daily-key-btn {
-    padding: 0.4rem 0.75rem;
+    padding: 0.5rem 0.9rem;
     font-size: 0.75rem;
   }
   

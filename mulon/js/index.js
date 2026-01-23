@@ -1680,7 +1680,15 @@ function setupDailyKeyClaim() {
       const result = await UserData.claimDailyKey();
       if (result.success) {
         updateKeysDisplay();
+        updateBalanceDisplay();
         updateDailyKeyUI();
+        
+        // Show reward notification
+        showNotification(
+          `🔥 Day ${result.streak} Streak! +${result.keysReward} Keys & +$${result.balanceReward} (${result.multiplier}x)`, 
+          'success'
+        );
+        
         // Animate the button
         claimBtn.classList.add('claimed');
         claimBtn.querySelector('.claim-text').textContent = 'Claimed!';
@@ -1698,6 +1706,12 @@ function updateDailyKeyUI() {
   const timerDiv = document.getElementById('dailyKeyTimer');
   const timerValue = document.getElementById('timerValue');
   const dailyKeyDesc = document.getElementById('dailyKeyDesc');
+  const streakFlame = document.getElementById('streakFlame');
+  const streakCount = document.getElementById('streakCount');
+  const previewKeys = document.getElementById('previewKeys');
+  const previewBalance = document.getElementById('previewBalance');
+  const rewardMultiplier = document.getElementById('rewardMultiplier');
+  const rewardPreview = document.getElementById('rewardPreview');
   
   // Only show for signed in users
   if (!Auth.getUser()) {
@@ -1708,16 +1722,46 @@ function updateDailyKeyUI() {
   if (dailyKeyBox) dailyKeyBox.style.display = 'block';
   
   const canClaim = UserData.canClaimDailyKey();
+  const rewardInfo = UserData.getStreakRewardInfo();
+  
+  // Update streak display
+  if (streakCount) streakCount.textContent = rewardInfo.currentStreak;
+  if (streakFlame) {
+    // Show fire emoji based on streak level
+    if (rewardInfo.currentStreak >= 7) {
+      streakFlame.textContent = '🔥';
+      streakFlame.style.fontSize = '2rem';
+    } else if (rewardInfo.currentStreak >= 3) {
+      streakFlame.textContent = '🔥';
+      streakFlame.style.fontSize = '1.5rem';
+    } else {
+      streakFlame.textContent = '✨';
+      streakFlame.style.fontSize = '1.2rem';
+    }
+  }
+  
+  // Update reward preview
+  if (previewKeys) previewKeys.textContent = rewardInfo.keysReward;
+  if (previewBalance) previewBalance.textContent = rewardInfo.balanceReward;
+  if (rewardMultiplier) rewardMultiplier.textContent = rewardInfo.multiplier + 'x';
   
   if (canClaim) {
     // User can claim
     if (claimBtn) {
       claimBtn.style.display = 'flex';
       claimBtn.disabled = false;
-      claimBtn.querySelector('.claim-text').textContent = 'Claim +1 Key';
+      claimBtn.querySelector('.claim-text').textContent = 'Claim Rewards';
     }
     if (timerDiv) timerDiv.style.display = 'none';
-    if (dailyKeyDesc) dailyKeyDesc.textContent = 'Claim your free key!';
+    if (rewardPreview) rewardPreview.style.display = 'flex';
+    
+    if (dailyKeyDesc) {
+      if (rewardInfo.currentStreak > 0) {
+        dailyKeyDesc.textContent = `Day ${rewardInfo.nextStreak} reward ready!`;
+      } else {
+        dailyKeyDesc.textContent = 'Start your streak!';
+      }
+    }
     
     // Clear timer if running
     if (dailyKeyTimerInterval) {
@@ -1728,7 +1772,11 @@ function updateDailyKeyUI() {
     // User already claimed, show timer
     if (claimBtn) claimBtn.style.display = 'none';
     if (timerDiv) timerDiv.style.display = 'flex';
-    if (dailyKeyDesc) dailyKeyDesc.textContent = 'Come back tomorrow!';
+    if (rewardPreview) rewardPreview.style.opacity = '0.5';
+    
+    if (dailyKeyDesc) {
+      dailyKeyDesc.textContent = `🔥 ${rewardInfo.currentStreak} day streak!`;
+    }
     
     // Start timer update
     updateDailyKeyTimer();

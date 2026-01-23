@@ -281,9 +281,25 @@ const UserData = {
     return this.data.keys;
   },
   
+  // Daily reward streak system
+  // Streak multipliers: Day 1 = 1.0, Day 2 = 1.2, Day 3 = 1.4, Day 4 = 1.7, Day 5 = 2.0, Day 6+ = 2.4, 2.8, 3.2...
+  STREAK_MULTIPLIERS: [1.0, 1.2, 1.4, 1.7, 2.0, 2.4, 2.8, 3.2, 3.6, 4.0],
+  BASE_KEY_REWARD: 3,
+  BASE_BALANCE_REWARD: 150,
+  
+  getStreakMultiplier(streak) {
+    const idx = Math.min(streak - 1, this.STREAK_MULTIPLIERS.length - 1);
+    if (idx < 0) return this.STREAK_MULTIPLIERS[0];
+    return this.STREAK_MULTIPLIERS[idx];
+  },
+  
   // Daily key claim functions
   getLastDailyKeyClaim() {
     return this.get().lastDailyKeyClaim || null;
+  },
+  
+  getDailyStreak() {
+    return this.get().dailyStreak || 0;
   },
   
   canClaimDailyKey() {
@@ -297,6 +313,19 @@ const UserData = {
     return hoursPassed >= 24;
   },
   
+  // Check if streak is still valid (within 48 hours of last claim)
+  isStreakValid() {
+    const lastClaim = this.getLastDailyKeyClaim();
+    if (!lastClaim) return false;
+    
+    const lastClaimTime = new Date(lastClaim).getTime();
+    const now = Date.now();
+    const hoursPassed = (now - lastClaimTime) / (1000 * 60 * 60);
+    
+    // Streak is valid if last claim was within 48 hours
+    return hoursPassed < 48;
+  },
+  
   getTimeUntilNextClaim() {
     const lastClaim = this.getLastDailyKeyClaim();
     if (!lastClaim) return 0;
@@ -308,17 +337,65 @@ const UserData = {
     return Math.max(0, nextClaimTime - now);
   },
   
+  // Get current streak reward info (for UI display)
+  getStreakRewardInfo() {
+    let currentStreak = this.getDailyStreak();
+    
+    // If streak expired, reset to 0
+    if (!this.isStreakValid() && currentStreak > 0) {
+      currentStreak = 0;
+    }
+    
+    // Next streak will be current + 1 (or 1 if expired)
+    const nextStreak = currentStreak + 1;
+    const multiplier = this.getStreakMultiplier(nextStreak);
+    const keysReward = Math.floor(this.BASE_KEY_REWARD * multiplier);
+    const balanceReward = Math.floor(this.BASE_BALANCE_REWARD * multiplier);
+    
+    return {
+      currentStreak,
+      nextStreak,
+      multiplier,
+      keysReward,
+      balanceReward
+    };
+  },
+  
   async claimDailyKey() {
     if (!this.data) return { success: false, error: 'Not signed in' };
     if (!this.canClaimDailyKey()) return { success: false, error: 'Already claimed today' };
     
     try {
-      this.data.keys = (this.data.keys || 0) + 3;
+      // Check if streak is still valid
+      let newStreak = 1;
+      if (this.isStreakValid()) {
+        newStreak = (this.data.dailyStreak || 0) + 1;
+      }
+      
+      // Calculate rewards based on streak
+      const multiplier = this.getStreakMultiplier(newStreak);
+      const keysReward = Math.floor(this.BASE_KEY_REWARD * multiplier);
+      const balanceReward = Math.floor(this.BASE_BALANCE_REWARD * multiplier);
+      
+      // Apply rewards
+      this.data.keys = (this.data.keys || 0) + keysReward;
+      this.data.balance = Math.round(((this.data.balance || 0) + balanceReward) * 100) / 100;
+      this.data.dailyStreak = newStreak;
       this.data.lastDailyKeyClaim = new Date().toISOString();
+      
       await this.save();
-      return { success: true, keys: this.data.keys };
+      
+      return { 
+        success: true, 
+        keys: this.data.keys, 
+        balance: this.data.balance,
+        keysReward,
+        balanceReward,
+        streak: newStreak,
+        multiplier
+      };
     } catch (error) {
-      console.error('Error claiming daily key:', error);
+      console.error('Error claiming daily reward:', error);
       return { success: false, error: error.message };
     }
   },

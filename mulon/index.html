@@ -442,21 +442,27 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <!-- Daily Key Claim Box -->
+    <!-- Daily Reward Claim Box -->
     <div class="daily-key-box" id="dailyKeyBox" style="display: none;">
       <div class="daily-key-content">
         <div class="daily-key-icon">
-          <img src="/bp/EE/assets/ouths/key.png" alt="Key" class="daily-key-img">
+          <span class="streak-flame" id="streakFlame">🔥</span>
+          <span class="streak-count" id="streakCount">0</span>
         </div>
         <div class="daily-key-info">
-          <h3 class="daily-key-title">Daily Key</h3>
-          <p class="daily-key-desc" id="dailyKeyDesc">Claim your free key!</p>
+          <h3 class="daily-key-title">Daily Reward</h3>
+          <p class="daily-key-desc" id="dailyKeyDesc">Claim your free rewards!</p>
+          <div class="reward-preview" id="rewardPreview">
+            <span class="reward-item keys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="mini-key-icon">+<span id="previewKeys">3</span></span>
+            <span class="reward-item balance">+$<span id="previewBalance">150</span></span>
+            <span class="reward-multiplier" id="rewardMultiplier">1.0x</span>
+          </div>
         </div>
         <button class="daily-key-btn" id="claimDailyKeyBtn">
-          <span class="claim-text">Claim +3 Keys</span>
+          <span class="claim-text">Claim Rewards</span>
         </button>
         <div class="daily-key-timer" id="dailyKeyTimer" style="display: none;">
-          <span class="timer-label">Next key in:</span>
+          <span class="timer-label">Next reward in:</span>
           <span class="timer-value" id="timerValue">00:00:00</span>
         </div>
       </div>
