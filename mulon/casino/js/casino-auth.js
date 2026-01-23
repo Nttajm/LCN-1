@@ -132,7 +132,12 @@ export const CasinoAuth = {
   
   // Get keys
   getKeys() {
-    return this.userData?.keys ?? 30;
+    return this.userData?.keys ?? 40;
+  },
+  
+  // Get plinko balls remaining
+  getPlinkoBalls() {
+    return this.userData?.plinkoBalls ?? 45;
   },
   
   // Add auth state listener
@@ -249,6 +254,45 @@ export const CasinoDB = {
     }
   },
   
+  // Use a plinko ball (deducts 1 ball, or 1 key if out of balls)
+  async usePlinkoBall() {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      let currentBalls = CasinoAuth.userData.plinkoBalls ?? 45;
+      let currentKeys = CasinoAuth.userData.keys ?? 30;
+      
+      // If no balls left, use a key to get 45 more balls
+      if (currentBalls <= 0) {
+        if (currentKeys <= 0) {
+          return { success: false, error: 'No keys left! Come back tomorrow for free keys.' };
+        }
+        // Use 1 key to get 45 balls
+        currentKeys -= 1;
+        currentBalls = 45;
+      }
+      
+      // Use 1 ball
+      const newBalls = currentBalls - 1;
+      
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        plinkoBalls: newBalls,
+        keys: currentKeys
+      });
+      
+      CasinoAuth.userData.plinkoBalls = newBalls;
+      CasinoAuth.userData.keys = currentKeys;
+      
+      return { success: true, ballsLeft: newBalls, keysLeft: currentKeys };
+    } catch (error) {
+      console.error('Error using plinko ball:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
   // Get current balance (synced from DB)
   async refreshBalance() {
     if (!CasinoAuth.currentUser) return null;
@@ -257,12 +301,70 @@ export const CasinoDB = {
       const userDoc = await getDoc(doc(db, 'mulon_users', CasinoAuth.currentUser.uid));
       if (userDoc.exists()) {
         CasinoAuth.userData.balance = userDoc.data().balance;
+        CasinoAuth.userData.plinkoBalls = userDoc.data().plinkoBalls ?? 45;
         return CasinoAuth.userData.balance;
       }
     } catch (error) {
       console.error('Error refreshing balance:', error);
     }
     return null;
+  },
+  
+  // Track pending plinko balls (for refresh penalty)
+  async setPendingPlinkoBalls(count) {
+    if (!CasinoAuth.currentUser) return;
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        pendingPlinkoBalls: count
+      });
+      CasinoAuth.userData.pendingPlinkoBalls = count;
+    } catch (error) {
+      console.error('Error setting pending balls:', error);
+    }
+  },
+  
+  // Get pending plinko balls count
+  getPendingPlinkoBalls() {
+    return CasinoAuth.userData?.pendingPlinkoBalls ?? 0;
+  },
+  
+  // Check and apply refresh penalty (called on page load)
+  async checkRefreshPenalty() {
+    if (!CasinoAuth.currentUser) return { penalty: 0 };
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const userDoc = await getDoc(doc(db, 'mulon_users', userId));
+      
+      if (userDoc.exists()) {
+        const pendingBalls = userDoc.data().pendingPlinkoBalls ?? 0;
+        
+        if (pendingBalls > 0) {
+          // Calculate penalty: 10% of balance per pending ball
+          const currentBalance = userDoc.data().balance ?? 0;
+          const penaltyPercent = pendingBalls * 0.1; // 10% per ball
+          const penaltyAmount = Math.round(currentBalance * penaltyPercent * 100) / 100;
+          const newBalance = Math.max(0, currentBalance - penaltyAmount);
+          
+          // Apply penalty and clear pending balls
+          await updateDoc(doc(db, 'mulon_users', userId), {
+            balance: newBalance,
+            pendingPlinkoBalls: 0
+          });
+          
+          CasinoAuth.userData.balance = newBalance;
+          CasinoAuth.userData.pendingPlinkoBalls = 0;
+          
+          return { penalty: penaltyAmount, ballsLost: pendingBalls };
+        }
+      }
+    } catch (error) {
+      console.error('Error checking refresh penalty:', error);
+    }
+    
+    return { penalty: 0, ballsLost: 0 };
   }
 };
 

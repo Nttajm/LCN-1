@@ -3,6 +3,70 @@
    Controls LEFT, Game RIGHT
    ======================================== */
 
+/* Floating Key Info Sign */
+.key-info-float {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #f7b733;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.54;
+}
+
+.key-info-float .key-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.key-info-float .balls-remaining {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+@media (max-width: 720px) {
+  .key-info-float {
+    top: 66px;
+    left: 12px;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+}
+
+/* Refresh Penalty Info */
+.refresh-penalty-info {
+  padding: 8px 12px;
+  font-size: 0.45rem;
+  color: #9ca3af;
+  text-align: center;
+  background: rgba(239, 68, 68, 0.1);
+  border-bottom: 1px solid #2a3441;
+}
+
+.refresh-penalty-notice {
+  padding: 10px 12px;
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: #ef4444;
+  text-align: center;
+  background: rgba(239, 68, 68, 0.15);
+  border-bottom: 1px solid #ef4444;
+  animation: penaltyFlash 0.5s ease 3;
+}
+
+@keyframes penaltyFlash {
+  0%, 100% { background: rgba(239, 68, 68, 0.15); }
+  50% { background: rgba(239, 68, 68, 0.3); }
+}
+
 /* Main Layout - Stake Style */
 .plinko-layout {
   display: flex;

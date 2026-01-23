@@ -211,7 +211,7 @@ const UserData = {
       photoURL: userProfile.photoURL || null,
       // Trading data
       balance: 500.00,
-      keys: 30, // Keys currency - for casino, collectables, earned from predictions
+      keys: 40, // Keys currency - for casino, collectables, earned from predictions
       positions: [],
       watchlist: [],
       transactions: [],
@@ -234,9 +234,9 @@ const UserData = {
         this.data.displayName = userProfile.displayName || this.data.displayName;
         this.data.photoURL = userProfile.photoURL || this.data.photoURL;
         this.data.lastLoginAt = new Date().toISOString();
-        // Migrate existing users: add 30 keys if they don't have keys yet
+        // Migrate existing users: add 40 keys if they don't have keys yet
         if (this.data.keys === undefined) {
-          this.data.keys = 30;
+          this.data.keys = 40;
         }
         await this.save();
       } else {
@@ -1429,14 +1429,24 @@ const MulonData = {
           }
           
           // Update user: remove positions, add payout to balance, add to cashOuts
+          // Winners also get +10 keys
           const userCashOuts = userData.cashOuts || [];
           const newBalance = (userData.balance || 0) + totalPayout;
+          const hasWinningPosition = resolvedPositions.some(p => p.won);
+          const currentKeys = userData.keys || 0;
           
-          await updateDoc(doc(usersRef, userDoc.id), {
+          const updateData = {
             positions: newPositions,
             balance: Math.round(newBalance * 100) / 100,
             cashOuts: [...userCashOuts, ...resolvedPositions]
-          });
+          };
+          
+          // Add +10 keys if user had any winning positions
+          if (hasWinningPosition) {
+            updateData.keys = currentKeys + 10;
+          }
+          
+          await updateDoc(doc(usersRef, userDoc.id), updateData);
           
           cashOuts.push(...resolvedPositions);
         }

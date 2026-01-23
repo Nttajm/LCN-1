@@ -5,7 +5,7 @@
 // Game Configuration
 const config = {
   betAmount: 10,
-  minesCount: 4,
+  minesCount: 3,
   sessionProfit: 0,
   gamesPlayed: 0,
   bestWin: 0,
@@ -35,11 +35,11 @@ function waitForAuth() {
 function calculateMultiplier(mines, gemsFound) {
   if (gemsFound === 0) return 1;
   
-  const totalTiles = 25;
+  const totalTiles = 35;
   const safeTiles = totalTiles - mines;
   
   // House edge of ~1%
-  let multiplier = 0.89;
+  let multiplier = 0.99;
   
   for (let i = 0; i < gemsFound; i++) {
     multiplier *= (totalTiles - i) / (safeTiles - i);

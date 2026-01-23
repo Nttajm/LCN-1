@@ -56,10 +56,22 @@
     <canvas id="profitGraphCanvas"></canvas>
   </div>
 
+  <!-- Floating Key Info Sign -->
+  <div class="key-info-float">
+    <img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 1 Key → 45 Balls
+    <span class="balls-remaining">(<span id="ballsRemaining">45</span> left)</span>
+  </div>
+
   <!-- Main Layout -->
   <div class="plinko-layout">
     <!-- LEFT: Controls Panel -->
     <div class="controls-panel">
+      <!-- Refresh Penalty Warning -->
+      <div class="refresh-penalty-info">
+        ⚠️ Refreshing with balls in play is a auto x0.1 balance loss per ball
+      </div>
+      <div class="refresh-penalty-notice" id="refreshPenaltyNotice" style="display: none;"></div>
+      
       <!-- Tabs -->
       <div class="tabs">
         <button class="tab active">Manual</button>

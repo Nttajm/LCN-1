@@ -76,6 +76,19 @@ let hitBuckets = {}; // Track hit animation state per bucket index
 
 const ballColor = '#fbbf24';
 
+function setBetControlsLocked(locked) {
+  const betInput = document.getElementById('betAmount');
+  if (betInput) betInput.disabled = locked;
+
+  document.querySelectorAll('.bet-adj').forEach(btn => {
+    btn.disabled = locked;
+  });
+}
+
+function hasBallsInPlay() {
+  return balls.length > 0;
+}
+
 // Initialize board
 function initBoard() {
   Composite.clear(world);
@@ -248,12 +261,16 @@ async function dropBall() {
     return;
   }
   
-  // Check if user has keys
-  const currentKeys = window.CasinoAuth.getKeys();
-  if (currentKeys <= 0) {
-    alert('You need keys to play! Come back tomorrow for free keys.');
+  // Check if user has balls/keys using the quota system
+  const ballResult = await window.CasinoDB.usePlinkoBall();
+  if (!ballResult.success) {
+    alert(ballResult.error || 'You need keys to play! Come back tomorrow for free keys.');
     return;
   }
+  
+  // Update keys and balls display
+  updateKeysDisplay();
+  updateBallsDisplay();
   
   const currentBalance = window.CasinoAuth.getBalance();
   if (currentBalance < config.betAmount) {
@@ -291,6 +308,12 @@ async function dropBall() {
   Body.setVelocity(ball, { x: (Math.random() - 0.5) * 1, y: 2 });
   balls.push(ball);
   Composite.add(world, ball);
+
+  // Track pending balls in database (for refresh penalty)
+  await window.CasinoDB.setPendingPlinkoBalls(balls.length);
+
+  // Lock bet sizing controls while balls are moving
+  setBetControlsLocked(true);
   
   config.ballsDropped++;
   document.getElementById('ballsDropped').textContent = config.ballsDropped;
@@ -321,7 +344,9 @@ function checkBallLanding(ball) {
       
       // Record win in database if won anything
       if (winAmount > 0) {
-        window.CasinoDB.recordWin(winAmount);
+        window.CasinoDB.recordWin(winAmount)
+          .then(() => updateBalanceDisplay())
+          .catch(() => {});
       }
       
       config.sessionProfit += profit;
@@ -336,6 +361,8 @@ function checkBallLanding(ball) {
         document.getElementById('bestWin').textContent = '$' + config.bestWin.toFixed(2);
       }
 
+      // Balance already updated for the bet; update again here so losses display immediately.
+      // Wins update the balance once the async DB write completes (see recordWin above).
       updateBalanceDisplay();
       updateProfitDisplay();
       addResult(landedBucket.multiplier, profit);
@@ -348,6 +375,14 @@ function checkBallLanding(ball) {
 
     Composite.remove(world, ball);
     balls = balls.filter(b => b !== ball);
+
+    // Update pending balls count in database
+    window.CasinoDB.setPendingPlinkoBalls(balls.length);
+
+    // Re-enable bet sizing once all balls are cleared
+    if (!hasBallsInPlay()) {
+      setBetControlsLocked(false);
+    }
   }
 }
 
@@ -405,6 +440,22 @@ function updateBalanceDisplay() {
   document.getElementById('userBalance').textContent = '$' + balance.toFixed(2);
 }
 
+function updateKeysDisplay() {
+  const keys = window.CasinoAuth?.getKeys() ?? 0;
+  const keysEl = document.getElementById('userKeys');
+  if (keysEl) {
+    keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
+  }
+}
+
+function updateBallsDisplay() {
+  const balls = window.CasinoAuth?.getPlinkoBalls() ?? 45;
+  const ballsEl = document.getElementById('ballsRemaining');
+  if (ballsEl) {
+    ballsEl.textContent = balls;
+  }
+}
+
 function updateProfitDisplay() {
   const el = document.getElementById('sessionProfit');
   el.textContent = (config.sessionProfit >= 0 ? '+' : '') + '$' + config.sessionProfit.toFixed(2);
@@ -412,6 +463,7 @@ function updateProfitDisplay() {
 }
 
 function adjustBet(mult) {
+  if (hasBallsInPlay()) return;
   const input = document.getElementById('betAmount');
   config.betAmount = Math.max(1, Math.min(1000, Math.round(config.betAmount * mult)));
   input.value = config.betAmount;
@@ -421,6 +473,10 @@ function adjustBet(mult) {
 document.getElementById('dropBtn').addEventListener('click', dropBall);
 
 document.getElementById('betAmount').addEventListener('change', (e) => {
+  if (hasBallsInPlay()) {
+    e.target.value = config.betAmount;
+    return;
+  }
   config.betAmount = Math.max(1, Math.min(1000, parseFloat(e.target.value) || 10));
   e.target.value = config.betAmount;
 });
@@ -515,12 +571,37 @@ Events.on(render, 'afterRender', () => {
   
   setupAuthUI();
   
-  window.CasinoAuth.onAuthStateChange((user, userData) => {
+  window.CasinoAuth.onAuthStateChange(async (user, userData) => {
     config.isSignedIn = !!user;
     updateAuthUI(user);
+    
+    if (user) {
+      // Check for refresh penalty (balls in play when user refreshed)
+      const penaltyResult = await window.CasinoDB.checkRefreshPenalty();
+      if (penaltyResult.penalty > 0) {
+        showRefreshPenalty(penaltyResult.penalty, penaltyResult.ballsLost);
+      }
+    }
+    
     updateBalanceDisplay();
+    updateKeysDisplay();
+    updateBallsDisplay();
   });
 })();
+
+// Show refresh penalty notification
+function showRefreshPenalty(amount, ballsLost) {
+  const penaltyEl = document.getElementById('refreshPenaltyNotice');
+  if (penaltyEl) {
+    penaltyEl.textContent = `⚠️ Refresh penalty: -$${amount.toFixed(2)} (${ballsLost} ball${ballsLost > 1 ? 's' : ''} lost)`;
+    penaltyEl.style.display = 'block';
+    
+    // Hide after 5 seconds
+    setTimeout(() => {
+      penaltyEl.style.display = 'none';
+    }, 5000);
+  }
+}
 
 // Setup auth UI event handlers
 function setupAuthUI() {
