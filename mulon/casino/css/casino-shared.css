@@ -253,6 +253,7 @@ body {
   border-radius: 8px;
   padding: 12px 14px;
   opacity: 0.6;
+  pointer-events: none;
 }
 
 .profit-graph-float {
