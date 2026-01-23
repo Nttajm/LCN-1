@@ -132,7 +132,7 @@ export const CasinoAuth = {
   
   // Get keys
   getKeys() {
-    return this.userData?.keys ?? 15;
+    return this.userData?.keys ?? 30;
   },
   
   // Add auth state listener
@@ -233,7 +233,7 @@ export const CasinoDB = {
     
     try {
       const userId = CasinoAuth.currentUser.uid;
-      const currentKeys = CasinoAuth.userData.keys ?? 15;
+      const currentKeys = CasinoAuth.userData.keys ?? 30;
       const newKeys = Math.max(0, currentKeys - 1);
       
       await updateDoc(doc(db, 'mulon_users', userId), {

@@ -211,7 +211,7 @@ const UserData = {
       photoURL: userProfile.photoURL || null,
       // Trading data
       balance: 500.00,
-      keys: 15, // Keys currency - for casino, collectables, earned from predictions
+      keys: 30, // Keys currency - for casino, collectables, earned from predictions
       positions: [],
       watchlist: [],
       transactions: [],
@@ -234,9 +234,9 @@ const UserData = {
         this.data.displayName = userProfile.displayName || this.data.displayName;
         this.data.photoURL = userProfile.photoURL || this.data.photoURL;
         this.data.lastLoginAt = new Date().toISOString();
-        // Migrate existing users: add 15 keys if they don't have keys yet
+        // Migrate existing users: add 30 keys if they don't have keys yet
         if (this.data.keys === undefined) {
-          this.data.keys = 15;
+          this.data.keys = 30;
         }
         await this.save();
       } else {
