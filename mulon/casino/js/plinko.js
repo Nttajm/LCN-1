@@ -33,7 +33,7 @@ function waitForAuth() {
 // Stake percentages: Low 50%, Medium 30%, High 20%
 const multiplierTables = {
   low: {
-    16: [16, 9, 2, 1.4, 1.4, 1.2, 1.1, 1, 0.5, 1, 1.1, 1.2, 1.4, 1.4, 2, 9, 16],
+    16: [16, 9, 2, 1.4, 1.4, 1.2, 0.8, 0.3, 0.1, 0.3, 0.8, 1.2, 1.4, 1.4, 2, 9, 16],
     stake: 0.50 // 50% of stake
   },
   medium: {

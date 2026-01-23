@@ -32,6 +32,115 @@
   font-weight: 600;
 }
 
+/* Bet & Cashout Buttons */
+.bet-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bet-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #16a34a, #15803d);
+  transform: translateY(-1px);
+}
+
+.bet-btn:disabled {
+  background: #374151;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cashout-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cashout-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #d97706, #b45309);
+  transform: translateY(-1px);
+}
+
+.cashout-btn:disabled {
+  background: #374151;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Multiplier Display */
+.multiplier-display {
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.multiplier-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.multiplier-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #22c55e;
+}
+
+.potential-profit {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+
+.potential-profit span {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.potential-win {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+
+.potential-win span {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* Button Container - stacks bet/cashout */
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#cashoutBtn {
+  display: none;
+}
+
 /* 3 Gems Preview */
 .preview-box {
   background: linear-gradient(135deg, #1a1f26, #0f1419);
@@ -219,6 +328,13 @@
     border-right: none;
     border-bottom: 1px solid #2a3441;
     order: 2;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bet-group {
+    order: -1;
+    border-bottom: 1px solid #2a3441 !important;
   }
 
   .game-panel {
