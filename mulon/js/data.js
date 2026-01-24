@@ -1780,6 +1780,18 @@ const MulonData = {
     }
   },
 
+  async updateUserKeys(userId, newKeys) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        keys: newKeys
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user keys:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Add/subtract amount from user's balance (for admin)
   async adjustUserBalance(userId, amount) {
     try {
