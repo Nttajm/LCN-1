@@ -5,10 +5,16 @@
 import { MulonData, Auth } from './data.js';
 
 // Admin email whitelist
-const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org'];
+const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'captrojolmao@gmail.com'];
 
 function isAdmin(email) {
   return ADMIN_EMAILS.includes(email?.toLowerCase());
+}
+
+let access_allowed = false;
+function isAccessAllowed() {
+  checkAdminAccess(Auth.currentUser);
+  return access_allowed;
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -81,6 +87,8 @@ function checkAdminAccess(user) {
   const signInBtn = document.getElementById('adminSignInBtn');
   
   if (!overlay) return;
+
+  access_allowed = false;
   
   if (!user) {
     // Not signed in
@@ -95,6 +103,7 @@ function checkAdminAccess(user) {
   } else {
     // Admin access granted
     overlay.classList.remove('active');
+    access_allowed = true;
   }
 }
 
@@ -251,6 +260,8 @@ function setupForm() {
   // Form submit
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    if (!isAccessAllowed()) return;
     
     const formData = {
       title: document.getElementById('title').value.trim(),
@@ -319,6 +330,8 @@ function setupForm() {
 function editMarket(marketId) {
   const market = MulonData.getMarket(marketId);
   if (!market) return;
+
+  if (!isAccessAllowed()) return;
   
   isEditMode = true;
   editingMarketId = marketId;
@@ -541,6 +554,8 @@ function setupDeleteModal() {
   });
   
   confirmBtn.addEventListener('click', async function() {
+    if (!isAccessAllowed()) return;
+    
     if (deletingMarketId) {
       confirmBtn.disabled = true;
       confirmBtn.textContent = 'Deleting...';
@@ -580,6 +595,8 @@ function hideDeleteModal() {
 // ========================================
 function setupResetButton() {
   document.getElementById('resetBtn').addEventListener('click', async function() {
+    if (!isAccessAllowed()) return;
+    
     if (confirm('Reset all markets to defaults? This will delete all custom markets.')) {
       this.disabled = true;
       this.textContent = 'Resetting...';
@@ -607,6 +624,7 @@ function setupTransferButton() {
   if (!transferBtn) return;
   
   transferBtn.addEventListener('click', async function() {
+    if (!isAccessAllowed()) return;
     if (confirm('Transfer all markets from localStorage to Firebase? This will add any localStorage markets to Firebase.')) {
       this.disabled = true;
       this.textContent = 'Transferring...';
@@ -681,6 +699,7 @@ function hideResolveModal() {
 
 async function resolveMarket(outcome) {
   if (!resolvingMarketId) return;
+  if (!isAccessAllowed()) return;
   
   const market = MulonData.getMarket(resolvingMarketId);
   if (!market) return;
@@ -780,6 +799,7 @@ function renderCategoryList() {
   // Attach delete listeners
   categoryList.querySelectorAll('.delete-category').forEach(btn => {
     btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       const catId = this.dataset.id;
       if (confirm(`Delete category "${catId}"? Markets using this category won't be deleted but may display incorrectly.`)) {
         const result = await MulonData.deleteCategory(catId);
@@ -800,6 +820,7 @@ function setupCategoryForm() {
   if (!form) return;
   
   form.addEventListener('submit', async function(e) {
+    if (!isAccessAllowed()) return;
     e.preventDefault();
     
     const id = document.getElementById('catId').value.trim().toLowerCase().replace(/\s+/g, '-');
@@ -837,6 +858,7 @@ function setupManagementTabs() {
   
   tabs.forEach(tab => {
     tab.addEventListener('click', function() {
+      if (!isAccessAllowed()) return;
       const tabName = this.dataset.tab;
       
       // Update active tab
@@ -889,6 +911,7 @@ function setupUsersManagement() {
   // Quick set buttons
   document.querySelectorAll('[data-set-amount]').forEach(btn => {
     btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       const amount = parseFloat(this.dataset.setAmount);
       if (!confirm(`Set ALL users' balance to $${amount.toFixed(2)}? This cannot be undone.`)) {
         return;
@@ -916,6 +939,7 @@ function setupUsersManagement() {
   const resetAllPositionsBtn = document.getElementById('resetAllPositionsBtn');
   if (resetAllPositionsBtn) {
     resetAllPositionsBtn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       if (!confirm('⚠️ Are you SURE you want to reset ALL user positions? This will delete all shares/holdings for every user and CANNOT be undone!')) {
         return;
       }
@@ -1022,6 +1046,10 @@ function renderUsersList(users) {
         <span>$</span>
         <input type="number" class="user-balance-input" value="${user.balance.toFixed(2)}" step="0.01" data-original="${user.balance.toFixed(2)}">
       </div>
+      <div class="user-admin-keys">
+        <span>Keys: </span>
+        <input type="number" class="user-keys-input" value="${user.keys}" step="1" data-original="${user.keys}">
+      </div>
       <div class="user-admin-actions">
         <button class="btn-icon save-balance" data-user-id="${user.id}" title="Save Balance">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1053,23 +1081,31 @@ function renderUsersList(users) {
   // Attach save button listeners
   usersList.querySelectorAll('.save-balance').forEach(btn => {
     btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       const userId = this.dataset.userId;
       const item = this.closest('.user-admin-item');
-      const input = item.querySelector('.user-balance-input');
-      const newBalance = parseFloat(input.value);
+      const inputBalance = item.querySelector('.user-balance-input');
+      const inputKeys = item.querySelector('.user-keys-input');
+      const newBalance = parseFloat(inputBalance.value);
+      const newKeys = parseInt(inputKeys.value);
       
       if (isNaN(newBalance) || newBalance < 0) {
         showToast('Please enter a valid balance', 'error');
         return;
       }
-      
+      if (isNaN(newKeys) || newKeys < 0) {
+        showToast('Please enter a valid # of keys', 'error');
+        return;
+      }
+  
       this.disabled = true;
       const result = await MulonData.updateUserBalance(userId, newBalance);
+      const result2 = await MulonData.updateUserKeys(userId, newKeys);
       this.disabled = false;
       
       if (result.success) {
         showToast('Balance updated!', 'success');
-        input.dataset.original = newBalance.toFixed(2);
+        inputBalance.dataset.original = newBalance.toFixed(2);
         // Update local cache
         const userIndex = allUsers.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
@@ -1079,12 +1115,25 @@ function renderUsersList(users) {
       } else {
         showToast('Error updating balance', 'error');
       }
+      if (result2.success) {
+        showToast('Keys updated!', 'success');
+        inputKeys.dataset.original = newKeys;
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+          allUsers[userIndex].keys = newKeys;
+          updateUsersStats();
+        }
+      } else {
+        showToast('Error updating # of keys', 'error');
+      }
     });
   });
   
   // Attach reset positions button listeners
   usersList.querySelectorAll('.reset-positions').forEach(btn => {
     btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       if (this.disabled) return;
       
       const userId = this.dataset.userId;
@@ -1128,6 +1177,7 @@ function renderUsersList(users) {
 }
 
 async function applyBulkBalanceAction() {
+  if (!isAccessAllowed()) return;
   const operation = document.getElementById('bulkOperation').value;
   const amount = parseFloat(document.getElementById('bulkAmount').value);
   
@@ -1263,6 +1313,7 @@ function setupPositionsModalListeners() {
   
   // Reset all positions
   resetAllBtn.onclick = async () => {
+    if (!isAccessAllowed()) return;
     if (!currentPositionsUser) return;
     
     if (!confirm(`Reset ALL positions for ${currentPositionsUser.displayName}? This cannot be undone.`)) {
@@ -1289,6 +1340,7 @@ function setupPositionsModalListeners() {
   // Save individual position
   document.querySelectorAll('.save-position-btn').forEach(btn => {
     btn.onclick = async function() {
+      if (!isAccessAllowed()) return;
       const marketId = this.dataset.marketId;
       const item = this.closest('.position-edit-item');
       
@@ -1334,6 +1386,7 @@ function setupPositionsModalListeners() {
   // Delete individual position
   document.querySelectorAll('.delete-position-btn').forEach(btn => {
     btn.onclick = async function() {
+      if (!isAccessAllowed()) return;
       const marketId = this.dataset.marketId;
       const item = this.closest('.position-edit-item');
       const marketTitle = item.querySelector('.position-market-title').textContent;
@@ -1460,6 +1513,7 @@ function attachSuggestionListeners() {
   // Approve buttons
   document.querySelectorAll('.approve-suggestion').forEach(btn => {
     btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       const id = this.dataset.id;
       const result = await MulonData.updateSuggestionStatus(id, 'approved');
       if (result.success) {
@@ -1474,6 +1528,7 @@ function attachSuggestionListeners() {
   // Reject buttons
   document.querySelectorAll('.reject-suggestion').forEach(btn => {
     btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       const id = this.dataset.id;
       const result = await MulonData.updateSuggestionStatus(id, 'rejected');
       if (result.success) {
@@ -1488,6 +1543,7 @@ function attachSuggestionListeners() {
   // Delete buttons
   document.querySelectorAll('.delete-suggestion').forEach(btn => {
     btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
       const id = this.dataset.id;
       if (confirm('Delete this suggestion?')) {
         const result = await MulonData.deleteSuggestion(id);
