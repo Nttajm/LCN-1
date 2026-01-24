@@ -1348,7 +1348,7 @@ function setupModal() {
         }
         
         // Deduct from balance and add position
-        await UserData.updateBalance(-amount);
+        await UserData.setBalance(balance - amount);
         await UserData.addPosition(
           currentMarketId,
           market.title,

@@ -269,6 +269,25 @@ const UserData = {
   getBalance() {
     return this.get().balance;
   },
+
+  /**
+   * Set the user's balance.
+   * @param {number} amount The user's balance
+   * @returns {number} The user's balance
+   */
+  async setBalance(amount) {
+    if (!this.data) return 0;
+    this.data.balance = Math.round(amount * 100) / 100;
+    await this.save();
+    return this.data.balance;
+  },
+
+  async updateBalance(amount) {
+    if (!this.data) return 0;
+    this.data.balance = Math.round((this.data.balance + amount) * 100) / 100;
+    await this.save();
+    return this.data.balance;
+  },
   
   getKeys() {
     return this.get().keys || 0;
@@ -425,13 +444,6 @@ const UserData = {
   
   getDisplayName() {
     return this.get().displayName || 'Anonymous';
-  },
-
-  async updateBalance(amount) {
-    if (!this.data) return 0;
-    this.data.balance = Math.round((this.data.balance + amount) * 100) / 100;
-    await this.save();
-    return this.data.balance;
   },
   
   async addPosition(marketId, marketTitle, choice, shares, costBasis, price) {
