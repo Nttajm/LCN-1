@@ -30,7 +30,7 @@ const difficultySettings = {
 function waitForAuth() {
   return new Promise((resolve) => {
     const check = () => {
-      if (window.CasinoAuth) {
+      if (window.Auth) {
         resolve();
       } else {
         setTimeout(check, 50);
@@ -218,20 +218,20 @@ async function startGame() {
   }
   
   // Check if user has keys
-  const currentKeys = window.CasinoAuth.getKeys();
+  const currentKeys = window.CasinoData.getKeys();
   if (currentKeys <= 0) {
     alert('You need keys to play! Come back tomorrow for free keys.');
     return;
   }
   
-  const currentBalance = window.CasinoAuth.getBalance();
+  const currentBalance = window.UserData.getBalance();
   if (currentBalance < config.betAmount) {
     alert('Insufficient balance!');
     return;
   }
   
   // Place bet
-  const result = await window.CasinoDB.placeBet(config.betAmount, 'dragon-tower');
+  const result = await window.CasinoData.placeBet(config.betAmount, 'dragon-tower');
   if (!result.success) {
     alert(result.error || 'Failed to place bet');
     return;
@@ -265,7 +265,7 @@ async function cashout() {
   const profit = Math.round((winAmount - config.betAmount) * 100) / 100;
   
   // Record win in database
-  await window.CasinoDB.recordWin(winAmount);
+  await window.CasinoData.recordWin(winAmount);
   
   config.sessionProfit += profit;
   
@@ -330,7 +330,7 @@ async function gameOver(won, amount = 0) {
     }
     
     // Record loss - deducts 1 key
-    await window.CasinoDB.recordLoss('dragon-tower');
+    await window.CasinoData.recordLoss('dragon-tower');
     updateKeysDisplay();
     
     updateProfitDisplay();
@@ -360,12 +360,12 @@ function resetGame() {
 
 // Update displays
 function updateBalanceDisplay() {
-  const balance = window.CasinoAuth?.getBalance() ?? 0;
+  const balance = window.UserData?.getBalance() ?? 0;
   document.getElementById('userBalance').textContent = '$' + balance.toFixed(2);
 }
 
 function updateKeysDisplay() {
-  const keys = window.CasinoAuth?.getKeys() ?? 0;
+  const keys = window.CasinoData?.getKeys() ?? 0;
   const keysEl = document.getElementById('userKeys');
   if (keysEl) {
     keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
@@ -434,14 +434,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   await waitForAuth();
   
   // Initialize auth with maintenance check
-  const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
+  const hasAccess = await window.Auth.initWithMaintenanceCheck();
   if (!hasAccess) return; // Stop if redirecting to maintenance
   
   // Setup auth UI handlers
   setupAuthUI();
   
   // Listen for auth state changes
-  window.CasinoAuth.onAuthStateChange((user, userData) => {
+  window.Auth.onAuthStateChange((user) => {
     config.isSignedIn = !!user;
     updateAuthUI(user);
     updateBalanceDisplay();
@@ -461,13 +461,13 @@ function setupAuthUI() {
   
   if (signInBtn) {
     signInBtn.addEventListener('click', async () => {
-      await window.CasinoAuth.signIn();
+      await window.Auth.signIn();
     });
   }
   
   if (signOutBtn) {
     signOutBtn.addEventListener('click', async () => {
-      await window.CasinoAuth.signOut();
+      await window.Auth.signOut();
     });
   }
 }

@@ -31,186 +31,64 @@ const firebaseConfig = {
     measurementId: "G-Q30T39R8VY"
 };
 
+import { Auth, UserData } from '../../js/data.js';
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// ========================================
-// CASINO AUTH
-// ========================================
-export const CasinoAuth = {
-  currentUser: null,
-  userData: null,
-  authStateListeners: [],
-  
-  // Initialize auth with maintenance check
-  init() {
-    return new Promise((resolve) => {
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          this.currentUser = {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL
-          };
-          
-          // Load user data
-          await this.loadUserData(user.uid);
-          console.log('Casino: User signed in:', user.displayName);
-        } else {
-          this.currentUser = null;
-          this.userData = null;
-          console.log('Casino: No user signed in');
-        }
-        
-        // Notify listeners
-        this.authStateListeners.forEach(cb => cb(this.currentUser, this.userData));
-        resolve(this.currentUser);
-      });
-    });
-  },
-  
-  // Initialize with maintenance mode check
-  async initWithMaintenanceCheck() {
-    await this.init();
-    
-    if (MAINTENANCE_MODE) {
-      const hasAccess = await checkMaintenanceAccess({
-        getUser: () => this.currentUser,
-        redirectUrl: '../maintenance.html',
-        delay: 500 // Shorter delay since we already awaited init()
-      });
-      return hasAccess;
-    }
-    return true;
-  },
-  
-  // Get current user
-  getUser() {
-    return this.currentUser;
-  },
-  
-  // Load user data from Firestore
-  async loadUserData(userId) {
-    try {
-      const userDoc = await getDoc(doc(db, 'mulon_users', userId));
-      if (userDoc.exists()) {
-        this.userData = userDoc.data();
-      } else {
-        // Create new user with $500 balance
-        this.userData = {
-          balance: 500.00,
-          casinoStats: {
-            totalWagered: 0,
-            totalWon: 0,
-            gamesPlayed: 0
-          },
-          createdAt: new Date().toISOString()
-        };
-        await setDoc(doc(db, 'mulon_users', userId), this.userData);
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      this.userData = { balance: 500.00 };
-    }
-    return this.userData;
-  },
-  
-  // Sign in with Google
-  async signIn() {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      return { success: true, user: result.user };
-    } catch (error) {
-      console.error('Sign in error:', error);
-      return { success: false, error: error.message };
-    }
-  },
-  
-  // Sign out
-  async signOut() {
-    try {
-      await signOut(auth);
-      return { success: true };
-    } catch (error) {
-      console.error('Sign out error:', error);
-      return { success: false, error: error.message };
-    }
-  },
-  
-  // Check if signed in
-  isSignedIn() {
-    return this.currentUser !== null;
-  },
-  
-  // Get balance
-  getBalance() {
-    return this.userData?.balance ?? 500.00;
-  },
-  
-  // Get keys
-  getKeys() {
-    return this.userData?.keys ?? 40;
-  },
-  
-  // Get plinko balls remaining
-  getPlinkoBalls() {
-    return this.userData?.plinkoBalls ?? 45;
-  },
-  
-  // Add auth state listener
-  onAuthStateChange(callback) {
-    this.authStateListeners.push(callback);
-    // Immediately call if we have state
-    if (this.currentUser !== undefined) {
-      callback(this.currentUser, this.userData);
-    }
-  }
-};
 
 // ========================================
 // CASINO DATABASE
 // ========================================
-export const CasinoDB = {
+export const CasinoData = {
   // Update balance (positive = add, negative = subtract)
   async updateBalance(amount) {
-    if (!CasinoAuth.currentUser) {
+    if (!Auth.currentUser) {
       console.warn('Cannot update balance: Not signed in');
       return null;
     }
     
     try {
-      const userId = CasinoAuth.currentUser.uid;
-      const newBalance = Math.max(0, Math.round((CasinoAuth.userData.balance + amount) * 100) / 100);
+      const userId = Auth.currentUser.uid;
+      const newBalance = Math.max(0, Math.round((UserData.getBalance() + amount) * 100) / 100);
       
       await updateDoc(doc(db, 'mulon_users', userId), {
         balance: newBalance
       });
       
-      CasinoAuth.userData.balance = newBalance;
+      UserData.data.balance = newBalance;
       return newBalance;
     } catch (error) {
       console.error('Error updating balance:', error);
       return null;
     }
   },
+
+  getKeys() {
+    return UserData.data.keys ?? 40;
+  },
+  
+  // Get plinko balls remaining
+  getPlinkoBalls() {
+    return UserData.data.plinkoBalls ?? 45;
+  },
   
   // Place a bet
   async placeBet(amount, game) {
-    if (!CasinoAuth.currentUser) {
+    if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
     }
     
-    if (CasinoAuth.userData.balance < amount) {
+    if (UserData.data.balance < amount) {
       return { success: false, error: 'Insufficient balance!' };
     }
     
     try {
-      const userId = CasinoAuth.currentUser.uid;
-      const newBalance = Math.round((CasinoAuth.userData.balance - amount) * 100) / 100;
+      const userId = Auth.currentUser.uid;
+      const newBalance = Math.round((UserData.getBalance() - amount) * 100) / 100;
       
       await updateDoc(doc(db, 'mulon_users', userId), {
         balance: newBalance,
@@ -218,7 +96,7 @@ export const CasinoDB = {
         'casinoStats.gamesPlayed': increment(1)
       });
       
-      CasinoAuth.userData.balance = newBalance;
+      UserData.data.balance = newBalance;
       
       return { success: true, newBalance };
     } catch (error) {
@@ -229,20 +107,20 @@ export const CasinoDB = {
   
   // Record a win
   async recordWin(amount) {
-    if (!CasinoAuth.currentUser) {
+    if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
     }
     
     try {
-      const userId = CasinoAuth.currentUser.uid;
-      const newBalance = Math.round((CasinoAuth.userData.balance + amount) * 100) / 100;
+      const userId = Auth.currentUser.uid;
+      const newBalance = Math.round((UserData.getBalance() + amount) * 100) / 100;
       
       await updateDoc(doc(db, 'mulon_users', userId), {
         balance: newBalance,
         'casinoStats.totalWon': increment(amount)
       });
       
-      CasinoAuth.userData.balance = newBalance;
+      UserData.data.balance = newBalance;
       
       return { success: true, newBalance };
     } catch (error) {
@@ -253,20 +131,20 @@ export const CasinoDB = {
   
   // Record a loss (deducts 1 key)
   async recordLoss(game) {
-    if (!CasinoAuth.currentUser) {
+    if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
     }
     
     try {
-      const userId = CasinoAuth.currentUser.uid;
-      const currentKeys = CasinoAuth.userData.keys ?? 30;
+      const userId = Auth.currentUser.uid;
+      const currentKeys = UserData.data.keys ?? 30;
       const newKeys = Math.max(0, currentKeys - 1);
       
       await updateDoc(doc(db, 'mulon_users', userId), {
         keys: newKeys
       });
       
-      CasinoAuth.userData.keys = newKeys;
+      UserData.data.keys = newKeys;
       
       return { success: true, newKeys };
     } catch (error) {
@@ -277,14 +155,14 @@ export const CasinoDB = {
   
   // Use a plinko ball (deducts 1 ball, or 1 key if out of balls)
   async usePlinkoBall() {
-    if (!CasinoAuth.currentUser) {
+    if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
     }
     
     try {
-      const userId = CasinoAuth.currentUser.uid;
-      let currentBalls = CasinoAuth.userData.plinkoBalls ?? 45;
-      let currentKeys = CasinoAuth.userData.keys ?? 30;
+      const userId = Auth.currentUser.uid;
+      let currentBalls = UserData.data.plinkoBalls ?? 45;
+      let currentKeys = UserData.data.keys ?? 30;
       
       // If no balls left, use a key to get 45 more balls
       if (currentBalls <= 0) {
@@ -304,8 +182,8 @@ export const CasinoDB = {
         keys: currentKeys
       });
       
-      CasinoAuth.userData.plinkoBalls = newBalls;
-      CasinoAuth.userData.keys = currentKeys;
+      UserData.data.plinkoBalls = newBalls;
+      UserData.data.keys = currentKeys;
       
       return { success: true, ballsLeft: newBalls, keysLeft: currentKeys };
     } catch (error) {
@@ -316,14 +194,14 @@ export const CasinoDB = {
   
   // Get current balance (synced from DB)
   async refreshBalance() {
-    if (!CasinoAuth.currentUser) return null;
+    if (!Auth.currentUser) return null;
     
     try {
-      const userDoc = await getDoc(doc(db, 'mulon_users', CasinoAuth.currentUser.uid));
+      const userDoc = await getDoc(doc(db, 'mulon_users', Auth.currentUser.uid));
       if (userDoc.exists()) {
-        CasinoAuth.userData.balance = userDoc.data().balance;
-        CasinoAuth.userData.plinkoBalls = userDoc.data().plinkoBalls ?? 45;
-        return CasinoAuth.userData.balance;
+        UserData.data.balance = userDoc.data().balance;
+        UserData.data.plinkoBalls = userDoc.data().plinkoBalls ?? 45;
+        return UserData.data.balance;
       }
     } catch (error) {
       console.error('Error refreshing balance:', error);
@@ -333,14 +211,14 @@ export const CasinoDB = {
   
   // Track pending plinko balls (for refresh penalty)
   async setPendingPlinkoBalls(count) {
-    if (!CasinoAuth.currentUser) return;
+    if (!Auth.currentUser) return;
     
     try {
-      const userId = CasinoAuth.currentUser.uid;
+      const userId = Auth.currentUser.uid;
       await updateDoc(doc(db, 'mulon_users', userId), {
         pendingPlinkoBalls: count
       });
-      CasinoAuth.userData.pendingPlinkoBalls = count;
+      UserData.data.pendingPlinkoBalls = count;
     } catch (error) {
       console.error('Error setting pending balls:', error);
     }
@@ -348,15 +226,15 @@ export const CasinoDB = {
   
   // Get pending plinko balls count
   getPendingPlinkoBalls() {
-    return CasinoAuth.userData?.pendingPlinkoBalls ?? 0;
+    return UserData.data?.pendingPlinkoBalls ?? 0;
   },
   
   // Check and apply refresh penalty (called on page load)
   async checkRefreshPenalty() {
-    if (!CasinoAuth.currentUser) return { penalty: 0 };
+    if (!Auth.currentUser) return { penalty: 0 };
     
     try {
-      const userId = CasinoAuth.currentUser.uid;
+      const userId = Auth.currentUser.uid;
       const userDoc = await getDoc(doc(db, 'mulon_users', userId));
       
       if (userDoc.exists()) {
@@ -375,8 +253,8 @@ export const CasinoDB = {
             pendingPlinkoBalls: 0
           });
           
-          CasinoAuth.userData.balance = newBalance;
-          CasinoAuth.userData.pendingPlinkoBalls = 0;
+          UserData.data.balance = newBalance;
+          UserData.data.pendingPlinkoBalls = 0;
           
           return { penalty: penaltyAmount, ballsLost: pendingBalls };
         }
@@ -390,5 +268,4 @@ export const CasinoDB = {
 };
 
 // Make available globally for non-module scripts
-window.CasinoAuth = CasinoAuth;
-window.CasinoDB = CasinoDB;
+window.CasinoData = CasinoData;

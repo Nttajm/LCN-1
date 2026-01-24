@@ -36,6 +36,7 @@ const firebaseConfig = {
     appId: "1:690530120785:web:36dc297cb517ac76cb7470",
     measurementId: "G-Q30T39R8VY"
 };
+import { checkMaintenanceAccess, MAINTENANCE_MODE } from './maintenance.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -138,6 +139,20 @@ const Auth = {
       // Notify all listeners
       this.authStateListeners.forEach(listener => listener(this.currentUser));
     });
+  },
+
+  async initWithMaintenanceCheck() {
+    this.init();
+    
+    if (MAINTENANCE_MODE) {
+      const hasAccess = await checkMaintenanceAccess({
+        getUser: () => this.currentUser,
+        redirectUrl: '../maintenance.html',
+        delay: 500 // Shorter delay since we already awaited init()
+      });
+      return hasAccess;
+    }
+    return true;
   },
   
   // Sign in with Google
@@ -2163,6 +2178,7 @@ const MulonData = {
 
 // Make MulonData globally available
 window.MulonData = MulonData;
+window.Auth = Auth;
 
 // Export for ES modules
 export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef, suggestionsRef, positionsRef, tradesRef };

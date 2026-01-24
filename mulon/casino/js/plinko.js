@@ -19,7 +19,7 @@ const config = {
 function waitForAuth() {
   return new Promise((resolve) => {
     const check = () => {
-      if (window.CasinoAuth) {
+      if (window.Auth) {
         resolve();
       } else {
         setTimeout(check, 50);
@@ -262,7 +262,7 @@ async function dropBall() {
   }
   
   // Check if user has balls/keys using the quota system
-  const ballResult = await window.CasinoDB.usePlinkoBall();
+  const ballResult = await CasinoData.usePlinkoBall();
   if (!ballResult.success) {
     alert(ballResult.error || 'You need keys to play! Come back tomorrow for free keys.');
     return;
@@ -272,14 +272,14 @@ async function dropBall() {
   updateKeysDisplay();
   updateBallsDisplay();
   
-  const currentBalance = window.CasinoAuth.getBalance();
+  const currentBalance = UserData.getBalance();
   if (currentBalance < config.betAmount) {
     alert('Insufficient balance!');
     return;
   }
 
   // Place bet
-  const result = await window.CasinoDB.placeBet(config.betAmount, 'plinko');
+  const result = await CasinoData.placeBet(config.betAmount, 'plinko');
   if (!result.success) {
     alert(result.error || 'Failed to place bet');
     return;
@@ -310,7 +310,7 @@ async function dropBall() {
   Composite.add(world, ball);
 
   // Track pending balls in database (for refresh penalty)
-  await window.CasinoDB.setPendingPlinkoBalls(balls.length);
+  await CasinoData.setPendingPlinkoBalls(balls.length);
 
   // Lock bet sizing controls while balls are moving
   setBetControlsLocked(true);
@@ -344,7 +344,7 @@ function checkBallLanding(ball) {
       
       // Record win in database if won anything
       if (winAmount > 0) {
-        window.CasinoDB.recordWin(winAmount)
+        CasinoData.recordWin(winAmount)
           .then(() => updateBalanceDisplay())
           .catch(() => {});
       }
@@ -377,7 +377,7 @@ function checkBallLanding(ball) {
     balls = balls.filter(b => b !== ball);
 
     // Update pending balls count in database
-    window.CasinoDB.setPendingPlinkoBalls(balls.length);
+    CasinoData.setPendingPlinkoBalls(balls.length);
 
     // Re-enable bet sizing once all balls are cleared
     if (!hasBallsInPlay()) {
@@ -436,12 +436,12 @@ function getMultTextColor(mult) {
 }
 
 function updateBalanceDisplay() {
-  const balance = window.CasinoAuth?.getBalance() ?? 0;
+  const balance = UserData.getBalance();
   document.getElementById('userBalance').textContent = '$' + balance.toFixed(2);
 }
 
 function updateKeysDisplay() {
-  const keys = window.CasinoAuth?.getKeys() ?? 0;
+  const keys = window.CasinoData?.getKeys() ?? 0;
   const keysEl = document.getElementById('userKeys');
   if (keysEl) {
     keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
@@ -449,7 +449,7 @@ function updateKeysDisplay() {
 }
 
 function updateBallsDisplay() {
-  const balls = window.CasinoAuth?.getPlinkoBalls() ?? 45;
+  const balls = window.CasinoData?.getPlinkoBalls() ?? 45;
   const ballsEl = document.getElementById('ballsRemaining');
   if (ballsEl) {
     ballsEl.textContent = balls;
@@ -530,7 +530,7 @@ function startAuto() {
   
   autoConfig.dropsRemaining = autoConfig.totalDrops;
   autoConfig.autoProfit = 0;
-  autoConfig.startingBalance = window.CasinoAuth.getBalance();
+  autoConfig.startingBalance = UserData.getBalance();
   autoConfig.isRunning = true;
   
   // Update UI
@@ -579,7 +579,7 @@ async function autoDropBall() {
   }
   
   // Check stop conditions
-  const currentBalance = window.CasinoAuth.getBalance();
+  const currentBalance = UserData.getBalance();
   const profitSinceStart = currentBalance - autoConfig.startingBalance;
   
   if (autoConfig.stopOnProfit > 0 && profitSinceStart >= autoConfig.stopOnProfit) {
@@ -602,7 +602,7 @@ async function autoDropBall() {
   }
   
   // Drop the ball (similar to dropBall but without some checks)
-  const ballResult = await window.CasinoDB.usePlinkoBall();
+  const ballResult = await CasinoData.usePlinkoBall();
   if (!ballResult.success) {
     stopAuto();
     alert('Auto stopped: No more balls/keys available!');
@@ -612,7 +612,7 @@ async function autoDropBall() {
   updateKeysDisplay();
   updateBallsDisplay();
   
-  const result = await window.CasinoDB.placeBet(config.betAmount, 'plinko');
+  const result = await CasinoData.placeBet(config.betAmount, 'plinko');
   if (!result.success) {
     stopAuto();
     alert('Auto stopped: Failed to place bet');
@@ -642,7 +642,7 @@ async function autoDropBall() {
   balls.push(ball);
   Composite.add(world, ball);
   
-  await window.CasinoDB.setPendingPlinkoBalls(balls.length);
+  await CasinoData.setPendingPlinkoBalls(balls.length);
   
   config.ballsDropped++;
   document.getElementById('ballsDropped').textContent = config.ballsDropped;
@@ -664,7 +664,7 @@ function updateAutoDisplay() {
   }
   
   if (autoProfitEl) {
-    const currentBalance = window.CasinoAuth?.getBalance() || 0;
+    const currentBalance = UserData.getBalance();
     const profit = currentBalance - autoConfig.startingBalance;
     autoProfitEl.textContent = (profit >= 0 ? '+' : '') + '$' + profit.toFixed(2);
     autoProfitEl.className = 'stat-value ' + (profit >= 0 ? 'profit' : 'loss');
@@ -786,20 +786,16 @@ Events.on(render, 'afterRender', () => {
 // Auth initialization
 (async function initAuth() {
   await waitForAuth();
-  
-  // Initialize auth with maintenance check
-  const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
-  if (!hasAccess) return; // Stop if redirecting to maintenance
-  
+  await Auth.init();
   setupAuthUI();
   
-  window.CasinoAuth.onAuthStateChange(async (user, userData) => {
+  window.Auth.onAuthStateChange(async (user) => {
     config.isSignedIn = !!user;
     updateAuthUI(user);
     
     if (user) {
       // Check for refresh penalty (balls in play when user refreshed)
-      const penaltyResult = await window.CasinoDB.checkRefreshPenalty();
+      const penaltyResult = await CasinoData.checkRefreshPenalty();
       if (penaltyResult.penalty > 0) {
         showRefreshPenalty(penaltyResult.penalty, penaltyResult.ballsLost);
       }
@@ -832,13 +828,13 @@ function setupAuthUI() {
   
   if (signInBtn) {
     signInBtn.addEventListener('click', async () => {
-      await window.CasinoAuth.signIn();
+      await window.Auth.signIn();
     });
   }
   
   if (signOutBtn) {
     signOutBtn.addEventListener('click', async () => {
-      await window.CasinoAuth.signOut();
+      await window.Auth.signOut();
     });
   }
 }
