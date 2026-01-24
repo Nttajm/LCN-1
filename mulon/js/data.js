@@ -58,7 +58,11 @@ const ouUsersRef = collection(db, 'users'); // Over Under users collection
 // OVER UNDER ACCOUNT SYNC
 // ========================================
 const OverUnderSync = {
-  // Check if user has an Over Under account by email
+  /**
+   * Check if the user has an OverUnder account.
+   * @param {string} email 
+   * @returns {*} {found, uid, username, name, email}
+   */
   async checkForOverUnderAccount(email) {
     if (!email) return null;
     
@@ -84,7 +88,12 @@ const OverUnderSync = {
     }
   },
   
-  // Sync username from Over Under to Mulon
+  /**
+   * Sync the user's name with their OverUnder username.
+   * @param {string} mulonUserId 
+   * @param {string} overUnderUsername 
+   * @returns {object} {success, error}
+   */
   async syncUsername(mulonUserId, overUnderUsername) {
     try {
       await updateDoc(doc(usersRef, mulonUserId), {
@@ -109,7 +118,9 @@ const Auth = {
   currentUser: null,
   authStateListeners: [],
   
-  // Initialize auth state listener
+  /**
+   * Initialize the Auth state listener and load the user's data.
+   */
   init() {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -141,6 +152,10 @@ const Auth = {
     });
   },
 
+  /**
+   * Call Auth.init() and, if the website is in maintenance mode, check if the user is allowed to view the page.
+   * @returns {boolean} Whether the user has access or not
+   */
   async initWithMaintenanceCheck() {
     this.init();
     
@@ -155,7 +170,9 @@ const Auth = {
     return true;
   },
   
-  // Sign in with Google
+  /**
+   * Sign in with Google
+   */
   async signInWithGoogle() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -166,7 +183,9 @@ const Auth = {
     }
   },
   
-  // Sign out
+  /**
+   * Sign the user out.
+   */
   async signOut() {
     try {
       await signOut(auth);
@@ -178,17 +197,26 @@ const Auth = {
     }
   },
   
-  // Check if user is signed in
+  /**
+   * Check if the user is signed in.
+   * @returns {boolean} Whether the user is signed it
+   */
   isSignedIn() {
     return this.currentUser !== null && !this.currentUser.isGuest;
   },
   
-  // Get current user
+  /**
+   * Get the current user.
+   * @returns {object} The user
+   */
   getUser() {
     return this.currentUser;
   },
   
-  // Add auth state change listener
+  /**
+   * Add auth state change listener
+   * @param {listener} listener The listener
+   */
   onAuthStateChange(listener) {
     this.authStateListeners.push(listener);
     // Immediately call with current state
@@ -197,7 +225,9 @@ const Auth = {
     }
   },
   
-  // Continue as guest (for browsing only)
+  /**
+   * Set guest mode, allowing user to continue as a guest.
+   */
   setGuestMode() {
     this.currentUser = {
       uid: 'guest_' + Date.now(),
@@ -218,6 +248,11 @@ const UserData = {
   data: null,
   userId: null,
   
+  /**
+   * Get the default user data.
+   * @param {object} userProfile The profile of the user (optional)
+   * @returns {object} The default user data
+   */
   getDefault(userProfile = {}) {
     return {
       // User profile info
@@ -237,7 +272,12 @@ const UserData = {
     };
   },
   
-  // Load user data from Firebase
+  /**
+   * Loads the user's data from Firebase, creating new user data if necessary.
+   * @param {string} userId The ID of the user
+   * @param {object} userProfile The profile data of the user (email, displayName, etc.)
+   * @returns {object} The user's data, or the default user data if it could not be loaded
+   */
   async loadFromFirebase(userId, userProfile = {}) {
     this.userId = userId;
     try {
@@ -267,7 +307,9 @@ const UserData = {
     return this.data;
   },
   
-  // Save user data to Firebase
+  /**
+   * Save the user's data.
+   */
   async save() {
     if (!this.userId || !this.data) return;
     try {
@@ -277,10 +319,18 @@ const UserData = {
     }
   },
   
+  /**
+   * Get the user's data, or the default user data if it could not be gotten
+   * @returns {object} User's data
+   */
   get() {
     return this.data || this.getDefault();
   },
   
+  /**
+   * Get the user's balance.
+   * @returns {number} The user's balance
+   */
   getBalance() {
     return this.get().balance;
   },
@@ -297,6 +347,11 @@ const UserData = {
     return this.data.balance;
   },
 
+  /**
+   * Add to the user's balance.
+   * @param {number} amount The amount to add
+   * @returns {number} The user's balance
+   */
   async updateBalance(amount) {
     if (!this.data) return 0;
     this.data.balance = Math.round((this.data.balance + amount) * 100) / 100;
@@ -304,10 +359,19 @@ const UserData = {
     return this.data.balance;
   },
   
+  /**
+   * Get the user's number of keys.
+   * @returns {number} The number of keys
+   */
   getKeys() {
     return this.get().keys || 0;
   },
   
+  /**
+   * Add to the user's number of keys.
+   * @param {number} amount The amount to add
+   * @returns 
+   */
   async updateKeys(amount) {
     if (!this.data) return 0;
     this.data.keys = Math.max(0, (this.data.keys || 0) + amount);
@@ -321,21 +385,37 @@ const UserData = {
   BASE_KEY_REWARD: 4,
   BASE_BALANCE_REWARD: 150,
   
+  /**
+   * Get the user's daily streak multiplier.
+   * @param {number} streak 
+   * @returns 
+   */
   getStreakMultiplier(streak) {
     const idx = Math.min(streak - 1, this.STREAK_MULTIPLIERS.length - 1);
     if (idx < 0) return this.STREAK_MULTIPLIERS[0];
     return this.STREAK_MULTIPLIERS[idx];
   },
   
-  // Daily key claim functions
+  /**
+   * Get the date user's last daily key claim.
+   * @returns {string} The date of the last claim, stored in a string; or null, if the user has never claimed their daily key
+   */
   getLastDailyKeyClaim() {
     return this.get().lastDailyKeyClaim || null;
   },
   
+  /**
+   * Get the user's daily streak.
+   * @returns {number} The user's daily streak
+   */
   getDailyStreak() {
     return this.get().dailyStreak || 0;
   },
   
+  /**
+   * Check if the user may claim their daily key.
+   * @returns {boolean} Whether the user can claim their daily key or not
+   */
   canClaimDailyKey() {
     const lastClaim = this.getLastDailyKeyClaim();
     if (!lastClaim) return true;
@@ -347,7 +427,10 @@ const UserData = {
     return hoursPassed >= 24;
   },
   
-  // Check if streak is still valid (within 48 hours of last claim)
+  /**
+   * Check if the user's streak is valid or not (last valid claim was within past 48 hours).
+   * @returns {boolean} Whether the streak is valid or not
+   */
   isStreakValid() {
     const lastClaim = this.getLastDailyKeyClaim();
     if (!lastClaim) return false;
@@ -360,6 +443,10 @@ const UserData = {
     return hoursPassed < 48;
   },
   
+  /**
+   * Get the time until the user may make their next daily claim.
+   * @returns {number} The time until the next claim (ms)
+   */
   getTimeUntilNextClaim() {
     const lastClaim = this.getLastDailyKeyClaim();
     if (!lastClaim) return 0;
@@ -371,7 +458,9 @@ const UserData = {
     return Math.max(0, nextClaimTime - now);
   },
   
-  // Get current streak reward info (for UI display)
+  /**
+   * Get current streak reward info (for UI display).
+   */
   getStreakRewardInfo() {
     let currentStreak = this.getDailyStreak();
     
@@ -395,6 +484,9 @@ const UserData = {
     };
   },
   
+  /**
+   * Claim the user's daily key.
+   */
   async claimDailyKey() {
     if (!this.data) return { success: false, error: 'Not signed in' };
     if (!this.canClaimDailyKey()) return { success: false, error: 'Already claimed today' };
@@ -434,7 +526,11 @@ const UserData = {
     }
   },
   
-  // Update user profile (displayName, avatarStyle)
+  /**
+   * Update the user's profile.
+   * @param {string} displayName The user's displayed name
+   * @param {string} avatarStyle The user's avatar style
+   */
   async updateProfile(displayName, avatarStyle) {
     if (!this.data) return { success: false, error: 'Not signed in' };
     
@@ -453,14 +549,32 @@ const UserData = {
     }
   },
   
+  /**
+   * Get the user's avatar style.
+   * @returns {string} The user's avatar style
+   */
   getAvatarStyle() {
     return this.get().avatarStyle || 'default';
   },
   
+  /**
+   * Get the user's display name.
+   * @returns {string} The user's display name
+   */
   getDisplayName() {
     return this.get().displayName || 'Anonymous';
   },
   
+  /**
+   * Add a position.
+   * @param {string} marketId The market ID
+   * @param {string} marketTitle The market title
+   * @param {string} choice The user's choice (yes or no)
+   * @param {number} shares The number of shares
+   * @param {number} costBasis The cost basis
+   * @param {number} price The price
+   * @returns 
+   */
   async addPosition(marketId, marketTitle, choice, shares, costBasis, price) {
     if (!this.data) return [];
     
@@ -528,11 +642,21 @@ const UserData = {
     return this.data.positions;
   },
   
+  /**
+   * Get the user's positions.
+   * @returns {object[]} An array of positions
+   */
   getPositions() {
     return this.get().positions || [];
   },
   
-  // Reduce or remove a position when selling
+  /**
+   * Sell part or all of a position
+   * @param {string} marketId The market ID
+   * @param {string} choice The user's choice (yes/no)
+   * @param {number} sharesToSell The number of shares being sold
+   * @param {number} saleAmount The sale amount
+   */
   async sellPosition(marketId, choice, sharesToSell, saleAmount) {
     if (!this.data) return null;
     

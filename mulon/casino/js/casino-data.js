@@ -11,14 +11,6 @@ import {
     updateDoc,
     increment
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import {
-    getAuth,
-    signInWithPopup,
-    signOut,
-    GoogleAuthProvider,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { checkMaintenanceAccess, MAINTENANCE_MODE } from '../../js/maintenance.js';
 
 // Firebase configuration (same as main Mulon app)
 const firebaseConfig = {
@@ -36,47 +28,34 @@ import { Auth, UserData } from '../../js/data.js';
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
 
 // ========================================
 // CASINO DATABASE
 // ========================================
 export const CasinoData = {
-  // Update balance (positive = add, negative = subtract)
-  async updateBalance(amount) {
-    if (!Auth.currentUser) {
-      console.warn('Cannot update balance: Not signed in');
-      return null;
-    }
-    
-    try {
-      const userId = Auth.currentUser.uid;
-      const newBalance = Math.max(0, Math.round((UserData.getBalance() + amount) * 100) / 100);
-      
-      await updateDoc(doc(db, 'mulon_users', userId), {
-        balance: newBalance
-      });
-      
-      UserData.data.balance = newBalance;
-      return newBalance;
-    } catch (error) {
-      console.error('Error updating balance:', error);
-      return null;
-    }
-  },
-
+  /**
+   * Get the number of keys a user has.
+   * @returns {number} The number of keys
+   */
   getKeys() {
     return UserData.data.keys ?? 40;
   },
   
-  // Get plinko balls remaining
+  /**
+   * Get the number of Plinko balls a user has.
+   * @returns {number} The number of Plinko balls
+   */
   getPlinkoBalls() {
     return UserData.data.plinkoBalls ?? 45;
   },
   
-  // Place a bet
+  /**
+   * Place a bet.
+   * @param {number} amount The amount to bet
+   * @param {*} game The game to bet on (unused)
+   * @returns {*} {success, error}
+   */
   async placeBet(amount, game) {
     if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
@@ -96,7 +75,7 @@ export const CasinoData = {
         'casinoStats.gamesPlayed': increment(1)
       });
       
-      UserData.data.balance = newBalance;
+      UserData.setBalance(newBalance);
       
       return { success: true, newBalance };
     } catch (error) {
@@ -105,7 +84,11 @@ export const CasinoData = {
     }
   },
   
-  // Record a win
+  /**
+   * Record a win.
+   * @param {number} amount The amount won
+   * @returns {*} {success, error}
+   */
   async recordWin(amount) {
     if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
@@ -120,7 +103,7 @@ export const CasinoData = {
         'casinoStats.totalWon': increment(amount)
       });
       
-      UserData.data.balance = newBalance;
+      UserData.setBalance(newBalance);
       
       return { success: true, newBalance };
     } catch (error) {
@@ -129,7 +112,11 @@ export const CasinoData = {
     }
   },
   
-  // Record a loss (deducts 1 key)
+  /**
+   * Record a loss.
+   * @param {*} game The game lost (unused)
+   * @returns {*} {success, error}
+   */
   async recordLoss(game) {
     if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
@@ -153,7 +140,11 @@ export const CasinoData = {
     }
   },
   
-  // Use a plinko ball (deducts 1 ball, or 1 key if out of balls)
+  /**
+   * Use a Plinko ball. If the user doesn't have a Plinko ball, one key will be turned into some Plinko balls.
+   * Returns unsuccessful if the user has no more keys.
+   * @returns {*} {success, error}
+   */
   async usePlinkoBall() {
     if (!Auth.currentUser) {
       return { success: false, error: 'Not signed in' };
@@ -192,7 +183,10 @@ export const CasinoData = {
     }
   },
   
-  // Get current balance (synced from DB)
+  /**
+   * Refresh the user's balance and Plinko balls.
+   * @returns {number} The user's balance, or null if it could not be refreshed
+   */
   async refreshBalance() {
     if (!Auth.currentUser) return null;
     
@@ -209,7 +203,12 @@ export const CasinoData = {
     return null;
   },
   
-  // Track pending plinko balls (for refresh penalty)
+  /**
+   * Set the number of pending Plinko balls (Plinko balls actively falling through the pegs).
+   * Used for applying a penalty if the user tries to refresh the page to avoid a bad outcome.
+   * @param {number} count The number of pending Plinko balls
+   * @returns 
+   */
   async setPendingPlinkoBalls(count) {
     if (!Auth.currentUser) return;
     
@@ -224,12 +223,19 @@ export const CasinoData = {
     }
   },
   
-  // Get pending plinko balls count
+  /**
+   * Get the number of pending Plinko balls (Plinko balls actively falling through the pegs).
+   * @returns {number} The number of pending Plinko balls
+   */
   getPendingPlinkoBalls() {
     return UserData.data?.pendingPlinkoBalls ?? 0;
   },
   
-  // Check and apply refresh penalty (called on page load)
+  /**
+   * Checks if the user refreshed the page while Plinko balls were falling through the pegs.
+   * Applies a penalty if so.
+   * @returns {*} {penalty, ballsLost}
+   */
   async checkRefreshPenalty() {
     if (!Auth.currentUser) return { penalty: 0 };
     
@@ -253,7 +259,7 @@ export const CasinoData = {
             pendingPlinkoBalls: 0
           });
           
-          UserData.data.balance = newBalance;
+          UserData.setBalance(newBalance);
           UserData.data.pendingPlinkoBalls = 0;
           
           return { penalty: penaltyAmount, ballsLost: pendingBalls };
