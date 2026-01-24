@@ -389,8 +389,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Wait for auth module to load
   await waitForAuth();
   
-  // Initialize auth
-  await window.CasinoAuth.init();
+  // Initialize auth with maintenance check
+  const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
+  if (!hasAccess) return; // Stop if redirecting to maintenance
   
   // Setup auth UI handlers
   setupAuthUI();

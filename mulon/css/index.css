@@ -2654,3 +2654,91 @@ body.sidebar-open {
     height: 16px;
   }
 }
+
+/* ========================================
+   BETA NOTICE MODAL
+   ======================================== */
+.beta-modal {
+  max-width: 420px;
+  padding: 0;
+}
+
+.beta-modal-content {
+  padding: 2rem;
+  text-align: center;
+}
+
+.beta-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.beta-modal h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.beta-info {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.beta-info > p {
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.beta-point {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.75rem;
+}
+
+.beta-point:last-of-type {
+  margin-bottom: 0;
+}
+
+.beta-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.beta-point strong {
+  display: block;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.beta-point p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.beta-thanks {
+  color: var(--text-secondary);
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.beta-dismiss-btn {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+}

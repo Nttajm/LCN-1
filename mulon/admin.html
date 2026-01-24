@@ -234,6 +234,29 @@
             </div>
           </div>
           
+          <!-- Bulk Keys Actions -->
+          <div class="bulk-actions-section">
+            <h4>🔑 Bulk Keys Actions</h4>
+            <div class="bulk-actions-row">
+              <select id="bulkKeysOperation">
+                <option value="add">Add to all</option>
+                <option value="subtract">Subtract from all</option>
+                <option value="set">Set all to</option>
+              </select>
+              <input type="number" id="bulkKeysAmount" placeholder="Amount" step="1" min="0">
+              <button class="btn btn-primary btn-sm" id="applyBulkKeysBtn">Apply to All</button>
+            </div>
+            
+            <div class="bulk-quick-actions">
+              <span class="quick-label">Quick Add:</span>
+              <button class="btn btn-sm btn-outline" data-set-keys="5">+5 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="10">+10 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="25">+25 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="50">+50 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="100">+100 Keys</button>
+            </div>
+          </div>
+          
           <!-- Bulk Positions Actions -->
           <div class="bulk-actions-section danger-section">
             <h4>🗑️ Reset Positions</h4>
@@ -268,6 +291,10 @@
             <span class="stat-item">
               <span class="stat-label">Total Balance:</span>
               <span class="stat-value" id="totalBalanceSum">$0.00</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Keys:</span>
+              <span class="stat-value" id="totalKeysSum">0</span>
             </span>
             <span class="stat-item">
               <span class="stat-label">Total Positions:</span>

@@ -1780,6 +1780,55 @@ const MulonData = {
     }
   },
 
+  // Update a user's keys (for admin)
+  async updateUserKeys(userId, newKeys) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        keys: Math.max(0, Math.round(newKeys))
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user keys:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Bulk update all users' keys (for admin)
+  async bulkUpdateKeys(amount, operation = 'add') {
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      let updatedCount = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        const currentKeys = userData.keys || 0;
+        
+        let newKeys;
+        if (operation === 'set') {
+          newKeys = amount;
+        } else if (operation === 'add') {
+          newKeys = currentKeys + amount;
+        } else if (operation === 'subtract') {
+          newKeys = Math.max(0, currentKeys - amount);
+        } else if (operation === 'multiply') {
+          newKeys = currentKeys * amount;
+        }
+        
+        newKeys = Math.max(0, Math.round(newKeys));
+        
+        await updateDoc(doc(usersRef, userDoc.id), {
+          keys: newKeys
+        });
+        updatedCount++;
+      }
+      
+      return { success: true, updatedCount };
+    } catch (error) {
+      console.error('Error bulk updating keys:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Add/subtract amount from user's balance (for admin)
   async adjustUserBalance(userId, amount) {
     try {

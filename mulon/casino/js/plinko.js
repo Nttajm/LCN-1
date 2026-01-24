@@ -786,7 +786,10 @@ Events.on(render, 'afterRender', () => {
 // Auth initialization
 (async function initAuth() {
   await waitForAuth();
-  await window.CasinoAuth.init();
+  
+  // Initialize auth with maintenance check
+  const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
+  if (!hasAccess) return; // Stop if redirecting to maintenance
   
   setupAuthUI();
   

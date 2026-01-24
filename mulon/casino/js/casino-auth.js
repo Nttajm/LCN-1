@@ -18,6 +18,7 @@ import {
     GoogleAuthProvider,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { checkMaintenanceAccess, MAINTENANCE_MODE } from '../../js/maintenance.js';
 
 // Firebase configuration (same as main Mulon app)
 const firebaseConfig = {
@@ -44,7 +45,7 @@ export const CasinoAuth = {
   userData: null,
   authStateListeners: [],
   
-  // Initialize auth
+  // Initialize auth with maintenance check
   init() {
     return new Promise((resolve) => {
       onAuthStateChanged(auth, async (user) => {
@@ -70,6 +71,26 @@ export const CasinoAuth = {
         resolve(this.currentUser);
       });
     });
+  },
+  
+  // Initialize with maintenance mode check
+  async initWithMaintenanceCheck() {
+    await this.init();
+    
+    if (MAINTENANCE_MODE) {
+      const hasAccess = await checkMaintenanceAccess({
+        getUser: () => this.currentUser,
+        redirectUrl: '../maintenance.html',
+        delay: 500 // Shorter delay since we already awaited init()
+      });
+      return hasAccess;
+    }
+    return true;
+  },
+  
+  // Get current user
+  getUser() {
+    return this.currentUser;
   },
   
   // Load user data from Firestore

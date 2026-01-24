@@ -3,27 +3,14 @@
 // ========================================
 
 import { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync } from './data.js';
-import { checkMaintenanceAccess, MAINTENANCE_MODE } from './maintenance.js';
 
 localStorage.setItem('lol', 'nice try, but i learnt from last time.');
-
 // Track pending Over Under sync data
 let pendingOUSyncData = null;
-
-
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize Firebase Auth
   Auth.init();
-  
-  // Check maintenance mode - wait for auth to load before deciding
-  if (MAINTENANCE_MODE) {
-    const hasAccess = await checkMaintenanceAccess({
-      getUser: () => Auth.getUser(),
-      redirectUrl: 'maintenance.html'
-    });
-    if (!hasAccess) return; // Stop execution if redirecting
-  }
   
   // Check if onboarding is needed
   if (!OnboardingState.hasCompletedOnboarding()) {

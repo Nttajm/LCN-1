@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collectible Cards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a0f;
+            font-family: 'Rajdhani', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(120, 0, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 0, 100, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 200, 255, 0.08) 0%, transparent 60%);
+            animation: bgPulse 8s ease-in-out infinite;
+            z-index: -2;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, #a855f7, #3b82f6, #10b981);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGradient 5s ease infinite;
+            text-shadow: 0 0 40px rgba(168, 85, 247, 0.5);
+            letter-spacing: 4px;
+        }
+
+        @keyframes titleGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 1.1rem;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+        }
+
+        /* Filter buttons */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(168, 85, 247, 0.3);
+            border-color: #a855f7;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 50px;
+            max-width: 1400px;
+        }
+
+        .card-wrapper {
+            perspective: 1500px;
+        }
+
+        .card {
+            width: 300px;
+            height: 420px;
+            border-radius: 25px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Card flip functionality */
+        .card.flipped {
+            transform: rotateY(180deg) !important;
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-back-pattern {
+            position: absolute;
+            inset: 0;
+            background: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 20px);
+        }
+
+        .card-back-logo {
+            font-size: 60px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .card-back-text {
+            font-family: 'Orbitron', sans-serif;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 25px;
+            background: linear-gradient(
+                var(--shine-angle, 125deg),
+                transparent 0%,
+                rgba(255, 255, 255, 0.05) 35%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0.05) 65%,
+                transparent 100%
+            );
+            background-size: 250% 250%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Enhanced holographic effect */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 25px;
+            background: 
+                linear-gradient(
+                    var(--holo-angle, 115deg),
+                    transparent 0%,
+                    rgba(255, 0, 0, 0.15) 20%,
+                    rgba(255, 127, 0, 0.15) 30%,
+                    rgba(255, 255, 0, 0.15) 40%,
+                    rgba(0, 255, 0, 0.15) 50%,
+                    rgba(0, 127, 255, 0.15) 60%,
+                    rgba(75, 0, 130, 0.15) 70%,
+                    rgba(143, 0, 255, 0.15) 80%,
+                    transparent 100%
+                );
+            background-size: 400% 400%;
+            opacity: 0;
+            mix-blend-mode: color-dodge;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .card:hover::after {
+            opacity: 1;
+            animation: holoRainbow 4s linear infinite;
+        }
+
+        @keyframes holoRainbow {
+            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 58%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-image::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: inherit;
+            filter: blur(30px);
+            transform: scale(1.2);
+            opacity: 0.5;
+        }
+
+        .card-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(transparent, rgba(26, 26, 46, 1));
+        }
+
+        .card-emoji {
+            font-size: 100px;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+            animation: emojiFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes emojiFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.05); }
+        }
+
+        /* Actual product images */
+        .card-product-image {
+            width: 80%;
+            max-width: 200px;
+            height: auto;
+            object-fit: contain;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 15px 40px rgba(0, 0, 0, 0.6));
+            animation: imageFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes imageFloat {
+            0%, 100% { transform: translateY(0) scale(1) rotate(-2deg); }
+            50% { transform: translateY(-12px) scale(1.03) rotate(2deg); }
+        }
+
+        .card-image.has-product-image {
+            background-size: cover !important;
+            background-position: center !important;
+        }
+
+        .card-image.has-product-image::before {
+            opacity: 0.3;
+        }
+
+        .card-content {
+            padding: 18px 22px;
+            color: white;
+            position: relative;
+        }
+
+        .card-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 15px currentColor;
+            letter-spacing: 1px;
+        }
+
+        .card-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.6;
+            margin-bottom: 12px;
+        }
+
+        .card-description {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+
+        .rarity-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 1;
+            font-family: 'Orbitron', sans-serif;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Card number */
+        .card-number {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            letter-spacing: 2px;
+        }
+
+        /* Element badge */
+        .element-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        /* NEW RARITY: Mythic */
+        .mythic {
+            background: linear-gradient(135deg, #ff0080, #7928ca, #00d4ff);
+            border-color: #ff0080;
+        }
+        .mythic .card-inner {
+            border-color: rgba(255, 0, 128, 0.5);
+        }
+        .mythic .card-name { color: #ff0080; }
+        .mythic .rarity-badge {
+            background: linear-gradient(135deg, #ff0080, #7928ca);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(255, 0, 128, 0.6);
+            animation: mythicPulse 2s ease-in-out infinite;
+        }
+        @keyframes mythicPulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(255, 0, 128, 0.6); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 128, 0.9), 0 0 60px rgba(121, 40, 202, 0.5); }
+        }
+
+        /* Card Rarities - Enhanced */
+        .legendary {
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ffcc00);
+            border-color: #ffcc00;
+        }
+        .legendary .card-inner {
+            border-color: rgba(255, 204, 0, 0.4);
+        }
+        .legendary .card-name { color: #ffcc00; }
+        .legendary .rarity-badge {
+            background: linear-gradient(135deg, #ffcc00, #ff6b35);
+            color: #000;
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.6);
+        }
+
+        .epic {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7, #c084fc);
+            border-color: #a855f7;
+        }
+        .epic .card-inner {
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        .epic .card-name { color: #c084fc; }
+        .epic .rarity-badge {
+            background: linear-gradient(135deg, #a855f7, #8b5cf6);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+        }
+
+        .rare {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa, #93c5fd);
+            border-color: #60a5fa;
+        }
+        .rare .card-inner {
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+        .rare .card-name { color: #93c5fd; }
+        .rare .rarity-badge {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(96, 165, 250, 0.5);
+        }
+
+        .uncommon {
+            background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
+            border-color: #34d399;
+        }
+        .uncommon .card-inner {
+            border-color: rgba(52, 211, 153, 0.4);
+        }
+        .uncommon .card-name { color: #6ee7b7; }
+        .uncommon .rarity-badge {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: #000;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+        }
+
+        .common {
+            background: linear-gradient(135deg, #6b7280, #9ca3af, #d1d5db);
+            border-color: #9ca3af;
+        }
+        .common .card-inner {
+            border-color: rgba(156, 163, 175, 0.3);
+        }
+        .common .card-name { color: #d1d5db; }
+        .common .rarity-badge {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            color: #fff;
+        }
+
+        /* Special sparkle effects */
+        .mythic .card-inner::before,
+        .legendary .card-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.9) 1px, transparent 1px),
+                radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+                radial-gradient(circle at 35% 75%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+                radial-gradient(circle at 75% 65%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+                radial-gradient(circle at 5% 85%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+                radial-gradient(circle at 95% 95%, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+                radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
+            animation: sparkle 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        /* Glow effects on hover - Enhanced */
+        .card-wrapper:hover .mythic {
+            box-shadow: 
+                0 30px 60px rgba(255, 0, 128, 0.4),
+                0 0 100px rgba(121, 40, 202, 0.3),
+                0 0 150px rgba(0, 212, 255, 0.2),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .legendary {
+            box-shadow: 
+                0 30px 60px rgba(255, 107, 53, 0.4),
+                0 0 100px rgba(255, 204, 0, 0.3),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .epic {
+            box-shadow: 
+                0 30px 60px rgba(139, 92, 246, 0.4),
+                0 0 100px rgba(168, 85, 247, 0.3),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .rare {
+            box-shadow: 
+                0 30px 60px rgba(59, 130, 246, 0.4),
+                0 0 100px rgba(96, 165, 250, 0.3),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .uncommon {
+            box-shadow: 
+                0 30px 60px rgba(16, 185, 129, 0.3),
+                0 0 80px rgba(52, 211, 153, 0.2),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Element backgrounds - Enhanced with animation */
+        .fire-bg { 
+            background: linear-gradient(135deg, #ff4500 0%, #ff6b35 30%, #ff8c00 60%, #ffa500 100%);
+        }
+        .fire-bg::before {
+            background: linear-gradient(135deg, #ff4500 0%, #ff6b35 50%, #ff8c00 100%) !important;
+        }
+
+        .water-bg { 
+            background: linear-gradient(135deg, #0066cc 0%, #00aaff 30%, #66ccff 60%, #99ddff 100%);
+        }
+
+        .earth-bg { 
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 30%, #cd853f 60%, #deb887 100%);
+        }
+
+        .air-bg { 
+            background: linear-gradient(135deg, #87ceeb 0%, #b0e0e6 30%, #e0ffff 60%, #f0ffff 100%);
+        }
+
+        .lightning-bg { 
+            background: linear-gradient(135deg, #ffd700 0%, #ffec8b 30%, #fff8dc 60%, #fffacd 100%);
+        }
+
+        .shadow-bg { 
+            background: linear-gradient(135deg, #1a0a2e 0%, #2f1f4c 30%, #4a2c7a 60%, #6b3fa0 100%);
+        }
+
+        .ice-bg {
+            background: linear-gradient(135deg, #a5f3fc 0%, #67e8f9 30%, #22d3ee 60%, #06b6d4 100%);
+        }
+
+        .nature-bg {
+            background: linear-gradient(135deg, #166534 0%, #22c55e 30%, #4ade80 60%, #86efac 100%);
+        }
+
+        .cosmic-bg {
+            background: linear-gradient(135deg, #0c0a1d 0%, #1e1b4b 30%, #4338ca 60%, #6366f1 100%);
+        }
+
+        .void-bg {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #2d2d2d 60%, #404040 100%);
+        }
+
+        /* Animated backgrounds for special cards */
+        .mythic .card-image {
+            animation: mythicBg 5s ease-in-out infinite;
+        }
+
+        @keyframes mythicBg {
+            0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+            50% { filter: hue-rotate(30deg) brightness(1.1); }
+        }
+
+        /* Resell meter - replaces power bars */
+        .resell-meter {
+            position: absolute;
+            bottom: 12px;
+            left: 20px;
+            right: 60px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resell-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            white-space: nowrap;
+        }
+
+        .resell-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .resell-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .resell-percent {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #22c55e;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        /* Linked stock indicator */
+        .card-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .link-icon {
+            font-size: 0.8rem;
+        }
+
+        .link-text {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            letter-spacing: 0.5px;
+        }
+
+        .link-text strong {
+            color: #60a5fa;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                width: 260px;
+                height: 360px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+
+            .card-emoji {
+                font-size: 70px;
+            }
+
+            .filter-bar {
+                gap: 8px;
+            }
+
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Card entrance animation */
+        .card-wrapper {
+            opacity: 0;
+            animation: cardEnter 0.6s ease forwards;
+        }
+
+        .card-wrapper:nth-child(1) { animation-delay: 0.1s; }
+        .card-wrapper:nth-child(2) { animation-delay: 0.2s; }
+        .card-wrapper:nth-child(3) { animation-delay: 0.3s; }
+        .card-wrapper:nth-child(4) { animation-delay: 0.4s; }
+        .card-wrapper:nth-child(5) { animation-delay: 0.5s; }
+        .card-wrapper:nth-child(6) { animation-delay: 0.6s; }
+        .card-wrapper:nth-child(7) { animation-delay: 0.7s; }
+        .card-wrapper:nth-child(8) { animation-delay: 0.8s; }
+        .card-wrapper:nth-child(9) { animation-delay: 0.9s; }
+        .card-wrapper:nth-child(10) { animation-delay: 1.0s; }
+
+        @keyframes cardEnter {
+            0% { 
+                opacity: 0; 
+                transform: translateY(50px) rotateX(20deg);
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        /* Stats tooltip on hover */
+        .card:hover .card-description {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 0.7; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating particles background -->
+    <div class="particles" id="particles"></div>
+
+    <h1>💰 TRADE CARDS 💰</h1>
+    <p class="subtitle">Click cards to flip • Hover for 3D effect</p>
+
+    <!-- Filter buttons -->
+    <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All Cards</button>
+        <button class="filter-btn" data-filter="mythic">Mythic</button>
+        <button class="filter-btn" data-filter="legendary">Legendary</button>
+        <button class="filter-btn" data-filter="epic">Epic</button>
+        <button class="filter-btn" data-filter="rare">Rare</button>
+        <button class="filter-btn" data-filter="uncommon">Uncommon</button>
+        <button class="filter-btn" data-filter="common">Common</button>
+    </div>
+    
+    <div class="cards-container">
+        <!-- MYTHIC Card - Tesla Model S Plaid -->
+        <div class="card-wrapper" data-rarity="mythic">
+            <div class="card mythic" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">🔋</span>
+                        <span class="rarity-badge">Mythic</span>
+                        <div class="card-image has-product-image" style="background: linear-gradient(135deg, #1a1a2e 0%, #c0392b 30%, #e74c3c 60%, #ff6b6b 100%);">
+                            <img src="teslaplaid.png" alt="Tesla Model S Plaid" class="card-product-image">
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">Tesla Model S Plaid</div>
+                            <div class="card-type">Electric Vehicle • Luxury</div>
+                            <div class="card-description">The fastest production car. 0-60 in 1.99 seconds.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$89,990</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+12%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>TSLA Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 95%;"></div>
+                            </div>
+                            <span class="resell-percent">95%</span>
+                        </div>
+                        <span class="card-number">#001</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legendary Card - iPhone 16 Pro Max -->
+        <div class="card-wrapper" data-rarity="legendary">
+            <div class="card legendary" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">📱</span>
+                        <span class="rarity-badge">Legendary</span>
+                        <div class="card-image has-product-image" style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 30%, #9b59b6 60%, #e91e63 100%);">
+                            <!-- Add iphone.png to card folder -->
+                            <img src="iphone.png" alt="iPhone 16 Pro Max" class="card-product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <span class="card-emoji" style="display:none;">📱</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">iPhone 16 Pro Max</div>
+                            <div class="card-type">Smartphone • Premium</div>
+                            <div class="card-description">Apple's flagship with A18 Pro chip & titanium design.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$1,199</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+8%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>AAPL Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 85%;"></div>
+                            </div>
+                            <span class="resell-percent">85%</span>
+                        </div>
+                        <span class="card-number">#002</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legendary Card - Xbox Series X -->
+        <div class="card-wrapper" data-rarity="legendary">
+            <div class="card legendary" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">🎮</span>
+                        <span class="rarity-badge">Legendary</span>
+                        <div class="card-image has-product-image" style="background: linear-gradient(135deg, #0e7a0d 0%, #107c10 30%, #1db954 60%, #5ed85a 100%);">
+                            <!-- Add xbox.png to card folder -->
+                            <img src="xbox.png" alt="Xbox Series X" class="card-product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <span class="card-emoji" style="display:none;">🎮</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">Xbox Series X</div>
+                            <div class="card-type">Gaming Console • Next-Gen</div>
+                            <div class="card-description">Most powerful Xbox ever. 12 teraflops of gaming power.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$499</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+5%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>MSFT Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 75%;"></div>
+                            </div>
+                            <span class="resell-percent">75%</span>
+                        </div>
+                        <span class="card-number">#003</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Epic Card - PlayStation 5 -->
+        <div class="card-wrapper" data-rarity="epic">
+            <div class="card epic" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">🕹️</span>
+                        <span class="rarity-badge">Epic</span>
+                        <div class="card-image has-product-image" style="background: linear-gradient(135deg, #00439c 0%, #0070d1 30%, #00a2ff 60%, #ffffff 100%);">
+                            <!-- Add ps5.png to card folder -->
+                            <img src="ps5.png" alt="PlayStation 5" class="card-product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <span class="card-emoji" style="display:none;">🎮</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">PlayStation 5</div>
+                            <div class="card-type">Gaming Console • Next-Gen</div>
+                            <div class="card-description">Sony's flagship with DualSense haptic feedback.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$499</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+3%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>SONY Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 72%;"></div>
+                            </div>
+                            <span class="resell-percent">72%</span>
+                        </div>
+                        <span class="card-number">#004</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Epic Card - MacBook Pro M3 -->
+        <div class="card-wrapper" data-rarity="epic">
+            <div class="card epic" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">💻</span>
+                        <span class="rarity-badge">Epic</span>
+                        <div class="card-image has-product-image" style="background: linear-gradient(135deg, #1d1d1f 0%, #3a3a3c 30%, #636366 60%, #8e8e93 100%);">
+                            <!-- Add macbook.png to card folder -->
+                            <img src="macbook.png" alt="MacBook Pro" class="card-product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <span class="card-emoji" style="display:none;">💻</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">MacBook Pro M3 Max</div>
+                            <div class="card-type">Laptop • Pro Workstation</div>
+                            <div class="card-description">Apple silicon beast with 16" Liquid Retina XDR.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$3,499</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+6%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>AAPL Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 80%;"></div>
+                            </div>
+                            <span class="resell-percent">80%</span>
+                        </div>
+                        <span class="card-number">#005</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Epic Card - NVIDIA RTX 4090 -->
+        <div class="card-wrapper" data-rarity="epic">
+            <div class="card epic" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">🖥️</span>
+                        <span class="rarity-badge">Epic</span>
+                        <div class="card-image has-product-image" style="background: linear-gradient(135deg, #1a1a1a 0%, #76b900 30%, #8bc34a 60%, #cddc39 100%);">
+                            <!-- Add rtx4090.png to card folder -->
+                            <img src="rtx4090.png" alt="NVIDIA RTX 4090" class="card-product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <span class="card-emoji" style="display:none;">🎴</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">NVIDIA RTX 4090</div>
+                            <div class="card-type">Graphics Card • Flagship</div>
+                            <div class="card-description">Ultimate GPU with 24GB GDDR6X & DLSS 3.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$1,599</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+15%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>NVDA Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 92%;"></div>
+                            </div>
+                            <span class="resell-percent">92%</span>
+                        </div>
+                        <span class="card-number">#006</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rare Card - Nintendo Switch OLED -->
+        <div class="card-wrapper" data-rarity="rare">
+            <div class="card rare" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">🕹️</span>
+                        <span class="rarity-badge">Rare</span>
+                        <div class="card-image" style="background: linear-gradient(135deg, #e60012 0%, #ff4757 30%, #ff6b81 60%, #ffa502 100%);">
+                            <span class="card-emoji">🎲</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">Nintendo Switch OLED</div>
+                            <div class="card-type">Handheld Console • Hybrid</div>
+                            <div class="card-description">Vibrant 7" OLED screen for gaming anywhere.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$349</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+2%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>NTDOY Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 68%;"></div>
+                            </div>
+                            <span class="resell-percent">68%</span>
+                        </div>
+                        <span class="card-number">#007</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rare Card - Apple Watch Ultra 2 -->
+        <div class="card-wrapper" data-rarity="rare">
+            <div class="card rare" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">⌚</span>
+                        <span class="rarity-badge">Rare</span>
+                        <div class="card-image" style="background: linear-gradient(135deg, #1a1a1a 0%, #ff9500 30%, #ffcc00 60%, #ffeaa7 100%);">
+                            <span class="card-emoji">⌚</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">Apple Watch Ultra 2</div>
+                            <div class="card-type">Smartwatch • Adventure</div>
+                            <div class="card-description">Titanium build with 36hr battery & dive certified.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$799</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+4%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>AAPL Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 70%;"></div>
+                            </div>
+                            <span class="resell-percent">70%</span>
+                        </div>
+                        <span class="card-number">#008</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Uncommon Card - AirPods Pro 2 -->
+        <div class="card-wrapper" data-rarity="uncommon">
+            <div class="card uncommon" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">🎧</span>
+                        <span class="rarity-badge">Uncommon</span>
+                        <div class="card-image" style="background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 30%, #d2d2d7 60%, #86868b 100%);">
+                            <span class="card-emoji">🎧</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">AirPods Pro 2</div>
+                            <div class="card-type">Earbuds • Wireless</div>
+                            <div class="card-description">Active noise cancellation with spatial audio.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$249</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📈</span>
+                                    <span class="stat-value">+1%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>AAPL Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 55%;"></div>
+                            </div>
+                            <span class="resell-percent">55%</span>
+                        </div>
+                        <span class="card-number">#009</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Common Card - Amazon Echo Dot -->
+        <div class="card-wrapper" data-rarity="common">
+            <div class="card common" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                <div class="card-front">
+                    <div class="card-inner">
+                        <span class="element-badge">🔊</span>
+                        <span class="rarity-badge">Common</span>
+                        <div class="card-image" style="background: linear-gradient(135deg, #232f3e 0%, #37475a 30%, #485769 60%, #146eb4 100%);">
+                            <span class="card-emoji">🔈</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-name">Amazon Echo Dot</div>
+                            <div class="card-type">Smart Speaker • Voice AI</div>
+                            <div class="card-description">Alexa-powered smart speaker for your home.</div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">💵</span>
+                                    <span class="stat-value">$49</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">📉</span>
+                                    <span class="stat-value">-5%</span>
+                                </div>
+                            </div>
+                            <div class="card-link">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text">Linked to: <strong>AMZN Stock</strong></span>
+                            </div>
+                        </div>
+                        <div class="resell-meter">
+                            <span class="resell-label">Resell Value</span>
+                            <div class="resell-bar">
+                                <div class="resell-fill" style="width: 35%;"></div>
+                            </div>
+                            <span class="resell-percent">35%</span>
+                        </div>
+                        <span class="card-number">#010</span>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-pattern"></div>
+                    <span class="card-back-logo">💳</span>
+                    <span class="card-back-text">Trade Cards</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const colors = ['#a855f7', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.width = (Math.random() * 4 + 2) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.boxShadow = `0 0 ${Math.random() * 10 + 5}px currentColor`;
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // 3D tilt effect
+        function handleMouseMove(e, card) {
+            if (card.classList.contains('flipped')) return;
+            
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = (y - centerY) / 8;
+            const rotateY = (centerX - x) / 8;
+            
+            // Dynamic shine angle based on mouse position
+            const angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+            card.style.setProperty('--shine-angle', angle + 90 + 'deg');
+            card.style.setProperty('--holo-angle', angle + 'deg');
+            
+            card.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+        }
+        
+        function handleMouseLeave(card) {
+            if (card.classList.contains('flipped')) {
+                card.style.transform = 'rotateY(180deg)';
+            } else {
+                card.style.transform = 'perspective(1500px) rotateX(0) rotateY(0) scale(1)';
+            }
+        }
+
+        // Card flip function
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+            if (card.classList.contains('flipped')) {
+                card.style.transform = 'rotateY(180deg)';
+            } else {
+                card.style.transform = 'perspective(1500px) rotateX(0) rotateY(0) scale(1)';
+            }
+        }
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                document.querySelectorAll('.card-wrapper').forEach(wrapper => {
+                    if (filter === 'all' || wrapper.dataset.rarity === filter) {
+                        wrapper.style.display = 'block';
+                        wrapper.style.animation = 'cardEnter 0.5s ease forwards';
+                    } else {
+                        wrapper.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Touch support for mobile
+        document.querySelectorAll('.card').forEach(card => {
+            let lastTouch = null;
+            
+            card.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                handleMouseMove({ clientX: touch.clientX, clientY: touch.clientY }, card);
+                lastTouch = touch;
+            });
+            
+            card.addEventListener('touchend', () => {
+                handleMouseLeave(card);
+            });
+        });
+    </script>
+</body>
+</html>

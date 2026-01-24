@@ -912,6 +912,38 @@ function setupUsersManagement() {
     });
   });
   
+  // Bulk keys action button
+  const bulkKeysBtn = document.getElementById('applyBulkKeysBtn');
+  if (bulkKeysBtn) {
+    bulkKeysBtn.addEventListener('click', applyBulkKeysAction);
+  }
+  
+  // Quick add keys buttons
+  document.querySelectorAll('[data-set-keys]').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const amount = parseInt(this.dataset.setKeys);
+      if (!confirm(`Add ${amount} keys to ALL users? This cannot be undone.`)) {
+        return;
+      }
+      
+      this.disabled = true;
+      const originalText = this.textContent;
+      this.textContent = '...';
+      
+      const result = await MulonData.bulkUpdateKeys(amount, 'add');
+      
+      this.disabled = false;
+      this.textContent = originalText;
+      
+      if (result.success) {
+        showToast(`Added ${amount} keys to ${result.updatedCount} users!`, 'success');
+        await loadAllUsers();
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    });
+  });
+  
   // Reset all positions button
   const resetAllPositionsBtn = document.getElementById('resetAllPositionsBtn');
   if (resetAllPositionsBtn) {
@@ -959,6 +991,7 @@ function updateUsersStats() {
   const totalCount = document.getElementById('totalUsersCount');
   const totalBalance = document.getElementById('totalBalanceSum');
   const totalPositions = document.getElementById('totalPositionsCount');
+  const totalKeys = document.getElementById('totalKeysSum');
   
   if (totalCount) {
     totalCount.textContent = allUsers.length;
@@ -972,6 +1005,11 @@ function updateUsersStats() {
   if (totalPositions) {
     const posSum = allUsers.reduce((acc, user) => acc + (user.positions?.length || 0), 0);
     totalPositions.textContent = posSum;
+  }
+  
+  if (totalKeys) {
+    const keysSum = allUsers.reduce((acc, user) => acc + (user.keys || 0), 0);
+    totalKeys.textContent = keysSum;
   }
 }
 
@@ -1022,8 +1060,12 @@ function renderUsersList(users) {
         <span>$</span>
         <input type="number" class="user-balance-input" value="${user.balance.toFixed(2)}" step="0.01" data-original="${user.balance.toFixed(2)}">
       </div>
+      <div class="user-admin-keys">
+        <span>🔑</span>
+        <input type="number" class="user-keys-input" value="${user.keys || 0}" step="1" min="0" data-original="${user.keys || 0}">
+      </div>
       <div class="user-admin-actions">
-        <button class="btn-icon save-balance" data-user-id="${user.id}" title="Save Balance">
+        <button class="btn-icon save-user" data-user-id="${user.id}" title="Save Balance & Keys">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
@@ -1050,34 +1092,50 @@ function renderUsersList(users) {
     });
   });
   
-  // Attach save button listeners
-  usersList.querySelectorAll('.save-balance').forEach(btn => {
+  // Attach save button listeners (saves both balance and keys)
+  usersList.querySelectorAll('.save-user').forEach(btn => {
     btn.addEventListener('click', async function() {
       const userId = this.dataset.userId;
       const item = this.closest('.user-admin-item');
-      const input = item.querySelector('.user-balance-input');
-      const newBalance = parseFloat(input.value);
+      const balanceInput = item.querySelector('.user-balance-input');
+      const keysInput = item.querySelector('.user-keys-input');
+      const newBalance = parseFloat(balanceInput.value);
+      const newKeys = parseInt(keysInput.value);
       
       if (isNaN(newBalance) || newBalance < 0) {
         showToast('Please enter a valid balance', 'error');
         return;
       }
       
+      if (isNaN(newKeys) || newKeys < 0) {
+        showToast('Please enter a valid keys amount', 'error');
+        return;
+      }
+      
       this.disabled = true;
-      const result = await MulonData.updateUserBalance(userId, newBalance);
+      
+      // Update balance
+      const balanceResult = await MulonData.updateUserBalance(userId, newBalance);
+      // Update keys
+      const keysResult = await MulonData.updateUserKeys(userId, newKeys);
+      
       this.disabled = false;
       
-      if (result.success) {
-        showToast('Balance updated!', 'success');
-        input.dataset.original = newBalance.toFixed(2);
+      if (balanceResult.success && keysResult.success) {
+        showToast('Balance & Keys updated!', 'success');
+        balanceInput.dataset.original = newBalance.toFixed(2);
+        keysInput.dataset.original = newKeys;
+        balanceInput.style.borderColor = '';
+        keysInput.style.borderColor = '';
         // Update local cache
         const userIndex = allUsers.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
           allUsers[userIndex].balance = newBalance;
+          allUsers[userIndex].keys = newKeys;
           updateUsersStats();
         }
       } else {
-        showToast('Error updating balance', 'error');
+        showToast('Error updating user', 'error');
       }
     });
   });
@@ -1125,6 +1183,14 @@ function renderUsersList(users) {
       this.style.borderColor = current !== original ? 'var(--green-primary)' : '';
     });
   });
+  
+  usersList.querySelectorAll('.user-keys-input').forEach(input => {
+    input.addEventListener('input', function() {
+      const original = parseInt(this.dataset.original);
+      const current = parseInt(this.value);
+      this.style.borderColor = current !== original ? 'var(--yellow-primary, #f59e0b)' : '';
+    });
+  });
 }
 
 async function applyBulkBalanceAction() {
@@ -1162,6 +1228,43 @@ async function applyBulkBalanceAction() {
     await loadAllUsers();
   } else {
     showToast('Error updating balances: ' + result.error, 'error');
+  }
+}
+
+async function applyBulkKeysAction() {
+  const operation = document.getElementById('bulkKeysOperation').value;
+  const amount = parseInt(document.getElementById('bulkKeysAmount').value);
+  
+  if (isNaN(amount) || amount < 0) {
+    showToast('Please enter a valid keys amount', 'error');
+    return;
+  }
+  
+  const operationLabels = {
+    add: `add ${amount} keys to`,
+    subtract: `subtract ${amount} keys from`,
+    set: `set to ${amount} keys for`
+  };
+  
+  if (!confirm(`Are you sure you want to ${operationLabels[operation]} ALL ${allUsers.length} users? This cannot be undone.`)) {
+    return;
+  }
+  
+  const btn = document.getElementById('applyBulkKeysBtn');
+  btn.disabled = true;
+  btn.textContent = 'Applying...';
+  
+  const result = await MulonData.bulkUpdateKeys(amount, operation);
+  
+  btn.disabled = false;
+  btn.textContent = 'Apply to All';
+  
+  if (result.success) {
+    showToast(`Updated keys for ${result.updatedCount} users!`, 'success');
+    document.getElementById('bulkKeysAmount').value = '';
+    await loadAllUsers();
+  } else {
+    showToast('Error updating keys: ' + result.error, 'error');
   }
 }
 

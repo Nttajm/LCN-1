@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mulon - Under Maintenance</title>
+  <link rel="stylesheet" href="../css/standard.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0a1f0a 0%, #0d2818 25%, #1a4d2e 50%, #0d2818 75%, #0a1f0a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      color: #e8f5e9;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* Animated background glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      animation: pulse 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+    }
+
+    .maintenance-container {
+      max-width: 700px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      font-size: 4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4caf50, #81c784, #4caf50);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      letter-spacing: -2px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid rgba(76, 175, 80, 0.4);
+      padding: 8px 20px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #81c784;
+      margin-bottom: 2rem;
+    }
+
+    .status-badge::before {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background: #4caf50;
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .main-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #a5d6a7;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .info-cards {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: left;
+      backdrop-filter: blur(10px);
+    }
+
+    .info-card h3 {
+      color: #81c784;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-card h3 span {
+      font-size: 1.3rem;
+    }
+
+    .info-card p {
+      color: #c8e6c9;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .highlight {
+      color: #4caf50;
+      font-weight: 700;
+    }
+
+    .reward-box {
+      background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(129, 199, 132, 0.1));
+      border: 2px solid rgba(76, 175, 80, 0.5);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .reward-box h3 {
+      color: #4caf50;
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .reward-box p {
+      color: #e8f5e9;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .reward-amount {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #4caf50;
+    }
+
+    .coming-soon {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .coming-soon h3 {
+      color: #ffffff;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .features-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .feature-tag {
+      background: rgba(76, 175, 80, 0.15);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      color: #a5d6a7;
+    }
+
+    .discord-section {
+      margin-top: 2rem;
+    }
+
+    .discord-section p {
+      color: #a5d6a7;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    .discord-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #5865F2;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .discord-btn:hover {
+      background: #4752c4;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(88, 101, 242, 0.4);
+    }
+
+    .discord-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .beta-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff9800, #ffc107);
+      color: #000;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-left: 10px;
+    }
+
+    .footer-note {
+      margin-top: 3rem;
+      color: #66bb6a;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 600px) {
+      .logo { font-size: 3rem; }
+      .main-title { font-size: 1.8rem; }
+      .subtitle { font-size: 1rem; }
+      .info-card { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="maintenance-container">
+    <h1 class="logo">Mulon</h1>
+    <span class="beta-tag">Beta</span>
+    
+    <div class="status-badge">Weekend Maintenance</div>
+    
+    <h2 class="main-title">🔧 Closed for the Weekend</h2>
+    <p class="subtitle">
+      We're working on exciting new features and improvements! 
+      The game is temporarily offline while we prepare the next big update.
+    </p>
+
+    <div class="info-cards">
+      <div class="info-card">
+        <h3><span>🚧</span> Beta Notice</h3>
+        <p>
+          Mulon is still in <span class="highlight">beta testing</span>. 
+          Some features may be incomplete or under development.
+        </p>
+      </div>
+    </div>
+
+    <div class="reward-box">
+      <h3>🎁 OG Beta Tester Rewards</h3>
+      <p>
+        All original beta testers will receive 
+        <span class="reward-amount">$800</span> + 
+        <span class="highlight">20% of their original balance</span> 
+        when the game officially launches ( maybe monday or tuesday)!
+      </p>
+    </div>
+
+    <div class="coming-soon">
+      <h3>🚀 Possible Weekend Update Features</h3>
+      <div class="features-list">
+        <span class="feature-tag">🛒 Marketplace</span>
+        <span class="feature-tag">🃏 Trading Cards</span>
+        <span class="feature-tag">📈 New Markets</span>
+        <span class="feature-tag">🎨 UI Improvements</span>
+        <span class="feature-tag">⚡ Performance Upgrades</span>
+      </div>
+    </div>
+
+    <div class="discord-section">
+      <p>Want to become a beta tester? Join our Discord and requst to keep playing!</p>
+      <a href="https://discord.gg/gvSFgDEGtb" target="_blank" class="discord-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+        Join Discord
+      </a>
+    </div>
+
+    <p class="footer-note">Thank you for being part of the Mulon beta! 💚</p>
+  </div>
+</body>
+</html>
