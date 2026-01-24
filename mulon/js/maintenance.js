@@ -7,7 +7,7 @@
 // CONFIGURATION
 // ========================================
 export const MAINTENANCE_MODE = true; // Set to false to disable maintenance mode
-export const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org'];
+export const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'captrojolmao@gmail.com'];
 
 // ========================================
 // HELPER FUNCTIONS
