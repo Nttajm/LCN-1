@@ -1407,7 +1407,22 @@
   font-family: inherit;
 }
 
+.user-keys-input {
+  width: 100px;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  text-align: right;
+  font-family: inherit;
+}
+
 .user-balance-input:focus {
+  outline: none;
+  border-color: var(--green-primary);
+}
+
+.user-keys-input:focus {
   outline: none;
   border-color: var(--green-primary);
 }

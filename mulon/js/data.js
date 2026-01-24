@@ -1751,6 +1751,7 @@ const MulonData = {
           displayName: userData.displayName || 'Anonymous',
           email: userData.email || 'Unknown',
           photoURL: userData.photoURL || null,
+          keys: userData.keys || 0,
           balance: userData.balance || 0,
           positions: userData.positions || [],
           createdAt: userData.createdAt || null,
