@@ -29,6 +29,10 @@
         <div class="balance-label">Keys</div>
         <div class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 0</div>
       </div>
+      <div class="balance-box xps-box">
+        <div class="balance-label">XPs</div>
+        <div class="balance-amount xps-amount" id="userXPs">⚡ 0</div>
+      </div>
       <div class="auth-box dn" id="authBox">
         <button class="signin-btn" id="signInBtn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -83,7 +87,7 @@
       <div class="control-group">
         <label class="control-label">Mines</label>
         <select class="mines-select" id="minesSelect">
-          <option value="3" selected>3 Mines</option>
+          <option value="1" selected>1 Mines</option>
           <option value="4" >4 Mines</option>
           <option value="5" >5 Mines</option>
           <option value="6">6 Mines</option>
@@ -157,7 +161,7 @@
   </div>
 
   <!-- Casino Auth Module -->
-  <script type="module" src="js/casino-data.js"></script>
+  <script type="module" src="js/casino-auth.js"></script>
   <!-- Shared Format Utilities -->
   <script src="../js/format-utils.js"></script>
   <!-- Casino Globals (Profit Graph, etc.) -->

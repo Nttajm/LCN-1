@@ -30,7 +30,7 @@ const difficultySettings = {
 function waitForAuth() {
   return new Promise((resolve) => {
     const check = () => {
-      if (window.Auth) {
+      if (window.CasinoAuth) {
         resolve();
       } else {
         setTimeout(check, 50);
@@ -218,20 +218,20 @@ async function startGame() {
   }
   
   // Check if user has keys
-  const currentKeys = window.CasinoData.getKeys();
+  const currentKeys = window.CasinoAuth.getKeys();
   if (currentKeys <= 0) {
     alert('You need keys to play! Come back tomorrow for free keys.');
     return;
   }
   
-  const currentBalance = window.UserData.getBalance();
+  const currentBalance = window.CasinoAuth.getBalance();
   if (currentBalance < config.betAmount) {
     alert('Insufficient balance!');
     return;
   }
   
   // Place bet
-  const result = await window.CasinoData.placeBet(config.betAmount, 'dragon-tower');
+  const result = await window.CasinoDB.placeBet(config.betAmount, 'dragon-tower');
   if (!result.success) {
     alert(result.error || 'Failed to place bet');
     return;
@@ -249,6 +249,9 @@ async function startGame() {
   document.getElementById('betAmount').disabled = true;
   document.getElementById('difficultySelect').disabled = true;
   
+  // Disable bet adjustment buttons
+  document.querySelectorAll('.bet-adj').forEach(btn => btn.disabled = true);
+  
   // Hide game over overlay
   document.getElementById('gameOverOverlay').classList.remove('show');
   
@@ -265,7 +268,19 @@ async function cashout() {
   const profit = Math.round((winAmount - config.betAmount) * 100) / 100;
   
   // Record win in database
-  await window.CasinoData.recordWin(winAmount);
+  await window.CasinoDB.recordWin(winAmount);
+  
+  // Award xps for ANY win - streak grows exponentially
+  try {
+    const xpResult = await window.CasinoDB.awardXPs('dragon-tower', config.currentMultiplier, config.betAmount);
+    console.log('Dragon Tower xp result:', xpResult);
+    if (xpResult && xpResult.success && xpResult.xpsEarned > 0) {
+      updateXPsDisplay();
+      showXPGain(xpResult.xpsEarned, xpResult.streak, xpResult.streakMultiplier);
+    }
+  } catch (err) {
+    console.error('Error awarding xps:', err);
+  }
   
   config.sessionProfit += profit;
   
@@ -329,8 +344,9 @@ async function gameOver(won, amount = 0) {
       window.ProfitGraph.addPoint(-config.betAmount);
     }
     
-    // Record loss - deducts 1 key
-    await window.CasinoData.recordLoss('dragon-tower');
+    // Record loss - deducts 1 key and resets streak
+    await window.CasinoDB.recordLoss('dragon-tower');
+    await window.CasinoDB.resetStreak();
     updateKeysDisplay();
     
     updateProfitDisplay();
@@ -343,6 +359,9 @@ async function gameOver(won, amount = 0) {
   document.getElementById('cashoutBtn').classList.remove('show');
   document.getElementById('betAmount').disabled = false;
   document.getElementById('difficultySelect').disabled = false;
+  
+  // Re-enable bet adjustment buttons
+  document.querySelectorAll('.bet-adj').forEach(btn => btn.disabled = false);
 }
 
 // Reset for new game
@@ -360,17 +379,47 @@ function resetGame() {
 
 // Update displays
 function updateBalanceDisplay() {
-  const balance = window.UserData?.getBalance() ?? 0;
+  const balance = window.CasinoAuth?.getBalance() ?? 0;
   const fmt = window.FormatUtils;
   document.getElementById('userBalance').textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
 }
 
 function updateKeysDisplay() {
-  const keys = window.CasinoData?.getKeys() ?? 0;
+  const keys = window.CasinoAuth?.getKeys() ?? 0;
   const keysEl = document.getElementById('userKeys');
   if (keysEl) {
     keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
   }
+}
+
+function updateXPsDisplay() {
+  const xps = window.CasinoAuth?.getXPs() ?? 0;
+  const xpsEl = document.getElementById('userXPs');
+  if (xpsEl) {
+    xpsEl.textContent = '⚡ ' + xps;
+  }
+}
+
+function showXPGain(xps, streak, streakMult) {
+  const popup = document.createElement('div');
+  popup.className = 'xp-popup';
+  
+  // Position next to xps box
+  const xpsBox = document.querySelector('.xps-box');
+  if (xpsBox) {
+    const rect = xpsBox.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 5) + 'px';
+    popup.style.right = (window.innerWidth - rect.right) + 'px';
+  }
+  
+  const streakText = streak > 1 && streakMult ? ` <span class="xp-streak">🔥${streak}</span>` : '';
+  popup.innerHTML = `<span class="xp-amount">⚡+${xps}${streakText}</span>`;
+  document.body.appendChild(popup);
+  
+  setTimeout(() => {
+    popup.classList.add('hide');
+    setTimeout(() => popup.remove(), 100);
+  }, 700);
 }
 
 function updateProfitDisplay() {
@@ -381,6 +430,7 @@ function updateProfitDisplay() {
 }
 
 function adjustBet(mult) {
+  if (config.isPlaying) return; // Don't allow changes while playing
   const input = document.getElementById('betAmount');
   config.betAmount = Math.max(1, Math.min(1000, Math.round(config.betAmount * mult)));
   input.value = config.betAmount;
@@ -436,18 +486,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   await waitForAuth();
   
   // Initialize auth with maintenance check
-  const hasAccess = await window.Auth.initWithMaintenanceCheck();
+  const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
   if (!hasAccess) return; // Stop if redirecting to maintenance
   
   // Setup auth UI handlers
   setupAuthUI();
   
   // Listen for auth state changes
-  window.Auth.onAuthStateChange((user) => {
+  window.CasinoAuth.onAuthStateChange((user, userData) => {
     config.isSignedIn = !!user;
     updateAuthUI(user);
     updateBalanceDisplay();
     updateKeysDisplay();
+    updateXPsDisplay();
   });
   
   // Initialize profit graph
@@ -463,13 +514,13 @@ function setupAuthUI() {
   
   if (signInBtn) {
     signInBtn.addEventListener('click', async () => {
-      await window.Auth.signIn();
+      await window.CasinoAuth.signIn();
     });
   }
   
   if (signOutBtn) {
     signOutBtn.addEventListener('click', async () => {
-      await window.Auth.signOut();
+      await window.CasinoAuth.signOut();
     });
   }
 }

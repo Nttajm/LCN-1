@@ -44,7 +44,7 @@
 /* Refresh Penalty Info */
 .refresh-penalty-info {
   padding: 8px 12px;
-  font-size: 0.7rem;
+  font-size: 0.45rem;
   color: #9ca3af;
   text-align: center;
   background: rgba(239, 68, 68, 0.1);
@@ -53,7 +53,7 @@
 
 .refresh-penalty-notice {
   padding: 10px 12px;
-  font-size: 0.7rem;
+  font-size: 0.55rem;
   font-weight: 600;
   color: #ef4444;
   text-align: center;

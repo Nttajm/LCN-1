@@ -75,6 +75,72 @@ body {
   object-fit: contain;
 }
 
+/* XPs Box */
+.xps-box .balance-amount {
+  color: #a855f7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.xps-amount {
+  color: #a855f7 !important;
+}
+
+/* XP Popup Animation - Subtle floating next to xps */
+.xp-popup {
+  position: fixed;
+  top: 60px;
+  right: 200px;
+  background: rgba(124, 58, 237, 0.9);
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-align: center;
+  z-index: 10000;
+  animation: xpFloat 0.1s ease-out;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.xp-popup .xp-amount {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.xp-popup .xp-streak {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #fbbf24;
+  margin-top: 2px;
+}
+
+.xp-popup.hide {
+  animation: xpFadeOut 0.1s ease-in forwards;
+}
+
+@keyframes xpFloat {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}
+
+@keyframes xpFadeOut {
+  from {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
 .back-link {
   color: #6b7280;
   text-decoration: none;

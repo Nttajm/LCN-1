@@ -19,7 +19,7 @@ const config = {
 function waitForAuth() {
   return new Promise((resolve) => {
     const check = () => {
-      if (window.Auth) {
+      if (window.CasinoAuth) {
         resolve();
       } else {
         setTimeout(check, 50);
@@ -262,7 +262,7 @@ async function dropBall() {
   }
   
   // Check if user has balls/keys using the quota system
-  const ballResult = await CasinoData.usePlinkoBall();
+  const ballResult = await window.CasinoDB.usePlinkoBall();
   if (!ballResult.success) {
     alert(ballResult.error || 'You need keys to play! Come back tomorrow for free keys.');
     return;
@@ -272,14 +272,14 @@ async function dropBall() {
   updateKeysDisplay();
   updateBallsDisplay();
   
-  const currentBalance = UserData.getBalance();
+  const currentBalance = window.CasinoAuth.getBalance();
   if (currentBalance < config.betAmount) {
     alert('Insufficient balance!');
     return;
   }
 
   // Place bet
-  const result = await CasinoData.placeBet(config.betAmount, 'plinko');
+  const result = await window.CasinoDB.placeBet(config.betAmount, 'plinko');
   if (!result.success) {
     alert(result.error || 'Failed to place bet');
     return;
@@ -310,7 +310,7 @@ async function dropBall() {
   Composite.add(world, ball);
 
   // Track pending balls in database (for refresh penalty)
-  await CasinoData.setPendingPlinkoBalls(balls.length);
+  await window.CasinoDB.setPendingPlinkoBalls(balls.length);
 
   // Lock bet sizing controls while balls are moving
   setBetControlsLocked(true);
@@ -344,9 +344,25 @@ function checkBallLanding(ball) {
       
       // Record win in database if won anything
       if (winAmount > 0) {
-        CasinoData.recordWin(winAmount)
+        window.CasinoDB.recordWin(winAmount)
           .then(() => updateBalanceDisplay())
           .catch(() => {});
+        
+        // Award xps only for 2x+ multiplier wins
+        if (landedBucket.multiplier >= 2) {
+          window.CasinoDB.awardXPs('plinko', landedBucket.multiplier, config.betAmount)
+            .then(result => {
+              console.log('Plinko xp result:', result);
+              if (result && result.success && result.xpsEarned > 0) {
+                updateXPsDisplay();
+                showXPGain(result.xpsEarned, result.streak, result.streakMultiplier);
+              }
+            })
+            .catch(err => console.error('Error awarding xps:', err));
+        } else {
+          // Reset streak on sub-2x win
+          window.CasinoDB.resetStreak();
+        }
       }
       
       config.sessionProfit += profit;
@@ -377,7 +393,7 @@ function checkBallLanding(ball) {
     balls = balls.filter(b => b !== ball);
 
     // Update pending balls count in database
-    CasinoData.setPendingPlinkoBalls(balls.length);
+    window.CasinoDB.setPendingPlinkoBalls(balls.length);
 
     // Re-enable bet sizing once all balls are cleared
     if (!hasBallsInPlay()) {
@@ -405,6 +421,28 @@ function showBigWin(amount, mult) {
     popup.classList.add('hide');
     setTimeout(() => popup.remove(), 300);
   }, 2000);
+}
+
+function showXPGain(xps, streak, streakMult) {
+  const popup = document.createElement('div');
+  popup.className = 'xp-popup';
+  
+  // Position next to xps box
+  const xpsBox = document.querySelector('.xps-box');
+  if (xpsBox) {
+    const rect = xpsBox.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 5) + 'px';
+    popup.style.right = (window.innerWidth - rect.right) + 'px';
+  }
+  
+  const streakText = streak > 1 && streakMult ? ` <span class="xp-streak">🔥${streak}</span>` : '';
+  popup.innerHTML = `<span class="xp-amount">⚡+${xps}${streakText}</span>`;
+  document.body.appendChild(popup);
+  
+  setTimeout(() => {
+    popup.classList.add('hide');
+    setTimeout(() => popup.remove(), 100);
+  }, 700);
 }
 
 function addResult(mult, profit) {
@@ -436,21 +474,29 @@ function getMultTextColor(mult) {
 }
 
 function updateBalanceDisplay() {
-  const balance = UserData.getBalance();
+  const balance = window.CasinoAuth?.getBalance() ?? 0;
   const fmt = window.FormatUtils;
   document.getElementById('userBalance').textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
 }
 
 function updateKeysDisplay() {
-  const keys = window.CasinoData?.getKeys() ?? 0;
+  const keys = window.CasinoAuth?.getKeys() ?? 0;
   const keysEl = document.getElementById('userKeys');
   if (keysEl) {
     keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
   }
 }
 
+function updateXPsDisplay() {
+  const xps = window.CasinoAuth?.getXPs() ?? 0;
+  const xpsEl = document.getElementById('userXPs');
+  if (xpsEl) {
+    xpsEl.textContent = '⚡ ' + xps;
+  }
+}
+
 function updateBallsDisplay() {
-  const balls = window.CasinoData?.getPlinkoBalls() ?? 45;
+  const balls = window.CasinoAuth?.getPlinkoBalls() ?? 45;
   const ballsEl = document.getElementById('ballsRemaining');
   if (ballsEl) {
     ballsEl.textContent = balls;
@@ -526,13 +572,13 @@ function startAuto() {
   // Get auto settings
   config.betAmount = parseFloat(document.getElementById('autoBetAmount').value) || 10;
   autoConfig.dropsPerSecond = parseInt(document.getElementById('autoSpeedSelect').value) || 3;
-  autoConfig.totalDrops = parseInt(document.getElementById('autoDropCount').value);
+  autoConfig.totalDrops = parseInt(document.getElementById('autoDropCount').value) || 50;
   autoConfig.stopOnProfit = parseFloat(document.getElementById('autoStopProfit').value) || 0;
   autoConfig.stopOnLoss = parseFloat(document.getElementById('autoStopLoss').value) || 0;
   
   autoConfig.dropsRemaining = autoConfig.totalDrops;
   autoConfig.autoProfit = 0;
-  autoConfig.startingBalance = UserData.getBalance();
+  autoConfig.startingBalance = window.CasinoAuth.getBalance();
   autoConfig.isRunning = true;
   
   // Update UI
@@ -581,7 +627,7 @@ async function autoDropBall() {
   }
   
   // Check stop conditions
-  const currentBalance = UserData.getBalance();
+  const currentBalance = window.CasinoAuth.getBalance();
   const profitSinceStart = currentBalance - autoConfig.startingBalance;
   
   if (autoConfig.stopOnProfit > 0 && profitSinceStart >= autoConfig.stopOnProfit) {
@@ -604,7 +650,7 @@ async function autoDropBall() {
   }
   
   // Drop the ball (similar to dropBall but without some checks)
-  const ballResult = await CasinoData.usePlinkoBall();
+  const ballResult = await window.CasinoDB.usePlinkoBall();
   if (!ballResult.success) {
     stopAuto();
     alert('Auto stopped: No more balls/keys available!');
@@ -614,7 +660,7 @@ async function autoDropBall() {
   updateKeysDisplay();
   updateBallsDisplay();
   
-  const result = await CasinoData.placeBet(config.betAmount, 'plinko');
+  const result = await window.CasinoDB.placeBet(config.betAmount, 'plinko');
   if (!result.success) {
     stopAuto();
     alert('Auto stopped: Failed to place bet');
@@ -644,7 +690,7 @@ async function autoDropBall() {
   balls.push(ball);
   Composite.add(world, ball);
   
-  await CasinoData.setPendingPlinkoBalls(balls.length);
+  await window.CasinoDB.setPendingPlinkoBalls(balls.length);
   
   config.ballsDropped++;
   document.getElementById('ballsDropped').textContent = config.ballsDropped;
@@ -666,7 +712,7 @@ function updateAutoDisplay() {
   }
   
   if (autoProfitEl) {
-    const currentBalance = UserData.getBalance();
+    const currentBalance = window.CasinoAuth?.getBalance() || 0;
     const profit = currentBalance - autoConfig.startingBalance;
     autoProfitEl.textContent = (profit >= 0 ? '+' : '') + '$' + profit.toFixed(2);
     autoProfitEl.className = 'stat-value ' + (profit >= 0 ? 'profit' : 'loss');
@@ -788,20 +834,20 @@ Events.on(render, 'afterRender', () => {
 // Auth initialization
 (async function initAuth() {
   await waitForAuth();
-
+  
   // Initialize auth with maintenance check
-  const hasAccess = await window.Auth.initWithMaintenanceCheck();
+  const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
   if (!hasAccess) return; // Stop if redirecting to maintenance
   
   setupAuthUI();
   
-  window.Auth.onAuthStateChange(async (user) => {
+  window.CasinoAuth.onAuthStateChange(async (user, userData) => {
     config.isSignedIn = !!user;
     updateAuthUI(user);
     
     if (user) {
       // Check for refresh penalty (balls in play when user refreshed)
-      const penaltyResult = await CasinoData.checkRefreshPenalty();
+      const penaltyResult = await window.CasinoDB.checkRefreshPenalty();
       if (penaltyResult.penalty > 0) {
         showRefreshPenalty(penaltyResult.penalty, penaltyResult.ballsLost);
       }
@@ -810,6 +856,7 @@ Events.on(render, 'afterRender', () => {
     updateBalanceDisplay();
     updateKeysDisplay();
     updateBallsDisplay();
+    updateXPsDisplay();
   });
 })();
 
@@ -834,13 +881,13 @@ function setupAuthUI() {
   
   if (signInBtn) {
     signInBtn.addEventListener('click', async () => {
-      await window.Auth.signIn();
+      await window.CasinoAuth.signIn();
     });
   }
   
   if (signOutBtn) {
     signOutBtn.addEventListener('click', async () => {
-      await window.Auth.signOut();
+      await window.CasinoAuth.signOut();
     });
   }
 }
