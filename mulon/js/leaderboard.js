@@ -149,24 +149,26 @@ async function loadLeaderboardData() {
             const portfolioValue = await calculatePortfolioValue(userData.positions || []);
             const profit = await calculateProfit(userData);
             
-            // Try to get Over Under username and leaderStyle by email
             let displayName = userData.displayName || 'Anonymous';
-            let leaderStyle = '';
-            if (userData.email) {
-                try {
-                    const ouQuery = query(ouUsersRef, where('email', '==', userData.email));
-                    const ouSnapshot = await getDocs(ouQuery);
-                    if (!ouSnapshot.empty) {
-                        const ouUserData = ouSnapshot.docs[0].data();
-                        if (ouUserData.username) {
-                            displayName = ouUserData.username;
+            let leaderStyle = userData.leaderStyle || '';
+            if (leaderStyle === '') {
+                // Try to get Over Under username and leaderStyle by email
+                if (userData.email) {
+                    try {
+                        const ouQuery = query(ouUsersRef, where('email', '==', userData.email));
+                        const ouSnapshot = await getDocs(ouQuery);
+                        if (!ouSnapshot.empty) {
+                            const ouUserData = ouSnapshot.docs[0].data();
+                            if (ouUserData.username) {
+                                displayName = ouUserData.username;
+                            }
+                            if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
+                                leaderStyle = ouUserData.leaderStyle;
+                            }
                         }
-                        if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
-                            leaderStyle = ouUserData.leaderStyle;
-                        }
+                    } catch (e) {
+                        // Silently fail, use default displayName
                     }
-                } catch (e) {
-                    // Silently fail, use default displayName
                 }
             }
             
@@ -307,17 +309,19 @@ function renderTable(sortedData) {
                 <div class="user-cell">
                     <div class="user-cell-avatar" ${avatarStyle}>${avatarContent}</div>
                     <div class="user-cell-info">
-                        <div class="user-cell-name">${user.displayName}</div>
+                        <div class="user-cell-name">
+                            <span class="cell-span">${user.displayName}</span>
+                        </div>
                     </div>
                 </div>
                 <div class="stat-cell ${currentFilter === 'profit' ? mainStatClass : profitClass}">
-                    ${formatCurrency(user.profit)}
+                    <span class="cell-span">${formatCurrency(user.profit)}</span>
                 </div>
                 <div class="stat-cell ${currentFilter === 'balance' ? 'main-stat neutral' : 'neutral'}">
-                    ${formatBalance(user.balance)}
+                    <span class="cell-span">${formatBalance(user.balance)}</span>
                 </div>
                 <div class="stat-cell ${currentFilter === 'portfolio' ? 'main-stat neutral' : 'neutral'}">
-                    ${formatBalance(user.portfolioValue)}
+                    <span class="cell-span">${formatBalance(user.portfolioValue)}</span>
                 </div>
             </div>
         `;
@@ -428,8 +432,10 @@ function setupAuth() {
         if (user) {
             currentUserId = user.uid;
             userInitials.style.display = 'none';
-            userPhoto.style.display = 'block';
-            userPhoto.src = user.photoURL || '';
+            if (userPhoto) {
+                userPhoto.style.display = 'block';
+                userPhoto.src = user.photoURL || '';
+            }
             userName.textContent = user.displayName || 'User';
             userEmail.textContent = user.email || '';
             signOutBtn.style.display = 'flex';

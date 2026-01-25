@@ -1068,6 +1068,9 @@ function renderUsersList(users) {
   
   usersList.innerHTML = users.map(user => `
     <div class="user-admin-item" data-user-id="${user.id}">
+      <button class="edit-user-info-button" data-user-id="${user.id}" title="Click to view/edit user data">
+        <span class="edit-user-info-icon">📝</span>
+      </button>
       ${user.photoURL 
         ? `<img src="${user.photoURL}" alt="" class="user-admin-avatar">`
         : `<div class="user-admin-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
@@ -1079,6 +1082,9 @@ function renderUsersList(users) {
       <button class="user-positions-count ${user.positions.length > 0 ? 'has-positions clickable' : ''}" data-user-id="${user.id}" ${user.positions.length > 0 ? 'title="Click to view/edit positions"' : ''}>
         ${user.positions.length} position${user.positions.length !== 1 ? 's' : ''}
         ${user.positions.length > 0 ? '<span class="edit-icon">✏️</span>' : ''}
+      </button>
+      <button class=user-items has-positions clickable" data-user-id="${user.id}" title="Click to view/edit items">
+        Edit items <span class="edit-icon">✏️</span>
       </button>
       <div class="user-admin-balance">
         <span>$</span>
@@ -1104,6 +1110,17 @@ function renderUsersList(users) {
       </div>
     </div>
   `).join('');
+
+  // Attach user info view/edit listeners
+  usersList.querySelectorAll('.edit-user-info-button').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const userId = this.dataset.userId;
+      const user = allUsers.find(u => u.id === userId);
+      if (user) {
+        await showUserInfoModal(user);
+      }
+    });
+  });
   
   // Attach positions view/edit listeners
   usersList.querySelectorAll('.user-positions-count.clickable').forEach(btn => {
@@ -1112,6 +1129,17 @@ function renderUsersList(users) {
       const user = allUsers.find(u => u.id === userId);
       if (user && user.positions.length > 0) {
         showUserPositionsModal(user);
+      }
+    });
+  });
+
+  // Attach items view/edit listeners
+  usersList.querySelectorAll('.user-items').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const userId = this.dataset.userId;
+      const user = allUsers.find(u => u.id === userId);
+      if (user) {
+        showUserItemsModal(user);
       }
     });
   });
@@ -1293,6 +1321,176 @@ async function applyBulkKeysAction() {
   } else {
     showToast('Error updating keys: ' + result.error, 'error');
   }
+}
+
+// ========================================
+// USER INFO MODAL
+// ========================================
+let currentInfoUser = null;
+
+async function showUserInfoModal(user) {
+  currentInfoUser = user;
+  const modal = document.getElementById('infoModal');
+  const userInfo = document.getElementById('infoModalUser');
+  const infoList = document.getElementById('infoModalList');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-balance">Balance: $${user.balance.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+
+  infoList.innerHTML = `
+    <div class="info-ro-item">
+      <span class="info-edit-name">Creation Date</span>
+      <span class="info-rodata">${user.createdAt}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Last Login</span>
+      <span class="info-rodata">${user.lastLoginAt}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">OverUnder Synced</span>
+      <span class="info-rodata">${user.overUnderSynced ? 'true' : 'false'}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Daily Streak</span>
+      <span class="info-rodata">${user.dailyStreak}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Last Daily Claim</span>
+      <span class="info-rodata">${user.lastDailyKeyClaim}</span>
+    </div>
+    <br>
+    <div class="info-edit-item">
+      <span class="info-edit-name">Username</span>
+      <input class="info-edit-input" id="username" value="${escapeHtml(user.displayName)}">
+      <button class="btn-icon save-user" id="saveUsername" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+    <div class="info-edit-item">
+      <span class="info-edit-name">Avatar Style</span>
+      <input class="info-edit-input" id="avatarStyle" value="${escapeHtml(user.avatarStyle)}">
+      <button class="btn-icon save-user" id="saveAvatarStyle" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+    <div class="info-edit-item">
+      <span class="info-edit-name">Leaderboard Style</span>
+      <input class="info-edit-input" id="leaderStyle" value="${await MulonData.getLeaderboardStyle(user)}">
+      <button class="btn-icon save-user" id="saveLeaderStyle" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  // Setup event listeners
+  setupInfoModalListeners();
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function setupInfoModalListeners() {
+  const modal = document.getElementById('infoModal');
+  const closeBtn = document.getElementById('closeInfoModal');
+  const cancelBtn = document.getElementById('cancelInfoModal');
+
+  const usernameField = document.getElementById('username');
+  const avatarStyleField = document.getElementById('avatarStyle');
+  const leaderStyleField = document.getElementById('leaderStyle');
+
+  const usernameSaveBtn = document.getElementById('saveUsername');
+  const avatarStyleSaveBtn = document.getElementById('saveAvatarStyle');
+  const leaderStyleSaveBtn = document.getElementById('saveLeaderStyle');
+  
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('active');
+    currentInfoUser = null;
+  };
+  
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = closeModal;
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
+
+  usernameSaveBtn.onclick = async() => {
+    const newUsername = usernameField.value;
+
+    if (newUsername.length > 20 || newUsername.length == 0) {
+      showToast('Please enter a valid username (20 chars max)');
+      return;
+    }
+
+    const result = await MulonData.updateUserName(currentInfoUser.id, newUsername);
+
+    if (result.success) {
+      showToast('Username updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].displayName = newUsername;
+        updateUsersStats();
+      }
+    } else {
+      showToast('Error updating username', 'error');
+    }
+  };
+
+  avatarStyleSaveBtn.onclick = async() => {
+    const newAvatarStyle = avatarStyleField.value;
+
+    const result = await MulonData.updateAvatarStyle(currentInfoUser.id, newAvatarStyle);
+
+    if (result.success) {
+      showToast('Avatar style updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].avatarStyle = newAvatarStyle;
+        updateUsersStats();
+      }
+    } else {
+      showToast('Error updating avatar style', 'error');
+    }
+  };
+
+  leaderStyleSaveBtn.onclick = async() => {
+    const newLeaderStyle = leaderStyleField.value;
+
+    const result = await MulonData.updateLeaderStyle(currentInfoUser.id, newLeaderStyle);
+
+    if (result.success) {
+      showToast('Leaderboard style updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].leaderStyle = newLeaderStyle;
+        updateUsersStats();
+      }
+    } else {
+      showToast('Error updating avatar style', 'error');
+    }
+  };
 }
 
 // ========================================
@@ -1506,6 +1704,96 @@ function setupPositionsModalListeners() {
       }
     };
   });
+}
+
+// ========================================
+// USER ITEMS MODAL
+// ========================================
+let currentItemsUser = null;
+
+function showUserItemsModal(user) {
+  currentItemsUser = user;
+  const modal = document.getElementById('itemsModal');
+  const userInfo = document.getElementById('itemsModalUser');
+  const userItems = document.getElementById('itemsModalList');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-balance">Balance: $${user.balance.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+
+  // Populate user items
+  userItems.innerHTML = `
+    <div class="items-edit-item">
+      <span class="items-edit-name">Plinko Balls</span>
+      <input type="number" class="items-edit-input" id="plinkoBallsField" value="${currentItemsUser.plinkoBalls}" step="1" min="0" data-field="plinko-balls">
+      <button class="btn-icon save-user" id="savePlinkoBalls" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  // Setup event listeners
+  setupItemsModalListeners();
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function setupItemsModalListeners() {
+  const modal = document.getElementById('itemsModal');
+  const closeBtn = document.getElementById('closeItemsModal');
+  const cancelBtn = document.getElementById('cancelItemsModal');
+
+  const plinkoBallsField = document.getElementById('plinkoBallsField');
+  const savePlinkoBallsBtn = document.getElementById('savePlinkoBalls');
+  
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('active');
+    currentItemsUser = null;
+  };
+  
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = closeModal;
+
+  savePlinkoBallsBtn.onclick = async () => {
+    const newPlinkoBalls = parseInt(plinkoBallsField.value);
+
+    if (isNaN(newPlinkoBalls) || newPlinkoBalls < 0) {
+      showToast('Please enter a valid number of Plinko balls', 'error');
+      return;
+    }
+
+    const result = await MulonData.updateUserPlinkoBalls(currentItemsUser.id, newPlinkoBalls);
+
+    if (result.success) {
+      showToast('Plinko balls updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].plinkoBalls = newPlinkoBalls;
+      }
+    } else {
+      showToast('Error updating user', 'error');
+    }
+  };
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
 }
 
 // ========================================

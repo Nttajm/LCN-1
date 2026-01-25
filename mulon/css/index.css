@@ -12,7 +12,11 @@
   --text-primary: #1a1a2e;
   --text-secondary: #6c757d;
   --text-muted: #adb5bd;
-  
+
+  --blue-primary: #4099ff;
+  --blue-hover: #3075c4;
+  --blue-light: #dbecff;
+
   --green-primary: #00c853;
   --green-hover: #00b548;
   --green-light: #e8f5e9;
