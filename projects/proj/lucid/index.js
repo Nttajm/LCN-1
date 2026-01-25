@@ -260,8 +260,8 @@ const xHtml = {
         <button class="appleIco sudo" id="icon-apple-trunk" onclick="tg('icon-apple-trunk')">
           <img class="apple-icono-img" src="assets/trunkOpen.png" alt="">
         </button>
-        <button class="appleIco sudo" id="icon-apple-charge" onclick="tg('icon-apple-charge')">
-          <img class="apple-icono-img" src="assets/charger-side.png" alt="">
+        <button class="appleIco sudo" id="icon-apple-xp" onclick="tg('icon-apple-xp')">
+          <img class="apple-icono-img" src="assets/xpr-side.png" alt="">
         </button>
       </div>
     </div>
