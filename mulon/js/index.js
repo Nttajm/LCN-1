@@ -10,6 +10,37 @@ localStorage.setItem('lol', 'nice try, but i learnt from last time.');
 // Track pending Over Under sync data
 let pendingOUSyncData = null;
 
+// Format number with commas (e.g., 1000 -> 1,000)
+function formatWithCommas(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Format a balance with $ and commas (e.g., 1000.50 -> $1,000.50)
+function formatBalance(amount) {
+  const value = parseFloat(amount) || 0;
+  const [whole, decimal] = value.toFixed(2).split('.');
+  return `$${formatWithCommas(whole)}.${decimal}`;
+}
+
+// Format currency with +/- prefix (e.g., 100 -> +$100.00, -50 -> -$50.00)
+function formatCurrency(amount) {
+  const value = parseFloat(amount) || 0;
+  const absValue = Math.abs(value);
+  const [whole, decimal] = absValue.toFixed(2).split('.');
+  const formatted = formatWithCommas(whole) + '.' + decimal;
+  return value >= 0 ? `+$${formatted}` : `-$${formatted}`;
+}
+
+// Format profit/loss display
+function formatProfit(amount) {
+  const value = parseFloat(amount) || 0;
+  const [whole, decimal] = Math.abs(value).toFixed(2).split('.');
+  const formatted = formatWithCommas(whole) + '.' + decimal;
+  return (value >= 0 ? '+' : '-') + '$' + formatted;
+}
+
+// Export to window for use in other files
+window.FormatUtils = { formatWithCommas, formatBalance, formatCurrency, formatProfit };
 
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -1668,7 +1699,7 @@ function updateBalanceDisplay() {
   const balance = UserData.getBalance();
   
   if (balanceEl) {
-    balanceEl.textContent = '$' + balance.toFixed(2);
+    balanceEl.textContent = formatBalance(balance);
   }
   
   // Update max amount in modal
