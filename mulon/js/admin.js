@@ -1366,6 +1366,7 @@ async function showUserInfoModal(user) {
   `;
 
   infoList.innerHTML = `
+    <span class="info-caption">ACCOUNT INFO</span>
     <div class="info-ro-item">
       <span class="info-edit-name">Creation Date</span>
       <span class="info-rodata">${user.createdAt}</span>
@@ -1387,6 +1388,31 @@ async function showUserInfoModal(user) {
       <span class="info-rodata">${user.lastDailyKeyClaim}</span>
     </div>
     <br>
+    <span class="info-caption">CASINO STATS</span>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Total Won</span>
+      <span class="info-rodata">${user.casinoStats.totalWon}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Total Wagered</span>
+      <span class="info-rodata">${user.casinoStats.totalWagered}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Games Played</span>
+      <span class="info-rodata">${user.casinoStats.gamesPlayed}</span>
+    </div>
+    <br>
+    <span class="info-caption">XP STATS</span>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Best Streak</span>
+      <span class="info-rodata">${user.xpStats.bestStreak}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Total Earned</span>
+      <span class="info-rodata">${user.xpStats.totalEarned}</span>
+    </div>
+    <br>
+    <span class="info-caption">PROFILE</span>
     <div class="info-edit-item">
       <span class="info-edit-name">Username</span>
       <input class="info-edit-input" id="username" value="${escapeHtml(user.displayName)}">
@@ -1510,6 +1536,113 @@ function setupInfoModalListeners() {
 }
 
 // ========================================
+// USER TRANSACTION HISTORY MODAL
+// ========================================
+let currentTransactionHistoryUser = null;
+
+async function showTransactionHistoryModal(user) {
+  currentTransactionHistoryUser = user;
+  const modal = document.getElementById('transactionHistoryModal');
+  const userInfo = document.getElementById('transactionHistoryModalUser');
+  const transactionList = document.getElementById('transactionHistoryModalList');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-balance">Balance: $${user.balance.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+
+  // Populate transaction history
+  transactionList.innerHTML = '';
+  user.transactions.forEach(function (t) {
+    transactionList.innerHTML = transactionList.innerHTML.concat(`
+      <div class="transaction-history-modal-item">
+        <div class="transaction-history-fields-${t.type}">
+          <div class="transaction-history-field">
+            <label>TIME</label>
+            <span>${t.timestamp}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>TYPE</label>
+            <span>${t.type}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>CHOICE</label>
+            <span>${t.choice}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>MARKET</label>
+            <span>${MulonData.getMarket(t.marketId).title}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>PRICE</label>
+            <span>${t.price.toLocaleString("en-US", {maximumFractionDigits: 2, maximumIntegerDigits: 14})}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>SHARES</label>
+            <span>${t.shares.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+          </div>
+          ${t.type === 'sell' ? `
+            <div class="transaction-history-field">
+              <label>PROFIT</label>
+              <span>${t.profit.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+            </div>
+            <div class="transaction-history-field">
+              <label>PROCEEDS</label>
+              <span>${t.proceeds.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+            </div>
+          ` : `
+            <div class="transaction-history-field">
+              <label>COST</label>
+              <span>${t.cost.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+            </div>
+          `}
+        </div>
+      </div>
+    `);
+  });
+  
+  // Setup event listeners
+  setupTransactionHistoryModalListeners();
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function setupTransactionHistoryModalListeners() {
+  const modal = document.getElementById('transactionHistoryModal');
+  const closeBtn = document.getElementById('closeTransactionHistoryModal');
+  const cancelBtn = document.getElementById('cancelTransactionHistoryModal');
+  
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('active');
+    currentTransactionHistoryUser = null;
+  };
+  const returnToPositionsModal = () => {
+    modal.classList.remove('active');
+    showUserPositionsModal(currentTransactionHistoryUser);
+    currentTransactionHistoryUser = null;
+  };
+  
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = returnToPositionsModal;
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
+}
+
+// ========================================
 // USER POSITIONS MODAL
 // ========================================
 let currentPositionsUser = null;
@@ -1590,6 +1723,7 @@ function setupPositionsModalListeners() {
   const modal = document.getElementById('positionsModal');
   const closeBtn = document.getElementById('closePositionsModal');
   const cancelBtn = document.getElementById('cancelPositionsModal');
+  const transactionHistoryBtn = document.getElementById('viewTransactionHistory');
   const resetAllBtn = document.getElementById('resetUserPositionsModal');
   
   // Close handlers
@@ -1603,6 +1737,13 @@ function setupPositionsModalListeners() {
   
   modal.onclick = (e) => {
     if (e.target === modal) closeModal();
+  };
+
+  // Open transation history
+  transactionHistoryBtn.onclick = async() => {
+    modal.classList.remove('active');
+    showTransactionHistoryModal(currentPositionsUser);
+    currentPositionsUser = null;
   };
   
   // Reset all positions

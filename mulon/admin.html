@@ -366,7 +366,27 @@
       </div>
       <div class="positions-modal-actions">
         <button class="btn btn-secondary" id="cancelPositionsModal">Close</button>
+        <button class="btn btn-secondary" id="viewTransactionHistory">View Transation History</button>
         <button class="btn btn-danger" id="resetUserPositionsModal">Reset All Positions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Transaction History Modal -->
+  <div class="modal-overlay" id="transactionHistoryModal">
+    <div class="modal transaction-history-modal">
+      <div class="transaction-history-modal-header">
+        <h3>🗃️ User Transaction History</h3>
+        <button class="modal-close" id="closeTransactionHistoryModal">×</button>
+      </div>
+      <div class="transaction-history-modal-user" id="transactionHistoryModalUser">
+        <!-- User info will be populated -->
+      </div>
+      <div class="transaction-history-modal-list" id="transactionHistoryModalList">
+        <!-- Transaction history will be populated -->
+      </div>
+      <div class="transaction-history-modal-actions">
+        <button class="btn btn-secondary" id="cancelTransactionHistoryModal">Done</button>
       </div>
     </div>
   </div>
