@@ -149,10 +149,10 @@ async function loadLeaderboardData() {
             const portfolioValue = await calculatePortfolioValue(userData.positions || []);
             const profit = await calculateProfit(userData);
             
-            // Try to get Over Under username and leaderStyle by email
             let displayName = userData.displayName || 'Anonymous';
             let leaderStyle = userData.leaderStyle || '';
             if (leaderStyle === '') {
+                // Try to get Over Under username and leaderStyle by email
                 if (userData.email) {
                     try {
                         const ouQuery = query(ouUsersRef, where('email', '==', userData.email));
@@ -309,17 +309,19 @@ function renderTable(sortedData) {
                 <div class="user-cell">
                     <div class="user-cell-avatar" ${avatarStyle}>${avatarContent}</div>
                     <div class="user-cell-info">
-                        <div class="user-cell-name">${user.displayName}</div>
+                        <div class="user-cell-name">
+                            <span class="cell-span">${user.displayName}</span>
+                        </div>
                     </div>
                 </div>
                 <div class="stat-cell ${currentFilter === 'profit' ? mainStatClass : profitClass}">
-                    ${formatCurrency(user.profit)}
+                    <span class="cell-span">${formatCurrency(user.profit)}</span>
                 </div>
                 <div class="stat-cell ${currentFilter === 'balance' ? 'main-stat neutral' : 'neutral'}">
-                    ${formatBalance(user.balance)}
+                    <span class="cell-span">${formatBalance(user.balance)}</span>
                 </div>
                 <div class="stat-cell ${currentFilter === 'portfolio' ? 'main-stat neutral' : 'neutral'}">
-                    ${formatBalance(user.portfolioValue)}
+                    <span class="cell-span">${formatBalance(user.portfolioValue)}</span>
                 </div>
             </div>
         `;
