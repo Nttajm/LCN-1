@@ -228,7 +228,8 @@
   </footer>
 
   <script type="module">
-    import { CasinoAuth, CasinoDB } from './casino/js/casino-auth.js';
+    import { UserData } from './js/data.js';
+    import { CasinoData } from './casino/js/casino-data.js';
     
     // User menu dropdown toggle
     const userMenu = document.getElementById('userMenu');
@@ -247,32 +248,39 @@
     
     // Initialize auth and update balance display
     async function initCasinoAuth() {
-      await CasinoAuth.init();
+      await Auth.init();
       
       // Update sign in button
       const signInBtn = document.getElementById('headerSignInBtn');
       if (signInBtn) {
         signInBtn.addEventListener('click', async () => {
-          const result = await CasinoAuth.signIn();
+          const result = await Auth.signIn();
           if (result.success) {
             updateUI();
           }
         });
       }
       
-      CasinoAuth.onAuthStateChange((user, userData) => {
+      Auth.onAuthStateChange((user) => {
         updateUI();
       });
     }
     
     function updateUI() {
-      const user = CasinoAuth.currentUser;
-      const balance = CasinoAuth.getBalance();
+      const user = Auth.currentUser;
+      const balance = UserData.getBalance();
+      const keys = UserData.getKeys();
       
       // Update balance display
       const balanceEl = document.getElementById('userBalance');
       if (balanceEl) {
         balanceEl.textContent = '$' + balance.toFixed(2);
+      }
+
+      // Update keys display
+      const keyEL = document.getElementById('userKeys');
+      if (keyEL) {
+        keyEL.textContent = keys;
       }
       
       // Update user info
@@ -288,7 +296,7 @@
         if (signInBtn) signInBtn.textContent = 'Sign Out';
         if (signInBtn) {
           signInBtn.onclick = async () => {
-            await CasinoAuth.signOut();
+            await Auth.signOut();
             location.reload();
           };
         }
