@@ -414,8 +414,10 @@ function setupAuth() {
         if (user) {
             currentUserId = user.uid;
             userInitials.style.display = 'none';
-            userPhoto.style.display = 'block';
-            userPhoto.src = user.photoURL || '';
+            if (userPhoto) {
+                userPhoto.style.display = 'block';
+                userPhoto.src = user.photoURL || '';
+            }
             userName.textContent = user.displayName || 'User';
             userEmail.textContent = user.email || '';
             signOutBtn.style.display = 'flex';

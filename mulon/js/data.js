@@ -1900,13 +1900,18 @@ const MulonData = {
         users.push({
           id: userDoc.id,
           displayName: userData.displayName || 'Anonymous',
+          avatarStyle: userData.avatarStyle || '',
+          overUnderSynced: userData.overUnderSynced || false,
           email: userData.email || 'Unknown',
           photoURL: userData.photoURL || null,
+          dailyStreak: userData.dailyStreak || 0,
+          lastDailyKeyClaim: userData.lastDailyKeyClaim || '',
           keys: userData.keys || 0,
           balance: userData.balance || 0,
           positions: userData.positions || [],
           createdAt: userData.createdAt || null,
-          lastLoginAt: userData.lastLoginAt || null
+          lastLoginAt: userData.lastLoginAt || null,
+          plinkoBalls: userData.plinkoBalls || 0
         });
       }
       
@@ -1916,6 +1921,32 @@ const MulonData = {
     } catch (error) {
       console.error('Error fetching all users:', error);
       return [];
+    }
+  },
+
+  // Update a user's name (for admin)
+  async updateUserName(userId, newName) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        displayName: newName
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating username:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Update a user's avatar style (for admin)
+  async updateAvatarStyle(userId, newAvatarStyle) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        avatarStyle: newAvatarStyle
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating avatar style:', error);
+      return { success: false, error: error.message };
     }
   },
 
@@ -1941,6 +1972,19 @@ const MulonData = {
       return { success: true };
     } catch (error) {
       console.error('Error updating user keys:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Update a user's Plinko balls (for admin)
+  async updateUserPlinkoBalls(userId, newBalls) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        plinkoBalls: newBalls
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user Plinko balls:', error);
       return { success: false, error: error.message };
     }
   },
