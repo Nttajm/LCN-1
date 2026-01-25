@@ -1908,6 +1908,8 @@ const MulonData = {
           dailyStreak: userData.dailyStreak || 0,
           lastDailyKeyClaim: userData.lastDailyKeyClaim || '',
           keys: userData.keys || 0,
+          xps: userData.xps || 0,
+          cards: userData.cards || [],
           balance: userData.balance || 0,
           positions: userData.positions || [],
           createdAt: userData.createdAt || null,
@@ -2007,6 +2009,32 @@ const MulonData = {
       return { success: true };
     } catch (error) {
       console.error('Error updating user keys:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Update a user's XP (for admin)
+  async updateUserXP(userId, newXP) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        xps: Math.max(0, Math.round(newXP))
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user XP:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Update a user's cards (for admin)
+  async updateUserCards(userId, newCards) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        cards: newCards
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user cards:', error);
       return { success: false, error: error.message };
     }
   },

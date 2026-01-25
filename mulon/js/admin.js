@@ -1094,6 +1094,10 @@ function renderUsersList(users) {
         <span>🔑</span>
         <input type="number" class="user-keys-input" value="${user.keys || 0}" step="1" min="0" data-original="${user.keys || 0}">
       </div>
+      <div class="user-admin-xp">
+        <span>⚡</span>
+        <input type="number" class="user-xp-input" value="${user.xps || 0}" step="1" min="0" data-original="${user.xps || 0}">
+      </div>
       <div class="user-admin-actions">
         <button class="btn-icon save-user" data-user-id="${user.id}" title="Save Balance & Keys">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1152,8 +1156,10 @@ function renderUsersList(users) {
       const item = this.closest('.user-admin-item');
       const balanceInput = item.querySelector('.user-balance-input');
       const keysInput = item.querySelector('.user-keys-input');
+      const xpInput = item.querySelector('.user-xp-input');
       const newBalance = parseFloat(balanceInput.value);
       const newKeys = parseInt(keysInput.value);
+      const newXP = parseInt(xpInput.value);
       
       if (isNaN(newBalance) || newBalance < 0) {
         showToast('Please enter a valid balance', 'error');
@@ -1164,6 +1170,11 @@ function renderUsersList(users) {
         showToast('Please enter a valid keys amount', 'error');
         return;
       }
+
+      if (isNaN(newXP) || newXP < 0) {
+        showToast('Please enter a valid XP amount', 'error');
+        return;
+      }
       
       this.disabled = true;
       
@@ -1171,20 +1182,25 @@ function renderUsersList(users) {
       const balanceResult = await MulonData.updateUserBalance(userId, newBalance);
       // Update keys
       const keysResult = await MulonData.updateUserKeys(userId, newKeys);
+      // Update XP
+      const xpResult = await MulonData.updateUserXP(userId, newXP);
       
       this.disabled = false;
       
       if (balanceResult.success && keysResult.success) {
-        showToast('Balance & Keys updated!', 'success');
+        showToast('Balance, Keys, & XP updated!', 'success');
         balanceInput.dataset.original = newBalance.toFixed(2);
         keysInput.dataset.original = newKeys;
+        xpInput.dataset.original = newXP;
         balanceInput.style.borderColor = '';
         keysInput.style.borderColor = '';
+        xpInput.style.borderColor = '';
         // Update local cache
         const userIndex = allUsers.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
           allUsers[userIndex].balance = newBalance;
           allUsers[userIndex].keys = newKeys;
+          allUsers[userIndex].xps = newXP;
           updateUsersStats();
         }
       } else {
@@ -1744,6 +1760,33 @@ function showUserItemsModal(user) {
       </button>
     </div>
   `;
+
+  if (user.cards) {
+    userItems.innerHTML = userItems.innerHTML.concat(`
+      <div class="items-card-list" id="itemsCardList">
+        <div class="items-add-card">
+          <span class="items-edit-name">Add Card</span>
+          <input type="number" class="items-edit-input" id="newCardField" value="" step="1" min="0" data-field="new-card">
+          <button class="btn-icon save-user" id="addNewCard" title="Add">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `);
+    itemsCardList = document.getElementById('itemsCardList');
+    user.cards.forEach(function (card, index) {
+      itemsCardList.innerHTML = itemsCardList.innerHTML.concat(`
+        <div class="items-card-item">
+          <span class="items-card-name">Card ${card}</span>
+          <div class="card-edit-actions">
+            <button class="btn btn-sm btn-danger delete-card-btn" data-index=${index}>Delete</button>
+          </div>
+        </div>
+      `);
+    });
+  }
   
   // Setup event listeners
   setupItemsModalListeners();
@@ -1758,7 +1801,10 @@ function setupItemsModalListeners() {
   const cancelBtn = document.getElementById('cancelItemsModal');
 
   const plinkoBallsField = document.getElementById('plinkoBallsField');
+  const newCardField = document.getElementById('newCardField');
+
   const savePlinkoBallsBtn = document.getElementById('savePlinkoBalls');
+  const addNewCardBtn = document.getElementById('addNewCard');
   
   // Close handlers
   const closeModal = () => {
@@ -1768,6 +1814,10 @@ function setupItemsModalListeners() {
   
   closeBtn.onclick = closeModal;
   cancelBtn.onclick = closeModal;
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
 
   savePlinkoBallsBtn.onclick = async () => {
     const newPlinkoBalls = parseInt(plinkoBallsField.value);
@@ -1790,10 +1840,50 @@ function setupItemsModalListeners() {
       showToast('Error updating user', 'error');
     }
   };
-  
-  modal.onclick = (e) => {
-    if (e.target === modal) closeModal();
+
+  addNewCardBtn.onclick = async () => {
+    const newCard = "#".concat(parseInt(newCardField.value).toLocaleString('en-US', {'minimumIntegerDigits': 3, 'maximumFractionDigits': 0}));
+    let newCards = currentItemsUser.cards;
+    newCards.push(newCard);
+
+    const result = await MulonData.updateUserCards(currentItemsUser.id, newCards);
+
+    if (result.success) {
+        showToast('Cards updated!', 'success');
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
+        if (userIndex !== -1) {
+          allUsers[userIndex].cards = newCards;
+        }
+      } else {
+        showToast('Error updating cards', 'error');
+      }
+
+      showUserItemsModal(currentItemsUser);
   };
+
+  document.querySelectorAll('.delete-card-btn').forEach(btn => {
+    btn.onclick = async function () {
+      const idx = this.dataset.index;
+      let newCards = currentItemsUser.cards;
+      newCards.splice(idx, 1);
+
+      const result = await MulonData.updateUserCards(currentItemsUser.id, newCards);
+
+      if (result.success) {
+        showToast('Cards updated!', 'success');
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
+        if (userIndex !== -1) {
+          allUsers[userIndex].cards = newCards;
+        }
+      } else {
+        showToast('Error updating cards', 'error');
+      }
+
+      showUserItemsModal(currentItemsUser);
+    };
+  });
 }
 
 // ========================================
