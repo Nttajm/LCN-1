@@ -347,6 +347,22 @@ function checkBallLanding(ball) {
         window.CasinoDB.recordWin(winAmount)
           .then(() => updateBalanceDisplay())
           .catch(() => {});
+        
+        // Award xps only for 2x+ multiplier wins
+        if (landedBucket.multiplier >= 2) {
+          window.CasinoDB.awardXPs('plinko', landedBucket.multiplier, config.betAmount)
+            .then(result => {
+              console.log('Plinko xp result:', result);
+              if (result && result.success && result.xpsEarned > 0) {
+                updateXPsDisplay();
+                showXPGain(result.xpsEarned, result.streak, result.streakMultiplier);
+              }
+            })
+            .catch(err => console.error('Error awarding xps:', err));
+        } else {
+          // Reset streak on sub-2x win
+          window.CasinoDB.resetStreak();
+        }
       }
       
       config.sessionProfit += profit;
@@ -407,6 +423,28 @@ function showBigWin(amount, mult) {
   }, 2000);
 }
 
+function showXPGain(xps, streak, streakMult) {
+  const popup = document.createElement('div');
+  popup.className = 'xp-popup';
+  
+  // Position next to xps box
+  const xpsBox = document.querySelector('.xps-box');
+  if (xpsBox) {
+    const rect = xpsBox.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 5) + 'px';
+    popup.style.right = (window.innerWidth - rect.right) + 'px';
+  }
+  
+  const streakText = streak > 1 && streakMult ? ` <span class="xp-streak">🔥${streak}</span>` : '';
+  popup.innerHTML = `<span class="xp-amount">⚡+${xps}${streakText}</span>`;
+  document.body.appendChild(popup);
+  
+  setTimeout(() => {
+    popup.classList.add('hide');
+    setTimeout(() => popup.remove(), 100);
+  }, 700);
+}
+
 function addResult(mult, profit) {
   const history = document.getElementById('resultsHistory');
   const noResults = history.querySelector('div[style]');
@@ -446,6 +484,14 @@ function updateKeysDisplay() {
   const keysEl = document.getElementById('userKeys');
   if (keysEl) {
     keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
+  }
+}
+
+function updateXPsDisplay() {
+  const xps = window.CasinoAuth?.getXPs() ?? 0;
+  const xpsEl = document.getElementById('userXPs');
+  if (xpsEl) {
+    xpsEl.textContent = '⚡ ' + xps;
   }
 }
 
@@ -810,6 +856,7 @@ Events.on(render, 'afterRender', () => {
     updateBalanceDisplay();
     updateKeysDisplay();
     updateBallsDisplay();
+    updateXPsDisplay();
   });
 })();
 

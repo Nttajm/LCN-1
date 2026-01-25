@@ -103,10 +103,17 @@ export const CasinoAuth = {
         // Create new user with $500 balance
         this.userData = {
           balance: 500.00,
+          xps: 0,
+          winStreak: 0,
           casinoStats: {
             totalWagered: 0,
             totalWon: 0,
             gamesPlayed: 0
+          },
+          xpStats: {
+            totalEarned: 0,
+            totalSpent: 0,
+            bestStreak: 0
           },
           createdAt: new Date().toISOString()
         };
@@ -114,7 +121,7 @@ export const CasinoAuth = {
       }
     } catch (error) {
       console.error('Error loading user data:', error);
-      this.userData = { balance: 500.00 };
+      this.userData = { balance: 500.00, xps: 0, winStreak: 0 };
     }
     return this.userData;
   },
@@ -159,6 +166,16 @@ export const CasinoAuth = {
   // Get plinko balls remaining
   getPlinkoBalls() {
     return this.userData?.plinkoBalls ?? 45;
+  },
+  
+  // Get xps (XP currency)
+  getXPs() {
+    return this.userData?.xps ?? 0;
+  },
+  
+  // Get win streak
+  getWinStreak() {
+    return this.userData?.winStreak ?? 0;
   },
   
   // Add auth state listener
@@ -386,6 +403,184 @@ export const CasinoDB = {
     }
     
     return { penalty: 0, ballsLost: 0 };
+  },
+  
+  // ========================================
+  // CHARGES & XP SYSTEM
+  // ========================================
+  
+  // Award xps for wins - any win earns xps, 2x+ earns bonus
+  // Streaks multiply the xp gain exponentially
+  async awardXPs(game, multiplier, betAmount) {
+    if (!CasinoAuth.currentUser) {
+      console.log('awardXPs: Not signed in');
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const currentXPs = CasinoAuth.userData?.xps ?? 0;
+      const currentStreak = CasinoAuth.userData?.winStreak ?? 0;
+      
+      // Base xps - every win gets at least 1 xp
+      let baseXPs = 1;
+      
+      // Game-specific bonus xp calculation for 2x+ wins
+      if (multiplier >= 2) {
+        switch(game) {
+          case 'plinko':
+            if (multiplier >= 100) baseXPs = 50;
+            else if (multiplier >= 20) baseXPs = 20;
+            else if (multiplier >= 10) baseXPs = 10;
+            else if (multiplier >= 5) baseXPs = 5;
+            else baseXPs = 2;
+            break;
+            
+          case 'gems':
+            if (multiplier >= 10) baseXPs = 25;
+            else if (multiplier >= 5) baseXPs = 12;
+            else if (multiplier >= 3) baseXPs = 6;
+            else baseXPs = 3;
+            break;
+            
+          case 'dragon-tower':
+            if (multiplier >= 50) baseXPs = 100;
+            else if (multiplier >= 20) baseXPs = 40;
+            else if (multiplier >= 10) baseXPs = 20;
+            else if (multiplier >= 5) baseXPs = 10;
+            else baseXPs = 4;
+            break;
+            
+          default:
+            baseXPs = Math.max(1, Math.floor(multiplier));
+        }
+      }
+      
+      // Exponential streak multiplier: 1, 2, 4, 8, 16... capped at 32x
+      const streakMultiplier = Math.min(8, Math.pow(1.5, currentStreak));
+      const xpsEarned = Math.round(baseXPs * streakMultiplier);
+      
+      const newStreak = currentStreak + 1;
+      const newXPs = currentXPs + xpsEarned;
+      const currentBestStreak = CasinoAuth.userData?.xpStats?.bestStreak ?? 0;
+      
+      console.log(`awardXPs: base=${baseXPs}, streak=${currentStreak}, mult=${streakMultiplier}, earned=${xpsEarned}`);
+      
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        xps: newXPs,
+        winStreak: newStreak,
+        'xpStats.totalEarned': increment(xpsEarned),
+        'xpStats.bestStreak': newStreak > currentBestStreak ? newStreak : currentBestStreak
+      });
+      
+      CasinoAuth.userData.xps = newXPs;
+      CasinoAuth.userData.winStreak = newStreak;
+      if (!CasinoAuth.userData.xpStats) {
+        CasinoAuth.userData.xpStats = {};
+      }
+      CasinoAuth.userData.xpStats.bestStreak = Math.max(currentBestStreak, newStreak);
+      
+      return { 
+        success: true, 
+        xpsEarned, 
+        totalXPs: newXPs, 
+        streak: newStreak,
+        streakMultiplier 
+      };
+    } catch (error) {
+      console.error('Error awarding xps:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Reset streak on loss or sub-2x win
+  async resetStreak() {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      
+      if ((CasinoAuth.userData?.winStreak ?? 0) > 0) {
+        await updateDoc(doc(db, 'mulon_users', userId), {
+          winStreak: 0
+        });
+        
+        CasinoAuth.userData.winStreak = 0;
+      }
+      
+      return { success: true, streak: 0 };
+    } catch (error) {
+      console.error('Error resetting streak:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Use xps (for future features like buying collectibles)
+  async useXPs(amount) {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    const currentXPs = CasinoAuth.userData?.xps ?? 0;
+    if (currentXPs < amount) {
+      return { success: false, error: 'Insufficient xps!' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const newXPs = currentXPs - amount;
+      
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        xps: newXPs,
+        'xpStats.totalSpent': increment(amount)
+      });
+      
+      CasinoAuth.userData.xps = newXPs;
+      
+      return { success: true, newXPs };
+    } catch (error) {
+      console.error('Error using xps:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // ========================================
+  // CARD COLLECTION SYSTEM
+  // ========================================
+  
+  // Save a received card to user's collection
+  async saveCard(cardNumber) {
+    if (!CasinoAuth.currentUser) {
+      console.log('saveCard: Not signed in');
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const currentCards = CasinoAuth.userData?.cards ?? [];
+      
+      // Add the card ID to the collection
+      const updatedCards = [...currentCards, cardNumber];
+      
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        cards: updatedCards
+      });
+      
+      CasinoAuth.userData.cards = updatedCards;
+      console.log(`Card ${cardNumber} saved to collection. Total: ${updatedCards.length}`);
+      
+      return { success: true, totalCards: updatedCards.length };
+    } catch (error) {
+      console.error('Error saving card:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Get user's card collection
+  getCards() {
+    return CasinoAuth.userData?.cards ?? [];
   }
 };
 

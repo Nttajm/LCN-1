@@ -188,6 +188,18 @@ body.sidebar-open {
   color: var(--green-primary);
 }
 
+/* XPs display styles */
+.xps-item {
+  position: relative;
+}
+
+.xps-amount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #a855f7;
+}
+
 /* Keys display styles */
 .keys-item {
   position: relative;

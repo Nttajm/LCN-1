@@ -249,6 +249,9 @@ async function startGame() {
   document.getElementById('betAmount').disabled = true;
   document.getElementById('difficultySelect').disabled = true;
   
+  // Disable bet adjustment buttons
+  document.querySelectorAll('.bet-adj').forEach(btn => btn.disabled = true);
+  
   // Hide game over overlay
   document.getElementById('gameOverOverlay').classList.remove('show');
   
@@ -266,6 +269,18 @@ async function cashout() {
   
   // Record win in database
   await window.CasinoDB.recordWin(winAmount);
+  
+  // Award xps for ANY win - streak grows exponentially
+  try {
+    const xpResult = await window.CasinoDB.awardXPs('dragon-tower', config.currentMultiplier, config.betAmount);
+    console.log('Dragon Tower xp result:', xpResult);
+    if (xpResult && xpResult.success && xpResult.xpsEarned > 0) {
+      updateXPsDisplay();
+      showXPGain(xpResult.xpsEarned, xpResult.streak, xpResult.streakMultiplier);
+    }
+  } catch (err) {
+    console.error('Error awarding xps:', err);
+  }
   
   config.sessionProfit += profit;
   
@@ -329,8 +344,9 @@ async function gameOver(won, amount = 0) {
       window.ProfitGraph.addPoint(-config.betAmount);
     }
     
-    // Record loss - deducts 1 key
+    // Record loss - deducts 1 key and resets streak
     await window.CasinoDB.recordLoss('dragon-tower');
+    await window.CasinoDB.resetStreak();
     updateKeysDisplay();
     
     updateProfitDisplay();
@@ -343,6 +359,9 @@ async function gameOver(won, amount = 0) {
   document.getElementById('cashoutBtn').classList.remove('show');
   document.getElementById('betAmount').disabled = false;
   document.getElementById('difficultySelect').disabled = false;
+  
+  // Re-enable bet adjustment buttons
+  document.querySelectorAll('.bet-adj').forEach(btn => btn.disabled = false);
 }
 
 // Reset for new game
@@ -373,6 +392,36 @@ function updateKeysDisplay() {
   }
 }
 
+function updateXPsDisplay() {
+  const xps = window.CasinoAuth?.getXPs() ?? 0;
+  const xpsEl = document.getElementById('userXPs');
+  if (xpsEl) {
+    xpsEl.textContent = '⚡ ' + xps;
+  }
+}
+
+function showXPGain(xps, streak, streakMult) {
+  const popup = document.createElement('div');
+  popup.className = 'xp-popup';
+  
+  // Position next to xps box
+  const xpsBox = document.querySelector('.xps-box');
+  if (xpsBox) {
+    const rect = xpsBox.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 5) + 'px';
+    popup.style.right = (window.innerWidth - rect.right) + 'px';
+  }
+  
+  const streakText = streak > 1 && streakMult ? ` <span class="xp-streak">🔥${streak}</span>` : '';
+  popup.innerHTML = `<span class="xp-amount">⚡+${xps}${streakText}</span>`;
+  document.body.appendChild(popup);
+  
+  setTimeout(() => {
+    popup.classList.add('hide');
+    setTimeout(() => popup.remove(), 100);
+  }, 700);
+}
+
 function updateProfitDisplay() {
   const profitEl = document.getElementById('sessionProfit');
   const fmt = window.FormatUtils;
@@ -381,6 +430,7 @@ function updateProfitDisplay() {
 }
 
 function adjustBet(mult) {
+  if (config.isPlaying) return; // Don't allow changes while playing
   const input = document.getElementById('betAmount');
   config.betAmount = Math.max(1, Math.min(1000, Math.round(config.betAmount * mult)));
   input.value = config.betAmount;
@@ -448,6 +498,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateAuthUI(user);
     updateBalanceDisplay();
     updateKeysDisplay();
+    updateXPsDisplay();
   });
   
   // Initialize profit graph
