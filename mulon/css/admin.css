@@ -1635,9 +1635,9 @@
 .info-edit-item {
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
   padding: 1rem;
   margin-bottom: 0.55rem;
-  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   gap: 1rem;
