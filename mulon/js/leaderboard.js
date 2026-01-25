@@ -51,14 +51,28 @@ let allMarkets = {};
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
+
+// Format number with commas (e.g., 1000 -> 1,000)
+// Use shared FormatUtils if available, otherwise local implementation
+function formatWithCommas(num) {
+    if (window.FormatUtils?.formatWithCommas) return window.FormatUtils.formatWithCommas(num);
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function formatCurrency(amount) {
+    if (window.FormatUtils?.formatCurrency) return window.FormatUtils.formatCurrency(amount);
     const value = parseFloat(amount) || 0;
-    const prefix = value >= 0 ? '+$' : '-$';
-    return value >= 0 ? `+$${value.toFixed(2)}` : `-$${Math.abs(value).toFixed(2)}`;
+    const absValue = Math.abs(value);
+    const [whole, decimal] = absValue.toFixed(2).split('.');
+    const formatted = formatWithCommas(whole) + '.' + decimal;
+    return value >= 0 ? `+$${formatted}` : `-$${formatted}`;
 }
 
 function formatBalance(amount) {
-    return `$${(parseFloat(amount) || 0).toFixed(2)}`;
+    if (window.FormatUtils?.formatBalance) return window.FormatUtils.formatBalance(amount);
+    const value = parseFloat(amount) || 0;
+    const [whole, decimal] = value.toFixed(2).split('.');
+    return `$${formatWithCommas(whole)}.${decimal}`;
 }
 
 function getInitials(name) {

@@ -361,7 +361,8 @@ function resetGame() {
 // Update displays
 function updateBalanceDisplay() {
   const balance = window.CasinoAuth?.getBalance() ?? 0;
-  document.getElementById('userBalance').textContent = '$' + balance.toFixed(2);
+  const fmt = window.FormatUtils;
+  document.getElementById('userBalance').textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
 }
 
 function updateKeysDisplay() {
@@ -374,7 +375,8 @@ function updateKeysDisplay() {
 
 function updateProfitDisplay() {
   const profitEl = document.getElementById('sessionProfit');
-  profitEl.textContent = (config.sessionProfit >= 0 ? '+' : '') + '$' + config.sessionProfit.toFixed(2);
+  const fmt = window.FormatUtils;
+  profitEl.textContent = fmt ? fmt.formatProfit(config.sessionProfit) : ((config.sessionProfit >= 0 ? '+' : '') + '$' + config.sessionProfit.toFixed(2));
   profitEl.className = 'stat-value ' + (config.sessionProfit >= 0 ? 'profit' : 'loss');
 }
 

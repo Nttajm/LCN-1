@@ -68,7 +68,8 @@ const ProfitGraph = {
     const valueEl = this.valueEl || document.getElementById('profitGraphValue');
     if (valueEl && this.data.length > 0) {
       const current = this.data[this.data.length - 1];
-      valueEl.textContent = (current >= 0 ? '+' : '') + '$' + current.toFixed(2);
+      const fmt = window.FormatUtils;
+      valueEl.textContent = fmt ? fmt.formatProfit(current) : ((current >= 0 ? '+' : '') + '$' + current.toFixed(2));
       valueEl.className = 'profit-graph-value ' + (current >= 0 ? 'positive' : 'negative');
     }
   },

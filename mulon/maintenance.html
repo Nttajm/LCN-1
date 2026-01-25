@@ -236,6 +236,82 @@
       height: 24px;
     }
 
+    /* Access Code Section */
+    .access-code-section {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+    }
+
+    .access-code-section h3 {
+      color: #a5d6a7;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .code-input-wrapper {
+      display: flex;
+      gap: 10px;
+      max-width: 350px;
+      margin: 0 auto;
+    }
+
+    .code-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #e8f5e9;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .code-input:focus {
+      border-color: #4caf50;
+    }
+
+    .code-input::placeholder {
+      color: #66bb6a;
+      opacity: 0.5;
+    }
+
+    .code-submit-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #4caf50, #388e3c);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .code-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    }
+
+    .code-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .code-error {
+      color: #ef5350;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .code-error.show {
+      display: block;
+    }
+
     .beta-tag {
       display: inline-block;
       background: linear-gradient(135deg, #ff9800, #ffc107);
@@ -318,7 +394,58 @@
       </a>
     </div>
 
+    <!-- Access Code Section -->
+    <div class="access-code-section">
+      <h3>🔐 Have an access code?</h3>
+      <div class="code-input-wrapper">
+        <input type="text" class="code-input" id="accessCodeInput" placeholder="Enter access code..." autocomplete="off">
+        <button class="code-submit-btn" id="accessCodeBtn">Enter</button>
+      </div>
+      <p class="code-error" id="codeError">Invalid access code. Please try again.</p>
+    </div>
+
     <p class="footer-note">Thank you for being part of the Mulon beta! 💚</p>
   </div>
+
+  <script type="module">
+    import { verifyAccessCode, grantCodeAccess } from './js/maintenance.js';
+
+    const codeInput = document.getElementById('accessCodeInput');
+    const codeBtn = document.getElementById('accessCodeBtn');
+    const codeError = document.getElementById('codeError');
+
+    function tryAccessCode() {
+      const code = codeInput.value;
+      
+      if (verifyAccessCode(code)) {
+        grantCodeAccess();
+        // Redirect to main site
+        window.location.href = 'index.html';
+      } else {
+        codeError.classList.add('show');
+        codeInput.classList.add('error');
+        codeInput.value = '';
+        codeInput.focus();
+        
+        // Hide error after 3 seconds
+        setTimeout(() => {
+          codeError.classList.remove('show');
+        }, 3000);
+      }
+    }
+
+    codeBtn.addEventListener('click', tryAccessCode);
+    
+    codeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        tryAccessCode();
+      }
+    });
+
+    // Clear error on input
+    codeInput.addEventListener('input', () => {
+      codeError.classList.remove('show');
+    });
+  </script>
 </body>
 </html>

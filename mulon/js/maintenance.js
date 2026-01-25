@@ -8,6 +8,7 @@
 // ========================================
 export const MAINTENANCE_MODE = true; // Set to false to disable maintenance mode
 export const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'captrojolmao@gmail.com'];
+export const ACCESS_CODE = 'tonyaatefries'; // Secret access code for maintenance bypass
 
 // ========================================
 // HELPER FUNCTIONS
@@ -21,12 +22,29 @@ export function hasStoredAdminAccess() {
   return sessionStorage.getItem('mulon_admin_access') === 'granted';
 }
 
+export function hasStoredCodeAccess() {
+  return sessionStorage.getItem('mulon_code_access') === 'granted';
+}
+
 export function grantAdminAccess() {
   sessionStorage.setItem('mulon_admin_access', 'granted');
 }
 
+export function grantCodeAccess() {
+  sessionStorage.setItem('mulon_code_access', 'granted');
+}
+
 export function revokeAdminAccess() {
   sessionStorage.removeItem('mulon_admin_access');
+}
+
+export function revokeCodeAccess() {
+  sessionStorage.removeItem('mulon_code_access');
+}
+
+export function verifyAccessCode(code) {
+  if (!code) return false;
+  return code.toLowerCase().trim() === ACCESS_CODE.toLowerCase();
 }
 
 // ========================================
@@ -58,6 +76,13 @@ export function checkMaintenanceAccess(options = {}) {
     // Check if user already has admin access stored in session
     if (hasStoredAdminAccess()) {
       console.log('[Maintenance] Admin access already granted (from session)');
+      resolve(true);
+      return;
+    }
+
+    // Check if user has code access stored in session
+    if (hasStoredCodeAccess()) {
+      console.log('[Maintenance] Code access already granted (from session)');
       resolve(true);
       return;
     }
@@ -103,7 +128,7 @@ export function redirectToMaintenance(url = 'maintenance.html') {
  */
 export function hasMaintenanceAccess() {
   if (!MAINTENANCE_MODE) return true;
-  return hasStoredAdminAccess();
+  return hasStoredAdminAccess() || hasStoredCodeAccess();
 }
 
 // Make available globally for non-module scripts
@@ -111,10 +136,15 @@ if (typeof window !== 'undefined') {
   window.MulonMaintenance = {
     MAINTENANCE_MODE,
     ADMIN_EMAILS,
+    ACCESS_CODE,
     isAdminEmail,
     hasStoredAdminAccess,
+    hasStoredCodeAccess,
     grantAdminAccess,
+    grantCodeAccess,
     revokeAdminAccess,
+    revokeCodeAccess,
+    verifyAccessCode,
     checkMaintenanceAccess,
     redirectToMaintenance,
     hasMaintenanceAccess
