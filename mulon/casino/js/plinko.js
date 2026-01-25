@@ -526,7 +526,7 @@ function startAuto() {
   // Get auto settings
   config.betAmount = parseFloat(document.getElementById('autoBetAmount').value) || 10;
   autoConfig.dropsPerSecond = parseInt(document.getElementById('autoSpeedSelect').value) || 3;
-  autoConfig.totalDrops = parseInt(document.getElementById('autoDropCount').value) || 50;
+  autoConfig.totalDrops = parseInt(document.getElementById('autoDropCount').value);
   autoConfig.stopOnProfit = parseFloat(document.getElementById('autoStopProfit').value) || 0;
   autoConfig.stopOnLoss = parseFloat(document.getElementById('autoStopLoss').value) || 0;
   

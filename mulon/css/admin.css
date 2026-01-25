@@ -1324,6 +1324,7 @@
 
 .edit-user-info-button {
   background: var(--bg-primary);
+  cursor: pointer;
 }
 
 .edit-user-info-icon {

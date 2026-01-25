@@ -1901,6 +1901,7 @@ const MulonData = {
           id: userDoc.id,
           displayName: userData.displayName || 'Anonymous',
           avatarStyle: userData.avatarStyle || '',
+          leaderStyle: userData.leaderStyle || '',
           overUnderSynced: userData.overUnderSynced || false,
           email: userData.email || 'Unknown',
           photoURL: userData.photoURL || null,
@@ -1946,6 +1947,40 @@ const MulonData = {
       return { success: true };
     } catch (error) {
       console.error('Error updating avatar style:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getLeaderboardStyle(user) {
+    if (user.leaderStyle) {
+      return user.leaderStyle;
+    }
+    if (user.email) {
+      try {
+          const ouQuery = query(ouUsersRef, where('email', '==', user.email));
+          const ouSnapshot = await getDocs(ouQuery);
+          if (!ouSnapshot.empty) {
+              const ouUserData = ouSnapshot.docs[0].data();
+              if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
+                  return ouUserData.leaderStyle;
+              }
+          }
+      } catch (e) {
+          return '';
+      }
+    }
+    return '';
+  },
+
+  // Update a user's leaderboard style (for admin)
+  async updateLeaderStyle(userId, newLeaderStyle) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        leaderStyle: newLeaderStyle
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating leaderboard style:', error);
       return { success: false, error: error.message };
     }
   },

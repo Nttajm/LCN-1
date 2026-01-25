@@ -1068,7 +1068,7 @@ function renderUsersList(users) {
   
   usersList.innerHTML = users.map(user => `
     <div class="user-admin-item" data-user-id="${user.id}">
-      <button class="edit-user-info-button" data-user-id="${user.id}" 'title="Click to view/edit user data"' >
+      <button class="edit-user-info-button" data-user-id="${user.id}" title="Click to view/edit user data">
         <span class="edit-user-info-icon">📝</span>
       </button>
       ${user.photoURL 
@@ -1083,7 +1083,7 @@ function renderUsersList(users) {
         ${user.positions.length} position${user.positions.length !== 1 ? 's' : ''}
         ${user.positions.length > 0 ? '<span class="edit-icon">✏️</span>' : ''}
       </button>
-      <button class=user-items has-positions clickable" data-user-id="${user.id}" 'title="Click to view/edit items"' >
+      <button class=user-items has-positions clickable" data-user-id="${user.id}" title="Click to view/edit items">
         Edit items <span class="edit-icon">✏️</span>
       </button>
       <div class="user-admin-balance">
@@ -1113,11 +1113,11 @@ function renderUsersList(users) {
 
   // Attach user info view/edit listeners
   usersList.querySelectorAll('.edit-user-info-button').forEach(btn => {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', async function () {
       const userId = this.dataset.userId;
       const user = allUsers.find(u => u.id === userId);
       if (user) {
-        showUserInfoModal(user);
+        await showUserInfoModal(user);
       }
     });
   });
@@ -1328,7 +1328,7 @@ async function applyBulkKeysAction() {
 // ========================================
 let currentInfoUser = null;
 
-function showUserInfoModal(user) {
+async function showUserInfoModal(user) {
   currentInfoUser = user;
   const modal = document.getElementById('infoModal');
   const userInfo = document.getElementById('infoModalUser');
@@ -1382,8 +1382,17 @@ function showUserInfoModal(user) {
     </div>
     <div class="info-edit-item">
       <span class="info-edit-name">Avatar Style</span>
-      <input class="info-edit-input" id="avatar-style" value="${escapeHtml(user.avatarStyle)}">
+      <input class="info-edit-input" id="avatarStyle" value="${escapeHtml(user.avatarStyle)}">
       <button class="btn-icon save-user" id="saveAvatarStyle" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+    <div class="info-edit-item">
+      <span class="info-edit-name">Leaderboard Style</span>
+      <input class="info-edit-input" id="leaderStyle" value="${await MulonData.getLeaderboardStyle(user)}">
+      <button class="btn-icon save-user" id="saveLeaderStyle" title="Save">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
@@ -1404,10 +1413,12 @@ function setupInfoModalListeners() {
   const cancelBtn = document.getElementById('cancelInfoModal');
 
   const usernameField = document.getElementById('username');
-  const avatarStyleField = document.getElementById('avatar-style');
+  const avatarStyleField = document.getElementById('avatarStyle');
+  const leaderStyleField = document.getElementById('leaderStyle');
 
   const usernameSaveBtn = document.getElementById('saveUsername');
   const avatarStyleSaveBtn = document.getElementById('saveAvatarStyle');
+  const leaderStyleSaveBtn = document.getElementById('saveLeaderStyle');
   
   // Close handlers
   const closeModal = () => {
@@ -1448,11 +1459,6 @@ function setupInfoModalListeners() {
   avatarStyleSaveBtn.onclick = async() => {
     const newAvatarStyle = avatarStyleField.value;
 
-    if (newAvatarStyle.length > 20 || newAvatarStyle.length === 0) {
-      showToast('Please enter a valid username (20 chars max)');
-      return;
-    }
-
     const result = await MulonData.updateAvatarStyle(currentInfoUser.id, newAvatarStyle);
 
     if (result.success) {
@@ -1461,6 +1467,24 @@ function setupInfoModalListeners() {
       const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
       if (userIndex !== -1) {
         allUsers[userIndex].avatarStyle = newAvatarStyle;
+        updateUsersStats();
+      }
+    } else {
+      showToast('Error updating avatar style', 'error');
+    }
+  };
+
+  leaderStyleSaveBtn.onclick = async() => {
+    const newLeaderStyle = leaderStyleField.value;
+
+    const result = await MulonData.updateLeaderStyle(currentInfoUser.id, newLeaderStyle);
+
+    if (result.success) {
+      showToast('Leaderboard style updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].leaderStyle = newLeaderStyle;
         updateUsersStats();
       }
     } else {

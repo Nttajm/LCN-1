@@ -151,22 +151,24 @@ async function loadLeaderboardData() {
             
             // Try to get Over Under username and leaderStyle by email
             let displayName = userData.displayName || 'Anonymous';
-            let leaderStyle = '';
-            if (userData.email) {
-                try {
-                    const ouQuery = query(ouUsersRef, where('email', '==', userData.email));
-                    const ouSnapshot = await getDocs(ouQuery);
-                    if (!ouSnapshot.empty) {
-                        const ouUserData = ouSnapshot.docs[0].data();
-                        if (ouUserData.username) {
-                            displayName = ouUserData.username;
+            let leaderStyle = userData.leaderStyle || '';
+            if (leaderStyle === '') {
+                if (userData.email) {
+                    try {
+                        const ouQuery = query(ouUsersRef, where('email', '==', userData.email));
+                        const ouSnapshot = await getDocs(ouQuery);
+                        if (!ouSnapshot.empty) {
+                            const ouUserData = ouSnapshot.docs[0].data();
+                            if (ouUserData.username) {
+                                displayName = ouUserData.username;
+                            }
+                            if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
+                                leaderStyle = ouUserData.leaderStyle;
+                            }
                         }
-                        if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
-                            leaderStyle = ouUserData.leaderStyle;
-                        }
+                    } catch (e) {
+                        // Silently fail, use default displayName
                     }
-                } catch (e) {
-                    // Silently fail, use default displayName
                 }
             }
             
