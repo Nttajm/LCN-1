@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketplace - Mulon</title>
+  <link rel="stylesheet" href="css/leaderboard.css">
+  <link rel="stylesheet" href="css/leaderstyles.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon (beta)</span>
+      </a>
+      <div class="search-box">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" placeholder="Search traders...">
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="balance-display">
+        <div class="balance-item">
+          <span class="balance-label">Balance</span>
+          <span class="balance-amount" id="userBalance">$500.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item">
+          <span class="balance-label">Portfolio</span>
+          <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item keys-item">
+          <span class="balance-label">Keys <span class="keys-info-btn" id="keysInfoBtn">?</span></span>
+          <span class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 15</span>
+          <div class="keys-tooltip" id="keysTooltip">
+            <h4><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> Keys</h4>
+            <p>Keys are a special currency that can be used for:</p>
+            <ul>
+              <li>Playing casino games</li>
+              <li>Buying collectables</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Earn Keys:</strong></p>
+            <ul>
+              <li>+3 keys for every winning prediction</li>
+              <li>+1 key per day (daily login)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="user-menu" id="userMenu">
+        <div class="user-avatar" id="userAvatar">
+          <span id="userInitials">?</span>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info" id="userInfo">
+            <span class="user-name" id="userName">Guest</span>
+            <span class="user-email" id="userEmail">Not signed in</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="signOutBtn" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+          </button>
+          <button class="dropdown-item signin" id="headerSignInBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            </svg>
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="index.html?cat=all" class="nav-link">All Markets</a></li>
+        <li><a href="leaderbaord.html" class="nav-link active">Leaderboard</a></li>
+        <li><a href="casino.html" class="nav-link">Casino</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">Mulon</span>
+      <span class="footer-text">© 2026 Mulon Markets. For educational use only.</span>
+    </div>
+  </footer>
+
+  <script src="js/format-utils.js"></script>
+  <script type="module" src="js/leaderboard.js"></script>
+</body>
+</html>

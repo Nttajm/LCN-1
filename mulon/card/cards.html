@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collectible Cards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a0f;
+            font-family: 'Rajdhani', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(120, 0, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 0, 100, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 200, 255, 0.08) 0%, transparent 60%);
+            animation: bgPulse 8s ease-in-out infinite;
+            z-index: -2;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, #a855f7, #3b82f6, #10b981);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGradient 5s ease infinite;
+            text-shadow: 0 0 40px rgba(168, 85, 247, 0.5);
+            letter-spacing: 4px;
+        }
+
+        @keyframes titleGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 1.1rem;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+        }
+
+        /* Filter buttons */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(168, 85, 247, 0.3);
+            border-color: #a855f7;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 50px;
+            max-width: 1400px;
+        }
+
+        .card-wrapper {
+            perspective: 1500px;
+        }
+
+        .card {
+            width: 300px;
+            height: 420px;
+            border-radius: 25px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Card flip functionality */
+        .card.flipped {
+            transform: rotateY(180deg) !important;
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-back-pattern {
+            position: absolute;
+            inset: 0;
+            background: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 20px);
+        }
+
+        .card-back-logo {
+            font-size: 60px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .card-back-text {
+            font-family: 'Orbitron', sans-serif;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 25px;
+            background: linear-gradient(
+                var(--shine-angle, 125deg),
+                transparent 0%,
+                rgba(255, 255, 255, 0.05) 35%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0.05) 65%,
+                transparent 100%
+            );
+            background-size: 250% 250%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Enhanced holographic effect */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 25px;
+            background: 
+                linear-gradient(
+                    var(--holo-angle, 115deg),
+                    transparent 0%,
+                    rgba(255, 0, 0, 0.15) 20%,
+                    rgba(255, 127, 0, 0.15) 30%,
+                    rgba(255, 255, 0, 0.15) 40%,
+                    rgba(0, 255, 0, 0.15) 50%,
+                    rgba(0, 127, 255, 0.15) 60%,
+                    rgba(75, 0, 130, 0.15) 70%,
+                    rgba(143, 0, 255, 0.15) 80%,
+                    transparent 100%
+                );
+            background-size: 400% 400%;
+            opacity: 0;
+            mix-blend-mode: color-dodge;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .card:hover::after {
+            opacity: 1;
+            animation: holoRainbow 4s linear infinite;
+        }
+
+        @keyframes holoRainbow {
+            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 58%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-image::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: inherit;
+            filter: blur(30px);
+            transform: scale(1.2);
+            opacity: 0.5;
+        }
+
+        .card-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(transparent, rgba(26, 26, 46, 1));
+        }
+
+        .card-emoji {
+            font-size: 100px;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+            animation: emojiFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes emojiFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.05); }
+        }
+
+        /* Actual product images */
+        .card-product-image {
+            width: 80%;
+            max-width: 200px;
+            height: auto;
+            object-fit: contain;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 15px 40px rgba(0, 0, 0, 0.6));
+            animation: imageFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes imageFloat {
+            0%, 100% { transform: translateY(0) scale(1) rotate(-2deg); }
+            50% { transform: translateY(-12px) scale(1.03) rotate(2deg); }
+        }
+
+        .card-image.has-product-image {
+            background-size: cover !important;
+            background-position: center !important;
+        }
+
+        .card-image.has-product-image::before {
+            opacity: 0.3;
+        }
+
+        .card-content {
+            padding: 18px 22px;
+            color: white;
+            position: relative;
+        }
+
+        .card-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 15px currentColor;
+            letter-spacing: 1px;
+        }
+
+        .card-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.6;
+            margin-bottom: 12px;
+        }
+
+        .card-description {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+
+        .rarity-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 1;
+            font-family: 'Orbitron', sans-serif;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Card number */
+        .card-number {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            letter-spacing: 2px;
+        }
+
+        /* Element badge */
+        .element-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        /* NEW RARITY: Mythic */
+        .mythic {
+            background: linear-gradient(135deg, #ff0080, #7928ca, #00d4ff);
+            border-color: #ff0080;
+        }
+        .mythic .card-inner {
+            border-color: rgba(255, 0, 128, 0.5);
+        }
+        .mythic .card-name { color: #ff0080; }
+        .mythic .rarity-badge {
+            background: linear-gradient(135deg, #ff0080, #7928ca);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(255, 0, 128, 0.6);
+            animation: mythicPulse 2s ease-in-out infinite;
+        }
+        @keyframes mythicPulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(255, 0, 128, 0.6); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 128, 0.9), 0 0 60px rgba(121, 40, 202, 0.5); }
+        }
+
+        /* Card Rarities - Enhanced */
+        .legendary {
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ffcc00);
+            border-color: #ffcc00;
+        }
+        .legendary .card-inner {
+            border-color: rgba(255, 204, 0, 0.4);
+        }
+        .legendary .card-name { color: #ffcc00; }
+        .legendary .rarity-badge {
+            background: linear-gradient(135deg, #ffcc00, #ff6b35);
+            color: #000;
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.6);
+        }
+
+        .epic {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7, #c084fc);
+            border-color: #a855f7;
+        }
+        .epic .card-inner {
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        .epic .card-name { color: #c084fc; }
+        .epic .rarity-badge {
+            background: linear-gradient(135deg, #a855f7, #8b5cf6);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+        }
+
+        .rare {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa, #93c5fd);
+            border-color: #60a5fa;
+        }
+        .rare .card-inner {
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+        .rare .card-name { color: #93c5fd; }
+        .rare .rarity-badge {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(96, 165, 250, 0.5);
+        }
+
+        .uncommon {
+            background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
+            border-color: #34d399;
+        }
+        .uncommon .card-inner {
+            border-color: rgba(52, 211, 153, 0.4);
+        }
+        .uncommon .card-name { color: #6ee7b7; }
+        .uncommon .rarity-badge {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: #000;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+        }
+
+        .common {
+            background: linear-gradient(135deg, #6b7280, #9ca3af, #d1d5db);
+            border-color: #9ca3af;
+        }
+        .common .card-inner {
+            border-color: rgba(156, 163, 175, 0.3);
+        }
+        .common .card-name { color: #d1d5db; }
+        .common .rarity-badge {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            color: #fff;
+        }
+
+        /* Special sparkle effects */
+        .mythic .card-inner::before,
+        .legendary .card-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.9) 1px, transparent 1px),
+                radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+                radial-gradient(circle at 35% 75%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+                radial-gradient(circle at 75% 65%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+                radial-gradient(circle at 5% 85%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+                radial-gradient(circle at 95% 95%, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+                radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
+            animation: sparkle 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        /* Glow effects on hover - Enhanced */
+        .card-wrapper:hover .mythic {
+            box-shadow: 
+                0 30px 60px rgba(255, 0, 128, 0.4),
+                0 0 100px rgba(121, 40, 202, 0.3),
+                0 0 150px rgba(0, 212, 255, 0.2),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .legendary {
+            box-shadow: 
+                0 30px 60px rgba(255, 107, 53, 0.4),
+                0 0 100px rgba(255, 204, 0, 0.3),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .epic {
+            box-shadow: 
+                0 30px 60px rgba(139, 92, 246, 0.4),
+                0 0 100px rgba(168, 85, 247, 0.3),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .rare {
+            box-shadow: 
+                0 30px 60px rgba(59, 130, 246, 0.4),
+                0 0 100px rgba(96, 165, 250, 0.3),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-wrapper:hover .uncommon {
+            box-shadow: 
+                0 30px 60px rgba(16, 185, 129, 0.3),
+                0 0 80px rgba(52, 211, 153, 0.2),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Element backgrounds - Enhanced with animation */
+        .fire-bg { 
+            background: linear-gradient(135deg, #ff4500 0%, #ff6b35 30%, #ff8c00 60%, #ffa500 100%);
+        }
+        .fire-bg::before {
+            background: linear-gradient(135deg, #ff4500 0%, #ff6b35 50%, #ff8c00 100%) !important;
+        }
+
+        .water-bg { 
+            background: linear-gradient(135deg, #0066cc 0%, #00aaff 30%, #66ccff 60%, #99ddff 100%);
+        }
+
+        .earth-bg { 
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 30%, #cd853f 60%, #deb887 100%);
+        }
+
+        .air-bg { 
+            background: linear-gradient(135deg, #87ceeb 0%, #b0e0e6 30%, #e0ffff 60%, #f0ffff 100%);
+        }
+
+        .lightning-bg { 
+            background: linear-gradient(135deg, #ffd700 0%, #ffec8b 30%, #fff8dc 60%, #fffacd 100%);
+        }
+
+        .shadow-bg { 
+            background: linear-gradient(135deg, #1a0a2e 0%, #2f1f4c 30%, #4a2c7a 60%, #6b3fa0 100%);
+        }
+
+        .ice-bg {
+            background: linear-gradient(135deg, #a5f3fc 0%, #67e8f9 30%, #22d3ee 60%, #06b6d4 100%);
+        }
+
+        .nature-bg {
+            background: linear-gradient(135deg, #166534 0%, #22c55e 30%, #4ade80 60%, #86efac 100%);
+        }
+
+        .cosmic-bg {
+            background: linear-gradient(135deg, #0c0a1d 0%, #1e1b4b 30%, #4338ca 60%, #6366f1 100%);
+        }
+
+        .void-bg {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #2d2d2d 60%, #404040 100%);
+        }
+
+        /* Animated backgrounds for special cards */
+        .mythic .card-image {
+            animation: mythicBg 5s ease-in-out infinite;
+        }
+
+        @keyframes mythicBg {
+            0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+            50% { filter: hue-rotate(30deg) brightness(1.1); }
+        }
+
+        /* Resell meter - replaces power bars */
+        .resell-meter {
+            position: absolute;
+            bottom: 12px;
+            left: 20px;
+            right: 60px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resell-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            white-space: nowrap;
+        }
+
+        .resell-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .resell-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .resell-percent {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #22c55e;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        /* Linked stock indicator */
+        .card-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .link-icon {
+            font-size: 0.8rem;
+        }
+
+        .link-text {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            letter-spacing: 0.5px;
+        }
+
+        .link-text strong {
+            color: #60a5fa;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                width: 260px;
+                height: 360px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+
+            .card-emoji {
+                font-size: 70px;
+            }
+
+            .filter-bar {
+                gap: 8px;
+            }
+
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Card entrance animation */
+        .card-wrapper {
+            opacity: 0;
+            animation: cardEnter 0.6s ease forwards;
+        }
+
+        .card-wrapper:nth-child(1) { animation-delay: 0.1s; }
+        .card-wrapper:nth-child(2) { animation-delay: 0.2s; }
+        .card-wrapper:nth-child(3) { animation-delay: 0.3s; }
+        .card-wrapper:nth-child(4) { animation-delay: 0.4s; }
+        .card-wrapper:nth-child(5) { animation-delay: 0.5s; }
+        .card-wrapper:nth-child(6) { animation-delay: 0.6s; }
+        .card-wrapper:nth-child(7) { animation-delay: 0.7s; }
+        .card-wrapper:nth-child(8) { animation-delay: 0.8s; }
+        .card-wrapper:nth-child(9) { animation-delay: 0.9s; }
+        .card-wrapper:nth-child(10) { animation-delay: 1.0s; }
+
+        @keyframes cardEnter {
+            0% { 
+                opacity: 0; 
+                transform: translateY(50px) rotateX(20deg);
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        /* Stats tooltip on hover */
+        .card:hover .card-description {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 0.7; transform: translateY(0); }
+        }
+
+        /* ========== CHEST OPENING STYLES ========== */
+        .chest-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .chest-box {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .chest-box:hover {
+            transform: scale(1.05);
+        }
+
+        .chest-box.opening {
+            animation: chestShake 0.5s ease-in-out;
+        }
+
+        @keyframes chestShake {
+            0%, 100% { transform: rotate(0deg); }
+            20% { transform: rotate(-5deg) scale(1.1); }
+            40% { transform: rotate(5deg) scale(1.1); }
+            60% { transform: rotate(-5deg) scale(1.1); }
+            80% { transform: rotate(5deg) scale(1.1); }
+        }
+
+        .chest-emoji {
+            font-size: 150px;
+            filter: drop-shadow(0 20px 40px rgba(255, 200, 0, 0.5));
+            animation: chestFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes chestFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .open-btn {
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24, #f59e0b);
+            background-size: 200% 200%;
+            color: #000;
+            cursor: pointer;
+            box-shadow: 
+                0 10px 40px rgba(245, 158, 11, 0.5),
+                0 0 60px rgba(245, 158, 11, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            animation: btnGlow 2s ease-in-out infinite;
+        }
+
+        .open-btn:hover:not(:disabled) {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                0 20px 60px rgba(245, 158, 11, 0.6),
+                0 0 100px rgba(245, 158, 11, 0.4);
+        }
+
+        .open-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes btnGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Reel Container */
+        .reel-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .reel-container.active {
+            display: flex;
+        }
+
+        .reel-frame {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 450px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+            box-shadow: 
+                0 0 100px rgba(168, 85, 247, 0.3),
+                inset 0 0 50px rgba(0, 0, 0, 0.5);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Center indicator */
+        .reel-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(168, 85, 247, 0.1) 20%, 
+                rgba(168, 85, 247, 0.2) 50%, 
+                rgba(168, 85, 247, 0.1) 80%, 
+                transparent);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Arrow indicator */
+        .reel-indicator {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+
+        .reel-indicator::before {
+            content: '▼';
+            font-size: 40px;
+            color: #f59e0b;
+            filter: drop-shadow(0 0 20px #f59e0b);
+            animation: indicatorPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes indicatorPulse {
+            0%, 100% { opacity: 1; transform: translateY(0); }
+            50% { opacity: 0.7; transform: translateY(5px); }
+        }
+
+        .reel-track {
+            display: flex;
+            gap: 20px;
+            padding: 15px 0;
+            position: absolute;
+            left: 0;
+            transform: translateY(-50%);
+            will-change: transform;
+            align-items: center;
+        }
+
+        .reel-card {
+            flex-shrink: 0;
+            opacity: 0.5;
+            transition: opacity 0.15s, transform 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reel-card .card {
+            width: 280px;
+            height: 400px;
+            pointer-events: none;
+            margin: 0;
+        }
+
+        /* Edge fade */
+        .reel-frame::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                #0f0f1a 0%, 
+                transparent 15%, 
+                transparent 85%, 
+                #0f0f1a 100%);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Reveal Overlay */
+        .reveal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 2000;
+            transition: background 0.5s ease;
+        }
+
+        .reveal-overlay.active {
+            display: flex;
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        .reveal-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 8px;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(-30px);
+            transition: all 0.5s ease;
+        }
+
+        .reveal-overlay.active .reveal-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-text.mythic { color: #ff0080; text-shadow: 0 0 30px #ff0080; }
+        .reveal-text.legendary { color: #ffcc00; text-shadow: 0 0 30px #ffcc00; }
+        .reveal-text.epic { color: #a855f7; text-shadow: 0 0 30px #a855f7; }
+        .reveal-text.rare { color: #3b82f6; text-shadow: 0 0 30px #3b82f6; }
+        .reveal-text.uncommon { color: #10b981; text-shadow: 0 0 30px #10b981; }
+        .reveal-text.common { color: #9ca3af; text-shadow: 0 0 30px #9ca3af; }
+
+        .reveal-card-container {
+            perspective: 1500px;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .reveal-overlay.active .reveal-card-container {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .reveal-card-container .card {
+            width: 320px;
+            height: 450px;
+            animation: revealSpin 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes revealSpin {
+            0% { transform: rotateY(720deg) scale(0.3); opacity: 0; }
+            60% { transform: rotateY(0deg) scale(1.1); }
+            80% { transform: rotateY(-15deg) scale(1.05); }
+            100% { transform: rotateY(0deg) scale(1); }
+        }
+
+        .reveal-card-container .card::after {
+            opacity: 1 !important;
+            animation: holoRainbow 2s linear infinite !important;
+        }
+
+        .close-reveal-btn {
+            margin-top: 40px;
+            padding: 15px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 30px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .reveal-overlay.active .close-reveal-btn {
+            opacity: 1;
+            transition-delay: 0.8s;
+        }
+
+        .close-reveal-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Burst particles on reveal */
+        .burst-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .burst-particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: burst 1s ease-out forwards;
+        }
+
+        @keyframes burst {
+            0% { 
+                transform: translate(0, 0) scale(1); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translate(var(--tx), var(--ty)) scale(0); 
+                opacity: 0; 
+            }
+        }
+
+        /* Rarity-specific glow on reveal */
+        .reveal-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0;
+            animation: glowPulse 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .reveal-glow.mythic { background: radial-gradient(circle, #ff0080, #7928ca); }
+        .reveal-glow.legendary { background: radial-gradient(circle, #ffcc00, #ff6b35); }
+        .reveal-glow.epic { background: radial-gradient(circle, #a855f7, #8b5cf6); }
+        .reveal-glow.rare { background: radial-gradient(circle, #3b82f6, #60a5fa); }
+        .reveal-glow.uncommon { background: radial-gradient(circle, #10b981, #34d399); }
+        .reveal-glow.common { background: radial-gradient(circle, #6b7280, #9ca3af); }
+
+        .reveal-overlay.active .reveal-glow {
+            opacity: 0.5;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
+        }
+
+        /* Sound wave effect */
+        .sound-waves {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .sound-wave {
+            position: absolute;
+            border: 3px solid currentColor;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .reveal-overlay.active .sound-wave {
+            animation: soundWave 1.5s ease-out forwards;
+        }
+
+        .sound-wave:nth-child(1) { animation-delay: 0s; }
+        .sound-wave:nth-child(2) { animation-delay: 0.2s; }
+        .sound-wave:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes soundWave {
+            0% { 
+                width: 100px; 
+                height: 100px; 
+                margin: -50px;
+                opacity: 0.8; 
+            }
+            100% { 
+                width: 600px; 
+                height: 600px; 
+                margin: -300px;
+                opacity: 0; 
+            }
+        }
+
+        /* Skip hint */
+        .skip-hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating particles background -->
+    <div class="particles" id="particles"></div>
+
+    <h1>🎰 LOOT BOX 🎰</h1>
+    <p class="subtitle">Open the chest to reveal your card</p>
+
+    <!-- Chest Opening UI -->
+    <div class="chest-container">
+        <div class="chest-box" id="chestBox">
+            <span class="chest-emoji">🎁</span>
+        </div>
+        <button class="open-btn" id="openBtn">Open Chest</button>
+    </div>
+
+    <!-- Reel Container -->
+    <div class="reel-container" id="reelContainer">
+        <div class="reel-frame">
+            <div class="reel-indicator"></div>
+            <div class="reel-track" id="reelTrack"></div>
+        </div>
+        <span class="skip-hint">Click anywhere to skip</span>
+    </div>
+
+    <!-- Reveal Overlay -->
+    <div class="reveal-overlay" id="revealOverlay">
+        <div class="reveal-glow" id="revealGlow"></div>
+        <div class="sound-waves" id="soundWaves">
+            <div class="sound-wave"></div>
+            <div class="sound-wave"></div>
+            <div class="sound-wave"></div>
+        </div>
+        <div class="burst-particles" id="burstParticles"></div>
+        <div class="reveal-text" id="revealText">YOU GOT:</div>
+        <div class="reveal-card-container" id="revealCardContainer"></div>
+        <button class="close-reveal-btn" id="closeRevealBtn">Open Another</button>
+    </div>
+
+    <script>
+        // Card data array - easily add, remove, or modify cards here
+        const cardsData = [
+            {
+                id: 1,
+                name: "Tesla Model S Plaid",
+                type: "Electric Vehicle • Luxury",
+                description: "The fastest production car. 0-60 in 1.99 seconds.",
+                rarity: "mythic",
+                elementEmoji: "🔋",
+                emoji: "🚗",
+                image: "teslaplaid.png",
+                background: "linear-gradient(135deg, #1a1a2e 0%, #c0392b 30%, #e74c3c 60%, #ff6b6b 100%)",
+                price: "$89,990",
+                change: "+12%",
+                changePositive: true,
+                linkedStock: "TSLA Stock",
+                resellValue: 95
+            },
+            {
+                id: 2,
+                name: "iPhone 16 Pro Max",
+                type: "Smartphone • Premium",
+                description: "Apple's flagship with A18 Pro chip & titanium design.",
+                rarity: "legendary",
+                elementEmoji: "📱",
+                emoji: "📱",
+                image: "iphone.png",
+                background: "linear-gradient(135deg, #2c3e50 0%, #3498db 30%, #9b59b6 60%, #e91e63 100%)",
+                price: "$1,199",
+                change: "+8%",
+                changePositive: true,
+                linkedStock: "AAPL Stock",
+                resellValue: 85
+            },
+            {
+                id: 3,
+                name: "Xbox Series X",
+                type: "Gaming Console • Next-Gen",
+                description: "Most powerful Xbox ever. 12 teraflops of gaming power.",
+                rarity: "legendary",
+                elementEmoji: "🎮",
+                emoji: "🎮",
+                image: "xbox.png",
+                background: "linear-gradient(135deg, #0e7a0d 0%, #107c10 30%, #1db954 60%, #5ed85a 100%)",
+                price: "$499",
+                change: "+5%",
+                changePositive: true,
+                linkedStock: "MSFT Stock",
+                resellValue: 75
+            },
+            {
+                id: 4,
+                name: "PlayStation 5",
+                type: "Gaming Console • Next-Gen",
+                description: "Sony's flagship with DualSense haptic feedback.",
+                rarity: "epic",
+                elementEmoji: "🕹️",
+                emoji: "🎮",
+                image: "ps5.png",
+                background: "linear-gradient(135deg, #00439c 0%, #0070d1 30%, #00a2ff 60%, #ffffff 100%)",
+                price: "$499",
+                change: "+3%",
+                changePositive: true,
+                linkedStock: "SONY Stock",
+                resellValue: 72
+            },
+            {
+                id: 5,
+                name: "MacBook Pro M3 Max",
+                type: "Laptop • Pro Workstation",
+                description: "Apple silicon beast with 16\" Liquid Retina XDR.",
+                rarity: "epic",
+                elementEmoji: "💻",
+                emoji: "💻",
+                image: "macbook.png",
+                background: "linear-gradient(135deg, #1d1d1f 0%, #3a3a3c 30%, #636366 60%, #8e8e93 100%)",
+                price: "$3,499",
+                change: "+6%",
+                changePositive: true,
+                linkedStock: "AAPL Stock",
+                resellValue: 80
+            },
+            {
+                id: 6,
+                name: "NVIDIA RTX 4090",
+                type: "Graphics Card • Flagship",
+                description: "Ultimate GPU with 24GB GDDR6X & DLSS 3.",
+                rarity: "epic",
+                elementEmoji: "🖥️",
+                emoji: "🎴",
+                image: "rtx4090.png",
+                background: "linear-gradient(135deg, #1a1a1a 0%, #76b900 30%, #8bc34a 60%, #cddc39 100%)",
+                price: "$1,599",
+                change: "+15%",
+                changePositive: true,
+                linkedStock: "NVDA Stock",
+                resellValue: 92
+            },
+            {
+                id: 7,
+                name: "Nintendo Switch OLED",
+                type: "Handheld Console • Hybrid",
+                description: "Vibrant 7\" OLED screen for gaming anywhere.",
+                rarity: "rare",
+                elementEmoji: "🕹️",
+                emoji: "🎲",
+                image: null,
+                background: "linear-gradient(135deg, #e60012 0%, #ff4757 30%, #ff6b81 60%, #ffa502 100%)",
+                price: "$349",
+                change: "+2%",
+                changePositive: true,
+                linkedStock: "NTDOY Stock",
+                resellValue: 68
+            },
+            {
+                id: 8,
+                name: "Apple Watch Ultra 2",
+                type: "Smartwatch • Adventure",
+                description: "Titanium build with 36hr battery & dive certified.",
+                rarity: "rare",
+                elementEmoji: "⌚",
+                emoji: "⌚",
+                image: null,
+                background: "linear-gradient(135deg, #1a1a1a 0%, #ff9500 30%, #ffcc00 60%, #ffeaa7 100%)",
+                price: "$799",
+                change: "+4%",
+                changePositive: true,
+                linkedStock: "AAPL Stock",
+                resellValue: 70
+            },
+            {
+                id: 9,
+                name: "AirPods Pro 2",
+                type: "Earbuds • Wireless",
+                description: "Active noise cancellation with spatial audio.",
+                rarity: "uncommon",
+                elementEmoji: "🎧",
+                emoji: "🎧",
+                image: null,
+                background: "linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 30%, #d2d2d7 60%, #86868b 100%)",
+                price: "$249",
+                change: "+1%",
+                changePositive: true,
+                linkedStock: "AAPL Stock",
+                resellValue: 55
+            },
+            {
+                id: 10,
+                name: "Amazon Echo Dot",
+                type: "Smart Speaker • Voice AI",
+                description: "Alexa-powered smart speaker for your home.",
+                rarity: "common",
+                elementEmoji: "🔊",
+                emoji: "🔈",
+                image: null,
+                background: "linear-gradient(135deg, #232f3e 0%, #37475a 30%, #485769 60%, #146eb4 100%)",
+                price: "$49",
+                change: "-5%",
+                changePositive: false,
+                linkedStock: "AMZN Stock",
+                resellValue: 35
+            }
+        ];
+
+        // Function to generate card HTML
+        function createCardHTML(card) {
+            const cardNumber = String(card.id).padStart(3, '0');
+            const rarityCapitalized = card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1);
+            const changeIcon = card.changePositive ? '📈' : '📉';
+            
+            const imageSection = card.image 
+                ? `<img src="${card.image}" alt="${card.name}" class="card-product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                   <span class="card-emoji" style="display:none;">${card.emoji}</span>`
+                : `<span class="card-emoji">${card.emoji}</span>`;
+            
+            const imageClass = card.image ? 'card-image has-product-image' : 'card-image';
+
+            return `
+                <div class="card-wrapper" data-rarity="${card.rarity}">
+                    <div class="card ${card.rarity}" onmousemove="handleMouseMove(event, this)" onmouseleave="handleMouseLeave(this)" onclick="flipCard(this)">
+                        <div class="card-front">
+                            <div class="card-inner">
+                                <span class="element-badge">${card.elementEmoji}</span>
+                                <span class="rarity-badge">${rarityCapitalized}</span>
+                                <div class="${imageClass}" style="background: ${card.background};">
+                                    ${imageSection}
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-name">${card.name}</div>
+                                    <div class="card-type">${card.type}</div>
+                                    <div class="card-description">${card.description}</div>
+                                    <div class="card-stats">
+                                        <div class="stat">
+                                            <span class="stat-icon">💵</span>
+                                            <span class="stat-value">${card.price}</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-icon">${changeIcon}</span>
+                                            <span class="stat-value">${card.change}</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-link">
+                                        <span class="link-icon">🔗</span>
+                                        <span class="link-text">Linked to: <strong>${card.linkedStock}</strong></span>
+                                    </div>
+                                </div>
+                                <div class="resell-meter">
+                                    <span class="resell-label">Resell Value</span>
+                                    <div class="resell-bar">
+                                        <div class="resell-fill" style="width: ${card.resellValue}%;"></div>
+                                    </div>
+                                    <span class="resell-percent">${card.resellValue}%</span>
+                                </div>
+                                <span class="card-number">#${cardNumber}</span>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-back-pattern"></div>
+                            <span class="card-back-logo">💳</span>
+                            <span class="card-back-text">Trade Cards</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render all cards
+        function renderCards(cards = cardsData) {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = cards.map(card => createCardHTML(card)).join('');
+            initializeTouchSupport();
+        }
+
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const colors = ['#a855f7', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.width = (Math.random() * 4 + 2) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.boxShadow = `0 0 ${Math.random() * 10 + 5}px currentColor`;
+                container.appendChild(particle);
+            }
+        }
+
+        // 3D tilt effect
+        function handleMouseMove(e, card) {
+            if (card.classList.contains('flipped')) return;
+            
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = (y - centerY) / 8;
+            const rotateY = (centerX - x) / 8;
+            
+            // Dynamic shine angle based on mouse position
+            const angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+            card.style.setProperty('--shine-angle', angle + 90 + 'deg');
+            card.style.setProperty('--holo-angle', angle + 'deg');
+            
+            card.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+        }
+        
+        function handleMouseLeave(card) {
+            if (card.classList.contains('flipped')) {
+                card.style.transform = 'rotateY(180deg)';
+            } else {
+                card.style.transform = 'perspective(1500px) rotateX(0) rotateY(0) scale(1)';
+            }
+        }
+
+        // Card flip function
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+            if (card.classList.contains('flipped')) {
+                card.style.transform = 'rotateY(180deg)';
+            } else {
+                card.style.transform = 'perspective(1500px) rotateX(0) rotateY(0) scale(1)';
+            }
+        }
+
+        // Filter functionality - not used in loot box mode but kept for future
+        // document.querySelectorAll('.filter-btn').forEach(btn => { ... });
+
+        // Touch support for mobile
+        function initializeTouchSupport() {
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    handleMouseMove({ clientX: touch.clientX, clientY: touch.clientY }, card);
+                });
+                
+                card.addEventListener('touchend', () => {
+                    handleMouseLeave(card);
+                });
+            });
+        }
+
+        // ========== LOOT BOX / CHEST OPENING SYSTEM ==========
+        
+        const CARD_WIDTH = 280; // Width of each card in reel (matches .reel-card .card width)
+        const CARD_GAP = 20;    // Gap between cards
+        const TOTAL_CARD_WIDTH = CARD_WIDTH + CARD_GAP;
+        const REEL_CARDS_COUNT = 80; // Base reel length (controls how far we spin)
+        const REEL_TAIL_CARDS_COUNT = 80; // Extra cards after the winner so the end is never visible
+        const SPIN_DURATION = 6000; // Total spin time in ms
+        
+        let isSpinning = false;
+        let winningCard = null;
+        
+        // Weighted random selection based on rarity
+        function selectWinningCard() {
+            const weights = {
+                common: 40,
+                uncommon: 30,
+                rare: 18,
+                epic: 8,
+                legendary: 3,
+                mythic: 1
+            };
+            
+            const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+            let random = Math.random() * totalWeight;
+            
+            for (const [rarity, weight] of Object.entries(weights)) {
+                random -= weight;
+                if (random <= 0) {
+                    const cardsOfRarity = cardsData.filter(c => c.rarity === rarity);
+                    if (cardsOfRarity.length > 0) {
+                        return cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
+                    }
+                }
+            }
+            
+            // Fallback to random card
+            return cardsData[Math.floor(Math.random() * cardsData.length)];
+        }
+        
+        // Generate reel with winning card positioned near the end (of the base segment),
+        // then append a long tail so the end of the track never shows.
+        // Uses weighted distribution to make it feel like real odds
+        function generateReelCards(winningCard) {
+            const reelCards = [];
+            const winningPosition = REEL_CARDS_COUNT - 8; // Place winning card near end
+
+            const totalCards = REEL_CARDS_COUNT + REEL_TAIL_CARDS_COUNT;
+            
+            // Weighted selection for realistic feel - lots of commons, few legendaries
+            function getRandomCardByWeight() {
+                const weights = {
+                    common: 30,
+                    uncommon: 20,
+                    rare: 15,
+                    epic: 15,
+                    legendary: 10,
+                    mythic: 10
+                };
+                
+                const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+                let random = Math.random() * totalWeight;
+                
+                for (const [rarity, weight] of Object.entries(weights)) {
+                    random -= weight;
+                    if (random <= 0) {
+                        const cardsOfRarity = cardsData.filter(c => c.rarity === rarity);
+                        if (cardsOfRarity.length > 0) {
+                            return cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
+                        }
+                    }
+                }
+                // Fallback to common
+                const commons = cardsData.filter(c => c.rarity === 'common');
+                return commons.length > 0 ? commons[0] : cardsData[0];
+            }
+            
+            // Sprinkle in some guaranteed legendaries at specific spots for excitement
+            const legendarySpots = [8, 25, 45, 70, 95, 120, 140]; // Positions where a legendary will appear
+            const epicSpots = [15, 35, 55, 80, 100, 130]; // Positions where an epic will appear
+            
+            for (let i = 0; i < totalCards; i++) {
+                if (i === winningPosition) {
+                    reelCards.push(winningCard);
+                } else if (legendarySpots.includes(i)) {
+                    // Force a legendary or mythic for excitement
+                    const legendaries = cardsData.filter(c => c.rarity === 'legendary' || c.rarity === 'mythic');
+                    if (legendaries.length > 0) {
+                        reelCards.push(legendaries[Math.floor(Math.random() * legendaries.length)]);
+                    } else {
+                        reelCards.push(getRandomCardByWeight());
+                    }
+                } else if (epicSpots.includes(i)) {
+                    // Force an epic
+                    const epics = cardsData.filter(c => c.rarity === 'epic');
+                    if (epics.length > 0) {
+                        reelCards.push(epics[Math.floor(Math.random() * epics.length)]);
+                    } else {
+                        reelCards.push(getRandomCardByWeight());
+                    }
+                } else {
+                    // Use weighted random (mostly commons/uncommons)
+                    reelCards.push(getRandomCardByWeight());
+                }
+            }
+            
+            return { cards: reelCards, winningIndex: winningPosition };
+        }
+        
+        // Create mini card HTML for reel (simplified version)
+        function createReelCardHTML(card) {
+            const cardNumber = String(card.id).padStart(3, '0');
+            const rarityCapitalized = card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1);
+            const changeIcon = card.changePositive ? '📈' : '📉';
+            
+            const imageSection = card.image 
+                ? `<img src="${card.image}" alt="${card.name}" class="card-product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                   <span class="card-emoji" style="display:none;">${card.emoji}</span>`
+                : `<span class="card-emoji">${card.emoji}</span>`;
+            
+            const imageClass = card.image ? 'card-image has-product-image' : 'card-image';
+
+            return `
+                <div class="reel-card" data-rarity="${card.rarity}">
+                    <div class="card ${card.rarity}">
+                        <div class="card-front">
+                            <div class="card-inner">
+                                <span class="element-badge">${card.elementEmoji}</span>
+                                <span class="rarity-badge">${rarityCapitalized}</span>
+                                <div class="${imageClass}" style="background: ${card.background};">
+                                    ${imageSection}
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-name">${card.name}</div>
+                                    <div class="card-type">${card.type}</div>
+                                    <div class="card-stats">
+                                        <div class="stat">
+                                            <span class="stat-icon">💵</span>
+                                            <span class="stat-value">${card.price}</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-icon">${changeIcon}</span>
+                                            <span class="stat-value">${card.change}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="card-number">#${cardNumber}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Main chest opening function
+        function openChest() {
+            if (isSpinning) return;
+            isSpinning = true;
+            
+            const openBtn = document.getElementById('openBtn');
+            const chestBox = document.getElementById('chestBox');
+            const reelContainer = document.getElementById('reelContainer');
+            const reelTrack = document.getElementById('reelTrack');
+            
+            openBtn.disabled = true;
+            
+            // Shake the chest
+            chestBox.classList.add('opening');
+            
+            // Select winning card BEFORE animation starts
+            winningCard = selectWinningCard();
+            const { cards: reelCards, winningIndex } = generateReelCards(winningCard);
+            
+            // Generate reel HTML
+            reelTrack.innerHTML = reelCards.map(card => createReelCardHTML(card)).join('');
+            
+            // Show reel after chest animation
+            setTimeout(() => {
+                chestBox.classList.remove('opening');
+                reelContainer.classList.add('active');
+                
+                // Calculate final position to center the winning card
+                const reelFrame = document.querySelector('.reel-frame');
+                const frameWidth = reelFrame.offsetWidth;
+                const centerOffset = (frameWidth / 2) - (CARD_WIDTH / 2);
+                
+                // Position winning card at center
+                // Start position: cards start from right side (positive offset to show beginning)
+                const startOffset = centerOffset; // Start with first cards visible at center
+                const targetPosition = (winningIndex * TOTAL_CARD_WIDTH) - centerOffset;
+                
+                // Set initial position
+                reelTrack.style.transform = `translateX(${startOffset}px)`;
+                
+                // Add slight random offset for natural feel
+                const randomOffset = (Math.random() - 0.5) * 20;
+                const finalPosition = -(targetPosition) + randomOffset;
+                
+                // Start spinning animation after a brief moment
+                setTimeout(() => {
+                    startSpinAnimation(reelTrack, startOffset, finalPosition, winningIndex);
+                }, 50);
+            }, 600);
+        }
+        
+        // Spin animation with easing
+        function startSpinAnimation(track, startPosition, finalPosition, winningIndex) {
+            const startTime = performance.now();
+            
+            // Smooth deceleration without overshoot
+            function easeOutQuart(t) {
+                return 1 - Math.pow(1 - t, 4);
+            }
+            
+            const totalDistance = finalPosition - startPosition;
+            
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / SPIN_DURATION, 1);
+                
+                // Apply easing
+                const easedProgress = easeOutQuart(progress);
+                const currentPosition = startPosition + (totalDistance * easedProgress);
+                
+                track.style.transform = `translateX(${currentPosition}px)`;
+                
+                // Highlight cards as they pass center
+                highlightCenterCard(track, currentPosition);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Animation complete
+                    setTimeout(() => {
+                        showReveal();
+                    }, 300);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Highlight the card closest to center
+        function highlightCenterCard(track, position) {
+            const frameWidth = document.querySelector('.reel-frame').offsetWidth;
+            const centerX = frameWidth / 2;
+            const cards = track.querySelectorAll('.reel-card');
+            
+            cards.forEach((card, index) => {
+                const cardCenterX = (index * TOTAL_CARD_WIDTH) + (CARD_WIDTH / 2) + position;
+                const distance = Math.abs(cardCenterX - centerX);
+                
+                if (distance < CARD_WIDTH / 2) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1.02)';
+                } else {
+                    card.style.opacity = '0.5';
+                    card.style.transform = 'scale(1)';
+                }
+            });
+        }
+        
+        // Show the reveal overlay with winning card
+        function showReveal() {
+            const reelContainer = document.getElementById('reelContainer');
+            const revealOverlay = document.getElementById('revealOverlay');
+            const revealCardContainer = document.getElementById('revealCardContainer');
+            const revealText = document.getElementById('revealText');
+            const revealGlow = document.getElementById('revealGlow');
+            const soundWaves = document.getElementById('soundWaves');
+            
+            // Hide reel
+            reelContainer.classList.remove('active');
+            
+            // Set rarity-specific colors
+            revealText.className = 'reveal-text ' + winningCard.rarity;
+            revealGlow.className = 'reveal-glow ' + winningCard.rarity;
+            soundWaves.querySelectorAll('.sound-wave').forEach(wave => {
+                wave.style.color = getComputedStyle(revealText).color;
+            });
+            
+            // Create the winning card HTML
+            revealCardContainer.innerHTML = createCardHTML(winningCard);
+            
+            // Create burst particles
+            createBurstParticles(winningCard.rarity);
+            
+            // Show overlay
+            revealOverlay.classList.add('active');
+            
+            // Trigger card spin animation after a short delay
+            setTimeout(() => {
+                const card = revealCardContainer.querySelector('.card');
+                if (card) {
+                    card.style.animation = 'revealSpin 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                }
+            }, 100);
+        }
+        
+        // Create burst particles for reveal
+        function createBurstParticles(rarity) {
+            const container = document.getElementById('burstParticles');
+            container.innerHTML = '';
+            
+            const colors = {
+                mythic: ['#ff0080', '#7928ca', '#00d4ff'],
+                legendary: ['#ffcc00', '#ff6b35', '#ffa500'],
+                epic: ['#a855f7', '#8b5cf6', '#c084fc'],
+                rare: ['#3b82f6', '#60a5fa', '#93c5fd'],
+                uncommon: ['#10b981', '#34d399', '#6ee7b7'],
+                common: ['#6b7280', '#9ca3af', '#d1d5db']
+            };
+            
+            const particleColors = colors[rarity] || colors.common;
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'burst-particle';
+                
+                const angle = (i / 30) * Math.PI * 2;
+                const distance = 200 + Math.random() * 200;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                particle.style.background = particleColors[i % particleColors.length];
+                particle.style.width = (5 + Math.random() * 10) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = (Math.random() * 0.2) + 's';
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Close reveal and reset
+        function closeReveal() {
+            const revealOverlay = document.getElementById('revealOverlay');
+            const openBtn = document.getElementById('openBtn');
+            
+            revealOverlay.classList.remove('active');
+            openBtn.disabled = false;
+            isSpinning = false;
+            winningCard = null;
+        }
+        
+        // Skip animation
+        function skipAnimation() {
+            if (!isSpinning) return;
+            
+            const reelContainer = document.getElementById('reelContainer');
+            if (reelContainer.classList.contains('active')) {
+                showReveal();
+            }
+        }
+        
+        // Event Listeners
+        document.getElementById('openBtn').addEventListener('click', openChest);
+        document.getElementById('chestBox').addEventListener('click', openChest);
+        document.getElementById('closeRevealBtn').addEventListener('click', closeReveal);
+        document.getElementById('reelContainer').addEventListener('click', skipAnimation);
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'Enter') {
+                if (!isSpinning) {
+                    openChest();
+                } else {
+                    const revealOverlay = document.getElementById('revealOverlay');
+                    if (revealOverlay.classList.contains('active')) {
+                        closeReveal();
+                    } else {
+                        skipAnimation();
+                    }
+                }
+            }
+        });
+
+        // Initialize
+        createParticles();
+    </script>
+</body>
+</html>
