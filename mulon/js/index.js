@@ -1012,8 +1012,8 @@ async function loadAndRenderPriceGraphs() {
     if (!marketId) continue;
     
     try {
-      // Get trades for this market
-      const trades = await OrderBook.getRecentTrades(marketId, 50);
+      // Get ALL trades for this market (all-time graph)
+      const trades = await OrderBook.getRecentTrades(marketId, 0);
       const market = MulonData.getMarket(marketId);
       
       renderPriceGraph(container, trades, market);
@@ -1036,34 +1036,48 @@ function renderPriceGraph(container, trades, market) {
   // Build price history from trades (oldest to newest)
   let priceHistory = [];
   
+  // Get market creation date for the starting point
+  const createdDate = market.createdAt ? new Date(market.createdAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  
+  // Always start with initial price of 50%
+  priceHistory.push({
+    timestamp: createdDate,
+    price: 50
+  });
+  
   if (trades.length > 0) {
     // Sort trades oldest first
     const sortedTrades = [...trades].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
     sortedTrades.forEach(trade => {
-      // Use priceAfter if available, otherwise use price
-      const price = trade.choice === 'yes' 
-        ? (trade.priceAfter || trade.price)
-        : (100 - (trade.priceAfter || trade.price));
+      // Use priceAfter which represents the YES price after the trade
+      // priceAfter is stored based on the choice, so we need to normalize to YES price
+      let yesPrice;
+      if (trade.priceAfter !== undefined) {
+        // priceAfter is the price of whatever was traded
+        if (trade.choice === 'yes') {
+          yesPrice = trade.priceAfter;
+        } else {
+          // If NO was traded, priceAfter is NO price, so YES = 100 - NO
+          yesPrice = 100 - trade.priceAfter;
+        }
+      } else {
+        // Fallback: use the trade price
+        yesPrice = trade.choice === 'yes' ? trade.price : (100 - trade.price);
+      }
+      
       priceHistory.push({
         timestamp: new Date(trade.timestamp),
-        price: price
+        price: yesPrice
       });
     });
-    
-    // Add current price as the last point
-    priceHistory.push({
-      timestamp: new Date(),
-      price: market.yesPrice
-    });
-  } else {
-    // No trades - show flat line at current price with starting point at 50%
-    const createdDate = market.createdAt ? new Date(market.createdAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    priceHistory = [
-      { timestamp: createdDate, price: 50 },
-      { timestamp: new Date(), price: market.yesPrice }
-    ];
   }
+  
+  // Add current price as the last point
+  priceHistory.push({
+    timestamp: new Date(),
+    price: market.yesPrice
+  });
   
   // Update start date
   if (priceHistory.length > 0 && dateStartEl) {

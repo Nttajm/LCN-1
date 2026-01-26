@@ -921,7 +921,7 @@ const OrderBook = {
     }
   },
   
-  // Get recent trades for a market
+  // Get trades for a market (limit=0 means all trades)
   async getRecentTrades(marketId, limit = 20) {
     try {
       const querySnapshot = await getDocs(tradesRef);
@@ -934,7 +934,8 @@ const OrderBook = {
       });
       // Sort by timestamp descending
       trades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      return trades.slice(0, limit);
+      // Return all trades if limit is 0, otherwise slice
+      return limit === 0 ? trades : trades.slice(0, limit);
     } catch (error) {
       console.warn('Could not fetch trades:', error);
       return [];
