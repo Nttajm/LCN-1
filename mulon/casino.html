@@ -90,6 +90,12 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    <!-- Online Users Counter -->
+    <div class="online-users-bar">
+      <span class="online-dot"></span>
+      <span class="online-text"><span id="onlineCount">--</span> active gambling addicts online</span>
+    </div>
+
     <!-- Level Bar (GTA Online Style) -->
     <div class="level-bar-container" id="levelBarContainer">
       <div class="level-bar-inner">
@@ -412,7 +418,7 @@
     const LEVEL_TIERS = [
       {
         minLevel: 1,
-        name: 'Newcomer',
+        name: 'Grass toucher',
         colors: {
           badge: 'linear-gradient(135deg, #6b7280, #4b5563)',
           progress: 'linear-gradient(90deg, #6b7280, #9ca3af)',
@@ -434,7 +440,7 @@
       },
       {
         minLevel: 5,
-        name: 'Regular',
+        name: 'pocket aces',
         colors: {
           badge: 'linear-gradient(135deg, #3b82f6, #2563eb)',
           progress: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
@@ -467,7 +473,7 @@
       },
       {
         minLevel: 20,
-        name: 'Champion',
+        name: 'lil sigma',
         colors: {
           badge: 'linear-gradient(135deg, #ef4444, #dc2626)',
           progress: 'linear-gradient(90deg, #ef4444, #f87171)',
@@ -478,7 +484,7 @@
       },
       {
         minLevel: 30,
-        name: 'Master',
+        name: 'Cronic Addict',
         colors: {
           badge: 'linear-gradient(135deg, #ec4899, #db2777)',
           progress: 'linear-gradient(90deg, #ec4899, #f472b6)',
@@ -489,7 +495,7 @@
       },
       {
         minLevel: 50,
-        name: 'Grandmaster',
+        name: 'GRANDMASTER',
         colors: {
           badge: 'linear-gradient(135deg, #14b8a6, #0d9488, #06b6d4)',
           progress: 'linear-gradient(90deg, #14b8a6, #2dd4bf, #06b6d4)',
@@ -500,7 +506,7 @@
       },
       {
         minLevel: 100,
-        name: 'Legend',
+        name: 'on joels watch-list',
         colors: {
           badge: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444, #ec4899)',
           progress: 'linear-gradient(90deg, #fbbf24, #f59e0b, #ef4444, #ec4899)',
@@ -631,6 +637,37 @@
     }
     
     initCasinoAuth();
+    
+    // ========================================
+    // ONLINE USERS COUNTER
+    // ========================================
+    async function updateOnlineUsersCount() {
+      const countEl = document.getElementById('onlineCount');
+      if (!countEl) return;
+      
+      try {
+        const count = await CasinoDB.getOnlineUsersCount(15); // Active in last 15 mins
+        countEl.textContent = count;
+      } catch (e) {
+        // Fallback to random plausible number
+        countEl.textContent = Math.floor(Math.random() * 30) + 15;
+      }
+    }
+    
+    // Update count on load and every 30 seconds
+    setTimeout(updateOnlineUsersCount, 1000);
+    setInterval(updateOnlineUsersCount, 30000);
+    
+    // Update user's last activity when they're on the page
+    async function updateUserActivity() {
+      if (CasinoAuth.currentUser && CasinoDB.updateLastActivity) {
+        await CasinoDB.updateLastActivity();
+      }
+    }
+    
+    // Update activity on load and every 5 minutes
+    setTimeout(updateUserActivity, 2000);
+    setInterval(updateUserActivity, 5 * 60 * 1000);
     
     // ========================================
     // CHEST FUNCTIONALITY

@@ -81,6 +81,20 @@ async function init() {
       
       // Load last bets from localStorage
       loadLastBets();
+      
+      // Start session tracking
+      if (window.SessionTracker && userData) {
+        const db = window.CasinoDB.getDB ? window.CasinoDB.getDB() : null;
+        if (db) {
+          await window.SessionTracker.init(
+            db,
+            user.uid,
+            'roulette',
+            userData.balance || 0,
+            userData.keys || 0
+          );
+        }
+      }
     }
     
     updateBalanceDisplay();
@@ -280,118 +294,77 @@ function getPayoutMultiplier(betType) {
   }
 }
 
-// Place chip visually on cell
+// Place chip visually on cell - shows stacked chips (max 8 visible)
+// Chips consolidate: 10x$1 = 1x$10, 10x$10 = 1x$100, etc.
 function placeChipOnCell(cell, totalAmount) {
-  // Remove existing chip
-  const existingChip = cell.querySelector('.placed-chip');
-  if (existingChip) existingChip.remove();
+  // Remove existing chip stack
+  cell.querySelectorAll('.placed-chip').forEach(c => c.remove());
   
-  // Create chip
-  const chip = document.createElement('div');
-  chip.className = 'placed-chip';
+  // Determine the best chip denomination to display based on total amount
+  // This consolidates chips: if you have $100, show chips as $100 denomination
+  let displayChipValue, chipClass;
   
-  // Determine chip color based on total
   if (totalAmount >= 1000) {
-    chip.classList.add('value-1000');
-    chip.textContent = (totalAmount / 1000).toFixed(totalAmount % 1000 === 0 ? 0 : 1) + 'K';
+    displayChipValue = 1000;
+    chipClass = 'value-1000';
   } else if (totalAmount >= 500) {
-    chip.classList.add('value-500');
-    chip.textContent = totalAmount;
+    displayChipValue = 500;
+    chipClass = 'value-500';
   } else if (totalAmount >= 100) {
-    chip.classList.add('value-100');
-    chip.textContent = totalAmount;
+    displayChipValue = 100;
+    chipClass = 'value-100';
   } else if (totalAmount >= 10) {
-    chip.classList.add('value-10');
-    chip.textContent = totalAmount;
+    displayChipValue = 10;
+    chipClass = 'value-10';
   } else {
-    chip.classList.add('value-1');
-    chip.textContent = totalAmount;
+    displayChipValue = 1;
+    chipClass = 'value-1';
   }
   
-  // Position in center
-  chip.style.left = '50%';
-  chip.style.top = '50%';
+  // Calculate how many chips of this denomination to show
+  const chipCount = Math.floor(totalAmount / displayChipValue);
+  const visibleChipCount = Math.min(chipCount, 8);
+  
+  // Format the display text for the top chip
+  let chipText;
+  if (totalAmount >= 1000) {
+    chipText = (totalAmount / 1000).toFixed(totalAmount % 1000 === 0 ? 0 : 1) + 'K';
+  } else {
+    chipText = totalAmount.toString();
+  }
   
   cell.style.position = 'relative';
-  cell.appendChild(chip);
+  
+  // Create stacked chips - each offset slightly upward
+  const stackOffset = 2; // pixels between each chip in stack
+  
+  for (let i = 0; i < visibleChipCount; i++) {
+    const chip = document.createElement('div');
+    chip.className = 'placed-chip ' + chipClass;
+    
+    // Only show text on top chip
+    if (i === visibleChipCount - 1) {
+      chip.textContent = chipText;
+    }
+    
+    // Position - stack upward
+    chip.style.left = '50%';
+    chip.style.top = `calc(50% - ${i * stackOffset}px)`;
+    chip.style.zIndex = i + 1;
+    
+    // Add slight shadow for depth on lower chips
+    if (i < visibleChipCount - 1) {
+      chip.style.filter = `brightness(${0.85 + (i * 0.02)})`;
+    }
+    
+    cell.appendChild(chip);
+  }
 }
 
-// Create physics chip animation
+// Create physics chip animation - just a quick pop effect, no drop
 function createPhysicsChip(x, y, value) {
-  const chipsLayer = document.getElementById('chipsLayer');
-  const chip = document.createElement('div');
-  chip.className = 'physics-chip';
-  
-  // Determine color
-  if (value >= 1000) {
-    chip.style.background = 'linear-gradient(145deg, #f97316, #ea580c)';
-    chip.textContent = '1K';
-  } else if (value >= 500) {
-    chip.style.background = 'linear-gradient(145deg, #a855f7, #9333ea)';
-    chip.textContent = '500';
-  } else if (value >= 100) {
-    chip.style.background = 'linear-gradient(145deg, #22c55e, #16a34a)';
-    chip.textContent = '100';
-  } else if (value >= 10) {
-    chip.style.background = 'linear-gradient(145deg, #3b82f6, #2563eb)';
-    chip.textContent = '10';
-  } else {
-    chip.style.background = 'linear-gradient(145deg, #64748b, #475569)';
-    chip.textContent = '1';
-  }
-  
-  // Position at click
-  const rect = chipsLayer.getBoundingClientRect();
-  chip.style.left = (x - rect.left - 15) + 'px';
-  chip.style.top = (y - rect.top - 15) + 'px';
-  
-  chipsLayer.appendChild(chip);
-  
-  // Animate fall and bounce
-  const gravity = 0.5;
-  const bounce = 0.6;
-  const friction = 0.98;
-  
-  let vy = 0;
-  let vx = (Math.random() - 0.5) * 4;
-  let posY = y - rect.top - 15;
-  let posX = x - rect.left - 15;
-  let rotation = 0;
-  let rotationSpeed = (Math.random() - 0.5) * 20;
-  
-  const animate = () => {
-    vy += gravity;
-    posY += vy;
-    posX += vx;
-    vx *= friction;
-    rotation += rotationSpeed;
-    rotationSpeed *= 0.95;
-    
-    const maxY = rect.height - 30;
-    if (posY > maxY) {
-      posY = maxY;
-      vy *= -bounce;
-      rotationSpeed = (Math.random() - 0.5) * 10;
-    }
-    
-    chip.style.top = posY + 'px';
-    chip.style.left = posX + 'px';
-    chip.style.transform = `rotate(${rotation}deg)`;
-    
-    if (Math.abs(vy) > 0.5 || posY < maxY - 1) {
-      requestAnimationFrame(animate);
-    } else {
-      // Rest
-      chip.style.top = maxY + 'px';
-      setTimeout(() => {
-        chip.style.opacity = '0';
-        chip.style.transition = 'opacity 0.5s';
-        setTimeout(() => chip.remove(), 500);
-      }, 2000);
-    }
-  };
-  
-  requestAnimationFrame(animate);
+  // Removed the falling/bouncing physics - chips now just stack on the cell
+  // This function is kept for compatibility but does nothing heavy
 }
 
 // Update total bet display
@@ -442,6 +415,9 @@ function clearBets() {
   
   // Remove all placed chips
   document.querySelectorAll('.placed-chip').forEach(c => c.remove());
+  
+  // Remove saved bets from localStorage
+  localStorage.removeItem('roulette_lastBets');
 }
 
 // Spin the wheel
@@ -581,21 +557,29 @@ async function spin() {
     if (progress < 1) {
       requestAnimationFrame(animateSpin);
     } else {
-      // Spin complete - determine winning number based on where ball landed
-      // The pointer is at the top (angle = -PI/2 in screen space)
-      // We need to find which slot is at the pointer position
-      
-      // The wheel has rotated by finalWheelAngle
-      // Normalize the angle to find which slot is at the top
-      let pointerAngle = finalWheelAngle % (2 * Math.PI);
-      if (pointerAngle < 0) pointerAngle += 2 * Math.PI;
-      
-      // Find which slot index is at the pointer
-      // Each slot spans slotAngle radians
-      const winningIndex = Math.floor(pointerAngle / slotAngle) % numSlots;
-      const winningNumber = WHEEL_NUMBERS[winningIndex];
-      
-      showResult(winningNumber);
+      // Spin complete - determine winning number from where the ball DIV ended up.
+      // We compute the ball's final angle (from center) using its DOM position,
+      // then map that angle to the wheel sectors drawn in drawWheel().
+
+      const ballRect = ball.getBoundingClientRect();
+      const contRect = wheelContainer.getBoundingClientRect();
+      const ballCenterX = (ballRect.left - contRect.left) + (ballRect.width / 2);
+      const ballCenterY = (ballRect.top - contRect.top) + (ballRect.height / 2);
+
+      const dx = ballCenterX - centerX;
+      const dy = ballCenterY - centerY;
+      const ballAngleScreen = Math.atan2(dy, dx); // -PI..PI, 0 = right
+
+      // drawWheel uses: startAngle = rotation + i*slotAngle - PI/2
+      // rotation at end is (-finalWheelAngle)
+      const rotation = -finalWheelAngle;
+      let slotPosition = (ballAngleScreen + Math.PI / 2 - rotation) / slotAngle;
+
+      slotPosition = slotPosition % numSlots;
+      if (slotPosition < 0) slotPosition += numSlots;
+
+      const winningIndex = Math.floor(slotPosition) % numSlots;
+      showResult(WHEEL_NUMBERS[winningIndex]);
     }
   };
   
@@ -641,6 +625,14 @@ async function showResult(winningNumber) {
   await window.CasinoDB.setPendingRouletteSpin(0);
   
   updateBalanceDisplay();
+  
+  // Track balance change in session
+  if (window.SessionTracker) {
+    const userData = window.CasinoAuth.userData;
+    if (userData) {
+      window.SessionTracker.trackBalanceChange(userData.balance || 0, userData.keys || 0);
+    }
+  }
   
   // Calculate profit
   const profit = totalWin - config.totalBet;
