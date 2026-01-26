@@ -2176,3 +2176,168 @@
   font-size: 1rem;
   font-weight: 600;
 }
+
+/* ========================================
+   WIN CELEBRATION
+   ======================================== */
+.win-celebration-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.win-celebration-overlay.active {
+  display: flex;
+}
+
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10001;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -20px;
+  animation: confetti-fall 3s linear forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.win-modal {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  max-width: 450px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  text-align: center;
+  z-index: 10002;
+  animation: win-modal-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes win-modal-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.win-modal-header {
+  margin-bottom: 1.5rem;
+}
+
+.win-trophy {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  animation: trophy-bounce 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes trophy-bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+.win-modal-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--green-primary);
+  margin: 0;
+}
+
+.win-modal-body {
+  margin-bottom: 1.5rem;
+}
+
+.win-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.75rem;
+  text-align: left;
+  border-left: 4px solid var(--green-primary);
+}
+
+.win-item:last-child {
+  margin-bottom: 0;
+}
+
+.win-item-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.win-item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.win-item-market {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+.win-item-info {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.win-item-payout {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--green-primary);
+  flex-shrink: 0;
+}
+
+.win-modal-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--green-primary), #16a34a);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.win-modal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+}
+
+.win-modal-btn:active {
+  transform: translateY(0);
+}
+
