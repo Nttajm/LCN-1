@@ -16,7 +16,8 @@ import {
     where,
     orderBy,
     arrayUnion,
-    increment
+    increment,
+    addDoc
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import {
     getAuth,
@@ -69,6 +70,31 @@ const usersRef = collection(db, 'mulon_users');
 const categoriesRef = collection(db, 'mulon_categories');
 const suggestionsRef = collection(db, 'mulon_suggestions');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
+const adminEditsRef = collection(db, 'admin_edits'); // Admin action logs
+
+// ========================================
+// ADMIN ACTION LOGGING
+// ========================================
+async function logAdminAction(actionType, details = {}) {
+  try {
+    const user = auth.currentUser;
+    if (!user) return; // No user, no log
+    
+    const logEntry = {
+      adminEmail: user.email,
+      adminUid: user.uid,
+      actionType,
+      timestamp: new Date().toISOString(),
+      ...details
+    };
+    
+    await addDoc(adminEditsRef, logEntry);
+    console.log('Admin action logged:', actionType);
+  } catch (error) {
+    console.error('Error logging admin action:', error);
+    // Don't throw - logging should not break the main operation
+  }
+}
 
 // ========================================
 // OVER UNDER ACCOUNT SYNC
@@ -1833,9 +1859,25 @@ const MulonData = {
     requireAdmin(); // Security check
     
     try {
+      // Get current balance for logging
+      const userDoc = await getDoc(doc(usersRef, userId));
+      const beforeBalance = userDoc.exists() ? (userDoc.data().balance || 0) : 0;
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      
+      const finalBalance = Math.round(newBalance * 100) / 100;
       await updateDoc(doc(usersRef, userId), {
-        balance: Math.round(newBalance * 100) / 100
+        balance: finalBalance
       });
+      
+      // Log admin action
+      await logAdminAction('balance_update', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        beforeValue: beforeBalance,
+        afterValue: finalBalance
+      });
+      
       return { success: true };
     } catch (error) {
       console.error('Error updating user balance:', error);
@@ -1848,9 +1890,25 @@ const MulonData = {
     requireAdmin(); // Security check
     
     try {
+      // Get current keys for logging
+      const userDoc = await getDoc(doc(usersRef, userId));
+      const beforeKeys = userDoc.exists() ? (userDoc.data().keys || 0) : 0;
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      
+      const finalKeys = Math.max(0, Math.round(newKeys));
       await updateDoc(doc(usersRef, userId), {
-        keys: Math.max(0, Math.round(newKeys))
+        keys: finalKeys
       });
+      
+      // Log admin action
+      await logAdminAction('keys_update', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        beforeValue: beforeKeys,
+        afterValue: finalKeys
+      });
+      
       return { success: true };
     } catch (error) {
       console.error('Error updating user keys:', error);
@@ -1888,6 +1946,13 @@ const MulonData = {
         });
         updatedCount++;
       }
+      
+      // Log admin action
+      await logAdminAction('bulk_keys_update', {
+        operation,
+        amount,
+        usersAffected: updatedCount
+      });
       
       return { success: true, updatedCount };
     } catch (error) {
@@ -1951,6 +2016,13 @@ const MulonData = {
         updatedCount++;
       }
       
+      // Log admin action
+      await logAdminAction('bulk_balance_update', {
+        operation,
+        amount,
+        usersAffected: updatedCount
+      });
+      
       return { success: true, updatedCount };
     } catch (error) {
       console.error('Error bulk updating balances:', error);
@@ -1971,6 +2043,7 @@ const MulonData = {
       
       const userData = userDoc.data();
       const positions = userData.positions || [];
+      const positionsCount = positions.length;
       
       // Reduce volume for each market and clean up
       for (const position of positions) {
@@ -2002,6 +2075,15 @@ const MulonData = {
       await updateDoc(doc(usersRef, userId), {
         positions: []
       });
+      
+      // Log admin action
+      await logAdminAction('user_positions_reset', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        positionsDeleted: positionsCount
+      });
+      
       return { success: true };
     } catch (error) {
       console.error('Error resetting user positions:', error);
