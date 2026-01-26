@@ -110,7 +110,10 @@ export const CasinoAuth = {
         this.userData = {
           balance: 500.00,
           xps: 0,
+          keys: 40,
+          plinkoBalls: 45,
           winStreak: 0,
+          xpChestsClaimed: 0,
           casinoStats: {
             totalWagered: 0,
             totalWon: 0,
@@ -121,9 +124,21 @@ export const CasinoAuth = {
             totalSpent: 0,
             bestStreak: 0
           },
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          lastLoginAt: serverTimestamp()
         };
         await setDoc(doc(db, 'mulon_users', userId), this.userData);
+      }
+      
+      // Update last login time for both new and existing users
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        lastLoginAt: serverTimestamp()
+      });
+      
+      // Reload user data to get the server timestamp
+      const updatedDoc = await getDoc(doc(db, 'mulon_users', userId));
+      if (updatedDoc.exists()) {
+        this.userData = updatedDoc.data();
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -851,12 +866,13 @@ export const CasinoDB = {
   },
   
   // Get count of users active in the last X minutes
-  async getOnlineUsersCount(minutesThreshold = 124) {
+  async getOnlineUsersCount(minutesThreshold = 15) {
     try {
       const cutoffTime = new Date(Date.now() - minutesThreshold * 60 * 1000);
       const usersRef = collection(db, 'mulon_users');
       const q = query(usersRef, where('lastLoginAt', '>=', cutoffTime));
       const snapshot = await getDocs(q);
+      console.log(`Found ${snapshot.size} users active in last ${minutesThreshold} minutes`);
       return snapshot.size;
     } catch (error) {
       console.error('Error getting online users:', error);
@@ -871,8 +887,9 @@ export const CasinoDB = {
     try {
       const userId = CasinoAuth.currentUser.uid;
       await updateDoc(doc(db, 'mulon_users', userId), {
-        lastLoginAt: new Date()
+        lastLoginAt: serverTimestamp()
       });
+      console.log('Updated last activity for user:', userId);
     } catch (error) {
       console.error('Error updating last activity:', error);
     }

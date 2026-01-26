@@ -46,48 +46,6 @@ const multiplierTables = {
   }
 };
 
-// Weighted probabilities for each multiplier (edit these to adjust rarity)
-// Higher weight = more likely to land there
-const multiplierWeights = {
-  low: {
-    16: {
-      16: 0.4,    // 16x - extremely rare
-      9: 0.8,       // 9x - very rare
-      4: 1,       // 4x - rare
-      2: 5,       // 2x - uncommon
-      1.7: 8,     // 1.7x - slightly uncommon
-      1.4: 12,    // 1.4x - common
-      0.6: 20,    // 0.6x - very common
-      0.3: 25,    // 0.3x - most common
-      0.1: 30     // 0.1x - center, most common
-    }
-  },
-  medium: {
-    16: {
-      110: 0.1,   // 110x - nearly impossible
-      41: 0.3,    // 41x - extremely rare
-      10: 1,      // 10x - very rare
-      5: 3,       // 5x - rare
-      3: 6,       // 3x - uncommon
-      1.5: 10,    // 1.5x - slightly uncommon
-      1: 15,      // 1x - common
-      0.5: 25,    // 0.5x - very common
-      0.3: 35     // 0.3x - most common
-    }
-  },
-  high: {
-    16: {
-      1000: 0.01, // 1000x - jackpot
-      130: 0.05,  // 130x - nearly impossible
-      26: 0.2,    // 26x - extremely rare
-      9: 0.8,     // 9x - very rare
-      4: 2,       // 4x - rare
-      2: 5,       // 2x - uncommon
-      0.2: 40     // 0.2x - most common (center buckets)
-    }
-  }
-};
-
 // Canvas setup
 const canvas = document.getElementById('plinkoCanvas');
 const canvasWidth = canvas.width;
@@ -295,34 +253,6 @@ function getMultColor(mult) {
   return 'linear-gradient(180deg, #6b7280, #4b5563)';
 }
 
-// Calculate weighted bucket position based on multiplier probabilities
-function getWeightedBucketIndex() {
-  const multipliers = multiplierTables[config.risk][config.rows];
-  const weights = multiplierWeights[config.risk][config.rows];
-  
-  // Build cumulative weight array
-  const cumulativeWeights = [];
-  let totalWeight = 0;
-  
-  for (let i = 0; i < multipliers.length; i++) {
-    const mult = multipliers[i];
-    const weight = weights[mult] || 10; // Default weight if not specified
-    totalWeight += weight;
-    cumulativeWeights.push(totalWeight);
-  }
-  
-  // Random selection based on weights
-  const random = Math.random() * totalWeight;
-  
-  for (let i = 0; i < cumulativeWeights.length; i++) {
-    if (random <= cumulativeWeights[i]) {
-      return i;
-    }
-  }
-  
-  return Math.floor(multipliers.length / 2); // Fallback to center
-}
-
 // Drop ball
 async function dropBall() {
   // Check if signed in
@@ -357,25 +287,11 @@ async function dropBall() {
   
   updateBalanceDisplay();
 
-  // Get target bucket based on weighted probabilities
-  const targetBucketIndex = getWeightedBucketIndex();
-  const multipliers = multiplierTables[config.risk][config.rows];
-  const numBuckets = multipliers.length;
-  const boardWidth = canvasWidth - 100;
-  const bucketWidth = boardWidth / numBuckets;
-  const bucketsStartX = (canvasWidth - (bucketWidth * numBuckets)) / 2;
+  // Gaussian offset for rigging
+  const r1 = Math.random(), r2 = Math.random();
+  const gaussianOffset = ((r1 + r2) / 2 - 0.5) * 20;
   
-  // Calculate target X position for the bucket
-  const targetX = bucketsStartX + targetBucketIndex * bucketWidth + bucketWidth / 2;
-  
-  // Add some randomness within the bucket (±20% of bucket width)
-  const randomOffset = (Math.random() - 0.5) * bucketWidth * 0.4;
-  const finalTargetX = targetX + randomOffset;
-  
-  // Calculate starting X to bias toward target
-  const startX = canvasWidth / 2 + (finalTargetX - canvasWidth / 2) * 0.3;
-  
-  const ball = Bodies.circle(startX, 35, 7, {
+  const ball = Bodies.circle(canvasWidth / 2 + gaussianOffset, 35, 7, {
     restitution: 0.6,
     friction: 0.05,
     frictionAir: 0.01,
@@ -386,8 +302,7 @@ async function dropBall() {
       lineWidth: 1.5
     },
     label: 'ball',
-    betAmount: config.betAmount,
-    targetX: finalTargetX // Store target for physics adjustments
+    betAmount: config.betAmount
   });
 
   Body.setVelocity(ball, { x: (Math.random() - 0.5) * 1, y: 2 });
@@ -754,25 +669,10 @@ async function autoDropBall() {
   
   updateBalanceDisplay();
   
-  // Get target bucket based on weighted probabilities
-  const targetBucketIndex = getWeightedBucketIndex();
-  const multipliers = multiplierTables[config.risk][config.rows];
-  const numBuckets = multipliers.length;
-  const boardWidth = canvasWidth - 100;
-  const bucketWidth = boardWidth / numBuckets;
-  const bucketsStartX = (canvasWidth - (bucketWidth * numBuckets)) / 2;
+  // Random offset for natural variation
+  const randomOffset = (Math.random() - 0.5) * 30;
   
-  // Calculate target X position for the bucket
-  const targetX = bucketsStartX + targetBucketIndex * bucketWidth + bucketWidth / 2;
-  
-  // Add some randomness within the bucket
-  const randomOffset = (Math.random() - 0.5) * bucketWidth * 0.4;
-  const finalTargetX = targetX + randomOffset;
-  
-  // Calculate starting X to bias toward target
-  const startX = canvasWidth / 2 + (finalTargetX - canvasWidth / 2) * 0.3;
-  
-  const ball = Bodies.circle(startX, 35, 7, {
+  const ball = Bodies.circle(canvasWidth / 2 + randomOffset, 35, 7, {
     restitution: 0.6,
     friction: 0.05,
     frictionAir: 0.01,
@@ -783,8 +683,7 @@ async function autoDropBall() {
       lineWidth: 1.5
     },
     label: 'ball',
-    betAmount: config.betAmount,
-    targetX: finalTargetX
+    betAmount: config.betAmount
   });
   
   Body.setVelocity(ball, { x: (Math.random() - 0.5) * 1, y: 2 });
@@ -905,20 +804,15 @@ function createPegGlow(x, y) {
   animate();
 }
 
-// Check balls + bias toward target bucket
+// Check balls + subtle center bias
 Events.on(engine, 'afterUpdate', () => {
   balls.forEach(ball => {
-    // Apply subtle force toward target bucket
-    if (ball.targetX && ball.position.y < canvasHeight - 100) {
-      const distToTarget = ball.targetX - ball.position.x;
-      const forceMagnitude = 0.00008; // Very subtle
-      
-      // Only apply force if moving in wrong direction or moving slowly
-      if (Math.abs(ball.velocity.x) < 2) {
-        Body.applyForce(ball, ball.position, {
-          x: distToTarget * forceMagnitude,
-          y: 0
-        });
+    const centerX = canvasWidth / 2;
+    const distFromCenter = ball.position.x - centerX;
+    
+    if (Math.abs(ball.velocity.x) > 0.5) {
+      if ((distFromCenter > 0 && ball.velocity.x > 0) || (distFromCenter < 0 && ball.velocity.x < 0)) {
+        Body.setVelocity(ball, { x: ball.velocity.x * 0.99, y: ball.velocity.y });
       }
     }
     
