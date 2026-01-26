@@ -3,10 +3,10 @@
 // With Physics Chips & Spinning Wheel
 // ========================================
 
-// Roulette wheel numbers in order (European style)
+// Roulette wheel numbers in order (American style with 00)
 const WHEEL_NUMBERS = [
-  0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
-  5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+  0, 28, 9, 26, 30, 11, 7, 20, 32, 17, 5, 22, 34, 15, 3, 24, 36, 13, 1,
+  '00', 27, 10, 25, 29, 12, 8, 19, 31, 18, 6, 21, 33, 16, 4, 23, 35, 14, 2
 ];
 
 // Red numbers
@@ -124,7 +124,7 @@ function drawWheel(rotation = 0) {
     
     // Slot color
     let color;
-    if (num === 0) {
+    if (num === 0 || num === '00') {
       color = '#16a34a';
     } else if (RED_NUMBERS.includes(num)) {
       color = '#dc2626';
@@ -257,7 +257,7 @@ function placeBet(betId, betType, cell, event) {
 function getBetNumbers(betId, betType) {
   switch (betType) {
     case 'number':
-      return [parseInt(betId)];
+      return betId === '00' ? ['00'] : [parseInt(betId)];
     case 'row':
       if (betId === 'row1') return [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34];
       if (betId === 'row2') return [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35];
@@ -690,7 +690,7 @@ function addToLastResults(number) {
     el.className = 'last-result';
     el.textContent = num;
     
-    if (num === 0) {
+    if (num === 0 || num === '00') {
       el.classList.add('green');
     } else if (RED_NUMBERS.includes(num)) {
       el.classList.add('red');
@@ -714,7 +714,7 @@ function showResultBox(number, profit) {
   resultNum.textContent = number;
   resultNum.className = 'result-num';
   
-  if (number === 0) {
+  if (number === 0 || number === '00') {
     resultNum.classList.add('green');
   } else if (RED_NUMBERS.includes(number)) {
     resultNum.classList.add('red');

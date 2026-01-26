@@ -408,6 +408,16 @@
   flex-shrink: 0;
 }
 
+.bet-cell.double-zero {
+  background: linear-gradient(145deg, #22c55e, #16a34a);
+  width: 45px;
+  height: 120px;
+  border-radius: 0 6px 6px 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
 .numbers-grid {
   display: grid;
   grid-template-columns: repeat(13, 45px);
@@ -426,6 +436,7 @@
   grid-template-columns: repeat(3, 1fr);
   margin-left: 45px;
   width: calc(12 * 45px);
+  margin-right: 45px;
 }
 
 .bet-cell.dozen {
