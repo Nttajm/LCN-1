@@ -95,6 +95,10 @@ async function init() {
           );
         }
       }
+    } else {
+      // User logged out - clear saved bets
+      clearSavedBets();
+      clearBets();
     }
     
     updateBalanceDisplay();
@@ -860,18 +864,26 @@ function adjustTotalBet(multiplier) {
   let newTotal = 0;
   
   Object.entries(config.bets).forEach(([betId, bet]) => {
-    const newAmount = Math.max(1, Math.floor(bet.amount * multiplier));
-    newBets[betId] = { ...bet, amount: newAmount };
-    newTotal += newAmount;
+    // Ensure amount never goes below 1 (minimum bet)
+    const newAmount = Math.max(1, Math.round(bet.amount * multiplier));
     
-    // Update chip on cell
-    const cell = document.querySelector(`[data-bet="${betId}"]`);
-    if (cell) placeChipOnCell(cell, newAmount);
+    // Only add to newBets if amount is valid (positive)
+    if (newAmount >= 1) {
+      newBets[betId] = { ...bet, amount: newAmount };
+      newTotal += newAmount;
+      
+      // Update chip on cell
+      const cell = document.querySelector(`[data-bet="${betId}"]`);
+      if (cell) placeChipOnCell(cell, newAmount);
+    }
   });
   
-  config.bets = newBets;
-  config.totalBet = newTotal;
-  updateTotalBet();
+  // Only update if we still have valid bets
+  if (newTotal > 0) {
+    config.bets = newBets;
+    config.totalBet = newTotal;
+    updateTotalBet();
+  }
 }
 
 // ========================================
@@ -882,6 +894,9 @@ function adjustTotalBet(multiplier) {
 function saveLastBets() {
   if (Object.keys(config.bets).length === 0) return;
   
+  // Only save if user is signed in
+  if (!config.isSignedIn) return;
+  
   // Save to localStorage for persistence across page loads
   try {
     localStorage.setItem('roulette_lastBets', JSON.stringify(config.bets));
@@ -891,8 +906,21 @@ function saveLastBets() {
   }
 }
 
+// Clear saved bets from localStorage
+function clearSavedBets() {
+  try {
+    localStorage.removeItem('roulette_lastBets');
+    localStorage.removeItem('roulette_lastTotalBet');
+  } catch (e) {
+    console.warn('Could not clear saved bets:', e);
+  }
+}
+
 // Load last bets from localStorage (restore after page load)
 function loadLastBets() {
+  // Only load if user is signed in
+  if (!config.isSignedIn) return;
+  
   try {
     const savedBets = localStorage.getItem('roulette_lastBets');
     const savedTotal = localStorage.getItem('roulette_lastTotalBet');
@@ -903,7 +931,9 @@ function loadLastBets() {
       
       // Check if user has enough balance to restore bets
       const balance = window.CasinoAuth?.getBalance() ?? 0;
-      if (total <= balance) {
+      
+      // Only restore if total is reasonable (not more than balance and not absurdly high)
+      if (total <= balance && total > 0 && total <= 100000) {
         // Restore bets
         config.bets = bets;
         config.totalBet = total;
@@ -917,10 +947,14 @@ function loadLastBets() {
         });
         
         updateTotalBet();
+      } else {
+        // Invalid saved bets - clear them
+        clearSavedBets();
       }
     }
   } catch (e) {
     console.warn('Could not load bets from localStorage:', e);
+    clearSavedBets();
   }
 }
 
