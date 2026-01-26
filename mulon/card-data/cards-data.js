@@ -515,7 +515,7 @@ export const cardsData = [
 // Rarity weights for random selection
 export const rarityWeights = {
   mythic: 0.5,
-  legendary: 5,
+  legendary: 3,
   epic: 10,
   rare: 19,
   uncommon: 30,
@@ -525,10 +525,10 @@ export const rarityWeights = {
 // Uncommon and above weights (for $250 chest)
 export const uncommonPlusWeights = {
   mythic: 1,
-  legendary: 8,
-  epic: 15,
-  rare: 30,
-  uncommon: 35,
+  legendary: 3,
+  epic: 10,
+  rare: 15,
+  uncommon: 40,
   common: 0
 };
 
