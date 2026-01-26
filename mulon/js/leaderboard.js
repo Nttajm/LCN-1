@@ -42,7 +42,6 @@ const googleProvider = new GoogleAuthProvider();
 const usersRef = collection(db, 'mulon_users');
 const marketsRef = collection(db, 'mulon');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
-const casinoUsersRef = collection(db, 'casino_users'); // Casino users for XP/levels
 
 // State
 let currentFilter = 'profit';
@@ -154,7 +153,9 @@ async function loadLeaderboardData() {
             // Try to get Over Under username and leaderStyle by email
             let displayName = userData.displayName || 'Anonymous';
             let leaderStyle = '';
-            let xps = 0;
+            
+            // XP is stored directly in mulon_users
+            const xps = userData.xps || 0;
             
             if (userData.email) {
                 try {
@@ -168,14 +169,6 @@ async function loadLeaderboardData() {
                         if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
                             leaderStyle = ouUserData.leaderStyle;
                         }
-                    }
-                    
-                    // Fetch XP from casino_users collection
-                    const casinoQuery = query(casinoUsersRef, where('email', '==', userData.email));
-                    const casinoSnapshot = await getDocs(casinoQuery);
-                    if (!casinoSnapshot.empty) {
-                        const casinoUserData = casinoSnapshot.docs[0].data();
-                        xps = casinoUserData.xps || 0;
                     }
                 } catch (e) {
                     // Silently fail, use default displayName
