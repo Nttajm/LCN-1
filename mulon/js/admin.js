@@ -1005,6 +1005,9 @@ async function loadAllUsers() {
   }
   
   allUsers = await MulonData.getAllUsers();
+  allUsers.forEach(async function (u) {
+    u.ownedCards = await MulonData.getUserCards(u.id);
+  });
   usersLoaded = true;
   
   updateUsersStats();
@@ -1902,7 +1905,7 @@ function showUserItemsModal(user) {
     </div>
   `;
 
-  if (user.cards) {
+  if (user.ownedCards) {
     userItems.innerHTML = userItems.innerHTML.concat(`
       <div class="items-card-list" id="itemsCardList">
         <div class="items-add-card">
@@ -1917,12 +1920,18 @@ function showUserItemsModal(user) {
       </div>
     `);
     itemsCardList = document.getElementById('itemsCardList');
-    user.cards.forEach(function (card, index) {
+    let i = 0;
+    user.ownedCards.forEach(function (card, index) {
+      // Some people have insane numbers of cards. Only load the first 100
+      if (i >= 100) {
+        return;
+      }
+      i += 1;
       itemsCardList.innerHTML = itemsCardList.innerHTML.concat(`
         <div class="items-card-item">
-          <span class="items-card-name">Card ${card}</span>
+          <span class="items-card-name">Card ${card.cardNumber}</span>
           <div class="card-edit-actions">
-            <button class="btn btn-sm btn-danger delete-card-btn" data-index=${index}>Delete</button>
+            <!--<button class="btn btn-sm btn-danger delete-card-btn" data-index=${index}>Delete</button>-->
           </div>
         </div>
       `);
@@ -1984,17 +1993,27 @@ function setupItemsModalListeners() {
 
   addNewCardBtn.onclick = async () => {
     const newCard = "#".concat(parseInt(newCardField.value).toLocaleString('en-US', {'minimumIntegerDigits': 3, 'maximumFractionDigits': 0}));
-    let newCards = currentItemsUser.cards;
-    newCards.push(newCard);
+    let newCardObj = {
+      cardNumber: newCard,
+      hasCard: true,
+      obtainedAt: {
+        seconds: new Date().getTime() / 1000,
+        nanoseconds: 0 // ???
+      },
+      obtainedFrom: "admin",
+      tradedFrom: null
+    };
+    let newCards = currentItemsUser.ownedCards;
+    newCards.push(newCardObj);
 
-    const result = await MulonData.updateUserCards(currentItemsUser.id, newCards);
+    const result = await MulonData.addUserCard(currentItemsUser.id, newCardObj);
 
     if (result.success) {
         showToast('Cards updated!', 'success');
         // Update local cache
         const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
         if (userIndex !== -1) {
-          allUsers[userIndex].cards = newCards;
+          allUsers[userIndex].ownedCards = newCards;
         }
       } else {
         showToast('Error updating cards', 'error');
@@ -2006,17 +2025,16 @@ function setupItemsModalListeners() {
   document.querySelectorAll('.delete-card-btn').forEach(btn => {
     btn.onclick = async function () {
       const idx = this.dataset.index;
-      let newCards = currentItemsUser.cards;
-      newCards.splice(idx, 1);
+      const card = currentItemsUser.ownedCards[idx];
 
-      const result = await MulonData.updateUserCards(currentItemsUser.id, newCards);
+      const result = await MulonData.removeUserCard(currentItemsUser.id, card.docId);
 
       if (result.success) {
         showToast('Cards updated!', 'success');
         // Update local cache
         const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
         if (userIndex !== -1) {
-          allUsers[userIndex].cards = newCards;
+          //allUsers[userIndex].cards = newCards;
         }
       } else {
         showToast('Error updating cards', 'error');

@@ -6,6 +6,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import {
     getFirestore,
     doc,
+    addDoc,
     setDoc,
     getDoc,
     getDocs,
@@ -2052,12 +2053,47 @@ const MulonData = {
     }
   },
 
-  // Update a user's cards (for admin)
-  async updateUserCards(userId, newCards) {
+  async getUserCards(userId) {
+    let userOwnedCards = [];
     try {
-      await updateDoc(doc(usersRef, userId), {
-        cards: newCards
+      const cardsCollectionRef = collection(db, 'mulon_users', userId, 'cards');
+      const q = query(cardsCollectionRef, where('hasCard', '==', true));
+      const snapshot = await getDocs(q);
+      
+      snapshot.forEach(docSnap => {
+        userOwnedCards.push({
+          docId: docSnap.id,
+          ...docSnap.data()
+        });
       });
+      
+      console.log(`Loaded ${userOwnedCards.length} cards for user`);
+    } catch (error) {
+      console.error('Error loading user cards:', error);
+      userOwnedCards = [];
+    }
+
+    return userOwnedCards;
+  },
+
+  // Add to a user's cards (for admin)
+  async addUserCard(userId, newCard) {
+    try {
+      const cardsCollectionRef = collection(db, 'mulon_users', userId, 'cards');
+      await addDoc(cardsCollectionRef, newCard);
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user cards:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Remove a user's card (for admin)
+  async removeUserCard(userId, docId) {
+    try {
+      const cardsCollectionRef = collection(db, 'mulon_users', userId, 'cards');
+      const docRef = doc(db, 'mulon_uesrs', userId, 'cards', docId);
+      await deleteDoc(docRef);
       return { success: true };
     } catch (error) {
       console.error('Error updating user cards:', error);
