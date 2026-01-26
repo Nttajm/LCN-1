@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Casino - Mulon</title>
-  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/casino.css">
   <link rel="stylesheet" href="css/chest-opener.css">
   <link rel="stylesheet" href="../css/standard.css">
@@ -81,7 +81,7 @@
     <div class="nav-inner">
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
-        <li><a href="index.html?cat=all" class="nav-link">All Markets</a></li>
+        <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
         <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
         <li><a href="casino.html" class="nav-link active">Casino</a></li>
       </ul>
@@ -177,7 +177,7 @@
         </div>
 
         <!-- $1,000 Chest -->
-        <div class="chest-card money-chest legendary-chest" id="legendaryChest">
+        <div class="chest-card money-chest epic-chest" id="epicChest">
           <div class="chest-glow"></div>
           <div class="chest-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -189,14 +189,14 @@
             </svg>
           </div>
           <div class="chest-info">
-            <h3>Legendary Chest</h3>
-            <p>Contains 10 Keys</p>
+            <h3>Epic Chest</h3>
+            <p>epic with some legendary items</p>
           </div>
           <div class="chest-price">
-            <span class="price-tag">$1,000</span>
+            <span class="price-tag">$1,267</span>
             <span class="chest-reward"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon-small"> ×10</span>
           </div>
-          <button class="chest-open-btn" id="legendaryChestBtn">
+          <button class="chest-open-btn" id="epicChestBtn">
             <span class="btn-text">Open</span>
             <span class="btn-icon">🎁</span>
           </button>
@@ -649,27 +649,39 @@
       
       const xpChestBtn = document.getElementById('xpChestBtn');
       const uncommonChestBtn = document.getElementById('uncommonChestBtn');
-      const legendaryChestBtn = document.getElementById('legendaryChestBtn');
+      const epicChestBtn = document.getElementById('epicChestBtn');
       
       // XP Chest click handler
       if (xpChestBtn) {
         xpChestBtn.addEventListener('click', async () => {
           if (xpChestBtn.disabled) return;
-          openChest('xp');
+          const result = await openChest('xp');
+          if (result.success) {
+            // Refresh UI after chest opens
+            setTimeout(() => updateUI(), 500);
+          }
         });
       }
       
       // Uncommon Chest ($250) click handler
       if (uncommonChestBtn) {
         uncommonChestBtn.addEventListener('click', async () => {
-          openChest('uncommon');
+          const result = await openChest('uncommon');
+          if (result.success) {
+            // Refresh UI after chest opens to show new balance
+            setTimeout(() => updateUI(), 500);
+          }
         });
       }
       
-      // Legendary Chest ($1,000) click handler
-      if (legendaryChestBtn) {
-        legendaryChestBtn.addEventListener('click', async () => {
-          openChest('legendary');
+      // Epic Chest ($1,000) click handler
+      if (epicChestBtn) {
+        epicChestBtn.addEventListener('click', async () => {
+          const result = await openChest('epic');
+          if (result.success) {
+            // Refresh UI after chest opens to show new balance
+            setTimeout(() => updateUI(), 500);
+          }
         });
       }
       

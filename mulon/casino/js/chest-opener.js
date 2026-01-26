@@ -2,147 +2,20 @@
 // CHEST OPENER - EXACT FROM CARDS.HTML
 // ========================================
 
-import { cardsData, rarityWeights, uncommonPlusWeights, legendaryWeights, getCardsByRarity } from './cards-data.js';
+import { cardsData, rarityWeights, uncommonPlusWeights, epicPlusWeights, getCardsByRarity } from '../../card-data/cards-data.js';
 import { CasinoDB } from './casino-auth.js';
+import { createCardHTML, createReelCardHTML, setup3DCardTracking } from '../../card-data/card-renderer.js';
 
 // Constants - EXACT from cards.html
 const CARD_WIDTH = 280;
 const CARD_GAP = 20;
+const TOTAL_CARD_WIDTH = CARD_WIDTH + CARD_GAP;
 const SPIN_DURATION = 6000;
 
 let isSpinning = false;
+let animationSkipped = false; // Track if animation was skipped
 let currentWinningCard = null;
 let overlayElement = null;
-
-// Create card HTML - Clean technical layout
-function createCardHTML(card, index) {
-  // Generate linked source based on card type
-  const linkedSources = ['Apple Stock', 'Tesla Stock', 'Gold Index', 'Crypto BTC', 'S&P 500', 'Trade Value'];
-  const linkedSource = linkedSources[Math.floor(Math.random() * linkedSources.length)];
-  
-  return `
-    <div class="card-wrapper">
-      <div class="card ${card.rarity}" data-index="${index}">
-        <div class="card-front">
-          <div class="card-inner">
-            <!-- Top header bar -->
-            <div class="card-header-bar">
-              <div class="card-id">${card.cardNumber}</div>
-              <div class="rarity-tag">${card.rarity.toUpperCase()}</div>
-            </div>
-            
-            <!-- Card image area -->
-            <div class="card-image ${card.element}-bg ${card.productImage ? 'has-product-image' : ''}">
-              <div class="card-image-frame">
-                ${card.productImage 
-                  ? `<img src="${card.productImage}" alt="${card.name}" class="card-product-image">` 
-                  : `<span class="card-emoji">${card.emoji}</span>`
-                }
-              </div>
-              <div class="card-image-glow"></div>
-            </div>
-            
-            <!-- Card info section -->
-            <div class="card-content">
-              <h3 class="card-name float-3d">${card.name}</h3>
-              <span class="card-type">${card.type}</span>
-              
-              <!-- Simplified Stats Section -->
-              <div class="card-stats-panel float-3d">
-                <div class="stats-row">
-                  <div class="stat-item value-box">
-                    <span class="stat-label">MARKET VALUE</span>
-                    <span class="stat-value highlight">$${card.stats.resellValue}</span>
-                  </div>
-                  <div class="stat-item link-box">
-                    <span class="stat-label">LINKED WITH</span>
-                    <span class="stat-value linked">${linkedSource}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Bottom bar -->
-            <div class="card-footer-bar">
-              <div class="card-serial">MULON-${card.cardNumber.replace('#', '')}</div>
-              <div class="verified-badge">✓ VERIFIED</div>
-            </div>
-          </div>
-        </div>
-        <div class="card-back">
-          <div class="card-back-pattern"></div>
-          <div class="card-back-grid"></div>
-          <div class="card-back-center">
-            <div class="card-back-logo">🎴</div>
-            <div class="card-back-rings">
-              <div class="ring ring-1"></div>
-              <div class="ring ring-2"></div>
-              <div class="ring ring-3"></div>
-            </div>
-          </div>
-          <div class="card-back-corners">
-            <span class="corner tl"></span>
-            <span class="corner tr"></span>
-            <span class="corner bl"></span>
-            <span class="corner br"></span>
-          </div>
-          <div class="card-back-text">MULON CARDS</div>
-          <div class="card-back-code">EST. 2024</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// Create reel card HTML - Clean layout
-function createReelCardHTML(card) {
-  const linkedSources = ['Apple Stock', 'Tesla Stock', 'Gold Index', 'Crypto BTC', 'S&P 500', 'Trade Value'];
-  const linkedSource = linkedSources[Math.floor(Math.random() * linkedSources.length)];
-  
-  return `
-    <div class="reel-card">
-      <div class="card ${card.rarity}">
-        <div class="card-inner">
-          <!-- Top header bar -->
-          <div class="card-header-bar">
-            <div class="card-id">${card.cardNumber}</div>
-            <div class="rarity-tag">${card.rarity.toUpperCase()}</div>
-          </div>
-          
-          <div class="card-image ${card.element}-bg">
-            <div class="card-image-frame">
-              <span class="card-emoji">${card.emoji}</span>
-            </div>
-            <div class="card-image-glow"></div>
-          </div>
-          
-          <div class="card-content">
-            <h3 class="card-name float-3d">${card.name}</h3>
-            <span class="card-type">${card.type}</span>
-            
-            <div class="card-stats-panel float-3d">
-              <div class="stats-row">
-                <div class="stat-item value-box">
-                  <span class="stat-label">VALUE</span>
-                  <span class="stat-value highlight">$${card.stats.resellValue}</span>
-                </div>
-                <div class="stat-item link-box">
-                  <span class="stat-label">LINKED</span>
-                  <span class="stat-value linked">${linkedSource}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="card-footer-bar">
-            <div class="card-serial">MULON-${card.cardNumber.replace('#', '')}</div>
-            <div class="verified-badge">✓</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
 
 // Select winning card based on weights - EXACT from cards.html
 function selectWinningCard(weights = rarityWeights) {
@@ -162,27 +35,68 @@ function selectWinningCard(weights = rarityWeights) {
   return cardsData[Math.floor(Math.random() * cardsData.length)];
 }
 
-// Generate reel cards - EXACT from cards.html
-function generateReelCards(winningCard, totalCards = 60) {
+// Generate reel cards - Uses weighted distribution to feel realistic
+// Lots of commons/uncommons with occasional legendaries for excitement
+function generateReelCards(winningCard, totalCards = 120) {
   const reelCards = [];
-  const winningPosition = Math.floor(totalCards * 0.75); // Win at 75% through
+  const winningPosition = Math.floor(totalCards * 0.6); // Win at 60% through
   
-  // Place some special spots for higher rarities
-  const legendarySpots = [15, 25, 35, 45];
-  const epicSpots = [10, 20, 30, 40, 50];
+  // Weighted selection for realistic feel - matches actual drop rates
+  function getRandomCardByWeight() {
+    const reelWeights = {
+      common: 45,
+      uncommon: 30,
+      rare: 15,
+      epic: 6,
+      legendary: 2,
+      mythic: 1
+    };
+    
+    const totalWeight = Object.values(reelWeights).reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (const [rarity, weight] of Object.entries(reelWeights)) {
+      random -= weight;
+      if (random <= 0) {
+        const cardsOfRarity = getCardsByRarity(rarity);
+        if (cardsOfRarity.length > 0) {
+          return cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
+        }
+      }
+    }
+    // Fallback to common
+    const commons = getCardsByRarity('common');
+    return commons.length > 0 ? commons[0] : cardsData[0];
+  }
+  
+  // Sprinkle in some guaranteed legendaries at specific spots for excitement ("near miss" moments)
+  const legendarySpots = [8, 20, 35, 50, 65, 85, 100, 110]; // Positions where a legendary will appear
+  const epicSpots = [12, 28, 42, 58, 75, 92, 105]; // Positions where an epic will appear
   
   for (let i = 0; i < totalCards; i++) {
     if (i === winningPosition) {
       reelCards.push(winningCard);
     } else if (legendarySpots.includes(i)) {
-      const legendaryCards = getCardsByRarity('legendary');
-      reelCards.push(legendaryCards[Math.floor(Math.random() * legendaryCards.length)] || cardsData[0]);
+      // Force a legendary or mythic for excitement
+      const legendaries = getCardsByRarity('legendary');
+      const mythics = getCardsByRarity('mythic');
+      const highTier = [...legendaries, ...mythics];
+      if (highTier.length > 0) {
+        reelCards.push(highTier[Math.floor(Math.random() * highTier.length)]);
+      } else {
+        reelCards.push(getRandomCardByWeight());
+      }
     } else if (epicSpots.includes(i)) {
-      const epicCards = getCardsByRarity('epic');
-      reelCards.push(epicCards[Math.floor(Math.random() * epicCards.length)] || cardsData[0]);
+      // Force an epic
+      const epics = getCardsByRarity('epic');
+      if (epics.length > 0) {
+        reelCards.push(epics[Math.floor(Math.random() * epics.length)]);
+      } else {
+        reelCards.push(getRandomCardByWeight());
+      }
     } else {
-      // Random card
-      reelCards.push(cardsData[Math.floor(Math.random() * cardsData.length)]);
+      // Use weighted random (mostly commons/uncommons)
+      reelCards.push(getRandomCardByWeight());
     }
   }
   
@@ -242,23 +156,43 @@ function createBurstParticles(container, rarity) {
 
 // Start spin animation - EXACT from cards.html
 function startSpinAnimation(reelTrack, winningPosition, callback) {
-  const cardTotalWidth = CARD_WIDTH + CARD_GAP;
-  const viewportCenter = window.innerWidth / 2;
-  const targetOffset = -(winningPosition * cardTotalWidth) + viewportCenter - (CARD_WIDTH / 2);
+  const reelFrame = reelTrack.closest('.reel-frame');
+  const frameWidth = reelFrame.offsetWidth;
+  const centerOffset = (frameWidth / 2) - (CARD_WIDTH / 2);
   
+  // Start position: cards start from right side (positive offset to show beginning)
+  const startOffset = centerOffset;
+  const targetPosition = (winningPosition * TOTAL_CARD_WIDTH) - centerOffset;
+  
+  // Add slight random offset for natural feel
+  const randomOffset = (Math.random() - 0.5) * 20;
+  const finalPosition = -(targetPosition) + randomOffset;
+  
+  // Set initial position
+  reelTrack.style.transform = `translateY(-50%) translateX(${startOffset}px)`;
+
   const startTime = performance.now();
-  const startPosition = 0;
+  
+  // Reset skip flag at start of animation
+  animationSkipped = false;
   
   function easeOutQuart(t) {
     return 1 - Math.pow(1 - t, 4);
   }
   
+  const totalDistance = finalPosition - startOffset;
+  
   function animate(currentTime) {
+    // If animation was skipped, stop the loop
+    if (animationSkipped) {
+      return;
+    }
+    
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / SPIN_DURATION, 1);
     const eased = easeOutQuart(progress);
     
-    const currentPosition = startPosition + (targetOffset - startPosition) * eased;
+    const currentPosition = startOffset + (totalDistance * eased);
     reelTrack.style.transform = `translateY(-50%) translateX(${currentPosition}px)`;
     
     // Highlight center card during spin
@@ -274,39 +208,34 @@ function startSpinAnimation(reelTrack, winningPosition, callback) {
   requestAnimationFrame(animate);
 }
 
-// Highlight center card - Enhanced with 3D effects and glow
-function highlightCenterCard(reelTrack, currentPosition) {
-  const cardTotalWidth = CARD_WIDTH + CARD_GAP;
-  const viewportCenter = window.innerWidth / 2;
-  const centerIndex = Math.round((-currentPosition + viewportCenter - CARD_WIDTH / 2) / cardTotalWidth);
+// Highlight center card - EXACT from cards.html
+function highlightCenterCard(track, position) {
+  const reelFrame = track.closest('.reel-frame');
+  const frameWidth = reelFrame.offsetWidth;
+  const centerX = frameWidth / 2;
+  const cards = track.querySelectorAll('.reel-card');
   
-  const reelCards = reelTrack.querySelectorAll('.reel-card');
-  reelCards.forEach((card, index) => {
-    const distance = Math.abs(index - centerIndex);
+  cards.forEach((card, index) => {
+    const cardCenterX = (index * TOTAL_CARD_WIDTH) + (CARD_WIDTH / 2) + position;
+    const distance = Math.abs(cardCenterX - centerX);
     const cardElement = card.querySelector('.card');
     
-    if (distance === 0) {
-      // Center card - full highlight with 3D pop
+    if (distance < CARD_WIDTH / 2) {
       card.style.opacity = '1';
-      card.style.transform = 'scale(1.12) translateZ(50px)';
+      card.style.transform = 'scale(1.05)';
       card.style.filter = 'brightness(1.2) saturate(1.2)';
-      card.classList.add('center-highlight');
       if (cardElement) {
         cardElement.style.boxShadow = '0 0 40px rgba(255, 255, 255, 0.4), 0 0 80px currentColor';
       }
-    } else if (distance === 1) {
-      // Adjacent cards - slight visibility
-      card.style.opacity = '0.6';
-      card.style.transform = 'scale(0.95) translateZ(0)';
-      card.style.filter = 'brightness(0.8) blur(1px)';
-      card.classList.remove('center-highlight');
+    } else if (distance < CARD_WIDTH) {
+      card.style.opacity = '0.7';
+      card.style.transform = 'scale(0.98)';
+      card.style.filter = 'brightness(0.9)';
       if (cardElement) cardElement.style.boxShadow = '';
     } else {
-      // Far cards - dimmed
-      card.style.opacity = '0.3';
-      card.style.transform = 'scale(0.9) translateZ(0)';
-      card.style.filter = 'brightness(0.5) blur(2px)';
-      card.classList.remove('center-highlight');
+      card.style.opacity = '0.4';
+      card.style.transform = 'scale(0.95)';
+      card.style.filter = 'brightness(0.6)';
       if (cardElement) cardElement.style.boxShadow = '';
     }
   });
@@ -380,7 +309,9 @@ function closeReveal() {
 
 // Skip animation
 function skipAnimation() {
-  if (isSpinning && currentWinningCard) {
+  // Only skip if currently spinning and we have a winning card
+  if (isSpinning && currentWinningCard && !animationSkipped) {
+    animationSkipped = true; // Set flag to stop the animation loop
     // Immediately show reveal
     showReveal(currentWinningCard);
   }
@@ -415,35 +346,6 @@ function createOverlayHTML() {
   `;
 }
 
-// 3D Mouse tracking for cards
-function setup3DCardTracking(container) {
-  const cardWrappers = container.querySelectorAll('.card-wrapper');
-  
-  cardWrappers.forEach(wrapper => {
-    const card = wrapper.querySelector('.card');
-    if (!card) return;
-    
-    wrapper.addEventListener('mousemove', (e) => {
-      const rect = wrapper.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      
-      const rotateX = ((y - centerY) / centerY) * -15;
-      const rotateY = ((x - centerX) / centerX) * 15;
-      
-      card.style.setProperty('--rotateX', `${rotateX}deg`);
-      card.style.setProperty('--rotateY', `${rotateY}deg`);
-    });
-    
-    wrapper.addEventListener('mouseleave', () => {
-      card.style.setProperty('--rotateX', '0deg');
-      card.style.setProperty('--rotateY', '0deg');
-    });
-  });
-}
-
 // Initialize chest opener
 export function initChestOpener() {
   // Create overlay element if not exists
@@ -476,13 +378,35 @@ export function initChestOpener() {
 }
 
 // Open chest - MAIN EXPORT FUNCTION
-export function openChest(chestType = 'normal') {
-  if (isSpinning) return;
+export async function openChest(chestType = 'normal') {
+  if (isSpinning) return { success: false, error: 'Already spinning' };
   
   // Initialize if needed
   if (!overlayElement) {
     initChestOpener();
   }
+  
+  // Handle payment based on chest type
+  if (chestType === 'uncommon' || chestType === 'epic') {
+    // Money chests - deduct balance
+    const purchaseResult = await CasinoDB.purchaseChest(chestType);
+    if (!purchaseResult.success) {
+      alert(purchaseResult.error);
+      return { success: false, error: purchaseResult.error };
+    }
+    console.log(`Purchased ${chestType} chest for $${purchaseResult.cost}. New balance: $${purchaseResult.newBalance}`);
+  } else if (chestType === 'xp') {
+    // XP chest - claim one available chest
+    const claimResult = await CasinoDB.claimXpChest();
+    if (!claimResult.success) {
+      alert(claimResult.error);
+      return { success: false, error: claimResult.error };
+    }
+    console.log(`Claimed XP chest. Total claimed: ${claimResult.chestsClaimed}, Remaining: ${claimResult.chestsRemaining}`);
+  }
+  
+  // Reset skip flag for new chest
+  animationSkipped = false;
   
   // Select weights based on chest type
   let weights;
@@ -493,8 +417,8 @@ export function openChest(chestType = 'normal') {
     case 'uncommon':
       weights = uncommonPlusWeights; // Uncommon+ for $250 chest
       break;
-    case 'legendary':
-      weights = legendaryWeights; // Legendary+ for $1000 chest
+    case 'epic':
+      weights = epicPlusWeights; // Epic+ for $1000 chest
       break;
     default:
       weights = rarityWeights;
@@ -524,4 +448,6 @@ export function openChest(chestType = 'normal') {
       }, 500);
     });
   }, 100);
+  
+  return { success: true };
 }

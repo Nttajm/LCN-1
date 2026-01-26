@@ -9,7 +9,13 @@ import {
     setDoc,
     getDoc,
     updateDoc,
-    increment
+    increment,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    where,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import {
     getAuth,
@@ -547,10 +553,11 @@ export const CasinoDB = {
   },
   
   // ========================================
-  // CARD COLLECTION SYSTEM
+  // CARD COLLECTION SYSTEM (Subcollection)
   // ========================================
   
-  // Save a received card to user's collection
+  // Save a received card to user's collection as a subcollection document
+  // Each card gets its own document with hasCard: true
   async saveCard(cardNumber) {
     if (!CasinoAuth.currentUser) {
       console.log('saveCard: Not signed in');
@@ -559,28 +566,223 @@ export const CasinoDB = {
     
     try {
       const userId = CasinoAuth.currentUser.uid;
-      const currentCards = CasinoAuth.userData?.cards ?? [];
+      const cardsCollectionRef = collection(db, 'mulon_users', userId, 'cards');
       
-      // Add the card ID to the collection
-      const updatedCards = [...currentCards, cardNumber];
-      
-      await updateDoc(doc(db, 'mulon_users', userId), {
-        cards: updatedCards
+      // Create a new card document in the user's cards subcollection
+      const cardDocRef = await addDoc(cardsCollectionRef, {
+        cardNumber: cardNumber,
+        hasCard: true,
+        obtainedAt: serverTimestamp(),
+        obtainedFrom: 'chest',
+        tradedFrom: null
       });
       
-      CasinoAuth.userData.cards = updatedCards;
-      console.log(`Card ${cardNumber} saved to collection. Total: ${updatedCards.length}`);
+      console.log(`Card ${cardNumber} saved with doc ID: ${cardDocRef.id}. Collection: users/${userId}/cards`);
       
-      return { success: true, totalCards: updatedCards.length };
+      return { success: true, cardDocId: cardDocRef.id };
     } catch (error) {
       console.error('Error saving card:', error);
       return { success: false, error: error.message };
     }
   },
   
-  // Get user's card collection
-  getCards() {
-    return CasinoAuth.userData?.cards ?? [];
+  // Get user's card collection (only cards with hasCard: true)
+  async getCards(userId = null) {
+    const targetUserId = userId || CasinoAuth.currentUser?.uid;
+    if (!targetUserId) {
+      return [];
+    }
+    
+    try {
+      const cardsCollectionRef = collection(db, 'mulon_users', targetUserId, 'cards');
+      const q = query(cardsCollectionRef, where('hasCard', '==', true));
+      const snapshot = await getDocs(q);
+      
+      const cards = [];
+      snapshot.forEach(doc => {
+        cards.push({
+          docId: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return cards;
+    } catch (error) {
+      console.error('Error getting cards:', error);
+      return [];
+    }
+  },
+  
+  // Get all cards (including traded ones) for history
+  async getAllCards(userId = null) {
+    const targetUserId = userId || CasinoAuth.currentUser?.uid;
+    if (!targetUserId) {
+      return [];
+    }
+    
+    try {
+      const cardsCollectionRef = collection(db, 'mulon_users', targetUserId, 'cards');
+      const snapshot = await getDocs(cardsCollectionRef);
+      
+      const cards = [];
+      snapshot.forEach(doc => {
+        cards.push({
+          docId: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return cards;
+    } catch (error) {
+      console.error('Error getting all cards:', error);
+      return [];
+    }
+  },
+  
+  // Mark card as traded (set hasCard: false)
+  async markCardTraded(cardDocId) {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const cardDocRef = doc(db, 'mulon_users', userId, 'cards', cardDocId);
+      
+      await updateDoc(cardDocRef, {
+        hasCard: false,
+        tradedAt: serverTimestamp()
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error marking card as traded:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Transfer a card to another user (creates new doc for recipient)
+  async transferCard(cardNumber, fromUserId, toUserId, tradeId = null) {
+    try {
+      // Create a new card document for the recipient
+      const recipientCardsRef = collection(db, 'mulon_users', toUserId, 'cards');
+      
+      const newCardDoc = await addDoc(recipientCardsRef, {
+        cardNumber: cardNumber,
+        hasCard: true,
+        obtainedAt: serverTimestamp(),
+        obtainedFrom: 'trade',
+        tradedFrom: fromUserId,
+        tradeId: tradeId
+      });
+      
+      console.log(`Card ${cardNumber} transferred from ${fromUserId} to ${toUserId}, new doc: ${newCardDoc.id}`);
+      
+      return { success: true, newCardDocId: newCardDoc.id };
+    } catch (error) {
+      console.error('Error transferring card:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // ========================================
+  // CHEST PURCHASE SYSTEM
+  // ========================================
+  
+  // Purchase a chest with money (uncommon = $250, epic = $1000)
+  async purchaseChest(chestType) {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    const prices = {
+      uncommon: 250,
+      epic: 1267
+    };
+    
+    const price = prices[chestType];
+    if (!price) {
+      return { success: false, error: 'Invalid chest type' };
+    }
+    
+    if (CasinoAuth.userData.balance < price) {
+      return { success: false, error: `Insufficient balance! Need $${price}` };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const newBalance = Math.round((CasinoAuth.userData.balance - price) * 100) / 100;
+      
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        balance: newBalance
+      });
+      
+      CasinoAuth.userData.balance = newBalance;
+      
+      return { success: true, newBalance, cost: price };
+    } catch (error) {
+      console.error('Error purchasing chest:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Claim an XP chest (doesn't spend XP, just increments claim counter)
+  async claimXpChest() {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const totalXP = CasinoAuth.userData.xps || 0;
+      const currentClaimed = CasinoAuth.userData.xpChestsClaimed || 0;
+      const totalEarned = Math.floor(totalXP / 100);
+      const available = totalEarned - currentClaimed;
+      
+      if (available <= 0) {
+        return { success: false, error: 'No XP chests available' };
+      }
+      
+      const newClaimed = currentClaimed + 1;
+      
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        xpChestsClaimed: newClaimed
+      });
+      
+      CasinoAuth.userData.xpChestsClaimed = newClaimed;
+      
+      return { success: true, chestsClaimed: newClaimed, chestsRemaining: available - 1 };
+    } catch (error) {
+      console.error('Error claiming XP chest:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Get XP chests claimed count
+  getXpChestsClaimed() {
+    return CasinoAuth.userData?.xpChestsClaimed || 0;
+  },
+  
+  // Get available XP chests (total earned - claimed)
+  getAvailableXpChests() {
+    const totalXP = CasinoAuth.userData?.xps || 0;
+    const claimed = CasinoAuth.userData?.xpChestsClaimed || 0;
+    const earned = Math.floor(totalXP / 100);
+    return Math.max(0, earned - claimed);
+  },
+  
+  // Get user data for external use
+  async getUser(userId) {
+    try {
+      const userDoc = await getDoc(doc(db, 'mulon_users', userId));
+      if (userDoc.exists()) {
+        return userDoc.data();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
   }
 };
 
