@@ -64,7 +64,7 @@ const unlocksData = [
     },
     requirements: {
       cards: [
-        { cardNumber: '#018', name: 'Triple T', emoji: '🔥', quantity: 3 }
+        { cardNumber: '#018', quantity: 3 }
       ]
     },
     availability: {
@@ -267,11 +267,19 @@ function checkCardRequirements(unlock) {
   const results = [];
   
   for (const req of unlock.requirements.cards) {
+    // Get card data from cards-data.js
+    const cardData = getCardByNumber(req.cardNumber);
+    const cardName = cardData?.name || 'Unknown Card';
+    const cardEmoji = cardData?.emoji || '🎴';
+    
     // Count how many of this card the user owns
     const ownedCount = userOwnedCards.filter(card => card.cardNumber === req.cardNumber).length;
     
     results.push({
-      ...req,
+      cardNumber: req.cardNumber,
+      name: cardName,
+      emoji: cardEmoji,
+      quantity: req.quantity,
       owned: ownedCount,
       sufficient: ownedCount >= req.quantity
     });
