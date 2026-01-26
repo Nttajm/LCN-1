@@ -433,6 +433,10 @@ body.sidebar-open {
   padding: 0;
 }
 
+.nav-link .new {
+  background-color: #00a847;
+  color:white; 
+}
 .nav-links a,
 .nav-categories a {
   display: block;
