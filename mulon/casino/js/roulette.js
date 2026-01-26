@@ -614,11 +614,16 @@ async function showResult(winningNumber) {
   
   // Update balance via CasinoDB
   if (totalWin > 0) {
-    await window.CasinoDB.recordWin(totalWin);
+    await window.CasinoDB.recordWin(totalWin, config.totalBet);
   } else {
     // Lost - deduct a key
     await window.CasinoDB.recordLoss('roulette');
     updateKeysDisplay();
+  }
+  
+  // Record game result in session
+  if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+    await window.CasinoDB.recordGameResult('roulette', config.totalBet, totalWin);
   }
   
   // Clear pending spin (spin completed successfully)
@@ -939,6 +944,23 @@ function showRefreshPenalty(amount) {
 
 // Make adjustTotalBet available globally
 window.adjustTotalBet = adjustTotalBet;
+
+// ========================================
+// SESSION TRACKING - End session on page leave
+// ========================================
+window.addEventListener('beforeunload', () => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    // End the active roulette session
+    window.CasinoDB.endGameSession('user_left');
+  }
+});
+
+// Session keepalive (update activity every 2 minutes)
+setInterval(() => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    window.CasinoDB.updateSessionActivity();
+  }
+}, 2 * 60 * 1000);
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', init);

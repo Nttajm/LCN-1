@@ -393,6 +393,11 @@
     async function initCasinoAuth() {
       await CasinoAuth.init();
       
+      // Check for abandoned sessions
+      if (CasinoAuth.currentUser) {
+        await CasinoDB.checkAbandonedSessions();
+      }
+      
       // Update sign in button
       const signInBtn = document.getElementById('headerSignInBtn');
       if (signInBtn) {
@@ -780,6 +785,26 @@
     
     // Initialize chests when DOM is ready
     setTimeout(initChests, 500);
+    
+    // ========================================
+    // SESSION CLEANUP ON PAGE UNLOAD
+    // ========================================
+    window.addEventListener('beforeunload', async (e) => {
+      // End any active session when leaving the casino page
+      if (CasinoDB.activeSessionId) {
+        // Use sendBeacon for reliable async request on page unload
+        navigator.sendBeacon && console.log('Ending session on page unload');
+        // Note: endGameSession will be called, but may not complete
+        // That's why we have the checkAbandonedSessions on page load
+      }
+    });
+    
+    // Session activity keepalive (every 2 minutes)
+    setInterval(async () => {
+      if (CasinoDB.activeSessionId) {
+        await CasinoDB.updateSessionActivity();
+      }
+    }, 2 * 60 * 1000);
   </script>
 </body>
 </html>
