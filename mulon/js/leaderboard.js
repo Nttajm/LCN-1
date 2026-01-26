@@ -19,6 +19,7 @@ import {
     GoogleAuthProvider,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { calculateLevel, createLevelBadgeHTML } from './level-utils.js';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -41,6 +42,7 @@ const googleProvider = new GoogleAuthProvider();
 const usersRef = collection(db, 'mulon_users');
 const marketsRef = collection(db, 'mulon');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
+const casinoUsersRef = collection(db, 'casino_users'); // Casino users for XP/levels
 
 // State
 let currentFilter = 'profit';
@@ -152,6 +154,8 @@ async function loadLeaderboardData() {
             // Try to get Over Under username and leaderStyle by email
             let displayName = userData.displayName || 'Anonymous';
             let leaderStyle = '';
+            let xps = 0;
+            
             if (userData.email) {
                 try {
                     const ouQuery = query(ouUsersRef, where('email', '==', userData.email));
@@ -164,6 +168,14 @@ async function loadLeaderboardData() {
                         if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
                             leaderStyle = ouUserData.leaderStyle;
                         }
+                    }
+                    
+                    // Fetch XP from casino_users collection
+                    const casinoQuery = query(casinoUsersRef, where('email', '==', userData.email));
+                    const casinoSnapshot = await getDocs(casinoQuery);
+                    if (!casinoSnapshot.empty) {
+                        const casinoUserData = casinoSnapshot.docs[0].data();
+                        xps = casinoUserData.xps || 0;
                     }
                 } catch (e) {
                     // Silently fail, use default displayName
@@ -180,7 +192,8 @@ async function loadLeaderboardData() {
                 profit: profit,
                 positionsCount: (userData.positions || []).length,
                 createdAt: userData.createdAt,
-                leaderStyle: leaderStyle
+                leaderStyle: leaderStyle,
+                xps: xps
             });
         }
         
@@ -282,6 +295,10 @@ function renderTable(sortedData) {
         // Get leaderStyle classes if user has them from Over Under
         const leaderStyleClasses = user.leaderStyle ? user.leaderStyle.split(' ').filter(s => s.trim() !== '').join(' ') : '';
         
+        // Calculate user level from XP
+        const levelData = calculateLevel(user.xps || 0);
+        const levelBadgeHTML = createLevelBadgeHTML(levelData.level, 'small');
+        
         // Handle avatar with gradient support
         let avatarContent;
         let avatarStyle = '';
@@ -305,7 +322,10 @@ function renderTable(sortedData) {
                     <span class="rank-badge ${rankBadgeClass}">${rankDisplay}</span>
                 </div>
                 <div class="user-cell">
-                    <div class="user-cell-avatar" ${avatarStyle}>${avatarContent}</div>
+                    <div class="user-cell-avatar" ${avatarStyle}>
+                        ${avatarContent}
+                        ${levelBadgeHTML}
+                    </div>
                     <div class="user-cell-info">
                         <div class="user-cell-name">${user.displayName}</div>
                     </div>

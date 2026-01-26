@@ -214,13 +214,107 @@
 .user-cell-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--green-primary), #00a847);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+}
+
+.user-cell-avatar img {
+  border-radius: 50%;
+}
+/* ========================================
+   LEVEL BADGE STYLES
+   ======================================== */
+
+.level-badge {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  border: 2px solid var(--bg-secondary, #1a1a2e);
+  z-index: 2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.level-badge-sm {
+  width: 18px;
+  height: 18px;
+  font-size: 0.6rem;
+  bottom: -2px;
+  right: -4px;
+}
+
+.level-badge-md {
+  width: 24px;
+  height: 24px;
+  font-size: 0.7rem;
+  bottom: -3px;
+  right: -5px;
+}
+
+.level-badge-lg {
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+  bottom: -4px;
+  right: -6px;
+}
+
+/* Level badge effects */
+.level-badge.glow-pulse {
+  animation: levelGlowPulse 2s ease-in-out infinite;
+}
+
+.level-badge.shimmer {
   overflow: hidden;
+}
+
+.level-badge.shimmer::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  animation: shimmerEffect 3s linear infinite;
+}
+
+.level-badge.legendary {
+  animation: legendaryPulse 2s ease-in-out infinite, levelGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes levelGlowPulse {
+  0%, 100% { 
+    filter: brightness(1); 
+  }
+  50% { 
+    filter: brightness(1.2); 
+  }
+}
+
+@keyframes shimmerEffect {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+@keyframes legendaryPulse {
+  0%, 100% { 
+    transform: scale(1); 
+  }
+  50% { 
+    transform: scale(1.05); 
+  }
 }
 
 .user-cell-avatar img {
