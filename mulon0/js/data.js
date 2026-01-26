@@ -6,7 +6,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import {
     getFirestore,
     doc,
-    addDoc,
     setDoc,
     getDoc,
     getDocs,
@@ -38,7 +37,6 @@ const firebaseConfig = {
     appId: "1:690530120785:web:36dc297cb517ac76cb7470",
     measurementId: "G-Q30T39R8VY"
 };
-import { checkMaintenanceAccess, MAINTENANCE_MODE } from './maintenance.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -102,11 +100,7 @@ async function logAdminAction(actionType, details = {}) {
 // OVER UNDER ACCOUNT SYNC
 // ========================================
 const OverUnderSync = {
-  /**
-   * Check if the user has an OverUnder account.
-   * @param {string} email 
-   * @returns {*} {found, uid, username, name, email}
-   */
+  // Check if user has an Over Under account by email
   async checkForOverUnderAccount(email) {
     if (!email) return null;
     
@@ -132,12 +126,7 @@ const OverUnderSync = {
     }
   },
   
-  /**
-   * Sync the user's name with their OverUnder username.
-   * @param {string} mulonUserId 
-   * @param {string} overUnderUsername 
-   * @returns {object} {success, error}
-   */
+  // Sync username from Over Under to Mulon
   async syncUsername(mulonUserId, overUnderUsername) {
     try {
       await updateDoc(doc(usersRef, mulonUserId), {
@@ -162,9 +151,7 @@ const Auth = {
   currentUser: null,
   authStateListeners: [],
   
-  /**
-   * Initialize the Auth state listener and load the user's data.
-   */
+  // Initialize auth state listener
   init() {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -195,28 +182,8 @@ const Auth = {
       this.authStateListeners.forEach(listener => listener(this.currentUser));
     });
   },
-
-  /**
-   * Call Auth.init() and, if the website is in maintenance mode, check if the user is allowed to view the page.
-   * @returns {boolean} Whether the user has access or not
-   */
-  async initWithMaintenanceCheck() {
-    this.init();
-    
-    if (MAINTENANCE_MODE) {
-      const hasAccess = await checkMaintenanceAccess({
-        getUser: () => this.currentUser,
-        redirectUrl: '../maintenance.html',
-        delay: 500 // Shorter delay since we already awaited init()
-      });
-      return hasAccess;
-    }
-    return true;
-  },
   
-  /**
-   * Sign in with Google
-   */
+  // Sign in with Google
   async signInWithGoogle() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -227,9 +194,7 @@ const Auth = {
     }
   },
   
-  /**
-   * Sign the user out.
-   */
+  // Sign out
   async signOut() {
     try {
       await signOut(auth);
@@ -241,26 +206,17 @@ const Auth = {
     }
   },
   
-  /**
-   * Check if the user is signed in.
-   * @returns {boolean} Whether the user is signed it
-   */
+  // Check if user is signed in
   isSignedIn() {
     return this.currentUser !== null && !this.currentUser.isGuest;
   },
   
-  /**
-   * Get the current user.
-   * @returns {object} The user
-   */
+  // Get current user
   getUser() {
     return this.currentUser;
   },
   
-  /**
-   * Add auth state change listener
-   * @param {listener} listener The listener
-   */
+  // Add auth state change listener
   onAuthStateChange(listener) {
     this.authStateListeners.push(listener);
     // Immediately call with current state
@@ -269,9 +225,7 @@ const Auth = {
     }
   },
   
-  /**
-   * Set guest mode, allowing user to continue as a guest.
-   */
+  // Continue as guest (for browsing only)
   setGuestMode() {
     this.currentUser = {
       uid: 'guest_' + Date.now(),
@@ -292,11 +246,6 @@ const UserData = {
   data: null,
   userId: null,
   
-  /**
-   * Get the default user data.
-   * @param {object} userProfile The profile of the user (optional)
-   * @returns {object} The default user data
-   */
   getDefault(userProfile = {}) {
     return {
       // User profile info
@@ -316,12 +265,7 @@ const UserData = {
     };
   },
   
-  /**
-   * Loads the user's data from Firebase, creating new user data if necessary.
-   * @param {string} userId The ID of the user
-   * @param {object} userProfile The profile data of the user (email, displayName, etc.)
-   * @returns {object} The user's data, or the default user data if it could not be loaded
-   */
+  // Load user data from Firebase
   async loadFromFirebase(userId, userProfile = {}) {
     this.userId = userId;
     try {
@@ -351,9 +295,7 @@ const UserData = {
     return this.data;
   },
   
-  /**
-   * Save the user's data.
-   */
+  // Save user data to Firebase
   async save() {
     if (!this.userId || !this.data) return;
     try {
@@ -363,59 +305,18 @@ const UserData = {
     }
   },
   
-  /**
-   * Get the user's data, or the default user data if it could not be gotten
-   * @returns {object} User's data
-   */
   get() {
     return this.data || this.getDefault();
   },
   
-  /**
-   * Get the user's balance.
-   * @returns {number} The user's balance
-   */
   getBalance() {
     return this.get().balance;
   },
-
-  /**
-   * Set the user's balance.
-   * @param {number} amount The user's balance
-   * @returns {number} The user's balance
-   */
-  async setBalance(amount) {
-    if (!this.data) return 0;
-    this.data.balance = Math.round(amount * 100) / 100;
-    await this.save();
-    return this.data.balance;
-  },
-
-  /**
-   * Add to the user's balance.
-   * @param {number} amount The amount to add
-   * @returns {number} The user's balance
-   */
-  async updateBalance(amount) {
-    if (!this.data) return 0;
-    this.data.balance = Math.round((this.data.balance + amount) * 100) / 100;
-    await this.save();
-    return this.data.balance;
-  },
   
-  /**
-   * Get the user's number of keys.
-   * @returns {number} The number of keys
-   */
   getKeys() {
     return this.get().keys || 0;
   },
   
-  /**
-   * Add to the user's number of keys.
-   * @param {number} amount The amount to add
-   * @returns 
-   */
   async updateKeys(amount) {
     if (!this.data) return 0;
     this.data.keys = Math.max(0, (this.data.keys || 0) + amount);
@@ -429,37 +330,21 @@ const UserData = {
   BASE_KEY_REWARD: 4,
   BASE_BALANCE_REWARD: 150,
   
-  /**
-   * Get the user's daily streak multiplier.
-   * @param {number} streak 
-   * @returns 
-   */
   getStreakMultiplier(streak) {
     const idx = Math.min(streak - 1, this.STREAK_MULTIPLIERS.length - 1);
     if (idx < 0) return this.STREAK_MULTIPLIERS[0];
     return this.STREAK_MULTIPLIERS[idx];
   },
   
-  /**
-   * Get the date user's last daily key claim.
-   * @returns {string} The date of the last claim, stored in a string; or null, if the user has never claimed their daily key
-   */
+  // Daily key claim functions
   getLastDailyKeyClaim() {
     return this.get().lastDailyKeyClaim || null;
   },
   
-  /**
-   * Get the user's daily streak.
-   * @returns {number} The user's daily streak
-   */
   getDailyStreak() {
     return this.get().dailyStreak || 0;
   },
   
-  /**
-   * Check if the user may claim their daily key.
-   * @returns {boolean} Whether the user can claim their daily key or not
-   */
   canClaimDailyKey() {
     const lastClaim = this.getLastDailyKeyClaim();
     if (!lastClaim) return true;
@@ -471,10 +356,7 @@ const UserData = {
     return hoursPassed >= 24;
   },
   
-  /**
-   * Check if the user's streak is valid or not (last valid claim was within past 48 hours).
-   * @returns {boolean} Whether the streak is valid or not
-   */
+  // Check if streak is still valid (within 48 hours of last claim)
   isStreakValid() {
     const lastClaim = this.getLastDailyKeyClaim();
     if (!lastClaim) return false;
@@ -487,10 +369,6 @@ const UserData = {
     return hoursPassed < 48;
   },
   
-  /**
-   * Get the time until the user may make their next daily claim.
-   * @returns {number} The time until the next claim (ms)
-   */
   getTimeUntilNextClaim() {
     const lastClaim = this.getLastDailyKeyClaim();
     if (!lastClaim) return 0;
@@ -502,9 +380,7 @@ const UserData = {
     return Math.max(0, nextClaimTime - now);
   },
   
-  /**
-   * Get current streak reward info (for UI display).
-   */
+  // Get current streak reward info (for UI display)
   getStreakRewardInfo() {
     let currentStreak = this.getDailyStreak();
     
@@ -528,9 +404,6 @@ const UserData = {
     };
   },
   
-  /**
-   * Claim the user's daily key.
-   */
   async claimDailyKey() {
     if (!this.data) return { success: false, error: 'Not signed in' };
     if (!this.canClaimDailyKey()) return { success: false, error: 'Already claimed today' };
@@ -570,11 +443,7 @@ const UserData = {
     }
   },
   
-  /**
-   * Update the user's profile.
-   * @param {string} displayName The user's displayed name
-   * @param {string} avatarStyle The user's avatar style
-   */
+  // Update user profile (displayName, avatarStyle)
   async updateProfile(displayName, avatarStyle) {
     if (!this.data) return { success: false, error: 'Not signed in' };
     
@@ -595,32 +464,21 @@ const UserData = {
     }
   },
   
-  /**
-   * Get the user's avatar style.
-   * @returns {string} The user's avatar style
-   */
   getAvatarStyle() {
     return this.get().avatarStyle || 'default';
   },
   
-  /**
-   * Get the user's display name.
-   * @returns {string} The user's display name
-   */
   getDisplayName() {
     return this.get().displayName || 'Anonymous';
   },
+
+  async updateBalance(amount) {
+    if (!this.data) return 0;
+    this.data.balance = Math.round((this.data.balance + amount) * 100) / 100;
+    await this.save();
+    return this.data.balance;
+  },
   
-  /**
-   * Add a position.
-   * @param {string} marketId The market ID
-   * @param {string} marketTitle The market title
-   * @param {string} choice The user's choice (yes or no)
-   * @param {number} shares The number of shares
-   * @param {number} costBasis The cost basis
-   * @param {number} price The price
-   * @returns 
-   */
   async addPosition(marketId, marketTitle, choice, shares, costBasis, price) {
     if (!this.data) return [];
     
@@ -688,21 +546,11 @@ const UserData = {
     return this.data.positions;
   },
   
-  /**
-   * Get the user's positions.
-   * @returns {object[]} An array of positions
-   */
   getPositions() {
     return this.get().positions || [];
   },
   
-  /**
-   * Sell part or all of a position
-   * @param {string} marketId The market ID
-   * @param {string} choice The user's choice (yes/no)
-   * @param {number} sharesToSell The number of shares being sold
-   * @param {number} saleAmount The sale amount
-   */
+  // Reduce or remove a position when selling
   async sellPosition(marketId, choice, sharesToSell, saleAmount) {
     if (!this.data) return null;
     
@@ -1987,24 +1835,13 @@ const MulonData = {
         users.push({
           id: userDoc.id,
           displayName: userData.displayName || 'Anonymous',
-          avatarStyle: userData.avatarStyle || '',
-          leaderStyle: userData.leaderStyle || '',
-          overUnderSynced: userData.overUnderSynced || false,
           email: userData.email || 'Unknown',
           photoURL: userData.photoURL || null,
-          dailyStreak: userData.dailyStreak || 0,
-          lastDailyKeyClaim: userData.lastDailyKeyClaim || '',
-          casinoStats: userData.casinoStats || {totalWon: 0, totalWagered: 0, gamesPlayed: 0},
           keys: userData.keys || 0,
-          xps: userData.xps || 0,
-          xpStats: userData.xpStats || {bestStreak: 0, totalEarned: 0},
-          cards: userData.cards || [],
           balance: userData.balance || 0,
           positions: userData.positions || [],
-          transactions: userData.transactions || [],
           createdAt: userData.createdAt || null,
-          lastLoginAt: userData.lastLoginAt || null,
-          plinkoBalls: userData.plinkoBalls || 0
+          lastLoginAt: userData.lastLoginAt || null
         });
       }
       
@@ -2014,66 +1851,6 @@ const MulonData = {
     } catch (error) {
       console.error('Error fetching all users:', error);
       return [];
-    }
-  },
-
-  // Update a user's name (for admin)
-  async updateUserName(userId, newName) {
-    try {
-      await updateDoc(doc(usersRef, userId), {
-        displayName: newName
-      });
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating username:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Update a user's avatar style (for admin)
-  async updateAvatarStyle(userId, newAvatarStyle) {
-    try {
-      await updateDoc(doc(usersRef, userId), {
-        avatarStyle: newAvatarStyle
-      });
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating avatar style:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  async getLeaderboardStyle(user) {
-    if (user.leaderStyle) {
-      return user.leaderStyle;
-    }
-    if (user.email) {
-      try {
-          const ouQuery = query(ouUsersRef, where('email', '==', user.email));
-          const ouSnapshot = await getDocs(ouQuery);
-          if (!ouSnapshot.empty) {
-              const ouUserData = ouSnapshot.docs[0].data();
-              if (ouUserData.leaderStyle && ouUserData.leaderStyle.trim() !== '') {
-                  return ouUserData.leaderStyle;
-              }
-          }
-      } catch (e) {
-          return '';
-      }
-    }
-    return '';
-  },
-
-  // Update a user's leaderboard style (for admin)
-  async updateLeaderStyle(userId, newLeaderStyle) {
-    try {
-      await updateDoc(doc(usersRef, userId), {
-        leaderStyle: newLeaderStyle
-      });
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating leaderboard style:', error);
-      return { success: false, error: error.message };
     }
   },
 
@@ -2135,88 +1912,6 @@ const MulonData = {
       return { success: true };
     } catch (error) {
       console.error('Error updating user keys:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Update a user's XP (for admin)
-  async updateUserXP(userId, newXP) {
-    requireAdmin(); // Security check
-    
-    try {
-      await updateDoc(doc(usersRef, userId), {
-        xps: Math.max(0, Math.round(newXP))
-      });
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating user XP:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  async getUserCards(userId) {
-    let userOwnedCards = [];
-    try {
-      const cardsCollectionRef = collection(db, 'mulon_users', userId, 'cards');
-      const q = query(cardsCollectionRef, where('hasCard', '==', true));
-      const snapshot = await getDocs(q);
-      
-      snapshot.forEach(docSnap => {
-        userOwnedCards.push({
-          docId: docSnap.id,
-          ...docSnap.data()
-        });
-      });
-      
-      console.log(`Loaded ${userOwnedCards.length} cards for user`);
-    } catch (error) {
-      console.error('Error loading user cards:', error);
-      userOwnedCards = [];
-    }
-
-    return userOwnedCards;
-  },
-
-  // Add to a user's cards (for admin)
-  async addUserCard(userId, newCard) {
-    requireAdmin(); // Security check
-    
-    try {
-      const cardsCollectionRef = collection(db, 'mulon_users', userId, 'cards');
-      await addDoc(cardsCollectionRef, newCard);
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating user cards:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Remove a user's card (for admin)
-  async removeUserCard(userId, docId) {
-    requireAdmin(); // Security check
-    
-    try {
-      const cardsCollectionRef = collection(db, 'mulon_users', userId, 'cards');
-      const docRef = doc(db, 'mulon_uesrs', userId, 'cards', docId);
-      await deleteDoc(docRef);
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating user cards:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Update a user's Plinko balls (for admin)
-  async updateUserPlinkoBalls(userId, newBalls) {
-    requireAdmin(); // Security check
-    
-    try {
-      await updateDoc(doc(usersRef, userId), {
-        plinkoBalls: newBalls
-      });
-      return { success: true };
-    } catch (error) {
-      console.error('Error updating user Plinko balls:', error);
       return { success: false, error: error.message };
     }
   },
@@ -2620,7 +2315,6 @@ const MulonData = {
 
 // Make MulonData globally available
 window.MulonData = MulonData;
-window.Auth = Auth;
 
 // Export for ES modules
 export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef, suggestionsRef, positionsRef, tradesRef };

@@ -110,7 +110,7 @@
 
 .table-header {
   display: grid;
-  grid-template-columns: 60px 1fr 120px 120px 120px;
+  grid-template-columns: 60px 1fr 120px 120px 120px 80px;
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: var(--bg-secondary);
@@ -147,12 +147,13 @@
 
 .leaderboard-row {
   display: grid;
-  grid-template-columns: 60px 1fr 120px 120px 120px;
+  grid-template-columns: 60px 1fr 120px 120px 120px 80px;
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border-light);
   align-items: center;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .leaderboard-row:last-child {
@@ -161,6 +162,7 @@
 
 .leaderboard-row:hover {
   background: var(--bg-secondary);
+  transform: translateX(4px);
 }
 
 .leaderboard-row.current-user {
@@ -558,5 +560,43 @@
   
   .coming-soon-content h2 {
     font-size: 1.5rem;
+  }
+}
+
+/* ========================================
+   VIEW PROFILE BUTTON
+   ======================================== */
+.view-profile-cell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-profile-btn {
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.leaderboard-row:hover .view-profile-btn {
+  background: var(--green-primary);
+  border-color: var(--green-primary);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .table-header,
+  .leaderboard-row {
+    grid-template-columns: 40px 1fr 80px 80px;
+  }
+  
+  .table-header-cell:nth-child(5),
+  .stat-cell:nth-child(5),
+  .view-profile-cell {
+    display: none;
   }
 }

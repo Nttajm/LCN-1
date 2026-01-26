@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leaderboard - Mulon</title>
+  <title>Unlocks - Mulon</title>
   <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/leaderboard.css">
-  <link rel="stylesheet" href="css/leaderstyles.css">
+  <link rel="stylesheet" href="css/unlocks.css">
   <link rel="stylesheet" href="../css/standard.css">
 </head>
 <body>
@@ -21,7 +20,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.3-4.3"></path>
         </svg>
-        <input type="text" placeholder="Search traders...">
+        <input type="text" placeholder="Search unlocks...">
       </div>
     </div>
     <div class="header-right">
@@ -45,6 +44,7 @@
             <ul>
               <li>Playing casino games</li>
               <li>Buying collectables</li>
+              <li>Unlocking rewards</li>
             </ul>
             <p style="margin-top: 8px;"><strong>Earn Keys:</strong></p>
             <ul>
@@ -89,79 +89,125 @@
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
         <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
-        <li><a href="unlocks.html" class="nav-link">Unlocks</a></li>
-        <li><a href="leaderbaord.html" class="nav-link active">Leaderboard</a></li>
+        <li><a href="unlocks.html" class="nav-link active">Unlocks</a></li>
+        <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
         <li><a href="casino.html" class="nav-link">Casino</a></li>
       </ul>
     </div>
   </nav>
 
   <!-- Main Content -->
-  <main class="main-content">
-    <!-- Leaderboard Header -->
-    <div class="leaderboard-header">
-      <h1>🏆 Trader Leaderboard</h1>
-      <p>See who's leading the pack in prediction markets</p>
-    </div>
-
-    <!-- Filter Tabs -->
-    <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="profit">
-        <span class="tab-icon">📈</span>
-        Profit
-      </button>
-      <button class="filter-tab" data-filter="balance">
-        <span class="tab-icon">💰</span>
-        Balance
-      </button>
-      <button class="filter-tab" data-filter="portfolio">
-        <span class="tab-icon">📊</span>
-        Portfolio
-      </button>
-    </div>
-
-    <!-- Top 3 Podium -->
-    <div class="podium" id="podium">
-      <!-- Podium items will be populated by JavaScript -->
-    </div>
-
-    <!-- Leaderboard Table -->
-    <div class="leaderboard-table" id="leaderboardTable">
-      <div class="table-header">
-        <div class="table-header-cell">Rank</div>
-        <div class="table-header-cell">Trader</div>
-        <div class="table-header-cell sortable" data-sort="profit">
-          Profit
-          <span class="sort-icon">▼</span>
-        </div>
-        <div class="table-header-cell sortable" data-sort="balance">
-          Balance
-          <span class="sort-icon">▼</span>
-        </div>
-        <div class="table-header-cell sortable" data-sort="portfolio">
-          Portfolio
-          <span class="sort-icon">▼</span>
-        </div>
-        <div class="table-header-cell">Profile</div>
+  <div class="unlocks-container">
+    <!-- Page Header -->
+    <div class="unlocks-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <span class="title-icon">🔓</span>
+          Unlocks
+        </h1>
+        <p class="page-subtitle">Use your cards to unlock exclusive rewards!</p>
       </div>
-      <div id="leaderboardRows">
-        <!-- Rows will be populated by JavaScript -->
+      <div class="user-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="userCardsCount">0</span>
+          <span class="stat-label">Cards Owned</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="unlocksCompletedCount">0</span>
+          <span class="stat-label">Unlocks Completed</span>
+        </div>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div class="loading-container" id="loadingState" style="display: none;">
-      <div class="loading-spinner"></div>
-      <p class="loading-text">Loading leaderboard...</p>
+    <!-- Unlock Filters -->
+    <div class="unlock-filters">
+      <button class="filter-btn active" data-filter="all">
+        <span class="filter-icon">📋</span>
+        All Unlocks
+      </button>
+      <button class="filter-btn" data-filter="available">
+        <span class="filter-icon">✅</span>
+        Available Now
+      </button>
+      <button class="filter-btn" data-filter="time-limited">
+        <span class="filter-icon">⏰</span>
+        Time Limited
+      </button>
+      <button class="filter-btn" data-filter="level-locked">
+        <span class="filter-icon">🔒</span>
+        Level Locked
+      </button>
+    </div>
+
+    <!-- Unlocks Grid -->
+    <div class="unlocks-grid" id="unlocksGrid">
+      <!-- Unlock cards will be rendered here by JS -->
     </div>
 
     <!-- Empty State -->
-    <div class="empty-leaderboard" id="emptyState" style="display: none;">
-      <div class="empty-icon">🏆</div>
-      <h3>No traders yet</h3>
-      <p>Be the first to make some trades and climb the leaderboard!</p>
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <span class="empty-icon">🔐</span>
+      <h3>No unlocks available</h3>
+      <p>Check back later for new unlock opportunities!</p>
     </div>
-  </main>
+  </div>
+
+  <!-- Unlock Confirmation Modal -->
+  <div class="modal-overlay" id="unlockModal">
+    <div class="modal unlock-modal">
+      <div class="modal-header">
+        <h2>🔓 Confirm Unlock</h2>
+        <button class="modal-close" id="closeUnlockModal">&times;</button>
+      </div>
+      
+      <div class="unlock-confirmation">
+        <div class="unlock-reward-preview">
+          <div class="reward-icon" id="modalRewardIcon">🎁</div>
+          <h3 class="reward-name" id="modalRewardName">Reward Name</h3>
+          <p class="reward-description" id="modalRewardDescription">Reward description goes here.</p>
+        </div>
+        
+        <div class="unlock-cost-section">
+          <h4>Required Cards</h4>
+          <div class="required-cards" id="modalRequiredCards">
+            <!-- Cards will be shown here -->
+          </div>
+        </div>
+        
+        <div class="unlock-keys-reward">
+          <div class="keys-reward-box">
+            <img src="/bp/EE/assets/ouths/key.png" alt="Keys" class="key-icon-lg">
+            <span class="keys-amount" id="modalKeysReward">+50</span>
+            <span class="keys-label">Keys</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelUnlockBtn">Cancel</button>
+        <button class="btn btn-primary" id="confirmUnlockBtn">
+          <span class="btn-icon">🔓</span>
+          Unlock Reward
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal success-modal">
+      <div class="success-content">
+        <div class="success-icon">🎉</div>
+        <h2>Unlock Successful!</h2>
+        <p class="success-message" id="successMessage">You received 50 keys!</p>
+        <div class="keys-earned-display">
+          <img src="/bp/EE/assets/ouths/key.png" alt="Keys" class="key-icon-xl">
+          <span class="keys-earned" id="keysEarned">+50</span>
+        </div>
+        <button class="btn btn-primary" id="closeSuccessBtn">Awesome!</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="footer">
@@ -172,6 +218,6 @@
   </footer>
 
   <script src="js/format-utils.js"></script>
-  <script type="module" src="js/leaderboard.js"></script>
+  <script type="module" src="js/unlocks.js"></script>
 </body>
 </html>

@@ -76,6 +76,7 @@ const filterState = {
 // All trades (including completed) for history
 let allTradesHistory = [];
 let currentLiveTab = 'live'; // 'live' or 'history'
+let unreadNotifications = []; // Trade IDs with unread notifications
 
 document.addEventListener('DOMContentLoaded', () => {
   // ========================================
@@ -339,6 +340,11 @@ document.addEventListener('DOMContentLoaded', () => {
         userBalance = data.balance || 0;
         userKeys = data.keys || 0;
         userTradeIds = data.tradeIds || [];
+        
+        // Load unread trade notifications
+        const readTradeIds = data.readTradeNotifications || [];
+        const completedTradeIds = data.completedTradeIds || [];
+        await checkForUnreadNotifications(completedTradeIds, readTradeIds);
       } else {
         // Create user document if doesn't exist
         await setDoc(doc(usersRef, currentUser.uid), {
@@ -361,6 +367,199 @@ document.addEventListener('DOMContentLoaded', () => {
     
     updateBalanceDisplay();
     renderMarketplaceTrades();
+  }
+  
+  // ========================================
+  // TRADE NOTIFICATIONS SYSTEM
+  // ========================================
+  
+  // Check for unread trade notifications
+  async function checkForUnreadNotifications(completedTradeIds, readTradeIds) {
+    if (!currentUser || !completedTradeIds || completedTradeIds.length === 0) {
+      unreadNotifications = [];
+      return;
+    }
+    
+    try {
+      // Find trades that are completed but not yet read
+      const unreadTradeIds = completedTradeIds.filter(id => !readTradeIds.includes(id));
+      
+      if (unreadTradeIds.length === 0) {
+        unreadNotifications = [];
+        updateNotificationBadge();
+        return;
+      }
+      
+      // Fetch the actual trade data for unread notifications
+      unreadNotifications = [];
+      for (const tradeId of unreadTradeIds) {
+        try {
+          const tradeDoc = await getDoc(doc(tradesRef, tradeId));
+          if (tradeDoc.exists()) {
+            const trade = { id: tradeDoc.id, ...tradeDoc.data() };
+            // Only show if this trade involves the current user
+            if (trade.sellerId === currentUser.uid || trade.buyerId === currentUser.uid) {
+              unreadNotifications.push(trade);
+            }
+          }
+        } catch (e) {
+          console.warn('Error fetching trade for notification:', e);
+        }
+      }
+      
+      updateNotificationBadge();
+      
+      // Show notification toast if there are unread notifications
+      if (unreadNotifications.length > 0) {
+        showTradeNotifications();
+      }
+    } catch (error) {
+      console.error('Error checking notifications:', error);
+    }
+  }
+  
+  // Update notification badge in UI
+  function updateNotificationBadge() {
+    let badge = document.getElementById('tradeNotificationBadge');
+    
+    if (unreadNotifications.length > 0) {
+      if (!badge) {
+        // Create badge if it doesn't exist
+        const header = document.querySelector('.header-right');
+        if (header) {
+          badge = document.createElement('div');
+          badge.id = 'tradeNotificationBadge';
+          badge.className = 'notification-badge';
+          badge.innerHTML = `
+            <span class="badge-icon">🔔</span>
+            <span class="badge-count">${unreadNotifications.length}</span>
+          `;
+          badge.addEventListener('click', showTradeNotifications);
+          header.insertBefore(badge, header.firstChild);
+        }
+      } else {
+        badge.querySelector('.badge-count').textContent = unreadNotifications.length;
+        badge.style.display = 'flex';
+      }
+    } else if (badge) {
+      badge.style.display = 'none';
+    }
+  }
+  
+  // Show trade notifications modal/toast
+  function showTradeNotifications() {
+    if (unreadNotifications.length === 0) return;
+    
+    // Create notification modal
+    let modal = document.getElementById('tradeNotificationModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'tradeNotificationModal';
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
+    
+    const notificationsList = unreadNotifications.map(trade => {
+      const isSeller = trade.sellerId === currentUser.uid;
+      const otherParty = isSeller ? trade.buyerName : trade.sellerName;
+      const timeAgo = getTimeAgo(trade.completedAt);
+      
+      // Build what was exchanged
+      let youGave = [];
+      let youReceived = [];
+      
+      if (isSeller) {
+        // Seller gave offer, received ask
+        if (trade.actualOfferKeys > 0 || trade.offer.keys > 0) youGave.push(`${trade.actualOfferKeys ?? trade.offer.keys} keys`);
+        if (trade.actualOfferMoney > 0 || trade.offer.money > 0) youGave.push(`$${(trade.actualOfferMoney ?? trade.offer.money).toFixed(2)}`);
+        if (trade.offer.cards?.length > 0) youGave.push(`${trade.offer.cards.length} card(s)`);
+        
+        if (trade.ask.keys > 0) youReceived.push(`${trade.ask.keys} keys`);
+        if (trade.ask.money > 0) youReceived.push(`$${trade.ask.money.toFixed(2)}`);
+        if (trade.ask.cards?.length > 0) youReceived.push(`${trade.ask.cards.length} card(s)`);
+      } else {
+        // Buyer gave ask, received offer
+        if (trade.ask.keys > 0) youGave.push(`${trade.ask.keys} keys`);
+        if (trade.ask.money > 0) youGave.push(`$${trade.ask.money.toFixed(2)}`);
+        if (trade.ask.cards?.length > 0) youGave.push(`${trade.ask.cards.length} card(s)`);
+        
+        if (trade.actualOfferKeys > 0 || trade.offer.keys > 0) youReceived.push(`${trade.actualOfferKeys ?? trade.offer.keys} keys`);
+        if (trade.actualOfferMoney > 0 || trade.offer.money > 0) youReceived.push(`$${(trade.actualOfferMoney ?? trade.offer.money).toFixed(2)}`);
+        if (trade.offer.cards?.length > 0) youReceived.push(`${trade.offer.cards.length} card(s)`);
+      }
+      
+      return `
+        <div class="notification-item" data-trade-id="${trade.id}">
+          <div class="notification-icon">✅</div>
+          <div class="notification-content">
+            <div class="notification-title">Trade Completed!</div>
+            <div class="notification-details">
+              <span class="notification-party">with <strong>${otherParty || 'Unknown'}</strong></span>
+              <span class="notification-time">${timeAgo}</span>
+            </div>
+            <div class="notification-exchange">
+              <span class="gave">You gave: ${youGave.join(', ') || 'Nothing'}</span>
+              <span class="received">You received: ${youReceived.join(', ') || 'Nothing'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    modal.innerHTML = `
+      <div class="modal notification-modal">
+        <div class="modal-header">
+          <h2>🔔 Trade Notifications</h2>
+          <button class="modal-close" id="closeNotificationModal">&times;</button>
+        </div>
+        <div class="notification-list">
+          ${notificationsList}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="markAllReadBtn">Mark All as Read</button>
+        </div>
+      </div>
+    `;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Event listeners
+    document.getElementById('closeNotificationModal')?.addEventListener('click', closeNotificationModal);
+    document.getElementById('markAllReadBtn')?.addEventListener('click', markAllNotificationsRead);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeNotificationModal();
+    });
+  }
+  
+  function closeNotificationModal() {
+    const modal = document.getElementById('tradeNotificationModal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+  
+  // Mark all notifications as read
+  async function markAllNotificationsRead() {
+    if (!currentUser || unreadNotifications.length === 0) return;
+    
+    try {
+      const tradeIds = unreadNotifications.map(t => t.id);
+      
+      // Update user document with read notification IDs
+      await updateDoc(doc(usersRef, currentUser.uid), {
+        readTradeNotifications: arrayUnion(...tradeIds)
+      });
+      
+      // Clear local state
+      unreadNotifications = [];
+      updateNotificationBadge();
+      closeNotificationModal();
+      
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
   }
   
   // Load user's cards from the subcollection
@@ -1578,24 +1777,21 @@ document.addEventListener('DOMContentLoaded', () => {
           throw new Error('Insufficient balance.');
         }
 
-        // Validate seller has offered keys and money
+        // For seller: take what they have up to what was offered (don't fail, just take available)
         const offerKeys = trade.offer.keys || 0;
         const offerMoney = trade.offer.money || 0;
+        
+        // Seller gives what they have (up to offered amount)
+        const actualSellerKeys = Math.min(offerKeys, sellerData.keys || 0);
+        const actualSellerMoney = Math.min(offerMoney, sellerData.balance || 0);
 
-        if ((sellerData.keys || 0) < offerKeys) {
-          throw new Error('Seller no longer has enough keys.');
-        }
-        if ((sellerData.balance || 0) < offerMoney) {
-          throw new Error('Seller no longer has enough balance.');
-        }
+        // Calculate new values for buyer (receives what seller actually has)
+        const newBuyerKeys = (buyerData.keys || 0) - askKeys + actualSellerKeys;
+        const newBuyerBalance = (buyerData.balance || 0) - askMoney + actualSellerMoney;
 
-        // Calculate new values for buyer
-        const newBuyerKeys = (buyerData.keys || 0) - askKeys + offerKeys;
-        const newBuyerBalance = (buyerData.balance || 0) - askMoney + offerMoney;
-
-        // Calculate new values for seller
-        const newSellerKeys = (sellerData.keys || 0) - offerKeys + askKeys;
-        const newSellerBalance = (sellerData.balance || 0) - offerMoney + askMoney;
+        // Calculate new values for seller (goes to 0 if they don't have enough)
+        const newSellerKeys = Math.max(0, (sellerData.keys || 0) - actualSellerKeys + askKeys);
+        const newSellerBalance = Math.max(0, (sellerData.balance || 0) - actualSellerMoney + askMoney);
 
         // Update buyer (keys and money only, cards handled separately)
         transaction.update(buyerRef, {
@@ -1611,13 +1807,17 @@ document.addEventListener('DOMContentLoaded', () => {
           completedTradeIds: arrayUnion(tradeId)
         });
 
-        // Update trade status
+        // Update trade status with actual amounts transferred
         transaction.update(tradeRef, {
           status: 'completed',
           buyerId: buyerId,
           buyerName: currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
           completedAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
+          actualOfferKeys: actualSellerKeys,
+          actualOfferMoney: actualSellerMoney,
+          sellerNotified: false,
+          buyerNotified: false
         });
       });
 

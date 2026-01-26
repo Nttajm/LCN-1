@@ -235,7 +235,12 @@ async function cashout() {
   const profit = Math.round((winAmount - config.betAmount) * 100) / 100;
   
   // Record win in database
-  await window.CasinoDB.recordWin(winAmount);
+  await window.CasinoDB.recordWin(winAmount, config.betAmount);
+  
+  // Record game result in session
+  if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+    await window.CasinoDB.recordGameResult('gems', config.betAmount, winAmount);
+  }
   
   // Award xps for ANY win - streak grows exponentially
   try {
@@ -309,6 +314,11 @@ async function gameOver(won, amount = 0) {
     await window.CasinoDB.recordLoss('gems');
     await window.CasinoDB.resetStreak();
     updateKeysDisplay();
+    
+    // Record game result in session
+    if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+      await window.CasinoDB.recordGameResult('gems', config.betAmount, 0);
+    }
     
     updateProfitDisplay();
   }
@@ -491,6 +501,23 @@ function updateAuthUI(user) {
     if (userInfo) userInfo.style.display = 'none';
   }
 }
+
+// ========================================
+// SESSION TRACKING - End session on page leave
+// ========================================
+window.addEventListener('beforeunload', () => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    // End the active gems session
+    window.CasinoDB.endGameSession('user_left');
+  }
+});
+
+// Session keepalive (update activity every 2 minutes)
+setInterval(() => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    window.CasinoDB.updateSessionActivity();
+  }
+}, 2 * 60 * 1000);
 
 // Also run immediately in case DOM is already loaded
 if (document.readyState !== 'loading') {

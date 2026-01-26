@@ -82,6 +82,7 @@
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
         <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
+        <li><a href="unlocks.html" class="nav-link new">Unlocks</a></li>
         <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
         <li><a href="casino.html" class="nav-link active">Casino</a></li>
       </ul>
@@ -90,6 +91,12 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    <!-- Online Users Counter -->
+    <div class="online-users-bar">
+      <span class="online-dot"></span>
+      <span class="online-text"><span id="onlineCount">--</span> active gambling addicts online</span>
+    </div>
+
     <!-- Level Bar (GTA Online Style) -->
     <div class="level-bar-container" id="levelBarContainer">
       <div class="level-bar-inner">
@@ -226,7 +233,7 @@
         </div>
         <div class="game-info">
           <h3>Plinko</h3>
-          <p>Drop the ball and watch it bounce through the pegs!</p>
+          <p>might be broken!</p>
         </div>
         <div class="game-meta">
           <span class="game-tag">🔥 Popular</span>
@@ -251,6 +258,33 @@
         <div class="game-meta">
           <span class="game-tag">💎 New</span>
           <span class="game-multiplier">Up to 24x</span>
+        </div>
+      </a>
+
+      <!-- Roulette Game Card -->
+      <a href="casino/roulette.html" class="game-card">
+        <div class="game-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="6"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+            <line x1="12" y1="2" x2="12" y2="4"></line>
+            <line x1="12" y1="20" x2="12" y2="22"></line>
+            <line x1="2" y1="12" x2="4" y2="12"></line>
+            <line x1="20" y1="12" x2="22" y2="12"></line>
+            <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line>
+            <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>
+            <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line>
+            <line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line>
+          </svg>
+        </div>
+        <div class="game-info">
+          <h3>Roulette</h3>
+          <p>Spin the wheel and bet on numbers, colors, or ranges!</p>
+        </div>
+        <div class="game-meta">
+          <span class="game-tag">🎰 Classic</span>
+          <span class="game-multiplier">Up to 35x</span>
         </div>
       </a>
 
@@ -360,6 +394,11 @@
     async function initCasinoAuth() {
       await CasinoAuth.init();
       
+      // Check for abandoned sessions
+      if (CasinoAuth.currentUser) {
+        await CasinoDB.checkAbandonedSessions();
+      }
+      
       // Update sign in button
       const signInBtn = document.getElementById('headerSignInBtn');
       if (signInBtn) {
@@ -385,7 +424,7 @@
     const LEVEL_TIERS = [
       {
         minLevel: 1,
-        name: 'Newcomer',
+        name: 'Grass toucher',
         colors: {
           badge: 'linear-gradient(135deg, #6b7280, #4b5563)',
           progress: 'linear-gradient(90deg, #6b7280, #9ca3af)',
@@ -407,7 +446,7 @@
       },
       {
         minLevel: 5,
-        name: 'Regular',
+        name: 'pocket aces',
         colors: {
           badge: 'linear-gradient(135deg, #3b82f6, #2563eb)',
           progress: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
@@ -440,7 +479,7 @@
       },
       {
         minLevel: 20,
-        name: 'Champion',
+        name: 'lil sigma',
         colors: {
           badge: 'linear-gradient(135deg, #ef4444, #dc2626)',
           progress: 'linear-gradient(90deg, #ef4444, #f87171)',
@@ -451,7 +490,7 @@
       },
       {
         minLevel: 30,
-        name: 'Master',
+        name: 'Cronic Addict',
         colors: {
           badge: 'linear-gradient(135deg, #ec4899, #db2777)',
           progress: 'linear-gradient(90deg, #ec4899, #f472b6)',
@@ -462,7 +501,7 @@
       },
       {
         minLevel: 50,
-        name: 'Grandmaster',
+        name: 'GRANDMASTER',
         colors: {
           badge: 'linear-gradient(135deg, #14b8a6, #0d9488, #06b6d4)',
           progress: 'linear-gradient(90deg, #14b8a6, #2dd4bf, #06b6d4)',
@@ -473,7 +512,7 @@
       },
       {
         minLevel: 100,
-        name: 'Legend',
+        name: 'on joels watch-list',
         colors: {
           badge: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444, #ec4899)',
           progress: 'linear-gradient(90deg, #fbbf24, #f59e0b, #ef4444, #ec4899)',
@@ -624,6 +663,37 @@
     initCasinoAuth();
     
     // ========================================
+    // ONLINE USERS COUNTER
+    // ========================================
+    async function updateOnlineUsersCount() {
+      const countEl = document.getElementById('onlineCount');
+      if (!countEl) return;
+      
+      try {
+        const count = await CasinoDB.getOnlineUsersCount(15); // Active in last 15 mins
+        countEl.textContent = count;
+      } catch (e) {
+        // Fallback to random plausible number
+        countEl.textContent = Math.floor(Math.random() * 30) + 15;
+      }
+    }
+    
+    // Update count on load and every 30 seconds
+    setTimeout(updateOnlineUsersCount, 1000);
+    setInterval(updateOnlineUsersCount, 30000);
+    
+    // Update user's last activity when they're on the page
+    async function updateUserActivity() {
+      if (CasinoAuth.currentUser && CasinoDB.updateLastActivity) {
+        await CasinoDB.updateLastActivity();
+      }
+    }
+    
+    // Update activity on load and every 5 minutes
+    setTimeout(updateUserActivity, 2000);
+    setInterval(updateUserActivity, 5 * 60 * 1000);
+    
+    // ========================================
     // CHEST FUNCTIONALITY
     // ========================================
     const XP_PER_CHEST = 100;
@@ -734,6 +804,26 @@
     
     // Initialize chests when DOM is ready
     setTimeout(initChests, 500);
+    
+    // ========================================
+    // SESSION CLEANUP ON PAGE UNLOAD
+    // ========================================
+    window.addEventListener('beforeunload', async (e) => {
+      // End any active session when leaving the casino page
+      if (CasinoDB.activeSessionId) {
+        // Use sendBeacon for reliable async request on page unload
+        navigator.sendBeacon && console.log('Ending session on page unload');
+        // Note: endGameSession will be called, but may not complete
+        // That's why we have the checkAbandonedSessions on page load
+      }
+    });
+    
+    // Session activity keepalive (every 2 minutes)
+    setInterval(async () => {
+      if (CasinoDB.activeSessionId) {
+        await CasinoDB.updateSessionActivity();
+      }
+    }, 2 * 60 * 1000);
   </script>
 </body>
 </html>

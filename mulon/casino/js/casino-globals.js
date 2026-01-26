@@ -181,6 +181,219 @@ const ProfitGraph = {
 // Export for use
 window.ProfitGraph = ProfitGraph;
 
+// ========================================
+// SESSION TRACKER - Track user game sessions
+// ========================================
+const SessionTracker = {
+  sessionId: null,
+  sessionRef: null,
+  heartbeatInterval: null,
+  db: null,
+  userId: null,
+  gameName: null,
+  
+  // Starting balances (captured at session start)
+  startBalance: 0,
+  startKeys: 0,
+  
+  // Current balances (updated via trackBalanceChange)
+  currentBalance: 0,
+  currentKeys: 0,
+  
+  // Track individual wins/losses
+  totalWins: 0,
+  totalLosses: 0,
+  gamesPlayed: 0,
+  
+  // Initialize session tracking
+  async init(db, userId, gameName, initialBalance = 0, initialKeys = 0) {
+    if (!db || !userId || !gameName) {
+      console.warn('SessionTracker: Missing required params (db, userId, gameName)');
+      return null;
+    }
+    
+    this.db = db;
+    this.userId = userId;
+    this.gameName = gameName;
+    this.startBalance = initialBalance;
+    this.startKeys = initialKeys;
+    this.currentBalance = initialBalance;
+    this.currentKeys = initialKeys;
+    this.totalWins = 0;
+    this.totalLosses = 0;
+    this.gamesPlayed = 0;
+    
+    try {
+      // Generate unique session ID
+      this.sessionId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Import Firestore functions dynamically
+      const { doc, setDoc, updateDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+      
+      // Create session document
+      this.sessionRef = doc(db, 'game_sessions', this.sessionId);
+      
+      const sessionData = {
+        sessionId: this.sessionId,
+        userId: userId,
+        game: gameName,
+        startedAt: serverTimestamp(),
+        endedAt: serverTimestamp(),
+        
+        // Balance tracking
+        startBalance: initialBalance,
+        endBalance: initialBalance,
+        balanceChange: 0,
+        
+        // Keys tracking
+        startKeys: initialKeys,
+        endKeys: initialKeys,
+        keysChange: 0,
+        
+        // Game stats
+        totalWins: 0,
+        totalLosses: 0,
+        gamesPlayed: 0,
+        
+        // Session status
+        status: 'active'
+      };
+      
+      await setDoc(this.sessionRef, sessionData);
+      console.log(`SessionTracker: Started session ${this.sessionId} for ${gameName}`);
+      
+      // Start heartbeat (update endedAt every 3 seconds)
+      this.startHeartbeat();
+      
+      // Handle tab close/unload
+      window.addEventListener('beforeunload', () => this.endSession());
+      window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          this.updateSession(); // Final update when tab hidden
+        }
+      });
+      
+      return this.sessionId;
+    } catch (error) {
+      console.error('SessionTracker: Failed to start session:', error);
+      return null;
+    }
+  },
+  
+  // Start the heartbeat interval
+  startHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+    
+    this.heartbeatInterval = setInterval(() => {
+      this.updateSession();
+    }, 3000); // Every 3 seconds
+  },
+  
+  // Update session document
+  async updateSession() {
+    if (!this.sessionRef || !this.db) return;
+    
+    try {
+      const { updateDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+      
+      await updateDoc(this.sessionRef, {
+        endedAt: serverTimestamp(),
+        endBalance: this.currentBalance,
+        balanceChange: this.currentBalance - this.startBalance,
+        endKeys: this.currentKeys,
+        keysChange: this.currentKeys - this.startKeys,
+        totalWins: this.totalWins,
+        totalLosses: this.totalLosses,
+        gamesPlayed: this.gamesPlayed
+      });
+    } catch (error) {
+      console.warn('SessionTracker: Heartbeat update failed:', error);
+    }
+  },
+  
+  // Track a balance change (call this after each game/bet)
+  trackBalanceChange(newBalance, newKeys = null) {
+    const balanceDiff = newBalance - this.currentBalance;
+    
+    if (balanceDiff > 0) {
+      this.totalWins += balanceDiff;
+    } else if (balanceDiff < 0) {
+      this.totalLosses += Math.abs(balanceDiff);
+    }
+    
+    if (balanceDiff !== 0) {
+      this.gamesPlayed++;
+    }
+    
+    this.currentBalance = newBalance;
+    
+    if (newKeys !== null) {
+      this.currentKeys = newKeys;
+    }
+  },
+  
+  // Track keys separately
+  trackKeysChange(newKeys) {
+    this.currentKeys = newKeys;
+  },
+  
+  // End the session
+  async endSession() {
+    if (!this.sessionRef || !this.db) return;
+    
+    // Stop heartbeat
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+    
+    try {
+      const { updateDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+      
+      await updateDoc(this.sessionRef, {
+        endedAt: serverTimestamp(),
+        endBalance: this.currentBalance,
+        balanceChange: this.currentBalance - this.startBalance,
+        endKeys: this.currentKeys,
+        keysChange: this.currentKeys - this.startKeys,
+        totalWins: this.totalWins,
+        totalLosses: this.totalLosses,
+        gamesPlayed: this.gamesPlayed,
+        status: 'ended'
+      });
+      
+      console.log(`SessionTracker: Ended session ${this.sessionId}`);
+    } catch (error) {
+      console.warn('SessionTracker: Failed to end session:', error);
+    }
+    
+    this.sessionRef = null;
+    this.sessionId = null;
+  },
+  
+  // Get current session stats
+  getStats() {
+    return {
+      sessionId: this.sessionId,
+      game: this.gameName,
+      startBalance: this.startBalance,
+      currentBalance: this.currentBalance,
+      balanceChange: this.currentBalance - this.startBalance,
+      startKeys: this.startKeys,
+      currentKeys: this.currentKeys,
+      keysChange: this.currentKeys - this.startKeys,
+      totalWins: this.totalWins,
+      totalLosses: this.totalLosses,
+      gamesPlayed: this.gamesPlayed
+    };
+  }
+};
+
+// Export for use
+window.SessionTracker = SessionTracker;
+
 // Auto-initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => ProfitGraph.init());

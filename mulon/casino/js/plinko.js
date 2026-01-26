@@ -342,9 +342,15 @@ function checkBallLanding(ball) {
       const winAmount = Math.round(config.betAmount * landedBucket.multiplier * 100) / 100;
       const profit = Math.round((winAmount - config.betAmount) * 100) / 100;
       
+      // Record game result in session
+      if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+        window.CasinoDB.recordGameResult('plinko', config.betAmount, winAmount)
+          .catch(err => console.error('Error recording game result:', err));
+      }
+      
       // Record win in database if won anything
       if (winAmount > 0) {
-        window.CasinoDB.recordWin(winAmount)
+        window.CasinoDB.recordWin(winAmount, config.betAmount)
           .then(() => updateBalanceDisplay())
           .catch(() => {});
         
@@ -907,3 +913,20 @@ function updateAuthUI(user) {
     if (userInfo) userInfo.style.display = 'none';
   }
 }
+
+// ========================================
+// SESSION TRACKING - End session on page leave
+// ========================================
+window.addEventListener('beforeunload', () => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    // End the active plinko session
+    window.CasinoDB.endGameSession('user_left');
+  }
+});
+
+// Session keepalive (update activity every 2 minutes)
+setInterval(() => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    window.CasinoDB.updateSessionActivity();
+  }
+}, 2 * 60 * 1000);

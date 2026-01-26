@@ -107,6 +107,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       // Small delay to ensure user data is loaded
       setTimeout(() => {
         checkForUnseenWins();
+        // Check for updates after wins (with delay so they don't overlap)
+        setTimeout(() => {
+          checkForUpdates();
+        }, 500);
       }, 500);
     }
   });
@@ -419,6 +423,177 @@ function showBetaModal() {
       }
     };
   }
+}
+
+// ========================================
+// UPDATE NOTIFICATIONS
+// ========================================
+const UPDATES = [
+  {
+    version: '1.0.1',
+    date: '2026-01-26',
+    changes: [
+      'You can now view player profiles'
+    ]
+  }
+  // Add more updates here:
+  // {
+  //   version: '1.0.2',
+  //   date: '2026-01-27',
+  //   changes: ['New feature 1', 'Bug fix 2']
+  // }
+];
+
+const LAST_SEEN_UPDATE_KEY = 'mulon_last_seen_update';
+
+function getLastSeenUpdate() {
+  return localStorage.getItem(LAST_SEEN_UPDATE_KEY) || '0.0.0';
+}
+
+function setLastSeenUpdate(version) {
+  localStorage.setItem(LAST_SEEN_UPDATE_KEY, version);
+}
+
+function getUnseenUpdates() {
+  const lastSeen = getLastSeenUpdate();
+  return UPDATES.filter(update => compareVersions(update.version, lastSeen) > 0);
+}
+
+function compareVersions(v1, v2) {
+  const parts1 = v1.split('.').map(Number);
+  const parts2 = v2.split('.').map(Number);
+  
+  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+    const p1 = parts1[i] || 0;
+    const p2 = parts2[i] || 0;
+    if (p1 > p2) return 1;
+    if (p1 < p2) return -1;
+  }
+  return 0;
+}
+
+function checkForUpdates() {
+  const unseenUpdates = getUnseenUpdates();
+  if (unseenUpdates.length > 0) {
+    showUpdateModal(unseenUpdates);
+  }
+}
+
+function showUpdateModal(updates) {
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('updateModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'updateModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal update-modal">
+        <div class="modal-header">
+          <h2>🎉 What's New</h2>
+          <button class="modal-close" id="closeUpdateModal">&times;</button>
+        </div>
+        <div class="modal-body" id="updateModalBody">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="dismissUpdateBtn">Got it!</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Add styles if not already present
+    if (!document.getElementById('updateModalStyles')) {
+      const style = document.createElement('style');
+      style.id = 'updateModalStyles';
+      style.textContent = `
+        .update-modal {
+          max-width: 420px;
+          width: 90%;
+        }
+        .update-modal .modal-body {
+          padding: 1.5rem;
+          max-height: 400px;
+          overflow-y: auto;
+        }
+        .update-version {
+          margin-bottom: 1.25rem;
+        }
+        .update-version:last-child {
+          margin-bottom: 0;
+        }
+        .update-version-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 0.75rem;
+        }
+        .update-version-tag {
+          background: var(--green-primary);
+          color: white;
+          padding: 0.25rem 0.6rem;
+          border-radius: var(--radius-full);
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        .update-version-date {
+          color: var(--text-muted);
+          font-size: 0.8rem;
+        }
+        .update-changes {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .update-changes li {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+          padding: 0.4rem 0;
+          color: var(--text-primary);
+          font-size: 0.9rem;
+        }
+        .update-changes li::before {
+          content: '✨';
+          flex-shrink: 0;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+  
+  // Populate updates
+  const body = document.getElementById('updateModalBody');
+  body.innerHTML = updates.map(update => `
+    <div class="update-version">
+      <div class="update-version-header">
+        <span class="update-version-tag">v${update.version}</span>
+        <span class="update-version-date">${update.date}</span>
+      </div>
+      <ul class="update-changes">
+        ${update.changes.map(change => `<li>${change}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+  
+  // Show modal
+  modal.classList.add('active');
+  
+  // Handle dismiss
+  const dismissBtn = document.getElementById('dismissUpdateBtn');
+  const closeBtn = document.getElementById('closeUpdateModal');
+  
+  const closeModal = () => {
+    modal.classList.remove('active');
+    // Mark latest update as seen
+    const latestVersion = updates[0].version;
+    setLastSeenUpdate(latestVersion);
+  };
+  
+  dismissBtn.onclick = closeModal;
+  closeBtn.onclick = closeModal;
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
 }
 
 // ========================================

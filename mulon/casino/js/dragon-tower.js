@@ -19,9 +19,9 @@ const config = {
 
 // Difficulty settings: eggs = safe tiles, traps = dangerous tiles
 const difficultySettings = {
-  easy: { eggs: 3, traps: 1, tilesPerRow: 4, baseMultiplier: 1.31, info: '75% chance per row' },
-  medium: { eggs: 2, traps: 2, tilesPerRow: 4, baseMultiplier: 1.94, info: '50% chance per row' },
-  hard: { eggs: 1, traps: 3, tilesPerRow: 4, baseMultiplier: 3.88, info: '25% chance per row' },
+  easy: { eggs: 3, traps: 1, tilesPerRow: 4, baseMultiplier: 1.19, info: '75% chance per row' },
+  medium: { eggs: 2, traps: 2, tilesPerRow: 4, baseMultiplier: 1.54, info: '50% chance per row' },
+  hard: { eggs: 1, traps: 3, tilesPerRow: 4, baseMultiplier: 2.78, info: '25% chance per row' },
   expert: { eggs: 1, traps: 2, tilesPerRow: 3, baseMultiplier: 2.94, info: '33% chance per row' },
   master: { eggs: 1, traps: 1, tilesPerRow: 2, baseMultiplier: 1.96, info: '50% chance per row' }
 };
@@ -268,7 +268,12 @@ async function cashout() {
   const profit = Math.round((winAmount - config.betAmount) * 100) / 100;
   
   // Record win in database
-  await window.CasinoDB.recordWin(winAmount);
+  await window.CasinoDB.recordWin(winAmount, config.betAmount);
+  
+  // Record game result in session
+  if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+    await window.CasinoDB.recordGameResult('dragon-tower', config.betAmount, winAmount);
+  }
   
   // Award xps for ANY win - streak grows exponentially
   try {
@@ -348,6 +353,11 @@ async function gameOver(won, amount = 0) {
     await window.CasinoDB.recordLoss('dragon-tower');
     await window.CasinoDB.resetStreak();
     updateKeysDisplay();
+    
+    // Record game result in session
+    if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+      await window.CasinoDB.recordGameResult('dragon-tower', config.betAmount, 0);
+    }
     
     updateProfitDisplay();
   }
@@ -540,6 +550,23 @@ function updateAuthUI(user) {
     if (userInfo) userInfo.style.display = 'none';
   }
 }
+
+// ========================================
+// SESSION TRACKING - End session on page leave
+// ========================================
+window.addEventListener('beforeunload', () => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    // End the active dragon-tower session
+    window.CasinoDB.endGameSession('user_left');
+  }
+});
+
+// Session keepalive (update activity every 2 minutes)
+setInterval(() => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    window.CasinoDB.updateSessionActivity();
+  }
+}, 2 * 60 * 1000);
 
 // Also run immediately in case DOM is already loaded
 if (document.readyState !== 'loading') {
