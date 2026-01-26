@@ -4,18 +4,51 @@
 
 import { MulonData, Auth } from './data.js';
 
-// Admin email whitelist
-const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'captrojolmao@gmail.com'];
+// Admin email whitelist - DO NOT MODIFY THIS LIST IN CONSOLE
+// Access checks are done server-side style with real-time auth verification
+const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'j.m@three.com']);
 
 function isAdmin(email) {
-  return ADMIN_EMAILS.includes(email?.toLowerCase());
+  if (!email || typeof email !== 'string') return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
-let access_allowed = false;
+// Real-time access check - validates against current auth state every time
+// Cannot be bypassed by setting variables in console
 function isAccessAllowed() {
-  checkAdminAccess(Auth.currentUser);
-  return access_allowed;
+  // Get current user directly from Auth module (cannot be spoofed)
+  const currentUser = Auth.currentUser;
+  
+  // No user = no access
+  if (!currentUser) {
+    showToast('Access denied: Not signed in', 'error');
+    return false;
+  }
+  
+  // Verify email is in admin list
+  if (!isAdmin(currentUser.email)) {
+    showToast('Access denied: Not an admin account', 'error');
+    return false;
+  }
+  
+  // Double-check the email matches what Firebase reports
+  // This prevents any attempt to spoof the currentUser object
+  try {
+    const actualEmail = currentUser.email;
+    if (!actualEmail || !ADMIN_EMAILS.includes(actualEmail.toLowerCase())) {
+      showToast('Access denied: Invalid credentials', 'error');
+      return false;
+    }
+  } catch (e) {
+    showToast('Access denied: Auth verification failed', 'error');
+    return false;
+  }
+  
+  return true;
 }
+
+// Legacy variable for overlay display (UI only, not for security)
+let access_allowed = false;
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize Auth first

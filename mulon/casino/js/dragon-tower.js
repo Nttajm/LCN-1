@@ -19,9 +19,9 @@ const config = {
 
 // Difficulty settings: eggs = safe tiles, traps = dangerous tiles
 const difficultySettings = {
-  easy: { eggs: 3, traps: 1, tilesPerRow: 4, baseMultiplier: 1.31, info: '75% chance per row' },
-  medium: { eggs: 2, traps: 2, tilesPerRow: 4, baseMultiplier: 1.94, info: '50% chance per row' },
-  hard: { eggs: 1, traps: 3, tilesPerRow: 4, baseMultiplier: 3.88, info: '25% chance per row' },
+  easy: { eggs: 3, traps: 1, tilesPerRow: 4, baseMultiplier: 1.19, info: '75% chance per row' },
+  medium: { eggs: 2, traps: 2, tilesPerRow: 4, baseMultiplier: 1.54, info: '50% chance per row' },
+  hard: { eggs: 1, traps: 3, tilesPerRow: 4, baseMultiplier: 2.78, info: '25% chance per row' },
   expert: { eggs: 1, traps: 2, tilesPerRow: 3, baseMultiplier: 2.94, info: '33% chance per row' },
   master: { eggs: 1, traps: 1, tilesPerRow: 2, baseMultiplier: 1.96, info: '50% chance per row' }
 };

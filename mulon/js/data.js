@@ -43,6 +43,23 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
+// ========================================
+// ADMIN SECURITY - Data Layer Protection
+// ========================================
+const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'j.m@three.com']);
+
+// Verify current user is admin - called before any admin-only operation
+function requireAdmin() {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('UNAUTHORIZED: No user signed in');
+  }
+  if (!user.email || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+    throw new Error('UNAUTHORIZED: Admin access required');
+  }
+  return true;
+}
+
 // Firestore references
 const marketsRef = collection(db, 'mulon');
 const ordersRef = collection(db, 'mulon_orders');
@@ -1208,8 +1225,10 @@ const MulonData = {
     }
   },
   
-  // Add a new category
+  // Add a new category (ADMIN ONLY)
   async addCategory(id, icon, label, color) {
+    requireAdmin(); // Security check
+    
     try {
       const categoryData = { icon, label, color: color || id };
       await setDoc(doc(categoriesRef, id), categoryData);
@@ -1222,8 +1241,10 @@ const MulonData = {
     }
   },
   
-  // Update a category
+  // Update a category (ADMIN ONLY)
   async updateCategory(id, updates) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(categoriesRef, id), updates);
       this.categories[id] = { ...this.categories[id], ...updates };
@@ -1235,8 +1256,10 @@ const MulonData = {
     }
   },
   
-  // Delete a category
+  // Delete a category (ADMIN ONLY)
   async deleteCategory(id) {
+    requireAdmin(); // Security check
+    
     try {
       await deleteDoc(doc(categoriesRef, id));
       delete this.categories[id];
@@ -1304,8 +1327,10 @@ const MulonData = {
     }
   },
   
-  // Update suggestion status
+  // Update suggestion status (ADMIN ONLY)
   async updateSuggestionStatus(suggestionId, status) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(suggestionsRef, suggestionId), { status });
       return { success: true };
@@ -1315,8 +1340,10 @@ const MulonData = {
     }
   },
   
-  // Delete a suggestion
+  // Delete a suggestion (ADMIN ONLY)
   async deleteSuggestion(suggestionId) {
+    requireAdmin(); // Security check
+    
     try {
       await deleteDoc(doc(suggestionsRef, suggestionId));
       return { success: true };
@@ -1430,8 +1457,10 @@ const MulonData = {
     return this.cachedMarkets;
   },
 
-  // Add a new market
+  // Add a new market (ADMIN ONLY)
   async addMarket(market) {
+    requireAdmin(); // Security check
+    
     const newMarket = {
       id: 'market_' + Date.now(),
       ...market,
@@ -1456,8 +1485,10 @@ const MulonData = {
     }
   },
 
-  // Update a market
+  // Update a market (ADMIN ONLY)
   async updateMarket(id, updates) {
+    requireAdmin(); // Security check
+    
     try {
       const marketRef = doc(marketsRef, id);
       await updateDoc(marketRef, updates);
@@ -1476,8 +1507,10 @@ const MulonData = {
     }
   },
 
-  // Resolve a market and pay out winners
+  // Resolve a market and pay out winners (ADMIN ONLY)
   async resolveMarket(marketId, outcome) {
+    requireAdmin(); // Security check
+    
     try {
       const market = this.getMarket(marketId);
       if (!market) {
@@ -1572,8 +1605,10 @@ const MulonData = {
     }
   },
 
-  // Delete a market
+  // Delete a market (ADMIN ONLY)
   async deleteMarket(id) {
+    requireAdmin(); // Security check
+    
     try {
       await deleteDoc(doc(marketsRef, id));
       this.cachedMarkets = this.cachedMarkets.filter(m => m.id !== id);
@@ -1645,8 +1680,10 @@ const MulonData = {
     return `Ends in ${diff} days`;
   },
 
-  // Reset to default markets in Firebase
+  // Reset to default markets in Firebase (ADMIN ONLY)
   async resetToDefaults() {
+    requireAdmin(); // Security check
+    
     try {
       // Delete all existing markets
       const querySnapshot = await getDocs(marketsRef);
@@ -1791,8 +1828,10 @@ const MulonData = {
     }
   },
 
-  // Update a user's balance (for admin)
+  // Update a user's balance (ADMIN ONLY)
   async updateUserBalance(userId, newBalance) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(usersRef, userId), {
         balance: Math.round(newBalance * 100) / 100
@@ -1804,8 +1843,10 @@ const MulonData = {
     }
   },
 
-  // Update a user's keys (for admin)
+  // Update a user's keys (ADMIN ONLY)
   async updateUserKeys(userId, newKeys) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(usersRef, userId), {
         keys: Math.max(0, Math.round(newKeys))
@@ -1817,8 +1858,10 @@ const MulonData = {
     }
   },
 
-  // Bulk update all users' keys (for admin)
+  // Bulk update all users' keys (ADMIN ONLY)
   async bulkUpdateKeys(amount, operation = 'add') {
+    requireAdmin(); // Security check
+    
     try {
       const usersSnapshot = await getDocs(usersRef);
       let updatedCount = 0;
@@ -1853,8 +1896,10 @@ const MulonData = {
     }
   },
 
-  // Add/subtract amount from user's balance (for admin)
+  // Add/subtract amount from user's balance (ADMIN ONLY)
   async adjustUserBalance(userId, amount) {
+    requireAdmin(); // Security check
+    
     try {
       const userDoc = await getDoc(doc(usersRef, userId));
       if (!userDoc.exists()) {
@@ -1875,8 +1920,10 @@ const MulonData = {
     }
   },
 
-  // Bulk update all users' balances (for admin)
+  // Bulk update all users' balances (ADMIN ONLY)
   async bulkUpdateBalances(amount, operation = 'add') {
+    requireAdmin(); // Security check
+    
     try {
       const usersSnapshot = await getDocs(usersRef);
       let updatedCount = 0;
@@ -1911,9 +1958,11 @@ const MulonData = {
     }
   },
 
-  // Reset a single user's positions (for admin)
+  // Reset a single user's positions (ADMIN ONLY)
   // Also reduces market volumes and cleans up central positions
   async resetUserPositions(userId) {
+    requireAdmin(); // Security check
+    
     try {
       const userDoc = await getDoc(doc(usersRef, userId));
       if (!userDoc.exists()) {
@@ -1960,9 +2009,11 @@ const MulonData = {
     }
   },
 
-  // Reset ALL users' positions (for admin)
+  // Reset ALL users' positions (ADMIN ONLY)
   // Also resets all market volumes and cleans up central collections
   async resetAllUsersPositions() {
+    requireAdmin(); // Security check
+    
     try {
       const usersSnapshot = await getDocs(usersRef);
       let resetCount = 0;
@@ -2016,8 +2067,10 @@ const MulonData = {
     }
   },
 
-  // Full user reset - balance and positions (for admin)
+  // Full user reset - balance and positions (ADMIN ONLY)
   async resetUser(userId, newBalance = 500) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(usersRef, userId), {
         balance: newBalance,
@@ -2030,8 +2083,10 @@ const MulonData = {
     }
   },
 
-  // Full reset for ALL users - balance and positions (for admin)
+  // Full reset for ALL users - balance and positions (ADMIN ONLY)
   async resetAllUsers(newBalance = 500) {
+    requireAdmin(); // Security check
+    
     try {
       const usersSnapshot = await getDocs(usersRef);
       let resetCount = 0;
@@ -2051,8 +2106,10 @@ const MulonData = {
     }
   },
 
-  // Update a specific position for a user (for admin)
+  // Update a specific position for a user (ADMIN ONLY)
   async updateUserPosition(userId, marketId, updates) {
+    requireAdmin(); // Security check
+    
     try {
       const userDoc = await getDoc(doc(usersRef, userId));
       if (!userDoc.exists()) {
@@ -2081,9 +2138,11 @@ const MulonData = {
     }
   },
 
-  // Delete a specific position for a user (for admin)
+  // Delete a specific position for a user (ADMIN ONLY)
   // Also reduces market volume and removes from central positions collection
   async deleteUserPosition(userId, marketId) {
+    requireAdmin(); // Security check
+    
     try {
       const userDoc = await getDoc(doc(usersRef, userId));
       if (!userDoc.exists()) {
