@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mulon - Prediction Markets</title>
+  <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/index.css">
   <link rel="stylesheet" href="css/onboarding.css">
   <link rel="stylesheet" href="../css/standard.css">
@@ -430,6 +431,7 @@
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
         <li><a href="index.html?cat=all" class="nav-link">All Markets</a></li>
+        <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
         <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
         <li><a href="casino.html" class="nav-link">Casino</a></li>
       </ul>
@@ -709,6 +711,21 @@
         <button class="btn btn-secondary" id="cancelProfileBtn">Cancel</button>
         <button class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Win Celebration Modal -->
+  <div class="win-celebration-overlay" id="winCelebrationOverlay">
+    <div class="confetti-container" id="confettiContainer"></div>
+    <div class="win-modal" id="winModal">
+      <div class="win-modal-header">
+        <span class="win-trophy">🏆</span>
+        <h2>You Won!</h2>
+      </div>
+      <div class="win-modal-body" id="winModalBody">
+        <!-- Win items added dynamically -->
+      </div>
+      <button class="win-modal-btn" id="winModalOkBtn">Awesome!</button>
     </div>
   </div>
 

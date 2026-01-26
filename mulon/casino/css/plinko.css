@@ -323,22 +323,36 @@
     border-right: none;
     border-bottom: 1px solid #2a3441;
     order: 2;
+  }
+
+  /* Move bet button container to top on mobile */
+  #manualControls {
     display: flex;
     flex-direction: column;
   }
+  
+  #manualControls .control-group:last-of-type {
+    order: -3;
+    border-bottom: 1px solid #2a3441;
+    padding-bottom: 16px;
+  }
+  
+  #manualControls .control-group:first-of-type {
+    order: -2;
+  }
+  
+  #manualControls .control-group:nth-of-type(2) {
+    order: -1;
+  }
 
-  /* Reorder: bet button first on mobile */
-  .controls-panel .control-group:has(#dropBtn) {
-    order: -10;
+  /* Auto controls - also move bet button up */
+  #autoControls {
+    display: flex;
+    flex-direction: column;
   }
-  .controls-panel .control-group:has(#betAmount) {
-    order: -9;
-  }
-  .controls-panel .control-group:has(#riskSelect) {
-    order: -8;
-  }
-  .controls-panel .tabs {
-    order: -7;
+  
+  #autoControls .control-group:has(.bet-btn) {
+    order: -1;
   }
 
   .game-panel {

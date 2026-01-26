@@ -537,6 +537,8 @@ const UserData = {
     try {
       if (displayName !== undefined && displayName.trim() !== '') {
         this.data.displayName = displayName.trim();
+        // Save custom username separately (for when user manually edits their name)
+        this.data.customUserName = displayName.trim();
       }
       if (avatarStyle !== undefined) {
         this.data.avatarStyle = avatarStyle;
@@ -709,6 +711,26 @@ const UserData = {
   
   getCashOuts() {
     return this.get().cashOuts || [];
+  },
+  
+  // Get IDs of cashouts that have been acknowledged/seen
+  getSeenCashoutIds() {
+    return this.get().seenCashoutIds || [];
+  },
+  
+  // Get unseen winning cashouts (for celebration)
+  getUnseenWins() {
+    const cashouts = this.getCashOuts();
+    const seenIds = this.getSeenCashoutIds();
+    return cashouts.filter(co => co.won && !seenIds.includes(co.marketId + '_' + co.timestamp));
+  },
+  
+  // Mark cashouts as seen
+  async markCashoutsAsSeen(cashoutIds) {
+    if (!this.data) return;
+    if (!this.data.seenCashoutIds) this.data.seenCashoutIds = [];
+    this.data.seenCashoutIds = [...new Set([...this.data.seenCashoutIds, ...cashoutIds])];
+    await this.save();
   },
 
   async addToWatchlist(marketId) {
@@ -1072,7 +1094,7 @@ const OrderBook = {
     }
   },
   
-  // Get recent trades for a market
+  // Get trades for a market (limit=0 means all trades)
   async getRecentTrades(marketId, limit = 20) {
     try {
       const querySnapshot = await getDocs(tradesRef);
@@ -1085,7 +1107,8 @@ const OrderBook = {
       });
       // Sort by timestamp descending
       trades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      return trades.slice(0, limit);
+      // Return all trades if limit is 0, otherwise slice
+      return limit === 0 ? trades : trades.slice(0, limit);
     } catch (error) {
       console.warn('Could not fetch trades:', error);
       return [];

@@ -19,6 +19,7 @@ import {
     GoogleAuthProvider,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { calculateLevel, createLevelBadgeHTML } from './level-utils.js';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -149,6 +150,9 @@ async function loadLeaderboardData() {
             const portfolioValue = await calculatePortfolioValue(userData.positions || []);
             const profit = await calculateProfit(userData);
             
+            // XP is stored directly in mulon_users
+            const xps = userData.xps || 0;
+            
             let displayName = userData.displayName || 'Anonymous';
             let leaderStyle = userData.leaderStyle || '';
             if (leaderStyle === '') {
@@ -182,7 +186,8 @@ async function loadLeaderboardData() {
                 profit: profit,
                 positionsCount: (userData.positions || []).length,
                 createdAt: userData.createdAt,
-                leaderStyle: leaderStyle
+                leaderStyle: leaderStyle,
+                xps: xps
             });
         }
         
@@ -284,6 +289,10 @@ function renderTable(sortedData) {
         // Get leaderStyle classes if user has them from Over Under
         const leaderStyleClasses = user.leaderStyle ? user.leaderStyle.split(' ').filter(s => s.trim() !== '').join(' ') : '';
         
+        // Calculate user level from XP
+        const levelData = calculateLevel(user.xps || 0);
+        const levelBadgeHTML = createLevelBadgeHTML(levelData.level, 'small');
+        
         // Handle avatar with gradient support
         let avatarContent;
         let avatarStyle = '';
@@ -307,7 +316,10 @@ function renderTable(sortedData) {
                     <span class="rank-badge ${rankBadgeClass}">${rankDisplay}</span>
                 </div>
                 <div class="user-cell">
-                    <div class="user-cell-avatar" ${avatarStyle}>${avatarContent}</div>
+                    <div class="user-cell-avatar" ${avatarStyle}>
+                        ${avatarContent}
+                        ${levelBadgeHTML}
+                    </div>
                     <div class="user-cell-info">
                         <div class="user-cell-name">
                             <span class="cell-span">${user.displayName}</span>

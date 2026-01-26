@@ -101,6 +101,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateAuthUI(user);
     updateUserUI();
     updateDailyKeyUI();
+    
+    // Check for unseen wins when user logs in
+    if (user) {
+      // Small delay to ensure user data is loaded
+      setTimeout(() => {
+        checkForUnseenWins();
+      }, 500);
+    }
   });
 });
 
@@ -1012,8 +1020,8 @@ async function loadAndRenderPriceGraphs() {
     if (!marketId) continue;
     
     try {
-      // Get trades for this market
-      const trades = await OrderBook.getRecentTrades(marketId, 50);
+      // Get ALL trades for this market (all-time graph)
+      const trades = await OrderBook.getRecentTrades(marketId, 0);
       const market = MulonData.getMarket(marketId);
       
       renderPriceGraph(container, trades, market);
@@ -1036,34 +1044,48 @@ function renderPriceGraph(container, trades, market) {
   // Build price history from trades (oldest to newest)
   let priceHistory = [];
   
+  // Get market creation date for the starting point
+  const createdDate = market.createdAt ? new Date(market.createdAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  
+  // Always start with initial price of 50%
+  priceHistory.push({
+    timestamp: createdDate,
+    price: 50
+  });
+  
   if (trades.length > 0) {
     // Sort trades oldest first
     const sortedTrades = [...trades].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
     sortedTrades.forEach(trade => {
-      // Use priceAfter if available, otherwise use price
-      const price = trade.choice === 'yes' 
-        ? (trade.priceAfter || trade.price)
-        : (100 - (trade.priceAfter || trade.price));
+      // Use priceAfter which represents the YES price after the trade
+      // priceAfter is stored based on the choice, so we need to normalize to YES price
+      let yesPrice;
+      if (trade.priceAfter !== undefined) {
+        // priceAfter is the price of whatever was traded
+        if (trade.choice === 'yes') {
+          yesPrice = trade.priceAfter;
+        } else {
+          // If NO was traded, priceAfter is NO price, so YES = 100 - NO
+          yesPrice = 100 - trade.priceAfter;
+        }
+      } else {
+        // Fallback: use the trade price
+        yesPrice = trade.choice === 'yes' ? trade.price : (100 - trade.price);
+      }
+      
       priceHistory.push({
         timestamp: new Date(trade.timestamp),
-        price: price
+        price: yesPrice
       });
     });
-    
-    // Add current price as the last point
-    priceHistory.push({
-      timestamp: new Date(),
-      price: market.yesPrice
-    });
-  } else {
-    // No trades - show flat line at current price with starting point at 50%
-    const createdDate = market.createdAt ? new Date(market.createdAt) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    priceHistory = [
-      { timestamp: createdDate, price: 50 },
-      { timestamp: new Date(), price: market.yesPrice }
-    ];
   }
+  
+  // Add current price as the last point
+  priceHistory.push({
+    timestamp: new Date(),
+    price: market.yesPrice
+  });
   
   // Update start date
   if (priceHistory.length > 0 && dateStartEl) {
@@ -2137,4 +2159,103 @@ function showNotification(message, type = 'success') {
     notification.classList.remove('show');
     setTimeout(() => notification.remove(), 300);
   }, 4000);
+}
+
+// ========================================
+// WIN CELEBRATION
+// ========================================
+function checkForUnseenWins() {
+  const unseenWins = UserData.getUnseenWins();
+  
+  if (unseenWins.length > 0) {
+    showWinCelebration(unseenWins);
+  }
+}
+
+function showWinCelebration(wins) {
+  const overlay = document.getElementById('winCelebrationOverlay');
+  const body = document.getElementById('winModalBody');
+  const okBtn = document.getElementById('winModalOkBtn');
+  const confettiContainer = document.getElementById('confettiContainer');
+  
+  if (!overlay || !body) return;
+  
+  // Generate confetti (only once, even for multiple wins)
+  createConfetti(confettiContainer);
+  
+  // Build win items HTML
+  body.innerHTML = wins.map(win => {
+    return `
+      <div class="win-item">
+        <div class="win-item-icon">🎉</div>
+        <div class="win-item-details">
+          <div class="win-item-market">${win.marketTitle || 'Market'}</div>
+          <div class="win-item-info">${win.shares} ${win.position.toUpperCase()} shares</div>
+        </div>
+        <div class="win-item-payout">+$${win.payout.toFixed(2)}</div>
+      </div>
+    `;
+  }).join('');
+  
+  // Calculate total
+  const totalWon = wins.reduce((sum, w) => sum + w.payout, 0);
+  if (wins.length > 1) {
+    body.innerHTML += `
+      <div class="win-item" style="background: linear-gradient(135deg, rgba(0, 200, 83, 0.1), rgba(0, 200, 83, 0.05)); border-left-color: gold;">
+        <div class="win-item-icon">💰</div>
+        <div class="win-item-details">
+          <div class="win-item-market">Total Winnings</div>
+          <div class="win-item-info">${wins.length} winning positions</div>
+        </div>
+        <div class="win-item-payout" style="color: gold;">+$${totalWon.toFixed(2)}</div>
+      </div>
+    `;
+  }
+  
+  // Show overlay
+  overlay.classList.add('active');
+  
+  // Handle OK button
+  okBtn.onclick = async () => {
+    // Mark all as seen
+    const cashoutIds = wins.map(w => w.marketId + '_' + w.timestamp);
+    await UserData.markCashoutsAsSeen(cashoutIds);
+    
+    // Hide overlay
+    overlay.classList.remove('active');
+    
+    // Clear confetti
+    confettiContainer.innerHTML = '';
+  };
+}
+
+function createConfetti(container) {
+  if (!container) return;
+  
+  const colors = ['#00c853', '#ffd700', '#ff4757', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899'];
+  const shapes = ['square', 'circle'];
+  
+  for (let i = 0; i < 150; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    const left = Math.random() * 100;
+    const delay = Math.random() * 2;
+    const size = Math.random() * 8 + 6;
+    const duration = Math.random() * 2 + 2;
+    
+    confetti.style.cssText = `
+      left: ${left}%;
+      width: ${size}px;
+      height: ${size}px;
+      background: ${color};
+      border-radius: ${shape === 'circle' ? '50%' : '2px'};
+      animation-delay: ${delay}s;
+      animation-duration: ${duration}s;
+    `;
+    
+    container.appendChild(confetti);
+  }
 }
