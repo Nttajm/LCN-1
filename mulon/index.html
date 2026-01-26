@@ -444,6 +444,40 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    <!-- The Great Reset Countdown -->
+    <div class="reset-countdown-banner" id="resetCountdownBanner">
+      <div class="reset-countdown-content">
+        <div class="reset-icon">🔄</div>
+        <div class="reset-info">
+          <h3 class="reset-title">THE GREAT RESET</h3>
+          <p class="reset-desc">All balances will reset to <strong>5% of current balance</strong>. Why? Because many features have been added and the beta was just a test before the actual release!</p>
+        </div>
+        <div class="reset-timer">
+          <div class="timer-blocks">
+            <div class="timer-block">
+              <span class="timer-value" id="resetDays">00</span>
+              <span class="timer-label">Days</span>
+            </div>
+            <div class="timer-separator">:</div>
+            <div class="timer-block">
+              <span class="timer-value" id="resetHours">00</span>
+              <span class="timer-label">Hours</span>
+            </div>
+            <div class="timer-separator">:</div>
+            <div class="timer-block">
+              <span class="timer-value" id="resetMins">00</span>
+              <span class="timer-label">Mins</span>
+            </div>
+            <div class="timer-separator">:</div>
+            <div class="timer-block">
+              <span class="timer-value" id="resetSecs">00</span>
+              <span class="timer-label">Secs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Daily Reward Claim Box -->
     <div class="daily-key-box" id="dailyKeyBox" style="display: none;">
       <div class="daily-key-content">
@@ -732,5 +766,31 @@
   <script src="js/format-utils.js"></script>
   <script type="module" src="js/data.js"></script>
   <script type="module" src="js/index.js"></script>
+  <script>
+    // The Great Reset Countdown - January 29, 2026
+    function updateResetCountdown() {
+      const resetDate = new Date('2026-01-29T00:00:00').getTime();
+      const now = new Date().getTime();
+      const distance = resetDate - now;
+      
+      if (distance < 0) {
+        document.getElementById('resetCountdownBanner').innerHTML = '<div class="reset-countdown-content"><div class="reset-icon">🎉</div><div class="reset-info"><h3 class="reset-title">THE GREAT RESET IS HERE!</h3><p class="reset-desc">Welcome to the official launch of Mulon!</p></div></div>';
+        return;
+      }
+      
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((distance % (1000 * 60)) / 1000);
+      
+      document.getElementById('resetDays').textContent = days.toString().padStart(2, '0');
+      document.getElementById('resetHours').textContent = hours.toString().padStart(2, '0');
+      document.getElementById('resetMins').textContent = mins.toString().padStart(2, '0');
+      document.getElementById('resetSecs').textContent = secs.toString().padStart(2, '0');
+    }
+    
+    updateResetCountdown();
+    setInterval(updateResetCountdown, 1000);
+  </script>
 </body>
 </html>

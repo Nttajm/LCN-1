@@ -4,6 +4,119 @@
    ======================================== */
 
 /* ========================================
+   THE GREAT RESET COUNTDOWN BANNER
+   ======================================== */
+.reset-countdown-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.reset-countdown-content {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.reset-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.reset-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.reset-title {
+  color: #ef4444;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reset-desc {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.reset-desc strong {
+  color: var(--text-primary);
+}
+
+.reset-timer {
+  flex-shrink: 0;
+}
+
+.timer-blocks {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.timer-block {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  min-width: 50px;
+}
+
+.timer-block .timer-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ef4444;
+  line-height: 1;
+}
+
+.timer-block .timer-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+.timer-separator {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .reset-countdown-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .reset-timer {
+    width: 100%;
+  }
+  
+  .timer-blocks {
+    justify-content: center;
+  }
+}
+
+/* ========================================
    SIDEBAR
    ======================================== */
 .sidebar {

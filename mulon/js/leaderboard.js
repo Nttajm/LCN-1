@@ -310,7 +310,7 @@ function renderTable(sortedData) {
         const rankDisplay = rank <= 3 ? getRankEmoji(rank) : rank;
         
         return `
-            <div class="leaderboard-row ${rankClass} ${leaderStyleClasses} ${isCurrentUser ? 'current-user' : ''}">
+            <div class="leaderboard-row ${rankClass} ${leaderStyleClasses} ${isCurrentUser ? 'current-user' : ''}" onclick="window.location.href='profile.html?id=${user.id}'" style="cursor: pointer;">
                 <div class="rank-cell">
                     <span class="rank-badge ${rankBadgeClass}">${rankDisplay}</span>
                 </div>
@@ -331,6 +331,9 @@ function renderTable(sortedData) {
                 </div>
                 <div class="stat-cell ${currentFilter === 'portfolio' ? 'main-stat neutral' : 'neutral'}">
                     ${formatBalance(user.portfolioValue)}
+                </div>
+                <div class="view-profile-cell">
+                    <span class="view-profile-btn">View →</span>
                 </div>
             </div>
         `;

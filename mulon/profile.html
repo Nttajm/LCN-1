@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile - Mulon</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/profile.css">
+  <link rel="stylesheet" href="../css/standard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon (beta)</span>
+      </a>
+    </div>
+    <div class="header-right">
+      <a href="leaderbaord.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Leaderboard
+      </a>
+      <div class="user-menu" id="userMenu">
+        <div class="user-avatar" id="userAvatar">
+          <span id="userInitials">?</span>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info" id="userInfo">
+            <span class="user-name" id="userName">Guest</span>
+            <span class="user-email" id="userEmail">Not signed in</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item signin" id="headerSignInBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            </svg>
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
+        <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+        <li><a href="casino.html" class="nav-link">Casino</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState">
+      <div class="loading-spinner"></div>
+      <p>Loading profile...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" id="errorState" style="display: none;">
+      <div class="error-icon">⚠️</div>
+      <h2>Profile Not Found</h2>
+      <p>This user profile could not be loaded.</p>
+      <a href="leaderboard.html" class="btn-primary">Back to Leaderboard</a>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="profile-container" id="profileContainer" style="display: none;">
+      
+      <!-- Profile Banner -->
+      <div class="profile-banner" id="profileBanner">
+        <div class="banner-bg"></div>
+        <div class="banner-content">
+          <div class="profile-avatar" id="profileAvatar">
+            <span id="profileInitials">?</span>
+            <div class="level-badge-large" id="profileLevelBadge"></div>
+          </div>
+          <div class="profile-info">
+            <h1 class="profile-name" id="profileName">Loading...</h1>
+            <div class="profile-level" id="profileLevel">
+              <span class="level-name" id="profileLevelName">Newcomer</span>
+              <span class="level-separator">•</span>
+              <span class="level-xp" id="profileLevelXP">0 XP</span>
+            </div>
+            <div class="profile-stats-quick">
+              <div class="quick-stat">
+                <span class="quick-stat-label">Balance</span>
+                <span class="quick-stat-value" id="profileBalance">$0.00</span>
+              </div>
+              <div class="quick-stat">
+                <span class="quick-stat-label">Total Profit</span>
+                <span class="quick-stat-value" id="profileProfit">+$0.00</span>
+              </div>
+              <div class="quick-stat">
+                <span class="quick-stat-label">Games Played</span>
+                <span class="quick-stat-value" id="profileGamesPlayed">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <!-- Session Overview -->
+        <div class="stat-card">
+          <h3 class="stat-card-title">Session Overview</h3>
+          <div class="stat-rows">
+            <div class="stat-row">
+              <span class="stat-label">Total Sessions</span>
+              <span class="stat-value" id="totalSessions">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Active Sessions</span>
+              <span class="stat-value" id="activeSessions">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total Wagered</span>
+              <span class="stat-value" id="totalWagered">$0.00</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total Won</span>
+              <span class="stat-value" id="totalWon">$0.00</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Net Profit</span>
+              <span class="stat-value profit" id="netProfit">+$0.00</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Win Rate</span>
+              <span class="stat-value" id="winRate">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Best Performances -->
+        <div class="stat-card">
+          <h3 class="stat-card-title">Best Performances</h3>
+          <div class="stat-rows">
+            <div class="stat-row">
+              <span class="stat-label">Biggest Win</span>
+              <span class="stat-value win" id="biggestWin">$0.00</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Biggest Loss</span>
+              <span class="stat-value loss" id="biggestLoss">$0.00</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Longest Win Streak</span>
+              <span class="stat-value" id="longestStreak">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Best Session Profit</span>
+              <span class="stat-value win" id="bestSession">$0.00</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Avg Session Duration</span>
+              <span class="stat-value" id="avgDuration">0m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Favorite Game -->
+        <div class="stat-card">
+          <h3 class="stat-card-title">Favorite Game</h3>
+          <div class="favorite-game" id="favoriteGameCard">
+            <div class="game-icon" id="favoriteGameIcon">🎮</div>
+            <div class="game-info">
+              <div class="game-name" id="favoriteGameName">No games played yet</div>
+              <div class="game-stats">
+                <span id="favoriteGameSessions">0 sessions</span>
+                <span class="separator">•</span>
+                <span id="favoriteGameProfit">$0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Breakdown -->
+      <div class="games-section">
+        <h2 class="section-title">Games Breakdown</h2>
+        <div class="games-grid" id="gamesBreakdown">
+          <!-- Game cards will be inserted here -->
+        </div>
+      </div>
+
+      <!-- Recent Sessions -->
+      <div class="sessions-section">
+        <h2 class="section-title">Recent Sessions</h2>
+        <div class="sessions-list" id="recentSessions">
+          <!-- Session items will be inserted here -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">Mulon</span>
+      <span class="footer-text">© 2026 Mulon Markets. For educational use only.</span>
+    </div>
+  </footer>
+
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>
