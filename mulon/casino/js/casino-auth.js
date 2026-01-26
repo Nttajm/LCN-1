@@ -412,6 +412,66 @@ export const CasinoDB = {
   },
   
   // ========================================
+  // ROULETTE REFRESH PENALTY
+  // ========================================
+  
+  // Track pending roulette spin (for refresh penalty)
+  async setPendingRouletteSpin(amount) {
+    if (!CasinoAuth.currentUser) return;
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        pendingRouletteSpin: amount
+      });
+      CasinoAuth.userData.pendingRouletteSpin = amount;
+    } catch (error) {
+      console.error('Error setting pending roulette spin:', error);
+    }
+  },
+  
+  // Get pending roulette spin amount
+  getPendingRouletteSpin() {
+    return CasinoAuth.userData?.pendingRouletteSpin ?? 0;
+  },
+  
+  // Check and apply roulette refresh penalty (called on page load)
+  async checkRouletteRefreshPenalty() {
+    if (!CasinoAuth.currentUser) return { penalty: 0 };
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      const userDoc = await getDoc(doc(db, 'mulon_users', userId));
+      
+      if (userDoc.exists()) {
+        const pendingAmount = userDoc.data().pendingRouletteSpin ?? 0;
+        
+        if (pendingAmount > 0) {
+          // Lose the entire pending bet amount
+          const currentBalance = userDoc.data().balance ?? 0;
+          const penaltyAmount = pendingAmount;
+          const newBalance = Math.max(0, currentBalance - penaltyAmount);
+          
+          // Apply penalty and clear pending spin
+          await updateDoc(doc(db, 'mulon_users', userId), {
+            balance: newBalance,
+            pendingRouletteSpin: 0
+          });
+          
+          CasinoAuth.userData.balance = newBalance;
+          CasinoAuth.userData.pendingRouletteSpin = 0;
+          
+          return { penalty: penaltyAmount };
+        }
+      }
+    } catch (error) {
+      console.error('Error checking roulette refresh penalty:', error);
+    }
+    
+    return { penalty: 0 };
+  },
+  
+  // ========================================
   // CHARGES & XP SYSTEM
   // ========================================
   

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roulette - Mulon Casino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/casino-shared.css">
+  <link rel="stylesheet" href="css/roulette.css">
+  <link rel="stylesheet" href="/css/standard.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a href="../index.html" class="logo">Mulon<span>.</span></a>
+    <div class="header-right">
+      <a href="../casino.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Casino
+      </a>
+      <div class="balance-box">
+        <div class="balance-label">Balance</div>
+        <div class="balance-amount" id="userBalance">$0.00</div>
+      </div>
+      <div class="balance-box keys-box">
+        <div class="balance-label">Keys</div>
+        <div class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 0</div>
+      </div>
+      <div class="balance-box xps-box">
+        <div class="balance-label">XPs</div>
+        <div class="balance-amount xps-amount" id="userXPs">⚡ 0</div>
+      </div>
+      <div class="auth-box dn" id="authBox">
+        <button class="signin-btn" id="signInBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign In
+        </button>
+        <div class="user-info" id="userInfo" style="display: none;">
+          <span class="user-name" id="userName"></span>
+          <button class="signout-btn" id="signOutBtn">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Floating Profit/Loss Graph -->
+  <div class="profit-graph-container profit-graph-float" id="profitGraphContainer">
+    <div class="profit-graph-header">
+      <span class="profit-graph-title">Profit/Loss</span>
+      <span class="profit-graph-value" id="profitGraphValue">$0.00</span>
+    </div>
+    <canvas id="profitGraphCanvas"></canvas>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="roulette-layout">
+    <!-- LEFT: Controls Panel -->
+    <div class="controls-panel">
+      <!-- Refresh Penalty Warning -->
+      <div class="refresh-penalty-info">
+        ⚠️ Refreshing while spinning = auto loss of your bet
+      </div>
+      <div class="refresh-penalty-notice" id="refreshPenaltyNotice" style="display: none;"></div>
+      
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active">Manual</button>
+        <button class="tab">Auto</button>
+      </div>
+
+      <!-- Chip Value Selection -->
+      <div class="control-group">
+        <label class="control-label">Chip Value</label>
+        <div class="chip-selector">
+          <button class="chip-nav" id="chipNavLeft">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <div class="chips-row" id="chipsRow">
+            <div class="chip chip-1" data-value="1">1</div>
+            <div class="chip chip-10 selected" data-value="10">10</div>
+            <div class="chip chip-100" data-value="100">100</div>
+            <div class="chip chip-500" data-value="500">500</div>
+            <div class="chip chip-1000" data-value="1K">1K</div>
+          </div>
+          <button class="chip-nav" id="chipNavRight">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Total Amount -->
+      <div class="control-group">
+        <label class="control-label">Total Amount</label>
+        <div class="bet-input-wrap">
+          <div class="currency-icon">$</div>
+          <input type="number" class="bet-input" id="totalBetAmount" value="0" readonly>
+          <div class="bet-btns">
+            <button class="bet-adj" onclick="adjustTotalBet(0.5)">½</button>
+            <button class="bet-adj" onclick="adjustTotalBet(2)">2×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Play Button -->
+      <div class="control-group" style="border-bottom: none;">
+        <button class="bet-btn spin-btn" id="spinBtn">
+          <span class="btn-text">Play</span>
+        </button>
+      </div>
+
+      <!-- Undo / Clear / Repeat -->
+      <div class="control-group action-btns">
+        <button class="action-btn undo-btn" id="undoBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 10h10a5 5 0 0 1 0 10h-3"/>
+            <path d="M3 10l4-4"/>
+            <path d="M3 10l4 4"/>
+          </svg>
+          Undo
+        </button>
+        <button class="action-btn clear-btn" id="clearBtn">
+          Clear
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+            <line x1="18" y1="9" x2="12" y2="15"/>
+            <line x1="12" y1="9" x2="18" y2="15"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-box">
+        <div class="stat-row">
+          <span class="stat-label">Profit</span>
+          <span class="stat-value" id="sessionProfit">$0.00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Spins</span>
+          <span class="stat-value" id="spinsCount">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Best Win</span>
+          <span class="stat-value profit" id="bestWin">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Last Result Box -->
+      <div class="result-box" id="resultBox">
+        <span class="result-label">Last Spin</span>
+        <div class="result-content">
+          <span class="result-num" id="resultNumber">-</span>
+          <span class="result-amount" id="resultAmount">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Game Panel -->
+    <div class="game-panel">
+      <!-- Roulette Wheel -->
+      <div class="wheel-section">
+        <div class="last-results" id="lastResults">
+          <!-- Last winning numbers will appear here -->
+        </div>
+        <div class="wheel-container">
+          <div class="wheel-pointer"></div>
+          <canvas id="rouletteWheel" width="300" height="300"></canvas>
+          <div class="wheel-ball" id="wheelBall"></div>
+          <div class="winning-number" id="winningNumber"></div>
+        </div>
+      </div>
+
+      <!-- Betting Board -->
+      <div class="betting-board" id="bettingBoard">
+        <!-- Main Grid Wrapper -->
+        <div class="main-grid-wrapper">
+          <!-- Zero -->
+          <div class="bet-cell zero" data-bet="0" data-type="number">0</div>
+          
+          <!-- Number Grid -->
+          <div class="numbers-grid">
+            <!-- Row 1 -->
+            <div class="bet-cell red" data-bet="3" data-type="number">3</div>
+            <div class="bet-cell black" data-bet="6" data-type="number">6</div>
+            <div class="bet-cell red" data-bet="9" data-type="number">9</div>
+            <div class="bet-cell red" data-bet="12" data-type="number">12</div>
+            <div class="bet-cell black" data-bet="15" data-type="number">15</div>
+            <div class="bet-cell red" data-bet="18" data-type="number">18</div>
+            <div class="bet-cell red" data-bet="21" data-type="number">21</div>
+            <div class="bet-cell black" data-bet="24" data-type="number">24</div>
+            <div class="bet-cell red" data-bet="27" data-type="number">27</div>
+            <div class="bet-cell red" data-bet="30" data-type="number">30</div>
+            <div class="bet-cell black" data-bet="33" data-type="number">33</div>
+            <div class="bet-cell red" data-bet="36" data-type="number">36</div>
+            <div class="bet-cell ratio" data-bet="row3" data-type="row">2:1</div>
+            
+            <!-- Row 2 -->
+            <div class="bet-cell black" data-bet="2" data-type="number">2</div>
+            <div class="bet-cell red" data-bet="5" data-type="number">5</div>
+            <div class="bet-cell black" data-bet="8" data-type="number">8</div>
+            <div class="bet-cell black" data-bet="11" data-type="number">11</div>
+            <div class="bet-cell red" data-bet="14" data-type="number">14</div>
+            <div class="bet-cell black" data-bet="17" data-type="number">17</div>
+            <div class="bet-cell black" data-bet="20" data-type="number">20</div>
+            <div class="bet-cell red" data-bet="23" data-type="number">23</div>
+            <div class="bet-cell black" data-bet="26" data-type="number">26</div>
+            <div class="bet-cell black" data-bet="29" data-type="number">29</div>
+            <div class="bet-cell red" data-bet="32" data-type="number">32</div>
+            <div class="bet-cell black" data-bet="35" data-type="number">35</div>
+            <div class="bet-cell ratio" data-bet="row2" data-type="row">2:1</div>
+            
+            <!-- Row 3 -->
+            <div class="bet-cell red" data-bet="1" data-type="number">1</div>
+            <div class="bet-cell black" data-bet="4" data-type="number">4</div>
+            <div class="bet-cell red" data-bet="7" data-type="number">7</div>
+            <div class="bet-cell black" data-bet="10" data-type="number">10</div>
+            <div class="bet-cell black" data-bet="13" data-type="number">13</div>
+            <div class="bet-cell red" data-bet="16" data-type="number">16</div>
+            <div class="bet-cell red" data-bet="19" data-type="number">19</div>
+            <div class="bet-cell black" data-bet="22" data-type="number">22</div>
+            <div class="bet-cell red" data-bet="25" data-type="number">25</div>
+            <div class="bet-cell black" data-bet="28" data-type="number">28</div>
+            <div class="bet-cell black" data-bet="31" data-type="number">31</div>
+            <div class="bet-cell red" data-bet="34" data-type="number">34</div>
+            <div class="bet-cell ratio" data-bet="row1" data-type="row">2:1</div>
+          </div>
+        </div>
+        
+        <!-- Dozen Bets -->
+        <div class="dozen-row">
+          <div class="bet-cell dozen" data-bet="1to12" data-type="dozen">1 to 12</div>
+          <div class="bet-cell dozen" data-bet="13to24" data-type="dozen">13 to 24</div>
+          <div class="bet-cell dozen" data-bet="25to36" data-type="dozen">25 to 36</div>
+        </div>
+        
+        <!-- Outside Bets -->
+        <div class="outside-row">
+          <div class="bet-cell outside" data-bet="1to18" data-type="outside">1 to 18</div>
+          <div class="bet-cell outside" data-bet="even" data-type="outside">Even</div>
+          <div class="bet-cell outside color-red" data-bet="red" data-type="color"></div>
+          <div class="bet-cell outside color-black" data-bet="black" data-type="color"></div>
+          <div class="bet-cell outside" data-bet="odd" data-type="outside">Odd</div>
+          <div class="bet-cell outside" data-bet="19to36" data-type="outside">19 to 36</div>
+        </div>
+      </div>
+
+      <!-- Chips Layer (for physics chips) -->
+      <div class="chips-layer" id="chipsLayer"></div>
+    </div>
+  </div>
+
+  <!-- Casino Auth Module -->
+  <script type="module" src="js/casino-auth.js"></script>
+  <!-- Shared Format Utilities -->
+  <script src="../js/format-utils.js"></script>
+  <!-- Casino Globals (Profit Graph, etc.) -->
+  <script src="js/casino-globals.js"></script>
+  <script src="js/roulette.js"></script>
+</body>
+</html>

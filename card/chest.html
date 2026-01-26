@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Chest - Card Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a0f;
+            font-family: 'Rajdhani', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(120, 0, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 0, 100, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 200, 255, 0.08) 0%, transparent 60%);
+            animation: bgPulse 8s ease-in-out infinite;
+            z-index: -2;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        h1 {
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.2rem;
+        }
+
+        /* Carousel Container */
+        .carousel-container {
+            width: 90vw;
+            max-width: 1200px;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Selection Indicator */
+        .selection-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 320px;
+            border: 4px solid #ffd700;
+            border-radius: 16px;
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.5),
+                inset 0 0 30px rgba(255, 215, 0, 0.1);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .selection-indicator::before,
+        .selection-indicator::after {
+            content: '▼';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        .selection-indicator::before {
+            top: -40px;
+        }
+
+        .selection-indicator::after {
+            content: '▲';
+            bottom: -40px;
+        }
+
+        /* Carousel Track */
+        .carousel-track {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            gap: 20px;
+            transition: none;
+        }
+
+        .carousel-track.spinning {
+            transition: transform 5s cubic-bezier(0.15, 0.85, 0.25, 1);
+        }
+
+        /* Mini Card Wrapper - additional styles not in card-builder */
+        .carousel-card-wrapper {
+            flex-shrink: 0;
+        }
+
+        /* Open Button */
+        .open-btn {
+            padding: 18px 50px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            background: linear-gradient(135deg, #ffd700, #ff9500, #ff6b35);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .open-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.6);
+        }
+
+        .open-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Win Modal */
+        .win-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .win-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .win-content {
+            text-align: center;
+            animation: winPop 0.5s ease forwards;
+        }
+
+        @keyframes winPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .win-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .win-card-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .collect-btn {
+            padding: 15px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .collect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Inventory Preview */
+        .inventory-preview {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .inventory-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            margin-right: 10px;
+            align-self: center;
+        }
+
+        /* Back button */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <a href="cards.html" class="back-btn">← Back to Collection</a>
+
+    <div class="game-container">
+        <h1>🎁 Open Chest</h1>
+        <p class="subtitle">Spin to reveal your card!</p>
+
+        <div class="carousel-container">
+            <div class="selection-indicator"></div>
+            <div class="carousel-track" id="carouselTrack">
+                <!-- Cards dynamically generated -->
+            </div>
+        </div>
+
+        <button class="open-btn" id="openBtn" onclick="spinCarousel()">🔓 Open Chest</button>
+    </div>
+
+    <!-- Win Modal -->
+    <div class="win-modal" id="winModal">
+        <div class="win-content">
+            <h2 class="win-title" id="winTitle">You Got!</h2>
+            <div class="win-card-container" id="winCardContainer"></div>
+            <button class="collect-btn" onclick="collectCard()">✓ Collect</button>
+        </div>
+    </div>
+
+    <!-- Inventory Preview -->
+    <div class="inventory-preview">
+        <span class="inventory-label">Recent:</span>
+        <div id="inventoryCards"></div>
+    </div>
+
+    <!-- Load CardBuilder Module -->
+    <script src="js/card-builder.js"></script>
+    <script>
+        // Initialize CardBuilder
+        CardBuilder.init();
+
+        // Game state
+        let isSpinning = false;
+        let inventory = [];
+
+        // Generate carousel cards
+        function generateCarouselCards() {
+            const track = document.getElementById('carouselTrack');
+            track.innerHTML = '';
+            
+            // Generate 50 random cards for the carousel
+            for (let i = 0; i < 50; i++) {
+                const card = CardBuilder.getRandomCard();
+                const cardHTML = CardBuilder.buildMiniCard(card, i);
+                track.innerHTML += cardHTML;
+            }
+        }
+
+        // Spin the carousel
+        function spinCarousel() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const openBtn = document.getElementById('openBtn');
+            openBtn.disabled = true;
+            openBtn.textContent = '🎰 Spinning...';
+
+            // Regenerate cards for fresh spin
+            generateCarouselCards();
+
+            const track = document.getElementById('carouselTrack');
+            const cardWrappers = track.querySelectorAll('.mini-card-wrapper');
+            const cardWidth = 220; // card width + gap
+            
+            // Select winning card (around position 35-40 for suspense)
+            const winningIndex = 35 + Math.floor(Math.random() * 5);
+            const winningCard = CardBuilder.getRandomCard();
+            
+            // Replace the winning position card with actual winner
+            const winningWrapper = cardWrappers[winningIndex];
+            if (winningWrapper) {
+                winningWrapper.innerHTML = CardBuilder.buildMiniCard(winningCard, winningIndex).replace('<div class="mini-card-wrapper">', '').replace('</div></div></div></div>', '</div></div></div>');
+            }
+
+            // Calculate spin distance
+            const spinDistance = (winningIndex - 3) * cardWidth; // -3 to center it
+            
+            // Reset position
+            track.style.transition = 'none';
+            track.style.transform = 'translate(-50%, -50%)';
+            
+            // Force reflow
+            track.offsetHeight;
+            
+            // Start spinning
+            track.classList.add('spinning');
+            track.style.transform = `translate(calc(-50% - ${spinDistance}px), -50%)`;
+
+            // Show winner after spin
+            setTimeout(() => {
+                showWinner(winningCard);
+            }, 5200);
+        }
+
+        // Show winner modal
+        function showWinner(card) {
+            const modal = document.getElementById('winModal');
+            const winTitle = document.getElementById('winTitle');
+            const winCardContainer = document.getElementById('winCardContainer');
+
+            // Set rarity color for title
+            const rarityColors = {
+                mythic: '#ff00ff',
+                legendary: '#ffd700',
+                epic: '#a855f7',
+                rare: '#3b82f6',
+                uncommon: '#10b981',
+                common: '#6b7280'
+            };
+
+            winTitle.style.color = rarityColors[card.rarity];
+            winTitle.textContent = `You Got a ${card.rarity.toUpperCase()}!`;
+
+            // Generate win card
+            winCardContainer.innerHTML = CardBuilder.buildWinCard(card);
+
+            modal.classList.add('show');
+        }
+
+        // Collect card
+        function collectCard() {
+            const modal = document.getElementById('winModal');
+            modal.classList.remove('show');
+
+            // Reset for next spin
+            isSpinning = false;
+            const openBtn = document.getElementById('openBtn');
+            openBtn.disabled = false;
+            openBtn.textContent = '🔓 Open Chest';
+
+            const track = document.getElementById('carouselTrack');
+            track.classList.remove('spinning');
+            track.style.transform = 'translate(-50%, -50%)';
+        }
+
+        // Initialize on load
+        generateCarouselCards();
+    </script>
+</body>
+</html>
