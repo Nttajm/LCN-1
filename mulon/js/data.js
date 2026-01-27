@@ -89,6 +89,13 @@ async function checkWaitlistAccess(userId, email) {
   }
   
   try {
+    // First check if user already exists in mulon_users (existing user)
+    const userDoc = await getDoc(doc(usersRef, userId));
+    if (userDoc.exists()) {
+      // User is already a registered user, they're approved
+      return { approved: true, isExistingUser: true };
+    }
+    
     const waitlistDoc = await getDoc(doc(waitlistRef, userId));
     
     if (!waitlistDoc.exists()) {
