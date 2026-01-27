@@ -190,7 +190,7 @@ async function handleAuthState(user) {
             showState('statePending');
             // Update position display
             const position = await getWaitlistPosition(user.uid);
-            document.getElementById('waitlistPosition').textContent = position ? `#${position}` : '--';
+            document.getElementById('waitlistPosition').textContent = position ? `#${position + 23}` : '16';
             document.getElementById('waitlistJoined').textContent = formatDate(status.joinedAt);
             break;
             
