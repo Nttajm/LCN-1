@@ -114,6 +114,150 @@ async function checkBanStatus() {
 window.checkBanStatus = checkBanStatus;
 
 // ========================================
+// CONNECTION MONITOR - Breaks game if offline
+// ========================================
+const ConnectionMonitor = {
+  isOnline: navigator.onLine,
+  checkInterval: null,
+  pendingBets: [],
+  gameDisabled: false,
+  
+  // Start monitoring connection
+  start() {
+    // Initial check
+    this.isOnline = navigator.onLine;
+    
+    // Listen for online/offline events
+    window.addEventListener('online', () => this.handleOnline());
+    window.addEventListener('offline', () => this.handleOffline());
+    
+    // Periodic server ping every 3 seconds
+    this.checkInterval = setInterval(() => this.pingServer(), 3000);
+    
+    // Initial ping
+    this.pingServer();
+  },
+  
+  // Ping server to verify real connectivity
+  async pingServer() {
+    try {
+      // Try to fetch a tiny resource with cache busting
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2000);
+      
+      await fetch('https://firestore.googleapis.com/google.firestore.v1.Firestore', {
+        method: 'HEAD',
+        mode: 'no-cors',
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!this.isOnline) {
+        this.handleOnline();
+      }
+      this.isOnline = true;
+    } catch (e) {
+      if (this.isOnline) {
+        this.handleOffline();
+      }
+      this.isOnline = false;
+    }
+  },
+  
+  // Handle going offline - BREAK THE GAME
+  handleOffline() {
+    console.warn('ConnectionMonitor: Connection lost - disabling game');
+    this.isOnline = false;
+    this.gameDisabled = true;
+    
+    // Store current balance for penalty calculation
+    if (CasinoAuth.userData) {
+      const pendingData = {
+        timestamp: Date.now(),
+        balance: CasinoAuth.userData.balance,
+        keys: CasinoAuth.userData.keys || 0
+      };
+      localStorage.setItem('casino_disconnect_pending', JSON.stringify(pendingData));
+    }
+  },
+  
+  // Handle coming back online
+  async handleOnline() {
+    console.log('ConnectionMonitor: Connection restored');
+    this.isOnline = true;
+    
+    // Check for pending penalties
+    await this.applyDisconnectPenalty();
+    
+    // Re-enable game after penalty applied
+    this.gameDisabled = false;
+  },
+  
+  // Apply penalty for disconnecting during play
+  async applyDisconnectPenalty() {
+    const pendingStr = localStorage.getItem('casino_disconnect_pending');
+    if (!pendingStr) return;
+    
+    try {
+      const pending = JSON.parse(pendingStr);
+      const disconnectDuration = Date.now() - pending.timestamp;
+      
+      // Only penalize if offline for more than 5 seconds (prevents false positives)
+      if (disconnectDuration > 5000 && CasinoAuth.currentUser && CasinoAuth.userData) {
+        // Penalty: lose 5% of balance per minute offline, max 50%
+        const minutesOffline = Math.ceil(disconnectDuration / 60000);
+        const penaltyPercent = Math.min(0.5, minutesOffline * 0.05);
+        const penaltyAmount = Math.floor(pending.balance * penaltyPercent * 100) / 100;
+        
+        if (penaltyAmount > 0) {
+          console.warn(`ConnectionMonitor: Applying disconnect penalty of $${penaltyAmount}`);
+          
+          // Apply penalty to database
+          const userId = CasinoAuth.currentUser.uid;
+          await updateDoc(doc(db, 'mulon_users', userId), {
+            balance: increment(-penaltyAmount),
+            'casinoStats.disconnectPenalties': increment(penaltyAmount)
+          });
+          
+          // Update local data
+          CasinoAuth.userData.balance = Math.max(0, CasinoAuth.userData.balance - penaltyAmount);
+        }
+      }
+    } catch (e) {
+      console.error('Error applying disconnect penalty:', e);
+    }
+    
+    // Clear pending
+    localStorage.removeItem('casino_disconnect_pending');
+  },
+  
+  // Check if game can proceed - call this before any game action
+  canPlay() {
+    return this.isOnline && !this.gameDisabled;
+  },
+  
+  // Require connection - throws error if offline (use in critical functions)
+  requireConnection() {
+    if (!this.isOnline || this.gameDisabled) {
+      throw new Error('NO_CONNECTION');
+    }
+    return true;
+  },
+  
+  stop() {
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+      this.checkInterval = null;
+    }
+  }
+};
+
+// Export globally
+window.ConnectionMonitor = ConnectionMonitor;
+
+// ========================================
 // CASINO AUTH
 // ========================================
 export const CasinoAuth = {
@@ -165,6 +309,12 @@ export const CasinoAuth = {
       const isBanned = await window.checkBanStatus();
       if (isBanned) return false; // Stop if banned
     }
+    
+    // Start connection monitoring - game won't work without connection
+    ConnectionMonitor.start();
+    
+    // Apply any pending disconnect penalties from previous session
+    await ConnectionMonitor.applyDisconnectPenalty();
     
     await this.init();
     
@@ -310,6 +460,12 @@ export const CasinoDB = {
       return null;
     }
     
+    // Connection required
+    if (!ConnectionMonitor.canPlay()) {
+      console.warn('Cannot update balance: No connection');
+      return null;
+    }
+    
     try {
       const userId = CasinoAuth.currentUser.uid;
       const newBalance = Math.max(0, Math.round((CasinoAuth.userData.balance + amount) * 100) / 100);
@@ -330,6 +486,11 @@ export const CasinoDB = {
   async placeBet(amount, game) {
     if (!CasinoAuth.currentUser) {
       return { success: false, error: 'Not signed in' };
+    }
+    
+    // Connection required - game won't work offline
+    if (!ConnectionMonitor.canPlay()) {
+      return { success: false, error: 'Connection lost - cannot place bet' };
     }
     
     if (CasinoAuth.userData.balance < amount) {
@@ -366,6 +527,11 @@ export const CasinoDB = {
       return { success: false, error: 'Not signed in' };
     }
     
+    // Connection required
+    if (!ConnectionMonitor.canPlay()) {
+      return { success: false, error: 'Connection lost - win not recorded' };
+    }
+    
     try {
       const userId = CasinoAuth.currentUser.uid;
       const newBalance = Math.round((CasinoAuth.userData.balance + amount) * 100) / 100;
@@ -396,6 +562,11 @@ export const CasinoDB = {
   async recordGameResult(game, betAmount, wonAmount) {
     if (!CasinoAuth.currentUser) {
       return { success: false, error: 'Not signed in' };
+    }
+    
+    // Connection required
+    if (!ConnectionMonitor.canPlay()) {
+      return { success: false, error: 'Connection lost - result not recorded' };
     }
     
     try {
