@@ -14,10 +14,16 @@ function isAdmin(email) {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
+// Will only be called when user intentionally bypasses admin protections,
+// so we can put whatever the hell we want here.
 function performAccessDenied() {
+  // Clear webpage
+  document.body.innerHTML = '';
+
   // Funny place to redirect to
   window.location.href = "https://en.wikipedia.org/wiki/Cybercrime";
-};
+}
+
 // Real-time access check - validates against current auth state every time
 // Cannot be bypassed by setting variables in console
 function isAccessAllowed() {
@@ -27,12 +33,14 @@ function isAccessAllowed() {
   // No user = no access
   if (!currentUser) {
     showToast('Access denied: Not signed in', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
     return false;
   }
   
   // Verify email is in admin list
   if (!isAdmin(currentUser.email)) {
     showToast('Access denied: Not an admin account', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
     return false;
   }
   
@@ -42,10 +50,12 @@ function isAccessAllowed() {
     const actualEmail = currentUser.email;
     if (!actualEmail || !ADMIN_EMAILS.includes(actualEmail.toLowerCase())) {
       showToast('Access denied: Invalid credentials', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
       return false;
     }
   } catch (e) {
     showToast('Access denied: Auth verification failed', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
     return false;
   }
   
