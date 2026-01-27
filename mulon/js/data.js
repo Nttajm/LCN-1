@@ -18,7 +18,6 @@ import {
     orderBy,
     arrayUnion,
     increment,
-    addDoc
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import {
     getAuth,
@@ -49,7 +48,7 @@ const googleProvider = new GoogleAuthProvider();
 // ========================================
 // ADMIN SECURITY - Data Layer Protection
 // ========================================
-const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'j.m@three.com']);
+const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'j.m@three.com', 'captrojolmao@gmail.com']);
 
 // Verify current user is admin - called before any admin-only operation
 function requireAdmin() {
@@ -2019,6 +2018,8 @@ const MulonData = {
 
   // Update a user's name (for admin)
   async updateUserName(userId, newName) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(usersRef, userId), {
         displayName: newName
@@ -2032,6 +2033,8 @@ const MulonData = {
 
   // Update a user's avatar style (for admin)
   async updateAvatarStyle(userId, newAvatarStyle) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(usersRef, userId), {
         avatarStyle: newAvatarStyle
@@ -2066,6 +2069,8 @@ const MulonData = {
 
   // Update a user's leaderboard style (for admin)
   async updateLeaderStyle(userId, newLeaderStyle) {
+    requireAdmin(); // Security check
+    
     try {
       await updateDoc(doc(usersRef, userId), {
         leaderStyle: newLeaderStyle
