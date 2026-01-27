@@ -1083,6 +1083,11 @@ async function loadAllUsers() {
   
   allUsers = await MulonData.getAllUsers();
   allUsers.forEach(async function (u) {
+    try {
+      u.balance += 0;
+    } catch {
+      u.balance = 0;
+    }
     u.ownedCards = await MulonData.getUserCards(u.id);
   });
   usersLoaded = true;
@@ -1102,7 +1107,7 @@ function updateUsersStats() {
   }
   
   if (totalBalance) {
-    const sum = allUsers.reduce((acc, user) => acc + (user.balance || 0), 0);
+    const sum = allUsers.reduce((acc, user) => acc + (typeof user.balance === 'number' ? (user.balance || 0) : 0), 0);
     totalBalance.textContent = `$${sum.toFixed(2)}`;
   }
   
@@ -1169,7 +1174,7 @@ function renderUsersList(users) {
       </button>
       <div class="user-admin-balance">
         <span>$</span>
-        <input type="number" class="user-balance-input" value="${user.balance.toFixed(2)}" step="0.01" data-original="${user.balance.toFixed(2)}">
+        <input type="number" class="user-balance-input" value="${typeof user.balance === 'number' ? user.balance.toFixed(2) : user.balance}" step="0.01" data-original="${typeof user.balance === 'number' ? user.balance.toFixed(2) : user.balance}">
       </div>
       <div class="user-admin-keys">
         <span>🔑</span>
