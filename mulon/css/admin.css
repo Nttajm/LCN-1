@@ -1955,3 +1955,53 @@
     width: 100%;
   }
 }
+
+/* ========================================
+   BAN SYSTEM STYLES
+   ======================================== */
+
+.user-admin-item.user-banned {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.banned-indicator {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+}
+
+.user-admin-item {
+  position: relative;
+}
+
+.banned-badge {
+  font-size: 0.6rem;
+  background: var(--red-primary, #ef4444);
+  color: white;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  margin-left: 0.3rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.user-admin-actions .btn-icon.ban-user {
+  color: var(--red-primary, #ef4444);
+}
+
+.user-admin-actions .btn-icon.ban-user:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--red-primary, #ef4444);
+}
+
+.user-admin-actions .btn-icon.ban-user.is-banned {
+  color: var(--green-primary, #22c55e);
+}
+
+.user-admin-actions .btn-icon.ban-user.is-banned:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--green-primary, #22c55e);
+}

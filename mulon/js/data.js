@@ -72,6 +72,7 @@ const categoriesRef = collection(db, 'mulon_categories');
 const suggestionsRef = collection(db, 'mulon_suggestions');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
 const adminEditsRef = collection(db, 'admin_edits'); // Admin action logs
+const bannedDevicesRef = collection(db, 'mulon_banned_devices'); // Device bans
 
 // ========================================
 // ADMIN ACTION LOGGING
@@ -96,6 +97,81 @@ async function logAdminAction(actionType, details = {}) {
     // Don't throw - logging should not break the main operation
   }
 }
+
+// ========================================
+// DEVICE FINGERPRINTING & BAN CHECK
+// ========================================
+
+// Generate a simple device fingerprint based on browser characteristics
+function generateDeviceFingerprint() {
+  const components = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width + 'x' + screen.height,
+    screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency || 'unknown',
+    navigator.platform
+  ];
+  
+  // Create a hash from the components
+  let hash = 0;
+  const str = components.join('|');
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Also include a stored persistent ID if available
+  let persistentId = localStorage.getItem('mulon_device_id');
+  if (!persistentId) {
+    persistentId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('mulon_device_id', persistentId);
+  }
+  
+  return persistentId + '_' + Math.abs(hash).toString(36);
+}
+
+// Check for bans and redirect if banned
+async function checkBanStatus() {
+  try {
+    const user = auth.currentUser;
+    const deviceFingerprint = generateDeviceFingerprint();
+    
+    // Check device ban first (works even when not signed in)
+    const deviceDoc = await getDoc(doc(bannedDevicesRef, deviceFingerprint));
+    if (deviceDoc.exists()) {
+      console.log('Device is banned, redirecting...');
+      window.location.href = 'https://www.google.com';
+      return true;
+    }
+    
+    // If user is signed in, check user ban
+    if (user) {
+      const userDoc = await getDoc(doc(usersRef, user.uid));
+      if (userDoc.exists() && userDoc.data().banned === true) {
+        console.log('User is banned, redirecting...');
+        window.location.href = 'https://www.google.com';
+        return true;
+      }
+      
+      // Store device fingerprint for future device banning
+      await updateDoc(doc(usersRef, user.uid), {
+        deviceFingerprints: arrayUnion(deviceFingerprint)
+      }).catch(() => {}); // Ignore errors - user doc might not exist yet
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking ban status:', error);
+    return false;
+  }
+}
+
+// Make ban check available globally
+window.checkBanStatus = checkBanStatus;
+window.generateDeviceFingerprint = generateDeviceFingerprint;
 
 // ========================================
 // OVER UNDER ACCOUNT SYNC
@@ -2004,6 +2080,9 @@ const MulonData = {
           createdAt: userData.createdAt || null,
           lastLoginAt: userData.lastLoginAt || null,
           plinkoBalls: userData.plinkoBalls || 0
+          banned: userData.banned || false,
+          bannedAt: userData.bannedAt || null,
+          bannedReason: userData.bannedReason || null
         });
       }
       
@@ -2612,13 +2691,167 @@ const MulonData = {
         email: userData.email || 'Unknown',
         photoURL: userData.photoURL || null,
         balance: userData.balance || 0,
+        keys: userData.keys || 0,
         positions: userData.positions || [],
         createdAt: userData.createdAt || null,
-        lastLoginAt: userData.lastLoginAt || null
+        lastLoginAt: userData.lastLoginAt || null,
+        banned: userData.banned || false,
+        bannedAt: userData.bannedAt || null,
+        bannedReason: userData.bannedReason || null,
+        deviceFingerprints: userData.deviceFingerprints || []
       };
     } catch (error) {
       console.error('Error fetching user:', error);
       return null;
+    }
+  },
+
+  // ========================================
+  // BAN SYSTEM
+  // ========================================
+
+  // Ban a user (ADMIN ONLY)
+  async banUser(userId, reason = '', banDevice = false) {
+    requireAdmin(); // Security check
+    
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      
+      // Update user document with ban status
+      await updateDoc(doc(usersRef, userId), {
+        banned: true,
+        bannedAt: new Date().toISOString(),
+        bannedReason: reason || 'No reason provided'
+      });
+      
+      // If device ban requested, ban all device fingerprints
+      if (banDevice && userData.deviceFingerprints && userData.deviceFingerprints.length > 0) {
+        for (const fingerprint of userData.deviceFingerprints) {
+          await setDoc(doc(bannedDevicesRef, fingerprint), {
+            fingerprint,
+            bannedAt: new Date().toISOString(),
+            userId: userId,
+            userEmail: userData.email || null,
+            reason: reason || 'No reason provided'
+          });
+        }
+      }
+      
+      // Log admin action
+      await logAdminAction('user_banned', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        reason: reason || 'No reason provided',
+        deviceBanned: banDevice,
+        devicesAffected: banDevice ? (userData.deviceFingerprints?.length || 0) : 0
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error banning user:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Unban a user (ADMIN ONLY)
+  async unbanUser(userId, removeDeviceBans = false) {
+    requireAdmin(); // Security check
+    
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      
+      // Remove ban status from user
+      await updateDoc(doc(usersRef, userId), {
+        banned: false,
+        bannedAt: null,
+        bannedReason: null
+      });
+      
+      // If removing device bans, delete from banned devices collection
+      if (removeDeviceBans && userData.deviceFingerprints && userData.deviceFingerprints.length > 0) {
+        for (const fingerprint of userData.deviceFingerprints) {
+          try {
+            await deleteDoc(doc(bannedDevicesRef, fingerprint));
+          } catch (err) {
+            console.warn('Could not remove device ban:', fingerprint);
+          }
+        }
+      }
+      
+      // Log admin action
+      await logAdminAction('user_unbanned', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        deviceBansRemoved: removeDeviceBans
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Check if current user is banned (for page load checks)
+  async checkUserBanned(userId) {
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { banned: false };
+      }
+      
+      const userData = userDoc.data();
+      return {
+        banned: userData.banned === true,
+        reason: userData.bannedReason || null,
+        bannedAt: userData.bannedAt || null
+      };
+    } catch (error) {
+      console.error('Error checking ban status:', error);
+      return { banned: false };
+    }
+  },
+
+  // Check if device is banned
+  async checkDeviceBanned(fingerprint) {
+    try {
+      const deviceDoc = await getDoc(doc(bannedDevicesRef, fingerprint));
+      if (deviceDoc.exists()) {
+        return {
+          banned: true,
+          reason: deviceDoc.data().reason || null,
+          bannedAt: deviceDoc.data().bannedAt || null
+        };
+      }
+      return { banned: false };
+    } catch (error) {
+      console.error('Error checking device ban:', error);
+      return { banned: false };
+    }
+  },
+
+  // Store device fingerprint for user
+  async storeDeviceFingerprint(userId, fingerprint) {
+    try {
+      await updateDoc(doc(usersRef, userId), {
+        deviceFingerprints: arrayUnion(fingerprint)
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error storing device fingerprint:', error);
+      return { success: false };
     }
   }
 };

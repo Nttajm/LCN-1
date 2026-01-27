@@ -2142,6 +2142,12 @@ const MulonData = {
         }
       }
       
+      // Log admin action
+      await logAdminAction('all_positions_reset', {
+        usersAffected: resetCount,
+        marketsAffected: Object.keys(volumeChanges).length
+      });
+      
       return { success: true, resetCount };
     } catch (error) {
       console.error('Error resetting all positions:', error);

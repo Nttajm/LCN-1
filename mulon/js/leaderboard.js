@@ -42,6 +42,74 @@ const googleProvider = new GoogleAuthProvider();
 const usersRef = collection(db, 'mulon_users');
 const marketsRef = collection(db, 'mulon');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
+const bannedDevicesRef = collection(db, 'mulon_banned_devices');
+
+// ========================================
+// BAN CHECK SYSTEM
+// ========================================
+
+// Generate device fingerprint
+function generateDeviceFingerprint() {
+  const components = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width + 'x' + screen.height,
+    screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency || 'unknown',
+    navigator.platform
+  ];
+  
+  let hash = 0;
+  const str = components.join('|');
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  
+  let persistentId = localStorage.getItem('mulon_device_id');
+  if (!persistentId) {
+    persistentId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('mulon_device_id', persistentId);
+  }
+  
+  return persistentId + '_' + Math.abs(hash).toString(36);
+}
+
+// Check if user/device is banned
+async function checkBanStatus() {
+  try {
+    const user = auth.currentUser;
+    const deviceFingerprint = generateDeviceFingerprint();
+    
+    // Check device ban first
+    const deviceDoc = await getDoc(doc(bannedDevicesRef, deviceFingerprint));
+    if (deviceDoc.exists()) {
+      console.log('Device is banned, redirecting...');
+      window.location.href = 'https://www.google.com';
+      return true;
+    }
+    
+    // If user is signed in, check user ban
+    if (user) {
+      const userDoc = await getDoc(doc(usersRef, user.uid));
+      if (userDoc.exists() && userDoc.data().banned === true) {
+        console.log('User is banned, redirecting...');
+        window.location.href = 'https://www.google.com';
+        return true;
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking ban status:', error);
+    return false;
+  }
+}
+
+// Make available globally
+window.checkBanStatus = checkBanStatus;
 
 // State
 let currentFilter = 'profit';
@@ -138,17 +206,28 @@ async function loadLeaderboardData() {
     showLoading(true);
     
     try {
-        // First load all markets
-        await loadMarkets();
+        // Load markets and users in parallel
+        const [, usersSnapshot, ouUsersSnapshot] = await Promise.all([
+            loadMarkets(),
+            getDocs(usersRef),
+            getDocs(ouUsersRef) // Fetch all OU users at once instead of per-user queries
+        ]);
         
-        // Then load all users
-        const snapshot = await getDocs(usersRef);
-        const users = [];
+        // Build a map of email -> OU user data for fast lookup
+        const ouUsersByEmail = new Map();
+        ouUsersSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.email) {
+                ouUsersByEmail.set(data.email, data);
+            }
+        });
         
-        for (const docSnap of snapshot.docs) {
+        // Process all users in parallel
+        const userPromises = usersSnapshot.docs.map(async (docSnap) => {
             const userData = docSnap.data();
-            const portfolioValue = await calculatePortfolioValue(userData.positions || []);
-            const profit = await calculateProfit(userData);
+            // Calculate portfolio value and profit (these are sync now that markets are loaded)
+            const portfolioValue = calculatePortfolioValueSync(userData.positions || []);
+            const profit = calculateProfitSync(userData, portfolioValue);
             
             // XP is stored directly in mulon_users
             const xps = userData.xps || 0;
@@ -176,7 +255,7 @@ async function loadLeaderboardData() {
                 }
             }
             
-            users.push({
+            return {
                 id: docSnap.id,
                 displayName: displayName,
                 photoURL: userData.photoURL || null,
@@ -187,11 +266,11 @@ async function loadLeaderboardData() {
                 positionsCount: (userData.positions || []).length,
                 createdAt: userData.createdAt,
                 leaderStyle: leaderStyle,
-                xps: xps
-            });
-        }
+                xps: userData.xps || 0
+            };
+        });
         
-        leaderboardData = users;
+        leaderboardData = await Promise.all(userPromises);
         renderLeaderboard();
         
     } catch (error) {
@@ -200,6 +279,45 @@ async function loadLeaderboardData() {
     } finally {
         showLoading(false);
     }
+}
+
+// Synchronous version - markets must be loaded first
+function calculatePortfolioValueSync(positions) {
+    if (!positions || positions.length === 0) return 0;
+    
+    let totalValue = 0;
+    
+    for (const position of positions) {
+        const market = allMarkets[position.marketId];
+        if (!market) continue;
+        
+        const currentPrice = position.choice === 'yes' 
+            ? (market.yesPrice || 50) / 100 
+            : (market.noPrice || 50) / 100;
+        
+        totalValue += position.shares * currentPrice;
+    }
+    
+    return totalValue;
+}
+
+// Synchronous version
+function calculateProfitSync(userData, portfolioValue) {
+    const startingBalance = 500;
+    const currentBalance = userData.balance || 500;
+    
+    // Add realized gains from cashouts
+    const cashOuts = userData.cashOuts || [];
+    let realizedGains = 0;
+    for (const cashout of cashOuts) {
+        if (cashout.result === 'won') {
+            realizedGains += (cashout.payout || 0) - (cashout.costBasis || 0);
+        } else if (cashout.result === 'lost') {
+            realizedGains -= (cashout.costBasis || 0);
+        }
+    }
+    
+    return (currentBalance + portfolioValue) - startingBalance;
 }
 
 // ========================================
@@ -548,7 +666,13 @@ function setupSearch() {
 // ========================================
 // INIT
 // ========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check ban status on page load
+    if (typeof window.checkBanStatus === 'function') {
+      const isBanned = await window.checkBanStatus();
+      if (isBanned) return; // Stop if banned
+    }
+    
     setupFilterTabs();
     setupSortableHeaders();
     setupAuth();

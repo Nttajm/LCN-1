@@ -420,7 +420,13 @@ function setupAuth() {
     await CasinoAuth.signIn();
   });
   
-  CasinoAuth.onAuthStateChange((user) => {
+  CasinoAuth.onAuthStateChange(async (user) => {
+    // Check ban status on every auth state change
+    if (typeof window.checkBanStatus === 'function') {
+      const isBanned = await window.checkBanStatus();
+      if (isBanned) return; // Stop if banned
+    }
+    
     if (user) {
       userName.textContent = user.displayName || 'User';
       userEmail.textContent = user.email || '';
@@ -436,6 +442,12 @@ function setupAuth() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+  // Check ban status on page load
+  if (typeof window.checkBanStatus === 'function') {
+    const isBanned = await window.checkBanStatus();
+    if (isBanned) return; // Stop if banned
+  }
+  
   await CasinoAuth.init();
   setupAuth();
   await loadProfile();
