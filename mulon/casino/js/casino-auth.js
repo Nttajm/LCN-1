@@ -45,6 +45,7 @@ const googleProvider = new GoogleAuthProvider();
 
 // Reference for banned devices
 const bannedDevicesRef = collection(db, 'mulon_banned_devices');
+const bannedEmailsRef = collection(db, 'mulon_banned_emails');
 
 // ========================================
 // BAN CHECK SYSTEM
@@ -89,16 +90,27 @@ async function checkBanStatus() {
     const deviceDoc = await getDoc(doc(bannedDevicesRef, deviceFingerprint));
     if (deviceDoc.exists()) {
       console.log('Device is banned, redirecting...');
-      window.location.href = 'https://www.google.com';
+      window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
       return true;
     }
     
-    // If user is signed in, check user ban
+    // If user is signed in, check email ban and user ban
     if (user) {
+      // Check if email is in banned emails list
+      if (user.email) {
+        const emailKey = user.email.toLowerCase().replace(/[.#$[\]]/g, '_');
+        const emailDoc = await getDoc(doc(bannedEmailsRef, emailKey));
+        if (emailDoc.exists()) {
+          console.log('Email is banned, redirecting...');
+          window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+          return true;
+        }
+      }
+      
       const userDoc = await getDoc(doc(db, 'mulon_users', user.uid));
       if (userDoc.exists() && userDoc.data().banned === true) {
         console.log('User is banned, redirecting...');
-        window.location.href = 'https://www.google.com';
+        window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
         return true;
       }
     }

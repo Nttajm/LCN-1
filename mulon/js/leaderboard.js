@@ -43,6 +43,7 @@ const usersRef = collection(db, 'mulon_users');
 const marketsRef = collection(db, 'mulon');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
 const bannedDevicesRef = collection(db, 'mulon_banned_devices');
+const bannedEmailsRef = collection(db, 'mulon_banned_emails');
 
 // ========================================
 // BAN CHECK SYSTEM
@@ -87,16 +88,27 @@ async function checkBanStatus() {
     const deviceDoc = await getDoc(doc(bannedDevicesRef, deviceFingerprint));
     if (deviceDoc.exists()) {
       console.log('Device is banned, redirecting...');
-      window.location.href = 'https://www.google.com';
+      window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
       return true;
     }
     
-    // If user is signed in, check user ban
+    // If user is signed in, check email ban and user ban
     if (user) {
+      // Check if email is in banned emails list
+      if (user.email) {
+        const emailKey = user.email.toLowerCase().replace(/[.#$[\]]/g, '_');
+        const emailDoc = await getDoc(doc(bannedEmailsRef, emailKey));
+        if (emailDoc.exists()) {
+          console.log('Email is banned, redirecting...');
+          window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+          return true;
+        }
+      }
+      
       const userDoc = await getDoc(doc(usersRef, user.uid));
       if (userDoc.exists() && userDoc.data().banned === true) {
         console.log('User is banned, redirecting...');
-        window.location.href = 'https://www.google.com';
+        window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
         return true;
       }
     }
@@ -244,18 +256,24 @@ async function loadLeaderboardData() {
                 }
             }
             
+            // Ensure numeric values are actually numbers
+            const safeBalance = (typeof userData.balance === 'number' && !isNaN(userData.balance)) ? userData.balance : 500;
+            const safePortfolioValue = (typeof portfolioValue === 'number' && !isNaN(portfolioValue)) ? portfolioValue : 0;
+            const safeProfit = (typeof profit === 'number' && !isNaN(profit)) ? profit : 0;
+            const safeXps = (typeof userData.xps === 'number' && !isNaN(userData.xps)) ? userData.xps : 0;
+            
             return {
                 id: docSnap.id,
                 displayName: displayName,
                 photoURL: userData.photoURL || null,
                 avatarStyle: userData.avatarStyle || 'default',
-                balance: userData.balance || 500,
-                portfolioValue: portfolioValue,
-                profit: profit,
+                balance: safeBalance,
+                portfolioValue: safePortfolioValue,
+                profit: safeProfit,
                 positionsCount: (userData.positions || []).length,
                 createdAt: userData.createdAt,
                 leaderStyle: leaderStyle,
-                xps: userData.xps || 0
+                xps: safeXps
             };
         });
         
@@ -312,17 +330,28 @@ function calculateProfitSync(userData, portfolioValue) {
 // ========================================
 // RENDERING
 // ========================================
+// Helper to safely get numeric value (returns 0 for non-numbers/strings)
+function safeNumber(val) {
+    if (val === null || val === undefined) return 0;
+    if (typeof val === 'string') {
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    if (typeof val === 'number' && !isNaN(val)) return val;
+    return 0;
+}
+
 function getSortedData() {
     const sorted = [...leaderboardData].sort((a, b) => {
         switch (currentFilter) {
             case 'profit':
-                return b.profit - a.profit;
+                return safeNumber(b.profit) - safeNumber(a.profit);
             case 'balance':
-                return b.balance - a.balance;
+                return safeNumber(b.balance) - safeNumber(a.balance);
             case 'portfolio':
-                return b.portfolioValue - a.portfolioValue;
+                return safeNumber(b.portfolioValue) - safeNumber(a.portfolioValue);
             default:
-                return b.profit - a.profit;
+                return safeNumber(b.profit) - safeNumber(a.profit);
         }
     });
     return sorted;

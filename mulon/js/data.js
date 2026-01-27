@@ -72,6 +72,7 @@ const suggestionsRef = collection(db, 'mulon_suggestions');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
 const adminEditsRef = collection(db, 'admin_edits'); // Admin action logs
 const bannedDevicesRef = collection(db, 'mulon_banned_devices'); // Device bans
+const bannedEmailsRef = collection(db, 'mulon_banned_emails'); // Banned emails list
 const waitlistRef = collection(db, 'mulon_waitlist'); // Waitlist collection
 
 // ========================================
@@ -184,16 +185,27 @@ async function checkBanStatus() {
     const deviceDoc = await getDoc(doc(bannedDevicesRef, deviceFingerprint));
     if (deviceDoc.exists()) {
       console.log('Device is banned, redirecting...');
-      window.location.href = 'https://www.google.com';
+      window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
       return true;
     }
     
-    // If user is signed in, check user ban
+    // If user is signed in, check user ban and email ban
     if (user) {
+      // Check if email is in banned emails list
+      if (user.email) {
+        const emailKey = user.email.toLowerCase().replace(/[.#$[\]]/g, '_');
+        const emailDoc = await getDoc(doc(bannedEmailsRef, emailKey));
+        if (emailDoc.exists()) {
+          console.log('Email is banned, redirecting...');
+          window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
+          return true;
+        }
+      }
+      
       const userDoc = await getDoc(doc(usersRef, user.uid));
       if (userDoc.exists() && userDoc.data().banned === true) {
         console.log('User is banned, redirecting...');
-        window.location.href = 'https://www.google.com';
+        window.location.href = 'https://parismou.org/PMoU-Procedures/Library/banning';
         return true;
       }
       
@@ -2507,6 +2519,18 @@ const MulonData = {
         }
       }
       
+      // Add email to banned emails list
+      if (userData.email) {
+        const emailKey = userData.email.toLowerCase().replace(/[.#$[\]]/g, '_');
+        await setDoc(doc(bannedEmailsRef, emailKey), {
+          email: userData.email.toLowerCase(),
+          bannedAt: new Date().toISOString(),
+          userId: userId,
+          displayName: userData.displayName || null,
+          reason: reason || 'No reason provided'
+        });
+      }
+      
       // Log admin action
       await logAdminAction('user_banned', {
         targetUserId: userId,
@@ -2551,6 +2575,16 @@ const MulonData = {
           } catch (err) {
             console.warn('Could not remove device ban:', fingerprint);
           }
+        }
+      }
+      
+      // Remove email from banned emails list
+      if (userData.email) {
+        const emailKey = userData.email.toLowerCase().replace(/[.#$[\]]/g, '_');
+        try {
+          await deleteDoc(doc(bannedEmailsRef, emailKey));
+        } catch (err) {
+          console.warn('Could not remove email ban:', userData.email);
         }
       }
       
