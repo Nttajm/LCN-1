@@ -417,14 +417,31 @@ function initEventListeners() {
     updateFromRollOver(value);
   });
   
+  elements.rollOverInput.addEventListener('input', () => {
+    let value = parseFloat(elements.rollOverInput.value) || 50;
+    value = Math.max(1, Math.min(98, value));
+    updateFromRollOver(value);
+  });
+  
   // Win Chance input
   elements.winChanceInput.addEventListener('change', () => {
     let value = parseFloat(elements.winChanceInput.value) || 50;
     updateFromWinChance(value);
   });
   
+  elements.winChanceInput.addEventListener('input', () => {
+    let value = parseFloat(elements.winChanceInput.value) || 50;
+    updateFromWinChance(value);
+  });
+  
   // Multiplier input
   elements.winningsInput.addEventListener('change', () => {
+    let value = parseFloat(elements.winningsInput.value) || 2;
+    value = Math.max(1.01, Math.min(99, value));
+    updateFromMultiplier(value);
+  });
+  
+  elements.winningsInput.addEventListener('input', () => {
     let value = parseFloat(elements.winningsInput.value) || 2;
     value = Math.max(1.01, Math.min(99, value));
     updateFromMultiplier(value);
@@ -591,13 +608,13 @@ async function playRound() {
   // House advantage: if roll over is below 9 (high win chance), nudge result toward loss
   if (!gameState.rollUnder && gameState.rollOver < 9) {
     // 30% chance to "adjust" the result to land in the red zone
-    if (Math.random() < 0.14 && result > gameState.rollOver) {
+    if (Math.random() < 0.21 && result > gameState.rollOver) {
       // Push result into losing zone (0 to rollOver)
       result = parseFloat((Math.random() * gameState.rollOver).toFixed(2));
     }
   } else if (gameState.rollUnder && gameState.rollOver > 91) {
     // Same for roll under with target above 91
-    if (Math.random() < 0.14 && result < gameState.rollOver) {
+    if (Math.random() < 0.21 && result < gameState.rollOver) {
       // Push result into losing zone (rollOver to 100)
       result = parseFloat((gameState.rollOver + Math.random() * (100 - gameState.rollOver)).toFixed(2));
     }
