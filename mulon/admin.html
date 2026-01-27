@@ -183,6 +183,11 @@
             <span class="tab-icon">🏷️</span>
             Categories
           </button>
+          <button class="management-tab" data-tab="waitlist">
+            <span class="tab-icon">📋</span>
+            Waitlist
+            <span class="tab-badge" id="waitlistBadge">0</span>
+          </button>
           <button class="management-tab" data-tab="users">
             <span class="tab-icon">👥</span>
             Users
@@ -207,6 +212,46 @@
           
           <div class="category-list" id="categoryList">
             <!-- Categories rendered dynamically -->
+          </div>
+        </div>
+        
+        <!-- Waitlist Tab Content -->
+        <div class="management-tab-content" id="waitlistTabContent" style="display: none;">
+          <div class="waitlist-stats">
+            <span class="stat-item">
+              <span class="stat-label">Pending:</span>
+              <span class="stat-value pending" id="waitlistPendingCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Approved:</span>
+              <span class="stat-value approved" id="waitlistApprovedCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Rejected:</span>
+              <span class="stat-value rejected" id="waitlistRejectedCount">0</span>
+            </span>
+          </div>
+          
+          <div class="waitlist-actions-bar">
+            <button class="btn btn-sm btn-success" id="approveAllWaitlistBtn">✓ Approve All Pending</button>
+            <button class="btn btn-sm btn-secondary" id="refreshWaitlistBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          
+          <div class="waitlist-filter">
+            <button class="waitlist-filter-btn active" data-filter="pending">Pending</button>
+            <button class="waitlist-filter-btn" data-filter="approved">Approved</button>
+            <button class="waitlist-filter-btn" data-filter="rejected">Rejected</button>
+            <button class="waitlist-filter-btn" data-filter="all">All</button>
+          </div>
+          
+          <div class="waitlist-list" id="waitlistList">
+            <div class="loading-state">Loading waitlist...</div>
           </div>
         </div>
         

@@ -96,6 +96,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Setup users management
   setupUsersManagement();
   
+  // Setup waitlist management
+  setupWaitlistManagement();
+  
   // Setup delete modal
   setupDeleteModal();
   
@@ -882,10 +885,13 @@ function setupCategoryForm() {
 // ========================================
 // MANAGEMENT TABS
 // ========================================
+let waitlistLoaded = false;
+
 function setupManagementTabs() {
   const tabs = document.querySelectorAll('.management-tab');
   const contents = {
     categories: document.getElementById('categoriesTabContent'),
+    waitlist: document.getElementById('waitlistTabContent'),
     users: document.getElementById('usersTabContent'),
     suggestions: document.getElementById('suggestionsTabContent')
   };
@@ -910,6 +916,12 @@ function setupManagementTabs() {
       // Load users on first switch to users tab
       if (tabName === 'users' && !usersLoaded) {
         loadAllUsers();
+      }
+      
+      // Load waitlist on first switch to waitlist tab
+      if (tabName === 'waitlist' && !waitlistLoaded) {
+        loadWaitlist();
+        waitlistLoaded = true;
       }
     });
   });
@@ -1735,6 +1747,221 @@ function attachSuggestionListeners() {
         } else {
           showToast('Error deleting suggestion', 'error');
         }
+      }
+    });
+  });
+}
+
+// ========================================
+// WAITLIST MANAGEMENT
+// ========================================
+let waitlistData = [];
+let waitlistFilter = 'pending';
+
+function setupWaitlistManagement() {
+  // Refresh button
+  const refreshBtn = document.getElementById('refreshWaitlistBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', loadWaitlist);
+  }
+  
+  // Approve all button
+  const approveAllBtn = document.getElementById('approveAllWaitlistBtn');
+  if (approveAllBtn) {
+    approveAllBtn.addEventListener('click', async () => {
+      if (!isAccessAllowed()) return;
+      if (!confirm('Approve ALL pending waitlist users? They will gain access to Mulon.')) return;
+      
+      approveAllBtn.disabled = true;
+      approveAllBtn.textContent = 'Approving...';
+      
+      const pending = waitlistData.filter(w => w.status === 'pending');
+      let approved = 0;
+      
+      for (const user of pending) {
+        const result = await MulonData.updateWaitlistStatus(user.id, 'approved');
+        if (result.success) approved++;
+      }
+      
+      showToast(`Approved ${approved} users!`, 'success');
+      approveAllBtn.disabled = false;
+      approveAllBtn.textContent = '✓ Approve All Pending';
+      await loadWaitlist();
+    });
+  }
+  
+  // Filter buttons
+  document.querySelectorAll('.waitlist-filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.waitlist-filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      waitlistFilter = this.dataset.filter;
+      renderWaitlist();
+    });
+  });
+}
+
+async function loadWaitlist() {
+  const listEl = document.getElementById('waitlistList');
+  if (listEl) {
+    listEl.innerHTML = '<div class="loading-state">Loading waitlist...</div>';
+  }
+  
+  waitlistData = await MulonData.getWaitlist();
+  updateWaitlistStats();
+  renderWaitlist();
+}
+
+function updateWaitlistStats() {
+  const pending = waitlistData.filter(w => w.status === 'pending').length;
+  const approved = waitlistData.filter(w => w.status === 'approved').length;
+  const rejected = waitlistData.filter(w => w.status === 'rejected').length;
+  
+  const pendingEl = document.getElementById('waitlistPendingCount');
+  const approvedEl = document.getElementById('waitlistApprovedCount');
+  const rejectedEl = document.getElementById('waitlistRejectedCount');
+  const badgeEl = document.getElementById('waitlistBadge');
+  
+  if (pendingEl) pendingEl.textContent = pending;
+  if (approvedEl) approvedEl.textContent = approved;
+  if (rejectedEl) rejectedEl.textContent = rejected;
+  if (badgeEl) {
+    badgeEl.textContent = pending;
+    badgeEl.style.display = pending > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+function renderWaitlist() {
+  const listEl = document.getElementById('waitlistList');
+  if (!listEl) return;
+  
+  let filtered = waitlistData;
+  if (waitlistFilter !== 'all') {
+    filtered = waitlistData.filter(w => w.status === waitlistFilter);
+  }
+  
+  // Sort by joinedAt (newest first for approved/rejected, oldest first for pending)
+  filtered.sort((a, b) => {
+    const aTime = a.joinedAt?.toDate?.() || new Date(a.joinedAt);
+    const bTime = b.joinedAt?.toDate?.() || new Date(b.joinedAt);
+    return waitlistFilter === 'pending' ? aTime - bTime : bTime - aTime;
+  });
+  
+  if (filtered.length === 0) {
+    listEl.innerHTML = `
+      <div class="waitlist-empty">
+        <span class="empty-icon">📋</span>
+        <p>No ${waitlistFilter === 'all' ? '' : waitlistFilter + ' '}users on waitlist</p>
+      </div>
+    `;
+    return;
+  }
+  
+  listEl.innerHTML = filtered.map((user, index) => {
+    const joinedDate = user.joinedAt?.toDate?.() 
+      ? user.joinedAt.toDate().toLocaleDateString() 
+      : 'Unknown';
+    
+    const statusClass = user.status === 'approved' ? 'approved' : 
+                        user.status === 'rejected' ? 'rejected' : 'pending';
+    
+    return `
+      <div class="waitlist-item ${statusClass}">
+        <div class="waitlist-item-info">
+          <span class="waitlist-position">#${index + 1}</span>
+          <div class="waitlist-user">
+            <img src="${user.photoURL || ''}" alt="" class="waitlist-avatar" onerror="this.style.display='none'">
+            <div class="waitlist-user-details">
+              <span class="waitlist-name">${user.displayName || 'Unknown'}</span>
+              <span class="waitlist-email">${user.email || ''}</span>
+            </div>
+          </div>
+          <span class="waitlist-joined">Joined: ${joinedDate}</span>
+          <span class="waitlist-status ${statusClass}">${user.status}</span>
+        </div>
+        <div class="waitlist-item-actions">
+          ${user.status === 'pending' ? `
+            <button class="btn btn-sm btn-success approve-waitlist" data-id="${user.id}">✓ Approve</button>
+            <button class="btn btn-sm btn-danger reject-waitlist" data-id="${user.id}">✗ Reject</button>
+          ` : user.status === 'approved' ? `
+            <button class="btn btn-sm btn-warning revoke-waitlist" data-id="${user.id}">Revoke</button>
+          ` : `
+            <button class="btn btn-sm btn-success approve-waitlist" data-id="${user.id}">✓ Approve</button>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Attach event listeners
+  attachWaitlistEventListeners();
+}
+
+function attachWaitlistEventListeners() {
+  // Approve buttons
+  document.querySelectorAll('.approve-waitlist').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      const id = this.dataset.id;
+      
+      this.disabled = true;
+      this.textContent = '...';
+      
+      const result = await MulonData.updateWaitlistStatus(id, 'approved');
+      
+      if (result.success) {
+        showToast('User approved!', 'success');
+        await loadWaitlist();
+      } else {
+        showToast('Error approving user', 'error');
+        this.disabled = false;
+        this.textContent = '✓ Approve';
+      }
+    });
+  });
+  
+  // Reject buttons
+  document.querySelectorAll('.reject-waitlist').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      const id = this.dataset.id;
+      
+      this.disabled = true;
+      this.textContent = '...';
+      
+      const result = await MulonData.updateWaitlistStatus(id, 'rejected');
+      
+      if (result.success) {
+        showToast('User rejected', 'success');
+        await loadWaitlist();
+      } else {
+        showToast('Error rejecting user', 'error');
+        this.disabled = false;
+        this.textContent = '✗ Reject';
+      }
+    });
+  });
+  
+  // Revoke buttons (set back to pending)
+  document.querySelectorAll('.revoke-waitlist').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!confirm('Revoke access for this user? They will be moved back to pending.')) return;
+      
+      const id = this.dataset.id;
+      
+      this.disabled = true;
+      this.textContent = '...';
+      
+      const result = await MulonData.updateWaitlistStatus(id, 'pending');
+      
+      if (result.success) {
+        showToast('Access revoked', 'success');
+        await loadWaitlist();
+      } else {
+        showToast('Error revoking access', 'error');
+        this.disabled = false;
+        this.textContent = 'Revoke';
       }
     });
   });

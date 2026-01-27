@@ -72,6 +72,48 @@ const suggestionsRef = collection(db, 'mulon_suggestions');
 const ouUsersRef = collection(db, 'users'); // Over Under users collection
 const adminEditsRef = collection(db, 'admin_edits'); // Admin action logs
 const bannedDevicesRef = collection(db, 'mulon_banned_devices'); // Device bans
+const waitlistRef = collection(db, 'mulon_waitlist'); // Waitlist collection
+
+// ========================================
+// WAITLIST ACCESS CONTROL
+// ========================================
+const WAITLIST_ENABLED = true; // Set to false to disable waitlist
+
+async function checkWaitlistAccess(userId, email) {
+  if (!WAITLIST_ENABLED) return { approved: true };
+  
+  // Admins always bypass waitlist
+  if (email && ADMIN_EMAILS.includes(email.toLowerCase())) {
+    return { approved: true, isAdmin: true };
+  }
+  
+  try {
+    const waitlistDoc = await getDoc(doc(waitlistRef, userId));
+    
+    if (!waitlistDoc.exists()) {
+      // Not on waitlist - redirect to waitlist page
+      return { approved: false, status: 'not_on_list' };
+    }
+    
+    const data = waitlistDoc.data();
+    
+    if (data.status === 'approved') {
+      return { approved: true };
+    } else if (data.status === 'rejected') {
+      return { approved: false, status: 'rejected' };
+    } else {
+      return { approved: false, status: 'pending' };
+    }
+  } catch (error) {
+    console.error('Waitlist check error:', error);
+    // On error, allow access to prevent lockout
+    return { approved: true, error: true };
+  }
+}
+
+// Make available globally
+window.checkWaitlistAccess = checkWaitlistAccess;
+window.WAITLIST_ENABLED = WAITLIST_ENABLED;
 
 // ========================================
 // ADMIN ACTION LOGGING
@@ -226,11 +268,30 @@ window.OverUnderSync = OverUnderSync;
 const Auth = {
   currentUser: null,
   authStateListeners: [],
+  waitlistCheckPending: false,
   
   // Initialize auth state listener
   init() {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Check if we're already on the waitlist page - don't redirect
+        const isWaitlistPage = window.location.pathname.includes('waitlist.html');
+        const isAdminPage = window.location.pathname.includes('admin.html');
+        
+        // Check waitlist access FIRST before anything else (skip on waitlist/admin pages)
+        if (WAITLIST_ENABLED && !this.waitlistCheckPending && !isWaitlistPage && !isAdminPage) {
+          this.waitlistCheckPending = true;
+          const access = await checkWaitlistAccess(user.uid, user.email);
+          this.waitlistCheckPending = false;
+          
+          if (!access.approved) {
+            // Not approved - redirect to waitlist
+            console.log('User not on approved waitlist, redirecting...');
+            window.location.href = 'waitlist.html';
+            return;
+          }
+        }
+        
         this.currentUser = {
           uid: user.uid,
           email: user.email,
@@ -259,10 +320,24 @@ const Auth = {
     });
   },
   
-  // Sign in with Google
+  // Sign in with Google - redirects to waitlist if not approved
   async signInWithGoogle() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      
+      // Check if we're on the waitlist page - don't redirect away from it
+      const isWaitlistPage = window.location.pathname.includes('waitlist.html');
+      
+      // Check waitlist immediately after sign in (unless already on waitlist page)
+      if (WAITLIST_ENABLED && !isWaitlistPage) {
+        const access = await checkWaitlistAccess(result.user.uid, result.user.email);
+        if (!access.approved) {
+          // Redirect to waitlist page
+          window.location.href = 'waitlist.html';
+          return { success: true, user: result.user, waitlist: true };
+        }
+      }
+      
       return { success: true, user: result.user };
     } catch (error) {
       console.error('Sign in error:', error);
@@ -2543,6 +2618,89 @@ const MulonData = {
       console.error('Error storing device fingerprint:', error);
       return { success: false };
     }
+  },
+
+  // ========================================
+  // WAITLIST SYSTEM
+  // ========================================
+
+  // Get all waitlist entries (ADMIN ONLY)
+  async getWaitlist() {
+    requireAdmin(); // Security check
+    
+    try {
+      const snapshot = await getDocs(waitlistRef);
+      const entries = [];
+      
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        entries.push({
+          id: docSnap.id,
+          uid: data.uid,
+          email: data.email || 'Unknown',
+          displayName: data.displayName || 'Anonymous',
+          photoURL: data.photoURL || null,
+          status: data.status || 'pending',
+          joinedAt: data.joinedAt,
+          approvedAt: data.approvedAt || null,
+          rejectedAt: data.rejectedAt || null,
+          deviceFingerprint: data.deviceFingerprint || null
+        });
+      }
+      
+      return entries;
+    } catch (error) {
+      console.error('Error fetching waitlist:', error);
+      return [];
+    }
+  },
+
+  // Update waitlist status (ADMIN ONLY)
+  async updateWaitlistStatus(waitlistId, newStatus) {
+    requireAdmin(); // Security check
+    
+    try {
+      const updateData = {
+        status: newStatus
+      };
+      
+      // Add timestamp for the action
+      if (newStatus === 'approved') {
+        updateData.approvedAt = new Date().toISOString();
+      } else if (newStatus === 'rejected') {
+        updateData.rejectedAt = new Date().toISOString();
+      }
+      
+      await updateDoc(doc(waitlistRef, waitlistId), updateData);
+      
+      // Log admin action
+      const waitlistDoc = await getDoc(doc(waitlistRef, waitlistId));
+      const userData = waitlistDoc.exists() ? waitlistDoc.data() : {};
+      
+      await logAdminAction('waitlist_' + newStatus, {
+        targetUserId: waitlistId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating waitlist status:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Delete waitlist entry (ADMIN ONLY)
+  async deleteWaitlistEntry(waitlistId) {
+    requireAdmin(); // Security check
+    
+    try {
+      await deleteDoc(doc(waitlistRef, waitlistId));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting waitlist entry:', error);
+      return { success: false, error: error.message };
+    }
   }
 };
 
@@ -2550,4 +2708,4 @@ const MulonData = {
 window.MulonData = MulonData;
 
 // Export for ES modules
-export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef, suggestionsRef, positionsRef, tradesRef };
+export { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync, db, auth, marketsRef, categoriesRef, suggestionsRef, positionsRef, tradesRef, waitlistRef };
