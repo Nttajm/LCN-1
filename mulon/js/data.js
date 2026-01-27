@@ -2494,7 +2494,7 @@ const MulonData = {
   // BAN SYSTEM
   // ========================================
 
-  // Ban a user (ADMIN ONLY)
+  // Ban a user (ADMIN ONLY) - FULL BAN: resets all values, clears positions, bans email & device
   async banUser(userId, reason = '', banDevice = false) {
     requireAdmin(); // Security check
     
@@ -2505,16 +2505,40 @@ const MulonData = {
       }
       
       const userData = userDoc.data();
+      const positions = userData.positions || [];
       
-      // Update user document with ban status
+      // Delete all positions from central positions collection
+      for (const position of positions) {
+        if (position.tradeIds && position.tradeIds.length > 0) {
+          for (const tradeId of position.tradeIds) {
+            try {
+              await deleteDoc(doc(positionsRef, tradeId));
+              await deleteDoc(doc(tradesRef, tradeId));
+            } catch (err) {
+              console.warn('Could not delete position/trade:', tradeId);
+            }
+          }
+        }
+      }
+      
+      // Update user document with ban status AND reset ALL values to 0
       await updateDoc(doc(usersRef, userId), {
         banned: true,
         bannedAt: new Date().toISOString(),
-        bannedReason: reason || 'No reason provided'
+        bannedReason: reason || 'No reason provided',
+        // Reset all values to 0
+        balance: 0,
+        keys: 0,
+        positions: [],
+        watchlist: [],
+        cashOuts: [],
+        transactions: [],
+        dailyStreak: 0,
+        lastDailyKeyClaim: null
       });
       
-      // If device ban requested, ban all device fingerprints
-      if (banDevice && userData.deviceFingerprints && userData.deviceFingerprints.length > 0) {
+      // ALWAYS ban all device fingerprints (regardless of banDevice flag for extra security)
+      if (userData.deviceFingerprints && userData.deviceFingerprints.length > 0) {
         for (const fingerprint of userData.deviceFingerprints) {
           await setDoc(doc(bannedDevicesRef, fingerprint), {
             fingerprint,
@@ -2526,7 +2550,7 @@ const MulonData = {
         }
       }
       
-      // Add email to banned emails list
+      // ALWAYS add email to banned emails list (permanent ban)
       if (userData.email) {
         const emailKey = userData.email.toLowerCase().replace(/[.#$[\]]/g, '_');
         await setDoc(doc(bannedEmailsRef, emailKey), {
@@ -2534,7 +2558,8 @@ const MulonData = {
           bannedAt: new Date().toISOString(),
           userId: userId,
           displayName: userData.displayName || null,
-          reason: reason || 'No reason provided'
+          reason: reason || 'No reason provided',
+          permanent: true // Mark as permanent ban
         });
       }
       
@@ -2544,8 +2569,11 @@ const MulonData = {
         targetUserEmail: userData.email || null,
         targetUserName: userData.displayName || null,
         reason: reason || 'No reason provided',
-        deviceBanned: banDevice,
-        devicesAffected: banDevice ? (userData.deviceFingerprints?.length || 0) : 0
+        deviceBanned: true, // Always true now
+        devicesAffected: userData.deviceFingerprints?.length || 0,
+        positionsCleared: positions.length,
+        balanceCleared: userData.balance || 0,
+        keysCleared: userData.keys || 0
       });
       
       return { success: true };

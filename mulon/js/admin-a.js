@@ -1289,22 +1289,27 @@ function renderUsersList(users) {
           this.disabled = false;
         }
       } else {
-        // Ban user
-        const reason = prompt(`Ban "${userName}"?\n\nEnter a reason (optional):`);
+        // Ban user - FULL BAN (resets all values, bans email & device)
+        const confirmBan = confirm(`⚠️ FULL BAN "${userName}"?\n\nThis will:\n• Set balance to $0\n• Set keys to 0\n• Delete all positions\n• Ban their email permanently\n• Ban all their devices\n• They will be redirected away from the site\n\nThis is a PERMANENT action!`);
+        if (!confirmBan) return; // Cancelled
+        
+        const reason = prompt('Enter ban reason (optional):');
         if (reason === null) return; // Cancelled
         
-        const banDevice = confirm('Also ban this user\'s device(s)?\n\nClick OK to add device ban, or Cancel to only ban the account.');
-        
         this.disabled = true;
-        const result = await MulonData.banUser(userId, reason, banDevice);
+        const result = await MulonData.banUser(userId, reason, true); // Always full device ban
         
         if (result.success) {
-          showToast(`User banned${banDevice ? ' (+ device ban)' : ''}!`, 'success');
-          // Update local cache
+          showToast(`🔨 User FULLY BANNED! Email & devices blocked.`, 'success');
+          // Update local cache - reset all values
           const userIndex = allUsers.findIndex(u => u.id === userId);
           if (userIndex !== -1) {
             allUsers[userIndex].banned = true;
+            allUsers[userIndex].balance = 0;
+            allUsers[userIndex].keys = 0;
+            allUsers[userIndex].positions = [];
           }
+          updateUsersStats();
           // Re-render the list
           renderUsersList(allUsers);
         } else {
