@@ -351,11 +351,11 @@
 }
 
 .stat-cell.positive {
-  color: var(--green-primary);
+  color: var(--green-primary) !important;
 }
 
 .stat-cell.negative {
-  color: var(--red-primary);
+  color: var(--red-primary) !important;
 }
 
 .stat-cell.neutral {

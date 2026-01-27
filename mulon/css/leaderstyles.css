@@ -295,16 +295,18 @@
 .leaderboard-row.thanos .stat-cell,
 .leaderboard-row.rp1 .user-cell-name,
 .leaderboard-row.rp1 .stat-cell,
-.leaderboard-row.hellokitty .user-cell-name,
-.leaderboard-row.hellokitty .stat-cell,
 .leaderboard-row.nfs .user-cell-name,
 .leaderboard-row.nfs .stat-cell,
 .leaderboard-row.jermeylin .user-cell-name,
 .leaderboard-row.jermeylin .stat-cell,
 .leaderboard-row.hack .user-cell-name,
 .leaderboard-row.hack .stat-cell {
-  color: white !important;
+  color: white;
   text-shadow: 1px 1px 3px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5);
+}
+
+.leaderboard-row.hack .cell-span {
+  background-color: black;
 }
 
 /* LeBron */

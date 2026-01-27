@@ -581,12 +581,30 @@
     function updateUI() {
       const user = CasinoAuth.currentUser;
       const balance = CasinoAuth.getBalance();
+      const keys = CasinoAuth.getKeys();
       const xps = CasinoAuth.getCharges ? CasinoAuth.getCharges() : (CasinoAuth.getXPs ? CasinoAuth.getXPs() : 0);
       
       // Update balance display
       const balanceEl = document.getElementById('userBalance');
       if (balanceEl) {
         balanceEl.textContent = '$' + balance.toFixed(2);
+      }
+
+      const keyEl = document.getElementById('userKeys');
+      if (keyEl) {
+        keyEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon">'.concat(keys);
+      }
+
+      const keysInfoBtn = document.getElementById('keysInfoBtn');
+      const keysTooltip = document.getElementById('keysTooltip');
+      if (keysInfoBtn && keysTooltip) {
+          keysInfoBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              keysTooltip.classList.toggle('active');
+          });
+          document.addEventListener('click', () => {
+              keysTooltip.classList.remove('active');
+          });
       }
       
       // Update xps display

@@ -6,12 +6,22 @@ import { MulonData, Auth } from './data.js';
 
 // Admin email whitelist - DO NOT MODIFY THIS LIST IN CONSOLE
 // Access checks are done server-side style with real-time auth verification
-const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com']);
+const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com', 'captrojolmao@gmail.com']);
 
 
 function isAdmin(email) {
   if (!email || typeof email !== 'string') return false;
   return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
+// Will only be called when user intentionally bypasses admin protections,
+// so we can put whatever the hell we want here.
+function performAccessDenied() {
+  // Clear webpage
+  document.body.innerHTML = '';
+
+  // Funny place to redirect to
+  window.location.href = "https://en.wikipedia.org/wiki/Cybercrime";
 }
 
 // Real-time access check - validates against current auth state every time
@@ -23,12 +33,14 @@ function isAccessAllowed() {
   // No user = no access
   if (!currentUser) {
     showToast('Access denied: Not signed in', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
     return false;
   }
   
   // Verify email is in admin list
   if (!isAdmin(currentUser.email)) {
     showToast('Access denied: Not an admin account', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
     return false;
   }
   
@@ -38,18 +50,17 @@ function isAccessAllowed() {
     const actualEmail = currentUser.email;
     if (!actualEmail || !ADMIN_EMAILS.includes(actualEmail.toLowerCase())) {
       showToast('Access denied: Invalid credentials', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
       return false;
     }
   } catch (e) {
     showToast('Access denied: Auth verification failed', 'error');
+    localStorage.setItem("AIWjifdeaeIOQEMvxcQPGNISFKPEFOSF", "true");
     return false;
   }
   
   return true;
 }
-
-// Legacy variable for overlay display (UI only, not for security)
-let access_allowed = false;
 
 document.addEventListener('DOMContentLoaded', async function() {
   // Initialize Auth first
@@ -120,9 +131,7 @@ function checkAdminAccess(user) {
   const message = document.getElementById('accessMessage');
   const signInBtn = document.getElementById('adminSignInBtn');
   
-  if (!overlay) return;
-
-  access_allowed = false;
+  if (!overlay) return false;
   
   if (!user) {
     // Not signed in
@@ -137,8 +146,9 @@ function checkAdminAccess(user) {
   } else {
     // Admin access granted
     overlay.classList.remove('active');
-    access_allowed = true;
+    return true;
   }
+  return false;
 }
 
 function showLoading() {
@@ -295,7 +305,10 @@ function setupForm() {
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    if (!isAccessAllowed()) return;
+    if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
     
     const formData = {
       title: document.getElementById('title').value.trim(),
@@ -365,7 +378,10 @@ function editMarket(marketId) {
   const market = MulonData.getMarket(marketId);
   if (!market) return;
 
-  if (!isAccessAllowed()) return;
+  if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
   
   isEditMode = true;
   editingMarketId = marketId;
@@ -588,7 +604,10 @@ function setupDeleteModal() {
   });
   
   confirmBtn.addEventListener('click', async function() {
-    if (!isAccessAllowed()) return;
+    if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
     
     if (deletingMarketId) {
       confirmBtn.disabled = true;
@@ -629,7 +648,10 @@ function hideDeleteModal() {
 // ========================================
 function setupResetButton() {
   document.getElementById('resetBtn').addEventListener('click', async function() {
-    if (!isAccessAllowed()) return;
+    if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
     
     if (confirm('Reset all markets to defaults? This will delete all custom markets.')) {
       this.disabled = true;
@@ -658,7 +680,10 @@ function setupTransferButton() {
   if (!transferBtn) return;
   
   transferBtn.addEventListener('click', async function() {
-    if (!isAccessAllowed()) return;
+    if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
     if (confirm('Transfer all markets from localStorage to Firebase? This will add any localStorage markets to Firebase.')) {
       this.disabled = true;
       this.textContent = 'Transferring...';
@@ -733,7 +758,10 @@ function hideResolveModal() {
 
 async function resolveMarket(outcome) {
   if (!resolvingMarketId) return;
-  if (!isAccessAllowed()) return;
+  if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
   
   const market = MulonData.getMarket(resolvingMarketId);
   if (!market) return;
@@ -833,7 +861,10 @@ function renderCategoryList() {
   // Attach delete listeners
   categoryList.querySelectorAll('.delete-category').forEach(btn => {
     btn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const catId = this.dataset.id;
       if (confirm(`Delete category "${catId}"? Markets using this category won't be deleted but may display incorrectly.`)) {
         const result = await MulonData.deleteCategory(catId);
@@ -854,7 +885,10 @@ function setupCategoryForm() {
   if (!form) return;
   
   form.addEventListener('submit', async function(e) {
-    if (!isAccessAllowed()) return;
+    if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
     e.preventDefault();
     
     const id = document.getElementById('catId').value.trim().toLowerCase().replace(/\s+/g, '-');
@@ -892,7 +926,10 @@ function setupManagementTabs() {
   
   tabs.forEach(tab => {
     tab.addEventListener('click', function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const tabName = this.dataset.tab;
       
       // Update active tab
@@ -945,7 +982,10 @@ function setupUsersManagement() {
   // Quick set buttons
   document.querySelectorAll('[data-set-amount]').forEach(btn => {
     btn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const amount = parseFloat(this.dataset.setAmount);
       if (!confirm(`Set ALL users' balance to $${amount.toFixed(2)}? This cannot be undone.`)) {
         return;
@@ -1005,7 +1045,10 @@ function setupUsersManagement() {
   const resetAllPositionsBtn = document.getElementById('resetAllPositionsBtn');
   if (resetAllPositionsBtn) {
     resetAllPositionsBtn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       if (!confirm('⚠️ Are you SURE you want to reset ALL user positions? This will delete all shares/holdings for every user and CANNOT be undone!')) {
         return;
       }
@@ -1039,6 +1082,9 @@ async function loadAllUsers() {
   }
   
   allUsers = await MulonData.getAllUsers();
+  allUsers.forEach(async function (u) {
+    u.ownedCards = await MulonData.getUserCards(u.id);
+  });
   usersLoaded = true;
   
   updateUsersStats();
@@ -1102,6 +1148,9 @@ function renderUsersList(users) {
   
   usersList.innerHTML = users.map(user => `
     <div class="user-admin-item ${user.banned ? 'user-banned' : ''}" data-user-id="${user.id}">
+      <button class="edit-user-info-button" data-user-id="${user.id}" title="Click to view/edit user data">
+        <span class="edit-user-info-icon">📝</span>
+      </button>
       ${user.banned ? '<span class="banned-indicator" title="User is banned">🚫</span>' : ''}
       ${user.photoURL 
         ? `<img src="${user.photoURL}" alt="" class="user-admin-avatar">`
@@ -1115,6 +1164,9 @@ function renderUsersList(users) {
         ${user.positions.length} position${user.positions.length !== 1 ? 's' : ''}
         ${user.positions.length > 0 ? '<span class="edit-icon">✏️</span>' : ''}
       </button>
+      <button class=user-items has-positions clickable" data-user-id="${user.id}" title="Click to view/edit items">
+        Edit items <span class="edit-icon">✏️</span>
+      </button>
       <div class="user-admin-balance">
         <span>$</span>
         <input type="number" class="user-balance-input" value="${user.balance.toFixed(2)}" step="0.01" data-original="${user.balance.toFixed(2)}">
@@ -1122,6 +1174,10 @@ function renderUsersList(users) {
       <div class="user-admin-keys">
         <span>🔑</span>
         <input type="number" class="user-keys-input" value="${user.keys || 0}" step="1" min="0" data-original="${user.keys || 0}">
+      </div>
+      <div class="user-admin-xp">
+        <span>⚡</span>
+        <input type="number" class="user-xp-input" value="${user.xps || 0}" step="1" min="0" data-original="${user.xps || 0}">
       </div>
       <div class="user-admin-actions">
         <button class="btn-icon save-user" data-user-id="${user.id}" title="Save Balance & Keys">
@@ -1145,6 +1201,17 @@ function renderUsersList(users) {
       </div>
     </div>
   `).join('');
+
+  // Attach user info view/edit listeners
+  usersList.querySelectorAll('.edit-user-info-button').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const userId = this.dataset.userId;
+      const user = allUsers.find(u => u.id === userId);
+      if (user) {
+        await showUserInfoModal(user);
+      }
+    });
+  });
   
   // Attach positions view/edit listeners
   usersList.querySelectorAll('.user-positions-count.clickable').forEach(btn => {
@@ -1156,17 +1223,33 @@ function renderUsersList(users) {
       }
     });
   });
+
+  // Attach items view/edit listeners
+  usersList.querySelectorAll('.user-items').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const userId = this.dataset.userId;
+      const user = allUsers.find(u => u.id === userId);
+      if (user) {
+        showUserItemsModal(user);
+      }
+    });
+  });
   
   // Attach save button listeners (saves both balance and keys)
   usersList.querySelectorAll('.save-user').forEach(btn => {
     btn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const userId = this.dataset.userId;
       const item = this.closest('.user-admin-item');
       const balanceInput = item.querySelector('.user-balance-input');
       const keysInput = item.querySelector('.user-keys-input');
+      const xpInput = item.querySelector('.user-xp-input');
       const newBalance = parseFloat(balanceInput.value);
       const newKeys = parseInt(keysInput.value);
+      const newXP = parseInt(xpInput.value);
       
       if (isNaN(newBalance) || newBalance < 0) {
         showToast('Please enter a valid balance', 'error');
@@ -1177,6 +1260,11 @@ function renderUsersList(users) {
         showToast('Please enter a valid keys amount', 'error');
         return;
       }
+
+      if (isNaN(newXP) || newXP < 0) {
+        showToast('Please enter a valid XP amount', 'error');
+        return;
+      }
       
       this.disabled = true;
       
@@ -1184,20 +1272,25 @@ function renderUsersList(users) {
       const balanceResult = await MulonData.updateUserBalance(userId, newBalance);
       // Update keys
       const keysResult = await MulonData.updateUserKeys(userId, newKeys);
+      // Update XP
+      const xpResult = await MulonData.updateUserXP(userId, newXP);
       
       this.disabled = false;
       
       if (balanceResult.success && keysResult.success) {
-        showToast('Balance & Keys updated!', 'success');
+        showToast('Balance, Keys, & XP updated!', 'success');
         balanceInput.dataset.original = newBalance.toFixed(2);
         keysInput.dataset.original = newKeys;
+        xpInput.dataset.original = newXP;
         balanceInput.style.borderColor = '';
         keysInput.style.borderColor = '';
+        xpInput.style.borderColor = '';
         // Update local cache
         const userIndex = allUsers.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
           allUsers[userIndex].balance = newBalance;
           allUsers[userIndex].keys = newKeys;
+          allUsers[userIndex].xps = newXP;
           updateUsersStats();
         }
       } else {
@@ -1209,7 +1302,10 @@ function renderUsersList(users) {
   // Attach reset positions button listeners
   usersList.querySelectorAll('.reset-positions').forEach(btn => {
     btn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       if (this.disabled) return;
       
       const userId = this.dataset.userId;
@@ -1322,7 +1418,10 @@ function renderUsersList(users) {
 }
 
 async function applyBulkBalanceAction() {
-  if (!isAccessAllowed()) return;
+  if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
   const operation = document.getElementById('bulkOperation').value;
   const amount = parseFloat(document.getElementById('bulkAmount').value);
   
@@ -1395,6 +1494,309 @@ async function applyBulkKeysAction() {
   } else {
     showToast('Error updating keys: ' + result.error, 'error');
   }
+}
+
+// ========================================
+// USER INFO MODAL
+// ========================================
+let currentInfoUser = null;
+
+async function showUserInfoModal(user) {
+  currentInfoUser = user;
+  const modal = document.getElementById('infoModal');
+  const userInfo = document.getElementById('infoModalUser');
+  const infoList = document.getElementById('infoModalList');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-balance">Balance: $${user.balance.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+
+  infoList.innerHTML = `
+    <span class="info-caption">ACCOUNT INFO</span>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Creation Date</span>
+      <span class="info-rodata">${user.createdAt}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Last Login</span>
+      <span class="info-rodata">${user.lastLoginAt}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">OverUnder Synced</span>
+      <span class="info-rodata">${user.overUnderSynced ? 'true' : 'false'}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Daily Streak</span>
+      <span class="info-rodata">${user.dailyStreak}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Last Daily Claim</span>
+      <span class="info-rodata">${user.lastDailyKeyClaim}</span>
+    </div>
+    <br>
+    <span class="info-caption">CASINO STATS</span>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Total Won</span>
+      <span class="info-rodata">${user.casinoStats.totalWon}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Total Wagered</span>
+      <span class="info-rodata">${user.casinoStats.totalWagered}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Games Played</span>
+      <span class="info-rodata">${user.casinoStats.gamesPlayed}</span>
+    </div>
+    <br>
+    <span class="info-caption">XP STATS</span>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Best Streak</span>
+      <span class="info-rodata">${user.xpStats.bestStreak}</span>
+    </div>
+    <div class="info-ro-item">
+      <span class="info-edit-name">Total Earned</span>
+      <span class="info-rodata">${user.xpStats.totalEarned}</span>
+    </div>
+    <br>
+    <span class="info-caption">PROFILE</span>
+    <div class="info-edit-item">
+      <span class="info-edit-name">Username</span>
+      <input class="info-edit-input" id="username" value="${escapeHtml(user.displayName)}">
+      <button class="btn-icon save-user" id="saveUsername" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+    <div class="info-edit-item">
+      <span class="info-edit-name">Avatar Style</span>
+      <input class="info-edit-input" id="avatarStyle" value="${escapeHtml(user.avatarStyle)}">
+      <button class="btn-icon save-user" id="saveAvatarStyle" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+    <div class="info-edit-item">
+      <span class="info-edit-name">Leaderboard Style</span>
+      <input class="info-edit-input" id="leaderStyle" value="${await MulonData.getLeaderboardStyle(user)}">
+      <button class="btn-icon save-user" id="saveLeaderStyle" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  // Setup event listeners
+  setupInfoModalListeners();
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function setupInfoModalListeners() {
+  const modal = document.getElementById('infoModal');
+  const closeBtn = document.getElementById('closeInfoModal');
+  const cancelBtn = document.getElementById('cancelInfoModal');
+
+  const usernameField = document.getElementById('username');
+  const avatarStyleField = document.getElementById('avatarStyle');
+  const leaderStyleField = document.getElementById('leaderStyle');
+
+  const usernameSaveBtn = document.getElementById('saveUsername');
+  const avatarStyleSaveBtn = document.getElementById('saveAvatarStyle');
+  const leaderStyleSaveBtn = document.getElementById('saveLeaderStyle');
+  
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('active');
+    currentInfoUser = null;
+  };
+  
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = closeModal;
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
+
+  usernameSaveBtn.onclick = async() => {
+    const newUsername = usernameField.value;
+
+    if (newUsername.length > 20 || newUsername.length == 0) {
+      showToast('Please enter a valid username (20 chars max)');
+      return;
+    }
+
+    const result = await MulonData.updateUserName(currentInfoUser.id, newUsername);
+
+    if (result.success) {
+      showToast('Username updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].displayName = newUsername;
+        updateUsersStats();
+      }
+    } else {
+      showToast('Error updating username', 'error');
+    }
+  };
+
+  avatarStyleSaveBtn.onclick = async() => {
+    const newAvatarStyle = avatarStyleField.value;
+
+    const result = await MulonData.updateAvatarStyle(currentInfoUser.id, newAvatarStyle);
+
+    if (result.success) {
+      showToast('Avatar style updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].avatarStyle = newAvatarStyle;
+        updateUsersStats();
+      }
+    } else {
+      showToast('Error updating avatar style', 'error');
+    }
+  };
+
+  leaderStyleSaveBtn.onclick = async() => {
+    const newLeaderStyle = leaderStyleField.value;
+
+    const result = await MulonData.updateLeaderStyle(currentInfoUser.id, newLeaderStyle);
+
+    if (result.success) {
+      showToast('Leaderboard style updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentInfoUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].leaderStyle = newLeaderStyle;
+        updateUsersStats();
+      }
+    } else {
+      showToast('Error updating avatar style', 'error');
+    }
+  };
+}
+
+// ========================================
+// USER TRANSACTION HISTORY MODAL
+// ========================================
+let currentTransactionHistoryUser = null;
+
+async function showTransactionHistoryModal(user) {
+  currentTransactionHistoryUser = user;
+  const modal = document.getElementById('transactionHistoryModal');
+  const userInfo = document.getElementById('transactionHistoryModalUser');
+  const transactionList = document.getElementById('transactionHistoryModalList');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-balance">Balance: $${user.balance.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+
+  // Populate transaction history
+  transactionList.innerHTML = '';
+  user.transactions.forEach(function (t) {
+    transactionList.innerHTML = transactionList.innerHTML.concat(`
+      <div class="transaction-history-modal-item">
+        <div class="transaction-history-fields-${t.type}">
+          <div class="transaction-history-field">
+            <label>TIME</label>
+            <span>${t.timestamp}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>TYPE</label>
+            <span>${t.type}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>CHOICE</label>
+            <span>${t.choice}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>MARKET</label>
+            <span>${MulonData.getMarket(t.marketId).title}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>PRICE</label>
+            <span>${t.price.toLocaleString("en-US", {maximumFractionDigits: 2, maximumIntegerDigits: 14})}</span>
+          </div>
+          <div class="transaction-history-field">
+            <label>SHARES</label>
+            <span>${t.shares.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+          </div>
+          ${t.type === 'sell' ? `
+            <div class="transaction-history-field">
+              <label>PROFIT</label>
+              <span>${t.profit.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+            </div>
+            <div class="transaction-history-field">
+              <label>PROCEEDS</label>
+              <span>${t.proceeds.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+            </div>
+          ` : `
+            <div class="transaction-history-field">
+              <label>COST</label>
+              <span>${t.cost.toLocaleString("en-US", {maximumFractionDigits: 2})}</span>
+            </div>
+          `}
+        </div>
+      </div>
+    `);
+  });
+  
+  // Setup event listeners
+  setupTransactionHistoryModalListeners();
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function setupTransactionHistoryModalListeners() {
+  const modal = document.getElementById('transactionHistoryModal');
+  const closeBtn = document.getElementById('closeTransactionHistoryModal');
+  const cancelBtn = document.getElementById('cancelTransactionHistoryModal');
+  
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('active');
+    currentTransactionHistoryUser = null;
+  };
+  const returnToPositionsModal = () => {
+    modal.classList.remove('active');
+    showUserPositionsModal(currentTransactionHistoryUser);
+    currentTransactionHistoryUser = null;
+  };
+  
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = returnToPositionsModal;
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
 }
 
 // ========================================
@@ -1478,6 +1880,7 @@ function setupPositionsModalListeners() {
   const modal = document.getElementById('positionsModal');
   const closeBtn = document.getElementById('closePositionsModal');
   const cancelBtn = document.getElementById('cancelPositionsModal');
+  const transactionHistoryBtn = document.getElementById('viewTransactionHistory');
   const resetAllBtn = document.getElementById('resetUserPositionsModal');
   
   // Close handlers
@@ -1492,10 +1895,20 @@ function setupPositionsModalListeners() {
   modal.onclick = (e) => {
     if (e.target === modal) closeModal();
   };
+
+  // Open transation history
+  transactionHistoryBtn.onclick = async() => {
+    modal.classList.remove('active');
+    showTransactionHistoryModal(currentPositionsUser);
+    currentPositionsUser = null;
+  };
   
   // Reset all positions
   resetAllBtn.onclick = async () => {
-    if (!isAccessAllowed()) return;
+    if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
     if (!currentPositionsUser) return;
     
     if (!confirm(`Reset ALL positions for ${currentPositionsUser.displayName}? This cannot be undone.`)) {
@@ -1522,7 +1935,10 @@ function setupPositionsModalListeners() {
   // Save individual position
   document.querySelectorAll('.save-position-btn').forEach(btn => {
     btn.onclick = async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const marketId = this.dataset.marketId;
       const item = this.closest('.position-edit-item');
       
@@ -1568,7 +1984,10 @@ function setupPositionsModalListeners() {
   // Delete individual position
   document.querySelectorAll('.delete-position-btn').forEach(btn => {
     btn.onclick = async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const marketId = this.dataset.marketId;
       const item = this.closest('.position-edit-item');
       const marketTitle = item.querySelector('.position-market-title').textContent;
@@ -1606,6 +2025,185 @@ function setupPositionsModalListeners() {
         this.textContent = 'Delete';
         showToast('Error: ' + result.error, 'error');
       }
+    };
+  });
+}
+
+// ========================================
+// USER ITEMS MODAL
+// ========================================
+let currentItemsUser = null;
+
+function showUserItemsModal(user) {
+  currentItemsUser = user;
+  const modal = document.getElementById('itemsModal');
+  const userInfo = document.getElementById('itemsModalUser');
+  const userItems = document.getElementById('itemsModalList');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-balance">Balance: $${user.balance.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+
+  // Populate user items
+  userItems.innerHTML = `
+    <div class="items-edit-item">
+      <span class="items-edit-name">Plinko Balls</span>
+      <input type="number" class="items-edit-input" id="plinkoBallsField" value="${currentItemsUser.plinkoBalls}" step="1" min="0" data-field="plinko-balls">
+      <button class="btn-icon save-user" id="savePlinkoBalls" title="Save">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+  `;
+
+  if (user.ownedCards) {
+    userItems.innerHTML = userItems.innerHTML.concat(`
+      <div class="items-card-list" id="itemsCardList">
+        <div class="items-add-card">
+          <span class="items-edit-name">Add Card</span>
+          <input type="number" class="items-edit-input" id="newCardField" value="" step="1" min="0" data-field="new-card">
+          <button class="btn-icon save-user" id="addNewCard" title="Add">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `);
+    itemsCardList = document.getElementById('itemsCardList');
+    let i = 0;
+    user.ownedCards.forEach(function (card, index) {
+      // Some people have insane numbers of cards. Only load the first 100
+      if (i >= 100) {
+        return;
+      }
+      i += 1;
+      itemsCardList.innerHTML = itemsCardList.innerHTML.concat(`
+        <div class="items-card-item">
+          <span class="items-card-name">Card ${card.cardNumber}</span>
+          <div class="card-edit-actions">
+            <!--<button class="btn btn-sm btn-danger delete-card-btn" data-index=${index}>Delete</button>-->
+          </div>
+        </div>
+      `);
+    });
+  }
+  
+  // Setup event listeners
+  setupItemsModalListeners();
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function setupItemsModalListeners() {
+  const modal = document.getElementById('itemsModal');
+  const closeBtn = document.getElementById('closeItemsModal');
+  const cancelBtn = document.getElementById('cancelItemsModal');
+
+  const plinkoBallsField = document.getElementById('plinkoBallsField');
+  const newCardField = document.getElementById('newCardField');
+
+  const savePlinkoBallsBtn = document.getElementById('savePlinkoBalls');
+  const addNewCardBtn = document.getElementById('addNewCard');
+  
+  // Close handlers
+  const closeModal = () => {
+    modal.classList.remove('active');
+    currentItemsUser = null;
+  };
+  
+  closeBtn.onclick = closeModal;
+  cancelBtn.onclick = closeModal;
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
+
+  savePlinkoBallsBtn.onclick = async () => {
+    const newPlinkoBalls = parseInt(plinkoBallsField.value);
+
+    if (isNaN(newPlinkoBalls) || newPlinkoBalls < 0) {
+      showToast('Please enter a valid number of Plinko balls', 'error');
+      return;
+    }
+
+    const result = await MulonData.updateUserPlinkoBalls(currentItemsUser.id, newPlinkoBalls);
+
+    if (result.success) {
+      showToast('Plinko balls updated!', 'success');
+      // Update local cache
+      const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
+      if (userIndex !== -1) {
+        allUsers[userIndex].plinkoBalls = newPlinkoBalls;
+      }
+    } else {
+      showToast('Error updating user', 'error');
+    }
+  };
+
+  addNewCardBtn.onclick = async () => {
+    const newCard = "#".concat(parseInt(newCardField.value).toLocaleString('en-US', {'minimumIntegerDigits': 3, 'maximumFractionDigits': 0}));
+    let newCardObj = {
+      cardNumber: newCard,
+      hasCard: true,
+      obtainedAt: {
+        seconds: new Date().getTime() / 1000,
+        nanoseconds: 0 // ???
+      },
+      obtainedFrom: "admin",
+      tradedFrom: null
+    };
+    let newCards = currentItemsUser.ownedCards;
+    newCards.push(newCardObj);
+
+    const result = await MulonData.addUserCard(currentItemsUser.id, newCardObj);
+
+    if (result.success) {
+        showToast('Cards updated!', 'success');
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
+        if (userIndex !== -1) {
+          allUsers[userIndex].ownedCards = newCards;
+        }
+      } else {
+        showToast('Error updating cards', 'error');
+      }
+
+      showUserItemsModal(currentItemsUser);
+  };
+
+  document.querySelectorAll('.delete-card-btn').forEach(btn => {
+    btn.onclick = async function () {
+      const idx = this.dataset.index;
+      const card = currentItemsUser.ownedCards[idx];
+
+      const result = await MulonData.removeUserCard(currentItemsUser.id, card.docId);
+
+      if (result.success) {
+        showToast('Cards updated!', 'success');
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === currentItemsUser.id);
+        if (userIndex !== -1) {
+          //allUsers[userIndex].cards = newCards;
+        }
+      } else {
+        showToast('Error updating cards', 'error');
+      }
+
+      showUserItemsModal(currentItemsUser);
     };
   });
 }
@@ -1695,7 +2293,10 @@ function attachSuggestionListeners() {
   // Approve buttons
   document.querySelectorAll('.approve-suggestion').forEach(btn => {
     btn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const id = this.dataset.id;
       const result = await MulonData.updateSuggestionStatus(id, 'approved');
       if (result.success) {
@@ -1710,7 +2311,10 @@ function attachSuggestionListeners() {
   // Reject buttons
   document.querySelectorAll('.reject-suggestion').forEach(btn => {
     btn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const id = this.dataset.id;
       const result = await MulonData.updateSuggestionStatus(id, 'rejected');
       if (result.success) {
@@ -1725,7 +2329,10 @@ function attachSuggestionListeners() {
   // Delete buttons
   document.querySelectorAll('.delete-suggestion').forEach(btn => {
     btn.addEventListener('click', async function() {
-      if (!isAccessAllowed()) return;
+      if (!isAccessAllowed()) {
+      performAccessDenied();
+      return;
+    };
       const id = this.dataset.id;
       if (confirm('Delete this suggestion?')) {
         const result = await MulonData.deleteSuggestion(id);
