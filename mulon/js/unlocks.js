@@ -33,6 +33,74 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const usersRef = collection(db, 'mulon_users');
+const bannedDevicesRef = collection(db, 'mulon_banned_devices');
+
+// ========================================
+// BAN CHECK SYSTEM
+// ========================================
+
+// Generate device fingerprint
+function generateDeviceFingerprint() {
+  const components = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width + 'x' + screen.height,
+    screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency || 'unknown',
+    navigator.platform
+  ];
+  
+  let hash = 0;
+  const str = components.join('|');
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  
+  let persistentId = localStorage.getItem('mulon_device_id');
+  if (!persistentId) {
+    persistentId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('mulon_device_id', persistentId);
+  }
+  
+  return persistentId + '_' + Math.abs(hash).toString(36);
+}
+
+// Check if user/device is banned
+async function checkBanStatus() {
+  try {
+    const user = auth.currentUser;
+    const deviceFingerprint = generateDeviceFingerprint();
+    
+    // Check device ban first
+    const deviceDoc = await getDoc(doc(bannedDevicesRef, deviceFingerprint));
+    if (deviceDoc.exists()) {
+      console.log('Device is banned, redirecting...');
+      window.location.href = 'https://www.google.com';
+      return true;
+    }
+    
+    // If user is signed in, check user ban
+    if (user) {
+      const userDoc = await getDoc(doc(usersRef, user.uid));
+      if (userDoc.exists() && userDoc.data().banned === true) {
+        console.log('User is banned, redirecting...');
+        window.location.href = 'https://www.google.com';
+        return true;
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking ban status:', error);
+    return false;
+  }
+}
+
+// Make available globally
+window.checkBanStatus = checkBanStatus;
 
 // User state
 let currentUser = null;
@@ -128,12 +196,24 @@ const unlocksData = [
 // ========================================
 // INITIALIZATION
 // ========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check ban status on page load
+  if (typeof window.checkBanStatus === 'function') {
+    const isBanned = await window.checkBanStatus();
+    if (isBanned) return; // Stop if banned
+  }
+  
   initializeUI();
   setupEventListeners();
   
   // Listen for auth changes
   onAuthStateChanged(auth, async (user) => {
+    // Check ban status on every auth state change
+    if (typeof window.checkBanStatus === 'function') {
+      const isBanned = await window.checkBanStatus();
+      if (isBanned) return; // Stop if banned
+    }
+    
     if (user) {
       currentUser = user;
       await loadUserData();

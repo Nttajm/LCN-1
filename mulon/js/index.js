@@ -47,6 +47,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize Firebase Auth
   Auth.init();
   
+  // Check for device ban immediately (before anything else)
+  if (typeof window.checkBanStatus === 'function') {
+    const isBanned = await window.checkBanStatus();
+    if (isBanned) return; // Stop execution if banned and redirecting
+  }
+  
   // Check maintenance mode - wait for auth to load before deciding
   if (MAINTENANCE_MODE) {
     const hasAccess = await checkMaintenanceAccess({
@@ -97,7 +103,13 @@ document.addEventListener('DOMContentLoaded', async function() {
   setupDailyKeyClaim();
   
   // Listen for auth state changes
-  Auth.onAuthStateChange((user) => {
+  Auth.onAuthStateChange(async (user) => {
+    // Check ban status on every auth state change
+    if (typeof window.checkBanStatus === 'function') {
+      const isBanned = await window.checkBanStatus();
+      if (isBanned) return; // Stop if banned
+    }
+    
     updateAuthUI(user);
     updateUserUI();
     updateDailyKeyUI();
@@ -430,10 +442,10 @@ function showBetaModal() {
 // ========================================
 const UPDATES = [
   {
-    version: '1.0.1',
+    version: '1.0.3',
     date: '2026-01-26',
     changes: [
-      'You can now view player profiles'
+      'loading leaderboard is faster, you can get banned!'
     ]
   }
   // Add more updates here:

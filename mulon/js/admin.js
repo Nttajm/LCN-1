@@ -1101,13 +1101,14 @@ function renderUsersList(users) {
   }
   
   usersList.innerHTML = users.map(user => `
-    <div class="user-admin-item" data-user-id="${user.id}">
+    <div class="user-admin-item ${user.banned ? 'user-banned' : ''}" data-user-id="${user.id}">
+      ${user.banned ? '<span class="banned-indicator" title="User is banned">🚫</span>' : ''}
       ${user.photoURL 
         ? `<img src="${user.photoURL}" alt="" class="user-admin-avatar">`
         : `<div class="user-admin-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
       }
       <div class="user-admin-info">
-        <span class="user-admin-name">${escapeHtml(user.displayName)}</span>
+        <span class="user-admin-name">${escapeHtml(user.displayName)}${user.banned ? ' <span class="banned-badge">BANNED</span>' : ''}</span>
         <span class="user-admin-email">${escapeHtml(user.email)}</span>
       </div>
       <button class="user-positions-count ${user.positions.length > 0 ? 'has-positions clickable' : ''}" data-user-id="${user.id}" ${user.positions.length > 0 ? 'title="Click to view/edit positions"' : ''}>
@@ -1134,6 +1135,12 @@ function renderUsersList(users) {
             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
           </svg>
+        </button>
+        <button class="btn-icon ban-user ${user.banned ? 'is-banned' : ''}" data-user-id="${user.id}" data-banned="${user.banned ? 'true' : 'false'}" title="${user.banned ? 'Unban User' : 'Ban User'}">
+          ${user.banned 
+            ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M9 12l2 2 4-4"/></svg>'
+            : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>'
+          }
         </button>
       </div>
     </div>
@@ -1231,6 +1238,67 @@ function renderUsersList(users) {
       } else {
         showToast('Error resetting positions', 'error');
         this.disabled = false;
+      }
+    });
+  });
+  
+  // Attach ban button listeners
+  usersList.querySelectorAll('.ban-user').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      
+      const userId = this.dataset.userId;
+      const isBanned = this.dataset.banned === 'true';
+      const item = this.closest('.user-admin-item');
+      const userName = item.querySelector('.user-admin-name').textContent.replace(' BANNED', '');
+      
+      if (isBanned) {
+        // Unban user
+        if (!confirm(`Unban "${userName}"? They will be able to access the site again.`)) {
+          return;
+        }
+        
+        const removeDeviceBans = confirm('Also remove device bans for this user?\n\nClick OK to remove device bans, or Cancel to only unban the account.');
+        
+        this.disabled = true;
+        const result = await MulonData.unbanUser(userId, removeDeviceBans);
+        
+        if (result.success) {
+          showToast('User unbanned!', 'success');
+          // Update local cache
+          const userIndex = allUsers.findIndex(u => u.id === userId);
+          if (userIndex !== -1) {
+            allUsers[userIndex].banned = false;
+          }
+          // Re-render the list
+          renderUsersList(allUsers);
+        } else {
+          showToast('Error unbanning user: ' + result.error, 'error');
+          this.disabled = false;
+        }
+      } else {
+        // Ban user
+        const reason = prompt(`Ban "${userName}"?\n\nEnter a reason (optional):`);
+        if (reason === null) return; // Cancelled
+        
+        const banDevice = confirm('Also ban this user\'s device(s)?\n\nClick OK to add device ban, or Cancel to only ban the account.');
+        
+        this.disabled = true;
+        const result = await MulonData.banUser(userId, reason, banDevice);
+        
+        if (result.success) {
+          showToast(`User banned${banDevice ? ' (+ device ban)' : ''}!`, 'success');
+          // Update local cache
+          const userIndex = allUsers.findIndex(u => u.id === userId);
+          if (userIndex !== -1) {
+            allUsers[userIndex].banned = true;
+          }
+          // Re-render the list
+          renderUsersList(allUsers);
+        } else {
+          showToast('Error banning user: ' + result.error, 'error');
+          this.disabled = false;
+        }
       }
     });
   });
