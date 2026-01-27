@@ -2079,7 +2079,7 @@ const MulonData = {
           transactions: userData.transactions || [],
           createdAt: userData.createdAt || null,
           lastLoginAt: userData.lastLoginAt || null,
-          plinkoBalls: userData.plinkoBalls || 0
+          plinkoBalls: userData.plinkoBalls || 0,
           banned: userData.banned || false,
           bannedAt: userData.bannedAt || null,
           bannedReason: userData.bannedReason || null
