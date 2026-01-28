@@ -778,8 +778,10 @@ export class PokerLobbyManager {
       const lobbies = [];
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        // Filter to only open/full lobbies (not in_game or closed)
-        if (data.status === LOBBY_STATUS.OPEN || data.status === LOBBY_STATUS.FULL) {
+        // Include open, full, and in_game lobbies (not closed)
+        if (data.status === LOBBY_STATUS.OPEN || 
+            data.status === LOBBY_STATUS.FULL || 
+            data.status === LOBBY_STATUS.IN_GAME) {
           lobbies.push({ id: docSnap.id, ...data });
         }
       });
