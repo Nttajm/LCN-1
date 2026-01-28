@@ -347,6 +347,12 @@ export class PokerGame {
     // Create and shuffle new deck
     this.deck = new Deck();
     this.deck.shuffle();
+    
+    // Log first few cards to verify shuffle is working (with timestamp for uniqueness)
+    const shuffleId = Date.now().toString(36);
+    console.log(`🃏 [${shuffleId}] Deck shuffled! First 5 cards:`, 
+      this.deck.cards.slice(0, 5).map(c => `${c.value}${c.suitInfo.symbol}`).join(', ')
+    );
 
     // Initialize dealer to first valid player if not set
     if (!this.players[this.dealerIndex]) {
@@ -437,9 +443,17 @@ export class PokerGame {
         if (player) {
           const card = this.deck.deal(false); // Face down
           player.holeCards.push(card);
+          console.log(`🃏 Dealt ${card.value}${card.suitInfo.symbol} to ${player.displayName} (seat ${i})`);
         }
       }
     }
+    
+    // Log all players' cards for verification
+    this.players.forEach((p, i) => {
+      if (p && p.holeCards.length > 0) {
+        console.log(`👤 ${p.displayName} hole cards:`, p.holeCards.map(c => `${c.value}${c.suitInfo.symbol}`).join(', '));
+      }
+    });
   }
 
   // Start a betting round

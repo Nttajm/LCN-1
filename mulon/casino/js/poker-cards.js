@@ -145,13 +145,26 @@ export class Deck {
     return this;
   }
 
-  // Fisher-Yates shuffle
+  // Fisher-Yates shuffle - truly random
   shuffle() {
     const cards = this.cards;
-    for (let i = cards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+    const n = cards.length;
+    
+    // Fisher-Yates shuffle algorithm
+    for (let i = n - 1; i > 0; i--) {
+      // Use crypto for better randomness if available
+      let j;
+      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        const randomArray = new Uint32Array(1);
+        crypto.getRandomValues(randomArray);
+        j = randomArray[0] % (i + 1);
+      } else {
+        j = Math.floor(Math.random() * (i + 1));
+      }
       [cards[i], cards[j]] = [cards[j], cards[i]];
     }
+    
+    console.log('🎲 Shuffle complete - deck randomized');
     return this;
   }
 
