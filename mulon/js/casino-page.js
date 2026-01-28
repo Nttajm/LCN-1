@@ -290,7 +290,7 @@ import { CasinoAuth, CasinoDB } from '../casino/js/casino-auth.js';
       if (!countEl) return;
       
       try {
-        const count = await CasinoDB.getOnlineUsersCount(15); // Active in last 15 mins
+        const count = await CasinoDB.getOnlineUsersCount(30); // Active in last 15 mins
         countEl.textContent = count;
       } catch (e) {
         // Fallback to random plausible number
