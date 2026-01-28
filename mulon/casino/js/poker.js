@@ -119,6 +119,9 @@ class PokerController {
       partyConfig: document.querySelector('.party-config'),
       buyinBtns: document.querySelectorAll('.buyin-btn'),
       buyinInput: document.querySelector('.buyin-input'),
+      setBuyInBtn: document.getElementById('setBuyInBtn'),
+      buyinDisplay: document.getElementById('buyinDisplay'),
+      buyinValue: document.getElementById('buyinValue'),
       readyBtn: document.querySelector('.ready-btn'),
       startGameBtn: document.getElementById('startGameBtn'),
       readyCount: document.querySelector('.ready-count'),
@@ -169,28 +172,32 @@ class PokerController {
 
   // Setup event listeners
   setupEventListeners() {
-    // Buy-in selection
+    // Buy-in selection (only sets local value, host must click Set to update lobby)
     this.elements.buyinBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         this.elements.buyinBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.selectedBuyIn = parseInt(btn.dataset.amount);
         this.elements.buyinInput.value = '';
+        // Show Set button if host and in a lobby
+        this.showSetBuyInButton();
       });
     });
 
     // Custom buy-in (minimum $10)
-    this.elements.buyinInput?.addEventListener('change', () => {
+    this.elements.buyinInput?.addEventListener('input', () => {
       const value = parseInt(this.elements.buyinInput.value);
       if (value >= 10) {
         this.elements.buyinBtns.forEach(b => b.classList.remove('active'));
         this.selectedBuyIn = value;
+        this.showSetBuyInButton();
       } else if (value > 0 && value < 10) {
         this.showToast('Minimum buy-in is $10', 'error');
-        this.elements.buyinInput.value = 10;
-        this.selectedBuyIn = 10;
       }
     });
+
+    // Set Buy-In button (host only - commits to Firebase)
+    this.elements.setBuyInBtn?.addEventListener('click', () => this.handleSetBuyIn());
 
     // Ready button
     this.elements.readyBtn?.addEventListener('click', () => this.toggleReady());
@@ -357,21 +364,38 @@ class PokerController {
       return;
     }
 
-    // Update buy-in display to match lobby's buy-in (for joined players)
-    if (lobby.buyIn && lobby.buyIn !== this.selectedBuyIn) {
+    const isHost = lobby.hostId === this.currentUser?.uid;
+
+    // Update buy-in display to match lobby's buy-in (real-time sync for all players)
+    if (lobby.buyIn) {
+      // Always sync to lobby's buy-in
       this.selectedBuyIn = lobby.buyIn;
+      
       // Update buy-in buttons to reflect the lobby's buy-in
       this.elements.buyinBtns?.forEach(btn => {
         const amount = parseInt(btn.dataset.amount);
         btn.classList.toggle('active', amount === lobby.buyIn);
       });
+      
+      // Clear custom input if a preset is active
       if (this.elements.buyinInput) {
-        this.elements.buyinInput.value = '';
+        const isPreset = [10, 25, 50, 100].includes(lobby.buyIn);
+        this.elements.buyinInput.value = isPreset ? '' : lobby.buyIn;
+      }
+      
+      // Update buy-in display for non-host players
+      if (this.elements.buyinDisplay && this.elements.buyinValue) {
+        this.elements.buyinDisplay.style.display = !isHost ? 'flex' : 'none';
+        this.elements.buyinValue.textContent = `$${lobby.buyIn}`;
+      }
+      
+      // Hide set button since we're synced
+      if (this.elements.setBuyInBtn) {
+        this.elements.setBuyInBtn.style.display = 'none';
       }
     }
     
     // Disable buy-in selection if not host (can't change lobby's buy-in)
-    const isHost = lobby.hostId === this.currentUser?.uid;
     this.elements.buyinBtns?.forEach(btn => {
       btn.disabled = !isHost;
       btn.style.pointerEvents = isHost ? 'auto' : 'none';
@@ -481,6 +505,43 @@ class PokerController {
     
     if (!result.success) {
       this.showToast(result.error || 'Failed to start game', 'error');
+    }
+  }
+
+  // Show Set Buy-In button if host has changed buy-in locally
+  showSetBuyInButton() {
+    if (!this.isHost || !this.lobbyManager?.currentLobby) return;
+    
+    const currentLobbyBuyIn = this.lobbyManager.currentLobby.buyIn;
+    const hasChanged = this.selectedBuyIn !== currentLobbyBuyIn;
+    
+    if (this.elements.setBuyInBtn) {
+      this.elements.setBuyInBtn.style.display = hasChanged ? 'flex' : 'none';
+    }
+  }
+
+  // Handle Set Buy-In button click (host only - updates Firebase)
+  async handleSetBuyIn() {
+    if (!this.lobbyManager || !this.isHost) {
+      console.log('Not host or no lobby manager');
+      return;
+    }
+
+    if (this.selectedBuyIn < 10) {
+      this.showToast('Minimum buy-in is $10', 'error');
+      return;
+    }
+
+    console.log('💰 Host setting buy-in to $' + this.selectedBuyIn);
+    const result = await this.lobbyManager.updateBuyIn(this.selectedBuyIn);
+    
+    if (result.success) {
+      this.showToast(`Buy-in set to $${this.selectedBuyIn}`, 'success');
+      if (this.elements.setBuyInBtn) {
+        this.elements.setBuyInBtn.style.display = 'none';
+      }
+    } else {
+      this.showToast(result.error || 'Failed to update buy-in', 'error');
     }
   }
 
@@ -697,21 +758,42 @@ class PokerController {
 
     // Render your lobby first if you have one
     if (myLobby) {
+      const isInGame = myLobby.status === LOBBY_STATUS.IN_GAME;
       const myLobbyEl = document.createElement('div');
-      myLobbyEl.className = 'player-lobby your-lobby';
+      myLobbyEl.className = `player-lobby your-lobby ${isInGame ? 'in-game' : ''}`;
       myLobbyEl.dataset.lobbyId = myLobby.id;
       myLobbyEl.innerHTML = `
         <div class="lobby-status">
-          <span class="status-dot your"></span>
-          <span class="status-text">Your Lobby</span>
+          <span class="status-dot ${isInGame ? 'playing' : 'your'}"></span>
+          <span class="status-text">${isInGame ? 'In Game' : 'Your Lobby'}</span>
         </div>
-        <div class="lobby-players">
-          ${myLobby.players.slice(0, 4).map(p => `
-            <div class="player-avatar ${p.isReady ? 'ready' : ''}">
-              <img src="${p.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`}" alt="">
+        <div class="lobby-players-detail">
+          ${myLobby.players.map(p => {
+            const isPlaying = isInGame && !p.waitingForNextHand;
+            const isWaiting = isInGame && p.waitingForNextHand;
+            const isYou = p.id === this.currentUser?.uid;
+            return `
+            <div class="player-row ${isPlaying ? 'in-game' : ''} ${isWaiting ? 'waiting' : ''} ${p.isReady ? 'ready' : ''} ${isYou ? 'you' : ''}">
+              <div class="player-avatar-small">
+                <img src="${p.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`}" alt="">
+                ${isPlaying ? '<span class="playing-indicator"></span>' : ''}
+              </div>
+              <span class="player-name-small">${isYou ? 'You' : (p.displayName || 'Player')}</span>
+              ${isPlaying ? '<span class="player-status-tag">Playing</span>' : 
+                isWaiting ? '<span class="player-status-tag waiting">Waiting</span>' :
+                p.isReady ? '<span class="player-status-tag ready">Ready</span>' : ''}
             </div>
-          `).join('')}
-          ${myLobby.players.length > 4 ? `<div class="player-avatar more">+${myLobby.players.length - 4}</div>` : ''}
+          `}).join('')}
+          ${myLobby.players.length < myLobby.maxPlayers ? `
+            <div class="player-row empty-slot">
+              <div class="player-avatar-small empty">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </div>
+              <span class="player-name-small">Open Slot</span>
+            </div>
+          ` : ''}
         </div>
         <div class="lobby-info">
           <span class="lobby-owner">${myLobby.players.length}/${myLobby.maxPlayers} Players</span>
@@ -761,8 +843,12 @@ class PokerController {
       lobbyEl.dataset.lobbyId = lobby.id;
 
       // Determine status class
-      const statusClass = lobby.status === LOBBY_STATUS.IN_GAME ? 'in-game' : 
-                         lobby.players.length >= lobby.maxPlayers ? 'full' : 'open';
+      const isInGame = lobby.status === LOBBY_STATUS.IN_GAME;
+      const isFull = lobby.players.length >= lobby.maxPlayers;
+      const statusClass = isInGame ? 'in-game' : isFull ? 'full' : 'open';
+      
+      // Can join if not full (even if in-game, they can wait for next hand)
+      const canJoin = !isFull;
 
       lobbyEl.className = `player-lobby ${statusClass}`;
       lobbyEl.innerHTML = `
@@ -773,33 +859,45 @@ class PokerController {
             statusClass === 'full' ? 'Full' : 'Open Lobby'
           }</span>
         </div>
-        <div class="lobby-players">
-          ${lobby.players.slice(0, 4).map(p => `
-            <div class="player-avatar">
-              <img src="${p.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`}" alt="">
+        <div class="lobby-players-detail">
+          ${lobby.players.map(p => {
+            const isPlaying = isInGame && !p.waitingForNextHand;
+            const isWaiting = isInGame && p.waitingForNextHand;
+            return `
+            <div class="player-row ${isPlaying ? 'in-game' : ''} ${isWaiting ? 'waiting' : ''} ${p.isReady ? 'ready' : ''}">
+              <div class="player-avatar-small">
+                <img src="${p.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`}" alt="">
+                ${isPlaying ? '<span class="playing-indicator"></span>' : ''}
+              </div>
+              <span class="player-name-small">${p.displayName || 'Player'}</span>
+              ${isPlaying ? '<span class="player-status-tag">Playing</span>' : 
+                isWaiting ? '<span class="player-status-tag waiting">Waiting</span>' :
+                p.isReady ? '<span class="player-status-tag ready">Ready</span>' : ''}
             </div>
-          `).join('')}
-          ${lobby.players.length > 4 ? `<div class="player-avatar more">+${lobby.players.length - 4}</div>` : ''}
+          `}).join('')}
           ${lobby.players.length < lobby.maxPlayers ? `
-            <div class="player-avatar empty">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
+            <div class="player-row empty-slot">
+              <div class="player-avatar-small empty">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </div>
+              <span class="player-name-small">Open Slot</span>
             </div>
           ` : ''}
         </div>
         <div class="lobby-info">
           <span class="lobby-owner">${lobby.hostName}'s Party</span>
-          <span class="lobby-game">$${lobby.buyIn} Buy-in</span>
+          <span class="lobby-game">$${lobby.buyIn} Buy-in • ${lobby.players.length}/${lobby.maxPlayers}</span>
         </div>
-        <button class="ask-join-btn" ${statusClass === 'in-game' ? 'disabled' : ''}>
-          ${statusClass === 'in-game' ? 'In Game' : 'Ask to Join'}
+        <button class="ask-join-btn" ${!canJoin ? 'disabled' : ''}>
+          ${!canJoin ? 'Full' : isInGame ? 'Join (Wait for Next Hand)' : 'Ask to Join'}
         </button>
       `;
 
       // Add click handler
       const joinBtn = lobbyEl.querySelector('.ask-join-btn');
-      if (joinBtn && !joinBtn.disabled) {
+      if (joinBtn && canJoin) {
         joinBtn.addEventListener('click', () => this.requestJoinLobby(lobby.id));
       }
 

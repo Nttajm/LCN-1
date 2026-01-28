@@ -398,6 +398,169 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
+/* ========================================
+   LOBBY PLAYERS DETAIL LIST
+   Shows each player with name and status
+   ======================================== */
+
+.lobby-players-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 8px;
+  background: rgba(20, 45, 80, 0.4);
+  border-radius: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(40, 80, 130, 0.3);
+  transition: all 0.2s ease;
+}
+
+.player-row:hover {
+  background: rgba(60, 100, 150, 0.4);
+}
+
+.player-row.in-game {
+  opacity: 0.7;
+}
+
+.player-row.empty-slot {
+  opacity: 0.5;
+  border: 1px dashed rgba(100, 150, 255, 0.25);
+  background: transparent;
+}
+
+.player-avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 2px solid rgba(100, 150, 255, 0.3);
+}
+
+.player-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.player-avatar-small.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 60, 100, 0.5);
+  border-style: dashed;
+}
+
+.player-avatar-small.empty svg {
+  color: rgba(100, 150, 255, 0.4);
+}
+
+/* Playing indicator - small green dot */
+.playing-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #22c55e;
+  border-radius: 50%;
+  border: 2px solid rgba(20, 45, 80, 0.9);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.player-name-small {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-row.in-game .player-name-small {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.player-row.empty-slot .player-name-small {
+  color: rgba(100, 150, 255, 0.5);
+  font-style: italic;
+}
+
+.player-status-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(100, 100, 255, 0.3);
+  color: rgba(150, 180, 255, 0.9);
+  letter-spacing: 0.5px;
+}
+
+.player-status-tag.ready {
+  background: rgba(74, 222, 128, 0.3);
+  color: rgba(74, 222, 128, 0.9);
+}
+
+.player-row.in-game .player-status-tag {
+  background: rgba(251, 191, 36, 0.3);
+  color: rgba(251, 191, 36, 0.9);
+}
+
+.player-row.waiting {
+  opacity: 0.6;
+}
+
+.player-row.waiting .player-name-small {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.player-status-tag.waiting {
+  background: rgba(100, 150, 255, 0.3);
+  color: rgba(100, 150, 255, 0.9);
+}
+
+/* Your player row highlight */
+.player-row.you {
+  background: rgba(100, 150, 255, 0.2);
+  border: 1px solid rgba(100, 150, 255, 0.3);
+}
+
+.player-row.you .player-name-small {
+  color: #64b5f6;
+  font-weight: 600;
+}
+
+/* Your lobby in-game state */
+.player-lobby.your-lobby.in-game {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+/* Join button for in-game lobbies */
+.ask-join-btn:not(:disabled) {
+  cursor: pointer;
+}
+
 /* Ask to Join Button - Always visible on right */
 .ask-join-btn {
   position: absolute;
@@ -1360,6 +1523,56 @@
 .buyin-input:focus {
   outline: none;
   border-color: rgba(100, 150, 255, 0.5);
+}
+
+/* Set Buy-In Button */
+.set-buyin-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ade80;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.set-buyin-btn:hover {
+  background: rgba(74, 222, 128, 0.3);
+  border-color: rgba(74, 222, 128, 0.7);
+}
+
+.set-buyin-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Buy-In Display (for non-host players) */
+.buyin-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 8px;
+}
+
+.buyin-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.buyin-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4ade80;
 }
 
 /* Ready Section */

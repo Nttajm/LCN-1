@@ -253,6 +253,49 @@ export class PokerLobbyManager {
   // LOBBY MANAGEMENT
   // ========================================
 
+  // Update lobby buy-in (host only)
+  async updateBuyIn(newBuyIn) {
+    if (!this.currentUser || !this.currentLobbyId) {
+      return { success: false, error: 'Not in a lobby' };
+    }
+
+    if (newBuyIn < 10) {
+      return { success: false, error: 'Minimum buy-in is $10' };
+    }
+
+    try {
+      const lobbyRef = doc(this.db, 'poker_lobbies', this.currentLobbyId);
+      const lobbyDoc = await getDoc(lobbyRef);
+
+      if (!lobbyDoc.exists()) {
+        return { success: false, error: 'Lobby not found' };
+      }
+
+      const lobbyData = lobbyDoc.data();
+
+      // Only host can update buy-in
+      if (lobbyData.hostId !== this.currentUser.uid) {
+        return { success: false, error: 'Only the host can change buy-in' };
+      }
+
+      // Can't change buy-in during game
+      if (lobbyData.status === LOBBY_STATUS.IN_GAME) {
+        return { success: false, error: 'Cannot change buy-in during game' };
+      }
+
+      // Update buy-in in Firestore
+      await updateDoc(lobbyRef, {
+        buyIn: newBuyIn,
+        updatedAt: serverTimestamp()
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating buy-in:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // Create a new poker lobby
   async createLobby(buyIn, isPublic = true, maxPlayers = 6) {
     if (!this.currentUser) {
@@ -335,9 +378,10 @@ export class PokerLobbyManager {
         return { success: false, error: 'Already in this lobby' };
       }
 
-      // Check if game already started
-      if (lobbyData.status === LOBBY_STATUS.IN_GAME) {
-        return { success: false, error: 'Game already in progress' };
+      // Allow joining in-game lobbies (they'll wait for next hand)
+      // Only block if lobby is full
+      if (lobbyData.players.length >= lobbyData.maxPlayers) {
+        return { success: false, error: 'Lobby is full' };
       }
 
       // Check balance
@@ -400,14 +444,21 @@ export class PokerLobbyManager {
         seatIndex: seatIndex,
         isReady: false,
         isHost: false,
-        joinedAt: Date.now()
+        joinedAt: Date.now(),
+        waitingForNextHand: lobbyData.status === LOBBY_STATUS.IN_GAME // Mark if joining mid-game
       };
+
+      // Determine new status - don't change IN_GAME status when someone joins
+      let newStatus = lobbyData.status;
+      if (lobbyData.status !== LOBBY_STATUS.IN_GAME) {
+        newStatus = lobbyData.players.length + 1 >= lobbyData.maxPlayers ? 
+          LOBBY_STATUS.FULL : LOBBY_STATUS.OPEN;
+      }
 
       await updateDoc(lobbyRef, {
         players: arrayUnion(newPlayer),
         updatedAt: serverTimestamp(),
-        status: lobbyData.players.length + 1 >= lobbyData.maxPlayers ? 
-          LOBBY_STATUS.FULL : LOBBY_STATUS.OPEN
+        status: newStatus
       });
 
       // Update user's current lobby
