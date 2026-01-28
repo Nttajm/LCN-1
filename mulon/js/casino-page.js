@@ -1,5 +1,5 @@
-import { CasinoAuth, CasinoDB } from './casino/js/casino-auth.js';
-    import { initChestOpener, openChest } from './casino/js/chest-opener.js';
+import { CasinoAuth, CasinoDB } from '../casino/js/casino-auth.js';
+    import { initChestOpener, openChest } from '../casino/js/chest-opener.js';
     
     // User menu dropdown toggle
     const userMenu = document.getElementById('userMenu');
