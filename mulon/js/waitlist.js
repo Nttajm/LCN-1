@@ -45,7 +45,7 @@ const waitlistRef = collection(db, 'mulon_waitlist');
 const usersRef = collection(db, 'mulon_users');
 
 // Admin emails that bypass waitlist
-const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com']);
+const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com', 'captrojolmao@gmail.com']);
 
 // ========================================
 // WAITLIST CHECK (Exported for other modules)

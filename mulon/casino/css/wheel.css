@@ -1,0 +1,542 @@
+/* ========================================
+   WHEEL GAME STYLES
+   Stake-style Wheel of Fortune
+   ======================================== */
+
+/* Layout - 2 column like other games */
+.wheel-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
+}
+
+/* Controls Panel - Match dice/plinko style */
+.controls-panel {
+  background: #1a1f26;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #2a3441;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  background: #0f1419;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: #2a3441;
+  color: #fff;
+}
+
+.tab:hover:not(.active) {
+  color: #fff;
+}
+
+/* Control Groups */
+.control-group {
+  padding: 12px 0;
+  border-bottom: 1px solid #2a3441;
+}
+
+.control-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Bet Input - Match dice style */
+.bet-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #0f1419;
+  border-radius: 8px;
+  border: 1px solid #2a3441;
+  overflow: hidden;
+}
+
+.currency-icon {
+  padding: 0 12px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.bet-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  padding: 12px;
+  outline: none;
+  min-width: 0;
+}
+
+.bet-input::-webkit-inner-spin-button,
+.bet-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.bet-btns {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+}
+
+.bet-adj {
+  padding: 8px 12px;
+  background: #2a3441;
+  border: none;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.bet-adj:hover {
+  background: #3a4451;
+}
+
+.bet-adj.active {
+  background: #6366f1;
+}
+
+/* Risk Select - Match dice style */
+.risk-select {
+  width: 100%;
+  padding: 12px;
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.risk-select:hover {
+  border-color: #3a4451;
+}
+
+/* Bet Button - Match dice style */
+.bet-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.bet-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.bet-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bet-btn.spinning {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+/* Auto Panel */
+.onwin-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.toggle-btn {
+  padding: 8px 12px;
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background: #2a3441;
+  color: #fff;
+  border-color: #6366f1;
+}
+
+.percent-input {
+  width: 50px;
+  padding: 8px;
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  color: #fff;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  outline: none;
+  text-align: center;
+}
+
+.percent-sign {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.infinity-btn {
+  font-size: 1.1rem;
+}
+
+/* Stats Box - Match dice style */
+.stats-box {
+  background: #0f1419;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a3441;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-row .stat-label {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-bottom: 0;
+}
+
+.stat-row .stat-value {
+  font-weight: 600;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.stat-row .stat-value.profit {
+  color: #22c55e;
+}
+
+.stat-row .stat-value.profit.negative {
+  color: #ef4444;
+}
+
+/* Results Box - Match dice style */
+.results-box {
+  background: #0f1419;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  max-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.history-item {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Game Panel */
+.game-panel {
+  background: #1a1f26;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #2a3441;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wheel-game-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Wheel Container */
+.wheel-container {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+
+/* Wheel Pointer */
+.wheel-pointer {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Wheel */
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 
+    0 0 0 8px #2a3441,
+    0 0 0 12px #1a1f26,
+    0 0 40px rgba(0, 0, 0, 0.5);
+  transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+}
+
+#wheelCanvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Center Display */
+.wheel-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #1a1f26 0%, #0f1419 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 0 0 4px #2a3441,
+    inset 0 2px 10px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+
+.wheel-multiplier {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Result Display */
+.result-display {
+  display: flex;
+  gap: 40px;
+  background: #0f1419;
+  padding: 16px 32px;
+  border-radius: 12px;
+  border: 1px solid #2a3441;
+}
+
+.result-info,
+.result-payout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.result-label,
+.payout-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.result-multiplier {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.payout-amount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.payout-amount.loss {
+  color: #ef4444;
+}
+
+/* Multiplier Legend Panel */
+.multiplier-legend-panel {
+  background: #0f1419;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #2a3441;
+  width: 100%;
+  max-width: 400px;
+}
+
+.legend-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.legend-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #1a1f26;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.legend-multiplier {
+  font-weight: 600;
+  color: #fff;
+}
+
+.legend-chance {
+  color: #6b7280;
+  font-size: 0.7rem;
+}
+
+/* Floating Profit Graph */
+.profit-graph-float {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 200px;
+  background: #1a1f26;
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #2a3441;
+  z-index: 100;
+}
+
+.profit-graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.profit-graph-title {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.profit-graph-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.profit-graph-value.negative {
+  color: #ef4444;
+}
+
+#profitGraphCanvas {
+  width: 100%;
+  height: 60px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .wheel-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .wheel-container {
+    width: 320px;
+    height: 320px;
+  }
+  
+  .controls-panel {
+    order: 2;
+  }
+  
+  .game-panel {
+    order: 1;
+  }
+  
+  .profit-graph-float {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .wheel-container {
+    width: 280px;
+    height: 280px;
+  }
+}
