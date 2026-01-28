@@ -442,10 +442,10 @@ function showBetaModal() {
 // ========================================
 const UPDATES = [
   {
-    version: '1.0.3',
+    version: '1.0.6',
     date: '2026-01-26',
     changes: [
-      'loading leaderboard is faster, you can get banned!'
+      'wheel game is now out'
     ]
   }
   // Add more updates here:
