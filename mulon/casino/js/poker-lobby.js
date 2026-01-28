@@ -532,24 +532,46 @@ export class PokerLobbyManager {
 
   // Leave current lobby
   async leaveLobby() {
-    if (!this.currentLobbyId || !this.currentUser) {
-      return { success: false, error: 'Not in a lobby' };
+    // Store lobby ID before clearing (in case of error)
+    const lobbyIdToLeave = this.currentLobbyId;
+    
+    if (!lobbyIdToLeave || !this.currentUser) {
+      // Clear local state even if not in a lobby
+      this.currentLobbyId = null;
+      this.currentLobby = null;
+      return { success: true, message: 'Not in a lobby' };
     }
 
     try {
-      const lobbyRef = doc(this.db, 'poker_lobbies', this.currentLobbyId);
+      // Stop listening first to prevent race conditions
+      if (this.lobbyUnsubscribe) {
+        this.lobbyUnsubscribe();
+        this.lobbyUnsubscribe = null;
+      }
+      
+      const lobbyRef = doc(this.db, 'poker_lobbies', lobbyIdToLeave);
       const lobbyDoc = await getDoc(lobbyRef);
 
+      // Lobby already deleted, just clean up local state
       if (!lobbyDoc.exists()) {
         this.currentLobbyId = null;
+        this.currentLobby = null;
+        // Update user status silently
+        try {
+          await updateDoc(doc(this.db, 'mulon_users', this.currentUser.uid), {
+            currentPokerLobby: null
+          });
+        } catch (e) { /* ignore */ }
         return { success: true };
       }
 
       const lobbyData = lobbyDoc.data();
-      const player = lobbyData.players.find(p => p.id === this.currentUser.uid);
+      const player = lobbyData.players?.find(p => p.id === this.currentUser.uid);
 
+      // Player not in lobby anymore, just clean up local state
       if (!player) {
         this.currentLobbyId = null;
+        this.currentLobby = null;
         return { success: true };
       }
 
@@ -560,42 +582,52 @@ export class PokerLobbyManager {
       });
 
       // Check remaining players after removal
-      const remainingPlayers = lobbyData.players.filter(p => p.id !== this.currentUser.uid);
+      const remainingPlayers = (lobbyData.players || []).filter(p => p.id !== this.currentUser.uid);
 
       // If no players remain, delete the lobby entirely
       if (remainingPlayers.length === 0) {
-        await deleteDoc(lobbyRef);
+        try {
+          await deleteDoc(lobbyRef);
+        } catch (e) {
+          console.log('Lobby already deleted or error:', e.message);
+        }
       } else if (lobbyData.hostId === this.currentUser.uid) {
         // If host leaves but others remain, transfer host to next player
         const newHost = remainingPlayers[0];
-        await updateDoc(lobbyRef, {
-          hostId: newHost.id,
-          hostName: newHost.displayName,
-          hostPhotoURL: newHost.photoURL,
-          players: remainingPlayers.map((p, i) => ({
-            ...p,
-            isHost: i === 0
-          }))
-        });
+        try {
+          await updateDoc(lobbyRef, {
+            hostId: newHost.id,
+            hostName: newHost.displayName,
+            hostPhotoURL: newHost.photoURL,
+            players: remainingPlayers.map((p, i) => ({
+              ...p,
+              isHost: i === 0
+            }))
+          });
+        } catch (e) {
+          console.log('Could not transfer host:', e.message);
+        }
       }
 
       // Update user status
-      await updateDoc(doc(this.db, 'mulon_users', this.currentUser.uid), {
-        currentPokerLobby: null
-      });
-
-      // Stop listening
-      if (this.lobbyUnsubscribe) {
-        this.lobbyUnsubscribe();
-        this.lobbyUnsubscribe = null;
+      try {
+        await updateDoc(doc(this.db, 'mulon_users', this.currentUser.uid), {
+          currentPokerLobby: null
+        });
+      } catch (e) {
+        console.log('Could not update user status:', e.message);
       }
 
+      // Clear local state
       this.currentLobbyId = null;
       this.currentLobby = null;
 
       return { success: true };
     } catch (error) {
       console.error('Error leaving lobby:', error);
+      // Still clear local state on error to prevent stuck state
+      this.currentLobbyId = null;
+      this.currentLobby = null;
       return { success: false, error: error.message };
     }
   }

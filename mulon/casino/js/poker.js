@@ -24,6 +24,7 @@ class PokerController {
     // State
     this.isHost = false;
     this.isInGame = false;
+    this.isLeaving = false; // Prevent double leave clicks
     this.selectedBuyIn = 25;
     this.lastPhase = null; // Track phase for chip animations
 
@@ -803,9 +804,31 @@ class PokerController {
         <button class="leave-lobby-btn">Leave</button>
       `;
       
-      // Add leave handler
+      // Add leave handler with debouncing
       const leaveBtn = myLobbyEl.querySelector('.leave-lobby-btn');
-      leaveBtn?.addEventListener('click', () => this.leaveLobby());
+      leaveBtn?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (this.isLeaving) return;
+        
+        // If in game, use the game leave handler
+        if (this.isInGame) {
+          this.handleLeaveGame();
+        } else {
+          // Just leaving lobby (not in game)
+          this.isLeaving = true;
+          leaveBtn.disabled = true;
+          leaveBtn.textContent = 'Leaving...';
+          
+          try {
+            await this.leaveLobby();
+            this.showToast('Left the lobby');
+          } catch (error) {
+            console.error('Error leaving:', error);
+          } finally {
+            this.isLeaving = false;
+          }
+        }
+      });
       
       this.elements.playersList.appendChild(myLobbyEl);
     }
@@ -1492,42 +1515,166 @@ class PokerController {
   }
 
   async leaveLobby() {
-    const result = await this.lobbyManager?.leaveLobby();
-    if (result?.success) {
-      this.showToast('Left the lobby');
-      this.resetLobbyUI();
-    } else {
-      console.error('Failed to leave lobby:', result?.error);
+    if (!this.lobbyManager) return { success: false };
+    
+    try {
+      const result = await this.lobbyManager.leaveLobby();
+      if (result?.success) {
+        this.resetLobbyUI();
+        return { success: true };
+      } else {
+        console.error('Failed to leave lobby:', result?.error);
+        return { success: false, error: result?.error };
+      }
+    } catch (error) {
+      console.error('Error in leaveLobby:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // Handle leaving the game mid-game
   async handleLeaveGame() {
-    if (!this.isInGame) return;
+    if (!this.isInGame || this.isLeaving) return;
     
     // Confirm leave
     if (!confirm('Are you sure you want to leave the game? You will lose your current bet.')) {
       return;
     }
     
-    // Leave the current lobby
-    await this.leaveLobby();
+    // Prevent double-clicks
+    this.isLeaving = true;
+    
+    // Disable leave button during process
+    if (this.elements.leaveGameBtn) {
+      this.elements.leaveGameBtn.disabled = true;
+      this.elements.leaveGameBtn.textContent = 'Leaving...';
+    }
+    
+    try {
+      // Full reset before leaving
+      await this.fullGameReset();
+      
+      // Leave the current lobby
+      await this.leaveLobby();
+      
+      this.showToast('You left the game');
+    } catch (error) {
+      console.error('Error leaving game:', error);
+      this.showToast('Error leaving game', 'error');
+    } finally {
+      // Re-enable button and reset flag
+      this.isLeaving = false;
+      if (this.elements.leaveGameBtn) {
+        this.elements.leaveGameBtn.disabled = false;
+        this.elements.leaveGameBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Leave Game
+        `;
+      }
+    }
+  }
+  
+  // Full game state reset
+  async fullGameReset() {
+    // Stop any running timers
+    this.stopTurnTimer();
     
     // Reset game state
     this.isInGame = false;
     this.game = null;
     this.lastPhase = null;
+    this.isHost = false;
+    
+    // Reset animation tracking
+    this.resetCardAnimationState();
+    
+    // Remove game-started class
     document.body.classList.remove('game-started');
+    
+    // Hide showdown modal if visible
+    this.hideShowdownModal();
     
     // Clear all bet displays
     this.clearAllBets();
+    
+    // Reset community cards
+    this.resetCommunityCards();
+    
+    // Reset hole cards
+    this.resetHoleCards();
+    
+    // Reset pot display
+    this.resetPotDisplay();
+    
+    // Reset player slots
+    this.resetLobbyUI();
     
     // Show config panel
     if (this.elements.partyConfig) {
       this.elements.partyConfig.style.display = 'flex';
     }
     
-    this.showToast('You left the game');
+    // Reset ready button
+    if (this.elements.readyBtn) {
+      this.elements.readyBtn.classList.remove('ready');
+      this.elements.readyBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Ready Up
+      `;
+    }
+    
+    // Hide start button
+    if (this.elements.startGameBtn) {
+      this.elements.startGameBtn.style.display = 'none';
+    }
+  }
+  
+  // Reset community cards to empty state
+  resetCommunityCards() {
+    if (!this.elements.communityCards) return;
+    
+    const cards = this.elements.communityCards.querySelectorAll('.community-card');
+    cards.forEach(card => {
+      card.className = 'community-card';
+      card.innerHTML = '';
+    });
+  }
+  
+  // Reset hole cards to empty state
+  resetHoleCards() {
+    if (!this.elements.yourCards) return;
+    
+    const cards = this.elements.yourCards.querySelectorAll('.hand-card');
+    cards.forEach(card => {
+      card.className = 'hand-card';
+      card.innerHTML = `
+        <span class="card-value">?</span>
+        <span class="card-suit">?</span>
+      `;
+    });
+  }
+  
+  // Reset pot display
+  resetPotDisplay() {
+    if (this.elements.potChips) {
+      this.elements.potChips.innerHTML = '';
+    }
+    if (this.elements.potAmount) {
+      this.elements.potAmount.textContent = '$0';
+    }
+    // Also reset your chip stack display
+    if (this.elements.yourChipStack) {
+      this.elements.yourChipStack.innerHTML = '';
+    }
+    if (this.elements.yourChipsAmount) {
+      this.elements.yourChipsAmount.textContent = '$0';
+    }
   }
 
   async handleJoinRequestAction(requestId, accept) {
@@ -1755,9 +1902,20 @@ class PokerController {
   }
   
   // Handle leave lobby from showdown modal
-  handleLeaveLobbyFromModal() {
-    this.hideShowdownModal();
-    this.leaveLobby();
+  async handleLeaveLobbyFromModal() {
+    if (this.isLeaving) return;
+    
+    this.isLeaving = true;
+    
+    try {
+      await this.fullGameReset();
+      await this.leaveLobby();
+      this.showToast('Left the lobby');
+    } catch (error) {
+      console.error('Error leaving from modal:', error);
+    } finally {
+      this.isLeaving = false;
+    }
   }
   async startGame() {
     if (!this.lobbyManager?.currentLobby) return;
