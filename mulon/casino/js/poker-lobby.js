@@ -510,26 +510,24 @@ export class PokerLobbyManager {
         updatedAt: serverTimestamp()
       });
 
-      // If host leaves, transfer or close lobby
-      if (lobbyData.hostId === this.currentUser.uid) {
-        const remainingPlayers = lobbyData.players.filter(p => p.id !== this.currentUser.uid);
-        
-        if (remainingPlayers.length > 0) {
-          // Transfer host to next player
-          const newHost = remainingPlayers[0];
-          await updateDoc(lobbyRef, {
-            hostId: newHost.id,
-            hostName: newHost.displayName,
-            hostPhotoURL: newHost.photoURL,
-            players: remainingPlayers.map((p, i) => ({
-              ...p,
-              isHost: i === 0
-            }))
-          });
-        } else {
-          // Close lobby if no players left
-          await deleteDoc(lobbyRef);
-        }
+      // Check remaining players after removal
+      const remainingPlayers = lobbyData.players.filter(p => p.id !== this.currentUser.uid);
+
+      // If no players remain, delete the lobby entirely
+      if (remainingPlayers.length === 0) {
+        await deleteDoc(lobbyRef);
+      } else if (lobbyData.hostId === this.currentUser.uid) {
+        // If host leaves but others remain, transfer host to next player
+        const newHost = remainingPlayers[0];
+        await updateDoc(lobbyRef, {
+          hostId: newHost.id,
+          hostName: newHost.displayName,
+          hostPhotoURL: newHost.photoURL,
+          players: remainingPlayers.map((p, i) => ({
+            ...p,
+            isHost: i === 0
+          }))
+        });
       }
 
       // Update user status
