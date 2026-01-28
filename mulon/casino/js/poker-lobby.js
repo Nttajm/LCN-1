@@ -101,6 +101,9 @@ export class PokerLobbyManager {
     // Start periodic refresh for sync
     this.startPeriodicRefresh();
 
+    // Clean up inactive lobbies (older than 5 minutes)
+    this.cleanupInactiveLobbies();
+
     this.isInitialized = true;
     console.log('PokerLobbyManager initialized');
     return true;
@@ -147,6 +150,14 @@ export class PokerLobbyManager {
     this.refreshInterval = setInterval(() => {
       this.refreshData();
     }, 5000);
+
+    // Cleanup inactive lobbies every 2 minutes
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupInactiveLobbies();
+    }, 2 * 60 * 1000); // 2 minutes
   }
 
   // Refresh all data
@@ -198,6 +209,44 @@ export class PokerLobbyManager {
       } catch (error) {
         console.error('Error checking for new lobby:', error);
       }
+    }
+  }
+
+  // Clean up lobbies that have been inactive for more than 5 minutes
+  async cleanupInactiveLobbies() {
+    try {
+      const lobbiesRef = collection(this.db, 'poker_lobbies');
+      const snapshot = await getDocs(lobbiesRef);
+      
+      const now = Date.now();
+      const fiveMinutesAgo = now - (5 * 60 * 1000); // 5 minutes in milliseconds
+      
+      const deletePromises = [];
+      
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        
+        // Get the last update time
+        const updatedAt = data.updatedAt?.toMillis?.() || data.createdAt?.toMillis?.() || 0;
+        
+        // If lobby hasn't been updated in 5 minutes and is not in a game, delete it
+        // Also delete if it's an empty lobby
+        const isInactive = updatedAt < fiveMinutesAgo;
+        const isEmpty = !data.players || data.players.length === 0;
+        const isNotInGame = data.status !== 'in_game';
+        
+        if (isEmpty || (isInactive && isNotInGame)) {
+          console.log(`🗑️ Cleaning up inactive lobby: ${docSnap.id} (last updated: ${new Date(updatedAt).toLocaleTimeString()})`);
+          deletePromises.push(deleteDoc(doc(this.db, 'poker_lobbies', docSnap.id)));
+        }
+      });
+      
+      if (deletePromises.length > 0) {
+        await Promise.all(deletePromises);
+        console.log(`🧹 Cleaned up ${deletePromises.length} inactive lobbies`);
+      }
+    } catch (error) {
+      console.error('Error cleaning up inactive lobbies:', error);
     }
   }
 

@@ -759,6 +759,7 @@ class PokerController {
     // Render your lobby first if you have one
     if (myLobby) {
       const isInGame = myLobby.status === LOBBY_STATUS.IN_GAME;
+      const myLobbyPlayers = myLobby.players || [];
       const myLobbyEl = document.createElement('div');
       myLobbyEl.className = `player-lobby your-lobby ${isInGame ? 'in-game' : ''}`;
       myLobbyEl.dataset.lobbyId = myLobby.id;
@@ -768,7 +769,7 @@ class PokerController {
           <span class="status-text">${isInGame ? 'In Game' : 'Your Lobby'}</span>
         </div>
         <div class="lobby-players-detail">
-          ${myLobby.players.map(p => {
+          ${myLobbyPlayers.map(p => {
             const isPlaying = isInGame && !p.waitingForNextHand;
             const isWaiting = isInGame && p.waitingForNextHand;
             const isYou = p.id === this.currentUser?.uid;
@@ -784,7 +785,7 @@ class PokerController {
                 p.isReady ? '<span class="player-status-tag ready">Ready</span>' : ''}
             </div>
           `}).join('')}
-          ${myLobby.players.length < myLobby.maxPlayers ? `
+          ${myLobbyPlayers.length < myLobby.maxPlayers ? `
             <div class="player-row empty-slot">
               <div class="player-avatar-small empty">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -796,7 +797,7 @@ class PokerController {
           ` : ''}
         </div>
         <div class="lobby-info">
-          <span class="lobby-owner">${myLobby.players.length}/${myLobby.maxPlayers} Players</span>
+          <span class="lobby-owner">${myLobbyPlayers.length}/${myLobby.maxPlayers} Players</span>
           <span class="lobby-game">$${myLobby.buyIn} Buy-in</span>
         </div>
         <button class="leave-lobby-btn">Leave</button>
@@ -842,9 +843,13 @@ class PokerController {
       lobbyEl.className = 'player-lobby';
       lobbyEl.dataset.lobbyId = lobby.id;
 
+      // Ensure players array exists
+      const lobbyPlayers = lobby.players || [];
+      console.log(`Lobby ${lobby.id} has ${lobbyPlayers.length} players:`, lobbyPlayers.map(p => p.displayName));
+
       // Determine status class
       const isInGame = lobby.status === LOBBY_STATUS.IN_GAME;
-      const isFull = lobby.players.length >= lobby.maxPlayers;
+      const isFull = lobbyPlayers.length >= lobby.maxPlayers;
       const statusClass = isInGame ? 'in-game' : isFull ? 'full' : 'open';
       
       // Can join if not full (even if in-game, they can wait for next hand)
@@ -860,7 +865,7 @@ class PokerController {
           }</span>
         </div>
         <div class="lobby-players-detail">
-          ${lobby.players.map(p => {
+          ${lobbyPlayers.map(p => {
             const isPlaying = isInGame && !p.waitingForNextHand;
             const isWaiting = isInGame && p.waitingForNextHand;
             return `
@@ -875,7 +880,7 @@ class PokerController {
                 p.isReady ? '<span class="player-status-tag ready">Ready</span>' : ''}
             </div>
           `}).join('')}
-          ${lobby.players.length < lobby.maxPlayers ? `
+          ${lobbyPlayers.length < lobby.maxPlayers ? `
             <div class="player-row empty-slot">
               <div class="player-avatar-small empty">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -888,7 +893,7 @@ class PokerController {
         </div>
         <div class="lobby-info">
           <span class="lobby-owner">${lobby.hostName}'s Party</span>
-          <span class="lobby-game">$${lobby.buyIn} Buy-in • ${lobby.players.length}/${lobby.maxPlayers}</span>
+          <span class="lobby-game">$${lobby.buyIn} Buy-in • ${lobbyPlayers.length}/${lobby.maxPlayers}</span>
         </div>
         <button class="ask-join-btn" ${!canJoin ? 'disabled' : ''}>
           ${!canJoin ? 'Full' : isInGame ? 'Join (Wait for Next Hand)' : 'Ask to Join'}
