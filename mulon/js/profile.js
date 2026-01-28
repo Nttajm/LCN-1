@@ -15,17 +15,7 @@ const GAME_ICONS = {
 };
 
 // Level tier data (same as casino.html)
-const LEVEL_TIERS = [
-  { minLevel: 1, name: 'Grass toucher', colors: { text: '#6b7280' } },
-  { minLevel: 3, name: 'Rookie', colors: { text: '#22c55e' } },
-  { minLevel: 5, name: 'pocket aces', colors: { text: '#3b82f6' } },
-  { minLevel: 10, name: 'Veteran', colors: { text: '#8b5cf6' } },
-  { minLevel: 15, name: 'Elite', colors: { text: '#f59e0b' } },
-  { minLevel: 20, name: 'lil sigma', colors: { text: '#ef4444' } },
-  { minLevel: 30, name: 'Cronic Addict', colors: { text: '#ec4899' } },
-  { minLevel: 50, name: 'GRANDMASTER', colors: { text: '#14b8a6' } },
-  { minLevel: 100, name: 'on joels watch-list', colors: { text: '#fbbf24' } }
-];
+import { LEVEL_TIERS } from './casino-page.js';
 
 function getTierForLevel(level) {
   let tier = LEVEL_TIERS[0];
