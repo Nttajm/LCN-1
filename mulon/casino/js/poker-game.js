@@ -332,6 +332,10 @@ export class PokerGame {
 
   // Start a new hand
   startHand() {
+    console.log('═══════════════════════════════════════════');
+    console.log('🎰 STARTING NEW HAND');
+    console.log('═══════════════════════════════════════════');
+    
     // Reset all players for new hand
     this.players.forEach(p => {
       if (p) p.resetHand();
@@ -344,15 +348,43 @@ export class PokerGame {
     this.currentBet = 0;
     this.roundActions = [];
 
-    // Create and shuffle new deck
+    // Create a completely fresh deck each hand
+    console.log('🃏 Creating new deck...');
     this.deck = new Deck();
+    
+    // Shuffle the deck
+    console.log('🎲 Shuffling deck...');
     this.deck.shuffle();
     
-    // Log first few cards to verify shuffle is working (with timestamp for uniqueness)
-    const shuffleId = Date.now().toString(36);
-    console.log(`🃏 [${shuffleId}] Deck shuffled! First 5 cards:`, 
-      this.deck.cards.slice(0, 5).map(c => `${c.value}${c.suitInfo.symbol}`).join(', ')
-    );
+    // DIAGNOSTIC: Log entire deck order to verify randomness
+    const allCardsSorted = [...this.deck.cards];
+    const suitDistribution = { hearts: 0, diamonds: 0, clubs: 0, spades: 0 };
+    allCardsSorted.forEach(c => suitDistribution[c.suit]++);
+    
+    console.log('📊 Deck suit distribution:', suitDistribution);
+    console.log('🃏 Full deck order (first 20):', 
+      allCardsSorted.slice(0, 20).map(c => `${c.value}${c.suitInfo.symbol}`).join(' '));
+    
+    // Check for any patterns - consecutive same suits
+    let maxConsecutiveSameSuit = 0;
+    let currentConsecutive = 1;
+    for (let i = 1; i < allCardsSorted.length; i++) {
+      if (allCardsSorted[i].suit === allCardsSorted[i-1].suit) {
+        currentConsecutive++;
+        maxConsecutiveSameSuit = Math.max(maxConsecutiveSameSuit, currentConsecutive);
+      } else {
+        currentConsecutive = 1;
+      }
+    }
+    console.log('📊 Max consecutive same suit:', maxConsecutiveSameSuit, '(should be low, like 2-4)');
+    
+    // Verify deck has 52 unique cards
+    const cardSet = new Set(this.deck.cards.map(c => c.id));
+    if (cardSet.size !== 52) {
+      console.error('❌ Deck integrity error! Expected 52 unique cards, got', cardSet.size);
+    } else {
+      console.log('✅ Deck integrity verified: 52 unique cards');
+    }
 
     // Initialize dealer to first valid player if not set
     if (!this.players[this.dealerIndex]) {
@@ -370,6 +402,19 @@ export class PokerGame {
 
     // Deal hole cards
     this.dealHoleCards();
+    
+    // DIAGNOSTIC: Check what cards players got
+    console.log('═══════════════════════════════════════════');
+    console.log('👥 CARDS DEALT TO PLAYERS:');
+    this.players.forEach((p, i) => {
+      if (p && p.holeCards.length >= 2) {
+        const card1 = p.holeCards[0];
+        const card2 = p.holeCards[1];
+        const sameSuit = card1.suit === card2.suit;
+        console.log(`  Seat ${i} (${p.displayName}): ${card1.value}${card1.suitInfo.symbol} ${card2.value}${card2.suitInfo.symbol} ${sameSuit ? '(SUITED)' : '(offsuit)'}`);
+      }
+    });
+    console.log('═══════════════════════════════════════════');
 
     // Start pre-flop betting
     this.phase = GAME_PHASES.PRE_FLOP;
@@ -436,24 +481,24 @@ export class PokerGame {
 
   // Deal hole cards to all players
   dealHoleCards() {
-    // Deal 2 cards to each player
+    console.log(`🃏 Dealing hole cards from deck (${this.deck.remaining} cards remaining)...`);
+    
+    // Deal 2 cards to each player (one at a time, going around the table twice - like real poker)
     for (let round = 0; round < 2; round++) {
       for (let i = 0; i < this.maxPlayers; i++) {
         const player = this.players[i];
         if (player) {
           const card = this.deck.deal(false); // Face down
-          player.holeCards.push(card);
-          console.log(`🃏 Dealt ${card.value}${card.suitInfo.symbol} to ${player.displayName} (seat ${i})`);
+          if (card) {
+            player.holeCards.push(card);
+          } else {
+            console.error(`❌ Failed to deal card to ${player.displayName}!`);
+          }
         }
       }
     }
     
-    // Log all players' cards for verification
-    this.players.forEach((p, i) => {
-      if (p && p.holeCards.length > 0) {
-        console.log(`👤 ${p.displayName} hole cards:`, p.holeCards.map(c => `${c.value}${c.suitInfo.symbol}`).join(', '));
-      }
-    });
+    console.log(`🃏 Hole cards dealt. Deck now has ${this.deck.remaining} cards remaining.`);
   }
 
   // Start a betting round
@@ -629,12 +674,16 @@ export class PokerGame {
 
   // Deal the flop (3 cards)
   dealFlop() {
+    console.log(`🃏 Dealing flop - deck has ${this.deck.remaining} cards remaining`);
     this.deck.deal(false); // Burn card
     
+    const flopCards = [];
     for (let i = 0; i < 3; i++) {
       const card = this.deck.deal(true);
       this.communityCards.push(card);
+      flopCards.push(`${card.value}${card.suitInfo.symbol}`);
     }
+    console.log(`🃏 Flop dealt:`, flopCards.join(', '));
 
     this.phase = GAME_PHASES.FLOP;
     this.startBettingRound();
@@ -642,9 +691,11 @@ export class PokerGame {
 
   // Deal the turn (1 card)
   dealTurn() {
+    console.log(`🃏 Dealing turn - deck has ${this.deck.remaining} cards remaining`);
     this.deck.deal(false); // Burn card
     const card = this.deck.deal(true);
     this.communityCards.push(card);
+    console.log(`🃏 Turn dealt: ${card.value}${card.suitInfo.symbol}`);
 
     this.phase = GAME_PHASES.TURN;
     this.startBettingRound();
@@ -652,9 +703,11 @@ export class PokerGame {
 
   // Deal the river (1 card)
   dealRiver() {
+    console.log(`🃏 Dealing river - deck has ${this.deck.remaining} cards remaining`);
     this.deck.deal(false); // Burn card
     const card = this.deck.deal(true);
     this.communityCards.push(card);
+    console.log(`🃏 River dealt: ${card.value}${card.suitInfo.symbol}`);
 
     this.phase = GAME_PHASES.RIVER;
     this.startBettingRound();
@@ -839,22 +892,39 @@ export class PokerGame {
     const playersInHand = this.getPlayersInHand();
     
     if (playersInHand.length === 1) {
-      return [{ player: playersInHand[0], hand: null, score: null }];
+      console.log('🏆 Winner by default (all others folded):', playersInHand[0].displayName);
+      return [{ player: playersInHand[0], hand: null, score: null, handName: 'Win by Fold' }];
     }
+
+    console.log('🔍 Evaluating hands for', playersInHand.length, 'players...');
+    console.log('📋 Community cards:', this.communityCards.map(c => `${c.value}${c.suitInfo.symbol}`).join(', '));
 
     // Evaluate each player's best hand
     const evaluations = playersInHand.map(player => {
       const allCards = [...player.holeCards, ...this.communityCards];
+      
+      console.log(`👤 ${player.displayName} - Hole cards:`, 
+        player.holeCards.map(c => `${c.value}${c.suitInfo.symbol}`).join(', '),
+        '| All 7 cards:', allCards.map(c => `${c.value}${c.suitInfo.symbol}`).join(', ')
+      );
+      
       const result = HandEvaluator.getBestHand(allCards);
+      const handName = HandEvaluator.getHandName(result.score);
+      
+      console.log(`   ➜ Best hand: ${handName} (rank ${result.score.ranking})`,
+        '| Best 5:', result.hand.map(c => `${c.value}${c.suitInfo.symbol}`).join(', '),
+        '| Kickers:', result.score.kickers.join(', ')
+      );
+      
       return {
         player,
         hand: result.hand,
         score: result.score,
-        handName: HandEvaluator.getHandName(result.score)
+        handName: handName
       };
     });
 
-    // Sort by hand strength
+    // Sort by hand strength (highest first)
     evaluations.sort((a, b) => HandEvaluator.compareHands(b.score, a.score));
 
     // Find all winners (could be ties)
@@ -866,6 +936,8 @@ export class PokerGame {
         break;
       }
     }
+
+    console.log('🏆 Winner(s):', winners.map(w => `${w.player.displayName} with ${w.handName}`).join(', '));
 
     return winners;
   }
@@ -996,6 +1068,7 @@ export class PokerGame {
         return p.serialize(hideCards);
       }),
       communityCards: this.communityCards.map(c => c.serialize()),
+      deck: this.deck.serialize(), // Include deck state for proper synchronization
       phase: this.phase,
       pot: this.pot,
       currentBet: this.currentBet,
@@ -1019,6 +1092,17 @@ export class PokerGame {
     
     game.players = data.players.map(p => p ? Player.deserialize(p) : null);
     game.communityCards = data.communityCards.map(c => Card.deserialize(c));
+    
+    // Restore the deck state if available (critical for proper card dealing)
+    if (data.deck) {
+      game.deck = Deck.deserialize(data.deck);
+    } else {
+      // Legacy: if no deck data, create fresh shuffled deck
+      console.warn('⚠️ No deck data in game state - cards may not be synchronized');
+      game.deck = new Deck();
+      game.deck.shuffle();
+    }
+    
     game.phase = data.phase;
     game.pot = data.pot;
     game.currentBet = data.currentBet;

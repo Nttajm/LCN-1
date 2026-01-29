@@ -131,41 +131,93 @@ export class Deck {
     this.reset();
   }
 
-  // Create a fresh 52-card deck
+  // Create a fresh 52-card deck - cards are created in random order from the start
   reset() {
     this.cards = [];
     this.dealtCards = [];
 
-    for (const suit of Object.keys(SUITS)) {
-      for (const value of Object.keys(VALUES)) {
-        this.cards.push(new Card(suit, value));
+    // Create all 52 cards first
+    const allCards = [];
+    const suits = Object.keys(SUITS);
+    const values = Object.keys(VALUES);
+    
+    for (const suit of suits) {
+      for (const value of values) {
+        allCards.push(new Card(suit, value));
       }
     }
+    
+    // Immediately randomize during creation using Fisher-Yates
+    // This ensures deck is NEVER in ordered state
+    for (let i = allCards.length - 1; i > 0; i--) {
+      const j = this.getSecureRandomInt(i + 1);
+      [allCards[i], allCards[j]] = [allCards[j], allCards[i]];
+    }
+    
+    this.cards = allCards;
+    console.log('🃏 Deck reset with', this.cards.length, 'cards (pre-randomized)');
 
     return this;
   }
 
-  // Fisher-Yates shuffle - truly random
+  // Fisher-Yates shuffle - cryptographically secure and truly random
   shuffle() {
-    const cards = this.cards;
-    const n = cards.length;
+    const n = this.cards.length;
     
-    // Fisher-Yates shuffle algorithm
-    for (let i = n - 1; i > 0; i--) {
-      // Use crypto for better randomness if available
-      let j;
-      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-        const randomArray = new Uint32Array(1);
-        crypto.getRandomValues(randomArray);
-        j = randomArray[0] % (i + 1);
-      } else {
-        j = Math.floor(Math.random() * (i + 1));
+    // Multiple shuffle passes for maximum randomness
+    for (let pass = 0; pass < 7; pass++) {
+      // Fisher-Yates shuffle
+      for (let i = n - 1; i > 0; i--) {
+        const j = this.getSecureRandomInt(i + 1);
+        [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
       }
-      [cards[i], cards[j]] = [cards[j], cards[i]];
     }
     
-    console.log('🎲 Shuffle complete - deck randomized');
+    // Random cut of the deck
+    const cutPoint = this.getSecureRandomInt(n);
+    if (cutPoint > 0 && cutPoint < n) {
+      this.cards = [...this.cards.slice(cutPoint), ...this.cards.slice(0, cutPoint)];
+    }
+    
+    // Verify shuffle quality - log suit distribution in first 10 cards
+    const first10 = this.cards.slice(0, 10);
+    const suitCounts = {};
+    first10.forEach(c => {
+      suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+    });
+    console.log('🎲 Shuffle complete - First 10 cards suit distribution:', suitCounts);
+    console.log('🎲 First 10 cards:', first10.map(c => `${c.value}${c.suitInfo.symbol}`).join(', '));
+    
     return this;
+  }
+  
+  // Generate an unbiased secure random integer in range [0, max)
+  // Uses rejection sampling to avoid modulo bias
+  getSecureRandomInt(max) {
+    if (max <= 0) return 0;
+    if (max === 1) return 0;
+    
+    // Use crypto API if available (browser or Node.js)
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      // Calculate the largest multiple of max that fits in 32 bits
+      // Any value >= this must be rejected to avoid bias
+      const maxUint32 = 0xFFFFFFFF;
+      const limit = maxUint32 - (maxUint32 % max);
+      
+      const randomArray = new Uint32Array(1);
+      let randomValue;
+      
+      // Rejection sampling - retry if value would cause bias
+      do {
+        crypto.getRandomValues(randomArray);
+        randomValue = randomArray[0];
+      } while (randomValue >= limit);
+      
+      return randomValue % max;
+    } else {
+      // Fallback to Math.random - use multiple sources
+      return Math.floor(Math.random() * max);
+    }
   }
 
   // Deal a card from top of deck

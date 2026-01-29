@@ -231,7 +231,7 @@ class PokerController {
     
     // Showdown modal buttons
     this.elements.playAgainBtn?.addEventListener('click', () => this.handlePlayAgain());
-    this.elements.stayLobbyBtn?.addEventListener('click', () => this.handleLeaveLobbyFromModal());
+    this.elements.stayLobbyBtn?.addEventListener('click', () => this.handleReturnToLobby());
 
     // Cleanup on page leave
     window.addEventListener('beforeunload', () => this.cleanup());
@@ -285,6 +285,18 @@ class PokerController {
     this.lobbyManager.onOnlinePlayersUpdate = this.handleOnlinePlayersUpdate;
     this.lobbyManager.onGameStart = (lobbyId) => this.startGame();
     this.lobbyManager.onGameStateUpdate = this.handleGameStateUpdate.bind(this);
+    
+    // Player join/leave notifications
+    this.lobbyManager.onPlayerJoin = (playerId, playerName) => {
+      if (playerId !== this.currentUser?.uid) {
+        this.showToast(`${playerName || 'A player'} joined the lobby`, 'success');
+      }
+    };
+    this.lobbyManager.onPlayerLeave = (playerId, playerName) => {
+      if (playerId !== this.currentUser?.uid) {
+        this.showToast(`${playerName || 'A player'} left the lobby`, 'info');
+      }
+    };
   }
 
   // ========================================
@@ -297,9 +309,24 @@ class PokerController {
     
     console.log('📡 Game state update from Firebase:', gameState.phase);
     
+    // Ensure we're marked as in-game when receiving game state
+    if (!this.isInGame) {
+      console.log('🎮 Entering game from game state update');
+      this.isInGame = true;
+      document.body.classList.add('game-started');
+      
+      // Hide config panel
+      if (this.elements.partyConfig) {
+        this.elements.partyConfig.style.display = 'none';
+      }
+    }
+    
     // Reset card animation state when a new hand starts (PRE_FLOP)
     if (gameState.phase === GAME_PHASES.PRE_FLOP && this.lastPhase !== GAME_PHASES.PRE_FLOP) {
       this.resetCardAnimationState();
+      // Hide showdown modal when new hand starts
+      this.hideShowdownModal();
+      this.showdownModalShown = false;
     }
     
     // Track phase changes for animations
@@ -461,6 +488,8 @@ class PokerController {
         });
       }
       
+      // Mark as in game and update UI
+      const wasInGame = this.isInGame;
       this.isInGame = true;
       document.body.classList.add('game-started');
       
@@ -476,12 +505,52 @@ class PokerController {
         // Update UI with filtered view (hide other players' cards)
         const displayState = this.game.serialize(this.currentUser?.uid);
         this.updateGameUI(displayState);
+        
+        // Log for debugging
+        if (!wasInGame) {
+          console.log('🎮 Game initialized from lobby update, phase:', lobby.gameState.phase);
+        }
+        
+        // Check for play again votes and update UI
+        const votes = lobby.playAgainVotes || [];
+        const totalPlayers = lobby.players?.length || 0;
+        
+        // Update vote display if showdown modal is visible
+        if (this.elements.showdownModal?.classList.contains('active')) {
+          this.updatePlayAgainVotes(votes, totalPlayers);
+        }
+        
+        // If all players voted and host, start new hand
+        if (this.isHost && votes.length >= totalPlayers && totalPlayers >= 2) {
+          console.log('🎉 All players voted! Starting new hand...');
+          // Small delay to ensure all clients see the votes
+          setTimeout(() => this.startNewHand(), 500);
+        }
+      } else if (!wasInGame) {
+        // Game just started but no gameState yet - show waiting message
+        console.log('⏳ Waiting for game state from host...');
       }
     } else {
+      // Not in game - reset state and show lobby UI
+      if (this.isInGame) {
+        console.log('🔄 Game ended, returning to lobby');
+        this.isInGame = false;
+        this.gameState = null;
+        
+        // Hide game UI elements
+        this.elements.pokerActions?.classList.remove('visible');
+        this.elements.tableContainer?.classList.add('hidden');
+        
+        // Hide showdown modal if visible
+        this.hideShowdownModal();
+      }
+      
       // Show config panel when not in game
       if (this.elements.partyConfig) {
         this.elements.partyConfig.style.display = 'flex';
+        this.elements.partyConfig.classList.add('visible');
       }
+      document.body.classList.remove('game-started');
     }
 
     // Update host status
@@ -761,6 +830,31 @@ class PokerController {
     if (myLobby) {
       const isInGame = myLobby.status === LOBBY_STATUS.IN_GAME;
       const myLobbyPlayers = myLobby.players || [];
+      const gamePhase = myLobby.gamePhase;
+      const currentPlayerIdx = myLobby.currentPlayerIndex;
+      const gameStatePlayers = myLobby.gameState?.players || [];
+      
+      // Create a map of game state player data by id for quick lookup
+      const gameStatePlayerMap = {};
+      gameStatePlayers.forEach(p => {
+        if (p) gameStatePlayerMap[p.id] = p;
+      });
+      
+      // Get phase display text
+      const getPhaseText = (phase) => {
+        const phases = {
+          'waiting': 'Waiting',
+          'ready_check': 'Ready Check',
+          'pre_flop': 'Pre-Flop',
+          'flop': 'Flop',
+          'turn': 'Turn',
+          'river': 'River',
+          'showdown': 'Showdown',
+          'ended': 'Hand Ended'
+        };
+        return phases[phase] || phase || '';
+      };
+      
       const myLobbyEl = document.createElement('div');
       myLobbyEl.className = `player-lobby your-lobby ${isInGame ? 'in-game' : ''}`;
       myLobbyEl.dataset.lobbyId = myLobby.id;
@@ -768,20 +862,30 @@ class PokerController {
         <div class="lobby-status">
           <span class="status-dot ${isInGame ? 'playing' : 'your'}"></span>
           <span class="status-text">${isInGame ? 'In Game' : 'Your Lobby'}</span>
+          ${isInGame && gamePhase ? `<span class="game-phase-tag">${getPhaseText(gamePhase)}</span>` : ''}
         </div>
+        ${isInGame && myLobby.pot ? `<div class="lobby-pot">Pot: $${myLobby.pot}</div>` : ''}
         <div class="lobby-players-detail">
-          ${myLobbyPlayers.map(p => {
+          ${myLobbyPlayers.map((p, idx) => {
+            // Get game state data for this player if in game
+            const gamePlayer = gameStatePlayerMap[p.id];
             const isPlaying = isInGame && !p.waitingForNextHand;
             const isWaiting = isInGame && p.waitingForNextHand;
             const isYou = p.id === this.currentUser?.uid;
+            const isCurrentTurn = isInGame && gamePlayer?.seatIndex === currentPlayerIdx;
+            // Get folded status from game state if in game
+            const isFolded = isInGame && gamePlayer ? (gamePlayer.isFolded || false) : false;
             return `
-            <div class="player-row ${isPlaying ? 'in-game' : ''} ${isWaiting ? 'waiting' : ''} ${p.isReady ? 'ready' : ''} ${isYou ? 'you' : ''}">
+            <div class="player-row ${isPlaying ? 'in-game' : ''} ${isWaiting ? 'waiting' : ''} ${p.isReady ? 'ready' : ''} ${isYou ? 'you' : ''} ${isCurrentTurn ? 'current-turn' : ''} ${isFolded ? 'folded' : ''}">
               <div class="player-avatar-small">
                 <img src="${p.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`}" alt="">
-                ${isPlaying ? '<span class="playing-indicator"></span>' : ''}
+                ${isCurrentTurn ? '<span class="turn-indicator-dot"></span>' : ''}
+                ${isPlaying && !isFolded ? '<span class="playing-indicator"></span>' : ''}
               </div>
               <span class="player-name-small">${isYou ? 'You' : (p.displayName || 'Player')}</span>
-              ${isPlaying ? '<span class="player-status-tag">Playing</span>' : 
+              ${isFolded ? '<span class="player-status-tag folded">Folded</span>' :
+                isCurrentTurn ? '<span class="player-status-tag turn">Their Turn</span>' :
+                isPlaying ? '<span class="player-status-tag">Playing</span>' : 
                 isWaiting ? '<span class="player-status-tag waiting">Waiting</span>' :
                 p.isReady ? '<span class="player-status-tag ready">Ready</span>' : ''}
             </div>
@@ -868,7 +972,30 @@ class PokerController {
 
       // Ensure players array exists
       const lobbyPlayers = lobby.players || [];
-      console.log(`Lobby ${lobby.id} has ${lobbyPlayers.length} players:`, lobbyPlayers.map(p => p.displayName));
+      const gamePhase = lobby.gamePhase;
+      const currentPlayerIdx = lobby.currentPlayerIndex;
+      const gameStatePlayers = lobby.gameState?.players || [];
+      
+      // Create a map of game state player data by id for quick lookup
+      const gameStatePlayerMap = {};
+      gameStatePlayers.forEach(p => {
+        if (p) gameStatePlayerMap[p.id] = p;
+      });
+
+      // Get phase display text
+      const getPhaseText = (phase) => {
+        const phases = {
+          'waiting': 'Waiting',
+          'ready_check': 'Ready Check',
+          'pre_flop': 'Pre-Flop',
+          'flop': 'Flop',
+          'turn': 'Turn',
+          'river': 'River',
+          'showdown': 'Showdown',
+          'ended': 'Hand Ended'
+        };
+        return phases[phase] || phase || '';
+      };
 
       // Determine status class
       const isInGame = lobby.status === LOBBY_STATUS.IN_GAME;
@@ -886,19 +1013,29 @@ class PokerController {
             statusClass === 'in-game' ? 'In Game' : 
             statusClass === 'full' ? 'Full' : 'Open Lobby'
           }</span>
+          ${isInGame && gamePhase ? `<span class="game-phase-tag">${getPhaseText(gamePhase)}</span>` : ''}
         </div>
+        ${isInGame && lobby.pot ? `<div class="lobby-pot">Pot: $${lobby.pot}</div>` : ''}
         <div class="lobby-players-detail">
-          ${lobbyPlayers.map(p => {
+          ${lobbyPlayers.map((p, idx) => {
+            // Get game state data for this player if in game
+            const gamePlayer = gameStatePlayerMap[p.id];
             const isPlaying = isInGame && !p.waitingForNextHand;
             const isWaiting = isInGame && p.waitingForNextHand;
+            const isCurrentTurn = isInGame && gamePlayer?.seatIndex === currentPlayerIdx;
+            // Get folded status from game state if in game
+            const isFolded = isInGame && gamePlayer ? (gamePlayer.isFolded || false) : false;
             return `
-            <div class="player-row ${isPlaying ? 'in-game' : ''} ${isWaiting ? 'waiting' : ''} ${p.isReady ? 'ready' : ''}">
+            <div class="player-row ${isPlaying ? 'in-game' : ''} ${isWaiting ? 'waiting' : ''} ${p.isReady ? 'ready' : ''} ${isCurrentTurn ? 'current-turn' : ''} ${isFolded ? 'folded' : ''}">
               <div class="player-avatar-small">
                 <img src="${p.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`}" alt="">
-                ${isPlaying ? '<span class="playing-indicator"></span>' : ''}
+                ${isCurrentTurn ? '<span class="turn-indicator-dot"></span>' : ''}
+                ${isPlaying && !isFolded ? '<span class="playing-indicator"></span>' : ''}
               </div>
               <span class="player-name-small">${p.displayName || 'Player'}</span>
-              ${isPlaying ? '<span class="player-status-tag">Playing</span>' : 
+              ${isFolded ? '<span class="player-status-tag folded">Folded</span>' :
+                isCurrentTurn ? '<span class="player-status-tag turn">Turn</span>' :
+                isPlaying ? '<span class="player-status-tag">Playing</span>' : 
                 isWaiting ? '<span class="player-status-tag waiting">Waiting</span>' :
                 p.isReady ? '<span class="player-status-tag ready">Ready</span>' : ''}
             </div>
@@ -1862,6 +1999,29 @@ class PokerController {
       resultsContainer.appendChild(playerDiv);
     });
     
+    // Add voting UI if not already present
+    let votingSection = this.elements.showdownModal.querySelector('.play-again-voting');
+    if (!votingSection) {
+      votingSection = document.createElement('div');
+      votingSection.className = 'play-again-voting';
+      votingSection.innerHTML = `
+        <div class="vote-progress">
+          <div class="vote-progress-fill"></div>
+        </div>
+        <div class="vote-count">0/0 voted to play again</div>
+      `;
+      // Insert before the buttons
+      const actionsDiv = this.elements.showdownModal.querySelector('.showdown-actions');
+      if (actionsDiv) {
+        actionsDiv.parentNode.insertBefore(votingSection, actionsDiv);
+      }
+    }
+    
+    // Initialize vote display
+    const votes = this.lobbyManager?.getPlayAgainVotes() || [];
+    const totalPlayers = this.game?.getPlayerCount() || 0;
+    this.updatePlayAgainVotes(votes, totalPlayers);
+    
     // Show the modal
     this.elements.showdownModal.classList.add('active');
   }
@@ -1870,6 +2030,25 @@ class PokerController {
   hideShowdownModal() {
     if (this.elements.showdownModal) {
       this.elements.showdownModal.classList.remove('active');
+      
+      // Reset play again button state
+      if (this.elements.playAgainBtn) {
+        this.elements.playAgainBtn.classList.remove('voted');
+        this.elements.playAgainBtn.disabled = false;
+        this.elements.playAgainBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+          Play Again
+        `;
+      }
+      
+      // Reset voting UI
+      const progressFill = this.elements.showdownModal.querySelector('.vote-progress-fill');
+      const voteCount = this.elements.showdownModal.querySelector('.vote-count');
+      if (progressFill) progressFill.style.width = '0%';
+      if (voteCount) voteCount.textContent = '0/0 voted to play again';
     }
   }
   
@@ -1881,38 +2060,117 @@ class PokerController {
     this.lastPlayerBets = {};
   }
   
-  // Handle play again button click
-  handlePlayAgain() {
-    this.hideShowdownModal();
-    this.resetCardAnimationState();
-    
-    if (this.isHost && this.game && this.game.getPlayerCount() >= 2) {
-      // Only host starts new hand to avoid race conditions
-      this.game.startHand();
-      // Sync to Firebase with full game state (null = include all cards)
-      this.lobbyManager?.updateGameState(this.game.serialize(null));
-    } else if (!this.game || this.game.getPlayerCount() < 2) {
+  // Handle play again button click - now uses voting system
+  async handlePlayAgain() {
+    if (!this.game || this.game.getPlayerCount() < 2) {
       // Not enough players, return to lobby
       this.isInGame = false;
       document.body.classList.remove('game-started');
+      this.hideShowdownModal();
       if (this.elements.partyConfig) {
         this.elements.partyConfig.style.display = 'flex';
       }
+      return;
+    }
+
+    // Vote for play again
+    await this.lobbyManager?.votePlayAgain();
+    
+    // Update button to show voted state
+    if (this.elements.playAgainBtn) {
+      this.elements.playAgainBtn.classList.add('voted');
+      this.elements.playAgainBtn.disabled = true;
+    }
+    
+    this.showToast('Vote recorded! Waiting for others...', 'success');
+  }
+
+  // Start new hand (called when all players vote or by host)
+  async startNewHand() {
+    if (!this.game || !this.isHost) return;
+    
+    console.log('🎰 Starting new hand...');
+    this.hideShowdownModal();
+    this.resetCardAnimationState();
+    
+    // Start new hand
+    this.game.startHand();
+    
+    // Sync to Firebase with full game state (null = include all cards)
+    await this.lobbyManager?.updateGameState(this.game.serialize(null));
+    
+    // Update UI
+    this.updateGameUI(this.game.serialize(this.currentUser?.uid));
+  }
+
+  // Update play again vote display
+  updatePlayAgainVotes(votes, totalPlayers) {
+    const voteCountEl = this.elements.showdownModal?.querySelector('.vote-count');
+    const progressEl = this.elements.showdownModal?.querySelector('.vote-progress-fill');
+    
+    if (voteCountEl) {
+      voteCountEl.textContent = `${votes.length}/${totalPlayers} voted to play again`;
+    }
+    
+    if (progressEl) {
+      const percent = totalPlayers > 0 ? (votes.length / totalPlayers) * 100 : 0;
+      progressEl.style.width = `${percent}%`;
+    }
+    
+    // Update button state if current user has voted
+    const hasVoted = votes.includes(this.currentUser?.uid);
+    if (this.elements.playAgainBtn) {
+      this.elements.playAgainBtn.classList.toggle('voted', hasVoted);
+      this.elements.playAgainBtn.disabled = hasVoted;
+      this.elements.playAgainBtn.innerHTML = hasVoted ? `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Voted!
+      ` : `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+        Play Again
+      `;
     }
   }
   
-  // Handle leave lobby from showdown modal
-  async handleLeaveLobbyFromModal() {
+  // Handle return to lobby from showdown modal (keeps players in lobby)
+  async handleReturnToLobby() {
     if (this.isLeaving) return;
     
     this.isLeaving = true;
     
     try {
-      await this.fullGameReset();
-      await this.leaveLobby();
-      this.showToast('Left the lobby');
+      // Reset game state and return lobby to pre-game status
+      await this.lobbyManager.resetGameState();
+      
+      // Close the showdown modal
+      this.hideShowdownModal();
+      
+      // Reset local game state
+      this.gameState = null;
+      this.isInGame = false;
+      
+      // Hide game UI elements
+      this.elements.pokerActions?.classList.remove('visible');
+      this.elements.tableContainer?.classList.add('hidden');
+      
+      // Show the party config (pre-game lobby state)
+      this.elements.partyConfig?.classList.add('visible');
+      document.body.classList.remove('game-started');
+      
+      // Re-render party (will show players with reset ready status)
+      if (this.lobbyManager?.currentLobby) {
+        this.renderParty(this.lobbyManager.currentLobby);
+      }
+      
+      this.showToast('Returned to lobby', 'success');
     } catch (error) {
-      console.error('Error leaving from modal:', error);
+      console.error('Error returning to lobby:', error);
+      this.showToast('Error returning to lobby', 'error');
     } finally {
       this.isLeaving = false;
     }

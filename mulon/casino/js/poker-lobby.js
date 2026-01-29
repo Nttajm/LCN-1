@@ -56,6 +56,11 @@ export class PokerLobbyManager {
     this.refreshInterval = null;
     this.isInitialized = false;
     
+    // Inactivity tracking
+    this.inactivityTimeout = null;
+    this.isInactive = false;
+    this.INACTIVITY_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+    
     // Callbacks
     this.onLobbyUpdate = null;
     this.onLobbiesUpdate = null;
@@ -65,6 +70,10 @@ export class PokerLobbyManager {
     this.onPlayerLeave = null;
     this.onOnlinePlayersUpdate = null;
     this.onError = null;
+    
+    // Bind visibility handler
+    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+    this.handleUserActivity = this.handleUserActivity.bind(this);
   }
 
   // Initialize with Firestore and current user
@@ -104,9 +113,135 @@ export class PokerLobbyManager {
     // Clean up inactive lobbies (older than 5 minutes)
     this.cleanupInactiveLobbies();
 
+    // Start inactivity detection
+    this.startInactivityDetection();
+
     this.isInitialized = true;
     console.log('PokerLobbyManager initialized');
     return true;
+  }
+
+  // ========================================
+  // INACTIVITY DETECTION
+  // ========================================
+
+  // Start listening for user activity and visibility changes
+  startInactivityDetection() {
+    // Listen for visibility changes (tab switch, minimize)
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
+    
+    // Listen for user activity
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(event => {
+      document.addEventListener(event, this.handleUserActivity, { passive: true });
+    });
+    
+    // Start inactivity timer
+    this.resetInactivityTimer();
+  }
+
+  // Stop inactivity detection
+  stopInactivityDetection() {
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(event => {
+      document.removeEventListener(event, this.handleUserActivity);
+    });
+    
+    if (this.inactivityTimeout) {
+      clearTimeout(this.inactivityTimeout);
+      this.inactivityTimeout = null;
+    }
+  }
+
+  // Handle visibility change (tab switch)
+  handleVisibilityChange() {
+    if (document.hidden) {
+      console.log('🔴 Tab hidden - pausing listeners');
+      this.pauseListenersForInactivity();
+    } else {
+      console.log('🟢 Tab visible - resuming listeners');
+      this.resumeListenersFromInactivity();
+    }
+  }
+
+  // Handle user activity
+  handleUserActivity() {
+    if (this.isInactive) {
+      console.log('🟢 User activity detected - resuming listeners');
+      this.resumeListenersFromInactivity();
+    }
+    this.resetInactivityTimer();
+  }
+
+  // Reset the inactivity timer
+  resetInactivityTimer() {
+    if (this.inactivityTimeout) {
+      clearTimeout(this.inactivityTimeout);
+    }
+    
+    this.inactivityTimeout = setTimeout(() => {
+      console.log('⏱️ User inactive - pausing listeners to save resources');
+      this.pauseListenersForInactivity();
+    }, this.INACTIVITY_THRESHOLD);
+  }
+
+  // Pause listeners when user is inactive
+  pauseListenersForInactivity() {
+    if (this.isInactive) return; // Already paused
+    
+    this.isInactive = true;
+    
+    // Unsubscribe from real-time listeners (but keep local state)
+    if (this.lobbiesUnsubscribe) {
+      this.lobbiesUnsubscribe();
+      this.lobbiesUnsubscribe = null;
+    }
+    
+    if (this.onlineUnsubscribe) {
+      this.onlineUnsubscribe();
+      this.onlineUnsubscribe = null;
+    }
+    
+    // Keep lobby listener active if in a game to not miss updates
+    if (!this.currentLobby?.status || this.currentLobby.status !== LOBBY_STATUS.IN_GAME) {
+      if (this.lobbyUnsubscribe) {
+        this.lobbyUnsubscribe();
+        this.lobbyUnsubscribe = null;
+      }
+    }
+    
+    // Stop periodic refresh
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+    
+    console.log('⏸️ Listeners paused for inactivity');
+  }
+
+  // Resume listeners when user becomes active
+  resumeListenersFromInactivity() {
+    if (!this.isInactive) return; // Already active
+    
+    this.isInactive = false;
+    
+    // Restart listeners
+    this.startOnlinePlayersListener();
+    this.startLobbiesListener();
+    
+    if (this.currentLobbyId && !this.lobbyUnsubscribe) {
+      this.startLobbyListener(this.currentLobbyId);
+    }
+    
+    // Restart periodic refresh
+    this.startPeriodicRefresh();
+    
+    // Refresh data immediately
+    this.refreshData();
+    
+    console.log('▶️ Listeners resumed after inactivity');
   }
 
   // Rejoin existing lobby if user was in one (handles page refresh)
@@ -212,38 +347,73 @@ export class PokerLobbyManager {
     }
   }
 
-  // Clean up lobbies that have been inactive for more than 5 minutes
+  // Clean up lobbies that have been inactive for more than 4 minutes
+  // Also removes duplicate solo lobbies if user is in another lobby with more players
   async cleanupInactiveLobbies() {
     try {
       const lobbiesRef = collection(this.db, 'poker_lobbies');
       const snapshot = await getDocs(lobbiesRef);
       
       const now = Date.now();
-      const fiveMinutesAgo = now - (5 * 60 * 1000); // 5 minutes in milliseconds
+      const fourMinutesAgo = now - (4 * 60 * 1000); // 4 minutes in milliseconds
       
       const deletePromises = [];
+      const allLobbies = [];
       
+      // First pass: collect all lobbies
       snapshot.forEach(docSnap => {
-        const data = docSnap.data();
+        allLobbies.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      
+      // Group lobbies by user to find duplicates
+      const userLobbies = {};
+      allLobbies.forEach(lobby => {
+        (lobby.players || []).forEach(player => {
+          if (!userLobbies[player.id]) {
+            userLobbies[player.id] = [];
+          }
+          userLobbies[player.id].push(lobby);
+        });
+      });
+      
+      // Find duplicate lobbies to delete (solo lobbies when user is in another)
+      const duplicatesToDelete = new Set();
+      Object.values(userLobbies).forEach(lobbies => {
+        if (lobbies.length > 1) {
+          // User is in multiple lobbies - keep the one with more players or the active game
+          const sorted = [...lobbies].sort((a, b) => {
+            // Prefer in-game lobbies
+            if (a.status === 'in_game' && b.status !== 'in_game') return -1;
+            if (b.status === 'in_game' && a.status !== 'in_game') return 1;
+            // Then prefer more players
+            return (b.players?.length || 0) - (a.players?.length || 0);
+          });
+          // Delete all but the best lobby (if they're solo lobbies)
+          for (let i = 1; i < sorted.length; i++) {
+            if ((sorted[i].players?.length || 0) <= 1) {
+              duplicatesToDelete.add(sorted[i].id);
+            }
+          }
+        }
+      });
+      
+      // Second pass: mark for deletion
+      allLobbies.forEach(lobby => {
+        const updatedAt = lobby.updatedAt?.toMillis?.() || lobby.createdAt?.toMillis?.() || 0;
+        const isInactive = updatedAt < fourMinutesAgo;
+        const isEmpty = !lobby.players || lobby.players.length === 0;
+        const isDuplicate = duplicatesToDelete.has(lobby.id);
         
-        // Get the last update time
-        const updatedAt = data.updatedAt?.toMillis?.() || data.createdAt?.toMillis?.() || 0;
-        
-        // If lobby hasn't been updated in 5 minutes and is not in a game, delete it
-        // Also delete if it's an empty lobby
-        const isInactive = updatedAt < fiveMinutesAgo;
-        const isEmpty = !data.players || data.players.length === 0;
-        const isNotInGame = data.status !== 'in_game';
-        
-        if (isEmpty || (isInactive && isNotInGame)) {
-          console.log(`🗑️ Cleaning up inactive lobby: ${docSnap.id} (last updated: ${new Date(updatedAt).toLocaleTimeString()})`);
-          deletePromises.push(deleteDoc(doc(this.db, 'poker_lobbies', docSnap.id)));
+        if (isEmpty || isInactive || isDuplicate) {
+          const reason = isEmpty ? 'empty' : isInactive ? 'inactive' : 'duplicate';
+          console.log(`🗑️ Cleaning up ${reason} lobby: ${lobby.id}`);
+          deletePromises.push(deleteDoc(doc(this.db, 'poker_lobbies', lobby.id)));
         }
       });
       
       if (deletePromises.length > 0) {
         await Promise.all(deletePromises);
-        console.log(`🧹 Cleaned up ${deletePromises.length} inactive lobbies`);
+        console.log(`🧹 Cleaned up ${deletePromises.length} lobbies`);
       }
     } catch (error) {
       console.error('Error cleaning up inactive lobbies:', error);
@@ -351,6 +521,12 @@ export class PokerLobbyManager {
       return { success: false, error: 'Not signed in' };
     }
 
+    // Check if already in a lobby - leave it first to prevent duplicates
+    if (this.currentLobbyId) {
+      console.log('⚠️ Already in a lobby, leaving before creating new one...');
+      await this.leaveLobby();
+    }
+
     // Check if user has enough balance
     const userData = window.CasinoAuth?.userData;
     if (userData && userData.balance < buyIn) {
@@ -406,6 +582,12 @@ export class PokerLobbyManager {
   async requestJoinLobby(lobbyId) {
     if (!this.currentUser) {
       return { success: false, error: 'Not signed in' };
+    }
+
+    // Leave current lobby first to prevent duplicates
+    if (this.currentLobbyId && this.currentLobbyId !== lobbyId) {
+      console.log('⚠️ Leaving current lobby before requesting to join new one...');
+      await this.leaveLobby();
     }
 
     try {
@@ -464,6 +646,12 @@ export class PokerLobbyManager {
       return { success: false, error: 'Not signed in' };
     }
 
+    // Leave any previous lobby first to prevent duplicates
+    if (this.currentLobbyId && this.currentLobbyId !== lobbyId) {
+      console.log('⚠️ Leaving current lobby before joining new one...');
+      await this.leaveLobby();
+    }
+
     try {
       const lobbyRef = doc(this.db, 'poker_lobbies', lobbyId);
       const lobbyDoc = await getDoc(lobbyRef);
@@ -514,11 +702,6 @@ export class PokerLobbyManager {
       await updateDoc(doc(this.db, 'mulon_users', this.currentUser.uid), {
         currentPokerLobby: lobbyId
       });
-
-      // Leave any previous lobby
-      if (this.currentLobbyId && this.currentLobbyId !== lobbyId) {
-        await this.leaveLobby();
-      }
 
       this.currentLobbyId = lobbyId;
       this.startLobbyListener(lobbyId);
@@ -575,37 +758,90 @@ export class PokerLobbyManager {
         return { success: true };
       }
 
-      // Remove player from lobby
-      await updateDoc(lobbyRef, {
-        players: arrayRemove(player),
-        updatedAt: serverTimestamp()
-      });
-
-      // Check remaining players after removal
+      // Filter out the leaving player from the players array
       const remainingPlayers = (lobbyData.players || []).filter(p => p.id !== this.currentUser.uid);
 
       // If no players remain, delete the lobby entirely
       if (remainingPlayers.length === 0) {
         try {
           await deleteDoc(lobbyRef);
+          console.log('🗑️ Lobby deleted - no players remaining');
         } catch (e) {
           console.log('Lobby already deleted or error:', e.message);
         }
-      } else if (lobbyData.hostId === this.currentUser.uid) {
-        // If host leaves but others remain, transfer host to next player
-        const newHost = remainingPlayers[0];
+      } else {
+        // Prepare update object
+        const updateData = {
+          players: remainingPlayers,
+          updatedAt: serverTimestamp()
+        };
+        
+        // Update lobby status based on remaining players
+        if (lobbyData.status !== LOBBY_STATUS.IN_GAME) {
+          updateData.status = remainingPlayers.length >= lobbyData.maxPlayers ? 
+            LOBBY_STATUS.FULL : LOBBY_STATUS.OPEN;
+        }
+        
+        // If host leaves, transfer host to next player
+        if (lobbyData.hostId === this.currentUser.uid) {
+          const newHost = remainingPlayers[0];
+          updateData.hostId = newHost.id;
+          updateData.hostName = newHost.displayName;
+          updateData.hostPhotoURL = newHost.photoURL;
+          
+          // Update players array with new host flag
+          updateData.players = remainingPlayers.map((p, i) => ({
+            ...p,
+            isHost: i === 0
+          }));
+          
+          console.log('👑 Host transferred to:', newHost.displayName);
+        }
+        
+        // If game is in progress, also update gameState to remove the player
+        if (lobbyData.status === LOBBY_STATUS.IN_GAME && lobbyData.gameState) {
+          const gameStatePlayers = lobbyData.gameState.players || [];
+          const leavingPlayerSeatIndex = gameStatePlayers.findIndex(
+            p => p && p.id === this.currentUser.uid
+          );
+          
+          if (leavingPlayerSeatIndex !== -1) {
+            // Set the player's seat to null (they've left)
+            const updatedGameStatePlayers = [...gameStatePlayers];
+            updatedGameStatePlayers[leavingPlayerSeatIndex] = null;
+            
+            // Update game state
+            updateData.gameState = {
+              ...lobbyData.gameState,
+              players: updatedGameStatePlayers
+            };
+            
+            // If it was their turn, advance to next player
+            if (lobbyData.gameState.currentPlayerIndex === leavingPlayerSeatIndex) {
+              let nextIdx = (leavingPlayerSeatIndex + 1) % updatedGameStatePlayers.length;
+              // Find next active player
+              let attempts = 0;
+              while (attempts < updatedGameStatePlayers.length) {
+                const nextPlayer = updatedGameStatePlayers[nextIdx];
+                if (nextPlayer && !nextPlayer.isFolded && nextPlayer.chips > 0) {
+                  break;
+                }
+                nextIdx = (nextIdx + 1) % updatedGameStatePlayers.length;
+                attempts++;
+              }
+              updateData.gameState.currentPlayerIndex = nextIdx;
+            }
+            
+            console.log('🎮 Updated game state - player removed from seat', leavingPlayerSeatIndex);
+          }
+        }
+        
+        // Single atomic update to remove player and update host if needed
         try {
-          await updateDoc(lobbyRef, {
-            hostId: newHost.id,
-            hostName: newHost.displayName,
-            hostPhotoURL: newHost.photoURL,
-            players: remainingPlayers.map((p, i) => ({
-              ...p,
-              isHost: i === 0
-            }))
-          });
+          await updateDoc(lobbyRef, updateData);
+          console.log('✅ Player removed from lobby, remaining players:', remainingPlayers.length);
         } catch (e) {
-          console.log('Could not transfer host:', e.message);
+          console.error('Error updating lobby after player leave:', e.message);
         }
       }
 
@@ -621,6 +857,11 @@ export class PokerLobbyManager {
       // Clear local state
       this.currentLobbyId = null;
       this.currentLobby = null;
+
+      // Notify callback that we left
+      if (this.onPlayerLeave) {
+        this.onPlayerLeave(this.currentUser.uid);
+      }
 
       return { success: true };
     } catch (error) {
@@ -863,7 +1104,13 @@ export class PokerLobbyManager {
         if (data.status === LOBBY_STATUS.OPEN || 
             data.status === LOBBY_STATUS.FULL || 
             data.status === LOBBY_STATUS.IN_GAME) {
-          lobbies.push({ id: docSnap.id, ...data });
+          // Add game phase info for display (use top-level fields or fallback to gameState)
+          const lobbyData = { id: docSnap.id, ...data };
+          // Prefer top-level fields (set by updateGameState) for faster access
+          lobbyData.gamePhase = data.gamePhase || data.gameState?.phase || null;
+          lobbyData.currentPlayerIndex = data.currentPlayerIndex ?? data.gameState?.currentPlayerIndex;
+          lobbyData.pot = data.pot || data.gameState?.pot || 0;
+          lobbies.push(lobbyData);
         }
       });
 
@@ -900,7 +1147,37 @@ export class PokerLobbyManager {
         return;
       }
 
-      this.currentLobby = { id: snapshot.id, ...snapshot.data() };
+      const newLobbyData = { id: snapshot.id, ...snapshot.data() };
+      
+      // Detect player changes for notifications
+      if (this.currentLobby && this.currentLobby.players && newLobbyData.players) {
+        const oldPlayerIds = new Set(this.currentLobby.players.map(p => p.id));
+        const newPlayerIds = new Set(newLobbyData.players.map(p => p.id));
+        
+        // Find players who left
+        for (const oldId of oldPlayerIds) {
+          if (!newPlayerIds.has(oldId) && oldId !== this.currentUser?.uid) {
+            const leftPlayer = this.currentLobby.players.find(p => p.id === oldId);
+            console.log('👋 Player left:', leftPlayer?.displayName || oldId);
+            if (this.onPlayerLeave) {
+              this.onPlayerLeave(oldId, leftPlayer?.displayName);
+            }
+          }
+        }
+        
+        // Find players who joined
+        for (const newId of newPlayerIds) {
+          if (!oldPlayerIds.has(newId) && newId !== this.currentUser?.uid) {
+            const joinedPlayer = newLobbyData.players.find(p => p.id === newId);
+            console.log('👋 Player joined:', joinedPlayer?.displayName || newId);
+            if (this.onPlayerJoin) {
+              this.onPlayerJoin(newId, joinedPlayer?.displayName);
+            }
+          }
+        }
+      }
+      
+      this.currentLobby = newLobbyData;
 
       if (this.onLobbyUpdate) {
         this.onLobbyUpdate(this.currentLobby);
@@ -958,10 +1235,86 @@ export class PokerLobbyManager {
       await updateDoc(doc(this.db, 'poker_lobbies', this.currentLobbyId), {
         gameState: gameState,
         status: LOBBY_STATUS.IN_GAME,
+        // Store key game info at top level for easy access in lobby list
+        gamePhase: gameState?.phase || null,
+        pot: gameState?.pot || 0,
+        currentBet: gameState?.currentBet || 0,
+        currentPlayerIndex: gameState?.currentPlayerIndex,
+        // Clear play again votes when starting new hand
+        playAgainVotes: [],
         updatedAt: serverTimestamp()
       });
     } catch (error) {
       console.error('Error updating game state:', error);
+    }
+  }
+
+  // Vote for play again
+  async votePlayAgain() {
+    if (!this.currentLobbyId || !this.currentUser) return { success: false };
+
+    try {
+      const lobbyRef = doc(this.db, 'poker_lobbies', this.currentLobbyId);
+      
+      // Add this user's vote
+      await updateDoc(lobbyRef, {
+        playAgainVotes: arrayUnion(this.currentUser.uid),
+        updatedAt: serverTimestamp()
+      });
+
+      console.log('✅ Voted for play again');
+      return { success: true };
+    } catch (error) {
+      console.error('Error voting play again:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get current play again votes count
+  getPlayAgainVotes() {
+    return this.currentLobby?.playAgainVotes || [];
+  }
+
+  // Check if all players have voted
+  allPlayersVoted() {
+    const votes = this.currentLobby?.playAgainVotes || [];
+    const players = this.currentLobby?.players || [];
+    return votes.length >= players.length && players.length >= 2;
+  }
+
+  // Reset game state in lobby (when game ends and returning to lobby)
+  async resetGameState() {
+    if (!this.currentLobbyId) return;
+
+    try {
+      const lobbyRef = doc(this.db, 'poker_lobbies', this.currentLobbyId);
+      const lobbyDoc = await getDoc(lobbyRef);
+      
+      if (!lobbyDoc.exists()) return;
+      
+      const lobbyData = lobbyDoc.data();
+      const playerCount = lobbyData.players?.length || 0;
+      
+      await updateDoc(lobbyRef, {
+        gameState: null,
+        gamePhase: null,
+        pot: null,
+        currentBet: null,
+        currentPlayerIndex: null,
+        status: playerCount >= lobbyData.maxPlayers ? LOBBY_STATUS.FULL : LOBBY_STATUS.OPEN,
+        // Reset all players' ready status
+        players: (lobbyData.players || []).map(p => ({
+          ...p,
+          isReady: false,
+          isFolded: false,
+          chips: lobbyData.buyIn || 0
+        })),
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('🔄 Game state reset, lobby returned to open status');
+    } catch (error) {
+      console.error('Error resetting game state:', error);
     }
   }
 
@@ -1024,24 +1377,37 @@ export class PokerLobbyManager {
   // ========================================
 
   async cleanup() {
+    // Stop inactivity detection
+    this.stopInactivityDetection();
+
     // Stop periodic refresh
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
       this.refreshInterval = null;
     }
+    
+    // Stop cleanup interval
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
 
     // Unsubscribe from all listeners
     if (this.lobbyUnsubscribe) {
       this.lobbyUnsubscribe();
+      this.lobbyUnsubscribe = null;
     }
     if (this.lobbiesUnsubscribe) {
       this.lobbiesUnsubscribe();
+      this.lobbiesUnsubscribe = null;
     }
     if (this.requestsUnsubscribe) {
       this.requestsUnsubscribe();
+      this.requestsUnsubscribe = null;
     }
     if (this.onlineUnsubscribe) {
       this.onlineUnsubscribe();
+      this.onlineUnsubscribe = null;
     }
 
     // Leave current lobby
@@ -1053,6 +1419,7 @@ export class PokerLobbyManager {
     await this.setOnlineStatus(false);
 
     this.isInitialized = false;
+    this.isInactive = false;
     console.log('PokerLobbyManager cleaned up');
   }
 }
