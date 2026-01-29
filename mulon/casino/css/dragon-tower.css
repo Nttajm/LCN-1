@@ -546,3 +546,23 @@
     font-size: 1rem;
   }
 }
+
+/* G Button (All-in) Styles */
+.bet-adj-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.balance-indicator {
+  background: #ca8a04;
+  color: #000;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}

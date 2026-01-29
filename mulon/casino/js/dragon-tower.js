@@ -442,37 +442,24 @@ function updateProfitDisplay() {
 function adjustBet(mult) {
   if (config.isPlaying) return; // Don't allow changes while playing
   const input = document.getElementById('betAmount');
-  const maxBet = window.CasinoAuth?.getBalance() ?? 1000000;
-  config.betAmount = Math.max(1, Math.min(maxBet, Math.round(config.betAmount * mult)));
+  const maxBet = window.CasinoAuth?.getBalance() ?? 10000;
+  config.betAmount = Math.max(0.01, Math.min(maxBet, Math.round(config.betAmount * mult * 100) / 100));
   input.value = config.betAmount;
   updateDisplays();
   updateBetButtonAmount();
 }
 
-// Set max bet (half of balance - safer option)
-function setMaxBet() {
+// Set bet to full balance (all-in)
+function setFullBalance() {
   if (config.isPlaying) return;
   const balance = window.CasinoAuth?.getBalance() ?? 0;
-  const input = document.getElementById('betAmount');
-  config.betAmount = Math.max(1, Math.floor(balance / 2));
-  input.value = config.betAmount;
-  updateDisplays();
-  updateBetButtonAmount();
-}
-
-// All in - bet entire balance
-function setAllIn() {
-  if (config.isPlaying) return;
-  const balance = window.CasinoAuth?.getBalance() ?? 0;
-  if (balance <= 0) {
-    alert('No balance to bet!');
-    return;
+  if (balance > 0) {
+    config.betAmount = Math.round(balance * 100) / 100;
+    const input = document.getElementById('betAmount');
+    input.value = config.betAmount;
+    updateDisplays();
+    updateBetButtonAmount();
   }
-  const input = document.getElementById('betAmount');
-  config.betAmount = Math.floor(balance);
-  input.value = config.betAmount;
-  updateDisplays();
-  updateBetButtonAmount();
 }
 
 function updateBetButtonAmount() {
@@ -492,19 +479,26 @@ document.getElementById('cashoutBtn').addEventListener('click', () => {
 document.getElementById('playAgainBtn').addEventListener('click', resetGame);
 
 document.getElementById('betAmount').addEventListener('change', (e) => {
-  const maxBet = window.CasinoAuth?.getBalance() ?? 1000000;
-  config.betAmount = Math.max(1, Math.min(maxBet, parseFloat(e.target.value) || 10));
+  const maxBet = window.CasinoAuth?.getBalance() ?? 10000;
+  config.betAmount = Math.max(0.01, Math.min(maxBet, parseFloat(e.target.value) || 10));
+  config.betAmount = Math.round(config.betAmount * 100) / 100;
   e.target.value = config.betAmount;
   updateDisplays();
   updateBetButtonAmount();
 });
 
 document.getElementById('betAmount').addEventListener('keyup', (e) => {
-  const maxBet = window.CasinoAuth?.getBalance() ?? 1000000;
-  config.betAmount = Math.max(1, Math.min(maxBet, parseFloat(e.target.value) || 10));
+  const maxBet = window.CasinoAuth?.getBalance() ?? 10000;
+  config.betAmount = Math.max(0.01, Math.min(maxBet, parseFloat(e.target.value) || 10));
+  config.betAmount = Math.round(config.betAmount * 100) / 100;
   updateDisplays();
   updateBetButtonAmount();
 });
+
+// Bet adjustment button event listeners
+document.getElementById('balanceBtn')?.addEventListener('click', setFullBalance);
+document.getElementById('halfBtn')?.addEventListener('click', () => adjustBet(0.5));
+document.getElementById('doubleBtn')?.addEventListener('click', () => adjustBet(2));
 
 document.getElementById('difficultySelect').addEventListener('change', (e) => {
   config.difficulty = e.target.value;

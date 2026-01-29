@@ -313,27 +313,6 @@ body {
   color: #fff;
 }
 
-.bet-adj.bet-max {
-  background: #1e40af;
-  color: #93c5fd;
-}
-
-.bet-adj.bet-max:hover {
-  background: #2563eb;
-  color: #fff;
-}
-
-.bet-adj.bet-allin {
-  background: #7f1d1d;
-  color: #fca5a5;
-  border-radius: 0 6px 6px 0;
-}
-
-.bet-adj.bet-allin:hover {
-  background: #b91c1c;
-  color: #fff;
-}
-
 /* Profit Graph (floating) */
 .profit-graph-container {
   border: 1px solid #2a3441;
