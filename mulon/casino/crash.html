@@ -180,6 +180,29 @@
       50% { box-shadow: 0 0 35px rgba(247, 183, 51, 0.7); }
     }
     
+    /* Skip Button */
+    .skip-btn {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(107, 114, 128, 0.8);
+      border: 1px solid #4b5563;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 20;
+      transition: all 0.2s;
+    }
+    
+    .skip-btn:hover {
+      background: rgba(107, 114, 128, 1);
+      transform: translateX(-50%) translateY(-2px);
+    }
+    
     /* Bet Button */
     .bet-btn {
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
@@ -568,7 +591,7 @@
           <label class="control-label">Auto Cashout</label>
           <div class="auto-cashout-wrap">
             <div class="auto-cashout-toggle" id="autoCashoutToggle"></div>
-            <input type="number" class="auto-cashout-input" id="autoCashoutValue" value="2.00" step="0.1" min="1.01" disabled>
+            <input type="number" class="auto-cashout-input" id="autoCashoutValue" value="2.00" step="0.01" min="1.01" disabled>
             <span style="color: #6b7280;">x</span>
           </div>
         </div>
@@ -601,7 +624,7 @@
         <div class="control-group">
           <label class="control-label">Auto Cashout At</label>
           <div class="bet-input-wrap">
-            <input type="number" class="bet-input" id="autoAutoCashout" value="2.00" step="0.1" min="1.01">
+            <input type="number" class="bet-input" id="autoAutoCashout" value="2.00" step="0.01" min="1.01">
             <span style="color: #6b7280; padding: 12px;">x</span>
           </div>
         </div>
@@ -656,6 +679,9 @@
         
         <!-- Rocket -->
         <div class="rocket" id="rocket" style="display: none;">🚀</div>
+        
+        <!-- Skip Button (shows after cashout) -->
+        <button class="skip-btn" id="skipBtn" style="display: none;">Skip →</button>
       </div>
 
       <!-- History -->
@@ -720,7 +746,8 @@
       autoCashoutToggle: document.getElementById('autoCashoutToggle'),
       autoCashoutValue: document.getElementById('autoCashoutValue'),
       soundToggle: document.getElementById('soundToggle'),
-      rocket: document.getElementById('rocket')
+      rocket: document.getElementById('rocket'),
+      skipBtn: document.getElementById('skipBtn')
     };
 
     const ctx = elements.canvas.getContext('2d');
@@ -1097,45 +1124,16 @@
         return;
       }
       
+      // Mark as cashed out but DON'T stop the game - let multiplier continue
       game.hasCashedOut = true;
+      // game.isPlaying stays TRUE so the loop continues
       
       const winAmount = Math.round(game.betAmount * game.currentMultiplier * 100) / 100;
       const profit = Math.round((winAmount - game.betAmount) * 100) / 100;
+      const cashedOutMultiplier = game.currentMultiplier;
       
-      // Record win in database
-      await CasinoDB.recordWin(winAmount, game.betAmount);
-      
-      // Record game result in session
-      if (CasinoDB.recordGameResult) {
-        await CasinoDB.recordGameResult('crash', game.betAmount, winAmount);
-      }
-      
-      // Award XPs if multiplier >= 2.1x
-      if (game.currentMultiplier >= 2.1) {
-        try {
-          const xpResult = await CasinoDB.awardXPs('crash', game.currentMultiplier, game.betAmount);
-          console.log('Crash XP result:', xpResult);
-          if (xpResult && xpResult.success && xpResult.xpsEarned > 0) {
-            updateXPsDisplay();
-            showXPGain(xpResult.xpsEarned, xpResult.streak, xpResult.streakMultiplier);
-          }
-        } catch (err) {
-          console.error('Error awarding xps:', err);
-        }
-      }
-      
-      game.sessionProfit += profit;
-      game.gamesPlayed++;
-      
-      if (profit > game.bestWin) {
-        game.bestWin = profit;
-      }
-      
+      // INSTANT: Update UI immediately
       playSound('cashout');
-      
-      // Stop the game immediately
-      game.isPlaying = false;
-      cancelAnimationFrame(game.animationId);
       
       elements.multiplierDisplay.classList.add('cashed-out');
       elements.statusText.textContent = `+$${profit.toFixed(2)}`;
@@ -1145,18 +1143,73 @@
       elements.cashoutBtn.classList.remove('active');
       elements.cashoutBtn.textContent = 'Cashed Out!';
       
-      updateBalanceDisplay();
+      // Show skip button so user can skip to crash
+      elements.skipBtn.style.display = 'block';
+      
+      game.sessionProfit += profit;
+      game.gamesPlayed++;
+      
+      if (profit > game.bestWin) {
+        game.bestWin = profit;
+      }
+      
       updateStats();
+      
+      // BACKGROUND: Database operations (don't await - run in background)
+      CasinoDB.recordWin(winAmount, game.betAmount).then(() => {
+        updateBalanceDisplay();
+      });
+      
+      if (CasinoDB.recordGameResult) {
+        CasinoDB.recordGameResult('crash', game.betAmount, winAmount);
+      }
       
       // Add to profit graph
       if (window.ProfitGraph) {
         window.ProfitGraph.addPoint(profit);
       }
       
-      // Add to history
-      addToHistory(game.currentMultiplier);
+      // Award XPs if multiplier >= 2.1x (background)
+      if (cashedOutMultiplier >= 2.1) {
+        CasinoDB.awardXPs('crash', cashedOutMultiplier, game.betAmount).then(xpResult => {
+          if (xpResult && xpResult.success && xpResult.xpsEarned > 0) {
+            updateXPsDisplay();
+            showXPGain(xpResult.xpsEarned, xpResult.streak, xpResult.streakMultiplier);
+          }
+        }).catch(err => {
+          console.error('Error awarding xps:', err);
+        });
+      }
+    }
+    
+    // Skip to crash (called when user clicks skip button after cashing out)
+    function skipToCrash() {
+      if (!game.hasCashedOut || !game.isPlaying) return;
       
-      // Quick reset after cashout (1 second)
+      // Stop the loop
+      game.isPlaying = false;
+      cancelAnimationFrame(game.animationId);
+      
+      // Show the final crash point
+      game.currentMultiplier = game.crashPoint;
+      game.graphPoints.push(game.crashPoint);
+      
+      elements.multiplierDisplay.textContent = game.crashPoint.toFixed(2) + 'x';
+      elements.multiplierDisplay.classList.remove('cashed-out');
+      elements.multiplierDisplay.classList.add('crashed');
+      elements.rocket.classList.add('crashed');
+      
+      playSound('crash');
+      createCrashParticles();
+      drawGraph();
+      
+      // Hide skip button
+      elements.skipBtn.style.display = 'none';
+      
+      // Add crash point to history
+      addToHistory(game.crashPoint);
+      
+      // Reset after short delay
       setTimeout(() => {
         resetRound();
       }, 1000);
@@ -1171,13 +1224,17 @@
       game.graphPoints.push(game.crashPoint);
       
       elements.multiplierDisplay.textContent = game.crashPoint.toFixed(2) + 'x';
+      elements.multiplierDisplay.classList.remove('cashed-out');
       elements.multiplierDisplay.classList.add('crashed');
       elements.rocket.classList.add('crashed');
+      
+      // Hide skip button if visible (player was watching after cashout)
+      elements.skipBtn.style.display = 'none';
       
       playSound('crash');
       createCrashParticles();
       
-      // If player had bet but didn't cash out
+      // If player had bet but didn't cash out - they lose
       if (game.hasBet && !game.hasCashedOut) {
         game.sessionProfit -= game.betAmount;
         game.gamesPlayed++;
@@ -1199,10 +1256,14 @@
         if (window.ProfitGraph) {
           window.ProfitGraph.addPoint(-game.betAmount);
         }
+        
+        // Add to history (only if didn't cash out - cashout already added history)
+        addToHistory(game.crashPoint);
+      } else if (game.hasCashedOut) {
+        // Player cashed out and was watching - add crash point to history
+        addToHistory(game.crashPoint);
       }
       
-      // Add to history
-      addToHistory(game.crashPoint);
       updateStats();
       drawGraph();
       
@@ -1279,6 +1340,9 @@
       
       elements.cashoutBtn.style.display = 'none';
       elements.cashoutBtn.classList.remove('active');
+      
+      // Hide skip button
+      elements.skipBtn.style.display = 'none';
       
       elements.rocket.style.display = 'none';
       elements.rocket.classList.remove('crashed');
@@ -1494,6 +1558,7 @@
     // Event Listeners
     elements.betBtn.addEventListener('click', placeBet);
     elements.cashoutBtn.addEventListener('click', cashout);
+    elements.skipBtn.addEventListener('click', skipToCrash);
 
     // Bet adjustment buttons
     document.getElementById('halfBtn').addEventListener('click', () => {
