@@ -234,8 +234,13 @@ async function loadLeaderboardData() {
             }
         });
         
-        // Process all users in parallel
-        const userPromises = usersSnapshot.docs.map(async (docSnap) => {
+        // Process all users in parallel (skip banned users)
+        const userPromises = usersSnapshot.docs
+            .filter(docSnap => {
+                const userData = docSnap.data();
+                return userData.banned !== true; // Skip banned users
+            })
+            .map(async (docSnap) => {
             const userData = docSnap.data();
             
             // Calculate portfolio value and profit (these are sync now that markets are loaded)
