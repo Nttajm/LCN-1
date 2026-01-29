@@ -1063,6 +1063,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      // Check if user is banned before allowing trade submission
+      if (typeof window.checkBanStatus === 'function') {
+        const isBanned = await window.checkBanStatus();
+        if (isBanned) return; // Banned user will be redirected
+      }
+
       const offerKeys = parseInt(offerKeysInput?.value) || 0;
       const offerMoney = parseFloat(offerMoneyInput?.value) || 0;
       const askKeys = parseInt(askKeysInput?.value) || 0;
@@ -1785,6 +1791,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentUser) {
       alert('Please sign in to accept trades.');
       return;
+    }
+
+    // Check if user is banned before allowing trade acceptance
+    if (typeof window.checkBanStatus === 'function') {
+      const isBanned = await window.checkBanStatus();
+      if (isBanned) return; // Banned user will be redirected
     }
 
     const trade = marketplaceTrades.find(t => t.id === tradeId);

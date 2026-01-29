@@ -55,6 +55,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Initialize Auth first
   Auth.init();
   
+  // Check for device/email ban immediately (before anything else)
+  if (typeof window.checkBanStatus === 'function') {
+    const isBanned = await window.checkBanStatus();
+    if (isBanned) return; // Stop execution if banned and redirecting
+  }
+  
   // Setup admin sign in button
   const adminSignInBtn = document.getElementById('adminSignInBtn');
   if (adminSignInBtn) {
@@ -64,7 +70,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
   
   // Listen for auth state changes
-  Auth.onAuthStateChange((user) => {
+  Auth.onAuthStateChange(async (user) => {
+    // Check ban status on every auth state change
+    if (typeof window.checkBanStatus === 'function') {
+      const isBanned = await window.checkBanStatus();
+      if (isBanned) return; // Stop if banned and redirecting
+    }
     checkAdminAccess(user);
   });
   

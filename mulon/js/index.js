@@ -1817,6 +1817,12 @@ function setupSuggestionModal() {
     suggestForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      // Check if user is banned before allowing submission
+      if (typeof window.checkBanStatus === 'function') {
+        const isBanned = await window.checkBanStatus();
+        if (isBanned) return; // Banned user will be redirected
+      }
+      
       const title = document.getElementById('suggestTitle').value.trim();
       const category = document.getElementById('suggestCategory').value;
       const reason = document.getElementById('suggestReason').value.trim();
@@ -1839,7 +1845,7 @@ function setupSuggestionModal() {
         suggestForm.reset();
         closeSuggestionModal();
       } else {
-        showNotification('Error submitting suggestion. Please try again.', 'error');
+        showNotification(result.error || 'Error submitting suggestion. Please try again.', 'error');
       }
     });
   }

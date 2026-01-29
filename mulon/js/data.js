@@ -295,7 +295,7 @@ const Auth = {
       if (user) {
         // Check if we're already on the waitlist page - don't redirect
         const isWaitlistPage = window.location.pathname.includes('waitlist.html');
-        const isAdminPage = window.location.pathname.includes('admin.html');
+        const isAdminPage = window.location.pathname.includes('admin.html') || window.location.pathname.includes('wdhn.html');
         
         // Check waitlist access FIRST before anything else (skip on waitlist/admin pages)
         if (WAITLIST_ENABLED && !this.waitlistCheckPending && !isWaitlistPage && !isAdminPage) {
@@ -1484,6 +1484,27 @@ const MulonData = {
   // Submit a market suggestion
   async submitSuggestion(title, category, reason, userId, userEmail, userName) {
     try {
+      // Check if user is banned before allowing submission
+      const user = auth.currentUser;
+      if (user) {
+        // Check if email is in banned emails list
+        if (user.email) {
+          const emailKey = user.email.toLowerCase().replace(/[.#$[\]]/g, '_');
+          const emailDoc = await getDoc(doc(bannedEmailsRef, emailKey));
+          if (emailDoc.exists()) {
+            console.log('Banned user attempted to submit suggestion');
+            return { success: false, error: 'You are banned from submitting suggestions.' };
+          }
+        }
+        
+        // Check if user document has banned flag
+        const userDoc = await getDoc(doc(usersRef, user.uid));
+        if (userDoc.exists() && userDoc.data().banned === true) {
+          console.log('Banned user attempted to submit suggestion');
+          return { success: false, error: 'You are banned from submitting suggestions.' };
+        }
+      }
+      
       const suggestionId = 'sug_' + Date.now();
       const suggestion = {
         id: suggestionId,

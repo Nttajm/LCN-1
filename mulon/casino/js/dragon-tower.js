@@ -224,14 +224,8 @@ async function startGame() {
     return;
   }
   
-  const currentBalance = window.CasinoAuth.getBalance();
-  if (currentBalance < config.betAmount) {
-    alert('Insufficient balance!');
-    return;
-  }
-  
-  // Place bet
-  const result = await window.CasinoDB.placeBet(config.betAmount, 'dragon-tower');
+  // Use safe bet placement - always verifies server balance first
+  const result = await window.CasinoDB.safePlaceBet(config.betAmount, 'dragon-tower');
   if (!result.success) {
     alert(result.error || 'Failed to place bet');
     return;
@@ -517,6 +511,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Wait for auth module to load
   await waitForAuth();
+  
+  // Initialize TabSync for multi-tab protection
+  if (window.TabSync) {
+    window.TabSync.init();
+  }
+  
+  // Listen for balance updates from other tabs
+  window.addEventListener('balanceUpdated', (e) => {
+    updateBalanceDisplay();
+  });
   
   // Initialize auth with maintenance check
   const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();

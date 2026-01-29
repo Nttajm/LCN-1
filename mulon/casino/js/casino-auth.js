@@ -126,6 +126,437 @@ async function checkBanStatus() {
 window.checkBanStatus = checkBanStatus;
 
 // ========================================
+// TAB SYNCHRONIZATION SYSTEM
+// Prevents exploits from multiple tabs with stale balance
+// ========================================
+const TabSync = {
+  tabId: null,
+  lastKnownBalance: null,
+  lastSyncTime: 0,
+  syncInterval: null,
+  balanceVersion: 0, // Increments on every balance change
+  duplicateTabWarningShown: false,
+  
+  // Initialize tab sync on page load
+  init() {
+    // Generate unique tab ID
+    this.tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    
+    // Listen for storage events from other tabs
+    window.addEventListener('storage', (e) => this.handleStorageEvent(e));
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
+    
+    // Listen for beforeunload to clean up
+    window.addEventListener('beforeunload', () => this.cleanup());
+    
+    // Register this tab
+    this.registerTab();
+    
+    // Check for duplicate tabs immediately
+    this.checkDuplicateTabs();
+    
+    // Start periodic sync check
+    this.syncInterval = setInterval(() => this.checkSync(), 2000);
+    
+    console.log('TabSync initialized:', this.tabId);
+  },
+  
+  // Check for duplicate casino tabs and show warning
+  checkDuplicateTabs() {
+    const tabs = this.getActiveTabs();
+    const casinoTabs = Object.entries(tabs).filter(([id, data]) => {
+      // Check if this is a casino page (not this tab)
+      return id !== this.tabId && data.page && data.page.includes('/casino');
+    });
+    
+    if (casinoTabs.length > 0 && !this.duplicateTabWarningShown) {
+      this.showDuplicateTabWarning();
+    }
+  },
+  
+  // Show red warning overlay for duplicate tabs
+  showDuplicateTabWarning() {
+    this.duplicateTabWarningShown = true;
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'duplicateTabWarning';
+    overlay.innerHTML = `
+      <div class="duplicate-tab-content">
+        <div class="duplicate-tab-icon">⚠️</div>
+        <h1>DUPLICATE TAB DETECTED</h1>
+        <p>You have another casino tab open. Playing in multiple tabs is not allowed.</p>
+        <p>Please close this tab or the other casino tab to continue.</p>
+        <div class="duplicate-tab-actions">
+          <button id="duplicateTabContinue">Close Other Tabs & Continue</button>
+          <button id="duplicateTabClose">Close This Tab</button>
+        </div>
+      </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+      #duplicateTabWarning {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #8B0000 0%, #B22222 50%, #8B0000 100%);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: duplicateTabPulse 2s ease-in-out infinite;
+      }
+      
+      @keyframes duplicateTabPulse {
+        0%, 100% { background: linear-gradient(135deg, #8B0000 0%, #B22222 50%, #8B0000 100%); }
+        50% { background: linear-gradient(135deg, #B22222 0%, #DC143C 50%, #B22222 100%); }
+      }
+      
+      .duplicate-tab-content {
+        text-align: center;
+        color: white;
+        padding: 40px;
+        max-width: 600px;
+      }
+      
+      .duplicate-tab-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        animation: duplicateTabShake 0.5s ease-in-out infinite;
+      }
+      
+      @keyframes duplicateTabShake {
+        0%, 100% { transform: rotate(-5deg); }
+        50% { transform: rotate(5deg); }
+      }
+      
+      .duplicate-tab-content h1 {
+        font-size: 36px;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        letter-spacing: 2px;
+      }
+      
+      .duplicate-tab-content p {
+        font-size: 18px;
+        margin-bottom: 15px;
+        opacity: 0.9;
+      }
+      
+      .duplicate-tab-actions {
+        margin-top: 30px;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .duplicate-tab-actions button {
+        padding: 15px 30px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      #duplicateTabContinue {
+        background: #2ecc71;
+        color: white;
+      }
+      
+      #duplicateTabContinue:hover {
+        background: #27ae60;
+        transform: scale(1.05);
+      }
+      
+      #duplicateTabClose {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid white;
+      }
+      
+      #duplicateTabClose:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.05);
+      }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(overlay);
+    
+    // Handle buttons
+    document.getElementById('duplicateTabContinue').addEventListener('click', () => {
+      // Signal other tabs to close
+      localStorage.setItem('casino_close_other_tabs', JSON.stringify({
+        keepTabId: this.tabId,
+        timestamp: Date.now()
+      }));
+      
+      // Remove warning
+      overlay.remove();
+      this.duplicateTabWarningShown = false;
+      
+      // Force refresh balance
+      if (typeof CasinoDB !== 'undefined') {
+        CasinoDB.getServerBalance();
+      }
+    });
+    
+    document.getElementById('duplicateTabClose').addEventListener('click', () => {
+      window.close();
+      // If window.close() doesn't work (not opened by script), redirect
+      setTimeout(() => {
+        window.location.href = '../index.html';
+      }, 100);
+    });
+  },
+  
+  // Hide the duplicate tab warning
+  hideDuplicateTabWarning() {
+    const overlay = document.getElementById('duplicateTabWarning');
+    if (overlay) {
+      overlay.remove();
+    }
+    this.duplicateTabWarningShown = false;
+  },
+  
+  // Register this tab in localStorage
+  registerTab() {
+    try {
+      const tabs = this.getActiveTabs();
+      tabs[this.tabId] = {
+        openedAt: Date.now(),
+        lastActivity: Date.now(),
+        page: window.location.pathname
+      };
+      localStorage.setItem('casino_active_tabs', JSON.stringify(tabs));
+    } catch (e) {
+      console.error('TabSync registerTab error:', e);
+    }
+  },
+  
+  // Get all active tabs
+  getActiveTabs() {
+    try {
+      const tabsStr = localStorage.getItem('casino_active_tabs');
+      if (!tabsStr) return {};
+      
+      const tabs = JSON.parse(tabsStr);
+      const now = Date.now();
+      const activeTabs = {};
+      
+      // Filter out tabs that haven't been active in 30 seconds (likely closed)
+      for (const [id, data] of Object.entries(tabs)) {
+        if (now - data.lastActivity < 30000) {
+          activeTabs[id] = data;
+        }
+      }
+      
+      return activeTabs;
+    } catch (e) {
+      return {};
+    }
+  },
+  
+  // Update tab activity
+  updateActivity() {
+    try {
+      const tabs = this.getActiveTabs();
+      if (tabs[this.tabId]) {
+        tabs[this.tabId].lastActivity = Date.now();
+        localStorage.setItem('casino_active_tabs', JSON.stringify(tabs));
+      }
+    } catch (e) {
+      console.error('TabSync updateActivity error:', e);
+    }
+  },
+  
+  // Broadcast balance update to all tabs
+  broadcastBalanceUpdate(newBalance, source = 'unknown') {
+    try {
+      this.balanceVersion++;
+      const updateData = {
+        balance: newBalance,
+        version: this.balanceVersion,
+        sourceTab: this.tabId,
+        source: source,
+        timestamp: Date.now()
+      };
+      
+      localStorage.setItem('casino_balance_update', JSON.stringify(updateData));
+      this.lastKnownBalance = newBalance;
+      this.lastSyncTime = Date.now();
+      
+      console.log(`TabSync: Broadcasted balance update $${newBalance} (v${this.balanceVersion}) from ${source}`);
+    } catch (e) {
+      console.error('TabSync broadcastBalanceUpdate error:', e);
+    }
+  },
+  
+  // Handle storage events from other tabs
+  handleStorageEvent(e) {
+    if (e.key === 'casino_balance_update' && e.newValue) {
+      try {
+        const update = JSON.parse(e.newValue);
+        
+        // Ignore our own updates
+        if (update.sourceTab === this.tabId) return;
+        
+        // Update local balance from other tab
+        if (CasinoAuth.userData && update.balance !== undefined) {
+          const oldBalance = CasinoAuth.userData.balance;
+          CasinoAuth.userData.balance = update.balance;
+          this.lastKnownBalance = update.balance;
+          this.lastSyncTime = Date.now();
+          
+          console.log(`TabSync: Received balance update from another tab: $${oldBalance} -> $${update.balance}`);
+          
+          // Dispatch event for UI updates
+          window.dispatchEvent(new CustomEvent('balanceUpdated', {
+            detail: { 
+              balance: update.balance, 
+              source: 'otherTab',
+              oldBalance: oldBalance
+            }
+          }));
+        }
+      } catch (e) {
+        console.error('TabSync handleStorageEvent error:', e);
+      }
+    }
+    
+    // Handle force refresh signal
+    if (e.key === 'casino_force_refresh' && e.newValue) {
+      try {
+        const data = JSON.parse(e.newValue);
+        if (data.sourceTab !== this.tabId) {
+          console.log('TabSync: Force refresh signal received, reloading balance...');
+          this.forceRefreshBalance();
+        }
+      } catch (e) {
+        console.error('TabSync force refresh error:', e);
+      }
+    }
+    
+    // Handle close other tabs signal
+    if (e.key === 'casino_close_other_tabs' && e.newValue) {
+      try {
+        const data = JSON.parse(e.newValue);
+        // If this isn't the tab that should stay open, redirect away
+        if (data.keepTabId !== this.tabId) {
+          console.log('TabSync: Received close signal, redirecting...');
+          window.location.href = '../index.html';
+        }
+      } catch (e) {
+        console.error('TabSync close signal error:', e);
+      }
+    }
+    
+    // Handle new tab registration - check for duplicates
+    if (e.key === 'casino_active_tabs' && e.newValue) {
+      this.checkDuplicateTabs();
+    }
+  },
+  
+  // Handle tab visibility changes
+  async handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+      // Tab became visible - refresh balance from server
+      console.log('TabSync: Tab became visible, syncing balance...');
+      await this.forceRefreshBalance();
+      this.updateActivity();
+    }
+  },
+  
+  // Force refresh balance from server
+  async forceRefreshBalance() {
+    if (!CasinoAuth.currentUser) return null;
+    
+    try {
+      const userDoc = await getDoc(doc(db, 'mulon_users', CasinoAuth.currentUser.uid));
+      if (userDoc.exists()) {
+        const serverData = userDoc.data();
+        const oldBalance = CasinoAuth.userData?.balance;
+        
+        CasinoAuth.userData.balance = serverData.balance;
+        CasinoAuth.userData.keys = serverData.keys;
+        CasinoAuth.userData.xps = serverData.xps;
+        CasinoAuth.userData.plinkoBalls = serverData.plinkoBalls;
+        
+        this.lastKnownBalance = serverData.balance;
+        this.lastSyncTime = Date.now();
+        
+        if (oldBalance !== serverData.balance) {
+          console.log(`TabSync: Balance synced from server: $${oldBalance} -> $${serverData.balance}`);
+          
+          // Dispatch event for UI updates
+          window.dispatchEvent(new CustomEvent('balanceUpdated', {
+            detail: { 
+              balance: serverData.balance, 
+              source: 'server',
+              oldBalance: oldBalance
+            }
+          }));
+        }
+        
+        return serverData.balance;
+      }
+    } catch (error) {
+      console.error('TabSync forceRefreshBalance error:', error);
+    }
+    return null;
+  },
+  
+  // Check if balance is stale (needs refresh)
+  isBalanceStale() {
+    const now = Date.now();
+    // Balance is stale if not synced in last 5 seconds
+    return (now - this.lastSyncTime) > 5000;
+  },
+  
+  // Periodic sync check
+  async checkSync() {
+    this.updateActivity();
+    
+    // If tab is visible and balance is stale, refresh
+    if (document.visibilityState === 'visible' && this.isBalanceStale()) {
+      await this.forceRefreshBalance();
+    }
+  },
+  
+  // Get count of active casino tabs
+  getActiveTabCount() {
+    return Object.keys(this.getActiveTabs()).length;
+  },
+  
+  // Cleanup on tab close
+  cleanup() {
+    try {
+      const tabs = this.getActiveTabs();
+      delete tabs[this.tabId];
+      localStorage.setItem('casino_active_tabs', JSON.stringify(tabs));
+      
+      if (this.syncInterval) {
+        clearInterval(this.syncInterval);
+      }
+    } catch (e) {
+      console.error('TabSync cleanup error:', e);
+    }
+  }
+};
+
+// Export globally
+window.TabSync = TabSync;
+
+// ========================================
 // CONNECTION MONITOR - Breaks game if offline
 // ========================================
 const ConnectionMonitor = {
@@ -279,6 +710,9 @@ export const CasinoAuth = {
   
   // Initialize auth with maintenance check
   init() {
+    // Initialize TabSync
+    TabSync.init();
+    
     return new Promise((resolve) => {
       onAuthStateChanged(auth, async (user) => {
         // Check ban status on every auth state change
@@ -300,6 +734,11 @@ export const CasinoAuth = {
           
           // Load user data
           await this.loadUserData(user.uid);
+          
+          // Initialize TabSync with current balance
+          TabSync.lastKnownBalance = this.userData?.balance;
+          TabSync.lastSyncTime = Date.now();
+          
           console.log('Casino: User signed in:', user.displayName);
         } else {
           this.currentUser = null;
@@ -465,6 +904,208 @@ export const CasinoDB = {
     return db;
   },
   
+  // ========================================
+  // SAFE BALANCE OPERATIONS (Multi-tab safe)
+  // Always use these for any balance changes!
+  // ========================================
+  
+  // Refresh balance from server before any operation
+  // Returns the ACTUAL server balance, updates local state
+  async getServerBalance() {
+    if (!CasinoAuth.currentUser) {
+      return null;
+    }
+    
+    try {
+      const userDoc = await getDoc(doc(db, 'mulon_users', CasinoAuth.currentUser.uid));
+      if (userDoc.exists()) {
+        const serverBalance = userDoc.data().balance;
+        CasinoAuth.userData.balance = serverBalance;
+        TabSync.lastKnownBalance = serverBalance;
+        TabSync.lastSyncTime = Date.now();
+        return serverBalance;
+      }
+    } catch (error) {
+      console.error('Error getting server balance:', error);
+    }
+    return null;
+  },
+  
+  // Safe bet placement - ALWAYS refreshes balance first
+  // This prevents exploits where user has stale balance in another tab
+  async safePlaceBet(amount, game) {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    // Connection required
+    if (!ConnectionMonitor.canPlay()) {
+      return { success: false, error: 'Connection lost - cannot place bet' };
+    }
+    
+    try {
+      // ALWAYS get fresh balance from server first
+      const serverBalance = await this.getServerBalance();
+      
+      if (serverBalance === null) {
+        return { success: false, error: 'Could not verify balance. Please refresh.' };
+      }
+      
+      if (serverBalance < amount) {
+        // Update UI to show correct balance
+        window.dispatchEvent(new CustomEvent('balanceUpdated', {
+          detail: { balance: serverBalance, source: 'server' }
+        }));
+        return { success: false, error: `Insufficient balance! You have $${serverBalance.toFixed(2)}` };
+      }
+      
+      const userId = CasinoAuth.currentUser.uid;
+      const newBalance = Math.round((serverBalance - amount) * 100) / 100;
+      
+      // Update in Firestore
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        balance: newBalance,
+        'casinoStats.totalWagered': increment(amount),
+        'casinoStats.gamesPlayed': increment(1)
+      });
+      
+      // Update local state
+      CasinoAuth.userData.balance = newBalance;
+      
+      // Broadcast to other tabs
+      TabSync.broadcastBalanceUpdate(newBalance, `bet_${game}`);
+      
+      // Dispatch local event
+      window.dispatchEvent(new CustomEvent('balanceUpdated', {
+        detail: { balance: newBalance, source: 'bet' }
+      }));
+      
+      return { success: true, newBalance, previousBalance: serverBalance };
+    } catch (error) {
+      console.error('Error in safePlaceBet:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Safe win recording - uses server balance as base
+  async safeRecordWin(winAmount, game) {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    // Connection required
+    if (!ConnectionMonitor.canPlay()) {
+      return { success: false, error: 'Connection lost - win not recorded' };
+    }
+    
+    try {
+      const userId = CasinoAuth.currentUser.uid;
+      
+      // Use increment to safely add to whatever the server balance is
+      await updateDoc(doc(db, 'mulon_users', userId), {
+        balance: increment(winAmount),
+        'casinoStats.totalWon': increment(winAmount)
+      });
+      
+      // Get the new balance from server
+      const newBalance = await this.getServerBalance();
+      
+      // Broadcast to other tabs
+      TabSync.broadcastBalanceUpdate(newBalance, `win_${game}`);
+      
+      // Dispatch local event
+      window.dispatchEvent(new CustomEvent('balanceUpdated', {
+        detail: { balance: newBalance, source: 'win' }
+      }));
+      
+      return { success: true, newBalance, winAmount };
+    } catch (error) {
+      console.error('Error in safeRecordWin:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Combined safe bet + result in one operation
+  // Use this for games that resolve immediately
+  async safeGameRound(betAmount, winAmount, game) {
+    if (!CasinoAuth.currentUser) {
+      return { success: false, error: 'Not signed in' };
+    }
+    
+    // Connection required
+    if (!ConnectionMonitor.canPlay()) {
+      return { success: false, error: 'Connection lost - cannot play' };
+    }
+    
+    try {
+      // Get fresh balance from server
+      const serverBalance = await this.getServerBalance();
+      
+      if (serverBalance === null) {
+        return { success: false, error: 'Could not verify balance. Please refresh.' };
+      }
+      
+      if (serverBalance < betAmount) {
+        window.dispatchEvent(new CustomEvent('balanceUpdated', {
+          detail: { balance: serverBalance, source: 'server' }
+        }));
+        return { success: false, error: `Insufficient balance! You have $${serverBalance.toFixed(2)}` };
+      }
+      
+      const userId = CasinoAuth.currentUser.uid;
+      const netChange = winAmount - betAmount;
+      const newBalance = Math.round((serverBalance + netChange) * 100) / 100;
+      
+      // Single atomic update
+      const updates = {
+        balance: newBalance,
+        'casinoStats.totalWagered': increment(betAmount),
+        'casinoStats.gamesPlayed': increment(1)
+      };
+      
+      if (winAmount > 0) {
+        updates['casinoStats.totalWon'] = increment(winAmount);
+      }
+      
+      await updateDoc(doc(db, 'mulon_users', userId), updates);
+      
+      // Update local state
+      CasinoAuth.userData.balance = newBalance;
+      
+      // Broadcast to other tabs
+      TabSync.broadcastBalanceUpdate(newBalance, `round_${game}`);
+      
+      // Dispatch local event
+      window.dispatchEvent(new CustomEvent('balanceUpdated', {
+        detail: { balance: newBalance, source: 'gameRound', netChange }
+      }));
+      
+      // Update session if active
+      if (this.activeSessionId) {
+        await this.updateGameSession({
+          bet: betAmount,
+          won: winAmount
+        });
+      }
+      
+      return { 
+        success: true, 
+        newBalance, 
+        previousBalance: serverBalance,
+        netChange,
+        isWin: netChange > 0
+      };
+    } catch (error) {
+      console.error('Error in safeGameRound:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // ========================================
+  // LEGACY BALANCE METHODS (kept for compatibility)
+  // Consider migrating to safe methods above
+  // ========================================
+  
   // Update balance (positive = add, negative = subtract)
   async updateBalance(amount) {
     if (!CasinoAuth.currentUser) {
@@ -480,13 +1121,25 @@ export const CasinoDB = {
     
     try {
       const userId = CasinoAuth.currentUser.uid;
-      const newBalance = Math.max(0, Math.round((CasinoAuth.userData.balance + amount) * 100) / 100);
+      
+      // Get fresh balance from server first
+      const serverBalance = await this.getServerBalance();
+      if (serverBalance === null) {
+        console.warn('Cannot update balance: Could not get server balance');
+        return null;
+      }
+      
+      const newBalance = Math.max(0, Math.round((serverBalance + amount) * 100) / 100);
       
       await updateDoc(doc(db, 'mulon_users', userId), {
         balance: newBalance
       });
       
       CasinoAuth.userData.balance = newBalance;
+      
+      // Broadcast to other tabs
+      TabSync.broadcastBalanceUpdate(newBalance, 'updateBalance');
+      
       return newBalance;
     } catch (error) {
       console.error('Error updating balance:', error);
@@ -505,8 +1158,14 @@ export const CasinoDB = {
       return { success: false, error: 'Connection lost - cannot place bet' };
     }
     
-    if (CasinoAuth.userData.balance < amount) {
-      return { success: false, error: 'Insufficient balance!' };
+    // Get fresh balance from server first
+    const serverBalance = await this.getServerBalance();
+    if (serverBalance === null) {
+      return { success: false, error: 'Could not verify balance. Please refresh.' };
+    }
+    
+    if (serverBalance < amount) {
+      return { success: false, error: `Insufficient balance! You have $${serverBalance.toFixed(2)}` };
     }
     
     try {
@@ -516,7 +1175,7 @@ export const CasinoDB = {
       }
       
       const userId = CasinoAuth.currentUser.uid;
-      const newBalance = Math.round((CasinoAuth.userData.balance - amount) * 100) / 100;
+      const newBalance = Math.round((serverBalance - amount) * 100) / 100;
       
       await updateDoc(doc(db, 'mulon_users', userId), {
         balance: newBalance,
@@ -525,6 +1184,9 @@ export const CasinoDB = {
       });
       
       CasinoAuth.userData.balance = newBalance;
+      
+      // Broadcast to other tabs
+      TabSync.broadcastBalanceUpdate(newBalance, `placeBet_${game}`);
       
       return { success: true, newBalance };
     } catch (error) {
@@ -546,14 +1208,18 @@ export const CasinoDB = {
     
     try {
       const userId = CasinoAuth.currentUser.uid;
-      const newBalance = Math.round((CasinoAuth.userData.balance + amount) * 100) / 100;
       
+      // Use increment to safely add to server balance
       await updateDoc(doc(db, 'mulon_users', userId), {
-        balance: newBalance,
+        balance: increment(amount),
         'casinoStats.totalWon': increment(amount)
       });
       
-      CasinoAuth.userData.balance = newBalance;
+      // Get the new balance from server
+      const newBalance = await this.getServerBalance();
+      
+      // Broadcast to other tabs
+      TabSync.broadcastBalanceUpdate(newBalance, 'recordWin');
       
       // Update session if active
       if (this.activeSessionId && betAmount > 0) {
@@ -1548,3 +2214,7 @@ export const CasinoDB = {
 // Make available globally for non-module scripts
 window.CasinoAuth = CasinoAuth;
 window.CasinoDB = CasinoDB;
+window.TabSync = TabSync;
+
+// Export TabSync for module usage
+export { TabSync };
