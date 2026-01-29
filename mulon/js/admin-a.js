@@ -1042,6 +1042,45 @@ function setupUsersManagement() {
       }
     });
   }
+  
+  // Bulk cards action button
+  const bulkCardsBtn = document.getElementById('applyBulkCardsBtn');
+  if (bulkCardsBtn) {
+    bulkCardsBtn.addEventListener('click', applyBulkCardsAction);
+  }
+  
+  // Reset all cards button
+  const resetAllCardsBtn = document.getElementById('resetAllCardsBtn');
+  if (resetAllCardsBtn) {
+    resetAllCardsBtn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!confirm('⚠️ Are you SURE you want to delete ALL user cards? This will remove every card from every user and CANNOT be undone!')) {
+        return;
+      }
+      
+      if (!confirm('This is your FINAL confirmation. All cards will be permanently deleted. Continue?')) {
+        return;
+      }
+      
+      this.disabled = true;
+      this.textContent = 'Resetting...';
+      
+      const result = await MulonData.resetAllUsersCards();
+      
+      this.disabled = false;
+      this.textContent = 'Reset ALL User Cards';
+      
+      if (result.success) {
+        showToast(`Deleted ${result.totalCardsDeleted} cards from ${result.resetCount} users!`, 'success');
+        await loadAllUsers();
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    });
+  }
+  
+  // Setup cards modal
+  setupCardsModal();
 }
 
 async function loadAllUsers() {
@@ -1080,6 +1119,12 @@ function updateUsersStats() {
   if (totalKeys) {
     const keysSum = allUsers.reduce((acc, user) => acc + (user.keys || 0), 0);
     totalKeys.textContent = keysSum;
+  }
+  
+  const totalCards = document.getElementById('totalCardsSum');
+  if (totalCards) {
+    const cardsSum = allUsers.reduce((acc, user) => acc + (user.ownedCards?.length || 0), 0);
+    totalCards.textContent = cardsSum;
   }
 }
 
@@ -1127,6 +1172,10 @@ function renderUsersList(users) {
         ${user.positions.length} position${user.positions.length !== 1 ? 's' : ''}
         ${user.positions.length > 0 ? '<span class="edit-icon">✏️</span>' : ''}
       </button>
+      <button class="user-cards-count ${(user.ownedCards || []).length > 0 ? 'has-cards clickable' : ''}" data-user-id="${user.id}" title="Click to view/edit cards">
+        🃏 ${(user.ownedCards || []).length} card${(user.ownedCards || []).length !== 1 ? 's' : ''}
+        <span class="edit-icon">✏️</span>
+      </button>
       <div class="user-admin-balance">
         <span>$</span>
         <input type="number" class="user-balance-input" value="${user.balance.toFixed(2)}" step="0.01" data-original="${user.balance.toFixed(2)}">
@@ -1165,6 +1214,17 @@ function renderUsersList(users) {
       const user = allUsers.find(u => u.id === userId);
       if (user && user.positions.length > 0) {
         showUserPositionsModal(user);
+      }
+    });
+  });
+  
+  // Attach cards view/edit listeners
+  usersList.querySelectorAll('.user-cards-count').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const userId = this.dataset.userId;
+      const user = allUsers.find(u => u.id === userId);
+      if (user) {
+        showUserCardsModal(user);
       }
     });
   });
@@ -1412,6 +1472,268 @@ async function applyBulkKeysAction() {
   } else {
     showToast('Error updating keys: ' + result.error, 'error');
   }
+}
+
+// ========================================
+// BULK CARDS ACTIONS
+// ========================================
+async function applyBulkCardsAction() {
+  if (!isAccessAllowed()) return;
+  
+  const operation = document.getElementById('bulkCardsOperation').value;
+  const cardNumber = document.getElementById('bulkCardNumber').value.trim().toUpperCase();
+  
+  // Validate card number format
+  if (!cardNumber || !cardNumber.match(/^#?\d{3}$/)) {
+    showToast('Please enter a valid card number (e.g., #001 or 001)', 'error');
+    return;
+  }
+  
+  // Normalize card number format
+  const normalizedCardNumber = cardNumber.startsWith('#') ? cardNumber : '#' + cardNumber;
+  
+  const operationLabels = {
+    add: `add card ${normalizedCardNumber} to`,
+    remove: `remove card ${normalizedCardNumber} from`
+  };
+  
+  if (!confirm(`Are you sure you want to ${operationLabels[operation]} ALL ${allUsers.length} users? This cannot be undone.`)) {
+    return;
+  }
+  
+  const btn = document.getElementById('applyBulkCardsBtn');
+  btn.disabled = true;
+  btn.textContent = 'Applying...';
+  
+  let result;
+  if (operation === 'add') {
+    result = await MulonData.bulkAddCardToAllUsers({ cardNumber: normalizedCardNumber });
+  } else {
+    result = await MulonData.bulkRemoveCardFromAllUsers(normalizedCardNumber);
+  }
+  
+  btn.disabled = false;
+  btn.textContent = 'Apply to All';
+  
+  if (result.success) {
+    const message = operation === 'add' 
+      ? `Added card ${normalizedCardNumber} to ${result.updatedCount} users!`
+      : `Removed ${result.cardsRemoved || 0} cards from ${result.updatedCount} users!`;
+    showToast(message, 'success');
+    document.getElementById('bulkCardNumber').value = '';
+    await loadAllUsers();
+  } else {
+    showToast('Error: ' + result.error, 'error');
+  }
+}
+
+// ========================================
+// USER CARDS MODAL
+// ========================================
+let currentCardsUser = null;
+
+function setupCardsModal() {
+  const modal = document.getElementById('cardsModal');
+  const closeBtn = document.getElementById('closeCardsModal');
+  const cancelBtn = document.getElementById('cancelCardsModal');
+  const resetBtn = document.getElementById('resetUserCardsModal');
+  const addCardBtn = document.getElementById('addCardToUserBtn');
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeCardsModal);
+  }
+  
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeCardsModal);
+  }
+  
+  if (resetBtn) {
+    resetBtn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!currentCardsUser) return;
+      
+      if (!confirm(`Delete ALL cards for "${currentCardsUser.displayName}"? This cannot be undone.`)) {
+        return;
+      }
+      
+      this.disabled = true;
+      const result = await MulonData.resetUserCards(currentCardsUser.id);
+      this.disabled = false;
+      
+      if (result.success) {
+        showToast('All cards deleted!', 'success');
+        // Update local cache
+        const userIndex = allUsers.findIndex(u => u.id === currentCardsUser.id);
+        if (userIndex !== -1) {
+          allUsers[userIndex].ownedCards = [];
+          updateUsersStats();
+        }
+        currentCardsUser.ownedCards = [];
+        renderCardsModalList([]);
+        renderUsersList(allUsers);
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    });
+  }
+  
+  if (addCardBtn) {
+    addCardBtn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!currentCardsUser) return;
+      
+      const cardInput = document.getElementById('addCardNumber');
+      const cardNumber = cardInput.value.trim().toUpperCase();
+      
+      // Validate card number format
+      if (!cardNumber || !cardNumber.match(/^#?\d{3}$/)) {
+        showToast('Please enter a valid card number (e.g., #001 or 001)', 'error');
+        return;
+      }
+      
+      // Normalize card number format
+      const normalizedCardNumber = cardNumber.startsWith('#') ? cardNumber : '#' + cardNumber;
+      
+      this.disabled = true;
+      const result = await MulonData.addCardToUser(currentCardsUser.id, { cardNumber: normalizedCardNumber });
+      this.disabled = false;
+      
+      if (result.success) {
+        showToast(`Card ${normalizedCardNumber} added!`, 'success');
+        cardInput.value = '';
+        
+        // Update local cache
+        const newCard = { cardNumber: normalizedCardNumber, addedAt: new Date().toISOString(), addedBy: 'admin' };
+        const userIndex = allUsers.findIndex(u => u.id === currentCardsUser.id);
+        if (userIndex !== -1) {
+          allUsers[userIndex].ownedCards.push(newCard);
+          updateUsersStats();
+        }
+        currentCardsUser.ownedCards.push(newCard);
+        renderCardsModalList(currentCardsUser.ownedCards);
+        renderUsersList(allUsers);
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    });
+  }
+  
+  // Close modal on overlay click
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeCardsModal();
+      }
+    });
+  }
+}
+
+function showUserCardsModal(user) {
+  currentCardsUser = user;
+  const modal = document.getElementById('cardsModal');
+  const userInfo = document.getElementById('cardsModalUser');
+  
+  // Populate user info
+  userInfo.innerHTML = `
+    <div class="modal-user-info">
+      ${user.photoURL 
+        ? `<img src="${user.photoURL}" alt="" class="modal-user-avatar">`
+        : `<div class="modal-user-avatar-placeholder">${(user.displayName || 'A').charAt(0).toUpperCase()}</div>`
+      }
+      <div class="modal-user-details">
+        <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
+        <span class="modal-user-email">${escapeHtml(user.email)}</span>
+        <span class="modal-user-cards">Cards: ${(user.ownedCards || []).length}</span>
+      </div>
+    </div>
+  `;
+  
+  // Clear add card input
+  const addCardInput = document.getElementById('addCardNumber');
+  if (addCardInput) addCardInput.value = '';
+  
+  // Render cards
+  renderCardsModalList(user.ownedCards || []);
+  
+  // Show modal
+  modal.classList.add('active');
+}
+
+function closeCardsModal() {
+  const modal = document.getElementById('cardsModal');
+  modal.classList.remove('active');
+  currentCardsUser = null;
+}
+
+function renderCardsModalList(cards) {
+  const cardsList = document.getElementById('cardsModalList');
+  
+  if (!cards || cards.length === 0) {
+    cardsList.innerHTML = '<p class="empty-message">No cards owned</p>';
+    return;
+  }
+  
+  // Group cards by card number and count duplicates
+  const cardCounts = {};
+  cards.forEach(card => {
+    const num = card.cardNumber || 'Unknown';
+    cardCounts[num] = (cardCounts[num] || 0) + 1;
+  });
+  
+  cardsList.innerHTML = Object.entries(cardCounts).map(([cardNumber, count]) => `
+    <div class="card-edit-item" data-card-number="${cardNumber}">
+      <div class="card-info">
+        <span class="card-number">${escapeHtml(cardNumber)}</span>
+        ${count > 1 ? `<span class="card-count">×${count}</span>` : ''}
+      </div>
+      <button class="btn btn-sm btn-danger remove-card-btn" data-card-number="${cardNumber}" title="Remove one">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18"></path>
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+  
+  // Attach remove button listeners
+  cardsList.querySelectorAll('.remove-card-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!currentCardsUser) return;
+      
+      const cardNumber = this.dataset.cardNumber;
+      
+      this.disabled = true;
+      const result = await MulonData.removeCardFromUser(currentCardsUser.id, cardNumber);
+      this.disabled = false;
+      
+      if (result.success) {
+        showToast(`Card ${cardNumber} removed!`, 'success');
+        
+        // Update local cache - remove first matching card
+        const userIndex = allUsers.findIndex(u => u.id === currentCardsUser.id);
+        if (userIndex !== -1) {
+          const cardIndex = allUsers[userIndex].ownedCards.findIndex(c => c.cardNumber === cardNumber);
+          if (cardIndex !== -1) {
+            allUsers[userIndex].ownedCards.splice(cardIndex, 1);
+          }
+          updateUsersStats();
+        }
+        
+        // Update currentCardsUser
+        const localCardIndex = currentCardsUser.ownedCards.findIndex(c => c.cardNumber === cardNumber);
+        if (localCardIndex !== -1) {
+          currentCardsUser.ownedCards.splice(localCardIndex, 1);
+        }
+        
+        renderCardsModalList(currentCardsUser.ownedCards);
+        renderUsersList(allUsers);
+      } else {
+        showToast('Error: ' + result.error, 'error');
+      }
+    });
+  });
 }
 
 // ========================================

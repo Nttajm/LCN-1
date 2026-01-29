@@ -313,6 +313,30 @@
             </div>
           </div>
           
+          <!-- Bulk Cards Actions -->
+          <div class="bulk-actions-section">
+            <h4>🃏 Bulk Cards Actions</h4>
+            <div class="bulk-actions-row">
+              <select id="bulkCardsOperation">
+                <option value="add">Add card to all</option>
+                <option value="remove">Remove card from all</option>
+              </select>
+              <input type="text" id="bulkCardNumber" placeholder="Card # (e.g., #001)" maxlength="4">
+              <button class="btn btn-primary btn-sm" id="applyBulkCardsBtn">Apply to All</button>
+            </div>
+          </div>
+          
+          <!-- Reset All Cards -->
+          <div class="bulk-actions-section danger-section">
+            <h4>🗑️ Reset Cards</h4>
+            <p class="bulk-warning">Warning: This will delete ALL user cards and cannot be undone!</p>
+            <div class="bulk-actions-row">
+              <button class="btn btn-danger btn-sm" id="resetAllCardsBtn">
+                Reset ALL User Cards
+              </button>
+            </div>
+          </div>
+          
           <!-- Search Users -->
           <div class="users-search">
             <input type="text" id="userSearch" placeholder="Search by name or email...">
@@ -344,6 +368,10 @@
             <span class="stat-item">
               <span class="stat-label">Total Positions:</span>
               <span class="stat-value" id="totalPositionsCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Cards:</span>
+              <span class="stat-value" id="totalCardsSum">0</span>
             </span>
           </div>
           
@@ -416,12 +444,39 @@
     </div>
   </div>
 
+  <!-- User Cards Modal -->
+  <div class="modal-overlay" id="cardsModal">
+    <div class="modal cards-modal">
+      <div class="cards-modal-header">
+        <h3>🃏 User Cards</h3>
+        <button class="modal-close" id="closeCardsModal">×</button>
+      </div>
+      <div class="cards-modal-user" id="cardsModalUser">
+        <!-- User info will be populated -->
+      </div>
+      <div class="cards-add-section">
+        <h4>Add Card</h4>
+        <div class="cards-add-row">
+          <input type="text" id="addCardNumber" placeholder="Card # (e.g., #001)" maxlength="4">
+          <button class="btn btn-primary btn-sm" id="addCardToUserBtn">Add Card</button>
+        </div>
+      </div>
+      <div class="cards-modal-list" id="cardsModalList">
+        <!-- Cards will be populated -->
+      </div>
+      <div class="cards-modal-actions">
+        <button class="btn btn-secondary" id="cancelCardsModal">Close</button>
+        <button class="btn btn-danger" id="resetUserCardsModal">Delete All Cards</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div class="toast" id="toast">
     <span class="toast-message" id="toastMessage">Market created successfully!</span>
   </div>
 
   <script type="module" src="js/data.js"></script>
-  <script type="module" src="js/admin.js"></script>
+  <script type="module" src="js/admin-a.js"></script>
 </body>
 </html>

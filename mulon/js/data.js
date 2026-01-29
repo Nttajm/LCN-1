@@ -2010,6 +2010,7 @@ const MulonData = {
           keys: userData.keys || 0,
           balance: userData.balance || 0,
           positions: userData.positions || [],
+          ownedCards: userData.ownedCards || [],
           createdAt: userData.createdAt || null,
           lastLoginAt: userData.lastLoginAt || null,
           banned: userData.banned || false,
@@ -2357,6 +2358,260 @@ const MulonData = {
       return { success: true, resetCount };
     } catch (error) {
       console.error('Error resetting all users:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // ========================================
+  // CARDS MANAGEMENT (ADMIN ONLY)
+  // ========================================
+
+  // Update a user's cards (set entire array) (ADMIN ONLY)
+  async updateUserCards(userId, newCards) {
+    requireAdmin(); // Security check
+    
+    try {
+      // Get current cards for logging
+      const userDoc = await getDoc(doc(usersRef, userId));
+      const beforeCards = userDoc.exists() ? (userDoc.data().ownedCards || []) : [];
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      
+      await updateDoc(doc(usersRef, userId), {
+        ownedCards: newCards
+      });
+      
+      // Log admin action
+      await logAdminAction('cards_update', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        beforeCount: beforeCards.length,
+        afterCount: newCards.length
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user cards:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Add a card to a user (ADMIN ONLY)
+  async addCardToUser(userId, cardData) {
+    requireAdmin(); // Security check
+    
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      const currentCards = userData.ownedCards || [];
+      
+      // Add the new card
+      const newCard = {
+        ...cardData,
+        addedAt: new Date().toISOString(),
+        addedBy: 'admin'
+      };
+      
+      await updateDoc(doc(usersRef, userId), {
+        ownedCards: arrayUnion(newCard)
+      });
+      
+      // Log admin action
+      await logAdminAction('card_added', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        cardNumber: cardData.cardNumber
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error adding card to user:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Remove a specific card from a user (ADMIN ONLY)
+  async removeCardFromUser(userId, cardNumber) {
+    requireAdmin(); // Security check
+    
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      const currentCards = userData.ownedCards || [];
+      
+      // Find and remove the first card with matching number
+      const cardIndex = currentCards.findIndex(c => c.cardNumber === cardNumber);
+      if (cardIndex === -1) {
+        return { success: false, error: 'Card not found' };
+      }
+      
+      // Remove the card
+      const newCards = [...currentCards];
+      newCards.splice(cardIndex, 1);
+      
+      await updateDoc(doc(usersRef, userId), {
+        ownedCards: newCards
+      });
+      
+      // Log admin action
+      await logAdminAction('card_removed', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        cardNumber: cardNumber
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error removing card from user:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Reset a single user's cards (ADMIN ONLY)
+  async resetUserCards(userId) {
+    requireAdmin(); // Security check
+    
+    try {
+      const userDoc = await getDoc(doc(usersRef, userId));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const userData = userDoc.data();
+      const cardsCount = (userData.ownedCards || []).length;
+      
+      await updateDoc(doc(usersRef, userId), {
+        ownedCards: []
+      });
+      
+      // Log admin action
+      await logAdminAction('user_cards_reset', {
+        targetUserId: userId,
+        targetUserEmail: userData.email || null,
+        targetUserName: userData.displayName || null,
+        cardsDeleted: cardsCount
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error resetting user cards:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Reset ALL users' cards (ADMIN ONLY)
+  async resetAllUsersCards() {
+    requireAdmin(); // Security check
+    
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      let resetCount = 0;
+      let totalCardsDeleted = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        const cardsCount = (userData.ownedCards || []).length;
+        totalCardsDeleted += cardsCount;
+        
+        await updateDoc(doc(usersRef, userDoc.id), {
+          ownedCards: []
+        });
+        resetCount++;
+      }
+      
+      // Log admin action
+      await logAdminAction('all_cards_reset', {
+        usersAffected: resetCount,
+        totalCardsDeleted: totalCardsDeleted
+      });
+      
+      return { success: true, resetCount, totalCardsDeleted };
+    } catch (error) {
+      console.error('Error resetting all user cards:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Bulk add card to all users (ADMIN ONLY)
+  async bulkAddCardToAllUsers(cardData) {
+    requireAdmin(); // Security check
+    
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      let updatedCount = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const newCard = {
+          ...cardData,
+          addedAt: new Date().toISOString(),
+          addedBy: 'admin_bulk'
+        };
+        
+        await updateDoc(doc(usersRef, userDoc.id), {
+          ownedCards: arrayUnion(newCard)
+        });
+        updatedCount++;
+      }
+      
+      // Log admin action
+      await logAdminAction('bulk_card_add', {
+        cardNumber: cardData.cardNumber,
+        usersAffected: updatedCount
+      });
+      
+      return { success: true, updatedCount };
+    } catch (error) {
+      console.error('Error bulk adding card:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Bulk remove card from all users (ADMIN ONLY)
+  async bulkRemoveCardFromAllUsers(cardNumber) {
+    requireAdmin(); // Security check
+    
+    try {
+      const usersSnapshot = await getDocs(usersRef);
+      let updatedCount = 0;
+      let cardsRemoved = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        const currentCards = userData.ownedCards || [];
+        
+        // Remove all cards with matching number
+        const newCards = currentCards.filter(c => c.cardNumber !== cardNumber);
+        const removedCount = currentCards.length - newCards.length;
+        
+        if (removedCount > 0) {
+          await updateDoc(doc(usersRef, userDoc.id), {
+            ownedCards: newCards
+          });
+          updatedCount++;
+          cardsRemoved += removedCount;
+        }
+      }
+      
+      // Log admin action
+      await logAdminAction('bulk_card_remove', {
+        cardNumber: cardNumber,
+        usersAffected: updatedCount,
+        cardsRemoved: cardsRemoved
+      });
+      
+      return { success: true, updatedCount, cardsRemoved };
+    } catch (error) {
+      console.error('Error bulk removing card:', error);
       return { success: false, error: error.message };
     }
   },

@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crash - Mulon Casino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/casino-shared.css">
+  <link rel="stylesheet" href="/css/standard.css">
+  <style>
+    /* ========================================
+       CRASH GAME SPECIFIC STYLES
+       ======================================== */
+    
+    /* Layout */
+    .crash-layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+    
+    /* Game Panel */
+    .game-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #0f1419;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Crash Graph Container */
+    .crash-graph-container {
+      flex: 1;
+      background: linear-gradient(180deg, #0f1419 0%, #1a1f26 100%);
+      border-radius: 12px;
+      border: 1px solid #2a3441;
+      position: relative;
+      overflow: hidden;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Graph Canvas */
+    #crashCanvas {
+      width: 100%;
+      flex: 1;
+      display: block;
+    }
+    
+    /* Multiplier Display */
+    .multiplier-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .multiplier-text {
+      font-size: 5rem;
+      font-weight: 800;
+      color: #22c55e;
+      text-shadow: 0 0 40px rgba(34, 197, 94, 0.5);
+      transition: color 0.3s, text-shadow 0.3s;
+      font-family: 'Inter', monospace;
+    }
+    
+    .multiplier-text.crashed {
+      color: #ef4444;
+      text-shadow: 0 0 60px rgba(239, 68, 68, 0.8);
+      animation: crashShake 0.5s ease-out;
+    }
+    
+    .multiplier-text.waiting {
+      color: #6b7280;
+      text-shadow: none;
+      font-size: 2rem;
+    }
+    
+    .multiplier-text.cashed-out {
+      color: #f7b733;
+      text-shadow: 0 0 40px rgba(247, 183, 51, 0.5);
+    }
+    
+    @keyframes crashShake {
+      0%, 100% { transform: translate(-50%, -50%) rotate(0); }
+      20% { transform: translate(-50%, -50%) rotate(-3deg); }
+      40% { transform: translate(-50%, -50%) rotate(3deg); }
+      60% { transform: translate(-50%, -50%) rotate(-2deg); }
+      80% { transform: translate(-50%, -50%) rotate(2deg); }
+    }
+    
+    /* Status Text */
+    .status-text {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+    
+    .status-text.win {
+      color: #22c55e;
+      font-weight: 600;
+    }
+    
+    .status-text.loss {
+      color: #ef4444;
+      font-weight: 600;
+    }
+    
+    /* Grid Lines Overlay */
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+    
+    /* Rocket/Ship Animation */
+    .rocket {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      font-size: 2rem;
+      z-index: 5;
+      transition: transform 0.1s linear;
+      filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.5));
+    }
+    
+    .rocket.crashed {
+      filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.8));
+      animation: rocketExplode 0.5s ease-out forwards;
+    }
+    
+    @keyframes rocketExplode {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.8; }
+      100% { transform: scale(0.5); opacity: 0; }
+    }
+    
+    /* Cashout Button Styles */
+    .cashout-btn {
+      background: linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%);
+      border: none;
+      color: #fff;
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .cashout-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(247, 183, 51, 0.4);
+    }
+    
+    .cashout-btn:disabled {
+      background: #374151;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    .cashout-btn.active {
+      animation: pulseGlow 1s infinite;
+    }
+    
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(247, 183, 51, 0.4); }
+      50% { box-shadow: 0 0 35px rgba(247, 183, 51, 0.7); }
+    }
+    
+    /* Bet Button */
+    .bet-btn {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border: none;
+      color: #fff;
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    
+    .bet-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    
+    .bet-btn:disabled {
+      background: #374151;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    /* History Panel */
+    .history-panel {
+      margin-top: 16px;
+    }
+    
+    .history-title {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    
+    .history-items {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .history-item {
+      background: #1a1f26;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: 1px solid #2a3441;
+    }
+    
+    .history-item.green {
+      color: #22c55e;
+      border-color: rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.1);
+    }
+    
+    .history-item.red {
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.1);
+    }
+    
+    .history-item.orange {
+      color: #f97316;
+      border-color: rgba(249, 115, 22, 0.3);
+      background: rgba(249, 115, 22, 0.1);
+    }
+    
+    .history-item.purple {
+      color: #a855f7;
+      border-color: rgba(168, 85, 247, 0.3);
+      background: rgba(168, 85, 247, 0.1);
+    }
+    
+    /* Auto Cashout */
+    .auto-cashout-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .auto-cashout-toggle {
+      width: 40px;
+      height: 22px;
+      background: #374151;
+      border-radius: 11px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .auto-cashout-toggle.active {
+      background: #6366f1;
+    }
+    
+    .auto-cashout-toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+    
+    .auto-cashout-toggle.active::after {
+      transform: translateX(18px);
+    }
+    
+    .auto-cashout-input {
+      flex: 1;
+      background: #0f1419;
+      border: 1px solid #2a3441;
+      border-radius: 6px;
+      padding: 10px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .auto-cashout-input:disabled {
+      opacity: 0.5;
+    }
+    
+    /* Win Popup Animation */
+    .win-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.95) 0%, rgba(16, 185, 129, 0.95) 100%);
+      padding: 40px 60px;
+      border-radius: 16px;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: popIn 0.4s ease-out forwards;
+    }
+    
+    .win-popup.loss {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%);
+    }
+    
+    @keyframes popIn {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      80% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+    
+    .win-popup .win-amount {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    
+    .win-popup .win-mult {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-top: 8px;
+    }
+    
+    /* Countdown Timer */
+    .countdown-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 20, 25, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    
+    .countdown-text {
+      font-size: 4rem;
+      font-weight: 800;
+      color: #fff;
+      animation: countPulse 1s infinite;
+    }
+    
+    .countdown-label {
+      font-size: 1rem;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+    
+    @keyframes countPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    /* Particles for crash effect */
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    
+    /* Sound Toggle */
+    .sound-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(42, 52, 65, 0.8);
+      border: none;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      z-index: 30;
+      transition: background 0.2s;
+    }
+    
+    .sound-toggle:hover {
+      background: rgba(55, 65, 81, 0.9);
+    }
+    
+    /* XP Popup Animation */
+    .xp-popup {
+      position: fixed;
+      background: rgba(124, 58, 237, 0.9);
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-align: center;
+      z-index: 10000;
+      animation: xpFloat 0.1s ease-out;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .xp-popup .xp-amount {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .xp-popup .xp-streak {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #fbbf24;
+      margin-left: 4px;
+    }
+
+    .xp-popup.hide {
+      animation: xpFadeOut 0.1s ease-in forwards;
+    }
+
+    @keyframes xpFloat {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 0.9;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes xpFadeOut {
+      from {
+        opacity: 0.9;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+      .crash-layout {
+        flex-direction: column;
+      }
+      
+      .controls-panel {
+        width: 100%;
+        order: 2;
+      }
+      
+      .game-panel {
+        order: 1;
+        min-height: 350px;
+      }
+      
+      .multiplier-text {
+        font-size: 3.5rem;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .multiplier-text {
+        font-size: 2.5rem;
+      }
+      
+      .win-popup {
+        padding: 30px 40px;
+      }
+      
+      .win-popup .win-amount {
+        font-size: 2rem;
+      }
+      
+      .history-item {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a href="../index.html" class="logo">Mulon<span>.</span></a>
+    <div class="header-right">
+      <a href="../casino.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Casino
+      </a>
+      <div class="balance-box">
+        <div class="balance-label">Balance</div>
+        <div class="balance-amount" id="userBalance">$0.00</div>
+      </div>
+      <div class="balance-box keys-box">
+        <div class="balance-label">Keys</div>
+        <div class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 0</div>
+      </div>
+      <div class="balance-box xps-box">
+        <div class="balance-label">XPs</div>
+        <div class="balance-amount xps-amount" id="userXPs">⚡ 0</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Floating Profit/Loss Graph -->
+  <div class="profit-graph-container profit-graph-float" id="profitGraphContainer">
+    <div class="profit-graph-header">
+      <span class="profit-graph-title">Profit/Loss</span>
+      <span class="profit-graph-value" id="profitGraphValue">$0.00</span>
+    </div>
+    <canvas id="profitGraphCanvas"></canvas>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="crash-layout">
+    <!-- LEFT: Controls Panel -->
+    <div class="controls-panel">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" id="manualTab">Manual</button>
+        <button class="tab" id="autoTab">Auto</button>
+      </div>
+
+      <!-- Manual Controls -->
+      <div id="manualControls">
+        <!-- Bet Amount -->
+        <div class="control-group">
+          <label class="control-label">Bet Amount</label>
+          <div class="bet-input-wrap">
+            <div class="currency-icon">$</div>
+            <input type="number" class="bet-input" id="betAmount" value="10" min="1" max="10000">
+            <div class="bet-btns">
+              <button class="bet-adj" id="halfBtn">½</button>
+              <button class="bet-adj" id="doubleBtn">2×</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto Cashout -->
+        <div class="control-group">
+          <label class="control-label">Auto Cashout</label>
+          <div class="auto-cashout-wrap">
+            <div class="auto-cashout-toggle" id="autoCashoutToggle"></div>
+            <input type="number" class="auto-cashout-input" id="autoCashoutValue" value="2.00" step="0.1" min="1.01" disabled>
+            <span style="color: #6b7280;">x</span>
+          </div>
+        </div>
+
+        <!-- Bet/Cashout Button -->
+        <div class="control-group" style="border-bottom: none;">
+          <button class="bet-btn" id="betBtn">Place Bet</button>
+          <button class="cashout-btn" id="cashoutBtn" style="display: none; margin-top: 10px; width: 100%;">
+            Cash Out
+          </button>
+        </div>
+      </div>
+
+      <!-- Auto Controls (hidden by default) -->
+      <div id="autoControls" style="display: none;">
+        <!-- Bet Amount -->
+        <div class="control-group">
+          <label class="control-label">Bet Amount</label>
+          <div class="bet-input-wrap">
+            <div class="currency-icon">$</div>
+            <input type="number" class="bet-input" id="autoBetAmount" value="10" min="1" max="10000">
+            <div class="bet-btns">
+              <button class="bet-adj" id="autoHalfBtn">½</button>
+              <button class="bet-adj" id="autoDoubleBtn">2×</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto Cashout -->
+        <div class="control-group">
+          <label class="control-label">Auto Cashout At</label>
+          <div class="bet-input-wrap">
+            <input type="number" class="bet-input" id="autoAutoCashout" value="2.00" step="0.1" min="1.01">
+            <span style="color: #6b7280; padding: 12px;">x</span>
+          </div>
+        </div>
+
+        <!-- Number of Rounds -->
+        <div class="control-group">
+          <label class="control-label">Number of Rounds</label>
+          <select class="risk-select" id="autoRounds">
+            <option value="5">5 Rounds</option>
+            <option value="10" selected>10 Rounds</option>
+            <option value="25">25 Rounds</option>
+            <option value="50">50 Rounds</option>
+            <option value="100">100 Rounds</option>
+          </select>
+        </div>
+
+        <!-- Start Auto -->
+        <div class="control-group" style="border-bottom: none;">
+          <button class="bet-btn" id="autoStartBtn">Start Auto</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-box">
+        <div class="stat-row">
+          <span class="stat-label">Session Profit</span>
+          <span class="stat-value" id="sessionProfit">$0.00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Games Played</span>
+          <span class="stat-value" id="gamesPlayed">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Best Win</span>
+          <span class="stat-value profit" id="bestWin">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Game Panel -->
+    <div class="game-panel">
+      <button class="sound-toggle" id="soundToggle">🔊</button>
+      
+      <div class="crash-graph-container">
+        <canvas id="crashCanvas"></canvas>
+        
+        <!-- Multiplier Overlay -->
+        <div class="multiplier-overlay">
+          <div class="multiplier-text waiting" id="multiplierDisplay">Place your bet</div>
+          <div class="status-text" id="statusText"></div>
+        </div>
+        
+        <!-- Rocket -->
+        <div class="rocket" id="rocket" style="display: none;">🚀</div>
+      </div>
+
+      <!-- History -->
+      <div class="history-panel">
+        <div class="history-title">Previous Rounds</div>
+        <div class="history-items" id="historyItems">
+          <!-- History items will be added here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/casino-globals.js"></script>
+  <script type="module">
+    // ========================================
+    // CRASH GAME - STAKE STYLE (Firebase Integrated)
+    // ========================================
+    
+    // Import casino modules
+    import { CasinoAuth, CasinoDB } from './js/casino-auth.js';
+    
+    // Make available globally for profit graph
+    window.CasinoAuth = CasinoAuth;
+    window.CasinoDB = CasinoDB;
+
+    // Game State
+    const game = {
+      betAmount: 10,
+      isPlaying: false,
+      hasBet: false,
+      hasCashedOut: false,
+      currentMultiplier: 1.00,
+      crashPoint: 1.00,
+      startTime: null,
+      animationId: null,
+      history: [],
+      sessionProfit: 0,
+      gamesPlayed: 0,
+      bestWin: 0,
+      autoCashoutEnabled: false,
+      autoCashoutValue: 2.00,
+      soundEnabled: true,
+      isAutoMode: false,
+      autoRoundsRemaining: 0,
+      graphPoints: [],
+      isSignedIn: false
+    };
+
+    // DOM Elements
+    const elements = {
+      canvas: document.getElementById('crashCanvas'),
+      multiplierDisplay: document.getElementById('multiplierDisplay'),
+      statusText: document.getElementById('statusText'),
+      betAmount: document.getElementById('betAmount'),
+      betBtn: document.getElementById('betBtn'),
+      cashoutBtn: document.getElementById('cashoutBtn'),
+      userBalance: document.getElementById('userBalance'),
+      historyItems: document.getElementById('historyItems'),
+      sessionProfit: document.getElementById('sessionProfit'),
+      gamesPlayed: document.getElementById('gamesPlayed'),
+      bestWin: document.getElementById('bestWin'),
+      autoCashoutToggle: document.getElementById('autoCashoutToggle'),
+      autoCashoutValue: document.getElementById('autoCashoutValue'),
+      soundToggle: document.getElementById('soundToggle'),
+      rocket: document.getElementById('rocket')
+    };
+
+    const ctx = elements.canvas.getContext('2d');
+
+    // Audio (Web Audio API for sounds)
+    let audioCtx = null;
+    
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+    
+    function playSound(type) {
+      if (!game.soundEnabled) return;
+      
+      try {
+        const ctx = getAudioContext();
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        switch(type) {
+          case 'tick':
+            oscillator.frequency.value = 400 + (game.currentMultiplier * 50);
+            oscillator.type = 'sine';
+            gainNode.gain.value = 0.05;
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.05);
+            break;
+          case 'cashout':
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.value = 0.2;
+            oscillator.start();
+            setTimeout(() => {
+              oscillator.frequency.value = 1000;
+            }, 100);
+            oscillator.stop(ctx.currentTime + 0.3);
+            break;
+          case 'crash':
+            oscillator.frequency.value = 200;
+            oscillator.type = 'sawtooth';
+            gainNode.gain.value = 0.3;
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+            oscillator.stop(ctx.currentTime + 0.5);
+            break;
+          case 'bet':
+            oscillator.frequency.value = 600;
+            oscillator.type = 'triangle';
+            gainNode.gain.value = 0.1;
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.1);
+            break;
+        }
+      } catch (e) {
+        console.warn('Audio error:', e);
+      }
+    }
+
+    // Initialize canvas size
+    function resizeCanvas() {
+      const container = elements.canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = container.getBoundingClientRect();
+      
+      elements.canvas.width = rect.width * dpr;
+      elements.canvas.height = (rect.height - 80) * dpr;
+      elements.canvas.style.width = rect.width + 'px';
+      elements.canvas.style.height = (rect.height - 80) + 'px';
+      
+      ctx.scale(dpr, dpr);
+    }
+
+    // Generate crash point (provably fair algorithm)
+    function generateCrashPoint() {
+      // House edge of 3%
+      const houseEdge = 0.97;
+      const random = Math.random();
+      
+      // Exponential distribution with house edge
+      const crashPoint = Math.max(1.00, (houseEdge / random));
+      
+      // Cap at 1000x for reasonable gameplay
+      return Math.min(crashPoint, 1000);
+    }
+
+    // Draw the graph
+    function drawGraph() {
+      const w = elements.canvas.width / (window.devicePixelRatio || 1);
+      const h = elements.canvas.height / (window.devicePixelRatio || 1);
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, w, h);
+      
+      // Background
+      ctx.fillStyle = '#0f1419';
+      ctx.fillRect(0, 0, w, h);
+      
+      // Grid lines
+      ctx.strokeStyle = '#1e2530';
+      ctx.lineWidth = 1;
+      
+      // Horizontal grid lines
+      for (let i = 0; i <= 5; i++) {
+        const y = h - (i * h / 5);
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      
+      // Vertical grid lines
+      for (let i = 0; i <= 10; i++) {
+        const x = i * w / 10;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      
+      // Y-axis labels
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      
+      const maxMult = Math.max(game.currentMultiplier * 1.2, 2);
+      for (let i = 0; i <= 5; i++) {
+        const mult = 1 + (maxMult - 1) * (i / 5);
+        const y = h - (i * h / 5);
+        ctx.fillText(mult.toFixed(2) + 'x', 5, y - 5);
+      }
+      
+      // Draw curve if we have points
+      if (game.graphPoints.length > 1) {
+        const gradient = ctx.createLinearGradient(0, h, 0, 0);
+        
+        if (game.hasCashedOut) {
+          gradient.addColorStop(0, '#f7b733');
+          gradient.addColorStop(1, '#fc4a1a');
+        } else if (!game.isPlaying && game.currentMultiplier > 1) {
+          gradient.addColorStop(0, '#ef4444');
+          gradient.addColorStop(1, '#dc2626');
+        } else {
+          gradient.addColorStop(0, '#22c55e');
+          gradient.addColorStop(1, '#16a34a');
+        }
+        
+        // Draw filled area under curve
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        
+        game.graphPoints.forEach((point, i) => {
+          const x = (i / Math.max(game.graphPoints.length - 1, 1)) * w * 0.9;
+          const normalizedMult = (point - 1) / (maxMult - 1);
+          const y = h - (normalizedMult * h * 0.85);
+          
+          if (i === 0) {
+            ctx.lineTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        
+        // Close the path
+        const lastX = ((game.graphPoints.length - 1) / Math.max(game.graphPoints.length - 1, 1)) * w * 0.9;
+        ctx.lineTo(lastX, h);
+        ctx.closePath();
+        
+        ctx.fillStyle = game.hasCashedOut 
+          ? 'rgba(247, 183, 51, 0.15)' 
+          : (!game.isPlaying && game.currentMultiplier > 1)
+            ? 'rgba(239, 68, 68, 0.15)'
+            : 'rgba(34, 197, 94, 0.15)';
+        ctx.fill();
+        
+        // Draw the line
+        ctx.beginPath();
+        game.graphPoints.forEach((point, i) => {
+          const x = (i / Math.max(game.graphPoints.length - 1, 1)) * w * 0.9;
+          const normalizedMult = (point - 1) / (maxMult - 1);
+          const y = h - (normalizedMult * h * 0.85);
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        
+        // Glow effect
+        ctx.shadowColor = game.hasCashedOut ? '#f7b733' : (!game.isPlaying ? '#ef4444' : '#22c55e');
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        // Draw rocket position
+        if (game.isPlaying || game.hasCashedOut) {
+          const lastIdx = game.graphPoints.length - 1;
+          const rocketX = (lastIdx / Math.max(game.graphPoints.length - 1, 1)) * w * 0.9;
+          const normalizedMult = (game.graphPoints[lastIdx] - 1) / (maxMult - 1);
+          const rocketY = h - (normalizedMult * h * 0.85);
+          
+          elements.rocket.style.display = 'block';
+          elements.rocket.style.left = (rocketX + 40) + 'px';
+          elements.rocket.style.top = (rocketY + 20) + 'px';
+          elements.rocket.style.transform = `rotate(-45deg)`;
+        }
+      }
+    }
+
+    // Update multiplier display
+    function updateMultiplierDisplay() {
+      elements.multiplierDisplay.textContent = game.currentMultiplier.toFixed(2) + 'x';
+      elements.multiplierDisplay.classList.remove('waiting', 'crashed', 'cashed-out');
+      
+      if (game.hasCashedOut) {
+        elements.multiplierDisplay.classList.add('cashed-out');
+      }
+    }
+
+    // Game loop
+    function gameLoop() {
+      if (!game.isPlaying) return;
+      
+      const elapsed = Date.now() - game.startTime;
+      
+      // Multiplier grows exponentially over time
+      // Speed increases as multiplier gets higher (faster growth rate)
+      const growthRate = 0.00012;
+      game.currentMultiplier = Math.pow(Math.E, growthRate * elapsed);
+      
+      // Add point to graph
+      if (elapsed % 30 < 17) { // Add point every ~30ms for smoother graph
+        game.graphPoints.push(game.currentMultiplier);
+      }
+      
+      // Check for crash
+      if (game.currentMultiplier >= game.crashPoint) {
+        crash();
+        return;
+      }
+      
+      // Auto cashout check
+      if (game.autoCashoutEnabled && game.hasBet && !game.hasCashedOut) {
+        if (game.currentMultiplier >= game.autoCashoutValue) {
+          cashout();
+        }
+      }
+      
+      // Play tick sound occasionally
+      if (Math.floor(game.currentMultiplier * 10) > Math.floor((game.currentMultiplier - 0.1) * 10)) {
+        playSound('tick');
+      }
+      
+      updateMultiplierDisplay();
+      drawGraph();
+      
+      // Update cashout button
+      if (game.hasBet && !game.hasCashedOut) {
+        const winAmount = (game.betAmount * game.currentMultiplier).toFixed(2);
+        elements.cashoutBtn.textContent = `Cash Out $${winAmount}`;
+      }
+      
+      game.animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // Start round
+    function startRound() {
+      game.isPlaying = true;
+      game.hasCashedOut = false;
+      game.currentMultiplier = 1.00;
+      game.crashPoint = generateCrashPoint();
+      game.startTime = Date.now();
+      game.graphPoints = [1.00];
+      
+      elements.multiplierDisplay.classList.remove('waiting', 'crashed', 'cashed-out');
+      elements.statusText.textContent = '';
+      elements.rocket.classList.remove('crashed');
+      elements.rocket.style.display = 'block';
+      
+      console.log('Crash point:', game.crashPoint.toFixed(2));
+      
+      drawGraph();
+      gameLoop();
+    }
+
+    // Place bet
+    async function placeBet() {
+      // Prevent double-clicking
+      if (game.hasBet || game.isPlaying) return;
+      
+      // Check connection
+      if (window.ConnectionMonitor && !window.ConnectionMonitor.canPlay()) {
+        alert('Connection lost - cannot place bet. Please wait for reconnection.');
+        return;
+      }
+      
+      // Check if signed in
+      if (!game.isSignedIn) {
+        alert('Please sign in to play!');
+        return;
+      }
+      
+      // Check if user has keys
+      const currentKeys = CasinoAuth.getKeys();
+      if (currentKeys <= 0) {
+        alert('You need keys to play! Come back tomorrow for free keys.');
+        return;
+      }
+      
+      const betAmount = parseFloat(elements.betAmount.value);
+      
+      if (isNaN(betAmount) || betAmount < 1) {
+        showNotification('Invalid bet amount', 'error');
+        return;
+      }
+      
+      const currentBalance = CasinoAuth.getBalance();
+      if (betAmount > currentBalance) {
+        alert('Insufficient balance!');
+        return;
+      }
+      
+      // Place bet through CasinoDB
+      const result = await CasinoDB.placeBet(betAmount, 'crash');
+      if (!result.success) {
+        alert(result.error || 'Failed to place bet');
+        return;
+      }
+      
+      game.betAmount = betAmount;
+      game.hasBet = true;
+      
+      updateBalanceDisplay();
+      playSound('bet');
+      
+      // Disable all bet controls
+      elements.betBtn.disabled = true;
+      elements.betBtn.textContent = 'Waiting...';
+      elements.betAmount.disabled = true;
+      document.querySelectorAll('.bet-adj').forEach(btn => btn.disabled = true);
+      elements.autoCashoutToggle.style.pointerEvents = 'none';
+      elements.autoCashoutValue.disabled = true;
+      
+      elements.cashoutBtn.style.display = 'block';
+      elements.cashoutBtn.disabled = false;
+      elements.cashoutBtn.classList.add('active');
+      elements.cashoutBtn.textContent = 'Cash Out $' + betAmount.toFixed(2);
+      
+      // Start round immediately
+      setTimeout(() => {
+        startRound();
+      }, 200);
+    }
+
+    // Cash out
+    async function cashout() {
+      if (!game.hasBet || game.hasCashedOut || !game.isPlaying) return;
+      
+      // Check connection before cashout
+      if (window.ConnectionMonitor && !window.ConnectionMonitor.canPlay()) {
+        alert('Connection lost - please wait for reconnection!');
+        return;
+      }
+      
+      game.hasCashedOut = true;
+      
+      const winAmount = Math.round(game.betAmount * game.currentMultiplier * 100) / 100;
+      const profit = Math.round((winAmount - game.betAmount) * 100) / 100;
+      
+      // Record win in database
+      await CasinoDB.recordWin(winAmount, game.betAmount);
+      
+      // Record game result in session
+      if (CasinoDB.recordGameResult) {
+        await CasinoDB.recordGameResult('crash', game.betAmount, winAmount);
+      }
+      
+      // Award XPs if multiplier >= 2.1x
+      if (game.currentMultiplier >= 2.1) {
+        try {
+          const xpResult = await CasinoDB.awardXPs('crash', game.currentMultiplier, game.betAmount);
+          console.log('Crash XP result:', xpResult);
+          if (xpResult && xpResult.success && xpResult.xpsEarned > 0) {
+            updateXPsDisplay();
+            showXPGain(xpResult.xpsEarned, xpResult.streak, xpResult.streakMultiplier);
+          }
+        } catch (err) {
+          console.error('Error awarding xps:', err);
+        }
+      }
+      
+      game.sessionProfit += profit;
+      game.gamesPlayed++;
+      
+      if (profit > game.bestWin) {
+        game.bestWin = profit;
+      }
+      
+      playSound('cashout');
+      
+      // Stop the game immediately
+      game.isPlaying = false;
+      cancelAnimationFrame(game.animationId);
+      
+      elements.multiplierDisplay.classList.add('cashed-out');
+      elements.statusText.textContent = `+$${profit.toFixed(2)}`;
+      elements.statusText.className = 'status-text win';
+      
+      elements.cashoutBtn.disabled = true;
+      elements.cashoutBtn.classList.remove('active');
+      elements.cashoutBtn.textContent = 'Cashed Out!';
+      
+      updateBalanceDisplay();
+      updateStats();
+      
+      // Add to profit graph
+      if (window.ProfitGraph) {
+        window.ProfitGraph.addPoint(profit);
+      }
+      
+      // Add to history
+      addToHistory(game.currentMultiplier);
+      
+      // Quick reset after cashout (1 second)
+      setTimeout(() => {
+        resetRound();
+      }, 1000);
+    }
+
+    // Crash
+    async function crash() {
+      game.isPlaying = false;
+      cancelAnimationFrame(game.animationId);
+      
+      game.currentMultiplier = game.crashPoint;
+      game.graphPoints.push(game.crashPoint);
+      
+      elements.multiplierDisplay.textContent = game.crashPoint.toFixed(2) + 'x';
+      elements.multiplierDisplay.classList.add('crashed');
+      elements.rocket.classList.add('crashed');
+      
+      playSound('crash');
+      createCrashParticles();
+      
+      // If player had bet but didn't cash out
+      if (game.hasBet && !game.hasCashedOut) {
+        game.sessionProfit -= game.betAmount;
+        game.gamesPlayed++;
+        
+        elements.statusText.textContent = `-$${game.betAmount.toFixed(2)} & -1 🔑`;
+        elements.statusText.className = 'status-text loss';
+        
+        // Record loss - deducts 1 key and resets streak
+        await CasinoDB.recordLoss('crash');
+        await CasinoDB.resetStreak();
+        updateKeysDisplay();
+        
+        // Record game result in session
+        if (CasinoDB.recordGameResult) {
+          await CasinoDB.recordGameResult('crash', game.betAmount, 0);
+        }
+        
+        // Add to profit graph
+        if (window.ProfitGraph) {
+          window.ProfitGraph.addPoint(-game.betAmount);
+        }
+      }
+      
+      // Add to history
+      addToHistory(game.crashPoint);
+      updateStats();
+      drawGraph();
+      
+      // Reset for next round (faster reset)
+      setTimeout(() => {
+        resetRound();
+      }, 1200);
+    }
+
+    // Create crash particles
+    function createCrashParticles() {
+      const container = elements.canvas.parentElement;
+      const rocketRect = elements.rocket.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = (rocketRect.left - containerRect.left + 20) + 'px';
+        particle.style.top = (rocketRect.top - containerRect.top + 20) + 'px';
+        particle.style.background = ['#ef4444', '#f97316', '#fbbf24'][Math.floor(Math.random() * 3)];
+        
+        container.appendChild(particle);
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 50 + Math.random() * 100;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        let posX = parseFloat(particle.style.left);
+        let posY = parseFloat(particle.style.top);
+        let opacity = 1;
+        
+        const animate = () => {
+          posX += vx * 0.02;
+          posY += vy * 0.02 + 2; // Add gravity
+          opacity -= 0.03;
+          
+          particle.style.left = posX + 'px';
+          particle.style.top = posY + 'px';
+          particle.style.opacity = opacity;
+          
+          if (opacity > 0) {
+            requestAnimationFrame(animate);
+          } else {
+            particle.remove();
+          }
+        };
+        
+        requestAnimationFrame(animate);
+      }
+    }
+
+    // Reset round
+    function resetRound() {
+      game.hasBet = false;
+      game.hasCashedOut = false;
+      game.currentMultiplier = 1.00;
+      game.graphPoints = [];
+      
+      elements.multiplierDisplay.textContent = 'Place your bet';
+      elements.multiplierDisplay.classList.add('waiting');
+      elements.multiplierDisplay.classList.remove('crashed', 'cashed-out');
+      elements.statusText.textContent = '';
+      elements.statusText.className = 'status-text';
+      
+      // Re-enable all bet controls
+      elements.betBtn.disabled = false;
+      elements.betBtn.textContent = 'Place Bet';
+      elements.betAmount.disabled = false;
+      document.querySelectorAll('.bet-adj').forEach(btn => btn.disabled = false);
+      elements.autoCashoutToggle.style.pointerEvents = 'auto';
+      elements.autoCashoutValue.disabled = !game.autoCashoutEnabled;
+      
+      elements.cashoutBtn.style.display = 'none';
+      elements.cashoutBtn.classList.remove('active');
+      
+      elements.rocket.style.display = 'none';
+      elements.rocket.classList.remove('crashed');
+      
+      drawGraph();
+      
+      // Auto mode - continue if rounds remaining
+      if (game.isAutoMode && game.autoRoundsRemaining > 0) {
+        game.autoRoundsRemaining--;
+        document.getElementById('autoStartBtn').textContent = `Stop (${game.autoRoundsRemaining} left)`;
+        
+        setTimeout(() => {
+          if (game.isAutoMode) {
+            autoPlaceBet();
+          }
+        }, 800);
+      } else if (game.isAutoMode) {
+        stopAutoMode();
+      }
+    }
+
+    // Add to history
+    function addToHistory(crashPoint) {
+      game.history.unshift(crashPoint);
+      if (game.history.length > 20) {
+        game.history.pop();
+      }
+      
+      renderHistory();
+    }
+
+    // Render history
+    function renderHistory() {
+      elements.historyItems.innerHTML = '';
+      
+      game.history.slice(0, 15).forEach(point => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.textContent = point.toFixed(2) + 'x';
+        
+        if (point < 1.5) {
+          item.classList.add('red');
+        } else if (point < 2) {
+          item.classList.add('orange');
+        } else if (point < 10) {
+          item.classList.add('green');
+        } else {
+          item.classList.add('purple');
+        }
+        
+        elements.historyItems.appendChild(item);
+      });
+    }
+
+    // Update balance display
+    function updateBalanceDisplay() {
+      const balance = CasinoAuth.getBalance() ?? 0;
+      const fmt = window.FormatUtils;
+      elements.userBalance.textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
+    }
+    
+    // Update keys display
+    function updateKeysDisplay() {
+      const keys = CasinoAuth.getKeys() ?? 0;
+      const keysEl = document.getElementById('userKeys');
+      if (keysEl) {
+        keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
+      }
+    }
+    
+    // Update XPs display
+    function updateXPsDisplay() {
+      const xps = CasinoAuth.getXPs() ?? 0;
+      const xpsEl = document.getElementById('userXPs');
+      if (xpsEl) {
+        xpsEl.textContent = '⚡ ' + xps;
+      }
+    }
+    
+    // Show XP gain popup
+    function showXPGain(xps, streak, streakMult) {
+      const popup = document.createElement('div');
+      popup.className = 'xp-popup';
+      
+      // Position next to xps box
+      const xpsBox = document.querySelector('.xps-box');
+      if (xpsBox) {
+        const rect = xpsBox.getBoundingClientRect();
+        popup.style.top = (rect.bottom + 5) + 'px';
+        popup.style.right = (window.innerWidth - rect.right) + 'px';
+      }
+      
+      const streakText = streak > 1 && streakMult ? ` <span class="xp-streak">🔥${streak}</span>` : '';
+      popup.innerHTML = `<span class="xp-amount">⚡+${xps}${streakText}</span>`;
+      document.body.appendChild(popup);
+      
+      setTimeout(() => {
+        popup.classList.add('hide');
+        setTimeout(() => popup.remove(), 100);
+      }, 700);
+    }
+
+    // Update stats
+    function updateStats() {
+      const fmt = window.FormatUtils;
+      elements.sessionProfit.textContent = fmt ? fmt.formatProfit(game.sessionProfit) : ((game.sessionProfit >= 0 ? '+' : '') + '$' + game.sessionProfit.toFixed(2));
+      elements.sessionProfit.className = 'stat-value ' + (game.sessionProfit >= 0 ? 'profit' : 'loss');
+      elements.gamesPlayed.textContent = game.gamesPlayed;
+      elements.bestWin.textContent = '+$' + game.bestWin.toFixed(2);
+    }
+
+    // Show win popup
+    function showWinPopup(amount, multiplier) {
+      const popup = document.createElement('div');
+      popup.className = 'win-popup';
+      popup.innerHTML = `
+        <div class="win-amount">+$${(amount - game.betAmount).toFixed(2)}</div>
+        <div class="win-mult">${multiplier.toFixed(2)}x</div>
+      `;
+      
+      document.body.appendChild(popup);
+      
+      setTimeout(() => {
+        popup.style.animation = 'popIn 0.3s ease-in reverse forwards';
+        setTimeout(() => popup.remove(), 300);
+      }, 1500);
+    }
+
+    // Show notification
+    function showNotification(message, type = 'info') {
+      // Simple notification (could be enhanced)
+      console.log(`[${type}] ${message}`);
+    }
+
+    // Auto mode functions
+    async function autoPlaceBet() {
+      // Check if signed in
+      if (!game.isSignedIn) {
+        stopAutoMode();
+        alert('Please sign in to play!');
+        return;
+      }
+      
+      // Check if user has keys
+      const currentKeys = CasinoAuth.getKeys();
+      if (currentKeys <= 0) {
+        stopAutoMode();
+        alert('You need keys to play! Come back tomorrow for free keys.');
+        return;
+      }
+      
+      const betAmount = parseFloat(document.getElementById('autoBetAmount').value);
+      const autoCashout = parseFloat(document.getElementById('autoAutoCashout').value);
+      
+      const currentBalance = CasinoAuth.getBalance();
+      if (isNaN(betAmount) || betAmount < 1 || betAmount > currentBalance) {
+        stopAutoMode();
+        return;
+      }
+      
+      // Place bet through CasinoDB
+      const result = await CasinoDB.placeBet(betAmount, 'crash');
+      if (!result.success) {
+        stopAutoMode();
+        alert(result.error || 'Failed to place bet');
+        return;
+      }
+      
+      game.betAmount = betAmount;
+      game.autoCashoutEnabled = true;
+      game.autoCashoutValue = autoCashout;
+      game.hasBet = true;
+      
+      updateBalanceDisplay();
+      playSound('bet');
+      
+      // Disable all bet controls during auto mode
+      elements.betAmount.disabled = true;
+      document.querySelectorAll('.bet-adj').forEach(btn => btn.disabled = true);
+      document.getElementById('autoBetAmount').disabled = true;
+      document.getElementById('autoAutoCashout').disabled = true;
+      
+      elements.cashoutBtn.style.display = 'block';
+      elements.cashoutBtn.disabled = false;
+      elements.cashoutBtn.classList.add('active');
+      
+      setTimeout(() => startRound(), 200);
+    }
+
+    function startAutoMode() {
+      const rounds = parseInt(document.getElementById('autoRounds').value);
+      game.isAutoMode = true;
+      game.autoRoundsRemaining = rounds;
+      
+      document.getElementById('autoStartBtn').textContent = `Stop (${rounds} left)`;
+      document.getElementById('autoStartBtn').classList.add('active');
+      
+      autoPlaceBet();
+    }
+
+    function stopAutoMode() {
+      game.isAutoMode = false;
+      game.autoRoundsRemaining = 0;
+      
+      document.getElementById('autoStartBtn').textContent = 'Start Auto';
+      document.getElementById('autoStartBtn').classList.remove('active');
+      
+      // Re-enable auto mode controls
+      document.getElementById('autoBetAmount').disabled = false;
+      document.getElementById('autoAutoCashout').disabled = false;
+    }
+
+    // Event Listeners
+    elements.betBtn.addEventListener('click', placeBet);
+    elements.cashoutBtn.addEventListener('click', cashout);
+
+    // Bet adjustment buttons
+    document.getElementById('halfBtn').addEventListener('click', () => {
+      if (game.hasBet || game.isPlaying) return; // Can't change during game
+      elements.betAmount.value = Math.max(1, Math.floor(elements.betAmount.value / 2));
+    });
+
+    document.getElementById('doubleBtn').addEventListener('click', () => {
+      if (game.hasBet || game.isPlaying) return; // Can't change during game
+      elements.betAmount.value = Math.min(10000, elements.betAmount.value * 2);
+    });
+
+    // Auto cashout toggle
+    elements.autoCashoutToggle.addEventListener('click', () => {
+      if (game.hasBet || game.isPlaying) return; // Can't change during game
+      game.autoCashoutEnabled = !game.autoCashoutEnabled;
+      elements.autoCashoutToggle.classList.toggle('active', game.autoCashoutEnabled);
+      elements.autoCashoutValue.disabled = !game.autoCashoutEnabled;
+    });
+
+    elements.autoCashoutValue.addEventListener('change', () => {
+      if (game.hasBet || game.isPlaying) return; // Can't change during game
+      game.autoCashoutValue = Math.max(1.01, parseFloat(elements.autoCashoutValue.value));
+      elements.autoCashoutValue.value = game.autoCashoutValue.toFixed(2);
+    });
+
+    // Sound toggle
+    elements.soundToggle.addEventListener('click', () => {
+      game.soundEnabled = !game.soundEnabled;
+      elements.soundToggle.textContent = game.soundEnabled ? '🔊' : '🔇';
+    });
+
+    // Tab switching
+    document.getElementById('manualTab').addEventListener('click', () => {
+      document.getElementById('manualTab').classList.add('active');
+      document.getElementById('autoTab').classList.remove('active');
+      document.getElementById('manualControls').style.display = 'block';
+      document.getElementById('autoControls').style.display = 'none';
+    });
+
+    document.getElementById('autoTab').addEventListener('click', () => {
+      document.getElementById('autoTab').classList.add('active');
+      document.getElementById('manualTab').classList.remove('active');
+      document.getElementById('autoControls').style.display = 'block';
+      document.getElementById('manualControls').style.display = 'none';
+    });
+
+    // Auto mode buttons
+    document.getElementById('autoStartBtn').addEventListener('click', () => {
+      if (game.isAutoMode) {
+        stopAutoMode();
+      } else {
+        startAutoMode();
+      }
+    });
+
+    document.getElementById('autoHalfBtn').addEventListener('click', () => {
+      const input = document.getElementById('autoBetAmount');
+      input.value = Math.max(1, Math.floor(input.value / 2));
+    });
+
+    document.getElementById('autoDoubleBtn').addEventListener('click', () => {
+      const input = document.getElementById('autoBetAmount');
+      input.value = Math.min(10000, input.value * 2);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && game.isPlaying && game.hasBet && !game.hasCashedOut) {
+        e.preventDefault();
+        cashout();
+      }
+    });
+
+    // Resize handling
+    window.addEventListener('resize', resizeCanvas);
+
+    // Initialize
+    async function init() {
+      resizeCanvas();
+      drawGraph();
+      updateStats();
+      
+      // Initialize profit graph
+      if (window.ProfitGraph) {
+        window.ProfitGraph.init();
+      }
+      
+      // Initialize auth with maintenance check
+      const hasAccess = await CasinoAuth.initWithMaintenanceCheck();
+      if (!hasAccess) return; // Stop if redirecting to maintenance
+      
+      // Listen for auth state changes
+      CasinoAuth.onAuthStateChange((user, userData) => {
+        game.isSignedIn = !!user;
+        updateBalanceDisplay();
+        updateKeysDisplay();
+        updateXPsDisplay();
+      });
+      
+      // Add some fake history for visual appeal
+      const fakeHistory = [2.34, 1.12, 5.67, 1.89, 3.21, 1.05, 8.92, 2.15, 1.43, 4.56];
+      fakeHistory.forEach(point => game.history.push(point));
+      renderHistory();
+    }
+
+    // Wait for DOM and init
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    
+    // ========================================
+    // SESSION TRACKING - End session on page leave
+    // ========================================
+    window.addEventListener('beforeunload', () => {
+      if (CasinoDB && CasinoDB.activeSessionId) {
+        // End the active crash session
+        CasinoDB.endGameSession('user_left');
+      }
+    });
+
+    // Session keepalive (update activity every 2 minutes)
+    setInterval(() => {
+      if (CasinoDB && CasinoDB.activeSessionId) {
+        CasinoDB.updateSessionActivity();
+      }
+    }, 2 * 60 * 1000);
+  </script>
+</body>
+</html>

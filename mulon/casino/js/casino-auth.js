@@ -844,6 +844,17 @@ export const CasinoDB = {
             else if (multiplier >= 5) baseXPs = 10;
             else baseXPs = 4;
             break;
+          
+          case 'crash':
+            // Crash game XP rewards - higher multipliers = more XP
+            if (multiplier >= 100) baseXPs = 75;
+            else if (multiplier >= 50) baseXPs = 40;
+            else if (multiplier >= 20) baseXPs = 25;
+            else if (multiplier >= 10) baseXPs = 15;
+            else if (multiplier >= 5) baseXPs = 8;
+            else if (multiplier >= 2.1) baseXPs = 3;
+            else baseXPs = 1;
+            break;
             
           default:
             baseXPs = Math.max(1, Math.floor(multiplier));

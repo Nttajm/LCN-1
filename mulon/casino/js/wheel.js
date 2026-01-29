@@ -1,113 +1,138 @@
 // ========================================
-// WHEEL GAME - Stake-style Wheel of Fortune
+// WHEEL GAME - Stake-style Ring Wheel
 // ========================================
 
+// Stake-style wheel colors (matching screenshot)
+const WHEEL_COLORS = {
+  gray: '#3a4451',      // 0.00x - Gray/dark
+  green: '#22c55e',     // 1.50x - Green  
+  blue: '#6366f1',      // 1.70x - Blue/indigo
+  purple: '#8b5cf6',    // 2.00x - Purple
+  yellow: '#eab308',    // 3.00x - Yellow
+  orange: '#f97316'     // 4.00x - Orange
+};
+
 // Wheel configurations for different risk levels and segments
-// Low = alternating 0x pattern (50% chance of 0x)
-// Medium = double 0x (66% chance of 0x)
-// High = many 0x (80% chance of 0x)
 const WHEEL_CONFIGS = {
   low: {
     10: [
-      { multiplier: 0, color: '#1a1a2e', weight: 5 },      // 50% - alternating
-      { multiplier: 1.4, color: '#22c55e', weight: 2 },
-      { multiplier: 1.2, color: '#6366f1', weight: 2 },
-      { multiplier: 1.8, color: '#f59e0b', weight: 1 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 5 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 2 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 2 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 1 }
     ],
     20: [
-      { multiplier: 0, color: '#1a1a2e', weight: 10 },     // 50% - alternating
-      { multiplier: 1.4, color: '#22c55e', weight: 4 },
-      { multiplier: 1.2, color: '#6366f1', weight: 4 },
-      { multiplier: 1.8, color: '#f59e0b', weight: 2 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 10 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 4 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 3 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 1 }
     ],
     30: [
-      { multiplier: 0, color: '#1a1a2e', weight: 15 },     // 50%
-      { multiplier: 1.4, color: '#22c55e', weight: 6 },
-      { multiplier: 1.2, color: '#6366f1', weight: 6 },
-      { multiplier: 1.8, color: '#f59e0b', weight: 3 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 15 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 6 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 4 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 3 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 2 }
     ],
     40: [
-      { multiplier: 0, color: '#1a1a2e', weight: 20 },     // 50%
-      { multiplier: 1.4, color: '#22c55e', weight: 8 },
-      { multiplier: 1.2, color: '#6366f1', weight: 8 },
-      { multiplier: 1.8, color: '#f59e0b', weight: 4 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 20 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 8 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 5 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 4 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 3 }
     ],
     50: [
-      { multiplier: 0, color: '#1a1a2e', weight: 25 },     // 50%
-      { multiplier: 1.4, color: '#22c55e', weight: 10 },
-      { multiplier: 1.2, color: '#6366f1', weight: 10 },
-      { multiplier: 1.8, color: '#f59e0b', weight: 5 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 25 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 10 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 6 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 5 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 4 }
     ]
   },
   medium: {
     10: [
-      { multiplier: 0, color: '#1a1a2e', weight: 7 },      // ~66% - double 0x
-      { multiplier: 2, color: '#22c55e', weight: 1 },
-      { multiplier: 1.5, color: '#6366f1', weight: 1 },
-      { multiplier: 3, color: '#f59e0b', weight: 1 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 6 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 1 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 1 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 1 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 }
     ],
     20: [
-      { multiplier: 0, color: '#1a1a2e', weight: 14 },     // ~66%
-      { multiplier: 2, color: '#22c55e', weight: 2 },
-      { multiplier: 1.5, color: '#6366f1', weight: 2 },
-      { multiplier: 3, color: '#f59e0b', weight: 2 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 12 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 2 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 2 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 1 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 }
     ],
     30: [
-      { multiplier: 0, color: '#1a1a2e', weight: 20 },     // ~66%
-      { multiplier: 2, color: '#22c55e', weight: 4 },
-      { multiplier: 1.5, color: '#6366f1', weight: 3 },
-      { multiplier: 3, color: '#f59e0b', weight: 3 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 18 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 4 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 3 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 2 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 }
     ],
     40: [
-      { multiplier: 0, color: '#1a1a2e', weight: 28 },     // ~66%
-      { multiplier: 2, color: '#22c55e', weight: 4 },
-      { multiplier: 1.5, color: '#6366f1', weight: 4 },
-      { multiplier: 3, color: '#f59e0b', weight: 4 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 24 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 5 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 4 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 3 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 2 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 2 }
     ],
     50: [
-      { multiplier: 0, color: '#1a1a2e', weight: 34 },     // ~66%
-      { multiplier: 2, color: '#22c55e', weight: 6 },
-      { multiplier: 1.5, color: '#6366f1', weight: 5 },
-      { multiplier: 3, color: '#f59e0b', weight: 5 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 30 },
+      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 6 },
+      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 5 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 4 },
+      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 3 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 2 }
     ]
   },
   high: {
     10: [
-      { multiplier: 0, color: '#1a1a2e', weight: 8 },      // 80% - many 0x
-      { multiplier: 5, color: '#22c55e', weight: 1 },
-      { multiplier: 10, color: '#f59e0b', weight: 1 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 7 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 1 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 },
+      { multiplier: 10, color: '#ef4444', weight: 1 }
     ],
     20: [
-      { multiplier: 0, color: '#1a1a2e', weight: 16 },     // 80%
-      { multiplier: 5, color: '#22c55e', weight: 2 },
-      { multiplier: 10, color: '#f59e0b', weight: 1 },
-      { multiplier: 3, color: '#6366f1', weight: 1 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 14 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 2 },
+      { multiplier: 10, color: '#ef4444', weight: 1 },
+      { multiplier: 20, color: '#ec4899', weight: 1 }
     ],
     30: [
-      { multiplier: 0, color: '#1a1a2e', weight: 24 },     // 80%
-      { multiplier: 5, color: '#22c55e', weight: 2 },
-      { multiplier: 10, color: '#f59e0b', weight: 2 },
-      { multiplier: 3, color: '#6366f1', weight: 2 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 21 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 3 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 3 },
+      { multiplier: 10, color: '#ef4444', weight: 2 },
+      { multiplier: 20, color: '#ec4899', weight: 1 }
     ],
     40: [
-      { multiplier: 0, color: '#1a1a2e', weight: 32 },     // 80%
-      { multiplier: 5, color: '#22c55e', weight: 3 },
-      { multiplier: 10, color: '#f59e0b', weight: 2 },
-      { multiplier: 3, color: '#6366f1', weight: 3 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 28 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 4 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 4 },
+      { multiplier: 10, color: '#ef4444', weight: 2 },
+      { multiplier: 20, color: '#ec4899', weight: 2 }
     ],
     50: [
-      { multiplier: 0, color: '#1a1a2e', weight: 40 },     // 80%
-      { multiplier: 5, color: '#22c55e', weight: 4 },
-      { multiplier: 10, color: '#f59e0b', weight: 3 },
-      { multiplier: 3, color: '#6366f1', weight: 3 }
+      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 35 },
+      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 5 },
+      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 5 },
+      { multiplier: 10, color: '#ef4444', weight: 3 },
+      { multiplier: 20, color: '#ec4899', weight: 2 }
     ]
   }
 };
 
 // Game State
 const gameState = {
-  risk: 'low',
-  segments: 20,
+  risk: 'medium',
+  segments: 30,
   betAmount: 10,
   isSpinning: false,
   currentRotation: 0,
@@ -139,7 +164,6 @@ const gameState = {
 // DOM Elements
 let elements = {};
 let wheelCanvas, wheelCtx;
-let profitCanvas, profitCtx;
 let currentSegments = [];
 
 // Wait for CasinoAuth to be ready
@@ -180,6 +204,10 @@ function initWheelGame() {
   if (window.ProfitGraph) {
     window.ProfitGraph.init();
   }
+  
+  // Set default values
+  if (elements.riskSelect) elements.riskSelect.value = 'medium';
+  if (elements.segmentsSelect) elements.segmentsSelect.value = '30';
   
   console.log('Wheel game initialized!');
 }
@@ -382,7 +410,7 @@ function switchTab(tab) {
     if (elements.autoControls) elements.autoControls.style.display = 'none';
     gameState.isAutoMode = false;
     gameState.autoRunning = false;
-    if (elements.spinBtn) elements.spinBtn.textContent = 'Spin';
+    if (elements.spinBtn) elements.spinBtn.textContent = 'Bet';
   } else {
     if (elements.autoTab) elements.autoTab.classList.add('active');
     if (elements.manualTab) elements.manualTab.classList.remove('active');
@@ -412,7 +440,7 @@ function buildWheel() {
     }
   });
   
-  // Shuffle segments
+  // Shuffle segments for visual variety
   for (let i = currentSegments.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [currentSegments[i], currentSegments[j]] = [currentSegments[j], currentSegments[i]];
@@ -427,57 +455,58 @@ function drawWheel() {
   const size = 400;
   const centerX = size / 2;
   const centerY = size / 2;
-  const radius = size / 2 - 5;
+  const outerRadius = size / 2 - 5;
+  const innerRadius = outerRadius * 0.55; // Ring thickness - 45% of radius
   const segmentAngle = (2 * Math.PI) / currentSegments.length;
   
   wheelCtx.clearRect(0, 0, size, size);
   
+  // Draw ring segments
   currentSegments.forEach((segment, i) => {
     const startAngle = i * segmentAngle - Math.PI / 2;
     const endAngle = startAngle + segmentAngle;
     
-    // Draw segment
+    // Draw outer arc segment (ring style)
     wheelCtx.beginPath();
-    wheelCtx.moveTo(centerX, centerY);
-    wheelCtx.arc(centerX, centerY, radius, startAngle, endAngle);
+    wheelCtx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+    wheelCtx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
     wheelCtx.closePath();
     wheelCtx.fillStyle = segment.color;
     wheelCtx.fill();
     
     // Draw segment border
-    wheelCtx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+    wheelCtx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
     wheelCtx.lineWidth = 1;
     wheelCtx.stroke();
-    
-    // Draw multiplier text
-    wheelCtx.save();
-    wheelCtx.translate(centerX, centerY);
-    wheelCtx.rotate(startAngle + segmentAngle / 2);
-    wheelCtx.textAlign = 'right';
-    wheelCtx.fillStyle = '#fff';
-    wheelCtx.font = 'bold 11px Inter, sans-serif';
-    wheelCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    wheelCtx.shadowBlur = 2;
-    wheelCtx.fillText(`${segment.multiplier}x`, radius - 15, 4);
-    wheelCtx.restore();
   });
+  
+  // Draw inner circle (background color)
+  wheelCtx.beginPath();
+  wheelCtx.arc(centerX, centerY, innerRadius - 2, 0, Math.PI * 2);
+  wheelCtx.fillStyle = '#1a1f26';
+  wheelCtx.fill();
+  wheelCtx.strokeStyle = '#2a3441';
+  wheelCtx.lineWidth = 3;
+  wheelCtx.stroke();
 }
 
 function updateLegend() {
   if (!elements.legendGrid) return;
   
   const config = WHEEL_CONFIGS[gameState.risk][gameState.segments];
-  const totalWeight = config.reduce((sum, item) => sum + item.weight, 0);
   
-  elements.legendGrid.innerHTML = config
-    .sort((a, b) => b.multiplier - a.multiplier)
+  // Sort by multiplier ascending (like the screenshot)
+  const sortedConfig = [...config].sort((a, b) => a.multiplier - b.multiplier);
+  
+  elements.legendGrid.innerHTML = sortedConfig
     .map(item => {
-      const chance = ((item.weight / totalWeight) * 100).toFixed(1);
+      const multiplierText = item.multiplier === 0 ? '0.00x' : 
+                            item.multiplier < 10 ? item.multiplier.toFixed(2) + 'x' : 
+                            item.multiplier.toFixed(1) + 'x';
       return `
-        <div class="legend-item">
+        <div class="legend-item" data-multiplier="${item.multiplier}">
           <div class="legend-color" style="background: ${item.color}"></div>
-          <span class="legend-multiplier">${item.multiplier}x</span>
-          <span class="legend-chance">${chance}%</span>
+          <span class="legend-multiplier">${multiplierText}</span>
         </div>
       `;
     })
@@ -564,6 +593,7 @@ async function spin() {
   if (elements.spinBtn) {
     elements.spinBtn.disabled = true;
     elements.spinBtn.classList.add('spinning');
+    elements.spinBtn.textContent = 'Spinning...';
   }
   
   // Place bet using CasinoDB
@@ -574,10 +604,17 @@ async function spin() {
     if (elements.spinBtn) {
       elements.spinBtn.disabled = false;
       elements.spinBtn.classList.remove('spinning');
+      elements.spinBtn.textContent = gameState.isAutoMode ? 'Start Auto' : 'Bet';
     }
     return;
   }
   updateBalanceDisplay();
+  
+  // Update center display during spin
+  if (elements.wheelMultiplier) {
+    elements.wheelMultiplier.textContent = '?';
+    elements.wheelMultiplier.style.color = '#fff';
+  }
   
   // Calculate rotation - spin randomly
   const segmentAngle = 360 / currentSegments.length;
@@ -591,24 +628,12 @@ async function spin() {
     elements.wheel.style.transform = `rotate(${gameState.currentRotation}deg)`;
   }
   
-  // Update center display during spin
-  if (elements.wheelMultiplier) {
-    elements.wheelMultiplier.textContent = '?';
-    elements.wheelMultiplier.style.color = '#fff';
-  }
-  
   // Wait for spin to complete
   await new Promise(resolve => setTimeout(resolve, 4000));
   
-  // Calculate which segment is under the arrow (at the top)
-  // The arrow is at the top (0 degrees). We need to find which segment is there.
-  // Normalize the rotation to 0-360
+  // Calculate which segment is under the pointer (at the top)
   const normalizedRotation = ((gameState.currentRotation % 360) + 360) % 360;
-  // The wheel rotates clockwise, so the segment under the arrow is the one
-  // that has been rotated TO the top position
-  // Segment 0 starts at top, so we need to find which segment is now at top
-  // Added offset to shift calculation slightly left (counterclockwise)
-  const offset = segmentAngle * 0.25; // Shift left by 25% of a segment
+  const offset = segmentAngle * 0.25;
   const winningIndex = Math.floor(((360 - normalizedRotation + segmentAngle / 2 + offset) % 360) / segmentAngle) % currentSegments.length;
   const winningSegment = currentSegments[winningIndex];
   
@@ -657,21 +682,16 @@ async function spin() {
     }
   }
   
-  // Update center display
+  // Update center display with result
   if (elements.wheelMultiplier) {
-    elements.wheelMultiplier.textContent = `${winningSegment.multiplier}x`;
+    const multiplierText = winningSegment.multiplier === 0 ? '0.00x' : 
+                          winningSegment.multiplier.toFixed(2) + 'x';
+    elements.wheelMultiplier.textContent = multiplierText;
     elements.wheelMultiplier.style.color = winningSegment.color;
   }
   
-  // Update result display
-  if (elements.resultMultiplier) {
-    elements.resultMultiplier.textContent = `${winningSegment.multiplier}x`;
-    elements.resultMultiplier.style.color = winningSegment.color;
-  }
-  if (elements.payoutAmount) {
-    elements.payoutAmount.textContent = `$${payout.toFixed(2)}`;
-    elements.payoutAmount.classList.toggle('loss', profit < 0);
-  }
+  // Highlight winning legend item
+  highlightWinningLegend(winningSegment.multiplier);
   
   // Add to history
   addToHistory(winningSegment);
@@ -693,6 +713,20 @@ async function spin() {
   if (elements.spinBtn) {
     elements.spinBtn.disabled = false;
     elements.spinBtn.classList.remove('spinning');
+    elements.spinBtn.textContent = gameState.isAutoMode ? (gameState.autoRunning ? 'Stop' : 'Start Auto') : 'Bet';
+  }
+}
+
+function highlightWinningLegend(multiplier) {
+  // Remove previous highlights
+  document.querySelectorAll('.legend-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Add highlight to winning multiplier
+  const winningItem = document.querySelector(`.legend-item[data-multiplier="${multiplier}"]`);
+  if (winningItem) {
+    winningItem.classList.add('active');
   }
 }
 
@@ -705,11 +739,16 @@ function addToHistory(segment) {
   if (elements.spinHistory) {
     if (gameState.spinHistory.length > 0) {
       elements.spinHistory.innerHTML = gameState.spinHistory
-        .map(s => `
-          <div class="history-item" style="background: ${s.color}">
-            ${s.multiplier}x
-          </div>
-        `)
+        .map(s => {
+          const multiplierText = s.multiplier === 0 ? '0x' : 
+                                s.multiplier < 10 ? s.multiplier.toFixed(1) + 'x' : 
+                                s.multiplier + 'x';
+          return `
+            <div class="history-item" style="background: ${s.color}">
+              ${multiplierText}
+            </div>
+          `;
+        })
         .join('');
     }
   }
