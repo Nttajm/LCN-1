@@ -275,10 +275,7 @@ class PokerController {
     // Get Firestore instance from CasinoDB
     const db = CasinoDB.getDB();
     
-    // Initialize with current user
-    await this.lobbyManager.init(db, CasinoAuth.currentUser);
-
-    // Set up callbacks
+    // IMPORTANT: Set up callbacks BEFORE init() to catch early updates
     this.lobbyManager.onLobbyUpdate = this.handleLobbyUpdate;
     this.lobbyManager.onLobbiesUpdate = this.handleLobbiesUpdate;
     this.lobbyManager.onJoinRequest = this.handleJoinRequest;
@@ -297,6 +294,9 @@ class PokerController {
         this.showToast(`${playerName || 'A player'} left the lobby`, 'info');
       }
     };
+    
+    // Initialize AFTER callbacks are set up
+    await this.lobbyManager.init(db, CasinoAuth.currentUser);
   }
 
   // ========================================
