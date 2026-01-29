@@ -442,7 +442,34 @@ function updateProfitDisplay() {
 function adjustBet(mult) {
   if (config.isPlaying) return; // Don't allow changes while playing
   const input = document.getElementById('betAmount');
-  config.betAmount = Math.max(1, Math.min(1000, Math.round(config.betAmount * mult)));
+  const maxBet = window.CasinoAuth?.getBalance() ?? 1000000;
+  config.betAmount = Math.max(1, Math.min(maxBet, Math.round(config.betAmount * mult)));
+  input.value = config.betAmount;
+  updateDisplays();
+  updateBetButtonAmount();
+}
+
+// Set max bet (half of balance - safer option)
+function setMaxBet() {
+  if (config.isPlaying) return;
+  const balance = window.CasinoAuth?.getBalance() ?? 0;
+  const input = document.getElementById('betAmount');
+  config.betAmount = Math.max(1, Math.floor(balance / 2));
+  input.value = config.betAmount;
+  updateDisplays();
+  updateBetButtonAmount();
+}
+
+// All in - bet entire balance
+function setAllIn() {
+  if (config.isPlaying) return;
+  const balance = window.CasinoAuth?.getBalance() ?? 0;
+  if (balance <= 0) {
+    alert('No balance to bet!');
+    return;
+  }
+  const input = document.getElementById('betAmount');
+  config.betAmount = Math.floor(balance);
   input.value = config.betAmount;
   updateDisplays();
   updateBetButtonAmount();
@@ -465,14 +492,16 @@ document.getElementById('cashoutBtn').addEventListener('click', () => {
 document.getElementById('playAgainBtn').addEventListener('click', resetGame);
 
 document.getElementById('betAmount').addEventListener('change', (e) => {
-  config.betAmount = Math.max(1, Math.min(1000, parseFloat(e.target.value) || 10));
+  const maxBet = window.CasinoAuth?.getBalance() ?? 1000000;
+  config.betAmount = Math.max(1, Math.min(maxBet, parseFloat(e.target.value) || 10));
   e.target.value = config.betAmount;
   updateDisplays();
   updateBetButtonAmount();
 });
 
 document.getElementById('betAmount').addEventListener('keyup', (e) => {
-  config.betAmount = Math.max(1, Math.min(1000, parseFloat(e.target.value) || 10));
+  const maxBet = window.CasinoAuth?.getBalance() ?? 1000000;
+  config.betAmount = Math.max(1, Math.min(maxBet, parseFloat(e.target.value) || 10));
   updateDisplays();
   updateBetButtonAmount();
 });

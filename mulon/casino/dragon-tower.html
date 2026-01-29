@@ -75,10 +75,12 @@
         <label class="control-label">Bet Amount</label>
         <div class="bet-input-wrap">
           <div class="currency-icon">$</div>
-          <input type="number" class="bet-input" id="betAmount" value="10" min="1" max="1000">
+          <input type="number" class="bet-input" id="betAmount" value="10" min="1">
           <div class="bet-btns">
             <button class="bet-adj" onclick="adjustBet(0.5)">½</button>
             <button class="bet-adj" onclick="adjustBet(2)">2×</button>
+            <button class="bet-adj bet-max" onclick="setMaxBet()">Max</button>
+            <button class="bet-adj bet-allin" onclick="setAllIn()">All In</button>
           </div>
         </div>
       </div>
