@@ -137,11 +137,6 @@ async function initCasinoAuth() {
       updateBalanceDisplay();
       updateUIState();
     });
-    
-    // Listen for balance updates from other tabs
-    window.addEventListener('balanceUpdated', (e) => {
-      updateBalanceDisplay();
-    });
   }
 }
 
@@ -538,13 +533,19 @@ async function startGame() {
     return;
   }
   
+  const balance = window.CasinoAuth.getBalance();
+  if (betAmount > balance) {
+    showToast('Insufficient balance');
+    return;
+  }
+  
   // LOCK BET - prevent changing bet during game (anti-cheat)
   betLocked = true;
   lockedBetValue = betAmount;
   lockBetControls(true);
   
-  // Place bet using safe method - always verifies server balance first
-  const betResult = await window.CasinoDB.safePlaceBet(betAmount, 'blackjack');
+  // Place bet using CasinoDB with session tracking
+  const betResult = await window.CasinoDB.placeBet(betAmount, 'blackjack');
   if (!betResult.success) {
     showToast(betResult.error || 'Failed to place bet');
     betLocked = false;

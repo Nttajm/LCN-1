@@ -135,7 +135,6 @@ const TabSync = {
   lastSyncTime: 0,
   syncInterval: null,
   balanceVersion: 0, // Increments on every balance change
-  duplicateTabWarningShown: false,
   
   // Initialize tab sync on page load
   init() {
@@ -154,178 +153,10 @@ const TabSync = {
     // Register this tab
     this.registerTab();
     
-    // Check for duplicate tabs immediately
-    this.checkDuplicateTabs();
-    
     // Start periodic sync check
     this.syncInterval = setInterval(() => this.checkSync(), 2000);
     
     console.log('TabSync initialized:', this.tabId);
-  },
-  
-  // Check for duplicate casino tabs and show warning
-  checkDuplicateTabs() {
-    const tabs = this.getActiveTabs();
-    const casinoTabs = Object.entries(tabs).filter(([id, data]) => {
-      // Check if this is a casino page (not this tab)
-      return id !== this.tabId && data.page && data.page.includes('/casino');
-    });
-    
-    if (casinoTabs.length > 0 && !this.duplicateTabWarningShown) {
-      this.showDuplicateTabWarning();
-    }
-  },
-  
-  // Show red warning overlay for duplicate tabs
-  showDuplicateTabWarning() {
-    this.duplicateTabWarningShown = true;
-    
-    // Create overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'duplicateTabWarning';
-    overlay.innerHTML = `
-      <div class="duplicate-tab-content">
-        <div class="duplicate-tab-icon">⚠️</div>
-        <h1>DUPLICATE TAB DETECTED</h1>
-        <p>You have another casino tab open. Playing in multiple tabs is not allowed.</p>
-        <p>Please close this tab or the other casino tab to continue.</p>
-        <div class="duplicate-tab-actions">
-          <button id="duplicateTabContinue">Close Other Tabs & Continue</button>
-          <button id="duplicateTabClose">Close This Tab</button>
-        </div>
-      </div>
-    `;
-    
-    // Add styles
-    const style = document.createElement('style');
-    style.textContent = `
-      #duplicateTabWarning {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #8B0000 0%, #B22222 50%, #8B0000 100%);
-        z-index: 999999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: duplicateTabPulse 2s ease-in-out infinite;
-      }
-      
-      @keyframes duplicateTabPulse {
-        0%, 100% { background: linear-gradient(135deg, #8B0000 0%, #B22222 50%, #8B0000 100%); }
-        50% { background: linear-gradient(135deg, #B22222 0%, #DC143C 50%, #B22222 100%); }
-      }
-      
-      .duplicate-tab-content {
-        text-align: center;
-        color: white;
-        padding: 40px;
-        max-width: 600px;
-      }
-      
-      .duplicate-tab-icon {
-        font-size: 80px;
-        margin-bottom: 20px;
-        animation: duplicateTabShake 0.5s ease-in-out infinite;
-      }
-      
-      @keyframes duplicateTabShake {
-        0%, 100% { transform: rotate(-5deg); }
-        50% { transform: rotate(5deg); }
-      }
-      
-      .duplicate-tab-content h1 {
-        font-size: 36px;
-        margin-bottom: 20px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        letter-spacing: 2px;
-      }
-      
-      .duplicate-tab-content p {
-        font-size: 18px;
-        margin-bottom: 15px;
-        opacity: 0.9;
-      }
-      
-      .duplicate-tab-actions {
-        margin-top: 30px;
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-      
-      .duplicate-tab-actions button {
-        padding: 15px 30px;
-        font-size: 16px;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-      
-      #duplicateTabContinue {
-        background: #2ecc71;
-        color: white;
-      }
-      
-      #duplicateTabContinue:hover {
-        background: #27ae60;
-        transform: scale(1.05);
-      }
-      
-      #duplicateTabClose {
-        background: rgba(255,255,255,0.2);
-        color: white;
-        border: 2px solid white;
-      }
-      
-      #duplicateTabClose:hover {
-        background: rgba(255,255,255,0.3);
-        transform: scale(1.05);
-      }
-    `;
-    
-    document.head.appendChild(style);
-    document.body.appendChild(overlay);
-    
-    // Handle buttons
-    document.getElementById('duplicateTabContinue').addEventListener('click', () => {
-      // Signal other tabs to close
-      localStorage.setItem('casino_close_other_tabs', JSON.stringify({
-        keepTabId: this.tabId,
-        timestamp: Date.now()
-      }));
-      
-      // Remove warning
-      overlay.remove();
-      this.duplicateTabWarningShown = false;
-      
-      // Force refresh balance
-      if (typeof CasinoDB !== 'undefined') {
-        CasinoDB.getServerBalance();
-      }
-    });
-    
-    document.getElementById('duplicateTabClose').addEventListener('click', () => {
-      window.close();
-      // If window.close() doesn't work (not opened by script), redirect
-      setTimeout(() => {
-        window.location.href = '../index.html';
-      }, 100);
-    });
-  },
-  
-  // Hide the duplicate tab warning
-  hideDuplicateTabWarning() {
-    const overlay = document.getElementById('duplicateTabWarning');
-    if (overlay) {
-      overlay.remove();
-    }
-    this.duplicateTabWarningShown = false;
   },
   
   // Register this tab in localStorage
@@ -444,25 +275,6 @@ const TabSync = {
       } catch (e) {
         console.error('TabSync force refresh error:', e);
       }
-    }
-    
-    // Handle close other tabs signal
-    if (e.key === 'casino_close_other_tabs' && e.newValue) {
-      try {
-        const data = JSON.parse(e.newValue);
-        // If this isn't the tab that should stay open, redirect away
-        if (data.keepTabId !== this.tabId) {
-          console.log('TabSync: Received close signal, redirecting...');
-          window.location.href = '../index.html';
-        }
-      } catch (e) {
-        console.error('TabSync close signal error:', e);
-      }
-    }
-    
-    // Handle new tab registration - check for duplicates
-    if (e.key === 'casino_active_tabs' && e.newValue) {
-      this.checkDuplicateTabs();
     }
   },
   
