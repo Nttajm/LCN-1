@@ -2159,7 +2159,10 @@ class PokerController {
       this.elements.tableContainer?.classList.add('hidden');
       
       // Show the party config (pre-game lobby state)
-      this.elements.partyConfig?.classList.add('visible');
+      if (this.elements.partyConfig) {
+        this.elements.partyConfig.style.display = 'flex';
+        this.elements.partyConfig.classList.add('visible');
+      }
       document.body.classList.remove('game-started');
       
       // Re-render party (will show players with reset ready status)
