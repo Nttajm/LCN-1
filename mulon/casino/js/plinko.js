@@ -326,7 +326,18 @@ async function dropBall() {
 
 // Check ball landing
 function checkBallLanding(ball) {
-  if (ball.position.y > canvasHeight - 50 && Math.abs(ball.velocity.y) < 1 && Math.abs(ball.velocity.x) < 1) {
+  // Initialize drop time if not set (for timeout-based fallback)
+  if (!ball.dropTime) {
+    ball.dropTime = Date.now();
+  }
+  
+  const isNearBottom = ball.position.y > canvasHeight - 50;
+  const isSlowEnough = Math.abs(ball.velocity.y) < 2 && Math.abs(ball.velocity.x) < 2;
+  const isVeryNearBottom = ball.position.y > canvasHeight - 35; // In bucket zone
+  const hasTimedOut = (Date.now() - ball.dropTime) > 15000; // 15 second max
+  
+  // Land if: (near bottom AND slow) OR (very near bottom) OR (timed out)
+  if ((isNearBottom && isSlowEnough) || isVeryNearBottom || hasTimedOut) {
     const ballX = ball.position.x;
     let landedBucket = null;
 
@@ -338,25 +349,27 @@ function checkBallLanding(ball) {
     }
 
     if (landedBucket) {
+      // Use the bet amount stored on the ball when it was dropped (not current config)
+      const ballBetAmount = ball.betAmount || config.betAmount;
       // Calculate winnings based on multiplier and bet amount
-      const winAmount = Math.round(config.betAmount * landedBucket.multiplier * 100) / 100;
-      const profit = Math.round((winAmount - config.betAmount) * 100) / 100;
+      const winAmount = Math.round(ballBetAmount * landedBucket.multiplier * 100) / 100;
+      const profit = Math.round((winAmount - ballBetAmount) * 100) / 100;
       
       // Record game result in session
       if (window.CasinoDB && window.CasinoDB.recordGameResult) {
-        window.CasinoDB.recordGameResult('plinko', config.betAmount, winAmount)
+        window.CasinoDB.recordGameResult('plinko', ballBetAmount, winAmount)
           .catch(err => console.error('Error recording game result:', err));
       }
       
       // Record win in database if won anything
       if (winAmount > 0) {
-        window.CasinoDB.recordWin(winAmount, config.betAmount)
+        window.CasinoDB.recordWin(winAmount, ballBetAmount)
           .then(() => updateBalanceDisplay())
           .catch(() => {});
         
         // Award xps only for 2x+ multiplier wins
         if (landedBucket.multiplier >= 2) {
-          window.CasinoDB.awardXPs('plinko', landedBucket.multiplier, config.betAmount)
+          window.CasinoDB.awardXPs('plinko', landedBucket.multiplier, ballBetAmount)
             .then(result => {
               console.log('Plinko xp result:', result);
               if (result && result.success && result.xpsEarned > 0) {
@@ -626,8 +639,8 @@ function stopAuto() {
 async function autoDropBall() {
   if (!autoConfig.isRunning) return;
   
-  // Check if we should stop
-  if (autoConfig.totalDrops > 0 && autoConfig.dropsRemaining <= 0) {
+  // Check if we should stop (totalDrops < 0 means unlimited)
+  if (autoConfig.totalDrops >= 0 && autoConfig.dropsRemaining <= 0) {
     stopAuto();
     return;
   }
@@ -701,8 +714,8 @@ async function autoDropBall() {
   config.ballsDropped++;
   document.getElementById('ballsDropped').textContent = config.ballsDropped;
   
-  // Decrement drops remaining
-  if (autoConfig.totalDrops > 0) {
+  // Decrement drops remaining (only if not unlimited, i.e., totalDrops >= 0)
+  if (autoConfig.totalDrops >= 0) {
     autoConfig.dropsRemaining--;
   }
   
@@ -714,7 +727,7 @@ function updateAutoDisplay() {
   const autoProfitEl = document.getElementById('autoProfit');
   
   if (dropsLeftEl) {
-    dropsLeftEl.textContent = autoConfig.totalDrops === 0 ? '∞' : autoConfig.dropsRemaining;
+    dropsLeftEl.textContent = autoConfig.totalDrops < 0 ? '∞' : autoConfig.dropsRemaining;
   }
   
   if (autoProfitEl) {
@@ -737,12 +750,15 @@ document.getElementById('autoStartBtn').addEventListener('click', startAuto);
 document.getElementById('autoStopBtn').addEventListener('click', stopAuto);
 
 document.getElementById('autoBetAmount').addEventListener('change', (e) => {
-  if (autoConfig.isRunning) {
+  // Prevent changes while auto is running OR while balls are in play
+  if (autoConfig.isRunning || hasBallsInPlay()) {
     e.target.value = config.betAmount;
     return;
   }
   config.betAmount = Math.max(1, Math.min(1000, parseFloat(e.target.value) || 10));
   e.target.value = config.betAmount;
+  // Sync to manual input as well
+  document.getElementById('betAmount').value = config.betAmount;
 });
 
 document.getElementById('betAmount').addEventListener('change', (e) => {
