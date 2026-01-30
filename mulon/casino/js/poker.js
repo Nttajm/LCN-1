@@ -409,8 +409,8 @@ class PokerController {
     
     // Check for game end - show winners and refresh balance
     if (gameState.phase === GAME_PHASES.ENDED || gameState.phase === GAME_PHASES.SHOWDOWN) {
-      // Show winner toast for non-host players
-      if (!this.isHost && gameState.lastWinners && gameState.lastWinners.length > 0) {
+      // Show winner toast and modal for all players
+      if (gameState.lastWinners && gameState.lastWinners.length > 0) {
         const myWin = gameState.lastWinners.find(w => w.playerId === this.currentUser?.uid);
         if (myWin) {
           this.showToast(`You won $${myWin.winnings}!`, 'success');
@@ -419,11 +419,11 @@ class PokerController {
           this.showToast(`${winnerNames} won the pot!`, 'info');
         }
         
-        // Show showdown modal for non-host players
-        if (!this.isHost && !this.showdownModalShown) {
+        // Show showdown modal for all players (flag prevents duplicates for the player who took the last action)
+        if (!this.showdownModalShown) {
           this.showdownModalShown = true;
           
-          // Build result object from game state for non-host
+          // Build result object from game state
           const result = {
             winners: gameState.lastWinners.map(w => ({
               player: this.game.players.find(p => p?.id === w.playerId) || { id: w.playerId, displayName: w.displayName },
@@ -578,6 +578,17 @@ class PokerController {
         
         this.isInGame = true;
         document.body.classList.add('game-started');
+        
+        // Check for new hand starting (phase changed to PRE_FLOP) - hide showdown modal
+        if (lobby.gameState.phase === GAME_PHASES.PRE_FLOP && this.lastPhase !== GAME_PHASES.PRE_FLOP) {
+          console.log('🎲 New hand detected in lobby update, hiding showdown modal');
+          this.resetCardAnimationState();
+          this.hideShowdownModal();
+          this.showdownModalShown = false;
+        }
+        
+        // Track phase changes
+        this.lastPhase = lobby.gameState.phase;
         
         // Deserialize full game state (with all cards)
         this.game = PokerGame.deserialize(lobby.gameState);
