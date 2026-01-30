@@ -25,6 +25,8 @@ class PokerController {
     this.isHost = false;
     this.isInGame = false;
     this.isLeaving = false; // Prevent double leave clicks
+    this.isStartingGame = false; // Prevent double start clicks
+    this.buyInDeducted = false; // Track if buy-in was deducted for current game
     this.selectedBuyIn = 25;
     this.lastPhase = null; // Track phase for chip animations
     this.showdownModalShown = false;
@@ -257,11 +259,16 @@ class PokerController {
     });
 
     // Listen for auth changes
-    CasinoAuth.onAuthStateChange((user, userData) => {
+    CasinoAuth.onAuthStateChange(async (user, userData) => {
       this.currentUser = user;
       this.userData = userData;
       this.updateBalanceDisplay();
       this.updateUIState();
+      
+      // Initialize lobby manager when user signs in
+      if (user && !this.lobbyManager) {
+        await this.initLobbyManager();
+      }
     });
   }
 
@@ -279,13 +286,20 @@ class PokerController {
     
     // Get Firestore instance from CasinoDB
     const db = CasinoDB.getDB();
+    if (!db) {
+      console.error('❌ Database not available');
+      return;
+    }
+    
+    console.log('🎲 Initializing lobby manager for user:', CasinoAuth.currentUser?.displayName);
     
     // IMPORTANT: Set up callbacks BEFORE init() to catch early updates
     this.lobbyManager.onLobbyUpdate = this.handleLobbyUpdate;
     this.lobbyManager.onLobbiesUpdate = this.handleLobbiesUpdate;
     this.lobbyManager.onJoinRequest = this.handleJoinRequest;
     this.lobbyManager.onOnlinePlayersUpdate = this.handleOnlinePlayersUpdate;
-    this.lobbyManager.onGameStart = (lobbyId) => this.startGame();
+    // Note: onGameStart is no longer used - host calls startGame() directly in handleStartGame()
+    this.lobbyManager.onGameStart = null;
     this.lobbyManager.onGameStateUpdate = this.handleGameStateUpdate.bind(this);
     
     // Player join/leave notifications with immediate UI refresh
@@ -347,7 +361,8 @@ class PokerController {
     };
     
     // Initialize AFTER callbacks are set up
-    await this.lobbyManager.init(db, CasinoAuth.currentUser);
+    const initResult = await this.lobbyManager.init(db, CasinoAuth.currentUser);
+    console.log('🎲 Lobby manager initialized:', initResult);
   }
 
   // ========================================
@@ -534,32 +549,8 @@ class PokerController {
 
     // Check if game started
     if (lobby.status === LOBBY_STATUS.IN_GAME) {
-      // Track game session to prevent duplicate buy-in deductions
-      const gameSessionId = lobby.gameStartedAt?.seconds || lobby.id;
-      
-      // Deduct buy-in for non-host players when game starts (host already deducted in startGame)
-      // Only deduct if: not already in game, not host, and haven't deducted for this game session
-      if (!this.isInGame && !isHost && !this._buyInDeducted && this._currentGameId !== gameSessionId) {
-        this._currentGameId = gameSessionId;
-        this._buyInDeducted = true;
-        
-        const buyIn = lobby.buyIn;
-        CasinoDB.updateBalance(-buyIn).then(result => {
-          if (result !== null) {
-            this.updateBalanceDisplay();
-            this.showToast(`$${buyIn} buy-in deducted. Good luck!`, 'success');
-          } else {
-            // Failed to deduct - reset flag so they can try again
-            this._buyInDeducted = false;
-            this.showToast('Failed to deduct buy-in', 'error');
-          }
-        });
-      }
-      
       // Mark as in game and update UI
       const wasInGame = this.isInGame;
-      this.isInGame = true;
-      document.body.classList.add('game-started');
       
       // Hide config panel, show game UI
       if (this.elements.partyConfig) {
@@ -568,6 +559,26 @@ class PokerController {
       
       // Initialize game from lobby state for ALL players (host and non-host)
       if (lobby.gameState) {
+        // Deduct buy-in for non-host players ONLY when we receive actual game state
+        // This ensures we don't deduct if the game never starts properly
+        if (!this.isInGame && !isHost && !this.buyInDeducted) {
+          this.buyInDeducted = true; // Prevent double deduction
+          const buyIn = lobby.buyIn;
+          CasinoDB.updateBalance(-buyIn).then(result => {
+            if (result !== null) {
+              this.updateBalanceDisplay();
+              this.showToast(`$${buyIn} buy-in deducted. Good luck!`, 'success');
+            } else {
+              this.buyInDeducted = false; // Reset flag on failure
+            }
+          }).catch(() => {
+            this.buyInDeducted = false;
+          });
+        }
+        
+        this.isInGame = true;
+        document.body.classList.add('game-started');
+        
         // Deserialize full game state (with all cards)
         this.game = PokerGame.deserialize(lobby.gameState);
         // Update UI with filtered view (hide other players' cards)
@@ -602,6 +613,10 @@ class PokerController {
       } else if (!wasInGame) {
         // Game just started but no gameState yet - show waiting message
         console.log('⏳ Waiting for game state from host...');
+        // Show a loading indicator for non-host players
+        if (!isHost && this.elements.waitingText) {
+          this.elements.waitingText.textContent = 'Game starting, please wait...';
+        }
       }
     } else {
       // Not in game - reset state and show lobby UI
@@ -609,10 +624,7 @@ class PokerController {
         console.log('🔄 Game ended, returning to lobby');
         this.isInGame = false;
         this.gameState = null;
-        
-        // Reset buy-in tracking for next game
-        this._buyInDeducted = false;
-        this._currentGameId = null;
+        this.buyInDeducted = false; // Reset for next game
         
         // Hide game UI elements
         this.elements.pokerActions?.classList.remove('visible');
@@ -667,11 +679,47 @@ class PokerController {
       return;
     }
 
-    console.log('🎮 Host starting game...');
-    const result = await this.lobbyManager.startGameByHost();
-    
-    if (!result.success) {
-      this.showToast(result.error || 'Failed to start game', 'error');
+    // Prevent double-clicks
+    if (this.isStartingGame) {
+      console.log('Game start already in progress');
+      return;
+    }
+    this.isStartingGame = true;
+
+    // Disable button during start
+    if (this.elements.startGameBtn) {
+      this.elements.startGameBtn.disabled = true;
+      this.elements.startGameBtn.textContent = 'Starting...';
+    }
+
+    try {
+      console.log('🎮 Host starting game...');
+      
+      // First update status to IN_GAME
+      const result = await this.lobbyManager.startGameByHost();
+      
+      if (!result.success) {
+        this.showToast(result.error || 'Failed to start game', 'error');
+        return;
+      }
+
+      // Now create the game and sync state (host only)
+      await this.startGame();
+      
+    } catch (error) {
+      console.error('Error starting game:', error);
+      this.showToast('Failed to start game', 'error');
+    } finally {
+      this.isStartingGame = false;
+      if (this.elements.startGameBtn) {
+        this.elements.startGameBtn.disabled = false;
+        this.elements.startGameBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Start Game
+        `;
+      }
     }
   }
 
@@ -1259,7 +1307,7 @@ class PokerController {
           <span class="lobby-game">$${lobby.buyIn} Buy-in • ${lobbyPlayers.length}/${lobby.maxPlayers}</span>
         </div>
         <button class="ask-join-btn" ${!canJoin ? 'disabled' : ''}>
-          ${!canJoin ? 'Full' : isInGame ? 'Join (Wait for Next Hand)' : 'Ask to Join'}
+          ${!canJoin ? 'Full' : isInGame ? 'Join (Wait for Next Hand)' : 'Join'}
         </button>
       `;
 
@@ -1841,7 +1889,18 @@ class PokerController {
 
   async requestJoinLobby(lobbyId) {
     if (!CasinoAuth.isSignedIn()) {
-      this.showToast('Please sign in to join a game', 'error');
+      alert('Please sign in to join a game');
+      return;
+    }
+
+    // Ensure lobby manager is initialized
+    if (!this.lobbyManager || !this.lobbyManager.isInitialized) {
+      console.log('Lobby manager not ready, initializing...');
+      await this.initLobbyManager();
+    }
+
+    if (!this.lobbyManager || !this.lobbyManager.isInitialized) {
+      this.showToast('Lobby system not ready. Please wait...', 'error');
       return;
     }
 
@@ -1852,32 +1911,63 @@ class PokerController {
       btn.textContent = 'Joining...';
     }
 
-    // Try to directly join first (for public lobbies)
-    const joinResult = await this.lobbyManager?.joinLobby(lobbyId);
+    try {
+      // Try direct join first (works for public lobbies)
+      console.log('Attempting to join lobby:', lobbyId);
+      const joinResult = await this.lobbyManager.joinLobby(lobbyId);
+      
+      console.log('Join result:', joinResult);
     
-    if (joinResult?.success) {
-      this.showToast('Joined lobby!', 'success');
-      // The handleLobbyUpdate callback will handle the UI refresh
-      return;
-    }
-    
-    // If direct join failed, fall back to request system
-    const result = await this.lobbyManager?.requestJoinLobby(lobbyId);
-    
-    if (result?.success) {
-      // Show pending state
-      if (btn) {
-        btn.textContent = 'Request Sent!';
-        btn.classList.add('pending');
+      if (joinResult?.success) {
+        // Direct join succeeded
+        if (btn) {
+          btn.textContent = 'Joined!';
+          btn.classList.add('joined');
+        }
+        this.showToast('Joined the lobby!', 'success');
+        return;
       }
-      this.showToast('Join request sent! Waiting for host approval...');
-    } else {
-      console.error('Failed to join:', result?.error || joinResult?.error);
+      
+      // If direct join failed with a specific error, show it
+      if (joinResult?.error) {
+        console.error('Direct join failed:', joinResult.error);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Join';
+        }
+        this.showToast(joinResult.error, 'error');
+        return;
+      }
+      
+      // If direct join failed without specific error, fall back to request system
+      if (btn) {
+        btn.textContent = 'Requesting...';
+      }
+      
+      const result = await this.lobbyManager.requestJoinLobby(lobbyId);
+      
+      if (result?.success) {
+        // Show pending state
+        if (btn) {
+          btn.textContent = 'Request Sent!';
+          btn.classList.add('pending');
+        }
+        this.showToast('Join request sent! Waiting for host approval...');
+      } else {
+        console.error('Failed to join:', result?.error);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Join';
+        }
+        this.showToast(result?.error || 'Failed to join lobby', 'error');
+      }
+    } catch (error) {
+      console.error('Error joining lobby:', error);
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'Ask to Join';
+        btn.textContent = 'Join';
       }
-      this.showToast(result?.error || joinResult?.error || 'Failed to join lobby', 'error');
+      this.showToast('Failed to join lobby: ' + error.message, 'error');
     }
   }
 
@@ -1983,6 +2073,8 @@ class PokerController {
     this.game = null;
     this.lastPhase = null;
     this.isHost = false;
+    this.buyInDeducted = false; // Reset buy-in flag for next game
+    this.isStartingGame = false;
     
     // Reset animation tracking
     this.resetCardAnimationState();

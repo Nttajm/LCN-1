@@ -477,61 +477,76 @@ export class PokerLobbyManager {
   // ========================================
 
   async joinLobby(lobbyId) {
+    console.log('📥 joinLobby called with:', lobbyId);
+    
+    if (!this.isInitialized) {
+      console.log('❌ Lobby manager not initialized');
+      return { success: false, error: 'Lobby system not ready. Please wait and try again.' };
+    }
+    
+    if (!this.db) {
+      console.log('❌ Database not initialized');
+      return { success: false, error: 'Database not initialized. Please refresh the page.' };
+    }
+    
     if (!this.currentUser) {
+      console.log('❌ Not signed in');
       return { success: false, error: 'Not signed in' };
     }
 
     if (this.currentLobbyId === lobbyId) {
-      // Already in this lobby - just ensure listener is running
-      if (!this.lobbyUnsubscribe) {
-        this.startLobbyListener(lobbyId);
-      }
+      console.log('✓ Already in this lobby');
       return { success: true, message: 'Already in this lobby' };
     }
 
     // Prevent double operations
     if (this._joinLock) {
+      console.log('⚠️ Join lock active');
       return { success: false, error: 'Join operation in progress' };
     }
     this._joinLock = true;
 
     try {
-      return await this._queueOperation(async () => {
-        // STEP 1: Leave current lobby if in one
-        if (this.currentLobbyId) {
-          await this._leaveLobbyInternal();
-          // Small delay to ensure leave completes
-          await new Promise(r => setTimeout(r, 150));
+      // STEP 1: Leave current lobby if in one
+      if (this.currentLobbyId) {
+        console.log('🚪 Leaving current lobby first:', this.currentLobbyId);
+        await this.leaveLobby();
+        // Small delay to ensure leave completes
+        await new Promise(r => setTimeout(r, 100));
+      }
+
+      console.log('📝 Starting join transaction...');
+      
+      // STEP 2: Use transaction to join atomically
+      const lobbyRef = doc(this.db, 'poker_lobbies', lobbyId);
+      const userRef = doc(this.db, 'mulon_users', this.currentUser.uid);
+      
+      const result = await runTransaction(this.db, async (transaction) => {
+        const lobbyDoc = await transaction.get(lobbyRef);
+        
+        if (!lobbyDoc.exists()) {
+          console.log('❌ Lobby not found in transaction');
+          throw new Error('Lobby not found');
         }
 
-        // STEP 2: Use transaction to join atomically
-        const lobbyRef = doc(this.db, 'poker_lobbies', lobbyId);
-        const userRef = doc(this.db, 'mulon_users', this.currentUser.uid);
-        
-        const result = await runTransaction(this.db, async (transaction) => {
-          const lobbyDoc = await transaction.get(lobbyRef);
-          
-          if (!lobbyDoc.exists()) {
-            throw new Error('Lobby not found');
-          }
+        const lobbyData = lobbyDoc.data();
+        console.log('📊 Lobby data:', { 
+          players: lobbyData.players?.length, 
+          maxPlayers: lobbyData.maxPlayers,
+          status: lobbyData.status 
+        });
 
-          const lobbyData = lobbyDoc.data();
+        // Check if already in lobby
+        if (lobbyData.players?.some(p => p.id === this.currentUser.uid)) {
+          console.log('✓ Already in lobby (found in players)');
+          return { alreadyIn: true, seatIndex: lobbyData.players.find(p => p.id === this.currentUser.uid).seatIndex };
+        }
 
-          // Check if already in lobby
-          if (this._isPlayerInList(lobbyData.players, this.currentUser.uid)) {
-            const existingPlayer = this._getPlayerFromList(lobbyData.players, this.currentUser.uid);
-            return { alreadyIn: true, seatIndex: existingPlayer.seatIndex };
-          }
-
-          // Check lobby status
-          if (lobbyData.status === LOBBY_STATUS.CLOSED) {
-            throw new Error('Lobby is closed');
-          }
-
-          // Check if full
-          if (lobbyData.players.length >= lobbyData.maxPlayers) {
-            throw new Error('Lobby is full');
-          }
+        // Check if full
+        if (lobbyData.players.length >= lobbyData.maxPlayers) {
+          console.log('❌ Lobby is full');
+          throw new Error('Lobby is full');
+        }
 
           // Check balance
           const userData = window.CasinoAuth?.userData;
