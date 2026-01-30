@@ -606,7 +606,6 @@ export class PokerLobbyManager {
 
         console.log(`✅ Joined lobby: ${lobbyId} at seat ${result.seatIndex}`);
         return { success: true, lobbyId, seatIndex: result.seatIndex };
-      });
 
     } catch (error) {
       this._emitError(error, 'joinLobby');
