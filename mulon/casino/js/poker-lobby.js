@@ -54,6 +54,7 @@ export class PokerLobbyManager {
     this.lobbiesUnsubscribe = null;
     this.requestsUnsubscribe = null;
     this.onlineUnsubscribe = null;
+    this.invitesUnsubscribe = null;
     this.refreshInterval = null;
     this.cleanupInterval = null;
     this.isInitialized = false;
@@ -78,6 +79,7 @@ export class PokerLobbyManager {
     this.onGameStateUpdate = null;
     this.onHostChange = null;
     this.onStatusChange = null;
+    this.onInviteReceived = null;
     
     // Bind handlers
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
@@ -218,6 +220,7 @@ export class PokerLobbyManager {
       this.startLobbiesListener();
       this.startOnlinePlayersListener();
       this.startJoinRequestsListener();
+      this.startInvitesListener();
 
       // STEP 4: Start periodic cleanup
       this._startPeriodicTasks();
@@ -2032,7 +2035,8 @@ export class PokerLobbyManager {
       this.lobbyUnsubscribe,
       this.lobbiesUnsubscribe,
       this.requestsUnsubscribe,
-      this.onlineUnsubscribe
+      this.onlineUnsubscribe,
+      this.invitesUnsubscribe
     ];
 
     unsubscribers.forEach(unsub => {
@@ -2045,6 +2049,7 @@ export class PokerLobbyManager {
     this.lobbiesUnsubscribe = null;
     this.requestsUnsubscribe = null;
     this.onlineUnsubscribe = null;
+    this.invitesUnsubscribe = null;
 
     // Leave lobby if in one
     if (this.currentLobbyId) {
@@ -2087,13 +2092,14 @@ export class PokerLobbyManager {
     this.currentLobby = null;
     this.currentLobbyId = null;
     
-    [this.lobbyUnsubscribe, this.lobbiesUnsubscribe, this.requestsUnsubscribe, this.onlineUnsubscribe]
+    [this.lobbyUnsubscribe, this.lobbiesUnsubscribe, this.requestsUnsubscribe, this.onlineUnsubscribe, this.invitesUnsubscribe]
       .forEach(fn => fn && fn());
     
     this.lobbyUnsubscribe = null;
     this.lobbiesUnsubscribe = null;
     this.requestsUnsubscribe = null;
     this.onlineUnsubscribe = null;
+    this.invitesUnsubscribe = null;
     
     if (this.refreshInterval) clearInterval(this.refreshInterval);
     if (this.cleanupInterval) clearInterval(this.cleanupInterval);
@@ -2189,6 +2195,141 @@ export class PokerLobbyManager {
       return { success: true, deleted: count };
     } catch (error) {
       console.error('Error deleting all lobbies:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ========================================
+  // INVITE SYSTEM
+  // ========================================
+
+  // Send an invite to a player
+  async sendInvite(targetPlayerId) {
+    if (!this.currentUser || !this.currentLobbyId) {
+      return { success: false, error: 'Must be in a lobby to send invites' };
+    }
+
+    // Check if game is in progress
+    if (this.currentLobby?.status === LOBBY_STATUS.IN_GAME) {
+      return { success: false, error: 'Cannot invite while game is in progress' };
+    }
+
+    // Check if lobby is full
+    if (this.currentLobby?.players?.length >= this.currentLobby?.maxPlayers) {
+      return { success: false, error: 'Lobby is full' };
+    }
+
+    try {
+      // Check for existing pending invite
+      const existingInvites = await getDocs(
+        query(
+          collection(this.db, 'poker_invites'),
+          where('lobbyId', '==', this.currentLobbyId),
+          where('targetId', '==', targetPlayerId),
+          where('status', '==', 'pending')
+        )
+      );
+
+      if (!existingInvites.empty) {
+        return { success: true, pending: true, message: 'Invite already sent' };
+      }
+
+      // Create invite
+      await addDoc(collection(this.db, 'poker_invites'), {
+        lobbyId: this.currentLobbyId,
+        hostId: this.currentLobby?.hostId,
+        hostName: this.currentLobby?.hostName,
+        hostPhotoURL: this.currentLobby?.hostPhotoURL,
+        senderId: this.currentUser.uid,
+        senderName: this.currentUser.displayName || 'Player',
+        senderPhotoURL: this.currentUser.photoURL || null,
+        targetId: targetPlayerId,
+        buyIn: this.currentLobby?.buyIn || 25,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        expiresAt: new Date(Date.now() + 60000) // 60 second expiry
+      });
+
+      return { success: true, message: 'Invite sent!' };
+    } catch (error) {
+      this._emitError(error, 'sendInvite');
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Start listening for invites sent to this user
+  startInvitesListener() {
+    if (!this.currentUser) return;
+
+    if (this.invitesUnsubscribe) {
+      this.invitesUnsubscribe();
+    }
+
+    const invitesRef = collection(this.db, 'poker_invites');
+    const q = query(
+      invitesRef,
+      where('targetId', '==', this.currentUser.uid),
+      where('status', '==', 'pending')
+    );
+
+    this.invitesUnsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const invite = { id: change.doc.id, ...change.doc.data() };
+
+          // Check expiry
+          const expiresAt = invite.expiresAt?.toDate?.() || invite.expiresAt;
+          if (expiresAt && expiresAt < new Date()) {
+            updateDoc(doc(this.db, 'poker_invites', invite.id), {
+              status: 'expired'
+            }).catch(err => console.warn('Failed to expire invite:', err));
+            return;
+          }
+
+          // Notify via callback
+          if (this.onInviteReceived) {
+            this.onInviteReceived(invite);
+          }
+        }
+      });
+    }, (error) => {
+      this._emitError(error, 'invitesListener');
+    });
+  }
+
+  // Accept an invite
+  async acceptInvite(inviteId) {
+    try {
+      const inviteRef = doc(this.db, 'poker_invites', inviteId);
+      const inviteDoc = await getDoc(inviteRef);
+
+      if (!inviteDoc.exists()) {
+        return { success: false, error: 'Invite not found' };
+      }
+
+      const inviteData = inviteDoc.data();
+
+      // Mark invite as accepted
+      await updateDoc(inviteRef, { status: 'accepted' });
+
+      // Join the lobby
+      const joinResult = await this.joinLobby(inviteData.lobbyId);
+      return joinResult;
+    } catch (error) {
+      this._emitError(error, 'acceptInvite');
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Decline an invite
+  async declineInvite(inviteId) {
+    try {
+      await updateDoc(doc(this.db, 'poker_invites', inviteId), {
+        status: 'declined'
+      });
+      return { success: true };
+    } catch (error) {
+      this._emitError(error, 'declineInvite');
       return { success: false, error: error.message };
     }
   }

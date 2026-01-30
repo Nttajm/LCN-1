@@ -34,6 +34,7 @@ class PokerController {
     this._startingNewHandInProgress = false; // Flag to prevent concurrent startNewHand execution
     this._buyInDeducted = false; // Flag to prevent double buy-in deduction
     this._currentGameId = null; // Track current game to prevent duplicate deductions across games
+    this._winningsAwarded = false; // Flag to prevent duplicate winnings awards
 
     // DOM elements cache
     this.elements = {};
@@ -338,6 +339,11 @@ class PokerController {
       }
     };
     
+    // Invite received notification
+    this.lobbyManager.onInviteReceived = (invite) => {
+      this.showInviteNotification(invite);
+    };
+    
     // Status change notification
     this.lobbyManager.onStatusChange = (newStatus, oldStatus) => {
       console.log(`📊 Lobby status: ${oldStatus} → ${newStatus}`);
@@ -370,7 +376,7 @@ class PokerController {
   // ========================================
 
   // Handle game state updates from Firebase (for all players)
-  handleGameStateUpdate(gameState) {
+  async handleGameStateUpdate(gameState) {
     if (!gameState) return;
     
     console.log('📡 Game state update from Firebase:', gameState.phase);
@@ -409,6 +415,35 @@ class PokerController {
     
     // Check for game end - show winners and refresh balance
     if (gameState.phase === GAME_PHASES.ENDED || gameState.phase === GAME_PHASES.SHOWDOWN) {
+      // HOST ONLY: Award winnings when receiving game-ended state (in case non-host took final action)
+      if (this.isHost && !this._winningsAwarded && gameState.lastWinners && gameState.lastWinners.length > 0) {
+        this._winningsAwarded = true;
+        
+        // EXPLOIT PREVENTION: Calculate max possible pot
+        const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
+        const playerCount = this.game?.players?.filter(p => p !== null).length || 2;
+        const maxPot = buyIn * playerCount;
+        
+        // Calculate total claimed winnings
+        const totalClaimedWinnings = gameState.lastWinners.reduce((sum, w) => sum + (w.winnings || 0), 0);
+        
+        // EXPLOIT PREVENTION: Don't award if winnings exceed max pot
+        if (totalClaimedWinnings <= maxPot) {
+          for (const winnerInfo of gameState.lastWinners) {
+            const winnerId = winnerInfo.playerId;
+            const winnings = winnerInfo.winnings;
+            
+            // Validate winnings
+            if (winnerId && winnings > 0 && winnings <= maxPot) {
+              console.log(`🎉 Host awarding: ${winnerInfo.displayName} won $${winnings}`);
+              await this.lobbyManager?.awardWinnings(winnerId, winnings);
+            }
+          }
+        } else {
+          console.error(`🚨 EXPLOIT BLOCKED: Claimed winnings ($${totalClaimedWinnings}) exceed max pot ($${maxPot})`);
+        }
+      }
+      
       // Show winner toast and modal for all players
       if (gameState.lastWinners && gameState.lastWinners.length > 0) {
         const myWin = gameState.lastWinners.find(w => w.playerId === this.currentUser?.uid);
@@ -444,8 +479,9 @@ class PokerController {
         });
       }
     } else {
-      // Reset showdown modal tracking when not in showdown phase
+      // Reset showdown modal tracking and winnings flag when not in showdown phase
       this.showdownModalShown = false;
+      this._winningsAwarded = false;
     }
   }
 
@@ -883,12 +919,85 @@ class PokerController {
       return;
     }
     
-    // For now, show a toast - full invite system would need more Firebase work
-    const player = this.onlinePlayers?.find(p => p.id === playerId);
-    this.showToast(`Invite sent to ${player?.displayName || 'player'}!`, 'success');
+    // Check if game is in progress
+    if (this.lobbyManager?.currentLobby?.status === LOBBY_STATUS.IN_GAME) {
+      this.showToast('Cannot invite while game is in progress', 'error');
+      return;
+    }
     
-    // TODO: Implement actual invite system via Firebase
-    // await this.lobbyManager.sendInvite(playerId);
+    const player = this.onlinePlayers?.find(p => p.id === playerId);
+    const result = await this.lobbyManager.sendInvite(playerId);
+    
+    if (result.success) {
+      this.showToast(`Invite sent to ${player?.displayName || 'player'}!`, 'success');
+    } else {
+      this.showToast(result.error || 'Failed to send invite', 'error');
+    }
+  }
+  
+  // Show invite notification (when someone invites you)
+  showInviteNotification(invite) {
+    if (!this.elements.joinNotifications) return;
+    
+    // Don't show if already in the same lobby
+    if (this.lobbyManager?.currentLobbyId === invite.lobbyId) return;
+
+    const avatarUrl = invite.senderPhotoURL || 
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${invite.senderId}`;
+
+    const notification = document.createElement('div');
+    notification.className = 'join-notification invite-notification';
+    notification.dataset.inviteId = invite.id;
+    notification.innerHTML = `
+      <div class="notif-timer">
+        <div class="notif-timer-bar" style="animation-duration: 60s;"></div>
+      </div>
+      <div class="notif-content">
+        <div class="notif-avatar">
+          <img src="${avatarUrl}" alt="">
+        </div>
+        <div class="notif-info">
+          <span class="notif-player">${invite.senderName}</span>
+          <span class="notif-message">invited you to play poker ($${invite.buyIn} buy-in)</span>
+        </div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-btn accept" title="Join">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+        <button class="notif-btn reject" title="Decline">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    `;
+
+    // Add handlers
+    notification.querySelector('.notif-btn.accept').addEventListener('click', async () => {
+      const result = await this.lobbyManager?.acceptInvite(invite.id);
+      if (result?.success) {
+        this.showToast('Joined the lobby!', 'success');
+      } else {
+        this.showToast(result?.error || 'Failed to join', 'error');
+      }
+      this.removeNotification(notification);
+    });
+
+    notification.querySelector('.notif-btn.reject').addEventListener('click', async () => {
+      await this.lobbyManager?.declineInvite(invite.id);
+      this.removeNotification(notification);
+    });
+
+    this.elements.joinNotifications.appendChild(notification);
+
+    // Animate in
+    requestAnimationFrame(() => notification.classList.add('show'));
+
+    // Auto-remove after 60s (matching invite expiry)
+    setTimeout(() => this.removeNotification(notification), 60000);
   }
 
   // ========================================
@@ -1264,8 +1373,8 @@ class PokerController {
       const isFull = lobbyPlayers.length >= lobby.maxPlayers;
       const statusClass = isInGame ? 'in-game' : isFull ? 'full' : 'open';
       
-      // Can join if not full (even if in-game, they can wait for next hand)
-      const canJoin = !isFull;
+      // Can only join if not full AND not in game
+      const canJoin = !isFull && !isInGame;
 
       lobbyEl.className = `player-lobby ${statusClass}`;
       lobbyEl.innerHTML = `
@@ -1318,7 +1427,7 @@ class PokerController {
           <span class="lobby-game">$${lobby.buyIn} Buy-in • ${lobbyPlayers.length}/${lobby.maxPlayers}</span>
         </div>
         <button class="ask-join-btn" ${!canJoin ? 'disabled' : ''}>
-          ${!canJoin ? 'Full' : isInGame ? 'Join (Wait for Next Hand)' : 'Join'}
+          ${isInGame ? 'Game in Progress' : isFull ? 'Full' : 'Join'}
         </button>
       `;
 
@@ -2267,7 +2376,10 @@ class PokerController {
     console.log('🏆 Game ended, result:', result);
     
     // Only the host should persist winnings to Firebase to avoid duplicate updates
-    if (this.isHost && result.winners && result.winners.length > 0) {
+    if (this.isHost && !this._winningsAwarded && result.winners && result.winners.length > 0) {
+      // Mark winnings as awarded to prevent duplicate awards from handleGameState
+      this._winningsAwarded = true;
+      
       // EXPLOIT PREVENTION: Calculate max possible pot
       const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
       const playerCount = this.game?.players?.filter(p => p !== null).length || 2;
@@ -2502,6 +2614,9 @@ class PokerController {
       return;
     }
     this._startingNewHandInProgress = true;
+    
+    // Reset winnings awarded flag for new hand
+    this._winningsAwarded = false;
     
     console.log('🎰 Starting new hand...');
     
