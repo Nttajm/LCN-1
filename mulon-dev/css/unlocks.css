@@ -1,0 +1,668 @@
+/* ========================================
+   UNLOCKS PAGE STYLES
+   ======================================== */
+
+/* Main Container */
+.unlocks-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ========================================
+   PAGE HEADER
+   ======================================== */
+.unlocks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.title-icon {
+  font-size: 2rem;
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.user-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--green-primary);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   FILTERS
+   ======================================== */
+.unlock-filters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  border-color: var(--green-primary);
+  color: var(--green-primary);
+}
+
+.filter-btn.active {
+  background: var(--green-primary);
+  border-color: var(--green-primary);
+  color: white;
+}
+
+.filter-icon {
+  font-size: 1rem;
+}
+
+/* ========================================
+   UNLOCKS GRID
+   ======================================== */
+.unlocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ========================================
+   UNLOCK CARD
+   ======================================== */
+.unlock-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.unlock-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+.unlock-card.locked {
+  opacity: 0.7;
+}
+
+.unlock-card.locked:hover {
+  transform: none;
+}
+
+/* Availability Badge */
+.availability-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 2;
+}
+
+.availability-badge.available {
+  background: var(--green-light);
+  color: var(--green-primary);
+}
+
+.availability-badge.time-limited {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.availability-badge.day-limited {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.availability-badge.level-locked {
+  background: var(--red-light);
+  color: var(--red-primary);
+}
+
+.availability-badge .badge-icon {
+  font-size: 0.85rem;
+}
+
+/* Card Header */
+.unlock-card-header {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.reward-icon-large {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.reward-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.reward-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Card Body */
+.unlock-card-body {
+  padding: 1.25rem;
+}
+
+/* Requirements Section */
+.requirements-section {
+  margin-bottom: 1rem;
+}
+
+.requirements-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.required-cards-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.required-card-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+}
+
+.required-card-chip.owned {
+  background: var(--green-light);
+  border-color: var(--green-primary);
+}
+
+.required-card-chip.not-owned {
+  background: var(--red-light);
+  border-color: var(--red-primary);
+}
+
+.card-chip-emoji {
+  font-size: 1.1rem;
+}
+
+.card-chip-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.card-chip-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0.15rem 0.4rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.owned-indicator {
+  font-size: 0.85rem;
+}
+
+/* Reward Preview */
+.reward-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.reward-preview .key-icon-med {
+  width: 32px;
+  height: 32px;
+}
+
+.reward-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #5d4e00;
+}
+
+.reward-label {
+  font-size: 0.9rem;
+  color: #5d4e00;
+}
+
+/* Availability Info */
+.availability-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.availability-info .info-icon {
+  font-size: 1rem;
+}
+
+/* Card Footer */
+.unlock-card-footer {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.unlock-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem;
+  background: var(--green-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.unlock-btn:hover {
+  background: var(--green-hover);
+  transform: scale(1.02);
+}
+
+.unlock-btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.unlock-btn .btn-icon {
+  font-size: 1.1rem;
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-state .empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ========================================
+   MODALS
+   ======================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  max-width: 480px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal {
+  transform: scale(1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--red-light);
+  color: var(--red-primary);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Unlock Confirmation Modal */
+.unlock-confirmation {
+  padding: 1.5rem;
+}
+
+.unlock-reward-preview {
+  text-align: center;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+}
+
+.unlock-reward-preview .reward-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.unlock-reward-preview .reward-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.unlock-reward-preview .reward-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.unlock-cost-section {
+  margin-bottom: 1.5rem;
+}
+
+.unlock-cost-section h4 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.unlock-cost-section .required-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.unlock-keys-reward {
+  display: flex;
+  justify-content: center;
+}
+
+.keys-reward-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  border-radius: var(--radius-md);
+}
+
+.key-icon-lg {
+  width: 36px;
+  height: 36px;
+}
+
+.keys-reward-box .keys-amount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #5d4e00;
+}
+
+.keys-reward-box .keys-label {
+  font-size: 0.9rem;
+  color: #5d4e00;
+}
+
+/* Success Modal */
+.success-modal {
+  text-align: center;
+}
+
+.success-content {
+  padding: 2rem 1.5rem;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounce 0.5s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.success-content h2 {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.success-message {
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem 0;
+}
+
+.keys-earned-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.key-icon-xl {
+  width: 48px;
+  height: 48px;
+}
+
+.keys-earned {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--green-primary);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--green-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--green-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .unlocks-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  
+  .user-stats {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .unlock-filters {
+    justify-content: center;
+  }
+  
+  .unlocks-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .page-title {
+    justify-content: center;
+  }
+}

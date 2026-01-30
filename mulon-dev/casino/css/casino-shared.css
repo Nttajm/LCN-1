@@ -1,0 +1,564 @@
+/* ========================================
+   CASINO SHARED STYLES
+   Used by multiple casino games (Plinko, Gems, etc.)
+   ======================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0f1419;
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #1a1f26;
+  border-bottom: 1px solid #2a3441;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+}
+
+.logo span {
+  color: #6366f1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.balance-box {
+  background: #0f1419;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #2a3441;
+}
+
+.balance-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.balance-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.keys-box .balance-amount {
+  color: #f7b733;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.key-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* XPs Box */
+.xps-box .balance-amount {
+  color: #a855f7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.xps-amount {
+  color: #a855f7 !important;
+}
+
+/* XP Popup Animation - Subtle floating next to xps */
+.xp-popup {
+  position: fixed;
+  top: 60px;
+  right: 200px;
+  background: rgba(124, 58, 237, 0.9);
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-align: center;
+  z-index: 10000;
+  animation: xpFloat 0.1s ease-out;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.xp-popup .xp-amount {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.xp-popup .xp-streak {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #fbbf24;
+  margin-top: 2px;
+}
+
+.xp-popup.hide {
+  animation: xpFadeOut 0.1s ease-in forwards;
+}
+
+@keyframes xpFloat {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}
+
+@keyframes xpFadeOut {
+  from {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+.back-link {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.back-link:hover {
+  color: #fff;
+}
+
+/* Auth UI */
+.auth-box {
+  display: flex;
+  align-items: center;
+}
+
+.signin-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1f26;
+  border: 1px solid #2a3441;
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.signin-btn:hover {
+  background: #2a3441;
+  border-color: #6366f1;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-name {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.signout-btn {
+  background: transparent;
+  border: 1px solid #374151;
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.signout-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* LEFT PANEL - Controls */
+.controls-panel {
+  width: 300px;
+  min-width: 300px;
+  background: #1a1f26;
+  border-right: 1px solid #2a3441;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: #0f1419;
+}
+
+.tab {
+  flex: 1;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #9ca3af;
+}
+
+.tab.active {
+  background: #1a1f26;
+  color: #fff;
+}
+
+/* Control Groups */
+.control-group {
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a3441;
+}
+
+.control-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* Bet Amount Input */
+.bet-input-wrap {
+  display: flex;
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.currency-icon {
+  background: #22c55e;
+  color: #fff;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.bet-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  min-width: 0;
+}
+
+.bet-input::-webkit-inner-spin-button,
+.bet-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.bet-btns {
+  display: flex;
+}
+
+.bet-adj {
+  background: #2a3441;
+  border: none;
+  color: #9ca3af;
+  padding: 12px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.bet-adj:hover {
+  background: #374151;
+  color: #fff;
+}
+
+/* Profit Graph (floating) */
+.profit-graph-container {
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 12px 14px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.profit-graph-float {
+  position: absolute;
+  top: 72px;
+  right: 16px;
+  width: 220px;
+  z-index: 50;
+}
+
+.profit-graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.profit-graph-title {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profit-graph-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.profit-graph-value.positive {
+  color: #22c55e;
+}
+
+.profit-graph-value.negative {
+  color: #ef4444;
+}
+
+#profitGraphCanvas {
+  width: 100%;
+  height: 90px;
+  border-radius: 6px;
+  display: block;
+}
+
+@media (max-width: 720px) {
+  .profit-graph-float {
+    top: 66px;
+    right: 12px;
+    width: 180px;
+  }
+
+  #profitGraphCanvas {
+    height: 70px;
+  }
+}
+
+/* Stats */
+.stats-box {
+  padding: 16px 20px;
+  margin-top: auto;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #2a3441;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #fff;
+}
+
+.stat-value.profit {
+  color: #22c55e;
+}
+
+.stat-value.loss {
+  color: #ef4444;
+}
+
+/* Mobile Responsive (shared header bits) */
+@media (max-width: 900px) {
+  .header {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-right {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .balance-box {
+    padding: 6px 10px;
+  }
+
+  .balance-label {
+    font-size: 0.65rem;
+  }
+
+  .balance-amount {
+    font-size: 0.9rem;
+  }
+
+  .back-link {
+    font-size: 0.75rem;
+  }
+
+  .controls-panel {
+    width: 100%;
+    min-width: auto;
+    border-right: none;
+    border-bottom: 1px solid #2a3441;
+    order: 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 8px 10px;
+  }
+
+  .logo {
+    font-size: 1rem;
+  }
+
+  .header-right {
+    gap: 6px;
+  }
+
+  .balance-box {
+    padding: 5px 8px;
+  }
+
+  .balance-label {
+    font-size: 0.6rem;
+  }
+
+  .balance-amount {
+    font-size: 0.8rem;
+  }
+
+  .key-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .back-link {
+    font-size: 0.7rem;
+  }
+
+  .signin-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .user-name {
+    font-size: 0.75rem;
+  }
+
+  .signout-btn {
+    padding: 4px 8px;
+    font-size: 0.65rem;
+  }
+
+  .control-group {
+    padding: 12px 14px;
+  }
+
+  .control-label {
+    font-size: 0.7rem;
+    margin-bottom: 8px;
+  }
+
+  .bet-input-wrap {
+    border-radius: 5px;
+  }
+
+  .currency-icon {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .bet-input {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .bet-adj {
+    padding: 10px 12px;
+  }
+
+  .tabs .tab {
+    padding: 10px;
+    font-size: 0.8rem;
+  }
+
+  .stats-box {
+    padding: 12px 14px;
+  }
+
+  .stat-row {
+    padding: 8px 0;
+  }
+
+  .stat-label,
+  .stat-value {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .header {
+    padding: 6px 8px;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .balance-box {
+    padding: 4px 6px;
+  }
+
+  .balance-amount {
+    font-size: 0.75rem;
+  }
+}

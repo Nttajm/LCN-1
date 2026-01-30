@@ -1,0 +1,894 @@
+/* ========================================
+   MULON - Onboarding & Tutorial Styles
+   (Base styles are in main.css)
+   ======================================== */
+
+/* ========================================
+   Segment 0: Creator Intro
+   ======================================== */
+
+.creator-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  animation: creatorFadeIn 1s ease forwards;
+}
+
+.creator-from {
+  font-size: 1.5rem;
+  font-weight: 400;
+  opacity: 0;
+  animation: creatorTextIn 0.8s ease 0.3s forwards;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.creator-logo {
+  opacity: 0;
+  animation: creatorLogoIn 1s ease 0.8s forwards;
+  margin: 1rem 0;
+}
+
+.creator-logo img {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+}
+
+.creator-presents {
+  font-size: 1.75rem;
+  font-weight: 600;
+  font-style: italic;
+  opacity: 0;
+  animation: creatorTextIn 0.8s ease 1.5s forwards;
+  letter-spacing: 0.08em;
+}
+
+.intro-logo-img {
+  width: 100%;
+  max-width: 202px;
+}
+
+@keyframes creatorFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes creatorTextIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+@keyframes creatorLogoIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========================================
+   Onboarding Overlay
+   ======================================== */
+
+/* Onboarding Overlay */
+.onboarding-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #00c853 0%, #00a844 50%, #007a33 100%);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.onboarding-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Segments */
+.onboarding-segment {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  opacity: 0;
+  transform: translateX(50px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.onboarding-segment.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.onboarding-segment.exit {
+  opacity: 0;
+  transform: translateX(-50px);
+}
+
+.onboarding-content {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  color: white;
+}
+
+/* Segment 1: Welcome */
+.onboarding-logo {
+  margin-bottom: 3rem;
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+.onboarding-logo .logo-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+  animation: pulse 2s infinite;
+}
+
+.onboarding-logo h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.onboarding-logo .tagline {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  margin-top: 0.5rem;
+}
+
+.onboarding-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeInUp 0.8s ease 0.2s forwards;
+  opacity: 0;
+}
+
+.google-signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: white;
+  color: #333;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-family: inherit;
+}
+
+.google-signin-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.google-signin-btn:active {
+  transform: translateY(0);
+}
+
+.skip-btn {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 0.875rem 1.5rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.skip-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.onboarding-note {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: 2rem;
+  animation: fadeInUp 0.8s ease 0.4s forwards;
+  opacity: 0;
+}
+
+/* Segment Headers */
+.segment-header {
+  margin-bottom: 2rem;
+}
+
+.segment-number {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.segment-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Explanation Cards */
+.explanation-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.explanation-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.explanation-card h3 {
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem;
+}
+
+.explanation-card p {
+  margin: 0;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.highlight-yes {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.highlight-no {
+  background: rgba(255, 71, 87, 0.4);
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Example Box */
+.example-box {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.example-question {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.example-prices {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.yes-price, .no-price {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.yes-price {
+  background: rgba(0, 200, 83, 0.3);
+  border: 2px solid rgba(0, 200, 83, 0.6);
+}
+
+.no-price {
+  background: rgba(255, 71, 87, 0.3);
+  border: 2px solid rgba(255, 71, 87, 0.6);
+}
+
+.example-explain {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* Price Demo */
+.price-demo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.price-step {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  min-width: 100px;
+  text-align: center;
+}
+
+.step-label {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+
+.step-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.step-price.buying {
+  color: #90EE90;
+}
+
+.step-price.high {
+  color: #FFD700;
+}
+
+.step-note {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+.price-arrow {
+  font-size: 1.5rem;
+  opacity: 0.5;
+}
+
+/* Trade Example */
+.trade-example {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.trade-header {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.trade-market {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.trade-current {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.trade-current .divider {
+  opacity: 0.4;
+}
+
+.trade-current .volume {
+  margin-left: auto;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.trade-action {
+  margin-bottom: 1rem;
+}
+
+.action-label {
+  font-weight: 600;
+  color: #90EE90;
+}
+
+.trade-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.breakdown-item.highlight-row {
+  background: rgba(0, 200, 83, 0.2);
+  margin: 0 -1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.breakdown-label {
+  opacity: 0.8;
+}
+
+.breakdown-value {
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+.highlight-green {
+  color: #90EE90;
+}
+
+.profit {
+  color: #FFD700;
+  font-size: 1.1rem;
+}
+
+/* Final Tips */
+.final-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.tip-icon {
+  font-size: 2rem;
+}
+
+.tip-text strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.tip-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Buttons */
+.next-btn, .start-trading-btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: white;
+  color: #00a844;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.next-btn:hover, .start-trading-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.start-trading-btn {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #333;
+}
+
+/* Progress Dots */
+.onboarding-progress {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  z-index: 10001;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.progress-dot.active {
+  background: white;
+  transform: scale(1.2);
+}
+
+.progress-dot.completed {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Sign In Required Modal */
+.signin-required-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.signin-required-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.signin-modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+}
+
+.signin-modal-content h3 {
+  margin: 0 0 0.5rem;
+  color: #1a1a2e;
+}
+
+.signin-modal-content p {
+  color: #666;
+  margin: 0 0 1.5rem;
+}
+
+.signin-modal-content .google-signin-btn {
+  margin-bottom: 0.75rem;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-family: inherit;
+}
+
+.cancel-btn:hover {
+  color: #333;
+}
+
+/* Over Under Sync Modal */
+.ou-sync-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #00c853 0%, #00a844 50%, #007a33 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10002;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s ease;
+}
+
+.ou-sync-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ou-sync-content {
+  text-align: center;
+  color: white;
+  max-width: 400px;
+  width: 90%;
+  padding: 2rem;
+}
+
+.ou-sync-logo {
+  margin-bottom: 1.5rem;
+}
+
+.ou-sync-logo img {
+  max-width: 180px;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+}
+
+.ou-sync-content h3 {
+  font-size: 2rem;
+  margin: 0 0 0.75rem;
+  font-weight: 700;
+}
+
+.ou-sync-message {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0 0 1.5rem;
+  line-height: 1.5;
+}
+
+.ou-sync-username {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ou-sync-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ou-sync-btn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  border: none;
+}
+
+.ou-sync-btn.yes {
+  background: white;
+  color: #007a33;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ou-sync-btn.yes:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.ou-sync-btn.no {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.ou-sync-btn.no:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* User Menu Dropdown */
+.user-menu {
+  position: relative;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--green-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.user-avatar:hover {
+  transform: scale(1.05);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.user-menu.open .user-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-info {
+  padding: 1rem;
+}
+
+.user-name {
+  display: block;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.user-email {
+  display: block;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #eee;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-family: inherit;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-item.signin {
+  color: var(--green-primary);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .onboarding-segment {
+    padding: 1.5rem;
+  }
+  
+  .onboarding-logo h1 {
+    font-size: 2.5rem;
+  }
+  
+  .segment-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .explanation-card {
+    padding: 1.5rem;
+  }
+  
+  .price-demo {
+    gap: 0.25rem;
+  }
+  
+  .price-step {
+    min-width: 80px;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .price-arrow {
+    font-size: 1rem;
+  }
+  
+  .trade-example {
+    padding: 1rem;
+  }
+  
+  .tip-item {
+    padding: 0.875rem 1rem;
+  }
+  
+  .tip-icon {
+    font-size: 1.5rem;
+  }
+  
+  .onboarding-progress {
+    bottom: 1.5rem;
+  }
+}

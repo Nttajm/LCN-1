@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketplace - Mulon</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/marketplace.css">
+  <link rel="stylesheet" href="css/chest-opener.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon (beta)</span>
+      </a>
+      <div class="search-box">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" placeholder="Search traders...">
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="balance-display">
+        <div class="balance-item">
+          <span class="balance-label">Balance</span>
+          <span class="balance-amount" id="userBalance">$500.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item">
+          <span class="balance-label">Portfolio</span>
+          <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item keys-item">
+          <span class="balance-label">Keys <span class="keys-info-btn" id="keysInfoBtn">?</span></span>
+          <span class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 15</span>
+          <div class="keys-tooltip" id="keysTooltip">
+            <h4><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> Keys</h4>
+            <p>Keys are a special currency that can be used for:</p>
+            <ul>
+              <li>Playing casino games</li>
+              <li>Buying collectables</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Earn Keys:</strong></p>
+            <ul>
+              <li>+3 keys for every winning prediction</li>
+              <li>+1 key per day (daily login)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="user-menu" id="userMenu">
+        <div class="user-avatar" id="userAvatar">
+          <span id="userInitials">?</span>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info" id="userInfo">
+            <span class="user-name" id="userName">Guest</span>
+            <span class="user-email" id="userEmail">Not signed in</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="signOutBtn" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+          </button>
+          <button class="dropdown-item signin" id="headerSignInBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            </svg>
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="marketplace.html" class="nav-link active">Marketplace</a></li>
+        <li><a href="unlocks.html" class="nav-link">Unlocks</a></li>
+        <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
+        <li><a href="casino.html" class="nav-link">Casino</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="market_place-cont">
+    <div class="see-mycards">
+      <div class="s-1">
+        <span class="icono">
+        🎴
+      </span>
+        <span class="text">
+          See My Collectables
+        </span>
+      </div>
+      <div class="arr">
+        <span>
+          ➔
+        </span>
+      </div>
+      
+    </div>
+    <div class="grid-place">
+      <div class="sidebar-filters">
+        <div class="quick-actions">
+          <button class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Post a Trade
+          </button>
+        </div>
+        
+        <div class="filter-section">
+          <h3 class="filter-title">Trade Type</h3>
+          
+          <!-- Show All Button -->
+          <button class="show-all-btn active" id="showAllTradesBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Show All Trades
+          </button>
+          
+          <!-- Keys ↔ Cards Trade -->
+          <div class="trade-filter" id="keysTradeFilter" data-type="keys">
+            <div class="trade-side left-side">
+              <img src="/bp/EE/assets/ouths/key.png" alt="Keys" class="trade-icon">
+              <span>Keys</span>
+            </div>
+            <button class="trade-switch" data-target="keys" title="Switch trade direction">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 16l-4-4 4-4"/>
+                <path d="M17 8l4 4-4 4"/>
+                <path d="M3 12h18"/>
+              </svg>
+            </button>
+            <div class="trade-side right-side">
+              <span class="trade-emoji">🎴</span>
+              <span>Cards</span>
+            </div>
+          </div>
+          <p class="trade-hint" id="keysTradeHint">Trading <strong>Keys</strong> for <strong>Cards</strong></p>
+          
+          <!-- Money ↔ Cards Trade -->
+          <div class="trade-filter" id="moneyTradeFilter" data-type="money">
+            <div class="trade-side left-side">
+              <span class="trade-emoji">💵</span>
+              <span>Money</span>
+            </div>
+            <button class="trade-switch" data-target="money" title="Switch trade direction">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 16l-4-4 4-4"/>
+                <path d="M17 8l4 4-4 4"/>
+                <path d="M3 12h18"/>
+              </svg>
+            </button>
+            <div class="trade-side right-side">
+              <span class="trade-emoji">🎴</span>
+              <span>Cards</span>
+            </div>
+          </div>
+          <p class="trade-hint" id="moneyTradeHint">Trading <strong>Money</strong> for <strong>Cards</strong></p>
+          
+          <!-- Cards ↔ Cards Trade -->
+          <div class="trade-filter" id="cardsTradeFilter" data-type="cards">
+            <div class="trade-side left-side">
+              <span class="trade-emoji">🎴</span>
+              <span>Cards</span>
+            </div>
+            <div class="trade-switch-static">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 16l-4-4 4-4"/>
+                <path d="M17 8l4 4-4 4"/>
+                <path d="M3 12h18"/>
+              </svg>
+            </div>
+            <div class="trade-side right-side">
+              <span class="trade-emoji">🎴</span>
+              <span>Cards</span>
+            </div>
+          </div>
+          <p class="trade-hint">Trading <strong>Cards</strong> for <strong>Cards</strong></p>
+        </div>
+        
+        <div class="filter-section">
+          <h3 class="filter-title">Sort By</h3>
+          <select class="filter-select">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rarity">Rarity</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="marketplace-grid">
+        <div class="empty-marketplace">
+          <div class="empty-icon">🏪</div>
+          <h3>No trades yet</h3>
+          <p>Be the first to post a trade!</p>
+        </div>
+      </div>
+      
+      <!-- Live Trades Sidebar -->
+      <div class="live-trades-sidebar">
+        <div class="live-trades-tabs">
+          <button class="live-tab active" data-tab="live">
+            <span class="live-dot"></span>
+            Live Trades
+          </button>
+          <button class="live-tab" data-tab="history">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            My History
+          </button>
+        </div>
+        
+        <div class="live-trades-content">
+          <div class="live-trades-list" id="liveTradesList">
+            <div class="live-trades-empty">
+              <span class="empty-icon">📡</span>
+              <p>Waiting for live trades...</p>
+            </div>
+          </div>
+          
+          <div class="history-trades-list" id="historyTradesList" style="display: none;">
+            <div class="live-trades-empty">
+              <span class="empty-icon">📜</span>
+              <p>No trade history yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post Trade Modal -->
+  <div class="modal-overlay" id="postTradeModal">
+    <div class="modal post-trade-modal">
+      <div class="modal-header">
+        <h2>Post a Trade</h2>
+        <button class="modal-close" id="closePostTradeModal">&times;</button>
+      </div>
+      
+      <div class="trade-builder">
+        <!-- Left Side - Offering -->
+        <div class="trade-side-panel offering-panel">
+          <h3 class="panel-title">Offering</h3>
+          <p class="panel-subtitle">What you're giving (limited by balance)</p>
+          
+          <div class="offering-inputs">
+            <!-- Keys Input -->
+            <div class="resource-input">
+              <label>
+                <img src="/bp/EE/assets/ouths/key.png" alt="Keys" class="resource-icon">
+                <span>Keys</span>
+              </label>
+              <div class="input-with-max">
+                <input type="number" id="offerKeys" min="0" max="0" value="0" placeholder="0">
+                <button class="max-btn" data-target="offerKeys">MAX</button>
+              </div>
+              <span class="available-text">Available: <strong id="availableKeys">0</strong></span>
+            </div>
+            
+            <!-- Money Input -->
+            <div class="resource-input">
+              <label>
+                <span class="resource-emoji">💵</span>
+                <span>Money</span>
+              </label>
+              <div class="input-with-max">
+                <span class="currency-prefix">$</span>
+                <input type="number" id="offerMoney" min="0" max="0" value="0" step="0.01" placeholder="0.00">
+                <button class="max-btn" data-target="offerMoney">MAX</button>
+              </div>
+              <span class="available-text">Available: <strong id="availableMoney">$0.00</strong></span>
+            </div>
+            
+            <!-- My Cards -->
+            <div class="cards-section">
+              <label>
+                <span class="resource-emoji">🎴</span>
+                <span>My Cards</span>
+              </label>
+              <button class="select-cards-btn" id="selectMyCardsBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"/>
+                  <rect x="14" y="3" width="7" height="7"/>
+                  <rect x="14" y="14" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Select My Cards
+              </button>
+              <div class="selected-cards" id="offerSelectedCards">
+                <p class="no-cards-text">No cards selected</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Middle Divider -->
+        <div class="trade-divider">
+          <span class="for-text">FOR</span>
+          <div class="arrow-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"/>
+              <path d="m12 5 7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Right Side - Asking -->
+        <div class="trade-side-panel asking-panel">
+          <h3 class="panel-title">Asking</h3>
+          <p class="panel-subtitle">What you want in return</p>
+          
+          <div class="asking-inputs">
+            <!-- Keys Input -->
+            <div class="resource-input">
+              <label>
+                <img src="/bp/EE/assets/ouths/key.png" alt="Keys" class="resource-icon">
+                <span>Keys</span>
+              </label>
+              <div class="input-with-max">
+                <input type="number" id="askKeys" min="0" value="0" placeholder="0">
+              </div>
+            </div>
+            
+            <!-- Money Input -->
+            <div class="resource-input">
+              <label>
+                <span class="resource-emoji">💵</span>
+                <span>Money</span>
+              </label>
+              <div class="input-with-max">
+                <span class="currency-prefix">$</span>
+                <input type="number" id="askMoney" min="0" value="0" step="0.01" placeholder="0.00">
+              </div>
+            </div>
+            
+            <!-- Cards -->
+            <div class="cards-section">
+              <label>
+                <span class="resource-emoji">🎴</span>
+                <span>Cards</span>
+              </label>
+              <button class="select-cards-btn" id="selectAnyCardsBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"/>
+                  <rect x="14" y="3" width="7" height="7"/>
+                  <rect x="14" y="14" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Browse All Cards
+              </button>
+              <div class="selected-cards" id="askSelectedCards">
+                <p class="no-cards-text">No cards selected</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelTradeBtn">Cancel</button>
+        <button class="btn btn-primary" id="submitTradeBtn" disabled>Post Trade</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Gallery Modal -->
+  <div class="modal-overlay" id="cardGalleryModal">
+    <div class="modal card-gallery-modal">
+      <div class="modal-header">
+        <h2 id="galleryTitle">Select Cards</h2>
+        <button class="modal-close" id="closeGalleryModal">&times;</button>
+      </div>
+      
+      <div class="gallery-filters">
+        <button class="gallery-filter-btn active" data-filter="all">All</button>
+        <button class="gallery-filter-btn" data-filter="mythic">Mythic</button>
+        <button class="gallery-filter-btn" data-filter="legendary">Legendary</button>
+        <button class="gallery-filter-btn" data-filter="epic">Epic</button>
+        <button class="gallery-filter-btn" data-filter="rare">Rare</button>
+        <button class="gallery-filter-btn" data-filter="uncommon">Uncommon</button>
+        <button class="gallery-filter-btn" data-filter="common">Common</button>
+      </div>
+      
+      <div class="cards-gallery" id="cardsGallery">
+        <!-- Cards will be rendered here -->
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelGalleryBtn">Cancel</button>
+        <button class="btn btn-primary" id="confirmCardsBtn">Confirm Selection (<span id="selectedCount">0</span>)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Collection Modal -->
+  <div class="modal-overlay" id="viewCollectionModal">
+    <div class="modal view-collection-modal">
+      <div class="modal-header">
+        <h2>🎴 Card Collection</h2>
+        <button class="modal-close" id="closeCollectionModal">&times;</button>
+      </div>
+      
+      <div class="collection-tabs">
+        <button class="collection-tab active" data-tab="my-cards">
+          <span class="tab-icon">📦</span>
+          My Cards
+          <span class="tab-count" id="myCardsCount">0</span>
+        </button>
+        <button class="collection-tab" data-tab="all-cards">
+          <span class="tab-icon">🌟</span>
+          All Cards
+          <span class="tab-count" id="allCardsCount">0</span>
+        </button>
+      </div>
+      
+      <div class="collection-filters">
+        <button class="collection-filter-btn active" data-filter="all">All</button>
+        <button class="collection-filter-btn" data-filter="mythic">Mythic</button>
+        <button class="collection-filter-btn" data-filter="legendary">Legendary</button>
+        <button class="collection-filter-btn" data-filter="epic">Epic</button>
+        <button class="collection-filter-btn" data-filter="rare">Rare</button>
+        <button class="collection-filter-btn" data-filter="uncommon">Uncommon</button>
+        <button class="collection-filter-btn" data-filter="common">Common</button>
+      </div>
+      
+      <div class="collection-content">
+        <div class="collection-grid" id="collectionGrid">
+          <!-- Cards will be rendered here using createCardHTML -->
+        </div>
+        <div class="collection-empty" id="collectionEmpty" style="display: none;">
+          <span class="empty-icon">📭</span>
+          <h3>No cards yet</h3>
+          <p>Open chests in the Casino to collect cards!</p>
+          <a href="casino.html" class="btn btn-primary">Go to Casino</a>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeCollectionBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">Mulon</span>
+      <span class="footer-text">© 2026 Mulon Markets. For educational use only.</span>
+    </div>
+  </footer>
+
+  <script src="js/format-utils.js"></script>
+  <script type="module" src="js/marketplace.js"></script>
+</body>
+</html>

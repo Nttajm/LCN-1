@@ -1,0 +1,568 @@
+/* ========================================
+   DRAGON TOWER GAME - STAKE STYLE
+   Controls LEFT, Game RIGHT
+   ======================================== */
+
+/* Main Layout - Stake Style */
+.dragon-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* Difficulty Selector */
+.difficulty-select {
+  width: 100%;
+  padding: 12px 14px;
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.difficulty-select:focus {
+  border-color: #6366f1;
+}
+
+.difficulty-info {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+/* Level Display */
+.level-display {
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+
+.level-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.level-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f59e0b;
+}
+
+/* Multiplier Display */
+.multiplier-display {
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.multiplier-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.multiplier-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #22c55e;
+}
+
+.potential-win {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+
+.potential-win span {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* Preview Box */
+.preview-box {
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border: 1px solid #6366f1;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+
+.preview-label {
+  font-size: 0.8rem;
+  color: #a5b4fc;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.preview-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #6366f1;
+}
+
+.preview-win {
+  font-size: 0.9rem;
+  color: #22c55e;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Bet & Cashout Buttons */
+.bet-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bet-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #16a34a, #15803d);
+  transform: translateY(-1px);
+}
+
+.bet-btn:disabled {
+  background: #374151;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cashout-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: none;
+}
+
+.cashout-btn.show {
+  display: block;
+}
+
+.cashout-btn:hover:not(.disabled) {
+  background: linear-gradient(180deg, #d97706, #b45309);
+  transform: translateY(-1px);
+}
+
+.cashout-btn.disabled {
+  background: #374151;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* RIGHT PANEL - Game Area */
+.game-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 30px;
+  background: #0f1419;
+  position: relative;
+  overflow-y: auto;
+}
+
+/* Tower Container */
+.tower-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 450px;
+  width: 100%;
+  padding: 20px;
+}
+
+/* Tower Row */
+.tower-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.tower-row.active {
+  opacity: 1;
+}
+
+.tower-row.completed {
+  opacity: 0.7;
+}
+
+.tower-row.future {
+  opacity: 0.3;
+}
+
+/* Row Level Indicator */
+.row-level {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+  width: 30px;
+  text-align: right;
+}
+
+/* Tower Tile */
+.tower-tile {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 80px;
+  min-width: 50px;
+  background: linear-gradient(180deg, #2a3441, #1a1f26);
+  border: 2px solid #374151;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tower-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
+  border-radius: 10px;
+}
+
+.tower-tile:hover:not(.disabled):not(.revealed) {
+  border-color: #6366f1;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.tower-tile.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tower-tile.revealed {
+  cursor: default;
+}
+
+.tower-tile.revealed.egg {
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  border-color: #22c55e;
+  animation: eggReveal 0.4s ease;
+}
+
+.tower-tile.revealed.trap {
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+  border-color: #ef4444;
+  animation: trapReveal 0.4s ease;
+}
+
+.tower-tile.revealed.trap-show {
+  background: linear-gradient(180deg, #6b7280, #4b5563);
+  border-color: #6b7280;
+  opacity: 0.6;
+}
+
+@keyframes eggReveal {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes trapReveal {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.2) rotate(-5deg); }
+  50% { transform: scale(1.2) rotate(5deg); }
+  75% { transform: scale(1.1) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Tile Content */
+.tile-content {
+  font-size: 1.8rem;
+  z-index: 1;
+}
+
+/* Row Multiplier Tag */
+.row-multiplier {
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #22c55e;
+  font-weight: 700;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tower-row.completed .row-multiplier {
+  color: #6b7280;
+  background: rgba(107, 114, 128, 0.1);
+}
+
+/* Game Over Overlay */
+.game-over-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.game-over-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.game-over-content {
+  text-align: center;
+  padding: 40px;
+  background: #1a1f26;
+  border-radius: 16px;
+  border: 1px solid #2a3441;
+  max-width: 320px;
+}
+
+.game-over-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.game-over-title.win {
+  color: #22c55e;
+}
+
+.game-over-title.lose {
+  color: #ef4444;
+}
+
+.game-over-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.play-again-btn {
+  padding: 14px 40px;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.play-again-btn:hover {
+  background: linear-gradient(180deg, #4f46e5, #4338ca);
+  transform: translateY(-2px);
+}
+
+/* Dragon decoration */
+.dragon-decoration {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 3rem;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* Climbing indicator */
+.climb-indicator {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.climb-arrow {
+  font-size: 1.5rem;
+  color: #22c55e;
+  animation: climbPulse 1s ease infinite;
+}
+
+@keyframes climbPulse {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-5px); opacity: 0.5; }
+}
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+  .dragon-layout {
+    flex-direction: column;
+  }
+
+  .controls-panel {
+    width: 100%;
+    min-width: auto;
+    border-right: none;
+    border-bottom: 1px solid #2a3441;
+    order: 2;
+  }
+
+  .game-panel {
+    order: 1;
+    min-height: 60vh;
+  }
+
+  .tower-container {
+    max-width: 350px;
+    padding: 15px;
+  }
+
+  .tower-tile {
+    max-width: 60px;
+    min-width: 40px;
+  }
+
+  .tile-content {
+    font-size: 1.4rem;
+  }
+
+  .row-multiplier {
+    right: -50px;
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .game-panel {
+    padding: 15px;
+  }
+
+  .tower-container {
+    max-width: 300px;
+    padding: 10px;
+    gap: 4px;
+  }
+
+  .tower-row {
+    gap: 4px;
+  }
+
+  .tower-tile {
+    max-width: 50px;
+    min-width: 35px;
+    border-radius: 8px;
+  }
+
+  .tile-content {
+    font-size: 1.2rem;
+  }
+
+  .row-multiplier {
+    display: none;
+  }
+
+  .level-value {
+    font-size: 1.2rem;
+  }
+
+  .multiplier-value {
+    font-size: 1.5rem;
+  }
+
+  .preview-value {
+    font-size: 1.1rem;
+  }
+
+  .game-over-content {
+    padding: 30px;
+    max-width: 280px;
+  }
+
+  .game-over-title {
+    font-size: 1.5rem;
+  }
+
+  .game-over-amount {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .tower-container {
+    max-width: 260px;
+  }
+
+  .tower-tile {
+    max-width: 45px;
+    min-width: 30px;
+  }
+
+  .tile-content {
+    font-size: 1rem;
+  }
+}
+
+/* G Button (All-in) Styles */
+.bet-adj-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.balance-indicator {
+  background: #ca8a04;
+  color: #000;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}

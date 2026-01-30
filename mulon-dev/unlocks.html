@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlocks - Mulon</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/unlocks.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon (beta)</span>
+      </a>
+      <div class="search-box">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" placeholder="Search unlocks...">
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="balance-display">
+        <div class="balance-item">
+          <span class="balance-label">Balance</span>
+          <span class="balance-amount" id="userBalance">$500.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item">
+          <span class="balance-label">Portfolio</span>
+          <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item keys-item">
+          <span class="balance-label">Keys <span class="keys-info-btn" id="keysInfoBtn">?</span></span>
+          <span class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 15</span>
+          <div class="keys-tooltip" id="keysTooltip">
+            <h4><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> Keys</h4>
+            <p>Keys are a special currency that can be used for:</p>
+            <ul>
+              <li>Playing casino games</li>
+              <li>Buying collectables</li>
+              <li>Unlocking rewards</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Earn Keys:</strong></p>
+            <ul>
+              <li>+3 keys for every winning prediction</li>
+              <li>+1 key per day (daily login)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="user-menu" id="userMenu">
+        <div class="user-avatar" id="userAvatar">
+          <span id="userInitials">?</span>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info" id="userInfo">
+            <span class="user-name" id="userName">Guest</span>
+            <span class="user-email" id="userEmail">Not signed in</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="signOutBtn" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+          </button>
+          <button class="dropdown-item signin" id="headerSignInBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            </svg>
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
+        <li><a href="unlocks.html" class="nav-link active">Unlocks</a></li>
+        <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
+        <li><a href="casino.html" class="nav-link">Casino</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="unlocks-container">
+    <!-- Page Header -->
+    <div class="unlocks-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <span class="title-icon">🔓</span>
+          Unlocks
+        </h1>
+        <p class="page-subtitle">Use your cards to unlock exclusive rewards!</p>
+      </div>
+      <div class="user-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="userCardsCount">0</span>
+          <span class="stat-label">Cards Owned</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="unlocksCompletedCount">0</span>
+          <span class="stat-label">Unlocks Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unlock Filters -->
+    <div class="unlock-filters">
+      <button class="filter-btn active" data-filter="all">
+        <span class="filter-icon">📋</span>
+        All Unlocks
+      </button>
+      <button class="filter-btn" data-filter="available">
+        <span class="filter-icon">✅</span>
+        Available Now
+      </button>
+      <button class="filter-btn" data-filter="time-limited">
+        <span class="filter-icon">⏰</span>
+        Time Limited
+      </button>
+      <button class="filter-btn" data-filter="level-locked">
+        <span class="filter-icon">🔒</span>
+        Level Locked
+      </button>
+    </div>
+
+    <!-- Unlocks Grid -->
+    <div class="unlocks-grid" id="unlocksGrid">
+      <!-- Unlock cards will be rendered here by JS -->
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <span class="empty-icon">🔐</span>
+      <h3>No unlocks available</h3>
+      <p>Check back later for new unlock opportunities!</p>
+    </div>
+  </div>
+
+  <!-- Unlock Confirmation Modal -->
+  <div class="modal-overlay" id="unlockModal">
+    <div class="modal unlock-modal">
+      <div class="modal-header">
+        <h2>🔓 Confirm Unlock</h2>
+        <button class="modal-close" id="closeUnlockModal">&times;</button>
+      </div>
+      
+      <div class="unlock-confirmation">
+        <div class="unlock-reward-preview">
+          <div class="reward-icon" id="modalRewardIcon">🎁</div>
+          <h3 class="reward-name" id="modalRewardName">Reward Name</h3>
+          <p class="reward-description" id="modalRewardDescription">Reward description goes here.</p>
+        </div>
+        
+        <div class="unlock-cost-section">
+          <h4>Required Cards</h4>
+          <div class="required-cards" id="modalRequiredCards">
+            <!-- Cards will be shown here -->
+          </div>
+        </div>
+        
+        <div class="unlock-keys-reward">
+          <div class="keys-reward-box">
+            <img src="/bp/EE/assets/ouths/key.png" alt="Keys" class="key-icon-lg">
+            <span class="keys-amount" id="modalKeysReward">+50</span>
+            <span class="keys-label">Keys</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelUnlockBtn">Cancel</button>
+        <button class="btn btn-primary" id="confirmUnlockBtn">
+          <span class="btn-icon">🔓</span>
+          Unlock Reward
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal success-modal">
+      <div class="success-content">
+        <div class="success-icon">🎉</div>
+        <h2>Unlock Successful!</h2>
+        <p class="success-message" id="successMessage">You received 50 keys!</p>
+        <div class="keys-earned-display">
+          <img src="/bp/EE/assets/ouths/key.png" alt="Keys" class="key-icon-xl">
+          <span class="keys-earned" id="keysEarned">+50</span>
+        </div>
+        <button class="btn btn-primary" id="closeSuccessBtn">Awesome!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">Mulon</span>
+      <span class="footer-text">© 2026 Mulon Markets. For educational use only.</span>
+    </div>
+  </footer>
+
+  <script src="js/format-utils.js"></script>
+  <script type="module" src="js/unlocks.js"></script>
+</body>
+</html>

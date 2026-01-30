@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mulon Admin - Manage Markets</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+  <!-- Access Denied Overlay -->
+  <div class="admin-access-overlay" id="accessOverlay">
+    <div class="access-content">
+      <div class="access-icon">🔒</div>
+      <h2>Admin Access Required</h2>
+      <p id="accessMessage">Please sign in to continue...</p>
+      <button class="google-signin-btn" id="adminSignInBtn" style="display: none;">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <span>Sign in with Google</span>
+      </button>
+      <a href="index.html" class="back-home-link">← Back to Home</a>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon</span>
+      </a>
+      <span class="admin-badge">Admin Panel</span>
+    </div>
+    <div class="header-right">
+      <a href="index.html" class="back-link">← Back to Site</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="admin-content">
+    <div class="admin-layout">
+      <!-- Left Panel - Form -->
+      <div class="admin-panel form-panel">
+        <div class="panel-header">
+          <h2 class="panel-title" id="formTitle">➕ Create New Market</h2>
+        </div>
+        
+        <form id="marketForm" class="market-form">
+          <input type="hidden" id="marketId" value="">
+          
+          <div class="form-group">
+            <label for="title">Market Title *</label>
+            <input type="text" id="title" name="title" placeholder="e.g., Will the basketball team win Friday's game?" required>
+          </div>
+
+          <div class="form-group">
+            <label for="subtitle">Subtitle / Description</label>
+            <input type="text" id="subtitle" name="subtitle" placeholder="e.g., Tech High vs Central High">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Category *</label>
+              <select id="category" name="category" required>
+                <option value="">Select category</option>
+                <!-- Categories loaded dynamically from Firebase -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="yesPrice">Starting Yes Price (%) *</label>
+              <input type="number" id="yesPrice" name="yesPrice" min="1" max="99" value="50" required>
+              <span class="form-hint">No price will be: <span id="noPricePreview">50</span>%</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startDate">Start Date *</label>
+              <input type="date" id="startDate" name="startDate" required>
+            </div>
+
+            <div class="form-group">
+              <label for="endDate">End Date *</label>
+              <input type="date" id="endDate" name="endDate" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="endTime">End Time *</label>
+              <input type="time" id="endTime" name="endTime" value="15:00" required>
+              <span class="form-hint">When betting closes</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="volume">Initial Volume ($)</label>
+              <input type="number" id="volume" name="volume" min="0" value="0" placeholder="0">
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="featured" name="featured">
+                <span class="checkmark"></span>
+                Featured Market
+              </label>
+              <span class="form-hint">Shows prominently on homepage</span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Create Market</button>
+          </div>
+        </form>
+
+        <!-- Market Trades Section (shown when editing) -->
+        <div class="market-trades-section" id="marketTradesSection" style="display: none;">
+          <div class="trades-section-header">
+            <h3>👥 Trades & Positions</h3>
+            <button class="btn btn-sm btn-secondary" id="refreshTradesBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                <path d="M16 21h5v-5"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          
+          <!-- Tabs for Positions and Trades -->
+          <div class="trades-tabs">
+            <button class="trades-tab active" data-tab="positions">Current Positions</button>
+            <button class="trades-tab" data-tab="trades">Trade History</button>
+          </div>
+          
+          <!-- Positions Tab -->
+          <div class="trades-tab-content" id="positionsTab">
+            <div class="positions-list" id="positionsList">
+              <!-- Positions loaded dynamically -->
+            </div>
+          </div>
+          
+          <!-- Trades Tab -->
+          <div class="trades-tab-content" id="tradesTab" style="display: none;">
+            <div class="trades-list" id="tradesList">
+              <!-- Trades loaded dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel - Market List -->
+      <div class="admin-panel list-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📊 All Markets</h2>
+          <div class="panel-actions">
+            <button class="btn btn-sm btn-secondary" id="transferBtn">Transfer from localStorage</button>
+            <button class="btn btn-sm btn-danger" id="resetBtn">Reset to Defaults</button>
+          </div>
+        </div>
+
+        <div class="market-list" id="marketList">
+          <!-- Markets rendered dynamically -->
+        </div>
+      </div>
+      
+      <!-- Management Panel with Tabs -->
+      <div class="admin-panel management-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">⚙️ Management</h2>
+        </div>
+        
+        <!-- Management Tabs -->
+        <div class="management-tabs">
+          <button class="management-tab active" data-tab="categories">
+            <span class="tab-icon">🏷️</span>
+            Categories
+          </button>
+          <button class="management-tab" data-tab="waitlist">
+            <span class="tab-icon">📋</span>
+            Waitlist
+            <span class="tab-badge" id="waitlistBadge">0</span>
+          </button>
+          <button class="management-tab" data-tab="users">
+            <span class="tab-icon">👥</span>
+            Users
+          </button>
+          <button class="management-tab" data-tab="suggestions">
+            <span class="tab-icon">💡</span>
+            Suggestions
+            <span class="tab-badge" id="suggestionBadge">0</span>
+          </button>
+        </div>
+        
+        <!-- Categories Tab Content -->
+        <div class="management-tab-content active" id="categoriesTabContent">
+          <form id="categoryForm" class="category-form">
+            <div class="category-form-row">
+              <input type="text" id="catId" placeholder="ID (e.g., school)" required>
+              <input type="text" id="catIcon" placeholder="Emoji (e.g., 🎓)" required maxlength="4">
+              <input type="text" id="catLabel" placeholder="Label (e.g., Tech High)" required>
+              <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </div>
+          </form>
+          
+          <div class="category-list" id="categoryList">
+            <!-- Categories rendered dynamically -->
+          </div>
+        </div>
+        
+        <!-- Waitlist Tab Content -->
+        <div class="management-tab-content" id="waitlistTabContent" style="display: none;">
+          <div class="waitlist-stats">
+            <span class="stat-item">
+              <span class="stat-label">Pending:</span>
+              <span class="stat-value pending" id="waitlistPendingCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Approved:</span>
+              <span class="stat-value approved" id="waitlistApprovedCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Rejected:</span>
+              <span class="stat-value rejected" id="waitlistRejectedCount">0</span>
+            </span>
+          </div>
+          
+          <div class="waitlist-actions-bar">
+            <button class="btn btn-sm btn-success" id="approveAllWaitlistBtn">✓ Approve All Pending</button>
+            <button class="btn btn-sm btn-secondary" id="refreshWaitlistBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          
+          <div class="waitlist-filter">
+            <button class="waitlist-filter-btn active" data-filter="pending">Pending</button>
+            <button class="waitlist-filter-btn" data-filter="approved">Approved</button>
+            <button class="waitlist-filter-btn" data-filter="rejected">Rejected</button>
+            <button class="waitlist-filter-btn" data-filter="all">All</button>
+          </div>
+          
+          <div class="waitlist-list" id="waitlistList">
+            <div class="loading-state">Loading waitlist...</div>
+          </div>
+        </div>
+        
+        <!-- Users Tab Content -->
+        <div class="management-tab-content" id="usersTabContent" style="display: none;">
+          <!-- Bulk Actions -->
+          <div class="bulk-actions-section">
+            <h4>💰 Bulk Balance Actions</h4>
+            <div class="bulk-actions-row">
+              <select id="bulkOperation">
+                <option value="add">Add to all</option>
+                <option value="subtract">Subtract from all</option>
+                <option value="set">Set all to</option>
+                <option value="multiply">Multiply all by</option>
+              </select>
+              <input type="number" id="bulkAmount" placeholder="Amount" step="0.01" min="0">
+              <button class="btn btn-primary btn-sm" id="applyBulkBtn">Apply to All</button>
+            </div>
+            
+            <div class="bulk-quick-actions">
+              <span class="quick-label">Quick Set:</span>
+              <button class="btn btn-sm btn-outline" data-set-amount="500">$500</button>
+              <button class="btn btn-sm btn-outline" data-set-amount="1000">$1000</button>
+              <button class="btn btn-sm btn-outline" data-set-amount="0">$0</button>
+            </div>
+          </div>
+          
+          <!-- Bulk Keys Actions -->
+          <div class="bulk-actions-section">
+            <h4>🔑 Bulk Keys Actions</h4>
+            <div class="bulk-actions-row">
+              <select id="bulkKeysOperation">
+                <option value="add">Add to all</option>
+                <option value="subtract">Subtract from all</option>
+                <option value="set">Set all to</option>
+              </select>
+              <input type="number" id="bulkKeysAmount" placeholder="Amount" step="1" min="0">
+              <button class="btn btn-primary btn-sm" id="applyBulkKeysBtn">Apply to All</button>
+            </div>
+            
+            <div class="bulk-quick-actions">
+              <span class="quick-label">Quick Add:</span>
+              <button class="btn btn-sm btn-outline" data-set-keys="5">+5 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="10">+10 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="25">+25 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="50">+50 Keys</button>
+              <button class="btn btn-sm btn-outline" data-set-keys="100">+100 Keys</button>
+            </div>
+          </div>
+          
+          <!-- Bulk Positions Actions -->
+          <div class="bulk-actions-section danger-section">
+            <h4>🗑️ Reset Positions</h4>
+            <p class="bulk-warning">Warning: This will delete user positions and cannot be undone!</p>
+            <div class="bulk-actions-row">
+              <button class="btn btn-danger btn-sm" id="resetAllPositionsBtn">
+                Reset ALL User Positions
+              </button>
+            </div>
+          </div>
+          
+          <!-- Bulk Cards Actions -->
+          <div class="bulk-actions-section">
+            <h4>🃏 Bulk Cards Actions</h4>
+            <div class="bulk-actions-row">
+              <select id="bulkCardsOperation">
+                <option value="add">Add card to all</option>
+                <option value="remove">Remove card from all</option>
+              </select>
+              <input type="text" id="bulkCardNumber" placeholder="Card # (e.g., #001)" maxlength="4">
+              <button class="btn btn-primary btn-sm" id="applyBulkCardsBtn">Apply to All</button>
+            </div>
+          </div>
+          
+          <!-- Reset All Cards -->
+          <div class="bulk-actions-section danger-section">
+            <h4>🗑️ Reset Cards</h4>
+            <p class="bulk-warning">Warning: This will delete ALL user cards and cannot be undone!</p>
+            <div class="bulk-actions-row">
+              <button class="btn btn-danger btn-sm" id="resetAllCardsBtn">
+                Reset ALL User Cards
+              </button>
+            </div>
+          </div>
+          
+          <!-- Search Users -->
+          <div class="users-search">
+            <input type="text" id="userSearch" placeholder="Search by name or email...">
+            <button class="btn btn-sm btn-secondary" id="refreshUsersBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                <path d="M16 21h5v-5"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          
+          <!-- Users Stats -->
+          <div class="users-stats">
+            <span class="stat-item">
+              <span class="stat-label">Total Users:</span>
+              <span class="stat-value" id="totalUsersCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Balance:</span>
+              <span class="stat-value" id="totalBalanceSum">$0.00</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Keys:</span>
+              <span class="stat-value" id="totalKeysSum">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Positions:</span>
+              <span class="stat-value" id="totalPositionsCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Cards:</span>
+              <span class="stat-value" id="totalCardsSum">0</span>
+            </span>
+          </div>
+          
+          <!-- Users List -->
+          <div class="users-list" id="usersList">
+            <div class="loading-state">Loading users...</div>
+          </div>
+        </div>
+        
+        <!-- Suggestions Tab Content -->
+        <div class="management-tab-content" id="suggestionsTabContent" style="display: none;">
+          <div class="suggestion-list" id="suggestionList">
+            <!-- Suggestions rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal delete-modal">
+      <h3>Delete Market?</h3>
+      <p>Are you sure you want to delete this market? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+        <button class="btn btn-danger" id="confirmDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resolution Modal -->
+  <div class="modal-overlay" id="resolveModal">
+    <div class="modal resolve-modal">
+      <h3>🎯 Resolve Market</h3>
+      <p class="resolve-market-title" id="resolveMarketTitle">Market title here</p>
+      <p class="resolve-question">What was the outcome?</p>
+      <div class="resolve-buttons">
+        <button class="btn btn-resolve btn-yes" id="resolveYes">
+          <span class="resolve-icon">✓</span>
+          <span>YES</span>
+        </button>
+        <button class="btn btn-resolve btn-no" id="resolveNo">
+          <span class="resolve-icon">✗</span>
+          <span>NO</span>
+        </button>
+      </div>
+      <p class="resolve-warning">⚠️ This will pay out all winning positions and cannot be undone.</p>
+      <button class="btn btn-secondary resolve-cancel" id="cancelResolve">Cancel</button>
+    </div>
+  </div>
+
+  <!-- User Positions Modal -->
+  <div class="modal-overlay" id="positionsModal">
+    <div class="modal positions-modal">
+      <div class="positions-modal-header">
+        <h3>📊 User Positions</h3>
+        <button class="modal-close" id="closePositionsModal">×</button>
+      </div>
+      <div class="positions-modal-user" id="positionsModalUser">
+        <!-- User info will be populated -->
+      </div>
+      <div class="positions-modal-list" id="positionsModalList">
+        <!-- Positions will be populated -->
+      </div>
+      <div class="positions-modal-actions">
+        <button class="btn btn-secondary" id="cancelPositionsModal">Close</button>
+        <button class="btn btn-danger" id="resetUserPositionsModal">Reset All Positions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Cards Modal -->
+  <div class="modal-overlay" id="cardsModal">
+    <div class="modal cards-modal">
+      <div class="cards-modal-header">
+        <h3>🃏 User Cards</h3>
+        <button class="modal-close" id="closeCardsModal">×</button>
+      </div>
+      <div class="cards-modal-user" id="cardsModalUser">
+        <!-- User info will be populated -->
+      </div>
+      <div class="cards-add-section">
+        <h4>Add Card</h4>
+        <div class="cards-add-row">
+          <input type="text" id="addCardNumber" placeholder="Card # (e.g., #001)" maxlength="4">
+          <button class="btn btn-primary btn-sm" id="addCardToUserBtn">Add Card</button>
+        </div>
+      </div>
+      <div class="cards-modal-list" id="cardsModalList">
+        <!-- Cards will be populated -->
+      </div>
+      <div class="cards-modal-actions">
+        <button class="btn btn-secondary" id="cancelCardsModal">Close</button>
+        <button class="btn btn-danger" id="resetUserCardsModal">Delete All Cards</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span class="toast-message" id="toastMessage">Market created successfully!</span>
+  </div>
+
+  <script type="module" src="js/data.js"></script>
+  <script type="module" src="js/admin-a.js"></script>
+</body>
+</html>

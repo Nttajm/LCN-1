@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restore Balances</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #111; color: #0f0; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    #log { white-space: pre-wrap; background: #000; padding: 10px; height: 500px; overflow-y: auto; border: 1px solid #0f0; }
+    .error { color: #f00; }
+    .success { color: #0f0; }
+    .warn { color: #ff0; }
+  </style>
+</head>
+<body>
+  <h1>Balance Restore Tool</h1>
+  <button id="signInBtn">Sign In (Admin Only)</button>
+  <button id="restoreBtn" disabled>Restore All Balances</button>
+  <button id="previewBtn" disabled>Preview (Dry Run)</button>
+  <div id="log"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
+      authDomain: "overunder-ths.firebaseapp.com",
+      projectId: "overunder-ths",
+      storageBucket: "overunder-ths.firebasestorage.app",
+      messagingSenderId: "690530120785",
+      appId: "1:690530120785:web:36dc297cb517ac76cb7470"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const usersRef = collection(db, 'mulon_users');
+
+    const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com'];
+
+    // Balance data to restore - parsed from your list
+    const balanceData = [
+      { name: "Asa Sage", balance: 205260.58 },
+      { name: "Scobar13", balance: 196010.35 },
+      { name: "Carter", balance: 100967.00 },
+      { name: "Sigma josh", balance: 67677.00 },
+      { name: "Tiny_part2.0", balance: 40967.00 },
+      { name: "Ronan", balance: 500.00 },
+      { name: "Gabriel Asmundsson", balance: 10080.00 },
+      { name: "ronin", balance: 11033.02 },
+      { name: "Jeremiah J", balance: 970.57 },
+      { name: "Perla !!", balance: 10968.01 },
+      { name: "TkingBack", balance: 1474.00 },
+      { name: "Ollie", balance: 967.00 },
+      { name: "Noah", balance: 5819.85 },
+      { name: "NovaDevs (formerly betatester27)", balance: 5241.72 },
+      { name: "joataaaaaaaaaaaaa", balance: 5100.00 },
+      { name: "Liam Zeidler", balance: 5001.00 },
+      { name: "Yousef Khoury", balance: 2987.19 },
+      { name: "yrev@", balance: 4068.00 },
+      { name: "MARTIN", balance: 3169.02 },
+      { name: "Will Heuer", balance: 230.74 },
+      { name: "pikatikatavi", balance: 2412.63 },
+      { name: "Rayan Dziri", balance: 1710.54 },
+      { name: "Jareen Ramuk", balance: 967.00 },
+      { name: "Luc Lirakis", balance: 1967.00 },
+      { name: "LJ Arieta", balance: 1361.61 },
+      { name: "Jordan", balance: 967.00 },
+      { name: "Carter Powell", balance: 993.67 },
+      { name: "The Rice Eater", balance: 1191.24 },
+      { name: "Ace Brodhun-Ludke", balance: 1193.08 },
+      { name: "Evan Musolino", balance: 500.00 },
+      { name: "Grayson Biggio", balance: 1126.36 },
+      { name: "Joshua De La Cruz", balance: 978.57 },
+      { name: "Chris", balance: 1182.00 },
+      { name: "Pocho", balance: 1100.33 },
+      { name: "ok ok", balance: 967.00 },
+      { name: "lizzy", balance: 967.00 },
+      { name: "Jayden", balance: 1169.02 },
+      { name: "Thura", balance: 967.00 },
+      { name: "Elias Peoples", balance: 1117.00 },
+      { name: "Owenator", balance: 1069.04 },
+      { name: "Owen", balance: 967.00 },
+      { name: "Luca Reidy", balance: 996.11 },
+      { name: "Santiago Tausch", balance: 1036.00 },
+      { name: "Ronin Acosta", balance: 716.50 },
+      { name: "Kaiden", balance: 1067.00 },
+      { name: "Josh", balance: 967.00 },
+      { name: "Emir Kaplankiran", balance: 973.76 },
+      { name: "Vincent Maness", balance: 967.00 },
+      { name: "Dre", balance: 992.64 },
+      { name: "Dilyan Lopez", balance: 967.00 },
+      { name: "Dominic Ruiz", balance: 976.57 },
+      { name: "Myo Thiha Ko", balance: 863.00 },
+      { name: "David Quiroz", balance: 968.01 },
+      { name: "new", balance: 967.00 },
+      { name: "King Sturge", balance: 967.00 },
+      { name: "burner account", balance: 967.00 },
+      { name: "amani 2", balance: 967.00 },
+      { name: "Wyatt Anderson", balance: 967.00 },
+      { name: "Me Gusta Dinero", balance: 967.00 },
+      { name: "Theodore Connell", balance: 967.00 },
+      { name: "Valentino LeDoux", balance: 967.00 },
+      { name: "Jeremiah Johnson", balance: 967.00 },
+      { name: "max", balance: 967.00 },
+      { name: "Max Spolini", balance: 967.00 },
+      { name: "Asa Spades", balance: 967.00 },
+      { name: "Devon Svihula", balance: 967.00 },
+      { name: "Emilio Tapia", balance: 967.00 },
+      { name: "Sophie Crozier", balance: 967.00 },
+      { name: "Joel Hernandez Ramirez", balance: 967.00 },
+      { name: "Ahdisj Skbdi", balance: 967.00 },
+      { name: "Margarita Maza", balance: 967.00 },
+      { name: "Emmett Caruso", balance: 967.00 },
+      { name: "presley", balance: 967.00 },
+      { name: "Limitless", balance: 967.00 },
+      { name: "Ruhani Gill", balance: 967.00 },
+      { name: "Austin Purvis", balance: 967.00 },
+      { name: "Roger test", balance: 967.00 },
+      { name: "nossiraH", balance: 967.00 }
+    ];
+
+    const logEl = document.getElementById('log');
+    function log(msg, type = '') {
+      const span = document.createElement('span');
+      span.className = type;
+      span.textContent = msg + '\n';
+      logEl.appendChild(span);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    document.getElementById('signInBtn').addEventListener('click', async () => {
+      try {
+        const result = await signInWithPopup(auth, new GoogleAuthProvider());
+        if (ADMIN_EMAILS.includes(result.user.email.toLowerCase())) {
+          log(`Signed in as admin: ${result.user.email}`, 'success');
+          document.getElementById('restoreBtn').disabled = false;
+          document.getElementById('previewBtn').disabled = false;
+        } else {
+          log(`Not an admin: ${result.user.email}`, 'error');
+        }
+      } catch (e) {
+        log(`Sign in error: ${e.message}`, 'error');
+      }
+    });
+
+    async function restoreBalances(dryRun = true) {
+      log(`\n=== ${dryRun ? 'PREVIEW' : 'RESTORING'} ===\n`);
+      
+      // Get all users from Firestore
+      const snapshot = await getDocs(usersRef);
+      const dbUsers = {};
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        dbUsers[data.displayName?.toLowerCase()] = { id: doc.id, ...data };
+      });
+
+      log(`Found ${Object.keys(dbUsers).length} users in database\n`);
+
+      let updated = 0, notFound = 0, skipped = 0;
+
+      for (const entry of balanceData) {
+        const key = entry.name.toLowerCase();
+        const user = dbUsers[key];
+
+        if (!user) {
+          log(`NOT FOUND: "${entry.name}"`, 'warn');
+          notFound++;
+          continue;
+        }
+
+        const currentBalance = user.balance || 0;
+        if (Math.abs(currentBalance - entry.balance) < 0.01) {
+          log(`SKIP: ${entry.name} - balance already $${entry.balance.toFixed(2)}`);
+          skipped++;
+          continue;
+        }
+
+        if (dryRun) {
+          log(`WOULD UPDATE: ${entry.name} - $${currentBalance.toFixed(2)} → $${entry.balance.toFixed(2)}`, 'success');
+        } else {
+          try {
+            await updateDoc(doc(db, 'mulon_users', user.id), { balance: entry.balance });
+            log(`UPDATED: ${entry.name} - $${currentBalance.toFixed(2)} → $${entry.balance.toFixed(2)}`, 'success');
+          } catch (e) {
+            log(`ERROR updating ${entry.name}: ${e.message}`, 'error');
+          }
+        }
+        updated++;
+      }
+
+      log(`\n=== SUMMARY ===`);
+      log(`Updated: ${updated}, Not Found: ${notFound}, Skipped: ${skipped}`, updated > 0 ? 'success' : 'warn');
+    }
+
+    document.getElementById('previewBtn').addEventListener('click', () => restoreBalances(true));
+    document.getElementById('restoreBtn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to restore all balances? This will overwrite current values.')) {
+        restoreBalances(false);
+      }
+    });
+  </script>
+</body>
+</html>
