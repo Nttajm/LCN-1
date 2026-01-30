@@ -27,6 +27,9 @@ class PokerController {
     this.isLeaving = false; // Prevent double leave clicks
     this.selectedBuyIn = 25;
     this.lastPhase = null; // Track phase for chip animations
+    this.showdownModalShown = false;
+    this._startingNewHand = false; // Flag to prevent duplicate startNewHand calls
+    this._startingNewHandInProgress = false; // Flag to prevent concurrent startNewHand execution
 
     // DOM elements cache
     this.elements = {};
@@ -283,16 +286,62 @@ class PokerController {
     this.lobbyManager.onGameStart = (lobbyId) => this.startGame();
     this.lobbyManager.onGameStateUpdate = this.handleGameStateUpdate.bind(this);
     
-    // Player join/leave notifications
+    // Player join/leave notifications with immediate UI refresh
     this.lobbyManager.onPlayerJoin = (playerId, playerName) => {
       if (playerId !== this.currentUser?.uid) {
         this.showToast(`${playerName || 'A player'} joined the lobby`, 'success');
+        // Force immediate sidebar update
+        if (this.lobbyManager.currentLobby) {
+          this.updatePlayerSlots(this.lobbyManager.currentLobby.players);
+        }
       }
     };
+    
     this.lobbyManager.onPlayerLeave = (playerId, playerName) => {
       if (playerId !== this.currentUser?.uid) {
         this.showToast(`${playerName || 'A player'} left the lobby`, 'info');
+        // Force immediate sidebar update
+        if (this.lobbyManager.currentLobby) {
+          this.updatePlayerSlots(this.lobbyManager.currentLobby.players);
+        }
       }
+    };
+    
+    // Host change notification
+    this.lobbyManager.onHostChange = (newHostId, newHostName) => {
+      if (newHostId === this.currentUser?.uid) {
+        this.showToast('You are now the host!', 'success');
+        this.isHost = true;
+      } else {
+        this.showToast(`${newHostName || 'Another player'} is now the host`, 'info');
+        this.isHost = false;
+      }
+      // Refresh UI for host controls
+      if (this.lobbyManager.currentLobby) {
+        this.handleLobbyUpdate(this.lobbyManager.currentLobby);
+      }
+    };
+    
+    // Status change notification
+    this.lobbyManager.onStatusChange = (newStatus, oldStatus) => {
+      console.log(`📊 Lobby status: ${oldStatus} → ${newStatus}`);
+      if (newStatus === LOBBY_STATUS.IN_GAME && oldStatus !== LOBBY_STATUS.IN_GAME) {
+        this.showToast('Game starting!', 'success');
+      }
+    };
+    
+    // Error handling
+    this.lobbyManager.onError = (error) => {
+      console.error('Lobby error:', error);
+      
+      // Special handling for being kicked
+      if (error.context === 'kicked') {
+        this.showToast('You were removed from the lobby', 'error');
+        this.resetLobbyUI();
+        return;
+      }
+      
+      this.showToast(error.message || 'An error occurred', 'error');
     };
     
     // Initialize AFTER callbacks are set up
@@ -383,16 +432,22 @@ class PokerController {
     }
   }
 
-  // Handle lobby updates
+  // Handle lobby updates - real-time sync for current lobby
   handleLobbyUpdate(lobby) {
-    console.log('Lobby update:', lobby);
+    console.log('📡 Lobby update:', lobby?.id, lobby?.players?.length, 'players');
     
     if (!lobby) {
+      console.log('📡 Lobby was deleted or left');
       this.resetLobbyUI();
+      // Also refresh the lobbies list in sidebar
+      if (this.allLobbies) {
+        this.renderLobbiesList(this.allLobbies.filter(l => l.id !== this.lobbyManager?.currentLobbyId));
+      }
       return;
     }
 
     const isHost = lobby.hostId === this.currentUser?.uid;
+    const previousHost = this.isHost;
 
     // Update buy-in display to match lobby's buy-in (real-time sync for all players)
     if (lobby.buyIn) {
@@ -520,11 +575,16 @@ class PokerController {
           this.updatePlayAgainVotes(votes, totalPlayers);
         }
         
-        // If all players voted and host, start new hand
-        if (this.isHost && votes.length >= totalPlayers && totalPlayers >= 2) {
+        // If all players voted and host, start new hand (only once)
+        if (this.isHost && votes.length >= totalPlayers && totalPlayers >= 2 && !this._startingNewHand) {
           console.log('🎉 All players voted! Starting new hand...');
+          this._startingNewHand = true; // Prevent duplicate calls
           // Small delay to ensure all clients see the votes
-          setTimeout(() => this.startNewHand(), 500);
+          setTimeout(() => {
+            this.startNewHand();
+            // Reset flag after a longer delay to allow state to propagate
+            setTimeout(() => { this._startingNewHand = false; }, 2000);
+          }, 500);
         }
       } else if (!wasInGame) {
         // Game just started but no gameState yet - show waiting message
@@ -561,6 +621,26 @@ class PokerController {
       const showStartBtn = this.isHost && playerCount >= 2;
       this.elements.startGameBtn.style.display = showStartBtn ? 'flex' : 'none';
     }
+    
+    // Real-time refresh: Update the sidebar lobbies list with current lobby data
+    // This ensures your lobby section in sidebar stays in sync
+    this.refreshSidebarWithLobby(lobby);
+  }
+  
+  // Refresh sidebar to reflect current lobby state
+  refreshSidebarWithLobby(currentLobby) {
+    if (!this.allLobbies) return;
+    
+    // Update or add current lobby in the lobbies list
+    const lobbyIndex = this.allLobbies.findIndex(l => l.id === currentLobby.id);
+    if (lobbyIndex >= 0) {
+      this.allLobbies[lobbyIndex] = currentLobby;
+    } else {
+      this.allLobbies.unshift(currentLobby);
+    }
+    
+    // Re-render lobbies list
+    this.renderLobbiesList(this.allLobbies);
   }
 
   // Handle Start Game button click (host only)
@@ -615,10 +695,21 @@ class PokerController {
     }
   }
 
-  // Handle lobbies list update
+  // Handle lobbies list update - called in real-time when any lobby changes
   handleLobbiesUpdate(lobbies) {
-    console.log('Lobbies update:', lobbies.length, 'lobbies');
+    console.log('📡 Lobbies update:', lobbies.length, 'lobbies');
+    
+    // Store for reference
+    this.allLobbies = lobbies;
+    
+    // Render with animation class for smooth updates
     this.renderLobbiesList(lobbies);
+    
+    // Update lobby count in UI if we have an element for it
+    const lobbyCountEl = document.querySelector('.lobby-count');
+    if (lobbyCountEl) {
+      lobbyCountEl.textContent = `${lobbies.length} Active`;
+    }
   }
 
   // Handle join request
@@ -627,13 +718,101 @@ class PokerController {
     this.showJoinNotification(request);
   }
 
-  // Handle online players update
+  // Handle online players update - render the online players list in real-time
   handleOnlinePlayersUpdate(players) {
-    console.log('Online players:', players.length);
+    console.log('📡 Online players update:', players.length);
     
+    // Store for reference
+    this.onlinePlayers = players;
+    
+    // Update count (+1 for self)
     if (this.elements.onlineCount) {
       this.elements.onlineCount.textContent = `${players.length + 1} Online`;
     }
+    
+    // Update the online players section in sidebar
+    this.renderOnlinePlayersList(players);
+  }
+  
+  // Render online players in sidebar
+  renderOnlinePlayersList(players) {
+    // Find or create the online players container
+    let onlineSection = document.querySelector('.online-players-section');
+    
+    if (!onlineSection) {
+      // Create section if it doesn't exist (insert before lobbies)
+      onlineSection = document.createElement('div');
+      onlineSection.className = 'online-players-section';
+      
+      // Insert at the top of the sidebar content
+      const sidebarContent = this.elements.sidebar?.querySelector('.sidebar-content') || this.elements.playersList?.parentElement;
+      if (sidebarContent && this.elements.playersList) {
+        sidebarContent.insertBefore(onlineSection, this.elements.playersList);
+      }
+    }
+    
+    if (!onlineSection) return;
+    
+    // Filter players not in any lobby (available to invite)
+    const availablePlayers = players.filter(p => !p.lobbyId && p.id !== this.currentUser?.uid);
+    const inLobbyPlayers = players.filter(p => p.lobbyId && p.id !== this.currentUser?.uid);
+    
+    onlineSection.innerHTML = `
+      <div class="section-header">
+        <span class="section-title">🟢 Online Players</span>
+        <span class="section-count">${players.length}</span>
+      </div>
+      <div class="online-players-list">
+        ${players.length === 0 ? `
+          <div class="no-players-msg">No other players online</div>
+        ` : players.map(p => `
+          <div class="online-player-item ${p.lobbyId ? 'in-lobby' : 'available'}" data-player-id="${p.id}">
+            <div class="player-avatar-small">
+              <img src="${p.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`}" alt="">
+              <span class="online-dot"></span>
+            </div>
+            <div class="player-info-col">
+              <span class="player-name-small">${p.displayName || 'Player'}</span>
+              <span class="player-status-small">${p.lobbyId ? 'In Lobby' : 'Available'}</span>
+            </div>
+            ${!p.lobbyId && this.lobbyManager?.currentLobbyId ? `
+              <button class="invite-btn" data-player-id="${p.id}" title="Invite to lobby">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="8.5" cy="7" r="4"/>
+                  <line x1="20" y1="8" x2="20" y2="14"/>
+                  <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+              </button>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    // Add invite button handlers
+    onlineSection.querySelectorAll('.invite-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const playerId = btn.dataset.playerId;
+        this.invitePlayer(playerId);
+      });
+    });
+  }
+  
+  // Invite a player to current lobby
+  async invitePlayer(playerId) {
+    if (!this.lobbyManager?.currentLobbyId) {
+      this.showToast('You must be in a lobby to invite players', 'error');
+      return;
+    }
+    
+    // For now, show a toast - full invite system would need more Firebase work
+    const player = this.onlinePlayers?.find(p => p.id === playerId);
+    this.showToast(`Invite sent to ${player?.displayName || 'player'}!`, 'success');
+    
+    // TODO: Implement actual invite system via Firebase
+    // await this.lobbyManager.sendInvite(playerId);
   }
 
   // ========================================
@@ -813,11 +992,15 @@ class PokerController {
     });
   }
 
-  // Render lobbies in sidebar
+  // Render lobbies in sidebar - optimized for real-time updates
   renderLobbiesList(lobbies) {
     if (!this.elements.playersList) return;
+    
+    // Store timestamp to detect stale renders
+    const renderTime = Date.now();
+    this._lastLobbyRender = renderTime;
 
-    // Clear existing lobbies and rebuild
+    // IMPORTANT: Clear the list first to prevent duplication
     this.elements.playersList.innerHTML = '';
 
     // Find your own lobby if you're in one
@@ -825,6 +1008,9 @@ class PokerController {
       lobby.hostId === this.currentUser?.uid || 
       lobby.players?.some(p => p.id === this.currentUser?.uid)
     );
+    
+    // Build all HTML first, then update DOM once (more efficient)
+    const fragments = [];
 
     // Render your lobby first if you have one
     if (myLobby) {
@@ -1134,12 +1320,19 @@ class PokerController {
   }
 
   resetLobbyUI() {
+    console.log('🔄 Resetting lobby UI');
+    
+    // Reset game state
+    this.isInGame = false;
+    this.isHost = false;
+    this.game = null;
+    
     // Reset player slots to empty
     this.elements.playerSlots.forEach((slot, index) => {
       if (slot.id === 'yourSlot') return;
       
       slot.classList.add('empty');
-      slot.classList.remove('filled');
+      slot.classList.remove('filled', 'folded', 'current-turn', 'hidden-slot');
       slot.innerHTML = `
         <div class="slot-avatar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1153,6 +1346,34 @@ class PokerController {
     // Reset ready count
     if (this.elements.readyCount) {
       this.elements.readyCount.textContent = '0/1 Players Ready';
+    }
+    
+    // Reset ready button
+    if (this.elements.readyBtn) {
+      this.elements.readyBtn.classList.remove('ready');
+      this.elements.readyBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Ready Up
+      `;
+    }
+    
+    // Show config panel
+    if (this.elements.partyConfig) {
+      this.elements.partyConfig.style.display = 'flex';
+    }
+    
+    // Remove game-started class
+    document.body.classList.remove('game-started');
+    
+    // Hide game elements
+    this.elements.pokerActions?.classList.remove('visible');
+    this.hideShowdownModal();
+    
+    // Refresh sidebar
+    if (this.allLobbies) {
+      this.renderLobbiesList(this.allLobbies);
     }
   }
 
@@ -1565,35 +1786,45 @@ class PokerController {
       return;
     }
 
-    // If not in a lobby, create one (always public now since party settings removed)
-    if (!this.lobbyManager?.currentLobbyId) {
-      const result = await this.lobbyManager?.createLobby(this.selectedBuyIn, true);
-      if (!result?.success) {
-        console.error('Failed to create lobby:', result?.error);
-        this.showToast(result?.error || 'Failed to create lobby', 'error');
-        return;
+    // If already in a lobby, just toggle ready state
+    if (this.lobbyManager?.currentLobbyId) {
+      const myPlayer = this.lobbyManager?.currentLobby?.players.find(
+        p => p.id === this.currentUser?.uid
+      );
+      
+      const isCurrentlyReady = myPlayer?.isReady || false;
+      
+      // Toggle ready state (money is deducted when game starts, not when ready)
+      const result = await this.lobbyManager?.setReady(!isCurrentlyReady);
+      
+      if (result?.success && !isCurrentlyReady) {
+        this.showToast('Ready! Waiting for other players...', 'success');
       }
-      console.log('Created lobby:', result.lobbyId);
+      return;
     }
 
-    // Get current ready state
-    const myPlayer = this.lobbyManager?.currentLobby?.players.find(
-      p => p.id === this.currentUser?.uid
-    );
+    // Not in a lobby - create one
+    console.log('Not in a lobby, creating one...');
+    const result = await this.lobbyManager?.createLobby(this.selectedBuyIn, true);
     
-    const isCurrentlyReady = myPlayer?.isReady || false;
+    if (!result?.success) {
+      console.error('Failed to create lobby:', result?.error);
+      this.showToast(result?.error || 'Failed to create lobby', 'error');
+      return;
+    }
     
-    // Toggle ready state (money is deducted when game starts, not when ready)
-    await this.lobbyManager?.setReady(!isCurrentlyReady);
-    
-    if (!isCurrentlyReady) {
-      this.showToast('Ready! Waiting for other players...', 'success');
+    if (result.restored) {
+      // Was already in a lobby, state was restored
+      this.showToast('Restored to your existing lobby', 'success');
+    } else {
+      console.log('Created lobby:', result.lobbyId);
+      this.showToast('Lobby created! Click Ready again when others join.', 'success');
     }
   }
 
   async requestJoinLobby(lobbyId) {
     if (!CasinoAuth.isSignedIn()) {
-      alert('Please sign in to join a game');
+      this.showToast('Please sign in to join a game', 'error');
       return;
     }
 
@@ -1601,9 +1832,19 @@ class PokerController {
     const btn = document.querySelector(`[data-lobby-id="${lobbyId}"] .ask-join-btn`);
     if (btn) {
       btn.disabled = true;
-      btn.textContent = 'Requesting...';
+      btn.textContent = 'Joining...';
     }
 
+    // Try to directly join first (for public lobbies)
+    const joinResult = await this.lobbyManager?.joinLobby(lobbyId);
+    
+    if (joinResult?.success) {
+      this.showToast('Joined lobby!', 'success');
+      // The handleLobbyUpdate callback will handle the UI refresh
+      return;
+    }
+    
+    // If direct join failed, fall back to request system
     const result = await this.lobbyManager?.requestJoinLobby(lobbyId);
     
     if (result?.success) {
@@ -1614,12 +1855,12 @@ class PokerController {
       }
       this.showToast('Join request sent! Waiting for host approval...');
     } else {
-      console.error('Failed to join:', result?.error);
+      console.error('Failed to join:', result?.error || joinResult?.error);
       if (btn) {
         btn.disabled = false;
         btn.textContent = 'Ask to Join';
       }
-      alert(result?.error || 'Failed to send join request');
+      this.showToast(result?.error || joinResult?.error || 'Failed to join lobby', 'error');
     }
   }
 
@@ -1818,12 +2059,14 @@ class PokerController {
     const result = await this.lobbyManager?.handleJoinRequest(requestId, accept);
     if (!result?.success) {
       console.error('Failed to handle request:', result?.error);
+      this.showToast(result?.error || 'Failed to handle request', 'error');
     } else {
       if (accept) {
-        this.showToast('Player accepted! They are joining your lobby.');
+        this.showToast('Player accepted! They are joining your lobby.', 'success');
       } else {
-        this.showToast('Join request declined.');
+        this.showToast('Join request declined.', 'info');
       }
+      // The lobby listener will automatically update the UI when the player is added
     }
   }
 
@@ -2022,7 +2265,8 @@ class PokerController {
     const totalPlayers = this.game?.getPlayerCount() || 0;
     this.updatePlayAgainVotes(votes, totalPlayers);
     
-    // Show the modal
+    // Show the modal (clear any inline style that might have been set)
+    this.elements.showdownModal.style.display = '';
     this.elements.showdownModal.classList.add('active');
   }
   
@@ -2030,6 +2274,7 @@ class PokerController {
   hideShowdownModal() {
     if (this.elements.showdownModal) {
       this.elements.showdownModal.classList.remove('active');
+      this.elements.showdownModal.style.display = 'none'; // Force hide
       
       // Reset play again button state
       if (this.elements.playAgainBtn) {
@@ -2050,6 +2295,9 @@ class PokerController {
       if (progressFill) progressFill.style.width = '0%';
       if (voteCount) voteCount.textContent = '0/0 voted to play again';
     }
+    
+    // Also reset the flag
+    this.showdownModalShown = false;
   }
   
   // Reset card animation tracking for new hand
@@ -2089,18 +2337,48 @@ class PokerController {
   async startNewHand() {
     if (!this.game || !this.isHost) return;
     
+    // Prevent being called while already starting
+    if (this._startingNewHandInProgress) {
+      console.log('⏳ startNewHand already in progress, skipping');
+      return;
+    }
+    this._startingNewHandInProgress = true;
+    
     console.log('🎰 Starting new hand...');
-    this.hideShowdownModal();
-    this.resetCardAnimationState();
     
-    // Start new hand
-    this.game.startHand();
-    
-    // Sync to Firebase with full game state (null = include all cards)
-    await this.lobbyManager?.updateGameState(this.game.serialize(null));
-    
-    // Update UI
-    this.updateGameUI(this.game.serialize(this.currentUser?.uid));
+    try {
+      // Hide modal first
+      this.hideShowdownModal();
+      this.showdownModalShown = false;
+      this.resetCardAnimationState();
+      
+      // Reset player chips to buy-in for new hand
+      const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
+      this.game.players.forEach(p => {
+        if (p) {
+          p.chips = buyIn;
+          p.currentBet = 0;
+          p.isFolded = false;
+          p.isAllIn = false;
+        }
+      });
+      
+      // Start new hand
+      this.game.startHand();
+      
+      // Sync to Firebase with full game state and clear votes
+      // Using updateGameState which will handle the Firebase update
+      const gameState = this.game.serialize(null);
+      gameState.playAgainVotes = []; // Clear votes in game state
+      await this.lobbyManager?.updateGameState(gameState, { clearVotes: true });
+      
+      // Update UI
+      this.updateGameUI(this.game.serialize(this.currentUser?.uid));
+    } catch (error) {
+      console.error('Error starting new hand:', error);
+    } finally {
+      this._startingNewHandInProgress = false;
+    }
   }
 
   // Update play again vote display

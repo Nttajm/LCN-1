@@ -861,23 +861,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 100px;
-  margin-top: -30px;
+  margin-bottom: 80px;
+  margin-top: -20px;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Game Started - Table scales up */
 .game-started .party-circle {
-  margin-bottom: 10px;
-  margin-top: -50px;
-  transform: scale(1.3);
+  margin-bottom: 0;
+  margin-top: -40px;
+  transform: scale(1.35);
 }
 
 .table {
   border: 2px solid rgba(160, 181, 255, 0.4);
-  width: 500px;
-  height: 200px;
-  border-radius: 100px;
+  width: 550px;
+  height: 220px;
+  border-radius: 110px;
   background: linear-gradient(145deg, rgba(20, 60, 100, 0.6), rgba(15, 45, 80, 0.8));
   box-shadow: 
     0 0 40px rgba(100, 150, 255, 0.15),
@@ -889,8 +889,8 @@
 }
 
 .game-started .table {
-  width: 600px;
-  height: 240px;
+  width: 640px;
+  height: 260px;
 }
 
 .table-center {
@@ -1656,11 +1656,12 @@
   align-items: center;
   gap: 6px;
   transition: all 0.2s ease;
+  opacity: 0.7;
 }
 
 .slot-avatar {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: rgba(30, 60, 100, 0.6);
   border: 2px dashed rgba(100, 150, 255, 0.3);
@@ -1705,7 +1706,7 @@
 }
 
 .slot-name {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -1741,45 +1742,45 @@
 }
 
 .slot-chips {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: #fbbf24;
   background: rgba(251, 191, 36, 0.15);
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 10px;
 }
 
 /* Slot Positions - 6 slots around the table */
 .player-slot.top-left {
-  top: -30px;
-  left: 80px;
+  top: -25px;
+  left: 100px;
 }
 
 .player-slot.top-right {
-  top: -30px;
-  right: 80px;
+  top: -25px;
+  right: 100px;
 }
 
 .player-slot.left {
-  left: -80px;
+  left: -70px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .player-slot.right {
-  right: -80px;
+  right: -70px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .player-slot.bottom-left {
-  bottom: -30px;
-  left: 80px;
+  bottom: -85px;
+  left: 100px;
 }
 
 .player-slot.bottom-right {
-  bottom: -30px;
-  right: 80px;
+  bottom: -85px;
+  right: 100px;
 }
 
 /* Party Config Panel */
@@ -3087,4 +3088,269 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ========================================
+   ONLINE PLAYERS SECTION (Real-time)
+   ======================================== */
+
+.online-players-section {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 12px;
+}
+
+.online-players-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 10px;
+}
+
+.online-players-section .section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.online-players-section .section-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.online-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.online-player-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  transition: background 0.2s;
+}
+
+.online-player-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.online-player-item .player-avatar-small {
+  position: relative;
+}
+
+.online-player-item .online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  border: 2px solid rgba(15, 23, 42, 0.9);
+}
+
+.online-player-item.in-lobby .online-dot {
+  background: #f59e0b;
+}
+
+.online-player-item .player-info-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.online-player-item .player-name-small {
+  font-size: 13px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.online-player-item .player-status-small {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.online-player-item.available .player-status-small {
+  color: #22c55e;
+}
+
+.online-player-item.in-lobby .player-status-small {
+  color: #f59e0b;
+}
+
+.invite-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.invite-btn:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.no-players-msg {
+  padding: 12px 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+
+/* ========================================
+   LOBBY REAL-TIME UPDATES
+   ======================================== */
+
+/* Lobby update animation */
+.player-lobby {
+  transition: all 0.3s ease;
+}
+
+.player-lobby.updating {
+  opacity: 0.7;
+}
+
+/* Player row real-time indicators */
+.player-row {
+  transition: all 0.25s ease;
+}
+
+.player-row.current-turn {
+  background: rgba(59, 130, 246, 0.15);
+  border-left: 3px solid #3b82f6;
+  padding-left: 9px;
+}
+
+.player-row.folded {
+  opacity: 0.5;
+}
+
+.player-row.folded .player-name-small {
+  text-decoration: line-through;
+}
+
+/* Turn indicator dot in sidebar */
+.turn-indicator-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background: #3b82f6;
+  border-radius: 50%;
+  border: 2px solid rgba(15, 23, 42, 0.9);
+  animation: pulse 1.5s infinite;
+}
+
+/* Playing indicator */
+.playing-indicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  border: 2px solid rgba(15, 23, 42, 0.9);
+}
+
+/* Status tags */
+.player-status-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: auto;
+}
+
+.player-status-tag.ready {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.player-status-tag.turn {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  animation: pulse 1.5s infinite;
+}
+
+.player-status-tag.folded {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.player-status-tag.waiting {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+/* Game phase tag in lobby header */
+.game-phase-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+  margin-left: 8px;
+}
+
+/* Lobby pot display */
+.lobby-pot {
+  font-size: 12px;
+  color: #fbbf24;
+  padding: 4px 16px;
+  font-weight: 600;
+}
+
+/* Lobby count badge */
+.lobby-count {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Separator between your lobby and others */
+.lobby-separator {
+  padding: 12px 16px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lobby-separator::before,
+.lobby-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.lobby-separator span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
