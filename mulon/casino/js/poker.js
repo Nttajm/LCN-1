@@ -30,6 +30,8 @@ class PokerController {
     this.showdownModalShown = false;
     this._startingNewHand = false; // Flag to prevent duplicate startNewHand calls
     this._startingNewHandInProgress = false; // Flag to prevent concurrent startNewHand execution
+    this._buyInDeducted = false; // Flag to prevent double buy-in deduction
+    this._currentGameId = null; // Track current game to prevent duplicate deductions across games
 
     // DOM elements cache
     this.elements = {};
@@ -532,13 +534,24 @@ class PokerController {
 
     // Check if game started
     if (lobby.status === LOBBY_STATUS.IN_GAME) {
+      // Track game session to prevent duplicate buy-in deductions
+      const gameSessionId = lobby.gameStartedAt?.seconds || lobby.id;
+      
       // Deduct buy-in for non-host players when game starts (host already deducted in startGame)
-      if (!this.isInGame && !isHost) {
+      // Only deduct if: not already in game, not host, and haven't deducted for this game session
+      if (!this.isInGame && !isHost && !this._buyInDeducted && this._currentGameId !== gameSessionId) {
+        this._currentGameId = gameSessionId;
+        this._buyInDeducted = true;
+        
         const buyIn = lobby.buyIn;
         CasinoDB.updateBalance(-buyIn).then(result => {
           if (result !== null) {
             this.updateBalanceDisplay();
             this.showToast(`$${buyIn} buy-in deducted. Good luck!`, 'success');
+          } else {
+            // Failed to deduct - reset flag so they can try again
+            this._buyInDeducted = false;
+            this.showToast('Failed to deduct buy-in', 'error');
           }
         });
       }
@@ -596,6 +609,10 @@ class PokerController {
         console.log('🔄 Game ended, returning to lobby');
         this.isInGame = false;
         this.gameState = null;
+        
+        // Reset buy-in tracking for next game
+        this._buyInDeducted = false;
+        this._currentGameId = null;
         
         // Hide game UI elements
         this.elements.pokerActions?.classList.remove('visible');
@@ -2148,9 +2165,37 @@ class PokerController {
     
     // Only the host should persist winnings to Firebase to avoid duplicate updates
     if (this.isHost && result.winners && result.winners.length > 0) {
+      // EXPLOIT PREVENTION: Calculate max possible pot
+      const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
+      const playerCount = this.game?.players?.filter(p => p !== null).length || 2;
+      const maxPot = buyIn * playerCount;
+      
+      // Calculate total claimed winnings
+      const totalClaimedWinnings = result.winners.reduce((sum, w) => sum + (w.winnings || 0), 0);
+      
+      // EXPLOIT PREVENTION: Don't award if winnings exceed max pot
+      if (totalClaimedWinnings > maxPot) {
+        console.error(`🚨 EXPLOIT BLOCKED: Claimed winnings ($${totalClaimedWinnings}) exceed max pot ($${maxPot})`);
+        this.showToast('Error: Invalid winnings amount detected', 'error');
+        return;
+      }
+      
       for (const winnerInfo of result.winners) {
         const winnerId = winnerInfo.player.id;
         const winnings = winnerInfo.winnings;
+        
+        // EXPLOIT PREVENTION: Validate winner is actually in the game
+        const winnerInGame = this.game?.players?.some(p => p?.id === winnerId);
+        if (!winnerInGame) {
+          console.error(`🚨 EXPLOIT BLOCKED: Winner ${winnerId} not found in game players`);
+          continue;
+        }
+        
+        // EXPLOIT PREVENTION: Winnings must be positive and reasonable
+        if (winnings <= 0 || winnings > maxPot) {
+          console.error(`🚨 EXPLOIT BLOCKED: Invalid winnings amount $${winnings}`);
+          continue;
+        }
         
         console.log(`🎉 Winner: ${winnerInfo.player.displayName} won $${winnings}`);
         
@@ -2321,6 +2366,17 @@ class PokerController {
       return;
     }
 
+    // Check if current player has enough balance for another buy-in
+    const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
+    const currentBalance = CasinoAuth.getBalance();
+    
+    if (currentBalance < buyIn) {
+      // Player is broke - auto return to lobby
+      this.showToast(`Insufficient balance ($${currentBalance.toFixed(2)}) for buy-in ($${buyIn})`, 'error');
+      await this.handleReturnToLobby();
+      return;
+    }
+
     // Vote for play again
     await this.lobbyManager?.votePlayAgain();
     
@@ -2347,13 +2403,44 @@ class PokerController {
     console.log('🎰 Starting new hand...');
     
     try {
+      const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
+      
+      // Check for broke players and remove them
+      const { cantAfford } = await this.lobbyManager?.checkPlayerBalances() || { cantAfford: [] };
+      
+      if (cantAfford.length > 0) {
+        // Remove broke players from lobby
+        const removeResult = await this.lobbyManager?.removeBrokePlayers();
+        
+        if (removeResult?.removed?.length > 0) {
+          const names = removeResult.removed.map(p => p.displayName).join(', ');
+          this.showToast(`${names} removed (insufficient balance)`, 'info');
+        }
+        
+        // Check if enough players remain
+        const remainingPlayers = (this.lobbyManager?.currentLobby?.players || []).length - cantAfford.length;
+        
+        if (remainingPlayers < 2) {
+          this.showToast('Not enough players with funds. Returning to lobby.', 'error');
+          await this.handleReturnToLobby();
+          return;
+        }
+        
+        // Update local game state to remove broke players
+        for (const brokePlayer of cantAfford) {
+          const playerIndex = this.game.players.findIndex(p => p?.id === brokePlayer.id);
+          if (playerIndex !== -1) {
+            this.game.players[playerIndex] = null;
+          }
+        }
+      }
+      
       // Hide modal first
       this.hideShowdownModal();
       this.showdownModalShown = false;
       this.resetCardAnimationState();
       
       // Reset player chips to buy-in for new hand
-      const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
       this.game.players.forEach(p => {
         if (p) {
           p.chips = buyIn;
@@ -2432,6 +2519,10 @@ class PokerController {
       this.gameState = null;
       this.isInGame = false;
       
+      // Reset buy-in tracking for next game
+      this._buyInDeducted = false;
+      this._currentGameId = null;
+      
       // Hide game UI elements
       this.elements.pokerActions?.classList.remove('visible');
       this.elements.tableContainer?.classList.add('hidden');
@@ -2461,6 +2552,12 @@ class PokerController {
 
     const lobby = this.lobbyManager.currentLobby;
     
+    // Prevent double buy-in deduction for host
+    if (this._buyInDeducted) {
+      console.warn('Buy-in already deducted for this game session');
+      return;
+    }
+    
     // Deduct buy-in from current player when game starts
     const buyIn = lobby.buyIn;
     const deductResult = await CasinoDB.updateBalance(-buyIn);
@@ -2468,6 +2565,11 @@ class PokerController {
       this.showToast('Failed to deduct buy-in', 'error');
       return;
     }
+    
+    // Mark buy-in as deducted
+    this._buyInDeducted = true;
+    this._currentGameId = lobby.gameStartedAt?.seconds || lobby.id;
+    
     this.updateBalanceDisplay();
     this.showToast(`$${buyIn} buy-in deducted. Good luck!`, 'success');
     

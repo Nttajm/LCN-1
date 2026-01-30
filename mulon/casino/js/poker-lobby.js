@@ -1114,6 +1114,38 @@ export class PokerLobbyManager {
           throw new Error('All players must be ready');
         }
 
+        // Check all players have enough balance for buy-in
+        const buyIn = lobbyData.buyIn;
+        const playersWithInsufficientBalance = [];
+        
+        for (const player of lobbyData.players) {
+          const userDoc = await transaction.get(doc(this.db, 'mulon_users', player.id));
+          if (userDoc.exists()) {
+            const balance = userDoc.data().balance ?? 0;
+            if (balance < buyIn) {
+              playersWithInsufficientBalance.push({
+                name: player.displayName,
+                balance: balance,
+                needed: buyIn
+              });
+            }
+          } else {
+            // User doesn't exist in DB - can't afford buy-in
+            playersWithInsufficientBalance.push({
+              name: player.displayName,
+              balance: 0,
+              needed: buyIn
+            });
+          }
+        }
+        
+        if (playersWithInsufficientBalance.length > 0) {
+          const names = playersWithInsufficientBalance.map(p => 
+            `${p.name} ($${p.balance.toFixed(2)})`
+          ).join(', ');
+          throw new Error(`Players don't have enough for buy-in ($${buyIn}): ${names}`);
+        }
+
         // Prepare players for game
         const gamePlayers = lobbyData.players.map(p => ({
           ...p,
@@ -1436,6 +1468,22 @@ export class PokerLobbyManager {
       return { success: false, error: 'Invalid params' };
     }
     
+    // EXPLOIT PREVENTION: Validate this player is in the current lobby
+    if (!this.currentLobby?.players?.some(p => p.id === playerId)) {
+      console.error(`🚨 EXPLOIT BLOCKED: Player ${playerId} not in current lobby`);
+      return { success: false, error: 'Player not in lobby' };
+    }
+    
+    // EXPLOIT PREVENTION: Validate amount doesn't exceed max possible pot
+    const buyIn = this.currentLobby?.buyIn || 50;
+    const playerCount = this.currentLobby?.players?.length || 2;
+    const maxPot = buyIn * playerCount;
+    
+    if (amount > maxPot) {
+      console.error(`🚨 EXPLOIT BLOCKED: Award amount $${amount} exceeds max pot $${maxPot}`);
+      return { success: false, error: 'Award amount exceeds max pot' };
+    }
+    
     try {
       await updateDoc(doc(this.db, 'mulon_users', playerId), {
         balance: increment(amount)
@@ -1462,6 +1510,90 @@ export class PokerLobbyManager {
       return { success: true };
     } catch (error) {
       this._emitError(error, 'deductBuyIn');
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Check which players can afford the buy-in for another round
+  // Returns { canAfford: [], cantAfford: [] }
+  async checkPlayerBalances() {
+    if (!this.currentLobby?.players) {
+      return { canAfford: [], cantAfford: [] };
+    }
+    
+    const buyIn = this.currentLobby.buyIn;
+    const canAfford = [];
+    const cantAfford = [];
+    
+    try {
+      for (const player of this.currentLobby.players) {
+        const userDoc = await getDoc(doc(this.db, 'mulon_users', player.id));
+        if (userDoc.exists()) {
+          const balance = userDoc.data().balance ?? 0;
+          if (balance >= buyIn) {
+            canAfford.push({ ...player, balance });
+          } else {
+            cantAfford.push({ ...player, balance });
+          }
+        } else {
+          cantAfford.push({ ...player, balance: 0 });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking player balances:', error);
+    }
+    
+    return { canAfford, cantAfford };
+  }
+
+  // Remove broke players from lobby (players who can't afford buy-in)
+  async removeBrokePlayers() {
+    if (!this.currentLobbyId || !this.currentUser) {
+      return { success: false, error: 'Not in a lobby' };
+    }
+    
+    try {
+      const { cantAfford } = await this.checkPlayerBalances();
+      
+      if (cantAfford.length === 0) {
+        return { success: true, removed: [] };
+      }
+      
+      const lobbyRef = doc(this.db, 'poker_lobbies', this.currentLobbyId);
+      const brokePlayerIds = cantAfford.map(p => p.id);
+      
+      await runTransaction(this.db, async (transaction) => {
+        const lobbyDoc = await transaction.get(lobbyRef);
+        if (!lobbyDoc.exists()) return;
+        
+        const lobbyData = lobbyDoc.data();
+        const remainingPlayers = (lobbyData.players || []).filter(
+          p => !brokePlayerIds.includes(p.id)
+        );
+        
+        // If only 1 or 0 players left, reset to lobby state
+        if (remainingPlayers.length < 2) {
+          transaction.update(lobbyRef, {
+            players: remainingPlayers,
+            status: remainingPlayers.length > 0 ? LOBBY_STATUS.OPEN : LOBBY_STATUS.CLOSED,
+            gameState: null,
+            playAgainVotes: [],
+            updatedAt: serverTimestamp(),
+            version: increment(1)
+          });
+        } else {
+          transaction.update(lobbyRef, {
+            players: remainingPlayers,
+            updatedAt: serverTimestamp(),
+            version: increment(1)
+          });
+        }
+      });
+      
+      console.log(`💸 Removed ${cantAfford.length} broke players:`, cantAfford.map(p => p.displayName));
+      return { success: true, removed: cantAfford };
+    } catch (error) {
+      this._emitError(error, 'removeBrokePlayers');
       return { success: false, error: error.message };
     }
   }
