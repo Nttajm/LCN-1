@@ -11,6 +11,18 @@
   <link rel="stylesheet" href="/css/standard.css">
 </head>
 <body>
+  <!-- Sync Warning Banner -->
+  <div class="sync-warning-banner">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>Game states may need to be refreshed. If something seems off, try refreshing the page.</span>
+    <button class="refresh-btn" onclick="location.reload()">Refresh</button>
+    <button class="dismiss-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+  </div>
+
   <!-- Join Request Notifications -->
   <div class="join-notifications" id="joinNotifications">
     <!-- Notifications will be added here dynamically -->

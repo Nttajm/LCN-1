@@ -25,6 +25,8 @@ class PokerController {
     this.isHost = false;
     this.isInGame = false;
     this.isLeaving = false; // Prevent double leave clicks
+    this.isStartingGame = false; // Prevent double start clicks
+    this.buyInDeducted = false; // Track if buy-in was deducted for current game
     this.selectedBuyIn = 25;
     this.lastPhase = null; // Track phase for chip animations
     this.showdownModalShown = false;
@@ -32,6 +34,7 @@ class PokerController {
     this._startingNewHandInProgress = false; // Flag to prevent concurrent startNewHand execution
     this._buyInDeducted = false; // Flag to prevent double buy-in deduction
     this._currentGameId = null; // Track current game to prevent duplicate deductions across games
+    this._winningsAwarded = false; // Flag to prevent duplicate winnings awards
 
     // DOM elements cache
     this.elements = {};
@@ -257,11 +260,16 @@ class PokerController {
     });
 
     // Listen for auth changes
-    CasinoAuth.onAuthStateChange((user, userData) => {
+    CasinoAuth.onAuthStateChange(async (user, userData) => {
       this.currentUser = user;
       this.userData = userData;
       this.updateBalanceDisplay();
       this.updateUIState();
+      
+      // Initialize lobby manager when user signs in
+      if (user && !this.lobbyManager) {
+        await this.initLobbyManager();
+      }
     });
   }
 
@@ -279,13 +287,20 @@ class PokerController {
     
     // Get Firestore instance from CasinoDB
     const db = CasinoDB.getDB();
+    if (!db) {
+      console.error('❌ Database not available');
+      return;
+    }
+    
+    console.log('🎲 Initializing lobby manager for user:', CasinoAuth.currentUser?.displayName);
     
     // IMPORTANT: Set up callbacks BEFORE init() to catch early updates
     this.lobbyManager.onLobbyUpdate = this.handleLobbyUpdate;
     this.lobbyManager.onLobbiesUpdate = this.handleLobbiesUpdate;
     this.lobbyManager.onJoinRequest = this.handleJoinRequest;
     this.lobbyManager.onOnlinePlayersUpdate = this.handleOnlinePlayersUpdate;
-    this.lobbyManager.onGameStart = (lobbyId) => this.startGame();
+    // Note: onGameStart is no longer used - host calls startGame() directly in handleStartGame()
+    this.lobbyManager.onGameStart = null;
     this.lobbyManager.onGameStateUpdate = this.handleGameStateUpdate.bind(this);
     
     // Player join/leave notifications with immediate UI refresh
@@ -324,6 +339,11 @@ class PokerController {
       }
     };
     
+    // Invite received notification
+    this.lobbyManager.onInviteReceived = (invite) => {
+      this.showInviteNotification(invite);
+    };
+    
     // Status change notification
     this.lobbyManager.onStatusChange = (newStatus, oldStatus) => {
       console.log(`📊 Lobby status: ${oldStatus} → ${newStatus}`);
@@ -347,7 +367,8 @@ class PokerController {
     };
     
     // Initialize AFTER callbacks are set up
-    await this.lobbyManager.init(db, CasinoAuth.currentUser);
+    const initResult = await this.lobbyManager.init(db, CasinoAuth.currentUser);
+    console.log('🎲 Lobby manager initialized:', initResult);
   }
 
   // ========================================
@@ -355,7 +376,7 @@ class PokerController {
   // ========================================
 
   // Handle game state updates from Firebase (for all players)
-  handleGameStateUpdate(gameState) {
+  async handleGameStateUpdate(gameState) {
     if (!gameState) return;
     
     console.log('📡 Game state update from Firebase:', gameState.phase);
@@ -394,8 +415,37 @@ class PokerController {
     
     // Check for game end - show winners and refresh balance
     if (gameState.phase === GAME_PHASES.ENDED || gameState.phase === GAME_PHASES.SHOWDOWN) {
-      // Show winner toast for non-host players
-      if (!this.isHost && gameState.lastWinners && gameState.lastWinners.length > 0) {
+      // HOST ONLY: Award winnings when receiving game-ended state (in case non-host took final action)
+      if (this.isHost && !this._winningsAwarded && gameState.lastWinners && gameState.lastWinners.length > 0) {
+        this._winningsAwarded = true;
+        
+        // EXPLOIT PREVENTION: Calculate max possible pot
+        const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
+        const playerCount = this.game?.players?.filter(p => p !== null).length || 2;
+        const maxPot = buyIn * playerCount;
+        
+        // Calculate total claimed winnings
+        const totalClaimedWinnings = gameState.lastWinners.reduce((sum, w) => sum + (w.winnings || 0), 0);
+        
+        // EXPLOIT PREVENTION: Don't award if winnings exceed max pot
+        if (totalClaimedWinnings <= maxPot) {
+          for (const winnerInfo of gameState.lastWinners) {
+            const winnerId = winnerInfo.playerId;
+            const winnings = winnerInfo.winnings;
+            
+            // Validate winnings
+            if (winnerId && winnings > 0 && winnings <= maxPot) {
+              console.log(`🎉 Host awarding: ${winnerInfo.displayName} won $${winnings}`);
+              await this.lobbyManager?.awardWinnings(winnerId, winnings);
+            }
+          }
+        } else {
+          console.error(`🚨 EXPLOIT BLOCKED: Claimed winnings ($${totalClaimedWinnings}) exceed max pot ($${maxPot})`);
+        }
+      }
+      
+      // Show winner toast and modal for all players
+      if (gameState.lastWinners && gameState.lastWinners.length > 0) {
         const myWin = gameState.lastWinners.find(w => w.playerId === this.currentUser?.uid);
         if (myWin) {
           this.showToast(`You won $${myWin.winnings}!`, 'success');
@@ -404,11 +454,11 @@ class PokerController {
           this.showToast(`${winnerNames} won the pot!`, 'info');
         }
         
-        // Show showdown modal for non-host players
-        if (!this.isHost && !this.showdownModalShown) {
+        // Show showdown modal for all players (flag prevents duplicates for the player who took the last action)
+        if (!this.showdownModalShown) {
           this.showdownModalShown = true;
           
-          // Build result object from game state for non-host
+          // Build result object from game state
           const result = {
             winners: gameState.lastWinners.map(w => ({
               player: this.game.players.find(p => p?.id === w.playerId) || { id: w.playerId, displayName: w.displayName },
@@ -429,8 +479,9 @@ class PokerController {
         });
       }
     } else {
-      // Reset showdown modal tracking when not in showdown phase
+      // Reset showdown modal tracking and winnings flag when not in showdown phase
       this.showdownModalShown = false;
+      this._winningsAwarded = false;
     }
   }
 
@@ -534,32 +585,8 @@ class PokerController {
 
     // Check if game started
     if (lobby.status === LOBBY_STATUS.IN_GAME) {
-      // Track game session to prevent duplicate buy-in deductions
-      const gameSessionId = lobby.gameStartedAt?.seconds || lobby.id;
-      
-      // Deduct buy-in for non-host players when game starts (host already deducted in startGame)
-      // Only deduct if: not already in game, not host, and haven't deducted for this game session
-      if (!this.isInGame && !isHost && !this._buyInDeducted && this._currentGameId !== gameSessionId) {
-        this._currentGameId = gameSessionId;
-        this._buyInDeducted = true;
-        
-        const buyIn = lobby.buyIn;
-        CasinoDB.updateBalance(-buyIn).then(result => {
-          if (result !== null) {
-            this.updateBalanceDisplay();
-            this.showToast(`$${buyIn} buy-in deducted. Good luck!`, 'success');
-          } else {
-            // Failed to deduct - reset flag so they can try again
-            this._buyInDeducted = false;
-            this.showToast('Failed to deduct buy-in', 'error');
-          }
-        });
-      }
-      
       // Mark as in game and update UI
       const wasInGame = this.isInGame;
-      this.isInGame = true;
-      document.body.classList.add('game-started');
       
       // Hide config panel, show game UI
       if (this.elements.partyConfig) {
@@ -568,6 +595,37 @@ class PokerController {
       
       // Initialize game from lobby state for ALL players (host and non-host)
       if (lobby.gameState) {
+        // Deduct buy-in for non-host players ONLY when we receive actual game state
+        // This ensures we don't deduct if the game never starts properly
+        if (!this.isInGame && !isHost && !this.buyInDeducted) {
+          this.buyInDeducted = true; // Prevent double deduction
+          const buyIn = lobby.buyIn;
+          CasinoDB.updateBalance(-buyIn).then(result => {
+            if (result !== null) {
+              this.updateBalanceDisplay();
+              this.showToast(`$${buyIn} buy-in deducted. Good luck!`, 'success');
+            } else {
+              this.buyInDeducted = false; // Reset flag on failure
+            }
+          }).catch(() => {
+            this.buyInDeducted = false;
+          });
+        }
+        
+        this.isInGame = true;
+        document.body.classList.add('game-started');
+        
+        // Check for new hand starting (phase changed to PRE_FLOP) - hide showdown modal
+        if (lobby.gameState.phase === GAME_PHASES.PRE_FLOP && this.lastPhase !== GAME_PHASES.PRE_FLOP) {
+          console.log('🎲 New hand detected in lobby update, hiding showdown modal');
+          this.resetCardAnimationState();
+          this.hideShowdownModal();
+          this.showdownModalShown = false;
+        }
+        
+        // Track phase changes
+        this.lastPhase = lobby.gameState.phase;
+        
         // Deserialize full game state (with all cards)
         this.game = PokerGame.deserialize(lobby.gameState);
         // Update UI with filtered view (hide other players' cards)
@@ -602,6 +660,10 @@ class PokerController {
       } else if (!wasInGame) {
         // Game just started but no gameState yet - show waiting message
         console.log('⏳ Waiting for game state from host...');
+        // Show a loading indicator for non-host players
+        if (!isHost && this.elements.waitingText) {
+          this.elements.waitingText.textContent = 'Game starting, please wait...';
+        }
       }
     } else {
       // Not in game - reset state and show lobby UI
@@ -609,10 +671,7 @@ class PokerController {
         console.log('🔄 Game ended, returning to lobby');
         this.isInGame = false;
         this.gameState = null;
-        
-        // Reset buy-in tracking for next game
-        this._buyInDeducted = false;
-        this._currentGameId = null;
+        this.buyInDeducted = false; // Reset for next game
         
         // Hide game UI elements
         this.elements.pokerActions?.classList.remove('visible');
@@ -667,11 +726,47 @@ class PokerController {
       return;
     }
 
-    console.log('🎮 Host starting game...');
-    const result = await this.lobbyManager.startGameByHost();
-    
-    if (!result.success) {
-      this.showToast(result.error || 'Failed to start game', 'error');
+    // Prevent double-clicks
+    if (this.isStartingGame) {
+      console.log('Game start already in progress');
+      return;
+    }
+    this.isStartingGame = true;
+
+    // Disable button during start
+    if (this.elements.startGameBtn) {
+      this.elements.startGameBtn.disabled = true;
+      this.elements.startGameBtn.textContent = 'Starting...';
+    }
+
+    try {
+      console.log('🎮 Host starting game...');
+      
+      // First update status to IN_GAME
+      const result = await this.lobbyManager.startGameByHost();
+      
+      if (!result.success) {
+        this.showToast(result.error || 'Failed to start game', 'error');
+        return;
+      }
+
+      // Now create the game and sync state (host only)
+      await this.startGame();
+      
+    } catch (error) {
+      console.error('Error starting game:', error);
+      this.showToast('Failed to start game', 'error');
+    } finally {
+      this.isStartingGame = false;
+      if (this.elements.startGameBtn) {
+        this.elements.startGameBtn.disabled = false;
+        this.elements.startGameBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Start Game
+        `;
+      }
     }
   }
 
@@ -824,12 +919,85 @@ class PokerController {
       return;
     }
     
-    // For now, show a toast - full invite system would need more Firebase work
-    const player = this.onlinePlayers?.find(p => p.id === playerId);
-    this.showToast(`Invite sent to ${player?.displayName || 'player'}!`, 'success');
+    // Check if game is in progress
+    if (this.lobbyManager?.currentLobby?.status === LOBBY_STATUS.IN_GAME) {
+      this.showToast('Cannot invite while game is in progress', 'error');
+      return;
+    }
     
-    // TODO: Implement actual invite system via Firebase
-    // await this.lobbyManager.sendInvite(playerId);
+    const player = this.onlinePlayers?.find(p => p.id === playerId);
+    const result = await this.lobbyManager.sendInvite(playerId);
+    
+    if (result.success) {
+      this.showToast(`Invite sent to ${player?.displayName || 'player'}!`, 'success');
+    } else {
+      this.showToast(result.error || 'Failed to send invite', 'error');
+    }
+  }
+  
+  // Show invite notification (when someone invites you)
+  showInviteNotification(invite) {
+    if (!this.elements.joinNotifications) return;
+    
+    // Don't show if already in the same lobby
+    if (this.lobbyManager?.currentLobbyId === invite.lobbyId) return;
+
+    const avatarUrl = invite.senderPhotoURL || 
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${invite.senderId}`;
+
+    const notification = document.createElement('div');
+    notification.className = 'join-notification invite-notification';
+    notification.dataset.inviteId = invite.id;
+    notification.innerHTML = `
+      <div class="notif-timer">
+        <div class="notif-timer-bar" style="animation-duration: 60s;"></div>
+      </div>
+      <div class="notif-content">
+        <div class="notif-avatar">
+          <img src="${avatarUrl}" alt="">
+        </div>
+        <div class="notif-info">
+          <span class="notif-player">${invite.senderName}</span>
+          <span class="notif-message">invited you to play poker ($${invite.buyIn} buy-in)</span>
+        </div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-btn accept" title="Join">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+        <button class="notif-btn reject" title="Decline">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    `;
+
+    // Add handlers
+    notification.querySelector('.notif-btn.accept').addEventListener('click', async () => {
+      const result = await this.lobbyManager?.acceptInvite(invite.id);
+      if (result?.success) {
+        this.showToast('Joined the lobby!', 'success');
+      } else {
+        this.showToast(result?.error || 'Failed to join', 'error');
+      }
+      this.removeNotification(notification);
+    });
+
+    notification.querySelector('.notif-btn.reject').addEventListener('click', async () => {
+      await this.lobbyManager?.declineInvite(invite.id);
+      this.removeNotification(notification);
+    });
+
+    this.elements.joinNotifications.appendChild(notification);
+
+    // Animate in
+    requestAnimationFrame(() => notification.classList.add('show'));
+
+    // Auto-remove after 60s (matching invite expiry)
+    setTimeout(() => this.removeNotification(notification), 60000);
   }
 
   // ========================================
@@ -1205,8 +1373,8 @@ class PokerController {
       const isFull = lobbyPlayers.length >= lobby.maxPlayers;
       const statusClass = isInGame ? 'in-game' : isFull ? 'full' : 'open';
       
-      // Can join if not full (even if in-game, they can wait for next hand)
-      const canJoin = !isFull;
+      // Can only join if not full AND not in game
+      const canJoin = !isFull && !isInGame;
 
       lobbyEl.className = `player-lobby ${statusClass}`;
       lobbyEl.innerHTML = `
@@ -1259,7 +1427,7 @@ class PokerController {
           <span class="lobby-game">$${lobby.buyIn} Buy-in • ${lobbyPlayers.length}/${lobby.maxPlayers}</span>
         </div>
         <button class="ask-join-btn" ${!canJoin ? 'disabled' : ''}>
-          ${!canJoin ? 'Full' : isInGame ? 'Join (Wait for Next Hand)' : 'Ask to Join'}
+          ${isInGame ? 'Game in Progress' : isFull ? 'Full' : 'Join'}
         </button>
       `;
 
@@ -1841,7 +2009,18 @@ class PokerController {
 
   async requestJoinLobby(lobbyId) {
     if (!CasinoAuth.isSignedIn()) {
-      this.showToast('Please sign in to join a game', 'error');
+      alert('Please sign in to join a game');
+      return;
+    }
+
+    // Ensure lobby manager is initialized
+    if (!this.lobbyManager || !this.lobbyManager.isInitialized) {
+      console.log('Lobby manager not ready, initializing...');
+      await this.initLobbyManager();
+    }
+
+    if (!this.lobbyManager || !this.lobbyManager.isInitialized) {
+      this.showToast('Lobby system not ready. Please wait...', 'error');
       return;
     }
 
@@ -1852,32 +2031,63 @@ class PokerController {
       btn.textContent = 'Joining...';
     }
 
-    // Try to directly join first (for public lobbies)
-    const joinResult = await this.lobbyManager?.joinLobby(lobbyId);
+    try {
+      // Try direct join first (works for public lobbies)
+      console.log('Attempting to join lobby:', lobbyId);
+      const joinResult = await this.lobbyManager.joinLobby(lobbyId);
+      
+      console.log('Join result:', joinResult);
     
-    if (joinResult?.success) {
-      this.showToast('Joined lobby!', 'success');
-      // The handleLobbyUpdate callback will handle the UI refresh
-      return;
-    }
-    
-    // If direct join failed, fall back to request system
-    const result = await this.lobbyManager?.requestJoinLobby(lobbyId);
-    
-    if (result?.success) {
-      // Show pending state
-      if (btn) {
-        btn.textContent = 'Request Sent!';
-        btn.classList.add('pending');
+      if (joinResult?.success) {
+        // Direct join succeeded
+        if (btn) {
+          btn.textContent = 'Joined!';
+          btn.classList.add('joined');
+        }
+        this.showToast('Joined the lobby!', 'success');
+        return;
       }
-      this.showToast('Join request sent! Waiting for host approval...');
-    } else {
-      console.error('Failed to join:', result?.error || joinResult?.error);
+      
+      // If direct join failed with a specific error, show it
+      if (joinResult?.error) {
+        console.error('Direct join failed:', joinResult.error);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Join';
+        }
+        this.showToast(joinResult.error, 'error');
+        return;
+      }
+      
+      // If direct join failed without specific error, fall back to request system
+      if (btn) {
+        btn.textContent = 'Requesting...';
+      }
+      
+      const result = await this.lobbyManager.requestJoinLobby(lobbyId);
+      
+      if (result?.success) {
+        // Show pending state
+        if (btn) {
+          btn.textContent = 'Request Sent!';
+          btn.classList.add('pending');
+        }
+        this.showToast('Join request sent! Waiting for host approval...');
+      } else {
+        console.error('Failed to join:', result?.error);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Join';
+        }
+        this.showToast(result?.error || 'Failed to join lobby', 'error');
+      }
+    } catch (error) {
+      console.error('Error joining lobby:', error);
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'Ask to Join';
+        btn.textContent = 'Join';
       }
-      this.showToast(result?.error || joinResult?.error || 'Failed to join lobby', 'error');
+      this.showToast('Failed to join lobby: ' + error.message, 'error');
     }
   }
 
@@ -1983,6 +2193,8 @@ class PokerController {
     this.game = null;
     this.lastPhase = null;
     this.isHost = false;
+    this.buyInDeducted = false; // Reset buy-in flag for next game
+    this.isStartingGame = false;
     
     // Reset animation tracking
     this.resetCardAnimationState();
@@ -2164,7 +2376,10 @@ class PokerController {
     console.log('🏆 Game ended, result:', result);
     
     // Only the host should persist winnings to Firebase to avoid duplicate updates
-    if (this.isHost && result.winners && result.winners.length > 0) {
+    if (this.isHost && !this._winningsAwarded && result.winners && result.winners.length > 0) {
+      // Mark winnings as awarded to prevent duplicate awards from handleGameState
+      this._winningsAwarded = true;
+      
       // EXPLOIT PREVENTION: Calculate max possible pot
       const buyIn = this.lobbyManager?.currentLobby?.buyIn || 50;
       const playerCount = this.game?.players?.filter(p => p !== null).length || 2;
@@ -2399,6 +2614,9 @@ class PokerController {
       return;
     }
     this._startingNewHandInProgress = true;
+    
+    // Reset winnings awarded flag for new hand
+    this._winningsAwarded = false;
     
     console.log('🎰 Starting new hand...');
     

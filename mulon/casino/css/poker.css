@@ -4,6 +4,86 @@
    ======================================== */
 
 /* ========================================
+   SYNC WARNING BANNER
+   ======================================== */
+
+.sync-warning-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.1));
+  border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fbbf24;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 2000;
+}
+
+.sync-warning-banner svg {
+  flex-shrink: 0;
+  stroke: #fbbf24;
+}
+
+.sync-warning-banner span {
+  text-align: center;
+}
+
+.sync-warning-banner .refresh-btn {
+  padding: 5px 12px;
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 6px;
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sync-warning-banner .refresh-btn:hover {
+  background: rgba(251, 191, 36, 0.3);
+  border-color: rgba(251, 191, 36, 0.6);
+}
+
+.sync-warning-banner .dismiss-btn {
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: rgba(251, 191, 36, 0.6);
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.sync-warning-banner .dismiss-btn:hover {
+  color: #fbbf24;
+}
+
+/* Adjust header position when banner is visible */
+body:has(.sync-warning-banner) .header {
+  top: 42px;
+}
+
+body:has(.sync-warning-banner) .online-players-sidebar {
+  top: 112px;
+  height: calc(100vh - 112px);
+}
+
+body:has(.sync-warning-banner) .game-area {
+  padding-top: 42px;
+}
+
+/* ========================================
    JOIN REQUEST NOTIFICATIONS
    ======================================== */
 
@@ -57,6 +137,16 @@
 .join-notification.rejected {
   border-color: rgba(239, 68, 68, 0.5);
   background: rgba(239, 68, 68, 0.2);
+}
+
+/* Invite notifications (distinct from join requests) */
+.join-notification.invite-notification {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.join-notification.invite-notification .notif-timer-bar {
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
 }
 
 /* Timer bar at top */
