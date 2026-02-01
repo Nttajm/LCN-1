@@ -6,7 +6,7 @@
 // ========================================
 // CONFIGURATION
 // ========================================
-export const MAINTENANCE_MODE = true; // Set to false to disable maintenance mode
+export const MAINTENANCE_MODE = false; // Set to false to disable maintenance mode
 export const ADMIN_EMAILS = ['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'captrojolmao@gmail.com'];
 export const ACCESS_CODE = 'tonyaatefries'; // Secret access code for maintenance bypass
 
