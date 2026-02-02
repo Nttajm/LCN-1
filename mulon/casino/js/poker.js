@@ -399,7 +399,25 @@ class PokerController {
       // Hide showdown modal when new hand starts
       this.hideShowdownModal();
       this.showdownModalShown = false;
+      // Show deal announcement
+      this.showPhaseAnnouncement('pre_flop');
     }
+    
+    // Show phase announcements for phase changes
+    if (this.lastPhase !== gameState.phase) {
+      if (gameState.phase === GAME_PHASES.FLOP) {
+        this.showPhaseAnnouncement('flop');
+      } else if (gameState.phase === GAME_PHASES.TURN) {
+        this.showPhaseAnnouncement('turn');
+      } else if (gameState.phase === GAME_PHASES.RIVER) {
+        this.showPhaseAnnouncement('river');
+      } else if (gameState.phase === GAME_PHASES.SHOWDOWN) {
+        this.showPhaseAnnouncement('showdown');
+      }
+    }
+    
+    // Detect and announce player actions
+    this.detectAndAnnounceActions(gameState);
     
     // Track phase changes for animations
     this.lastPhase = gameState.phase;
@@ -585,16 +603,11 @@ class PokerController {
 
     // Check if game started
     if (lobby.status === LOBBY_STATUS.IN_GAME) {
-      // Mark as in game and update UI
-      const wasInGame = this.isInGame;
-      
-      // Hide config panel, show game UI
-      if (this.elements.partyConfig) {
-        this.elements.partyConfig.style.display = 'none';
-      }
-      
       // Initialize game from lobby state for ALL players (host and non-host)
       if (lobby.gameState) {
+        // Mark as in game ONLY when we have actual game state
+        const wasInGame = this.isInGame;
+        
         // Deduct buy-in for non-host players ONLY when we receive actual game state
         // This ensures we don't deduct if the game never starts properly
         if (!this.isInGame && !isHost && !this.buyInDeducted) {
@@ -614,6 +627,18 @@ class PokerController {
         
         this.isInGame = true;
         document.body.classList.add('game-started');
+        
+        // Hide waiting overlay if it was shown
+        const waitingOverlay = document.getElementById('game-waiting-overlay');
+        if (waitingOverlay) {
+          waitingOverlay.style.display = 'none';
+        }
+        this._waitingOverlayShown = false;
+        
+        // CRITICAL: Hide config panel when we have game state
+        if (this.elements.partyConfig) {
+          this.elements.partyConfig.style.display = 'none';
+        }
         
         // Check for new hand starting (phase changed to PRE_FLOP) - hide showdown modal
         if (lobby.gameState.phase === GAME_PHASES.PRE_FLOP && this.lastPhase !== GAME_PHASES.PRE_FLOP) {
@@ -657,29 +682,86 @@ class PokerController {
             setTimeout(() => { this._startingNewHand = false; }, 2000);
           }, 500);
         }
-      } else if (!wasInGame) {
-        // Game just started but no gameState yet - show waiting message
+      } else if (!this.isInGame) {
+        // Game status is IN_GAME but no gameState yet - show waiting state
+        // This happens when host starts game but hasn't synced gameState yet
         console.log('⏳ Waiting for game state from host...');
-        // Show a loading indicator for non-host players
-        if (!isHost && this.elements.waitingText) {
-          this.elements.waitingText.textContent = 'Game starting, please wait...';
+        
+        // Hide config panel immediately to show user that game is starting
+        if (this.elements.partyConfig) {
+          this.elements.partyConfig.style.display = 'none';
         }
+        
+        // Add game-started class to hide sidebar during wait
+        document.body.classList.add('game-started');
+        
+        // Show a waiting overlay if not already shown
+        if (!this._waitingOverlayShown) {
+          this._waitingOverlayShown = true;
+          this._waitingStartTime = Date.now();
+          
+          // Create and show waiting overlay
+          let waitingOverlay = document.getElementById('game-waiting-overlay');
+          if (!waitingOverlay) {
+            waitingOverlay = document.createElement('div');
+            waitingOverlay.id = 'game-waiting-overlay';
+            waitingOverlay.className = 'game-waiting-overlay';
+            waitingOverlay.innerHTML = `
+              <div class="waiting-content">
+                <div class="waiting-spinner"></div>
+                <h2>Game Starting...</h2>
+                <p>Waiting for game state from host</p>
+                <button id="force-refresh-btn" class="btn-refresh" style="display: none; margin-top: 20px;">
+                  Refresh Connection
+                </button>
+              </div>
+            `;
+            document.body.appendChild(waitingOverlay);
+            
+            // Add refresh button handler
+            document.getElementById('force-refresh-btn')?.addEventListener('click', () => {
+              console.log('🔄 Force refresh requested');
+              location.reload();
+            });
+          }
+          waitingOverlay.style.display = 'flex';
+          
+          // Show refresh button after 5 seconds if still waiting
+          setTimeout(() => {
+            if (this._waitingOverlayShown && !this.isInGame) {
+              const refreshBtn = document.getElementById('force-refresh-btn');
+              if (refreshBtn) {
+                refreshBtn.style.display = 'block';
+              }
+              console.warn('⚠️ Still waiting for game state after 5 seconds');
+            }
+          }, 5000);
+        }
+        
+        // The onGameStateUpdate callback will properly initialize when it arrives
       }
     } else {
       // Not in game - reset state and show lobby UI
       if (this.isInGame) {
         console.log('🔄 Game ended, returning to lobby');
         this.isInGame = false;
-        this.gameState = null;
+        this.game = null;
         this.buyInDeducted = false; // Reset for next game
+        this._buyInDeducted = false; // Reset host flag too
         
         // Hide game UI elements
         this.elements.pokerActions?.classList.remove('visible');
-        this.elements.tableContainer?.classList.add('hidden');
         
         // Hide showdown modal if visible
         this.hideShowdownModal();
       }
+      
+      // Hide waiting overlay if it was showing
+      const waitingOverlay = document.getElementById('game-waiting-overlay');
+      if (waitingOverlay) {
+        waitingOverlay.style.display = 'none';
+      }
+      this._waitingOverlayShown = false;
       
       // Show config panel when not in game
       if (this.elements.partyConfig) {
@@ -1647,22 +1729,36 @@ class PokerController {
     cards.forEach((card, index) => {
       if (cardEls[index]) {
         const cardObj = Card.deserialize(card);
-        cardEls[index].className = `community-card ${cardObj.color}`;
-        cardEls[index].innerHTML = `
-          <span class="card-value">${cardObj.display}</span>
-          <span class="card-suit ${cardObj.suit}">${cardObj.symbol}</span>
-        `;
         
-        // Add dealing animation for new cards only
+        // For new cards, show face-down first then flip dramatically
         if (index >= previousCardCount) {
-          cardEls[index].classList.add('dealing');
-          cardEls[index].style.animationDelay = `${(index - previousCardCount) * 0.15}s`;
+          // Start completely face-down - use card-inner wrapper for 3D flip
+          cardEls[index].className = 'community-card face-down';
+          cardEls[index].innerHTML = `
+            <div class="card-inner">
+              <div class="card-back"></div>
+              <div class="card-front ${cardObj.color}">
+                <span class="card-value">${cardObj.display}</span>
+                <span class="card-suit ${cardObj.suit}">${cardObj.symbol}</span>
+              </div>
+            </div>
+          `;
           
-          // Remove animation class after it completes
+          // Flip each card with staggered delay (700ms between each card)
+          const flipDelay = (index - previousCardCount) * 700;
+          
           setTimeout(() => {
-            cardEls[index].classList.remove('dealing');
-            cardEls[index].style.animationDelay = '';
-          }, 600 + (index - previousCardCount) * 150);
+            // Add flipped class to trigger the CSS flip animation
+            cardEls[index].classList.add('flipped');
+            cardEls[index].classList.remove('face-down');
+          }, 300 + flipDelay); // Initial delay + stagger
+        } else {
+          // Card already revealed, just show it normally
+          cardEls[index].className = `community-card ${cardObj.color}`;
+          cardEls[index].innerHTML = `
+            <span class="card-value">${cardObj.display}</span>
+            <span class="card-suit ${cardObj.suit}">${cardObj.symbol}</span>
+          `;
         }
       }
     });
@@ -1897,12 +1993,16 @@ class PokerController {
       this.elements.callBtn.style.display = toCall > 0 ? 'flex' : 'none';
     }
 
+    // Show "Your Turn" indicator
+    this.showYourTurnIndicator();
+
     // Start turn timer
     this.startTurnTimer(45);
   }
 
   hideActionsPanel() {
     document.body.classList.remove('your-turn');
+    this.hideYourTurnIndicator();
     this.stopTurnTimer();
   }
 
@@ -2351,6 +2451,10 @@ class PokerController {
       // Hide actions panel after taking action
       this.hideActionsPanel();
       
+      // Show action announcement for own action
+      const actionAmount = result.amount || amount || myPlayer.currentBet;
+      this.showActionAnnouncement(myPlayer.displayName, action, actionAmount);
+      
       // Sync game state to Firebase (include all cards - null means don't filter)
       await this.lobbyManager?.updateGameState(this.game.serialize(null));
       
@@ -2436,7 +2540,7 @@ class PokerController {
   }
   
   // Show the showdown modal with hand comparisons
-  showShowdownModal(result) {
+  async showShowdownModal(result) {
     if (!this.elements.showdownModal || !result) return;
     
     const resultsContainer = this.elements.showdownModal.querySelector('.showdown-players');
@@ -2455,6 +2559,17 @@ class PokerController {
     // Get players who haven't folded and have cards
     const activePlayers = players.filter(p => p && !p.folded && p.holeCards && p.holeCards.length >= 2);
     
+    // If exactly 2 players, show dramatic hand comparison first
+    if (activePlayers.length === 2 && result.winners) {
+      await this.showHandComparison(activePlayers, result.winners, communityCards);
+    }
+    
+    // Show pot win effect for winners
+    if (result.winners && result.winners.length > 0) {
+      const totalWinnings = result.winners.reduce((sum, w) => sum + (w.winnings || 0), 0);
+      const winnerNames = result.winners.map(w => w.player.displayName).join(' & ');
+      this.showPotWinEffect(totalWinnings, winnerNames);
+    }
     activePlayers.forEach(player => {
       // Check if this player is in the winners result (which has pre-evaluated hand names)
       const winnerInfo = result.winners?.find(w => w.player.id === player.id);
@@ -2482,21 +2597,23 @@ class PokerController {
       
       const playerDiv = document.createElement('div');
       playerDiv.className = `showdown-player ${isWinner ? 'winner' : 'loser'}`;
+      playerDiv.dataset.playerIndex = activePlayers.indexOf(player);
       
-      // Create cards display using existing CSS classes
-      const cardsHtml = player.holeCards.map(card => {
+      // Create cards display using existing CSS classes with flip animation class
+      const cardsHtml = player.holeCards.map((card, cardIdx) => {
         const suitSymbol = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' }[card.suit] || '';
         const suitClass = (card.suit === 'hearts' || card.suit === 'diamonds') ? 'red' : 'black';
-        return `<div class="showdown-card ${suitClass}"><span>${card.value}</span><span>${suitSymbol}</span></div>`;
+        const winningClass = isWinner ? 'winning-card' : '';
+        return `<div class="showdown-card ${suitClass} ${winningClass} flipping" style="animation-delay: ${cardIdx * 0.15}s"><span>${card.value}</span><span>${suitSymbol}</span></div>`;
       }).join('');
       
       playerDiv.innerHTML = `
         <div class="showdown-player-info">
-          <div class="showdown-player-name">${player.displayName}</div>
+          <div class="showdown-player-name">${isWinner ? '👑 ' : ''}${player.displayName}</div>
           <div class="showdown-player-hand">${handName}</div>
         </div>
         <div class="showdown-player-cards">${cardsHtml}</div>
-        ${isWinner ? `<div class="showdown-winnings" style="color: #22c55e; font-weight: 700; margin-left: auto;">+$${winAmount}</div>` : ''}
+        ${isWinner ? `<div class="showdown-winnings">+$${winAmount}</div>` : ''}
       `;
       
       resultsContainer.appendChild(playerDiv);
@@ -2528,6 +2645,14 @@ class PokerController {
     // Show the modal (clear any inline style that might have been set)
     this.elements.showdownModal.style.display = '';
     this.elements.showdownModal.classList.add('active');
+    
+    // Animate player reveals sequentially
+    const playerEls = resultsContainer.querySelectorAll('.showdown-player');
+    playerEls.forEach((el, idx) => {
+      setTimeout(() => {
+        el.classList.add('reveal');
+      }, idx * 300);
+    });
   }
   
   // Hide the showdown modal
@@ -2566,6 +2691,299 @@ class PokerController {
     this.lastHoleCardCount = 0;
     this.lastPotAmount = 0;
     this.lastPlayerBets = {};
+    this._lastPlayerActions = {}; // Track last known actions for each player
+  }
+
+  // Detect player actions from game state changes and announce them
+  detectAndAnnounceActions(gameState) {
+    if (!gameState.players) return;
+    
+    // Initialize tracking if needed
+    if (!this._lastPlayerActions) {
+      this._lastPlayerActions = {};
+    }
+
+    // Check each player for new actions
+    gameState.players.forEach(player => {
+      if (!player) return;
+      
+      const lastAction = this._lastPlayerActions[player.id];
+      const currentAction = player.lastAction;
+      
+      // If action changed and it's not null, announce it
+      if (currentAction && currentAction !== lastAction) {
+        // Don't announce your own actions (you already know what you did)
+        if (player.id !== this.currentUser?.uid) {
+          // Calculate the bet amount for call/raise
+          let amount = player.currentBet || 0;
+          this.showActionAnnouncement(player.displayName, currentAction, amount);
+        }
+      }
+      
+      // Update tracking
+      this._lastPlayerActions[player.id] = currentAction;
+    });
+  }
+
+  // ========================================
+  // POKER ANIMATIONS
+  // ========================================
+
+  // Show action announcement (e.g., "Joel called $50")
+  showActionAnnouncement(playerName, action, amount = 0) {
+    // Remove any existing announcement
+    const existing = document.querySelector('.action-announcement');
+    if (existing) existing.remove();
+
+    let text = '';
+    let actionClass = '';
+
+    switch (action) {
+      case 'fold':
+        text = `${playerName} FOLDED`;
+        actionClass = 'fold';
+        break;
+      case 'check':
+        text = `${playerName} CHECKED`;
+        actionClass = 'check';
+        break;
+      case 'call':
+        text = `${playerName} CALLED $${amount}`;
+        actionClass = 'call';
+        break;
+      case 'raise':
+        text = `${playerName} RAISED $${amount}`;
+        actionClass = 'raise';
+        break;
+      case 'all_in':
+        text = `${playerName} ALL IN!`;
+        actionClass = 'all-in';
+        break;
+      default:
+        return;
+    }
+
+    const announcement = document.createElement('div');
+    announcement.className = 'action-announcement';
+    announcement.innerHTML = `<div class="action-announcement-text ${actionClass}">${text}</div>`;
+    document.body.appendChild(announcement);
+
+    // Remove after animation completes
+    setTimeout(() => announcement.remove(), 2000);
+  }
+
+  // Show phase announcement (FLOP, TURN, RIVER, SHOWDOWN)
+  showPhaseAnnouncement(phase) {
+    // Remove any existing announcement
+    const existing = document.querySelector('.phase-announcement');
+    if (existing) existing.remove();
+
+    let text = '';
+    let phaseClass = '';
+
+    switch (phase) {
+      case 'pre_flop':
+        text = 'DEAL';
+        phaseClass = 'pre-flop';
+        break;
+      case 'flop':
+        text = 'FLOP';
+        phaseClass = 'flop';
+        break;
+      case 'turn':
+        text = 'TURN';
+        phaseClass = 'turn';
+        break;
+      case 'river':
+        text = 'RIVER';
+        phaseClass = 'river';
+        break;
+      case 'showdown':
+        text = 'SHOWDOWN';
+        phaseClass = 'showdown';
+        break;
+      default:
+        return;
+    }
+
+    const announcement = document.createElement('div');
+    announcement.className = 'phase-announcement';
+    announcement.innerHTML = `<div class="phase-announcement-text ${phaseClass}">${text}</div>`;
+    document.body.appendChild(announcement);
+
+    // Remove after animation completes
+    const duration = phase === 'showdown' ? 3500 : 2500;
+    setTimeout(() => announcement.remove(), duration);
+  }
+
+  // Show pot win effect
+  showPotWinEffect(amount, winnerName) {
+    const existing = document.querySelector('.pot-win-effect');
+    if (existing) existing.remove();
+
+    const effect = document.createElement('div');
+    effect.className = 'pot-win-effect';
+    effect.innerHTML = `
+      <div class="pot-win-amount">+$${amount}</div>
+      <div class="pot-win-label">${winnerName} wins!</div>
+    `;
+    document.body.appendChild(effect);
+
+    // Create flying chips effect
+    this.createFlyingChips(amount);
+
+    setTimeout(() => effect.remove(), 3500);
+  }
+
+  // Create flying chips animation
+  createFlyingChips(amount) {
+    const chipCount = Math.min(Math.ceil(amount / 10), 15); // Max 15 chips
+    const colors = ['#22c55e', '#fbbf24', '#ef4444', '#3b82f6', '#a855f7'];
+    
+    // Get pot position (center of table)
+    const potEl = this.elements.potChips;
+    const potRect = potEl?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 2 };
+    
+    for (let i = 0; i < chipCount; i++) {
+      setTimeout(() => {
+        const chip = document.createElement('div');
+        chip.className = 'flying-chip';
+        chip.style.backgroundColor = colors[i % colors.length];
+        
+        // Random end positions (spread out from center)
+        const angle = (Math.random() * Math.PI * 2);
+        const distance = 100 + Math.random() * 200;
+        const endX = Math.cos(angle) * distance;
+        const endY = Math.sin(angle) * distance;
+        
+        chip.style.setProperty('--start-x', `${potRect.left + potRect.width / 2}px`);
+        chip.style.setProperty('--start-y', `${potRect.top}px`);
+        chip.style.setProperty('--end-x', `${potRect.left + potRect.width / 2 + endX}px`);
+        chip.style.setProperty('--end-y', `${potRect.top + endY}px`);
+        chip.style.left = '0';
+        chip.style.top = '0';
+        
+        document.body.appendChild(chip);
+        
+        setTimeout(() => chip.remove(), 1000);
+      }, i * 50);
+    }
+  }
+
+  // Show "Your Turn" indicator
+  showYourTurnIndicator() {
+    const existing = document.querySelector('.your-turn-indicator');
+    if (existing) return; // Already showing
+
+    const indicator = document.createElement('div');
+    indicator.className = 'your-turn-indicator';
+    indicator.innerHTML = `<div class="your-turn-text">Your Turn</div>`;
+    document.body.appendChild(indicator);
+  }
+
+  hideYourTurnIndicator() {
+    const indicator = document.querySelector('.your-turn-indicator');
+    if (indicator) indicator.remove();
+  }
+
+  // Show dramatic hand comparison overlay
+  async showHandComparison(players, winners, communityCards) {
+    // Only show for 2 players (heads up or final 2)
+    if (players.length !== 2) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'hand-comparison-overlay';
+    
+    const player1 = players[0];
+    const player2 = players[1];
+    const isP1Winner = winners.some(w => w.player.id === player1.id);
+    const isP2Winner = winners.some(w => w.player.id === player2.id);
+    
+    const getHandName = (player) => {
+      const winnerInfo = winners.find(w => w.player.id === player.id);
+      return winnerInfo?.handName || 'High Card';
+    };
+
+    const createCardHTML = (card) => {
+      const suitSymbol = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' }[card.suit] || '';
+      const suitClass = (card.suit === 'hearts' || card.suit === 'diamonds') ? 'red' : 'black';
+      return `<div class="comparison-card ${suitClass}"><span>${card.value}</span><span>${suitSymbol}</span></div>`;
+    };
+
+    overlay.innerHTML = `
+      <div class="comparison-title">Showdown</div>
+      <div class="comparison-players">
+        <div class="comparison-player ${isP1Winner ? 'winner' : 'loser'}" data-player="1">
+          ${isP1Winner ? '<div class="comparison-crown">👑</div>' : ''}
+          <div class="comparison-name">${player1.displayName}</div>
+          <div class="comparison-cards">
+            ${player1.holeCards.map(c => createCardHTML(c)).join('')}
+          </div>
+          <div class="comparison-hand-name">${getHandName(player1)}</div>
+        </div>
+        <div class="comparison-vs">VS</div>
+        <div class="comparison-player ${isP2Winner ? 'winner' : 'loser'}" data-player="2">
+          ${isP2Winner ? '<div class="comparison-crown">👑</div>' : ''}
+          <div class="comparison-name">${player2.displayName}</div>
+          <div class="comparison-cards">
+            ${player2.holeCards.map(c => createCardHTML(c)).join('')}
+          </div>
+          <div class="comparison-hand-name">${getHandName(player2)}</div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Animate reveals sequentially
+    await this.sleep(300);
+    
+    // Reveal player 1
+    const p1El = overlay.querySelector('[data-player="1"]');
+    p1El.classList.add('reveal');
+    
+    // Reveal cards one by one
+    const p1Cards = p1El.querySelectorAll('.comparison-card');
+    for (let i = 0; i < p1Cards.length; i++) {
+      await this.sleep(200);
+      p1Cards[i].classList.add('revealed');
+    }
+    
+    await this.sleep(400);
+    
+    // Reveal player 2
+    const p2El = overlay.querySelector('[data-player="2"]');
+    p2El.classList.add('reveal');
+    
+    const p2Cards = p2El.querySelectorAll('.comparison-card');
+    for (let i = 0; i < p2Cards.length; i++) {
+      await this.sleep(200);
+      p2Cards[i].classList.add('revealed');
+    }
+
+    await this.sleep(500);
+
+    // Reveal hand names
+    const handNames = overlay.querySelectorAll('.comparison-hand-name');
+    handNames.forEach(el => el.classList.add('reveal'));
+
+    // Reveal winner crown
+    await this.sleep(400);
+    const crowns = overlay.querySelectorAll('.comparison-crown');
+    crowns.forEach(el => el.classList.add('reveal'));
+
+    // Hold for viewing
+    await this.sleep(2000);
+
+    // Fade out
+    overlay.style.animation = 'overlayFadeIn 0.3s ease-out reverse forwards';
+    await this.sleep(300);
+    overlay.remove();
+  }
+
+  // Helper sleep function
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
   
   // Handle play again button click - now uses voting system

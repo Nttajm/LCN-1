@@ -79,6 +79,78 @@ body:has(.sync-warning-banner) .online-players-sidebar {
   height: calc(100vh - 112px);
 }
 
+/* ========================================
+   GAME WAITING OVERLAY
+   ======================================== */
+
+.game-waiting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 15, 30, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 10000;
+}
+
+.game-waiting-overlay .waiting-content {
+  text-align: center;
+  color: white;
+}
+
+.game-waiting-overlay h2 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 20px 0 10px;
+  background: linear-gradient(135deg, #60a5fa, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.game-waiting-overlay p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.game-waiting-overlay .waiting-spinner {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  border: 4px solid rgba(100, 150, 255, 0.2);
+  border-top-color: #60a5fa;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.game-waiting-overlay .btn-refresh {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.15));
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 8px;
+  color: #fbbf24;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.game-waiting-overlay .btn-refresh:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.25));
+  border-color: rgba(251, 191, 36, 0.6);
+  transform: scale(1.02);
+}
+
 body:has(.sync-warning-banner) .game-area {
   padding-top: 42px;
 }
@@ -3120,15 +3192,151 @@ body:has(.sync-warning-banner) .game-area {
   }
 }
 
-.community-card.dealing {
-  animation: dealCard 0.3s ease forwards;
+/* ========================================
+   DRAMATIC COMMUNITY CARD FLIP REVEAL
+   ======================================== */
+
+/* Base card container */
+.community-card {
+  position: relative;
+  perspective: 1000px;
 }
 
-.community-card:nth-child(1).dealing { animation-delay: 0s; }
-.community-card:nth-child(2).dealing { animation-delay: 0.1s; }
-.community-card:nth-child(3).dealing { animation-delay: 0.2s; }
-.community-card:nth-child(4).dealing { animation-delay: 0s; }
-.community-card:nth-child(5).dealing { animation-delay: 0s; }
+/* Inner wrapper that actually flips */
+.community-card .card-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Face-down state - show back */
+.community-card.face-down .card-inner {
+  transform: rotateY(0deg);
+}
+
+/* Flipped state - show front */
+.community-card.flipped .card-inner {
+  transform: rotateY(180deg);
+  animation: cardFlipLift 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes cardFlipLift {
+  0% {
+    transform: rotateY(0deg) scale(1) translateY(0);
+  }
+  30% {
+    transform: rotateY(60deg) scale(1.1) translateY(-15px);
+  }
+  50% {
+    transform: rotateY(90deg) scale(1.15) translateY(-20px);
+  }
+  70% {
+    transform: rotateY(120deg) scale(1.1) translateY(-15px);
+  }
+  100% {
+    transform: rotateY(180deg) scale(1) translateY(0);
+  }
+}
+
+/* Card back - visible initially */
+.community-card .card-back {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  border-radius: inherit;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+
+.community-card .card-back::before {
+  content: '♠♥♦♣';
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 2px;
+}
+
+.community-card .card-back::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.05) 3px,
+    rgba(255, 255, 255, 0.05) 6px
+  );
+}
+
+/* Card front - hidden initially, shown when flipped */
+.community-card .card-front {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border-radius: inherit;
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.community-card .card-front .card-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.community-card .card-front .card-suit {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.community-card .card-front.red {
+  color: #ef4444;
+}
+
+.community-card .card-front.black {
+  color: #1f2937;
+}
+
+/* Glow effect when card finishes flipping */
+.community-card.flipped::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.6), transparent 70%);
+  opacity: 0;
+  animation: flipGlow 0.6s ease-out 0.4s forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes flipGlow {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
 
 .hand-card.dealing {
   animation: dealCard 0.25s ease forwards;
@@ -3443,4 +3651,700 @@ body:has(.sync-warning-banner) .game-area {
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* ========================================
+   POKER ACTION ANNOUNCEMENTS
+   Pop-up text for player actions
+   ======================================== */
+
+.action-announcement {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2500;
+  pointer-events: none;
+  text-align: center;
+}
+
+.action-announcement-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 40px currentColor;
+  animation: actionPopIn 0.4s ease-out forwards, actionFadeOut 0.4s ease-in 1.2s forwards;
+  opacity: 0;
+}
+
+.action-announcement-text.fold {
+  color: #ef4444;
+}
+
+.action-announcement-text.check {
+  color: #22c55e;
+}
+
+.action-announcement-text.call {
+  color: #3b82f6;
+}
+
+.action-announcement-text.raise {
+  color: #f59e0b;
+}
+
+.action-announcement-text.all-in {
+  color: #ec4899;
+  font-size: 2.2rem;
+  animation: actionPopIn 0.4s ease-out forwards, allInGlow 1s ease-in-out infinite, actionFadeOut 0.4s ease-in 1.5s forwards;
+}
+
+@keyframes actionPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes actionFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-30px);
+  }
+}
+
+@keyframes allInGlow {
+  0%, 100% {
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 40px #ec4899, 0 0 80px #ec4899;
+  }
+  50% {
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 60px #ec4899, 0 0 120px #ec4899;
+  }
+}
+
+/* ========================================
+   PHASE ANNOUNCEMENTS
+   Big dramatic text for game phases
+   ======================================== */
+
+.phase-announcement {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2600;
+  pointer-events: none;
+  text-align: center;
+}
+
+.phase-announcement-text {
+  font-size: 4rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 8px;
+  opacity: 0;
+  animation: phaseSlideIn 0.5s ease-out forwards, phaseFadeOut 0.5s ease-in 1.5s forwards;
+}
+
+.phase-announcement-text.pre-flop {
+  color: #22c55e;
+  text-shadow: 0 0 30px rgba(34, 197, 94, 0.8), 0 0 60px rgba(34, 197, 94, 0.4);
+}
+
+.phase-announcement-text.flop {
+  color: #3b82f6;
+  text-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(59, 130, 246, 0.4);
+}
+
+.phase-announcement-text.turn {
+  color: #f59e0b;
+  text-shadow: 0 0 30px rgba(245, 158, 11, 0.8), 0 0 60px rgba(245, 158, 11, 0.4);
+}
+
+.phase-announcement-text.river {
+  color: #ef4444;
+  text-shadow: 0 0 30px rgba(239, 68, 68, 0.8), 0 0 60px rgba(239, 68, 68, 0.4);
+}
+
+.phase-announcement-text.showdown {
+  color: #a855f7;
+  font-size: 5rem;
+  letter-spacing: 12px;
+  text-shadow: 0 0 40px rgba(168, 85, 247, 0.9), 0 0 80px rgba(168, 85, 247, 0.5), 0 0 120px rgba(168, 85, 247, 0.3);
+  animation: showdownEntry 0.6s ease-out forwards, showdownPulse 0.8s ease-in-out 0.6s 2, phaseFadeOut 0.5s ease-in 2.5s forwards;
+}
+
+@keyframes phaseSlideIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.5) translateY(20px);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes phaseFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+    filter: blur(5px);
+  }
+}
+
+@keyframes showdownEntry {
+  0% {
+    opacity: 0;
+    transform: scale(2) rotateX(90deg);
+    filter: blur(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1) rotateX(-10deg);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateX(0deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes showdownPulse {
+  0%, 100% {
+    transform: scale(1);
+    text-shadow: 0 0 40px rgba(168, 85, 247, 0.9), 0 0 80px rgba(168, 85, 247, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    text-shadow: 0 0 60px rgba(168, 85, 247, 1), 0 0 100px rgba(168, 85, 247, 0.7), 0 0 140px rgba(168, 85, 247, 0.4);
+  }
+}
+
+/* ========================================
+   ENHANCED SHOWDOWN MODAL
+   Card reveal animations
+   ======================================== */
+
+.showdown-modal.active .showdown-content {
+  animation: modalSlideUp 0.4s ease-out;
+}
+
+@keyframes modalSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Enhanced showdown player cards */
+.showdown-player {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.showdown-player.reveal {
+  animation: playerReveal 0.5s ease-out forwards;
+}
+
+.showdown-player.reveal.winner {
+  animation: playerReveal 0.5s ease-out forwards, winnerHighlight 0.8s ease-in-out 0.5s forwards;
+}
+
+@keyframes playerReveal {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes winnerHighlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+  50% {
+    box-shadow: 0 0 30px 5px rgba(34, 197, 94, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 20px 2px rgba(34, 197, 94, 0.3);
+  }
+}
+
+/* Card flip animation in showdown */
+.showdown-card {
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+  position: relative;
+}
+
+.showdown-card.flipping {
+  animation: cardFlip 0.6s ease-out forwards;
+}
+
+@keyframes cardFlip {
+  0% {
+    transform: rotateY(180deg) scale(0.8);
+  }
+  50% {
+    transform: rotateY(90deg) scale(1.1);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+/* Card highlight for winning hand */
+.showdown-card.winning-card {
+  animation: winningCardGlow 1s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
+}
+
+@keyframes winningCardGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 1), 0 0 30px rgba(251, 191, 36, 0.5);
+  }
+}
+
+/* Winner amount animation */
+.showdown-winnings {
+  animation: winningsPopIn 0.4s ease-out 0.8s both;
+}
+
+@keyframes winningsPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enhanced winner display */
+.showdown-winner {
+  animation: winnerBannerIn 0.5s ease-out 0.3s both;
+}
+
+@keyframes winnerBannerIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.showdown-winner-amount {
+  animation: amountCountUp 0.6s ease-out 0.5s both;
+}
+
+@keyframes amountCountUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========================================
+   CHIP ANIMATIONS
+   Flying chips to winner
+   ======================================== */
+
+.flying-chip {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px dashed rgba(0, 0, 0, 0.3);
+  z-index: 2700;
+  pointer-events: none;
+  animation: chipFly 0.8s ease-in-out forwards;
+}
+
+.flying-chip::after {
+  content: '$';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+@keyframes chipFly {
+  0% {
+    opacity: 1;
+    transform: translate(var(--start-x), var(--start-y)) scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(calc(var(--start-x) + (var(--end-x) - var(--start-x)) * 0.5), calc(var(--start-y) - 100px)) scale(1.2) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--end-x), var(--end-y)) scale(0.5) rotate(360deg);
+  }
+}
+
+/* ========================================
+   DEALING CARD ANIMATION
+   ======================================== */
+
+.dealing-card {
+  animation: dealCard 0.4s ease-out forwards;
+}
+
+@keyframes dealCard {
+  0% {
+    opacity: 0;
+    transform: translateY(-100px) translateX(100px) rotate(30deg) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) translateX(0) rotate(-5deg) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) rotate(0) scale(1);
+  }
+}
+
+/* ========================================
+   HAND RANK COMPARISON DISPLAY
+   Shows hand ranking during showdown
+   ======================================== */
+
+.hand-comparison-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 2550;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  pointer-events: none;
+  opacity: 0;
+  animation: overlayFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes overlayFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.comparison-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #a855f7;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
+  animation: titlePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.comparison-players {
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+.comparison-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.comparison-player.reveal {
+  animation: comparisonReveal 0.5s ease-out forwards;
+}
+
+.comparison-player.winner .comparison-name {
+  color: #22c55e;
+}
+
+.comparison-player.winner .comparison-cards {
+  filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.8));
+}
+
+.comparison-player.loser {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+@keyframes comparisonReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.comparison-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.comparison-cards {
+  display: flex;
+  gap: 8px;
+}
+
+.comparison-card {
+  width: 60px;
+  height: 84px;
+  background: #fff;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  transform: rotateY(180deg);
+  transition: transform 0.5s ease;
+}
+
+.comparison-card.revealed {
+  animation: cardReveal 0.5s ease-out forwards;
+}
+
+@keyframes cardReveal {
+  0% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.comparison-card.red { color: #ef4444; }
+.comparison-card.black { color: #1f2937; }
+
+.comparison-hand-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0;
+}
+
+.comparison-hand-name.reveal {
+  animation: handNameReveal 0.4s ease-out 0.8s forwards;
+}
+
+@keyframes handNameReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.comparison-vs {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #ef4444;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+  animation: vsPulse 1s ease-in-out infinite;
+}
+
+@keyframes vsPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Winner crown icon */
+.comparison-crown {
+  font-size: 2.5rem;
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.comparison-crown.reveal {
+  animation: crownDrop 0.5s ease-out 1.2s forwards;
+}
+
+@keyframes crownDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(1.5);
+  }
+  60% {
+    transform: translateY(5px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ========================================
+   POT WIN ANIMATION
+   ======================================== */
+
+.pot-win-effect {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2650;
+  pointer-events: none;
+  text-align: center;
+}
+
+.pot-win-amount {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #22c55e;
+  text-shadow: 0 0 40px rgba(34, 197, 94, 0.9), 0 0 80px rgba(34, 197, 94, 0.5);
+  opacity: 0;
+  animation: potWinIn 0.6s ease-out 0.5s forwards, potWinOut 0.5s ease-in 2.5s forwards;
+}
+
+@keyframes potWinIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+    filter: blur(10px);
+  }
+  70% {
+    transform: scale(1.1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes potWinOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-50px);
+  }
+}
+
+.pot-win-label {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-top: 10px;
+  opacity: 0;
+  animation: labelFadeIn 0.4s ease-out 0.8s forwards, potWinOut 0.5s ease-in 2.5s forwards;
+}
+
+@keyframes labelFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* ========================================
+   YOUR TURN INDICATOR
+   ======================================== */
+
+.your-turn-indicator {
+  position: fixed;
+  bottom: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2400;
+  pointer-events: none;
+}
+
+.your-turn-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #22c55e;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+  animation: yourTurnPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes yourTurnPulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
