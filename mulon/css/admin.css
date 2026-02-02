@@ -2046,3 +2046,298 @@
     width: 100%;
   }
 }
+
+/* ========================================
+   PURCHASES MANAGEMENT
+   ======================================== */
+
+.purchases-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.purchases-stat {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 100px;
+}
+
+.purchases-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.purchases-stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.purchases-stat-value.revenue {
+  color: var(--green-primary);
+}
+
+.purchases-filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.purchases-filter-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.purchases-filter-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--green-primary);
+}
+
+.purchases-filter-btn.active {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: var(--green-primary);
+  color: var(--green-primary);
+}
+
+.purchase-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.purchase-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.purchase-item.status-pending {
+  border-left: 3px solid #f59e0b;
+}
+
+.purchase-item.status-approved {
+  border-left: 3px solid var(--green-primary);
+}
+
+.purchase-item.status-rejected {
+  border-left: 3px solid #ef4444;
+}
+
+.purchase-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.purchase-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.purchase-user strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.purchase-username {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.purchase-details {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.purchase-pack {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.purchase-amount {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--green-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.purchase-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.purchase-status {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.purchase-status.status-pending {
+  color: #f59e0b;
+}
+
+.purchase-status.status-approved {
+  color: var(--green-primary);
+}
+
+.purchase-status.status-rejected {
+  color: #ef4444;
+}
+
+.purchase-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.purchase-actions .btn-primary {
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+}
+
+.purchase-actions .btn-secondary {
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.purchase-actions .btn-secondary:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.completed-badge {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--green-primary);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.cancelled-badge {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.purchases-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.purchases-empty .empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Custom Banner Purchase Styles */
+.banner-purchase {
+  border-left: 3px solid #8b5cf6;
+}
+
+.purchase-banner-preview {
+  margin-top: 0.75rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-width: 300px;
+}
+
+.banner-preview-img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.banner-error {
+  display: block;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.approve-banner {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+  border-color: #8b5cf6 !important;
+}
+
+.approve-banner:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+}
+
+.reject-banner {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.reject-banner:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+@media (max-width: 600px) {
+  .purchase-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .purchase-actions {
+    justify-content: stretch;
+  }
+  
+  .purchase-actions button,
+  .purchase-actions span {
+    flex: 1;
+    text-align: center;
+  }
+}

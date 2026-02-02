@@ -192,6 +192,11 @@
             <span class="tab-icon">👥</span>
             Users
           </button>
+          <button class="management-tab" data-tab="purchases">
+            <span class="tab-icon">💳</span>
+            Purchases
+            <span class="tab-badge" id="purchasesBadge">0</span>
+          </button>
           <button class="management-tab" data-tab="suggestions">
             <span class="tab-icon">💡</span>
             Suggestions
@@ -387,6 +392,45 @@
             <!-- Suggestions rendered dynamically -->
           </div>
         </div>
+        
+        <!-- Purchases Tab Content -->
+        <div class="management-tab-content" id="purchasesTabContent" style="display: none;">
+          <div class="purchases-stats">
+            <span class="stat-item">
+              <span class="stat-label">Pending:</span>
+              <span class="stat-value pending" id="purchasesPendingCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Completed:</span>
+              <span class="stat-value approved" id="purchasesCompletedCount">0</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Total Revenue:</span>
+              <span class="stat-value" id="purchasesTotalRevenue">$0.00</span>
+            </span>
+          </div>
+          
+          <div class="purchases-actions-bar">
+            <button class="btn btn-sm btn-secondary" id="refreshPurchasesBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          
+          <div class="purchases-filter">
+            <button class="purchases-filter-btn active" data-filter="pending">Pending</button>
+            <button class="purchases-filter-btn" data-filter="banners">🖼️ Banners</button>
+            <button class="purchases-filter-btn" data-filter="completed">Completed</button>
+            <button class="purchases-filter-btn" data-filter="all">All</button>
+          </div>
+          
+          <div class="purchases-list" id="purchasesList">
+            <div class="loading-state">Loading purchases...</div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -476,7 +520,7 @@
     <span class="toast-message" id="toastMessage">Market created successfully!</span>
   </div>
 
-  <script type="module" src="js/data.js"></script>
+  <script type="module" src="js/data-a.js"></script>
   <script type="module" src="js/admin-a.js"></script>
 </body>
 </html>

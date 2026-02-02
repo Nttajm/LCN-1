@@ -39,13 +39,23 @@ function getUserIdFromURL() {
 }
 
 // Format functions
+function formatWithCommas(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function formatBalance(amount) {
-  return '$' + amount.toFixed(2);
+  const [dollars, cents] = Math.abs(amount).toFixed(2).split('.');
+  return '$' + formatWithCommas(dollars) + '.' + cents;
 }
 
 function formatProfit(amount) {
-  const prefix = amount >= 0 ? '+' : '';
-  return prefix + '$' + amount.toFixed(2);
+  const prefix = amount >= 0 ? '+' : '-';
+  const [dollars, cents] = Math.abs(amount).toFixed(2).split('.');
+  return prefix + '$' + formatWithCommas(dollars) + '.' + cents;
+}
+
+function formatNumber(num) {
+  return formatWithCommas(Math.floor(num));
 }
 
 function formatDuration(milliseconds) {
@@ -148,7 +158,7 @@ function renderProfile(userData, sessionStats, recentSessions) {
   profileLevelBadge.textContent = levelData.level;
   profileLevelName.textContent = levelData.tier.name;
   profileLevelName.style.color = levelData.tier.colors.text;
-  profileLevelXP.textContent = (userData.xps || 0) + ' XP';
+  profileLevelXP.textContent = formatNumber(userData.xps || 0) + ' XP';
   
   // Handle avatar
   if (userData.photoURL) {
@@ -166,6 +176,15 @@ function renderProfile(userData, sessionStats, recentSessions) {
     profileAvatar.style.background = gradients[userData.avatarStyle] || gradients['gradient1'];
   }
   
+  // Handle custom profile banner
+  const bannerBg = document.getElementById('profileBanner')?.querySelector('.banner-bg');
+  if (bannerBg && userData.customBannerUrl) {
+    bannerBg.style.backgroundImage = `url('${userData.customBannerUrl}')`;
+    bannerBg.style.backgroundSize = 'cover';
+    bannerBg.style.backgroundPosition = 'center';
+    bannerBg.style.height = '200px';
+  }
+  
   // Quick stats
   document.getElementById('profileBalance').textContent = formatBalance(userData.balance || 500);
   
@@ -174,12 +193,12 @@ function renderProfile(userData, sessionStats, recentSessions) {
   profitEl.textContent = formatProfit(profit);
   profitEl.className = 'quick-stat-value ' + (profit >= 0 ? 'profit' : 'loss');
   
-  document.getElementById('profileGamesPlayed').textContent = sessionStats ? sessionStats.totalGamesPlayed : 0;
+  document.getElementById('profileGamesPlayed').textContent = formatNumber(sessionStats ? sessionStats.totalGamesPlayed : 0);
   
   // Session overview
   if (sessionStats) {
-    document.getElementById('totalSessions').textContent = sessionStats.totalSessions;
-    document.getElementById('activeSessions').textContent = sessionStats.activeSessions;
+    document.getElementById('totalSessions').textContent = formatNumber(sessionStats.totalSessions);
+    document.getElementById('activeSessions').textContent = formatNumber(sessionStats.activeSessions);
     document.getElementById('totalWagered').textContent = formatBalance(sessionStats.totalWagered);
     document.getElementById('totalWon').textContent = formatBalance(sessionStats.totalWon);
     
@@ -229,7 +248,7 @@ function renderBestPerformances(sessionStats, recentSessions) {
   
   document.getElementById('biggestWin').textContent = formatBalance(biggestWin);
   document.getElementById('biggestLoss').textContent = formatBalance(biggestLoss);
-  document.getElementById('longestStreak').textContent = longestStreak;
+  document.getElementById('longestStreak').textContent = formatNumber(longestStreak);
   document.getElementById('bestSession').textContent = formatProfit(bestSessionProfit);
   
   const avgDuration = sessionStats && sessionStats.avgSessionDuration 
@@ -258,7 +277,7 @@ function renderFavoriteGame(sessionStats) {
   
   favoriteGameIcon.textContent = GAME_ICONS[favGame] || GAME_ICONS.default;
   favoriteGameName.textContent = favGame.charAt(0).toUpperCase() + favGame.slice(1);
-  favoriteGameSessions.textContent = gameBreakdown.sessions + ' sessions';
+  favoriteGameSessions.textContent = formatNumber(gameBreakdown.sessions) + ' sessions';
   
   const profit = gameBreakdown.netProfit;
   favoriteGameProfit.textContent = formatProfit(profit);
@@ -296,11 +315,11 @@ function renderGamesBreakdown(sessionStats) {
         <div class="game-breakdown-stats">
           <div class="game-stat-row">
             <span>Sessions</span>
-            <span>${stats.sessions}</span>
+            <span>${formatNumber(stats.sessions)}</span>
           </div>
           <div class="game-stat-row">
             <span>Games</span>
-            <span>${stats.gamesPlayed}</span>
+            <span>${formatNumber(stats.gamesPlayed)}</span>
           </div>
           <div class="game-stat-row">
             <span>Wagered</span>
@@ -366,7 +385,7 @@ function renderRecentSessions(recentSessions) {
           <div class="session-stats-grid">
             <div class="session-stat">
               <div class="session-stat-label">Games</div>
-              <div class="session-stat-value">${session.gamesPlayed || 0}</div>
+              <div class="session-stat-value">${formatNumber(session.gamesPlayed || 0)}</div>
             </div>
             <div class="session-stat">
               <div class="session-stat-label">Wagered</div>

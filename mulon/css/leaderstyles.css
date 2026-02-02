@@ -443,3 +443,375 @@
   background-position: 50% 29% !important;
   background-size: cover !important;
 }
+
+/* ========================================
+   PURCHASABLE STYLES (Shop Items)
+   ======================================== */
+
+/* Backwards Name - text direction reversed */
+.leaderboard-row.backwards-name .user-cell-name {
+  direction: rtl;
+  unicode-bidi: bidi-override;
+}
+
+/* Gold Name */
+.leaderboard-row.gold-name .user-cell-name,
+.preview-name.gold-text {
+  background: linear-gradient(135deg, #ffd700, #ffb800, #ffd700) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 700 !important;
+}
+
+/* Rainbow Name */
+.leaderboard-row.rainbow-name .user-cell-name,
+.preview-name.rainbow-text {
+  background: linear-gradient(
+    90deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  ) !important;
+  background-size: 200% 100% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: rainbowShift 3s linear infinite !important;
+  font-weight: 700 !important;
+}
+
+@keyframes rainbowShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* Glitch Name */
+.leaderboard-row.glitch-name .user-cell-name,
+.preview-name.glitch-text {
+  position: relative;
+  animation: glitchText 2s infinite;
+  color: #fff !important;
+  text-shadow: 
+    2px 0 #ff00ff,
+    -2px 0 #00ffff;
+}
+
+@keyframes glitchText {
+  0%, 100% { 
+    text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; 
+    transform: translate(0);
+  }
+  20% { 
+    text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; 
+    transform: translate(-2px, 2px);
+  }
+  40% { 
+    text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; 
+    transform: translate(-2px, -2px);
+  }
+  60% { 
+    text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; 
+    transform: translate(2px, 2px);
+  }
+  80% { 
+    text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; 
+    transform: translate(2px, -2px);
+  }
+}
+
+/* Fire Prefix - adds fire emoji before name + glow effect */
+.leaderboard-row.fire-prefix .user-cell-name {
+  color: #ff6b35 !important;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.5),
+               0 0 20px rgba(255, 107, 53, 0.3) !important;
+}
+
+.leaderboard-row.fire-prefix .user-cell-name::before {
+  content: '🔥 ';
+}
+
+/* Crown Prefix - adds crown emoji before name + royal glow */
+.leaderboard-row.crown-prefix .user-cell-name {
+  color: #ffd700 !important;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4) !important;
+}
+
+.leaderboard-row.crown-prefix .user-cell-name::before {
+  content: '👑 ';
+}
+
+/* ========================================
+   PREVIEW STYLES (for Shop)
+   ======================================== */
+.preview-leaderboard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+}
+
+.preview-rank {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.preview-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.preview-score {
+  font-weight: 600;
+  color: var(--green-primary);
+}
+
+/* ========================================
+   ADDITIONAL SHOP STYLES
+   ======================================== */
+
+/* Neon Glow - bright neon glow effect */
+.neon-glow,
+.preview-name.neon-glow {
+  color: #0ff !important;
+  text-shadow: 
+    0 0 5px #0ff,
+    0 0 10px #0ff,
+    0 0 20px #0ff,
+    0 0 40px #0ff !important;
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+.leaderboard-row.neon-glow .user-cell-name {
+  color: #0ff !important;
+  text-shadow: 
+    0 0 5px #0ff,
+    0 0 10px #0ff,
+    0 0 20px #0ff,
+    0 0 40px #0ff !important;
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    text-shadow: 
+      0 0 5px #0ff,
+      0 0 10px #0ff,
+      0 0 20px #0ff;
+  }
+  50% {
+    text-shadow: 
+      0 0 10px #0ff,
+      0 0 20px #0ff,
+      0 0 40px #0ff,
+      0 0 80px #0ff;
+  }
+}
+
+/* Diamond Prefix - adds diamond emoji before name + sparkle effect */
+.leaderboard-row.diamond-prefix .user-cell-name {
+  color: #b9f2ff !important;
+  text-shadow: 0 0 10px rgba(185, 242, 255, 0.5) !important;
+}
+
+.leaderboard-row.diamond-prefix .user-cell-name::before {
+  content: '💎 ';
+}
+
+/* Shadow Text - mysterious shadow effect */
+.shadow-text,
+.preview-name.shadow-text {
+  color: #666 !important;
+  text-shadow: 
+    2px 2px 0 #000,
+    4px 4px 0 rgba(0, 0, 0, 0.5),
+    6px 6px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaderboard-row.shadow-text .user-cell-name {
+  color: #999 !important;
+  text-shadow: 
+    2px 2px 0 #000,
+    4px 4px 0 rgba(0, 0, 0, 0.5),
+    6px 6px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* I'm Rich Tag - adds "I'm rich lol" after the name */
+.im-rich-tag::after,
+.preview-name.im-rich-tag::after {
+  content: ' I\'m rich lol';
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7em;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #000;
+  border-radius: 4px;
+  text-shadow: none !important;
+  animation: richTagShine 3s linear infinite;
+}
+
+.leaderboard-row.im-rich-tag .user-cell-name {
+  color: #ffd700 !important;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5) !important;
+}
+
+.leaderboard-row.im-rich-tag .user-cell-name::after {
+  content: ' I\'m rich lol';
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7em;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #000;
+  border-radius: 4px;
+  text-shadow: none !important;
+  animation: richTagShine 3s linear infinite;
+}
+
+@keyframes richTagShine {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* ========================================
+   UPSIDE DOWN - Flips entire row
+   ======================================== */
+.leaderboard-row.upside-down {
+  transform: rotate(180deg);
+}
+
+.leaderboard-row.upside-down .user-cell-name,
+.leaderboard-row.upside-down .stat-cell,
+.leaderboard-row.upside-down .rank-cell {
+  transform: none; /* Content stays upside down */
+}
+
+/* Preview style for shop */
+.preview-name.upside-down-preview {
+  display: inline-block;
+  transform: rotate(180deg);
+}
+
+.preview-leaderboard:has(.upside-down-preview) {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   BANNER FLAMES - Animated fire border
+   ======================================== */
+.leaderboard-row.banner-flames {
+  position: relative;
+  overflow: visible;
+}
+
+.leaderboard-row.banner-flames::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(
+    90deg,
+    #ff4500,
+    #ff6b35,
+    #ffa500,
+    #ff4500,
+    #ff6b35
+  );
+  background-size: 200% 100%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: flamesBorder 1s linear infinite;
+}
+
+.leaderboard-row.banner-flames::after {
+  content: '🔥';
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  animation: flamesFlicker 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes flamesBorder {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes flamesFlicker {
+  0% { 
+    opacity: 0.8;
+    transform: translateY(-50%) scale(1);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+  }
+}
+
+/* ========================================
+   FRAME GOLD - Golden glowing border
+   ======================================== */
+.leaderboard-row.frame-gold {
+  position: relative;
+  border: 2px solid transparent !important;
+  background: 
+    linear-gradient(var(--bg-secondary), var(--bg-secondary)) padding-box,
+    linear-gradient(135deg, #ffd700, #ffb800, #ffa500, #ffd700) border-box !important;
+  box-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.3),
+    0 0 20px rgba(255, 215, 0, 0.2),
+    inset 0 0 10px rgba(255, 215, 0, 0.1) !important;
+}
+
+.leaderboard-row.frame-gold::before {
+  content: '✨';
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  animation: goldSparkle 2s ease-in-out infinite;
+}
+
+.leaderboard-row.frame-gold::after {
+  content: '✨';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  animation: goldSparkle 2s ease-in-out infinite 1s;
+}
+
+@keyframes goldSparkle {
+  0%, 100% { 
+    opacity: 0.5;
+    transform: translateY(-50%) scale(0.8);
+  }
+  50% { 
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+  }
+}

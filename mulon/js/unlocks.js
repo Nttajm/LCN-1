@@ -8,7 +8,10 @@ import {
   updateDoc,
   collection,
   arrayUnion,
-  increment
+  increment,
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import {
   getAuth,
@@ -18,6 +21,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 
 // Import shared card data
 import { cardsData, getCardByNumber } from '../card-data/cards-data.js';
+
+// Import level utilities
+import { calculateLevel } from './level-utils.js';
 
 // Firebase config
 const firebaseConfig = {
@@ -148,10 +154,512 @@ const unlocksData = [
       ]
     },
     availability: {
-      type: 'always', // 'always', 'time', 'day', 'level'
-      // No additional conditions for 'always'
+      type: 'always',
     },
-    repeatable: false // Can only be claimed once
+    repeatable: false
+  },
+  {
+    id: 'pet-lover-cash',
+    name: 'Pet Lover Bonus',
+    description: 'Show off your love for animals! Trade a Puppy and a Cat for cold hard cash.',
+    icon: '💵',
+    reward: {
+      type: 'cash',
+      amount: 500
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#028', quantity: 1 },
+        { cardNumber: '#030', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: false
+  },
+  {
+    id: 'tech-collector',
+    name: 'Tech Collector',
+    description: 'Combine your AirPods and Apple Watch for a big keys payout!',
+    icon: '🎧',
+    reward: {
+      type: 'keys',
+      amount: 100
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#009', quantity: 1 },
+        { cardNumber: '#029', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: false
+  },
+  {
+    id: 'gamer-paradise',
+    name: 'Gamer Paradise',
+    description: 'Trade in your Xbox and GTA 6 for a massive cash reward!',
+    icon: '🎮',
+    reward: {
+      type: 'cash',
+      amount: 2500
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#020', quantity: 1 },
+        { cardNumber: '#013', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: false
+  },
+  {
+    id: 'meme-lord',
+    name: 'Meme Lord',
+    description: 'Combine Tralalelo and MrLeast to prove your meme expertise!',
+    icon: '🎭',
+    reward: {
+      type: 'keys',
+      amount: 75
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#019', quantity: 1 },
+        { cardNumber: '#032', quantity: 2 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: true
+  },
+  {
+    id: 'weekend-special',
+    name: 'Weekend Jackpot',
+    description: 'Special weekend-only reward! Trade any Epic card for bonus cash.',
+    icon: '🎉',
+    reward: {
+      type: 'cash',
+      amount: 1000
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#017', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'day',
+      days: [0, 6] // Saturday and Sunday
+    },
+    repeatable: true
+  },
+  {
+    id: 'lunch-rush',
+    name: 'Lunch Rush Keys',
+    description: 'Available 11am-2pm only! Trade a Taco Bell card for keys.',
+    icon: '🌮',
+    reward: {
+      type: 'keys',
+      amount: 200
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#004', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'time',
+      startHour: 11,
+      endHour: 14
+    },
+    repeatable: false
+  },
+  {
+    id: 'elite-trader',
+    name: 'Elite Trader Bonus',
+    description: 'For Level 3+ traders only! Trade 2 puppies for a premium cash reward.',
+    icon: '👑',
+    reward: {
+      type: 'cash',
+      amount: 750
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#021', quantity: 1 },
+        { cardNumber: '#028', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 3
+    },
+    repeatable: false
+  },
+  {
+    id: 'travel-dreams',
+    name: 'Travel Dreams',
+    description: 'Trade your Trip to Japan and Agarthan Passport for mega keys!',
+    icon: '✈️',
+    reward: {
+      type: 'keys',
+      amount: 300
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#025', quantity: 1 },
+        { cardNumber: '#014', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: false
+  },
+  {
+    id: 'celebrity-meetup',
+    name: 'Celebrity Meetup',
+    description: 'The ultimate flex! Trade Danny DeVito for a massive cash payout!',
+    icon: '🌟',
+    reward: {
+      type: 'cash',
+      amount: 50000
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#001', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: false
+  },
+  {
+    id: 'common-collector',
+    name: 'Common Collector',
+    description: 'Trade 5 iPhone 6 cards for some quick keys. Easy money!',
+    icon: '📱',
+    reward: {
+      type: 'keys',
+      amount: 25
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#034', quantity: 5 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: true
+  },
+  // ========================================
+  // LEVEL-LOCKED UNLOCKS
+  // ========================================
+  {
+    id: 'rising-star',
+    name: 'Rising Star',
+    description: 'Level 5 reward! Trade your Foam Runners for a nice cash bonus.',
+    icon: '⭐',
+    reward: {
+      type: 'cash',
+      amount: 200
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#033', quantity: 2 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 5
+    },
+    repeatable: false
+  },
+  {
+    id: 'document-forger',
+    name: 'Document Forger',
+    description: 'Level 7 exclusive! Trade a Fake ID and SSN for serious keys.',
+    icon: '🪪',
+    reward: {
+      type: 'keys',
+      amount: 150
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#031', quantity: 1 },
+        { cardNumber: '#012', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 7
+    },
+    repeatable: false
+  },
+  {
+    id: 'fuel-mogul',
+    name: 'Fuel Mogul',
+    description: 'Level 10 VIP! Trade 3 gas tanks for a fat cash reward.',
+    icon: '⛽',
+    reward: {
+      type: 'cash',
+      amount: 1500
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#036', quantity: 2 },
+        { cardNumber: '#038', quantity: 3 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 10
+    },
+    repeatable: false
+  },
+  {
+    id: 'subscription-king',
+    name: 'Subscription King',
+    description: 'Level 12 elite! Trade Xbox Game Pass + Netflix for mega keys.',
+    icon: '👑',
+    reward: {
+      type: 'keys',
+      amount: 500
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#010', quantity: 1 },
+        { cardNumber: '#011', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 12
+    },
+    repeatable: false
+  },
+  {
+    id: 'car-dealer',
+    name: 'Car Dealer',
+    description: 'Level 15 prestige! Trade a Prius and Mercedes C-Class for huge cash.',
+    icon: '🚗',
+    reward: {
+      type: 'cash',
+      amount: 25000
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#007', quantity: 1 },
+        { cardNumber: '#016', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 15
+    },
+    repeatable: false
+  },
+  {
+    id: 'influencer-deal',
+    name: 'Influencer Deal',
+    description: 'Level 18 legend! Trade MrBeast collab + LeBron jersey for insane keys.',
+    icon: '📸',
+    reward: {
+      type: 'keys',
+      amount: 1000
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#026', quantity: 1 },
+        { cardNumber: '#008', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 18
+    },
+    repeatable: false
+  },
+  {
+    id: 'luxury-fleet',
+    name: 'Luxury Fleet',
+    description: 'Level 22 master! Trade Tesla Plaid + Mercedes Benz for massive cash.',
+    icon: '🏎️',
+    reward: {
+      type: 'cash',
+      amount: 75000
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#002', quantity: 1 },
+        { cardNumber: '#006', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 22
+    },
+    repeatable: false
+  },
+  {
+    id: 'ultimate-flex',
+    name: 'Ultimate Flex',
+    description: 'Level 25 god! Trade Bragging Card + Rich Millionaire for legendary keys.',
+    icon: '💎',
+    reward: {
+      type: 'keys',
+      amount: 2500
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#003', quantity: 1 },
+        { cardNumber: '#024', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 25
+    },
+    repeatable: false
+  },
+  {
+    id: 'developer-bribe',
+    name: 'Developer Bribe',
+    description: 'Level 30 MAXIMUM! Trade "Ask Joel to Make Feature" for the ultimate payout.',
+    icon: '🔮',
+    reward: {
+      type: 'cash',
+      amount: 150000
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#005', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'level',
+      minLevel: 30
+    },
+    repeatable: false
+  },
+  // ========================================
+  // SCHOOL HOURS UNLOCKS (8am-3pm)
+  // ========================================
+  {
+    id: 'study-break',
+    name: 'Study Break',
+    description: 'School hours only! Trade 2 Torre Exams for quick keys.',
+    icon: '📚',
+    reward: {
+      type: 'keys',
+      amount: 40
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#027', quantity: 1 },
+        { cardNumber: '#037', quantity: 2 }
+      ]
+    },
+    availability: {
+      type: 'time',
+      startHour: 8,
+      endHour: 15
+    },
+    repeatable: true
+  },
+  {
+    id: 'cafeteria-hustle',
+    name: 'Cafeteria Hustle',
+    description: 'School hours! Trade Taco Bell + Starbucks + Smoken Bowls for cash.',
+    icon: '🍽️',
+    reward: {
+      type: 'cash',
+      amount: 100
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#042', quantity: 1 },
+        { cardNumber: '#043', quantity: 1 },
+        { cardNumber: '#044', quantity: 1 }
+      ]
+    },
+    availability: {
+      type: 'time',
+      startHour: 8,
+      endHour: 15
+    },
+    repeatable: true
+  },
+  {
+    id: 'school-supplies',
+    name: 'School Supplies Swap',
+    description: 'School hours only! Trade 10 pencils and 5 paper clips for keys.',
+    icon: '✏️',
+    reward: {
+      type: 'keys',
+      amount: 15
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#040', quantity: 10 },
+        { cardNumber: '#041', quantity: 5 }
+      ]
+    },
+    availability: {
+      type: 'time',
+      startHour: 8,
+      endHour: 15
+    },
+    repeatable: true
+  },
+  // ========================================
+  // MORE CREATIVE UNLOCKS
+  // ========================================
+  {
+    id: 'monopoly-man',
+    name: 'Monopoly Man',
+    description: 'Get out of jail AND get rich! Trade your cards for cash.',
+    icon: '🎩',
+    reward: {
+      type: 'cash',
+      amount: 888
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#023', quantity: 1 },
+        { cardNumber: '#039', quantity: 3 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: false
+  },
+  {
+    id: 'drip-check',
+    name: 'Drip Check',
+    description: 'Show off your style! Trade footwear collection for keys.',
+    icon: '👟',
+    reward: {
+      type: 'keys',
+      amount: 60
+    },
+    requirements: {
+      cards: [
+        { cardNumber: '#033', quantity: 1 },
+        { cardNumber: '#035', quantity: 2 }
+      ]
+    },
+    availability: {
+      type: 'always',
+    },
+    repeatable: true
   },
   // More unlocks can be added here with different availability conditions
   // Example: Time-limited unlock (12pm-2pm)
@@ -288,9 +796,29 @@ async function loadUserData() {
       const data = userDoc.data();
       userBalance = data.balance || 500;
       userKeys = data.keys || 0;
-      userLevel = data.level || 1;
-      userOwnedCards = data.ownedCards || [];
+      
+      // Calculate level from XP
+      const levelData = calculateLevel(data.xps || 0);
+      userLevel = levelData.level;
+      console.log(`User level: ${userLevel} (from ${data.xps || 0} XP)`);
+      
       userCompletedUnlocks = data.completedUnlocks || [];
+      
+      // Load cards from subcollection (same as marketplace)
+      try {
+        const cardsCollectionRef = collection(db, 'mulon_users', currentUser.uid, 'card_inventory');
+        const cardsQuery = query(cardsCollectionRef, where('hasCard', '==', true));
+        const cardsSnapshot = await getDocs(cardsQuery);
+        userOwnedCards = [];
+        cardsSnapshot.forEach((cardDoc) => {
+          userOwnedCards.push({ docId: cardDoc.id, ...cardDoc.data() });
+        });
+        console.log(`Unlocks: Loaded ${userOwnedCards.length} cards from subcollection`);
+      } catch (cardError) {
+        console.error('Error loading cards from subcollection:', cardError);
+        // Fallback to ownedCards array if subcollection fails
+        userOwnedCards = data.ownedCards || [];
+      }
       
       // Update header displays
       document.getElementById('userBalance').textContent = `$${userBalance.toFixed(2)}`;
@@ -492,6 +1020,14 @@ function createUnlockCardHTML(unlock) {
         <span class="reward-label">Keys</span>
       </div>
     `;
+  } else if (unlock.reward.type === 'cash') {
+    rewardHTML = `
+      <div class="reward-preview cash-reward">
+        <span class="cash-icon">💵</span>
+        <span class="reward-amount">+$${unlock.reward.amount.toLocaleString()}</span>
+        <span class="reward-label">Cash</span>
+      </div>
+    `;
   }
   
   // Button state
@@ -567,9 +1103,12 @@ function openUnlockModal(unlockId) {
     `;
   }).join('');
   
-  // Keys reward
+  // Reward display in modal
+  const keysRewardEl = document.getElementById('modalKeysReward');
   if (selectedUnlock.reward.type === 'keys') {
-    document.getElementById('modalKeysReward').textContent = `+${selectedUnlock.reward.amount}`;
+    keysRewardEl.textContent = `+${selectedUnlock.reward.amount}`;
+  } else if (selectedUnlock.reward.type === 'cash') {
+    keysRewardEl.textContent = `+$${selectedUnlock.reward.amount.toLocaleString()}`;
   }
   
   // Show modal
@@ -611,30 +1150,44 @@ async function confirmUnlock() {
     
     // Add reward
     let newKeys = userKeys;
+    let newBalance = userBalance;
     if (selectedUnlock.reward.type === 'keys') {
       newKeys += selectedUnlock.reward.amount;
+    } else if (selectedUnlock.reward.type === 'cash') {
+      newBalance += selectedUnlock.reward.amount;
     }
     
     // Update Firestore
-    await updateDoc(userDocRef, {
-      keys: newKeys,
+    const updateData = {
       ownedCards: updatedCards,
       completedUnlocks: arrayUnion(selectedUnlock.id)
-    });
+    };
+    if (selectedUnlock.reward.type === 'keys') {
+      updateData.keys = newKeys;
+    } else if (selectedUnlock.reward.type === 'cash') {
+      updateData.balance = newBalance;
+    }
+    await updateDoc(userDocRef, updateData);
     
     // Update local state
     userKeys = newKeys;
+    userBalance = newBalance;
     userOwnedCards = updatedCards;
     userCompletedUnlocks.push(selectedUnlock.id);
     
     // Update UI
     document.getElementById('userKeys').innerHTML = `<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ${userKeys}`;
+    document.getElementById('userBalance').textContent = `$${userBalance.toFixed(2)}`;
     document.getElementById('userCardsCount').textContent = userOwnedCards.length.toString();
     document.getElementById('unlocksCompletedCount').textContent = userCompletedUnlocks.length.toString();
     
+    // Save reward info before closing modal (closeUnlockModal sets selectedUnlock to null)
+    const rewardAmount = selectedUnlock.reward.amount;
+    const rewardType = selectedUnlock.reward.type;
+    
     // Close unlock modal and show success
     closeUnlockModal();
-    showSuccessModal(selectedUnlock.reward.amount);
+    showSuccessModal(rewardAmount, rewardType);
     
     // Re-render unlocks
     renderUnlocks();
@@ -648,9 +1201,14 @@ async function confirmUnlock() {
 // ========================================
 // SUCCESS MODAL
 // ========================================
-function showSuccessModal(keysAmount) {
-  document.getElementById('successMessage').textContent = `You received ${keysAmount} keys!`;
-  document.getElementById('keysEarned').textContent = `+${keysAmount}`;
+function showSuccessModal(amount, rewardType = 'keys') {
+  if (rewardType === 'cash') {
+    document.getElementById('successMessage').textContent = `You received $${amount.toLocaleString()}!`;
+    document.getElementById('keysEarned').textContent = `+$${amount.toLocaleString()}`;
+  } else {
+    document.getElementById('successMessage').textContent = `You received ${amount} keys!`;
+    document.getElementById('keysEarned').textContent = `+${amount}`;
+  }
   document.getElementById('successModal').classList.add('active');
 }
 

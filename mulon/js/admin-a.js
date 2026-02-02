@@ -2,7 +2,7 @@
 // MULON - Admin Panel JavaScript
 // ========================================
 
-import { MulonData, Auth } from './data.js';
+import { MulonData, Auth } from './data-a.js';
 
 // Admin email whitelist - DO NOT MODIFY THIS LIST IN CONSOLE
 // Access checks are done server-side style with real-time auth verification
@@ -109,6 +109,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Setup waitlist management
   setupWaitlistManagement();
+  
+  // Setup purchases management
+  setupPurchasesManagement();
   
   // Setup delete modal
   setupDeleteModal();
@@ -897,6 +900,7 @@ function setupCategoryForm() {
 // MANAGEMENT TABS
 // ========================================
 let waitlistLoaded = false;
+let purchasesLoaded = false;
 
 function setupManagementTabs() {
   const tabs = document.querySelectorAll('.management-tab');
@@ -904,7 +908,8 @@ function setupManagementTabs() {
     categories: document.getElementById('categoriesTabContent'),
     waitlist: document.getElementById('waitlistTabContent'),
     users: document.getElementById('usersTabContent'),
-    suggestions: document.getElementById('suggestionsTabContent')
+    suggestions: document.getElementById('suggestionsTabContent'),
+    purchases: document.getElementById('purchasesTabContent')
   };
   
   tabs.forEach(tab => {
@@ -933,6 +938,12 @@ function setupManagementTabs() {
       if (tabName === 'waitlist' && !waitlistLoaded) {
         loadWaitlist();
         waitlistLoaded = true;
+      }
+      
+      // Load purchases on first switch to purchases tab
+      if (tabName === 'purchases' && !purchasesLoaded) {
+        loadPurchases();
+        purchasesLoaded = true;
       }
     });
   });
@@ -1231,11 +1242,11 @@ function renderUsersList(users) {
   
   // Attach cards view/edit listeners
   usersList.querySelectorAll('.user-cards-count').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const userId = this.dataset.userId;
       const user = allUsers.find(u => u.id === userId);
       if (user) {
-        showUserCardsModal(user);
+        await showUserCardsModal(user);
       }
     });
   });
@@ -1639,12 +1650,16 @@ function setupCardsModal() {
   }
 }
 
-function showUserCardsModal(user) {
+async function showUserCardsModal(user) {
   currentCardsUser = user;
   const modal = document.getElementById('cardsModal');
   const userInfo = document.getElementById('cardsModalUser');
+  const cardsList = document.getElementById('cardsModalList');
   
-  // Populate user info
+  // Show loading state
+  cardsList.innerHTML = '<div class="loading-state">Loading cards...</div>';
+  
+  // Populate user info (temporary count while loading)
   userInfo.innerHTML = `
     <div class="modal-user-info">
       ${user.photoURL 
@@ -1654,7 +1669,7 @@ function showUserCardsModal(user) {
       <div class="modal-user-details">
         <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
         <span class="modal-user-email">${escapeHtml(user.email)}</span>
-        <span class="modal-user-cards">Cards: ${(user.ownedCards || []).length}</span>
+        <span class="modal-user-cards" id="modalCardsCount">Cards: Loading...</span>
       </div>
     </div>
   `;
@@ -1663,11 +1678,30 @@ function showUserCardsModal(user) {
   const addCardInput = document.getElementById('addCardNumber');
   if (addCardInput) addCardInput.value = '';
   
-  // Render cards
-  renderCardsModalList(user.ownedCards || []);
-  
-  // Show modal
+  // Show modal immediately
   modal.classList.add('active');
+  
+  // Fetch fresh cards from subcollection
+  const freshCards = await MulonData.getUserCards(user.id);
+  
+  // Update user object with fresh cards
+  user.ownedCards = freshCards;
+  currentCardsUser.ownedCards = freshCards;
+  
+  // Update local cache
+  const userIndex = allUsers.findIndex(u => u.id === user.id);
+  if (userIndex !== -1) {
+    allUsers[userIndex].ownedCards = freshCards;
+  }
+  
+  // Update card count in header
+  const modalCardsCount = document.getElementById('modalCardsCount');
+  if (modalCardsCount) {
+    modalCardsCount.textContent = `Cards: ${freshCards.length}`;
+  }
+  
+  // Render cards
+  renderCardsModalList(freshCards);
 }
 
 function closeCardsModal() {
@@ -1714,6 +1748,7 @@ function renderCardsModalList(cards) {
       if (!currentCardsUser) return;
       
       const cardNumber = this.dataset.cardNumber;
+      const cardItem = this.closest('.card-edit-item');
       
       this.disabled = true;
       const result = await MulonData.removeCardFromUser(currentCardsUser.id, cardNumber);
@@ -1730,6 +1765,14 @@ function renderCardsModalList(cards) {
             allUsers[userIndex].ownedCards.splice(cardIndex, 1);
           }
           updateUsersStats();
+          
+          // Update just the card count badge in the users list
+          const userItem = document.querySelector(`.user-admin-item[data-user-id="${currentCardsUser.id}"] .user-cards-count`);
+          if (userItem) {
+            const cardCount = allUsers[userIndex].ownedCards.length;
+            userItem.innerHTML = `🃏 ${cardCount} card${cardCount !== 1 ? 's' : ''} <span class="edit-icon">✏️</span>`;
+            userItem.classList.toggle('has-cards', cardCount > 0);
+          }
         }
         
         // Update currentCardsUser
@@ -1738,8 +1781,38 @@ function renderCardsModalList(cards) {
           currentCardsUser.ownedCards.splice(localCardIndex, 1);
         }
         
-        renderCardsModalList(currentCardsUser.ownedCards);
-        renderUsersList(allUsers);
+        // Update modal header card count
+        const modalCardsCount = document.getElementById('modalCardsCount');
+        if (modalCardsCount) {
+          modalCardsCount.textContent = `Cards: ${currentCardsUser.ownedCards.length}`;
+        }
+        
+        // FAST DOM update: just update this specific card element instead of re-rendering all 17k cards
+        const remainingCount = currentCardsUser.ownedCards.filter(c => c.cardNumber === cardNumber).length;
+        
+        if (remainingCount === 0) {
+          // No more of this card - remove the element
+          cardItem.remove();
+          
+          // Check if list is now empty
+          if (currentCardsUser.ownedCards.length === 0) {
+            document.getElementById('cardsModalList').innerHTML = '<p class="empty-message">No cards owned</p>';
+          }
+        } else {
+          // Update the count display for this card
+          const countSpan = cardItem.querySelector('.card-count');
+          if (remainingCount > 1) {
+            if (countSpan) {
+              countSpan.textContent = `×${remainingCount}`;
+            } else {
+              // Add count span if it doesn't exist
+              cardItem.querySelector('.card-info').insertAdjacentHTML('beforeend', `<span class="card-count">×${remainingCount}</span>`);
+            }
+          } else {
+            // Only 1 left, remove count span
+            if (countSpan) countSpan.remove();
+          }
+        }
       } else {
         showToast('Error: ' + result.error, 'error');
       }
@@ -2300,6 +2373,281 @@ function attachWaitlistEventListeners() {
         showToast('Error revoking access', 'error');
         this.disabled = false;
         this.textContent = 'Revoke';
+      }
+    });
+  });
+}
+
+// ========================================
+// PURCHASES MANAGEMENT
+// ========================================
+let purchasesData = [];
+let purchasesFilter = 'pending';
+
+function setupPurchasesManagement() {
+  // Refresh button
+  const refreshBtn = document.getElementById('refreshPurchasesBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', loadPurchases);
+  }
+  
+  // Filter buttons
+  document.querySelectorAll('.purchases-filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.purchases-filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      purchasesFilter = this.dataset.filter;
+      renderPurchases();
+    });
+  });
+}
+
+async function loadPurchases() {
+  const listEl = document.getElementById('purchasesList');
+  if (listEl) {
+    listEl.innerHTML = '<div class="loading-state">Loading purchases...</div>';
+  }
+  
+  try {
+    purchasesData = await MulonData.getPurchases();
+    updatePurchasesStats();
+    renderPurchases();
+  } catch (error) {
+    console.error('Error loading purchases:', error);
+    if (listEl) {
+      listEl.innerHTML = '<div class="error-state">Error loading purchases</div>';
+    }
+  }
+}
+
+function updatePurchasesStats() {
+  const pending = purchasesData.filter(p => p.status === 'pending').length;
+  const completed = purchasesData.filter(p => p.status === 'completed').length;
+  const totalRevenue = purchasesData.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.amount || 0), 0);
+  
+  const pendingEl = document.getElementById('purchasesPendingCount');
+  const completedEl = document.getElementById('purchasesCompletedCount');
+  const revenueEl = document.getElementById('purchasesTotalRevenue');
+  const badgeEl = document.getElementById('purchasesBadge');
+  
+  if (pendingEl) pendingEl.textContent = pending;
+  if (completedEl) completedEl.textContent = completed;
+  if (revenueEl) revenueEl.textContent = '$' + totalRevenue.toFixed(2);
+  if (badgeEl) {
+    badgeEl.textContent = pending;
+    badgeEl.style.display = pending > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+function renderPurchases() {
+  const listEl = document.getElementById('purchasesList');
+  if (!listEl) return;
+  
+  let filtered = purchasesData;
+  if (purchasesFilter === 'banners') {
+    // Show all custom banner purchases regardless of status
+    filtered = purchasesData.filter(p => p.type === 'custom-banner');
+  } else if (purchasesFilter !== 'all') {
+    filtered = purchasesData.filter(p => p.status === purchasesFilter);
+  }
+  
+  // Sort by timestamp (newest first for completed, oldest first for pending)
+  filtered.sort((a, b) => {
+    const aTime = a.timestamp?.toDate?.() || new Date(a.timestamp);
+    const bTime = b.timestamp?.toDate?.() || new Date(b.timestamp);
+    return purchasesFilter === 'pending' ? aTime - bTime : bTime - aTime;
+  });
+  
+  if (filtered.length === 0) {
+    listEl.innerHTML = `
+      <div class="purchases-empty">
+        <span class="empty-icon">💳</span>
+        <p>No ${purchasesFilter === 'all' ? '' : purchasesFilter + ' '}purchases</p>
+      </div>
+    `;
+    return;
+  }
+  
+  listEl.innerHTML = filtered.map(purchase => {
+    const timestamp = purchase.timestamp?.toDate?.() || new Date(purchase.timestamp);
+    const dateStr = timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeStr = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    
+    const statusClass = purchase.status === 'pending' ? 'status-pending' : 
+                       purchase.status === 'completed' ? 'status-approved' : 'status-rejected';
+    
+    // Check if this is a custom banner purchase
+    const isCustomBanner = purchase.type === 'custom-banner';
+    const purchaseTitle = isCustomBanner ? 'Custom Profile Banner' : (purchase.packName || 'Unknown Pack');
+    const purchaseAmount = isCustomBanner 
+      ? `${purchase.amount || 0} Keys` 
+      : `$${(purchase.amount || 0).toFixed(2)} USD`;
+    
+    let actionButtons = '';
+    if (purchase.status === 'pending') {
+      if (isCustomBanner) {
+        actionButtons = `
+          <button class="approve-banner btn-primary" data-id="${purchase.id}" data-user-id="${purchase.userId}" data-banner-url="${encodeURIComponent(purchase.bannerUrl || '')}">✓ Approve Banner</button>
+          <button class="reject-banner btn-secondary" data-id="${purchase.id}" data-user-id="${purchase.userId}">✗ Reject (Refund)</button>
+        `;
+      } else {
+        actionButtons = `
+          <button class="complete-purchase btn-primary" data-id="${purchase.id}">✓ Mark Completed</button>
+          <button class="cancel-purchase btn-secondary" data-id="${purchase.id}">✗ Cancel</button>
+        `;
+      }
+    } else if (purchase.status === 'completed') {
+      actionButtons = `<span class="completed-badge">✓ Fulfilled</span>`;
+    } else {
+      actionButtons = `<span class="cancelled-badge">✗ Cancelled</span>`;
+    }
+    
+    // Banner preview for custom banner purchases
+    const bannerPreview = isCustomBanner && purchase.bannerUrl ? `
+      <div class="purchase-banner-preview">
+        <img src="${purchase.bannerUrl}" alt="Banner Preview" class="banner-preview-img" onerror="this.parentElement.innerHTML='<span class=\\'banner-error\\'>⚠️ Image failed to load</span>'">
+      </div>
+    ` : '';
+    
+    return `
+      <div class="purchase-item ${statusClass} ${isCustomBanner ? 'banner-purchase' : ''}">
+        <div class="purchase-info">
+          <div class="purchase-user">
+            <strong>${purchase.userEmail || 'Unknown User'}</strong>
+            <span class="purchase-username">${purchase.username || ''}</span>
+          </div>
+          <div class="purchase-details">
+            <span class="purchase-pack">${isCustomBanner ? '🖼️ ' : ''}${purchaseTitle}</span>
+            <span class="purchase-amount">${purchaseAmount}</span>
+          </div>
+          ${bannerPreview}
+          <div class="purchase-meta">
+            <span class="purchase-date">${dateStr} at ${timeStr}</span>
+            <span class="purchase-status ${statusClass}">${purchase.status}</span>
+          </div>
+        </div>
+        <div class="purchase-actions">
+          ${actionButtons}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  attachPurchaseEventListeners();
+}
+
+function attachPurchaseEventListeners() {
+  // Complete buttons
+  document.querySelectorAll('.complete-purchase').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!confirm('Mark this purchase as completed/fulfilled?')) return;
+      
+      const id = this.dataset.id;
+      
+      this.disabled = true;
+      this.textContent = 'Processing...';
+      
+      const result = await MulonData.updatePurchaseStatus(id, 'completed');
+      
+      if (result.success) {
+        showToast('Purchase marked as completed!', 'success');
+        await loadPurchases();
+      } else {
+        showToast('Error updating purchase', 'error');
+        this.disabled = false;
+        this.textContent = '✓ Mark Completed';
+      }
+    });
+  });
+  
+  // Cancel buttons
+  document.querySelectorAll('.cancel-purchase').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!confirm('Cancel this purchase? The user will not receive items.')) return;
+      
+      const id = this.dataset.id;
+      
+      this.disabled = true;
+      this.textContent = 'Cancelling...';
+      
+      const result = await MulonData.updatePurchaseStatus(id, 'cancelled');
+      
+      if (result.success) {
+        showToast('Purchase cancelled', 'success');
+        await loadPurchases();
+      } else {
+        showToast('Error cancelling purchase', 'error');
+        this.disabled = false;
+        this.textContent = '✗ Cancel';
+      }
+    });
+  });
+  
+  // Approve banner buttons
+  document.querySelectorAll('.approve-banner').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!confirm('Approve this custom banner? It will be applied to the user\'s profile.')) return;
+      
+      const id = this.dataset.id;
+      const userId = this.dataset.userId;
+      const bannerUrl = decodeURIComponent(this.dataset.bannerUrl);
+      
+      this.disabled = true;
+      this.textContent = 'Approving...';
+      
+      try {
+        // Update user's customBannerUrl
+        const result = await MulonData.approveCustomBanner(userId, bannerUrl, id);
+        
+        if (result.success) {
+          showToast('Banner approved and applied!', 'success');
+          await loadPurchases();
+        } else {
+          showToast('Error approving banner: ' + (result.error || 'Unknown error'), 'error');
+          this.disabled = false;
+          this.textContent = '✓ Approve Banner';
+        }
+      } catch (error) {
+        console.error('Error approving banner:', error);
+        showToast('Error approving banner', 'error');
+        this.disabled = false;
+        this.textContent = '✓ Approve Banner';
+      }
+    });
+  });
+  
+  // Reject banner buttons (with refund)
+  document.querySelectorAll('.reject-banner').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (!isAccessAllowed()) return;
+      if (!confirm('Reject this banner and refund the user\'s keys?')) return;
+      
+      const id = this.dataset.id;
+      const userId = this.dataset.userId;
+      
+      this.disabled = true;
+      this.textContent = 'Rejecting...';
+      
+      try {
+        // Reject banner and refund keys
+        const result = await MulonData.rejectCustomBanner(userId, id, 150); // 150 keys refund
+        
+        if (result.success) {
+          showToast('Banner rejected and keys refunded!', 'success');
+          await loadPurchases();
+        } else {
+          showToast('Error rejecting banner: ' + (result.error || 'Unknown error'), 'error');
+          this.disabled = false;
+          this.textContent = '✗ Reject (Refund)';
+        }
+      } catch (error) {
+        console.error('Error rejecting banner:', error);
+        showToast('Error rejecting banner', 'error');
+        this.disabled = false;
+        this.textContent = '✗ Reject (Refund)';
       }
     });
   });
