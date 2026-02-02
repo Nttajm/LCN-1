@@ -697,6 +697,27 @@ body.sidebar-open {
   transform: translateY(-1px);
 }
 
+.report-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.report-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
 /* ========================================
    BOXES & CARDS
    ======================================== */

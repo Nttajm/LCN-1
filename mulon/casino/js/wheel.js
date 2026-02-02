@@ -2,171 +2,68 @@
 // WHEEL GAME - Stake-style Ring Wheel
 // ========================================
 
-// Stake-style wheel colors (matching screenshot)
-const WHEEL_COLORS = {
-  gray: '#3a4451',      // 0.00x - Gray/dark
-  green: '#22c55e',     // 1.50x - Green  
-  blue: '#6366f1',      // 1.70x - Blue/indigo
-  purple: '#8b5cf6',    // 2.00x - Purple
-  yellow: '#eab308',    // 3.00x - Yellow
-  orange: '#f97316'     // 4.00x - Orange
+// Game Configuration
+const config = {
+  betAmount: 0,
+  risk: 'medium',
+  segments: 30,
+  sessionProfit: 0,
+  spinsPlayed: 0,
+  bestWin: 0,
+  isSpinning: false,
+  isSignedIn: false,
+  currentRotation: 0
 };
 
-// Wheel configurations for different risk levels and segments
-const WHEEL_CONFIGS = {
+// Multiplier configurations based on risk and segments
+// Colors match Stake's wheel exactly
+const MULTIPLIER_COLORS = {
+  0: '#4a5568',      // Gray - 0.00x
+  1.5: '#f7b733',    // Yellow - 1.50x
+  1.7: '#f5f5f5',    // White/Light - 1.70x
+  1.9: '#6b8e7e',    // Teal/Gray-green - 1.90x
+  2: '#22c55e',      // Green - 2.00x
+  3: '#a855f7',      // Purple - 3.00x
+  4: '#f97316',      // Orange - 4.00x
+};
+
+// Segment distributions for different risk/segment combinations
+// Format: { multiplier: count }
+const SEGMENT_CONFIGS = {
   low: {
-    10: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 5 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 2 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 2 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 1 }
-    ],
-    20: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 10 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 4 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 3 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 1 }
-    ],
-    30: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 15 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 6 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 4 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 3 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 2 }
-    ],
-    40: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 20 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 8 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 5 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 4 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 3 }
-    ],
-    50: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 25 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 10 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 6 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 5 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 4 }
-    ]
+    10: { 0: 0, 1.5: 1, 1.9: 5, 2: 3, 3: 1 },
+    20: { 0: 0, 1.5: 2, 1.9: 10, 2: 6, 3: 2 },
+    30: { 0: 0, 1.5: 3, 1.9: 15, 2: 9, 3: 3 },
+    40: { 0: 0, 1.5: 4, 1.9: 20, 2: 12, 3: 4 },
+    50: { 0: 0, 1.5: 5, 1.9: 25, 2: 15, 3: 5 }
   },
   medium: {
-    10: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 6 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 1 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 1 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 1 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 }
-    ],
-    20: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 12 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 2 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 2 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 1 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 }
-    ],
-    30: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 18 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 4 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 3 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 2 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 }
-    ],
-    40: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 24 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 5 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 4 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 3 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 2 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 2 }
-    ],
-    50: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 30 },
-      { multiplier: 1.5, color: WHEEL_COLORS.green, weight: 6 },
-      { multiplier: 1.7, color: WHEEL_COLORS.blue, weight: 5 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 4 },
-      { multiplier: 3, color: WHEEL_COLORS.yellow, weight: 3 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 2 }
-    ]
+    10: { 0: 1, 1.5: 2, 1.7: 2, 2: 2, 3: 2, 4: 1 },
+    20: { 0: 2, 1.5: 4, 1.7: 4, 2: 4, 3: 4, 4: 2 },
+    30: { 0: 3, 1.5: 6, 1.7: 6, 2: 6, 3: 6, 4: 3 },
+    40: { 0: 4, 1.5: 8, 1.7: 8, 2: 8, 3: 8, 4: 4 },
+    50: { 0: 5, 1.5: 10, 1.7: 10, 2: 10, 3: 10, 4: 5 }
   },
   high: {
-    10: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 7 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 1 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 1 },
-      { multiplier: 10, color: '#ef4444', weight: 1 }
-    ],
-    20: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 14 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 2 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 2 },
-      { multiplier: 10, color: '#ef4444', weight: 1 },
-      { multiplier: 20, color: '#ec4899', weight: 1 }
-    ],
-    30: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 21 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 3 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 3 },
-      { multiplier: 10, color: '#ef4444', weight: 2 },
-      { multiplier: 20, color: '#ec4899', weight: 1 }
-    ],
-    40: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 28 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 4 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 4 },
-      { multiplier: 10, color: '#ef4444', weight: 2 },
-      { multiplier: 20, color: '#ec4899', weight: 2 }
-    ],
-    50: [
-      { multiplier: 0, color: WHEEL_COLORS.gray, weight: 35 },
-      { multiplier: 2, color: WHEEL_COLORS.purple, weight: 5 },
-      { multiplier: 4, color: WHEEL_COLORS.orange, weight: 5 },
-      { multiplier: 10, color: '#ef4444', weight: 3 },
-      { multiplier: 20, color: '#ec4899', weight: 2 }
-    ]
+    10: { 0: 4, 1.5: 1, 1.7: 1, 2: 2, 3: 1, 4: 1 },
+    20: { 0: 8, 1.5: 2, 1.7: 2, 2: 4, 3: 2, 4: 2 },
+    30: { 0: 12, 1.5: 3, 1.7: 3, 2: 6, 3: 3, 4: 3 },
+    40: { 0: 16, 1.5: 4, 1.7: 4, 2: 8, 3: 4, 4: 4 },
+    50: { 0: 20, 1.5: 5, 1.7: 5, 2: 10, 3: 5, 4: 5 }
   }
 };
 
-// Game State
-const gameState = {
-  risk: 'medium',
-  segments: 30,
-  betAmount: 10,
-  isSpinning: false,
-  currentRotation: 0,
-  isSignedIn: false,
-  
-  // Stats
-  totalSpins: 0,
-  sessionProfit: 0,
-  bestWin: 0,
-  
-  // Auto mode
-  isAutoMode: false,
-  autoRunning: false,
-  autoSpinsRemaining: 0,
-  autoInfinite: false,
-  baseBet: 10,
-  onWinReset: true,
-  onWinIncreasePercent: 0,
-  onLossReset: true,
-  onLossIncreasePercent: 0,
-  stopProfit: 0,
-  stopLoss: 0,
-  
-  // History
-  spinHistory: [],
-  profitHistory: [0]
-};
+// Current wheel segments array
+let wheelSegments = [];
 
-// DOM Elements
-let elements = {};
-let wheelCanvas, wheelCtx;
-let currentSegments = [];
+// Canvas and context
+let canvas, ctx;
+const WHEEL_SIZE = 400;
+const OUTER_RADIUS = 190;
+const INNER_RADIUS = 130;
+const CENTER_RADIUS = 80;
 
-// Wait for CasinoAuth to be ready
+// Wait for auth to be ready
 function waitForAuth() {
   return new Promise((resolve) => {
     const check = () => {
@@ -180,643 +77,581 @@ function waitForAuth() {
   });
 }
 
-// Initialize when DOM is ready
+// Generate wheel segments based on config - EVENLY DISTRIBUTED PATTERN
+function generateWheelSegments() {
+  const segmentConfig = SEGMENT_CONFIGS[config.risk][config.segments];
+  wheelSegments = [];
+  
+  // Get multipliers sorted by value (highest first for pattern)
+  const multiplierEntries = Object.entries(segmentConfig)
+    .filter(([mult, count]) => count > 0) // Only include multipliers with count > 0
+    .map(([mult, count]) => ({ mult: parseFloat(mult), count }))
+    .sort((a, b) => b.mult - a.mult); // Sort highest to lowest
+  
+  const totalSegments = config.segments;
+  
+  // Create evenly distributed pattern
+  // Strategy: Place each multiplier type evenly around the wheel
+  const segmentArray = new Array(totalSegments).fill(null);
+  
+  for (const { mult, count } of multiplierEntries) {
+    if (count === 0) continue;
+    
+    // Calculate spacing for this multiplier
+    const spacing = totalSegments / count;
+    
+    // Find starting offset that works (try to interleave with existing)
+    let startOffset = 0;
+    for (let offset = 0; offset < spacing; offset++) {
+      let canUseOffset = true;
+      for (let i = 0; i < count; i++) {
+        const pos = Math.floor(offset + i * spacing) % totalSegments;
+        if (segmentArray[pos] !== null) {
+          canUseOffset = false;
+          break;
+        }
+      }
+      if (canUseOffset) {
+        startOffset = offset;
+        break;
+      }
+    }
+    
+    // Place this multiplier evenly
+    for (let i = 0; i < count; i++) {
+      let pos = Math.floor(startOffset + i * spacing) % totalSegments;
+      // Find next available slot if taken
+      while (segmentArray[pos] !== null) {
+        pos = (pos + 1) % totalSegments;
+      }
+      segmentArray[pos] = mult;
+    }
+  }
+  
+  // Convert to segment objects with colors
+  wheelSegments = segmentArray.map(mult => ({
+    multiplier: mult,
+    color: MULTIPLIER_COLORS[mult] || '#4a5568'
+  }));
+  
+  return wheelSegments;
+}
+
+// Fisher-Yates shuffle
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// Draw the wheel (ring style like Stake)
+function drawWheel(rotation = 0) {
+  if (!ctx) return;
+  
+  const centerX = WHEEL_SIZE / 2;
+  const centerY = WHEEL_SIZE / 2;
+  const numSegments = wheelSegments.length;
+  const anglePerSegment = (2 * Math.PI) / numSegments;
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, WHEEL_SIZE, WHEEL_SIZE);
+  
+  // Draw outer ring background (dark)
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, OUTER_RADIUS + 5, 0, 2 * Math.PI);
+  ctx.fillStyle = '#1a1f26';
+  ctx.fill();
+  
+  // Draw each segment (ring style - only outer ring has color)
+  wheelSegments.forEach((segment, i) => {
+    const startAngle = rotation + (i * anglePerSegment) - Math.PI / 2;
+    const endAngle = startAngle + anglePerSegment;
+    
+    // Draw segment arc (ring)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, OUTER_RADIUS, startAngle, endAngle);
+    ctx.arc(centerX, centerY, INNER_RADIUS, endAngle, startAngle, true);
+    ctx.closePath();
+    
+    ctx.fillStyle = segment.color;
+    ctx.fill();
+    
+    // Add subtle border between segments
+    ctx.strokeStyle = '#1a1f26';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+  
+  // Draw inner dark circle
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, INNER_RADIUS - 2, 0, 2 * Math.PI);
+  ctx.fillStyle = '#0f1419';
+  ctx.fill();
+  
+  // Draw center circle (darker)
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, CENTER_RADIUS, 0, 2 * Math.PI);
+  ctx.fillStyle = '#1a1f26';
+  ctx.fill();
+  ctx.strokeStyle = '#2a3441';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+// Update multiplier legend at bottom
+function updateLegend() {
+  const legendGrid = document.getElementById('legendGrid');
+  if (!legendGrid) return;
+  
+  const segmentConfig = SEGMENT_CONFIGS[config.risk][config.segments];
+  // Only show multipliers that have count > 0
+  const uniqueMultipliers = Object.entries(segmentConfig)
+    .filter(([mult, count]) => count > 0)
+    .map(([mult]) => parseFloat(mult))
+    .sort((a, b) => a - b);
+  
+  legendGrid.innerHTML = uniqueMultipliers.map(mult => `
+    <div class="legend-item" data-multiplier="${mult}">
+      <div class="legend-color" style="background: ${MULTIPLIER_COLORS[mult]}"></div>
+      <span class="legend-multiplier">${mult.toFixed(2)}×</span>
+    </div>
+  `).join('');
+}
+
+// Spin the wheel
+async function spin() {
+  if (config.isSpinning) return;
+  
+  // Check if signed in
+  if (!config.isSignedIn) {
+    showToast('Please sign in to play!');
+    return;
+  }
+  
+  // Check if user has keys
+  const currentKeys = window.CasinoAuth.getKeys();
+  if (currentKeys <= 0) {
+    showToast('You need keys to play! Come back tomorrow for free keys.');
+    return;
+  }
+  
+  const betAmount = parseFloat(document.getElementById('betAmount').value) || 0;
+  if (betAmount <= 0) {
+    showToast('Please enter a bet amount!');
+    return;
+  }
+  
+  const currentBalance = window.CasinoAuth.getBalance();
+  if (currentBalance < betAmount) {
+    showToast('Insufficient balance!');
+    return;
+  }
+  
+  // Lock controls
+  config.isSpinning = true;
+  config.betAmount = betAmount;
+  lockControls(true);
+  
+  // Place bet
+  const result = await window.CasinoDB.placeBet(betAmount, 'wheel');
+  if (!result.success) {
+    showToast(result.error || 'Failed to place bet');
+    config.isSpinning = false;
+    lockControls(false);
+    return;
+  }
+  
+  updateBalanceDisplay();
+  
+  // Determine winning segment
+  const winningIndex = Math.floor(Math.random() * wheelSegments.length);
+  const winningSegment = wheelSegments[winningIndex];
+  
+  // Calculate rotation
+  // We need the winning segment to land at the top (pointer position)
+  const anglePerSegment = (2 * Math.PI) / wheelSegments.length;
+  const segmentMiddle = (winningIndex * anglePerSegment) + (anglePerSegment / 2);
+  
+  // Add multiple full rotations + offset to land on winning segment
+  const fullRotations = 5 + Math.floor(Math.random() * 3); // 5-7 full rotations
+  const targetRotation = (fullRotations * 2 * Math.PI) + (2 * Math.PI - segmentMiddle);
+  
+  // Animate the wheel
+  await animateWheel(targetRotation);
+  
+  // Handle result
+  await handleResult(winningSegment);
+}
+
+// Animate wheel spin
+function animateWheel(targetRotation) {
+  return new Promise((resolve) => {
+    const startRotation = config.currentRotation % (2 * Math.PI);
+    const totalRotation = targetRotation;
+    const duration = 4000; // 4 seconds
+    const startTime = performance.now();
+    
+    function animate(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function: cubic-bezier like (0.17, 0.67, 0.12, 0.99)
+      const easeOut = 1 - Math.pow(1 - progress, 4);
+      
+      const currentRotation = startRotation + (totalRotation * easeOut);
+      config.currentRotation = currentRotation;
+      
+      drawWheel(currentRotation);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        config.currentRotation = currentRotation % (2 * Math.PI);
+        resolve();
+      }
+    }
+    
+    requestAnimationFrame(animate);
+  });
+}
+
+// Handle spin result
+async function handleResult(segment) {
+  const multiplier = segment.multiplier;
+  const winAmount = Math.round(config.betAmount * multiplier * 100) / 100;
+  const profit = Math.round((winAmount - config.betAmount) * 100) / 100;
+  
+  config.spinsPlayed++;
+  document.getElementById('spinsPlayed').textContent = config.spinsPlayed;
+  
+  // Highlight winning legend item
+  highlightLegendItem(multiplier);
+  
+  if (multiplier > 0) {
+    // Win
+    await window.CasinoDB.recordWin(winAmount, config.betAmount);
+    
+    // Record game result
+    if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+      await window.CasinoDB.recordGameResult('wheel', config.betAmount, winAmount);
+    }
+    
+    // Award XPs for wins
+    if (multiplier >= 1) {
+      try {
+        const xpResult = await window.CasinoDB.awardXPs('wheel', multiplier, config.betAmount);
+        if (xpResult && xpResult.success && xpResult.xpsEarned > 0) {
+          updateXPsDisplay();
+          showXPGain(xpResult.xpsEarned, xpResult.streak, xpResult.streakMultiplier);
+        }
+      } catch (err) {
+        console.error('Error awarding XPs:', err);
+      }
+    }
+    
+    config.sessionProfit += profit;
+    
+    if (profit > config.bestWin) {
+      config.bestWin = profit;
+      document.getElementById('bestWin').textContent = '$' + config.bestWin.toFixed(2);
+    }
+    
+    // Update profit graph
+    if (window.ProfitGraph) {
+      window.ProfitGraph.addPoint(profit);
+    }
+    
+    showToast(`Won $${winAmount.toFixed(2)} (${multiplier}×)`, 'win');
+  } else {
+    // Loss (0.00x)
+    await window.CasinoDB.recordLoss('wheel');
+    await window.CasinoDB.resetStreak();
+    
+    if (window.CasinoDB && window.CasinoDB.recordGameResult) {
+      await window.CasinoDB.recordGameResult('wheel', config.betAmount, 0);
+    }
+    
+    config.sessionProfit -= config.betAmount;
+    
+    // Update profit graph
+    if (window.ProfitGraph) {
+      window.ProfitGraph.addPoint(-config.betAmount);
+    }
+    
+    updateKeysDisplay();
+    showToast(`Lost $${config.betAmount.toFixed(2)} & -1 🔑`, 'loss');
+  }
+  
+  updateBalanceDisplay();
+  updateProfitDisplay();
+  addResultToHistory(multiplier, segment.color);
+  
+  // Unlock controls
+  config.isSpinning = false;
+  lockControls(false);
+}
+
+// Highlight winning legend item
+function highlightLegendItem(multiplier) {
+  // Remove all active classes
+  document.querySelectorAll('.legend-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Add active to winning multiplier
+  const winningItem = document.querySelector(`.legend-item[data-multiplier="${multiplier}"]`);
+  if (winningItem) {
+    winningItem.classList.add('active');
+    
+    // Remove after 2 seconds
+    setTimeout(() => {
+      winningItem.classList.remove('active');
+    }, 2000);
+  }
+}
+
+// Add result to history
+function addResultToHistory(multiplier, color) {
+  const history = document.getElementById('resultsHistory');
+  if (!history) return;
+  
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.style.background = color;
+  item.textContent = multiplier.toFixed(2) + '×';
+  
+  // Add to beginning
+  history.insertBefore(item, history.firstChild);
+  
+  // Limit history to 20 items
+  while (history.children.length > 20) {
+    history.removeChild(history.lastChild);
+  }
+}
+
+// Lock/unlock controls
+function lockControls(locked) {
+  const playBtn = document.getElementById('playBtn');
+  const betInput = document.getElementById('betAmount');
+  const riskSelect = document.getElementById('riskSelect');
+  const segmentsSelect = document.getElementById('segmentsSelect');
+  const halfBtn = document.getElementById('halfBtn');
+  const doubleBtn = document.getElementById('doubleBtn');
+  const balanceBtn = document.getElementById('balanceBtn');
+  
+  if (playBtn) {
+    playBtn.disabled = locked;
+    playBtn.textContent = locked ? 'Spinning...' : 'Play';
+    if (locked) {
+      playBtn.classList.add('spinning');
+    } else {
+      playBtn.classList.remove('spinning');
+    }
+  }
+  
+  if (betInput) betInput.disabled = locked;
+  if (riskSelect) riskSelect.disabled = locked;
+  if (segmentsSelect) segmentsSelect.disabled = locked;
+  if (halfBtn) halfBtn.disabled = locked;
+  if (doubleBtn) doubleBtn.disabled = locked;
+  if (balanceBtn) balanceBtn.disabled = locked;
+}
+
+// Show toast notification
+function showToast(message, type = 'info') {
+  // Remove existing toast
+  const existingToast = document.querySelector('.wheel-toast');
+  if (existingToast) existingToast.remove();
+  
+  const toast = document.createElement('div');
+  toast.className = `wheel-toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+// Display helpers
+function updateBalanceDisplay() {
+  const balance = window.CasinoAuth?.getBalance() ?? 0;
+  document.getElementById('userBalance').textContent = '$' + balance.toFixed(2);
+}
+
+function updateKeysDisplay() {
+  const keys = window.CasinoAuth?.getKeys() ?? 0;
+  const keysEl = document.getElementById('userKeys');
+  if (keysEl) {
+    keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
+  }
+}
+
+function updateXPsDisplay() {
+  const xps = window.CasinoAuth?.getXPs() ?? 0;
+  const xpsEl = document.getElementById('userXPs');
+  if (xpsEl) {
+    xpsEl.textContent = '⚡ ' + xps;
+  }
+}
+
+function showXPGain(xps, streak, streakMult) {
+  const popup = document.createElement('div');
+  popup.className = 'xp-popup';
+  
+  const xpsBox = document.querySelector('.xps-box');
+  if (xpsBox) {
+    const rect = xpsBox.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 5) + 'px';
+    popup.style.right = (window.innerWidth - rect.right) + 'px';
+  }
+  
+  const streakText = streak > 1 && streakMult ? ` <span class="xp-streak">🔥${streak}</span>` : '';
+  popup.innerHTML = `<span class="xp-amount">⚡+${xps}${streakText}</span>`;
+  document.body.appendChild(popup);
+  
+  setTimeout(() => {
+    popup.classList.add('hide');
+    setTimeout(() => popup.remove(), 100);
+  }, 700);
+}
+
+function updateProfitDisplay() {
+  const profitEl = document.getElementById('sessionProfit');
+  if (profitEl) {
+    profitEl.textContent = (config.sessionProfit >= 0 ? '+' : '') + '$' + config.sessionProfit.toFixed(2);
+    profitEl.className = 'stat-value ' + (config.sessionProfit >= 0 ? 'profit' : 'loss');
+  }
+}
+
+// Bet adjustment functions
+function adjustBet(multiplier) {
+  if (config.isSpinning) return;
+  const input = document.getElementById('betAmount');
+  const current = parseFloat(input.value) || 0;
+  const maxBet = window.CasinoAuth ? window.CasinoAuth.getBalance() : 10000;
+  input.value = Math.min(Math.max(0, current * multiplier), maxBet).toFixed(2);
+}
+
+function setFullBalance() {
+  if (config.isSpinning) return;
+  if (window.CasinoAuth) {
+    document.getElementById('betAmount').value = window.CasinoAuth.getBalance().toFixed(2);
+  }
+}
+
+// Initialize event listeners
+function initEventListeners() {
+  // Play button
+  document.getElementById('playBtn')?.addEventListener('click', spin);
+  
+  // Bet controls
+  document.getElementById('halfBtn')?.addEventListener('click', () => adjustBet(0.5));
+  document.getElementById('doubleBtn')?.addEventListener('click', () => adjustBet(2));
+  document.getElementById('balanceBtn')?.addEventListener('click', setFullBalance);
+  
+  // Risk change
+  document.getElementById('riskSelect')?.addEventListener('change', (e) => {
+    config.risk = e.target.value;
+    generateWheelSegments();
+    drawWheel(config.currentRotation);
+    updateLegend();
+  });
+  
+  // Segments change
+  document.getElementById('segmentsSelect')?.addEventListener('change', (e) => {
+    config.segments = parseInt(e.target.value);
+    generateWheelSegments();
+    drawWheel(config.currentRotation);
+    updateLegend();
+  });
+  
+  // Keyboard shortcut - Enter to spin
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !config.isSpinning && config.isSignedIn) {
+      spin();
+    }
+  });
+}
+
+// Auth UI setup
+function setupAuthUI() {
+  const signInBtn = document.getElementById('signInBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  
+  if (signInBtn) {
+    signInBtn.addEventListener('click', async () => {
+      await window.CasinoAuth.signIn();
+    });
+  }
+  
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', async () => {
+      await window.CasinoAuth.signOut();
+    });
+  }
+}
+
+function updateAuthUI(user) {
+  const signInBtn = document.getElementById('signInBtn');
+  const userInfo = document.getElementById('userInfo');
+  const userName = document.getElementById('userName');
+  
+  if (user) {
+    if (signInBtn) signInBtn.style.display = 'none';
+    if (userInfo) userInfo.style.display = 'flex';
+    if (userName) userName.textContent = user.displayName || user.email;
+  } else {
+    if (signInBtn) signInBtn.style.display = 'flex';
+    if (userInfo) userInfo.style.display = 'none';
+  }
+}
+
+// Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+  // Setup canvas
+  canvas = document.getElementById('wheelCanvas');
+  ctx = canvas.getContext('2d');
+  
+  // Generate initial wheel
+  generateWheelSegments();
+  drawWheel(0);
+  updateLegend();
+  
+  // Init event listeners
+  initEventListeners();
+  
+  // Wait for auth
   await waitForAuth();
   
   // Initialize auth with maintenance check
   const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
   if (!hasAccess) return;
   
-  initWheelGame();
-});
-
-function initWheelGame() {
-  cacheElements();
-  setupCanvas();
-  setupEventListeners();
-  buildWheel();
-  updateLegend();
-  updateStats();
-  initCasinoAuth();
+  // Setup auth UI
+  setupAuthUI();
   
   // Initialize profit graph
   if (window.ProfitGraph) {
     window.ProfitGraph.init();
   }
   
-  // Set default values
-  if (elements.riskSelect) elements.riskSelect.value = 'medium';
-  if (elements.segmentsSelect) elements.segmentsSelect.value = '30';
-  
-  console.log('Wheel game initialized!');
-}
-
-function cacheElements() {
-  elements = {
-    // Tabs
-    manualTab: document.getElementById('manualTab'),
-    autoTab: document.getElementById('autoTab'),
-    autoControls: document.getElementById('autoControls'),
-    
-    // Bet controls
-    betAmount: document.getElementById('betAmount'),
-    halfBtn: document.getElementById('halfBtn'),
-    doubleBtn: document.getElementById('doubleBtn'),
-    spinBtn: document.getElementById('spinBtn'),
-    
-    // Selectors
-    riskSelect: document.getElementById('riskSelect'),
-    segmentsSelect: document.getElementById('segmentsSelect'),
-    
-    // Wheel
-    wheel: document.getElementById('wheel'),
-    wheelCanvas: document.getElementById('wheelCanvas'),
-    wheelMultiplier: document.getElementById('wheelMultiplier'),
-    
-    // Results
-    resultMultiplier: document.getElementById('resultMultiplier'),
-    payoutAmount: document.getElementById('payoutAmount'),
-    spinHistory: document.getElementById('spinHistory'),
-    
-    // Stats
-    totalSpins: document.getElementById('totalSpins'),
-    sessionProfit: document.getElementById('sessionProfit'),
-    bestWin: document.getElementById('bestWin'),
-    
-    // Legend
-    legendGrid: document.getElementById('legendGrid'),
-    
-    // Profit graph
-    profitGraphCanvas: document.getElementById('profitGraphCanvas'),
-    profitGraphValue: document.getElementById('profitGraphValue'),
-    
-    // Auto mode
-    autoSpins: document.getElementById('autoSpins'),
-    infinityBtn: document.getElementById('infinityBtn'),
-    onWinReset: document.getElementById('onWinReset'),
-    onWinIncrease: document.getElementById('onWinIncrease'),
-    onWinPercent: document.getElementById('onWinPercent'),
-    onLossReset: document.getElementById('onLossReset'),
-    onLossIncrease: document.getElementById('onLossIncrease'),
-    onLossPercent: document.getElementById('onLossPercent'),
-    stopProfit: document.getElementById('stopProfit'),
-    stopLoss: document.getElementById('stopLoss')
-  };
-}
-
-// Initialize casino auth and balance
-function initCasinoAuth() {
-  if (window.CasinoAuth) {
-    gameState.isSignedIn = window.CasinoAuth.isSignedIn();
+  // Listen for auth state changes
+  window.CasinoAuth.onAuthStateChange((user, userData) => {
+    config.isSignedIn = !!user;
+    updateAuthUI(user);
     updateBalanceDisplay();
-    
-    // Listen for auth state changes
-    window.CasinoAuth.onAuthStateChange((user, userData) => {
-      gameState.isSignedIn = !!user;
-      updateBalanceDisplay();
-    });
-  }
-}
-
-function updateBalanceDisplay() {
-  const balanceEl = document.getElementById('userBalance');
-  const keysEl = document.getElementById('userKeys');
-  const xpsEl = document.getElementById('userXPs');
-  
-  if (window.CasinoAuth) {
-    const balance = window.CasinoAuth.getBalance();
-    const keys = window.CasinoAuth.getKeys();
-    const xps = window.CasinoAuth.getXPs ? window.CasinoAuth.getXPs() : 0;
-    
-    if (balanceEl) balanceEl.textContent = '$' + balance.toFixed(2);
-    if (keysEl) keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
-    if (xpsEl) xpsEl.textContent = '⚡ ' + xps;
-  }
-}
-
-function setupCanvas() {
-  wheelCanvas = elements.wheelCanvas;
-  if (!wheelCanvas) return;
-  
-  wheelCtx = wheelCanvas.getContext('2d');
-  
-  // Set canvas size for high DPI
-  const size = 400;
-  const dpr = window.devicePixelRatio || 1;
-  wheelCanvas.width = size * dpr;
-  wheelCanvas.height = size * dpr;
-  wheelCtx.scale(dpr, dpr);
-}
-
-function setupEventListeners() {
-  // Tabs
-  if (elements.manualTab) {
-    elements.manualTab.addEventListener('click', () => switchTab('manual'));
-  }
-  if (elements.autoTab) {
-    elements.autoTab.addEventListener('click', () => switchTab('auto'));
-  }
-  
-  // Bet controls
-  if (elements.halfBtn) {
-    elements.halfBtn.addEventListener('click', () => adjustBet(0.5));
-  }
-  if (elements.doubleBtn) {
-    elements.doubleBtn.addEventListener('click', () => adjustBet(2));
-  }
-  if (elements.betAmount) {
-    elements.betAmount.addEventListener('input', () => {
-      gameState.betAmount = parseFloat(elements.betAmount.value) || 0;
-    });
-  }
-  
-  // Spin button
-  if (elements.spinBtn) {
-    elements.spinBtn.addEventListener('click', handleSpin);
-  }
-  
-  // Risk select
-  if (elements.riskSelect) {
-    elements.riskSelect.addEventListener('change', () => {
-      gameState.risk = elements.riskSelect.value;
-      buildWheel();
-      updateLegend();
-    });
-  }
-  
-  // Segments select
-  if (elements.segmentsSelect) {
-    elements.segmentsSelect.addEventListener('change', () => {
-      gameState.segments = parseInt(elements.segmentsSelect.value);
-      buildWheel();
-      updateLegend();
-    });
-  }
-  
-  // Auto mode
-  if (elements.infinityBtn) {
-    elements.infinityBtn.addEventListener('click', () => {
-      gameState.autoInfinite = !gameState.autoInfinite;
-      elements.infinityBtn.classList.toggle('active', gameState.autoInfinite);
-      if (elements.autoSpins) {
-        elements.autoSpins.disabled = gameState.autoInfinite;
-      }
-    });
-  }
-  
-  // On win/loss toggles
-  setupAutoToggles();
-}
-
-function setupAutoToggles() {
-  if (elements.onWinReset) {
-    elements.onWinReset.addEventListener('click', () => {
-      gameState.onWinReset = true;
-      elements.onWinReset.classList.add('active');
-      if (elements.onWinIncrease) elements.onWinIncrease.classList.remove('active');
-    });
-  }
-  
-  if (elements.onWinIncrease) {
-    elements.onWinIncrease.addEventListener('click', () => {
-      gameState.onWinReset = false;
-      elements.onWinIncrease.classList.add('active');
-      if (elements.onWinReset) elements.onWinReset.classList.remove('active');
-    });
-  }
-  
-  if (elements.onLossReset) {
-    elements.onLossReset.addEventListener('click', () => {
-      gameState.onLossReset = true;
-      elements.onLossReset.classList.add('active');
-      if (elements.onLossIncrease) elements.onLossIncrease.classList.remove('active');
-    });
-  }
-  
-  if (elements.onLossIncrease) {
-    elements.onLossIncrease.addEventListener('click', () => {
-      gameState.onLossReset = false;
-      elements.onLossIncrease.classList.add('active');
-      if (elements.onLossReset) elements.onLossReset.classList.remove('active');
-    });
-  }
-}
-
-function switchTab(tab) {
-  if (tab === 'manual') {
-    if (elements.manualTab) elements.manualTab.classList.add('active');
-    if (elements.autoTab) elements.autoTab.classList.remove('active');
-    if (elements.autoControls) elements.autoControls.style.display = 'none';
-    gameState.isAutoMode = false;
-    gameState.autoRunning = false;
-    if (elements.spinBtn) elements.spinBtn.textContent = 'Bet';
-  } else {
-    if (elements.autoTab) elements.autoTab.classList.add('active');
-    if (elements.manualTab) elements.manualTab.classList.remove('active');
-    if (elements.autoControls) elements.autoControls.style.display = 'block';
-    gameState.isAutoMode = true;
-  }
-}
-
-function adjustBet(multiplier) {
-  gameState.betAmount = Math.max(1, Math.round(gameState.betAmount * multiplier * 100) / 100);
-  if (elements.betAmount) {
-    elements.betAmount.value = gameState.betAmount;
-  }
-}
-
-function buildWheel() {
-  const config = WHEEL_CONFIGS[gameState.risk][gameState.segments];
-  currentSegments = [];
-  
-  // Build segments array based on weights
-  config.forEach(item => {
-    for (let i = 0; i < item.weight; i++) {
-      currentSegments.push({
-        multiplier: item.multiplier,
-        color: item.color
-      });
-    }
+    updateKeysDisplay();
+    updateXPsDisplay();
   });
-  
-  // Shuffle segments for visual variety
-  for (let i = currentSegments.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [currentSegments[i], currentSegments[j]] = [currentSegments[j], currentSegments[i]];
-  }
-  
-  drawWheel();
-}
+});
 
-function drawWheel() {
-  if (!wheelCtx) return;
-  
-  const size = 400;
-  const centerX = size / 2;
-  const centerY = size / 2;
-  const outerRadius = size / 2 - 5;
-  const innerRadius = outerRadius * 0.55; // Ring thickness - 45% of radius
-  const segmentAngle = (2 * Math.PI) / currentSegments.length;
-  
-  wheelCtx.clearRect(0, 0, size, size);
-  
-  // Draw ring segments
-  currentSegments.forEach((segment, i) => {
-    const startAngle = i * segmentAngle - Math.PI / 2;
-    const endAngle = startAngle + segmentAngle;
-    
-    // Draw outer arc segment (ring style)
-    wheelCtx.beginPath();
-    wheelCtx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
-    wheelCtx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
-    wheelCtx.closePath();
-    wheelCtx.fillStyle = segment.color;
-    wheelCtx.fill();
-    
-    // Draw segment border
-    wheelCtx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-    wheelCtx.lineWidth = 1;
-    wheelCtx.stroke();
-  });
-  
-  // Draw inner circle (background color)
-  wheelCtx.beginPath();
-  wheelCtx.arc(centerX, centerY, innerRadius - 2, 0, Math.PI * 2);
-  wheelCtx.fillStyle = '#1a1f26';
-  wheelCtx.fill();
-  wheelCtx.strokeStyle = '#2a3441';
-  wheelCtx.lineWidth = 3;
-  wheelCtx.stroke();
-}
-
-function updateLegend() {
-  if (!elements.legendGrid) return;
-  
-  const config = WHEEL_CONFIGS[gameState.risk][gameState.segments];
-  
-  // Sort by multiplier ascending (like the screenshot)
-  const sortedConfig = [...config].sort((a, b) => a.multiplier - b.multiplier);
-  
-  elements.legendGrid.innerHTML = sortedConfig
-    .map(item => {
-      const multiplierText = item.multiplier === 0 ? '0.00x' : 
-                            item.multiplier < 10 ? item.multiplier.toFixed(2) + 'x' : 
-                            item.multiplier.toFixed(1) + 'x';
-      return `
-        <div class="legend-item" data-multiplier="${item.multiplier}">
-          <div class="legend-color" style="background: ${item.color}"></div>
-          <span class="legend-multiplier">${multiplierText}</span>
-        </div>
-      `;
-    })
-    .join('');
-}
-
-async function handleSpin() {
-  if (gameState.isSpinning) return;
-  
-  // Check connection
-  if (window.ConnectionMonitor && !window.ConnectionMonitor.canPlay()) {
-    showNotification('Connection lost! Please wait...', 'error');
-    return;
+// Session tracking
+window.addEventListener('beforeunload', () => {
+  if (window.CasinoDB && window.CasinoDB.activeSessionId) {
+    window.CasinoDB.endGameSession('user_left');
   }
-  
-  if (gameState.isAutoMode && gameState.autoRunning) {
-    // Stop auto mode
-    gameState.autoRunning = false;
-    if (elements.spinBtn) elements.spinBtn.textContent = 'Start Auto';
-    return;
-  }
-  
-  if (gameState.isAutoMode) {
-    // Start auto mode
-    gameState.autoRunning = true;
-    gameState.baseBet = gameState.betAmount;
-    gameState.autoSpinsRemaining = gameState.autoInfinite ? Infinity : parseInt(elements.autoSpins?.value) || 10;
-    if (elements.spinBtn) elements.spinBtn.textContent = 'Stop';
-    runAutoSpin();
-  } else {
-    await spin();
-  }
-}
-
-async function runAutoSpin() {
-  while (gameState.autoRunning && gameState.autoSpinsRemaining > 0) {
-    // Check stop conditions
-    const stopProfit = parseFloat(elements.stopProfit?.value) || 0;
-    const stopLoss = parseFloat(elements.stopLoss?.value) || 0;
-    
-    if (stopProfit > 0 && gameState.sessionProfit >= stopProfit) {
-      gameState.autoRunning = false;
-      break;
-    }
-    if (stopLoss > 0 && gameState.sessionProfit <= -stopLoss) {
-      gameState.autoRunning = false;
-      break;
-    }
-    
-    await spin();
-    gameState.autoSpinsRemaining--;
-    
-    // Wait between spins
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-  
-  gameState.autoRunning = false;
-  if (elements.spinBtn) elements.spinBtn.textContent = 'Start Auto';
-}
-
-async function spin() {
-  if (gameState.isSpinning) return;
-  
-  const betAmount = parseFloat(elements.betAmount?.value) || 0;
-  
-  // Check balance
-  if (!window.CasinoAuth) {
-    showNotification('Auth not ready!', 'error');
-    return;
-  }
-  
-  const balance = window.CasinoAuth.getBalance();
-  if (betAmount > balance) {
-    showNotification('Insufficient balance!', 'error');
-    return;
-  }
-  
-  if (betAmount < 1) {
-    showNotification('Minimum bet is $1', 'error');
-    return;
-  }
-  
-  gameState.isSpinning = true;
-  if (elements.spinBtn) {
-    elements.spinBtn.disabled = true;
-    elements.spinBtn.classList.add('spinning');
-    elements.spinBtn.textContent = 'Spinning...';
-  }
-  
-  // Place bet using CasinoDB
-  const betResult = await window.CasinoDB.placeBet(betAmount, 'wheel');
-  if (!betResult.success) {
-    showNotification(betResult.error || 'Failed to place bet', 'error');
-    gameState.isSpinning = false;
-    if (elements.spinBtn) {
-      elements.spinBtn.disabled = false;
-      elements.spinBtn.classList.remove('spinning');
-      elements.spinBtn.textContent = gameState.isAutoMode ? 'Start Auto' : 'Bet';
-    }
-    return;
-  }
-  updateBalanceDisplay();
-  
-  // Update center display during spin
-  if (elements.wheelMultiplier) {
-    elements.wheelMultiplier.textContent = '?';
-    elements.wheelMultiplier.style.color = '#fff';
-  }
-  
-  // Calculate rotation - spin randomly
-  const segmentAngle = 360 / currentSegments.length;
-  const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full spins
-  const randomAngle = Math.random() * 360; // Random final position
-  const totalRotation = fullSpins * 360 + randomAngle;
-  
-  // Apply rotation
-  gameState.currentRotation += totalRotation;
-  if (elements.wheel) {
-    elements.wheel.style.transform = `rotate(${gameState.currentRotation}deg)`;
-  }
-  
-  // Wait for spin to complete
-  await new Promise(resolve => setTimeout(resolve, 4000));
-  
-  // Calculate which segment is under the pointer (at the top)
-  const normalizedRotation = ((gameState.currentRotation % 360) + 360) % 360;
-  const offset = segmentAngle * 0.25;
-  const winningIndex = Math.floor(((360 - normalizedRotation + segmentAngle / 2 + offset) % 360) / segmentAngle) % currentSegments.length;
-  const winningSegment = currentSegments[winningIndex];
-  
-  // Calculate payout
-  const payout = betAmount * winningSegment.multiplier;
-  const profit = payout - betAmount;
-  
-  // Update balance with winnings
-  if (payout > 0) {
-    await window.CasinoDB.updateBalance(payout);
-  }
-  updateBalanceDisplay();
-  
-  // Update game state
-  gameState.totalSpins++;
-  gameState.sessionProfit += profit;
-  gameState.profitHistory.push(gameState.sessionProfit);
-  
-  if (profit > 0) {
-    if (profit > gameState.bestWin) {
-      gameState.bestWin = profit;
-    }
-    
-    // Auto mode - on win
-    if (gameState.isAutoMode) {
-      if (gameState.onWinReset) {
-        if (elements.betAmount) elements.betAmount.value = gameState.baseBet;
-        gameState.betAmount = gameState.baseBet;
-      } else {
-        const increase = gameState.betAmount * (parseFloat(elements.onWinPercent?.value) / 100);
-        gameState.betAmount += increase;
-        if (elements.betAmount) elements.betAmount.value = gameState.betAmount.toFixed(2);
-      }
-    }
-  } else {
-    // Auto mode - on loss
-    if (gameState.isAutoMode) {
-      if (gameState.onLossReset) {
-        if (elements.betAmount) elements.betAmount.value = gameState.baseBet;
-        gameState.betAmount = gameState.baseBet;
-      } else {
-        const increase = gameState.betAmount * (parseFloat(elements.onLossPercent?.value) / 100);
-        gameState.betAmount += increase;
-        if (elements.betAmount) elements.betAmount.value = gameState.betAmount.toFixed(2);
-      }
-    }
-  }
-  
-  // Update center display with result
-  if (elements.wheelMultiplier) {
-    const multiplierText = winningSegment.multiplier === 0 ? '0.00x' : 
-                          winningSegment.multiplier.toFixed(2) + 'x';
-    elements.wheelMultiplier.textContent = multiplierText;
-    elements.wheelMultiplier.style.color = winningSegment.color;
-  }
-  
-  // Highlight winning legend item
-  highlightWinningLegend(winningSegment.multiplier);
-  
-  // Add to history
-  addToHistory(winningSegment);
-  
-  // Update stats
-  updateStats();
-  
-  // Update profit graph
-  if (window.ProfitGraph && window.ProfitGraph.addPoint) {
-    window.ProfitGraph.addPoint(gameState.sessionProfit);
-  }
-  
-  // Award XP
-  if (window.CasinoDB && window.CasinoDB.awardXPs) {
-    await window.CasinoDB.awardXPs('wheel', winningSegment.multiplier, betAmount);
-  }
-  
-  gameState.isSpinning = false;
-  if (elements.spinBtn) {
-    elements.spinBtn.disabled = false;
-    elements.spinBtn.classList.remove('spinning');
-    elements.spinBtn.textContent = gameState.isAutoMode ? (gameState.autoRunning ? 'Stop' : 'Start Auto') : 'Bet';
-  }
-}
-
-function highlightWinningLegend(multiplier) {
-  // Remove previous highlights
-  document.querySelectorAll('.legend-item').forEach(item => {
-    item.classList.remove('active');
-  });
-  
-  // Add highlight to winning multiplier
-  const winningItem = document.querySelector(`.legend-item[data-multiplier="${multiplier}"]`);
-  if (winningItem) {
-    winningItem.classList.add('active');
-  }
-}
-
-function addToHistory(segment) {
-  gameState.spinHistory.unshift(segment);
-  if (gameState.spinHistory.length > 15) {
-    gameState.spinHistory.pop();
-  }
-  
-  if (elements.spinHistory) {
-    if (gameState.spinHistory.length > 0) {
-      elements.spinHistory.innerHTML = gameState.spinHistory
-        .map(s => {
-          const multiplierText = s.multiplier === 0 ? '0x' : 
-                                s.multiplier < 10 ? s.multiplier.toFixed(1) + 'x' : 
-                                s.multiplier + 'x';
-          return `
-            <div class="history-item" style="background: ${s.color}">
-              ${multiplierText}
-            </div>
-          `;
-        })
-        .join('');
-    }
-  }
-}
-
-function updateStats() {
-  if (elements.totalSpins) {
-    elements.totalSpins.textContent = gameState.totalSpins;
-  }
-  
-  if (elements.sessionProfit) {
-    const profitText = gameState.sessionProfit >= 0 
-      ? `$${gameState.sessionProfit.toFixed(2)}` 
-      : `-$${Math.abs(gameState.sessionProfit).toFixed(2)}`;
-    elements.sessionProfit.textContent = profitText;
-    elements.sessionProfit.classList.toggle('negative', gameState.sessionProfit < 0);
-  }
-  
-  if (elements.bestWin) {
-    elements.bestWin.textContent = `$${gameState.bestWin.toFixed(2)}`;
-  }
-  
-  // Update profit graph value
-  if (elements.profitGraphValue) {
-    const profitText = gameState.sessionProfit >= 0 
-      ? `$${gameState.sessionProfit.toFixed(2)}` 
-      : `-$${Math.abs(gameState.sessionProfit).toFixed(2)}`;
-    elements.profitGraphValue.textContent = profitText;
-    elements.profitGraphValue.classList.toggle('negative', gameState.sessionProfit < 0);
-  }
-}
-
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    border-radius: 8px;
-    background: ${type === 'error' ? '#ef4444' : '#22c55e'};
-    color: white;
-    font-weight: 600;
-    z-index: 1000;
-    animation: slideDown 0.3s ease-out;
-  `;
-  
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.style.animation = 'slideUp 0.3s ease-out';
-    setTimeout(() => notification.remove(), 300);
-  }, 2000);
-}
-
-// Add CSS for notification animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideDown {
-    from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-    to { transform: translateX(-50%) translateY(0); opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { transform: translateX(-50%) translateY(0); opacity: 1; }
-    to { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-  }
-`;
-document.head.appendChild(style);
+});
