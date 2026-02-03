@@ -903,6 +903,38 @@
       color: var(--cashapp-green);
     }
 
+    .activity-icon.pending {
+      background: rgba(255, 193, 7, 0.2);
+    }
+
+    .activity-icon.pending svg {
+      stroke: #ffc107;
+    }
+
+    .activity-amount.pending {
+      color: #ffc107;
+    }
+
+    .pending-tx {
+      opacity: 0.8;
+    }
+
+    .status-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge.pending {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+    }
+
     .empty-state {
       text-align: center;
       padding: 40px 20px;
@@ -1358,19 +1390,48 @@
           transactions = [];
           snapshot.forEach((doc) => {
             const tx = doc.data();
+            const txType = tx.type || 'payment'; // 'payment' or 'request'
+            const status = tx.status || 'completed';
+            
             // Only show transactions involving current user
             if (tx.senderId === currentUserId || tx.receiverId === currentUserId) {
-              const isSent = tx.senderId === currentUserId;
+              const isCurrentUserSender = tx.senderId === currentUserId;
+              
+              // Determine display type based on transaction type and user role
+              let displayType, displayName;
+              if (txType === 'request') {
+                // For requests: receiverId is the requester, senderId is who they're requesting from
+                if (tx.receiverId === currentUserId) {
+                  // I made this request
+                  displayType = 'request_sent';
+                  displayName = tx.senderName; // Person I requested from
+                } else {
+                  // Someone requested money from me
+                  displayType = 'request_received';
+                  displayName = tx.receiverName; // Person who requested
+                }
+              } else {
+                // Regular payment
+                if (isCurrentUserSender) {
+                  displayType = 'sent';
+                  displayName = tx.receiverName;
+                } else {
+                  displayType = 'received';
+                  displayName = tx.senderName;
+                }
+              }
+              
               transactions.push({
                 id: doc.id,
-                type: isSent ? 'sent' : 'received',
-                userName: isSent ? tx.receiverName : tx.senderName,
-                userTag: isSent ? tx.receiverTag : tx.senderTag,
+                type: displayType,
+                userName: displayName,
+                userTag: isCurrentUserSender ? tx.receiverTag : tx.senderTag,
                 amount: tx.amount,
                 note: tx.note || '',
                 date: formatDate(tx.timestamp),
                 timestamp: tx.timestamp,
-                status: tx.status || 'completed'
+                status: status,
+                txType: txType
               });
             }
           });
@@ -1393,7 +1454,7 @@
     }
 
     // Save transaction to Firebase and update balances
-    async function saveTransaction(senderId, receiverId, amount, note, senderName, receiverName) {
+    async function saveTransaction(senderId, receiverId, amount, note, senderName, receiverName, isRequest = false) {
       try {
         // Create transaction record
         const transaction = {
@@ -1406,27 +1467,31 @@
           amount: amount,
           note: note,
           timestamp: new Date(),
-          status: 'completed'
+          status: isRequest ? 'pending' : 'completed',
+          type: isRequest ? 'request' : 'payment'
         };
         
         await addDoc(joePayTransactionsRef, transaction);
         
-        // Update sender's balance (subtract)
-        const senderDoc = await getDoc(doc(usersRef, senderId));
-        if (senderDoc.exists()) {
-          const senderBalance = senderDoc.data().balance || 0;
-          await updateDoc(doc(usersRef, senderId), {
-            balance: Math.round((senderBalance - amount) * 100) / 100
-          });
-        }
-        
-        // Update receiver's balance (add)
-        const receiverDoc = await getDoc(doc(usersRef, receiverId));
-        if (receiverDoc.exists()) {
-          const receiverBalance = receiverDoc.data().balance || 0;
-          await updateDoc(doc(usersRef, receiverId), {
-            balance: Math.round((receiverBalance + amount) * 100) / 100
-          });
+        // Only update balances for completed payments, NOT for requests
+        if (!isRequest) {
+          // Update sender's balance (subtract)
+          const senderDoc = await getDoc(doc(usersRef, senderId));
+          if (senderDoc.exists()) {
+            const senderBalance = senderDoc.data().balance || 0;
+            await updateDoc(doc(usersRef, senderId), {
+              balance: Math.round((senderBalance - amount) * 100) / 100
+            });
+          }
+          
+          // Update receiver's balance (add)
+          const receiverDoc = await getDoc(doc(usersRef, receiverId));
+          if (receiverDoc.exists()) {
+            const receiverBalance = receiverDoc.data().balance || 0;
+            await updateDoc(doc(usersRef, receiverId), {
+              balance: Math.round((receiverBalance + amount) * 100) / 100
+            });
+          }
         }
         
         return { success: true };
@@ -1568,23 +1633,58 @@
         return;
       }
       
-      activityList.innerHTML = transactions.map(tx => `
-        <div class="activity-item">
-          <div class="activity-icon ${tx.type}">
-            <svg viewBox="0 0 24 24" stroke-width="2" fill="none">
-              ${tx.type === 'sent' 
-                ? '<path d="M12 19V5M5 12l7-7 7 7"/>'
-                : '<path d="M12 5v14M5 12l7 7 7-7"/>'
-              }
-            </svg>
+      activityList.innerHTML = transactions.map(tx => {
+        let icon, label, amountPrefix, cssClass;
+        
+        switch(tx.type) {
+          case 'sent':
+            icon = '<path d="M12 19V5M5 12l7-7 7 7"/>';
+            label = 'To ' + tx.userName;
+            amountPrefix = '-';
+            cssClass = 'sent';
+            break;
+          case 'received':
+            icon = '<path d="M12 5v14M5 12l7 7 7-7"/>';
+            label = 'From ' + tx.userName;
+            amountPrefix = '+';
+            cssClass = 'received';
+            break;
+          case 'request_sent':
+            icon = '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>';
+            label = 'Requested from ' + tx.userName;
+            amountPrefix = '';
+            cssClass = 'pending';
+            break;
+          case 'request_received':
+            icon = '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>';
+            label = tx.userName + ' requested';
+            amountPrefix = '';
+            cssClass = 'pending';
+            break;
+          default:
+            icon = '<circle cx="12" cy="12" r="10"/>';
+            label = tx.userName;
+            amountPrefix = '';
+            cssClass = '';
+        }
+        
+        const statusBadge = tx.status === 'pending' ? '<span class="status-badge pending">Pending</span>' : '';
+        
+        return `
+          <div class="activity-item ${tx.status === 'pending' ? 'pending-tx' : ''}">
+            <div class="activity-icon ${cssClass}">
+              <svg viewBox="0 0 24 24" stroke-width="2" fill="none">
+                ${icon}
+              </svg>
+            </div>
+            <div class="activity-details">
+              <div class="activity-name">${label} ${statusBadge}</div>
+              <div class="activity-date">${tx.date}${tx.note ? ' • ' + tx.note : ''}</div>
+            </div>
+            <div class="activity-amount ${cssClass}">${amountPrefix}${formatCurrency(tx.amount)}</div>
           </div>
-          <div class="activity-details">
-            <div class="activity-name">${tx.type === 'sent' ? 'To ' : 'From '}${tx.userName}</div>
-            <div class="activity-date">${tx.date}${tx.note ? ' • ' + tx.note : ''}</div>
-          </div>
-          <div class="activity-amount ${tx.type}">${tx.type === 'sent' ? '-' : '+'}${formatCurrency(tx.amount)}</div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // Show user select modal
@@ -1625,26 +1725,29 @@
       const senderName = currentUser.displayName || currentUser.email || 'User';
       
       if (isRequestMode) {
-        // Request money - create a pending request (simulate instant for now)
+        // Request money - create a PENDING request (NO money transfer yet!)
+        // The request is from the current user TO the selected user
+        // When they approve, THEY become the sender and current user becomes receiver
         const result = await saveTransaction(
-          selectedUser.id,  // sender (the person being requested from)
-          currentUserId,    // receiver (current user)
+          selectedUser.id,  // who we're requesting FROM (potential sender)
+          currentUserId,    // who is requesting (potential receiver)
           amount,
-          note + ' (Request)',
-          selectedUser.name,
-          senderName
+          note ? note + ' (Request)' : 'Money Request',
+          selectedUser.name,  // potential sender name
+          senderName,         // requester name (potential receiver)
+          true                // isRequest = true - NO balance change!
         );
         
         if (result.success) {
-          currentBalance += amount;
+          // DON'T add money to balance - this is just a request!
           document.getElementById('successText').textContent = 'Request Sent!';
-          document.getElementById('successSubtext').textContent = `${formatCurrency(amount)} from ${selectedUser.tag}`;
+          document.getElementById('successSubtext').textContent = `Requested ${formatCurrency(amount)} from ${selectedUser.tag}`;
         } else {
           alert('Failed to send request: ' + result.error);
           return;
         }
       } else {
-        // Pay money
+        // Pay money - actual transfer
         if (amount > currentBalance) {
           alert('Insufficient balance');
           return;
@@ -1656,7 +1759,8 @@
           amount,
           note,
           senderName,
-          selectedUser.name
+          selectedUser.name,
+          false              // isRequest = false - DO transfer money
         );
         
         if (result.success) {
