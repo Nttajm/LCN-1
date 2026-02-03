@@ -293,6 +293,16 @@
           </div>
         </div>
       </div>
+      <!-- JoePay Notification Bell -->
+      <div class="joepay-notification" id="joepayNotification">
+        <button class="notification-bell" id="notificationBell" title="JoePay Notifications">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+        </button>
+      </div>
       <div class="user-menu" id="userMenu">
         <div class="user-avatar" id="userAvatar">
           <span id="userInitials">?</span>
@@ -434,6 +444,7 @@
         <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
         <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
         <li><a href="casino.html" class="nav-link">Casino</a></li>
+        <li><a href="apps.html" class="nav-link">Apps</a></li>
       </ul>
       <div class="nav-divider"></div>
       <ul class="nav-categories" id="navCategories">
@@ -444,6 +455,18 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    <!-- New Features Banner -->
+    <div class="new-features-banner">
+      <div class="banner-sparkle">✨</div>
+      <div class="banner-content">
+        <span class="banner-new-badge">NEW</span>
+        <span class="banner-text">
+          <strong>🐎 Horse Racing</strong>, <strong>✊ Rock Paper Scissors</strong>, and <strong>💸 JoePay</strong> are now live!
+        </span>
+      </div>
+      <a href="casino.html" class="banner-cta">Try Now →</a>
+    </div>
+
     <!-- The Great Reset Countdown -->
     <div class="daily-key-box">
       <span>
@@ -748,9 +771,278 @@
     </div>
   </div>
 
+  <!-- JoePay Notifications Modal -->
+  <div class="modal-overlay" id="joepayModal">
+    <div class="modal joepay-modal">
+      <button class="modal-close" id="closeJoepayModal">×</button>
+      <div class="joepay-modal-header">
+        <div class="joepay-logo">
+          <span style="font-size: 24px; color: #00D632;">💸</span>
+          <span style="font-weight: 700; color: #00D632;">JoePay</span>
+        </div>
+        <a href="apps/joePay.html" class="joepay-open-btn">Open JoePay</a>
+      </div>
+      <div class="joepay-transactions" id="joepayTransactions">
+        <div class="joepay-empty">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <p>No JoePay notifications</p>
+          <span>Payments you receive will appear here</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="js/format-utils.js"></script>
   <script type="module" src="js/data.js"></script>
   <script type="module" src="js/index.js"></script>
+  
+  <!-- JoePay Notification System -->
+  <script type="module">
+    import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+
+    // Use existing Firebase app or initialize
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
+      authDomain: "overunder-ths.firebaseapp.com",
+      projectId: "overunder-ths",
+      storageBucket: "overunder-ths.firebasestorage.app",
+      messagingSenderId: "690530120785",
+      appId: "1:690530120785:web:36dc297cb517ac76cb7470"
+    };
+
+    const app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    
+    const joePayTransactionsRef = collection(db, "joepay_transactions");
+    
+    let currentUserId = null;
+    let unsubscribeJoePay = null;
+    let seenTransactionIds = new Set();
+    let allTransactions = [];
+    
+    // Load seen transactions from localStorage
+    function loadSeenTransactions() {
+      const stored = localStorage.getItem('joepay_seen_transactions');
+      if (stored) {
+        seenTransactionIds = new Set(JSON.parse(stored));
+      }
+    }
+    
+    // Save seen transactions to localStorage
+    function saveSeenTransactions() {
+      localStorage.setItem('joepay_seen_transactions', JSON.stringify([...seenTransactionIds]));
+    }
+    
+    // Format currency
+    function formatCurrency(amount) {
+      return '$' + amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+    
+    // Format date
+    function formatDate(timestamp) {
+      if (!timestamp) return '';
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const now = new Date();
+      const diff = now - date;
+      
+      // Less than 1 hour
+      if (diff < 3600000) {
+        const mins = Math.floor(diff / 60000);
+        return mins <= 1 ? 'Just now' : `${mins}m ago`;
+      }
+      // Less than 24 hours
+      if (diff < 86400000) {
+        const hours = Math.floor(diff / 3600000);
+        return `${hours}h ago`;
+      }
+      // Otherwise show date
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
+    // Update notification badge
+    function updateNotificationBadge() {
+      const badge = document.getElementById('notificationBadge');
+      if (!badge) return;
+      
+      // Count unseen received transactions
+      const unseenCount = allTransactions.filter(tx => 
+        tx.type === 'received' && !seenTransactionIds.has(tx.id)
+      ).length;
+      
+      if (unseenCount > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = unseenCount > 99 ? '99+' : unseenCount;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    
+    // Render transactions in modal
+    function renderJoePayTransactions() {
+      const container = document.getElementById('joepayTransactions');
+      if (!container) return;
+      
+      if (allTransactions.length === 0) {
+        container.innerHTML = `
+          <div class="joepay-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <p>No JoePay notifications</p>
+            <span>Payments you receive will appear here</span>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = allTransactions.map(tx => {
+        const isNew = tx.type === 'received' && !seenTransactionIds.has(tx.id);
+        const icon = tx.type === 'received' 
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>'
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+        
+        return `
+          <div class="joepay-tx-item ${isNew ? 'joepay-tx-new' : ''}" data-tx-id="${tx.id}">
+            <div class="joepay-tx-icon ${tx.type}">
+              ${icon}
+            </div>
+            <div class="joepay-tx-details">
+              <div class="joepay-tx-name">${tx.type === 'received' ? 'From' : 'To'} ${tx.userName}</div>
+              <div class="joepay-tx-note">${tx.note || formatDate(tx.timestamp)}</div>
+            </div>
+            <div class="joepay-tx-amount ${tx.type}">
+              ${tx.type === 'received' ? '+' : '-'}${formatCurrency(tx.amount)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Mark transactions as seen
+    function markTransactionsAsSeen() {
+      allTransactions.forEach(tx => {
+        if (tx.type === 'received') {
+          seenTransactionIds.add(tx.id);
+        }
+      });
+      saveSeenTransactions();
+      updateNotificationBadge();
+    }
+    
+    // Listen to JoePay transactions
+    function listenToJoePayTransactions() {
+      if (unsubscribeJoePay) {
+        unsubscribeJoePay();
+      }
+      
+      if (!currentUserId) return;
+      
+      unsubscribeJoePay = onSnapshot(
+        query(joePayTransactionsRef, orderBy('timestamp', 'desc')),
+        (snapshot) => {
+          allTransactions = [];
+          snapshot.forEach((doc) => {
+            const tx = doc.data();
+            // Only show transactions involving current user
+            if (tx.senderId === currentUserId || tx.receiverId === currentUserId) {
+              const isSent = tx.senderId === currentUserId;
+              allTransactions.push({
+                id: doc.id,
+                type: isSent ? 'sent' : 'received',
+                userName: isSent ? tx.receiverName : tx.senderName,
+                userTag: isSent ? tx.receiverTag : tx.senderTag,
+                amount: tx.amount,
+                note: tx.note || '',
+                timestamp: tx.timestamp,
+                status: tx.status || 'completed'
+              });
+            }
+          });
+          
+          // Limit to last 20 transactions
+          allTransactions = allTransactions.slice(0, 20);
+          
+          updateNotificationBadge();
+          
+          // If modal is open, update it
+          const modal = document.getElementById('joepayModal');
+          if (modal && modal.classList.contains('active')) {
+            renderJoePayTransactions();
+          }
+        },
+        (error) => {
+          console.error('Error listening to JoePay transactions:', error);
+        }
+      );
+    }
+    
+    // Setup event listeners
+    function setupJoePayNotifications() {
+      loadSeenTransactions();
+      
+      const bellBtn = document.getElementById('notificationBell');
+      const modal = document.getElementById('joepayModal');
+      const closeBtn = document.getElementById('closeJoepayModal');
+      
+      if (bellBtn) {
+        bellBtn.addEventListener('click', () => {
+          if (modal) {
+            modal.classList.add('active');
+            renderJoePayTransactions();
+            // Mark as seen after a short delay
+            setTimeout(markTransactionsAsSeen, 500);
+          }
+        });
+      }
+      
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          if (modal) modal.classList.remove('active');
+        });
+      }
+      
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.remove('active');
+          }
+        });
+      }
+      
+      // Listen for auth state changes
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          currentUserId = user.uid;
+          listenToJoePayTransactions();
+        } else {
+          currentUserId = null;
+          allTransactions = [];
+          if (unsubscribeJoePay) {
+            unsubscribeJoePay();
+            unsubscribeJoePay = null;
+          }
+          updateNotificationBadge();
+        }
+      });
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupJoePayNotifications);
+    } else {
+      setupJoePayNotifications();
+    }
+  </script>
   <script>
     // The Great Reset Countdown - January 29, 2026
     function updateResetCountdown() {

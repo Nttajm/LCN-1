@@ -4,6 +4,129 @@
    ======================================== */
 
 /* ========================================
+   NEW FEATURES ANNOUNCEMENT BANNER
+   ======================================== */
+.new-features-banner {
+  height: 50px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 1px solid rgba(0, 214, 50, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  color: white !important;
+
+  box-shadow: 0 4px 20px rgba(0, 214, 50, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.new-features-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+  animation: bannerShimmer 3s ease-in-out infinite;
+}
+
+@keyframes bannerShimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.banner-sparkle {
+  font-size: 1.25rem;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.banner-new-badge {
+  background: linear-gradient(135deg, #00D632, #00B82E);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 214, 50, 0.3);
+}
+
+.banner-text {
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.banner-text strong {
+  color: #ffffff;
+}
+
+.banner-cta {
+  background: rgba(0, 214, 50, 0.15);
+  color: #00D632;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 214, 50, 0.25);
+  white-space: nowrap;
+}
+
+.banner-cta:hover {
+  background: rgba(0, 214, 50, 0.25);
+  transform: translateX(2px);
+}
+
+@media (max-width: 640px) {
+  .new-features-banner {
+    height: auto;
+    min-height: 50px;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+  
+  .banner-sparkle {
+    display: none;
+  }
+  
+  .banner-content {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .banner-text {
+    font-size: 0.8rem;
+  }
+  
+  .banner-cta {
+    width: 100%;
+    text-align: center;
+    margin-top: 0.25rem;
+  }
+}
+
+/* ========================================
    THE GREAT RESET COUNTDOWN BANNER
    ======================================== */
 .reset-countdown-banner {
@@ -2452,5 +2575,221 @@
 
 .win-modal-btn:active {
   transform: translateY(0);
+}
+
+/* ========================================
+   JOEPAY NOTIFICATIONS
+   ======================================== */
+.joepay-notification {
+  position: relative;
+  margin-right: 0.75rem;
+}
+
+.notification-bell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.notification-bell:hover {
+  background: var(--bg-tertiary);
+  border-color: #00D632;
+}
+
+.notification-bell svg {
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.notification-bell:hover svg {
+  color: #00D632;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  background: #00D632;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* JoePay Modal */
+.joepay-modal {
+  max-width: 420px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.joepay-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.joepay-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.joepay-open-btn {
+  background: #00D632;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.joepay-open-btn:hover {
+  background: #00c127;
+  transform: translateY(-1px);
+}
+
+.joepay-transactions {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.joepay-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+}
+
+.joepay-empty svg {
+  margin-bottom: 1rem;
+  opacity: 0.4;
+}
+
+.joepay-empty p {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 0.25rem 0;
+}
+
+.joepay-empty span {
+  font-size: 0.85rem;
+}
+
+.joepay-tx-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+  transition: background 0.2s;
+}
+
+.joepay-tx-item:hover {
+  background: var(--bg-primary);
+}
+
+.joepay-tx-item:last-child {
+  margin-bottom: 0;
+}
+
+.joepay-tx-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.joepay-tx-icon.received {
+  background: rgba(0, 214, 50, 0.15);
+  color: #00D632;
+}
+
+.joepay-tx-icon.sent {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.joepay-tx-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.joepay-tx-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.15rem;
+}
+
+.joepay-tx-note {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.joepay-tx-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.joepay-tx-amount.received {
+  color: #00D632;
+}
+
+.joepay-tx-amount.sent {
+  color: #ef4444;
+}
+
+.joepay-tx-new {
+  position: relative;
+}
+
+.joepay-tx-new::after {
+  content: 'NEW';
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: #00D632;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
 }
 

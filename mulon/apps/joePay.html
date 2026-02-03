@@ -42,36 +42,159 @@
     /* Desktop Layout */
     @media (min-width: 768px) {
       body {
-        background: #1a1a1a;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
+        background: linear-gradient(135deg, #00D632 0%, #00a827 100%);
+        display: block;
+        padding: 0;
       }
 
       .app-container {
-        max-width: 420px;
-        height: 90vh;
-        max-height: 900px;
-        min-height: 700px;
-        border-radius: 40px;
-        background: var(--cashapp-green);
-        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+        max-width: 100%;
+        width: 100%;
+        height: 100vh;
+        min-height: 100vh;
+        max-height: none;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
         overflow: hidden;
-        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr auto;
+        grid-template-areas:
+          "header header"
+          "amount keypad"
+          "nav nav";
       }
 
       .app-container::before {
-        content: '';
-        position: absolute;
-        top: 12px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 120px;
-        height: 28px;
-        background: #000;
+        display: none;
+      }
+
+      .header {
+        grid-area: header;
+        padding: 20px 40px;
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      .amount-section {
+        grid-area: amount;
+        padding: 40px 60px;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .amount-display {
+        margin-bottom: 30px;
+      }
+
+      .amount-value {
+        font-size: 140px;
+        letter-spacing: -6px;
+      }
+
+      .currency-symbol {
+        font-size: 72px;
+        margin-top: 30px;
+      }
+
+      .keypad-wrapper {
+        grid-area: keypad;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 40px 60px;
+      }
+
+      .keypad {
+        max-width: 400px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .keypad-btn {
+        height: 90px;
+        font-size: 38px;
         border-radius: 20px;
-        z-index: 1000;
+      }
+
+      .keypad-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(1.02);
+      }
+
+      .action-buttons {
+        max-width: 400px;
+        margin: 20px auto 0;
+        width: 100%;
+        gap: 16px;
+      }
+
+      .action-btn {
+        padding: 20px 32px;
+        font-size: 20px;
+        border-radius: 35px;
+      }
+
+      .bottom-nav {
+        grid-area: nav;
+        padding: 16px 40px;
+        background: rgba(0, 0, 0, 0.15);
+        justify-content: center;
+        gap: 60px;
+      }
+
+      .nav-item {
+        padding: 12px 24px;
+      }
+
+      .nav-balance {
+        font-size: 18px;
+      }
+
+      .nav-item svg {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    /* Large Desktop */
+    @media (min-width: 1200px) {
+      .amount-value {
+        font-size: 180px;
+        letter-spacing: -8px;
+      }
+
+      .currency-symbol {
+        font-size: 90px;
+        margin-top: 40px;
+      }
+
+      .keypad-btn {
+        height: 100px;
+        font-size: 42px;
+      }
+
+      .keypad {
+        max-width: 450px;
+      }
+
+      .action-buttons {
+        max-width: 450px;
+      }
+    }
+
+    /* Keypad wrapper - mobile default */
+    .keypad-wrapper {
+      display: contents;
+    }
+
+    @media (min-width: 768px) {
+      .keypad-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
     }
 
@@ -86,7 +209,22 @@
 
     @media (min-width: 768px) {
       .header {
-        padding-top: 50px;
+        padding: 20px 40px;
+      }
+
+      .header-btn {
+        width: 52px;
+        height: 52px;
+      }
+
+      .header-btn svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .profile-btn svg {
+        width: 36px;
+        height: 36px;
       }
     }
 
@@ -128,6 +266,29 @@
       justify-content: center;
       padding: 20px;
       padding-bottom: 40px;
+    }
+
+    .joepay-logo {
+      display: none;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+
+    @media (min-width: 768px) {
+      .joepay-logo {
+        display: block;
+        font-size: 36px;
+        margin-bottom: 40px;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .joepay-logo {
+        font-size: 48px;
+        margin-bottom: 60px;
+      }
     }
 
     .amount-display {
@@ -354,17 +515,6 @@
     /* Home Indicator for mobile */
     .home-indicator {
       display: none;
-    }
-
-    @media (min-width: 768px) {
-      .home-indicator {
-        display: block;
-        width: 134px;
-        height: 5px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 3px;
-        margin: 8px auto 12px;
-      }
     }
 
     /* Modal Overlay */
@@ -864,6 +1014,7 @@
 
     <!-- Amount Section -->
     <section class="amount-section">
+      <div class="joepay-logo">💸 JoePay</div>
       <div class="amount-display">
         <span class="currency-symbol">$</span>
         <span class="amount-value" id="amountDisplay">0</span>
@@ -876,40 +1027,43 @@
       </button>
     </section>
 
-    <!-- Keypad -->
-    <section class="keypad">
-      <div class="keypad-row">
-        <button class="keypad-btn" data-value="1">1</button>
-        <button class="keypad-btn" data-value="2">2</button>
-        <button class="keypad-btn" data-value="3">3</button>
-      </div>
-      <div class="keypad-row">
-        <button class="keypad-btn" data-value="4">4</button>
-        <button class="keypad-btn" data-value="5">5</button>
-        <button class="keypad-btn" data-value="6">6</button>
-      </div>
-      <div class="keypad-row">
-        <button class="keypad-btn" data-value="7">7</button>
-        <button class="keypad-btn" data-value="8">8</button>
-        <button class="keypad-btn" data-value="9">9</button>
-      </div>
-      <div class="keypad-row">
-        <button class="keypad-btn" data-value=".">.</button>
-        <button class="keypad-btn" data-value="0">0</button>
-        <button class="keypad-btn backspace" data-value="backspace">
-          <svg viewBox="0 0 24 24" stroke-width="2">
-            <path d="M21 12H6"></path>
-            <path d="M9 18l-6-6 6-6"></path>
-          </svg>
-        </button>
-      </div>
-    </section>
+    <!-- Keypad Wrapper (for desktop grid) -->
+    <div class="keypad-wrapper">
+      <!-- Keypad -->
+      <section class="keypad">
+        <div class="keypad-row">
+          <button class="keypad-btn" data-value="1">1</button>
+          <button class="keypad-btn" data-value="2">2</button>
+          <button class="keypad-btn" data-value="3">3</button>
+        </div>
+        <div class="keypad-row">
+          <button class="keypad-btn" data-value="4">4</button>
+          <button class="keypad-btn" data-value="5">5</button>
+          <button class="keypad-btn" data-value="6">6</button>
+        </div>
+        <div class="keypad-row">
+          <button class="keypad-btn" data-value="7">7</button>
+          <button class="keypad-btn" data-value="8">8</button>
+          <button class="keypad-btn" data-value="9">9</button>
+        </div>
+        <div class="keypad-row">
+          <button class="keypad-btn" data-value=".">.</button>
+          <button class="keypad-btn" data-value="0">0</button>
+          <button class="keypad-btn backspace" data-value="backspace">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+              <path d="M21 12H6"></path>
+              <path d="M9 18l-6-6 6-6"></path>
+            </svg>
+          </button>
+        </div>
+      </section>
 
-    <!-- Action Buttons -->
-    <section class="action-buttons">
-      <button class="action-btn request" id="requestBtn" disabled>Request</button>
-      <button class="action-btn pay" id="payBtn" disabled>Pay</button>
-    </section>
+      <!-- Action Buttons -->
+      <section class="action-buttons">
+        <button class="action-btn request" id="requestBtn" disabled>Request</button>
+        <button class="action-btn pay" id="payBtn" disabled>Pay</button>
+      </section>
+    </div>
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
@@ -1052,29 +1206,44 @@
     <div class="success-subtext" id="successSubtext">$50 to @johndoe</div>
   </div>
 
-  <script>
+  <!-- Firebase SDK -->
+  <script type="module">
     // ============================================
-    // JOEPAY - Cash App Clone
+    // JOEPAY - Cash App Clone with Firebase
     // ============================================
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc, addDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    // Firebase config (same as Mulon)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
+      authDomain: "overunder-ths.firebaseapp.com",
+      projectId: "overunder-ths",
+      storageBucket: "overunder-ths.firebasestorage.app",
+      messagingSenderId: "690530120785",
+      appId: "1:690530120785:web:36dc297cb517ac76cb7470",
+      measurementId: "G-Q30T39R8VY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    
+    const usersRef = collection(db, "mulon_users");
+    const joePayTransactionsRef = collection(db, "joepay_transactions");
 
     // State
     let currentAmount = '';
-    let currentBalance = 500.00;
+    let currentBalance = 0;
     let selectedUser = null;
     let isRequestMode = false;
     let transactions = [];
-
-    // Mock users database
-    const mockUsers = [
-      { id: 1, name: 'John Doe', tag: '$johndoe', initials: 'JD', balance: 750 },
-      { id: 2, name: 'Jane Smith', tag: '$janesmith', initials: 'JS', balance: 1200 },
-      { id: 3, name: 'Mike Johnson', tag: '$mikej', initials: 'MJ', balance: 300 },
-      { id: 4, name: 'Sarah Wilson', tag: '$sarahw', initials: 'SW', balance: 890 },
-      { id: 5, name: 'Chris Brown', tag: '$chrisb', initials: 'CB', balance: 450 },
-      { id: 6, name: 'Emily Davis', tag: '$emilyd', initials: 'ED', balance: 2100 },
-      { id: 7, name: 'Alex Turner', tag: '$alext', initials: 'AT', balance: 670 },
-      { id: 8, name: 'Lisa Anderson', tag: '$lisaa', initials: 'LA', balance: 1500 },
-    ];
+    let allUsers = [];
+    let currentUser = null;
+    let currentUserId = null;
+    let unsubscribeTransactions = null;
 
     // DOM Elements
     const amountDisplay = document.getElementById('amountDisplay');
@@ -1091,31 +1260,180 @@
     const successOverlay = document.getElementById('successOverlay');
 
     // Initialize
-    function init() {
-      loadFromStorage();
-      updateDisplay();
-      renderUsers();
+    async function init() {
       setupEventListeners();
+      
+      // Listen for auth state
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUserId = user.uid;
+          await loadUserData(user.uid);
+          await loadAllUsers();
+          listenToTransactions();
+          updateDisplay();
+          renderUsers();
+        } else {
+          // Not signed in - redirect to sign in or show guest mode
+          currentUser = null;
+          currentUserId = null;
+          currentBalance = 0;
+          document.getElementById('profileName').textContent = 'Not Signed In';
+          document.getElementById('profileTag').textContent = 'Please sign in to use JoePay';
+          document.getElementById('profileAvatar').textContent = '?';
+          updateDisplay();
+        }
+      });
     }
 
-    // Load data from localStorage
-    function loadFromStorage() {
-      const savedBalance = localStorage.getItem('joepay_balance');
-      const savedTransactions = localStorage.getItem('joepay_transactions');
-      
-      if (savedBalance) {
-        currentBalance = parseFloat(savedBalance);
-      }
-      
-      if (savedTransactions) {
-        transactions = JSON.parse(savedTransactions);
+    // Load current user data from Firebase
+    async function loadUserData(uid) {
+      try {
+        const userDoc = await getDoc(doc(usersRef, uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          currentUser = data;
+          currentBalance = data.balance || 0;
+          
+          // Update profile
+          const displayName = data.displayName || data.email || 'User';
+          document.getElementById('profileName').textContent = displayName;
+          document.getElementById('profileTag').textContent = '$' + displayName.toLowerCase().replace(/\s+/g, '');
+          document.getElementById('profileAvatar').textContent = getInitials(displayName);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
       }
     }
 
-    // Save data to localStorage
-    function saveToStorage() {
-      localStorage.setItem('joepay_balance', currentBalance.toString());
-      localStorage.setItem('joepay_transactions', JSON.stringify(transactions));
+    // Load all users from Firebase
+    async function loadAllUsers() {
+      try {
+        const usersSnapshot = await getDocs(usersRef);
+        allUsers = [];
+        
+        usersSnapshot.forEach((doc) => {
+          const data = doc.data();
+          // Don't include current user in the list
+          if (doc.id !== currentUserId) {
+            const displayName = data.displayName || data.email || 'Anonymous';
+            allUsers.push({
+              id: doc.id,
+              name: displayName,
+              tag: '$' + displayName.toLowerCase().replace(/\s+/g, ''),
+              initials: getInitials(displayName),
+              balance: data.balance || 0,
+              email: data.email || ''
+            });
+          }
+        });
+        
+        renderUsers();
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    }
+
+    // Get initials from name
+    function getInitials(name) {
+      if (!name) return '?';
+      const parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    }
+
+    // Listen to transactions for real-time updates
+    function listenToTransactions() {
+      if (unsubscribeTransactions) {
+        unsubscribeTransactions();
+      }
+      
+      if (!currentUserId) return;
+      
+      // Listen for transactions where user is sender or receiver
+      unsubscribeTransactions = onSnapshot(
+        query(joePayTransactionsRef, orderBy('timestamp', 'desc')),
+        (snapshot) => {
+          transactions = [];
+          snapshot.forEach((doc) => {
+            const tx = doc.data();
+            // Only show transactions involving current user
+            if (tx.senderId === currentUserId || tx.receiverId === currentUserId) {
+              const isSent = tx.senderId === currentUserId;
+              transactions.push({
+                id: doc.id,
+                type: isSent ? 'sent' : 'received',
+                userName: isSent ? tx.receiverName : tx.senderName,
+                userTag: isSent ? tx.receiverTag : tx.senderTag,
+                amount: tx.amount,
+                note: tx.note || '',
+                date: formatDate(tx.timestamp),
+                timestamp: tx.timestamp,
+                status: tx.status || 'completed'
+              });
+            }
+          });
+          
+          // Also reload balance in case it changed
+          loadUserData(currentUserId);
+          renderActivity();
+        },
+        (error) => {
+          console.error('Error listening to transactions:', error);
+        }
+      );
+    }
+
+    // Format date
+    function formatDate(timestamp) {
+      if (!timestamp) return '';
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // Save transaction to Firebase and update balances
+    async function saveTransaction(senderId, receiverId, amount, note, senderName, receiverName) {
+      try {
+        // Create transaction record
+        const transaction = {
+          senderId: senderId,
+          receiverId: receiverId,
+          senderName: senderName,
+          senderTag: '$' + senderName.toLowerCase().replace(/\s+/g, ''),
+          receiverName: receiverName,
+          receiverTag: '$' + receiverName.toLowerCase().replace(/\s+/g, ''),
+          amount: amount,
+          note: note,
+          timestamp: new Date(),
+          status: 'completed'
+        };
+        
+        await addDoc(joePayTransactionsRef, transaction);
+        
+        // Update sender's balance (subtract)
+        const senderDoc = await getDoc(doc(usersRef, senderId));
+        if (senderDoc.exists()) {
+          const senderBalance = senderDoc.data().balance || 0;
+          await updateDoc(doc(usersRef, senderId), {
+            balance: Math.round((senderBalance - amount) * 100) / 100
+          });
+        }
+        
+        // Update receiver's balance (add)
+        const receiverDoc = await getDoc(doc(usersRef, receiverId));
+        if (receiverDoc.exists()) {
+          const receiverBalance = receiverDoc.data().balance || 0;
+          await updateDoc(doc(usersRef, receiverId), {
+            balance: Math.round((receiverBalance + amount) * 100) / 100
+          });
+        }
+        
+        return { success: true };
+      } catch (error) {
+        console.error('Error saving transaction:', error);
+        return { success: false, error: error.message };
+      }
     }
 
     // Update display
@@ -1181,10 +1499,24 @@
     // Render users list
     function renderUsers(searchTerm = '') {
       const userList = document.getElementById('userList');
-      const filteredUsers = mockUsers.filter(user => 
+      const filteredUsers = allUsers.filter(user => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.tag.toLowerCase().includes(searchTerm.toLowerCase())
+        user.tag.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
       );
+      
+      if (!currentUserId) {
+        userList.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" stroke-width="2">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+            </svg>
+            <p>Please sign in to Mulon first</p>
+          </div>
+        `;
+        return;
+      }
       
       if (filteredUsers.length === 0) {
         userList.innerHTML = `
@@ -1212,8 +1544,8 @@
       // Add click handlers
       userList.querySelectorAll('.user-item').forEach(item => {
         item.addEventListener('click', () => {
-          const userId = parseInt(item.dataset.userId);
-          selectedUser = mockUsers.find(u => u.id === userId);
+          const userId = item.dataset.userId;
+          selectedUser = allUsers.find(u => u.id === userId);
           showConfirmModal();
         });
       });
@@ -1282,48 +1614,60 @@
     }
 
     // Process transaction
-    function processTransaction() {
-      const amount = parseFloat(currentAmount) || 0;
-      const note = document.getElementById('confirmNote').value;
-      
-      if (isRequestMode) {
-        // Request money - add to balance (simulating instant fulfillment)
-        currentBalance += amount;
-        
-        // Add transaction
-        transactions.unshift({
-          id: Date.now(),
-          type: 'received',
-          userName: selectedUser.name,
-          userTag: selectedUser.tag,
-          amount: amount,
-          note: note,
-          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        });
-        
-        document.getElementById('successText').textContent = 'Request Sent!';
-        document.getElementById('successSubtext').textContent = `${formatCurrency(amount)} from ${selectedUser.tag}`;
-      } else {
-        // Pay money - subtract from balance
-        currentBalance -= amount;
-        
-        // Add transaction
-        transactions.unshift({
-          id: Date.now(),
-          type: 'sent',
-          userName: selectedUser.name,
-          userTag: selectedUser.tag,
-          amount: amount,
-          note: note,
-          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        });
-        
-        document.getElementById('successText').textContent = 'Payment Sent!';
-        document.getElementById('successSubtext').textContent = `${formatCurrency(amount)} to ${selectedUser.tag}`;
+    async function processTransaction() {
+      if (!currentUserId || !currentUser) {
+        alert('Please sign in to use JoePay');
+        return;
       }
       
-      // Save to storage
-      saveToStorage();
+      const amount = parseFloat(currentAmount) || 0;
+      const note = document.getElementById('confirmNote').value;
+      const senderName = currentUser.displayName || currentUser.email || 'User';
+      
+      if (isRequestMode) {
+        // Request money - create a pending request (simulate instant for now)
+        const result = await saveTransaction(
+          selectedUser.id,  // sender (the person being requested from)
+          currentUserId,    // receiver (current user)
+          amount,
+          note + ' (Request)',
+          selectedUser.name,
+          senderName
+        );
+        
+        if (result.success) {
+          currentBalance += amount;
+          document.getElementById('successText').textContent = 'Request Sent!';
+          document.getElementById('successSubtext').textContent = `${formatCurrency(amount)} from ${selectedUser.tag}`;
+        } else {
+          alert('Failed to send request: ' + result.error);
+          return;
+        }
+      } else {
+        // Pay money
+        if (amount > currentBalance) {
+          alert('Insufficient balance');
+          return;
+        }
+        
+        const result = await saveTransaction(
+          currentUserId,     // sender (current user)
+          selectedUser.id,   // receiver
+          amount,
+          note,
+          senderName,
+          selectedUser.name
+        );
+        
+        if (result.success) {
+          currentBalance -= amount;
+          document.getElementById('successText').textContent = 'Payment Sent!';
+          document.getElementById('successSubtext').textContent = `${formatCurrency(amount)} to ${selectedUser.tag}`;
+        } else {
+          alert('Failed to send payment: ' + result.error);
+          return;
+        }
+      }
       
       // Close confirm modal and show success
       confirmModal.classList.remove('active');
@@ -1389,7 +1733,7 @@
       });
 
       // Confirm payment
-      document.getElementById('confirmPayBtn').addEventListener('click', processTransaction);
+      document.getElementById('confirmPayBtn').addEventListener('click', () => processTransaction());
 
       // Activity nav
       document.getElementById('activityNav').addEventListener('click', () => {
