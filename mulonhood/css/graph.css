@@ -1,0 +1,337 @@
+/* Graph / Chart Specific Styles */
+
+/* TradingView Chart Container */
+#tradingview-chart {
+  background-color: var(--bg-primary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* TradingView Widget Overrides */
+.tradingview-widget-container {
+  width: 100%;
+  height: 100%;
+}
+
+.tradingview-widget-container__widget {
+  width: 100%;
+  height: 100%;
+}
+
+/* Chart Loading State */
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 350px;
+  background-color: var(--bg-card);
+  border-radius: 8px;
+}
+
+.chart-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--green-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mini Chart Animations */
+.mini-chart,
+.stock-chart-mini {
+  position: relative;
+  overflow: hidden;
+}
+
+.mini-chart::before,
+.stock-chart-mini::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  opacity: 0.5;
+}
+
+.mini-chart.green::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 200, 83, 0.3) 20%,
+    rgba(0, 200, 83, 0.5) 40%,
+    rgba(0, 200, 83, 0.3) 60%,
+    rgba(0, 200, 83, 0.5) 80%,
+    transparent 100%
+  );
+  clip-path: polygon(
+    0% 80%,
+    10% 60%,
+    20% 70%,
+    30% 40%,
+    40% 50%,
+    50% 30%,
+    60% 45%,
+    70% 25%,
+    80% 35%,
+    90% 20%,
+    100% 30%,
+    100% 100%,
+    0% 100%
+  );
+}
+
+.mini-chart.red::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 82, 82, 0.3) 20%,
+    rgba(255, 82, 82, 0.5) 40%,
+    rgba(255, 82, 82, 0.3) 60%,
+    rgba(255, 82, 82, 0.5) 80%,
+    transparent 100%
+  );
+  clip-path: polygon(
+    0% 30%,
+    10% 40%,
+    20% 35%,
+    30% 55%,
+    40% 45%,
+    50% 60%,
+    60% 50%,
+    70% 70%,
+    80% 65%,
+    90% 75%,
+    100% 80%,
+    100% 100%,
+    0% 100%
+  );
+}
+
+.stock-chart-mini.green::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 200, 83, 0.4) 50%,
+    transparent 100%
+  );
+  clip-path: polygon(
+    0% 70%,
+    15% 50%,
+    30% 60%,
+    45% 35%,
+    60% 45%,
+    75% 25%,
+    100% 40%,
+    100% 100%,
+    0% 100%
+  );
+}
+
+.stock-chart-mini.red::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 82, 82, 0.4) 50%,
+    transparent 100%
+  );
+  clip-path: polygon(
+    0% 30%,
+    15% 45%,
+    30% 40%,
+    45% 55%,
+    60% 50%,
+    75% 70%,
+    100% 65%,
+    100% 100%,
+    0% 100%
+  );
+}
+
+/* Chart Hover Effect */
+.chart-container:hover {
+  border-color: var(--border-light);
+}
+
+/* Timeframe Button Active Animation */
+.timeframe-btn.active {
+  animation: pulse-green 0.3s ease-out;
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(0, 200, 83, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 200, 83, 0);
+  }
+}
+
+/* Chart Crosshair Styles (when hovering on TradingView chart) */
+.chart-crosshair {
+  stroke: var(--text-secondary);
+  stroke-dasharray: 2;
+}
+
+/* Chart Tooltip Styles */
+.chart-tooltip {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.chart-tooltip-value {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.chart-tooltip-date {
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Price Line Indicator */
+.price-line {
+  stroke-width: 2;
+}
+
+.price-line.positive {
+  stroke: var(--green-primary);
+}
+
+.price-line.negative {
+  stroke: var(--red-primary);
+}
+
+/* Volume Bars */
+.volume-bar {
+  opacity: 0.5;
+}
+
+.volume-bar.positive {
+  fill: var(--green-primary);
+}
+
+.volume-bar.negative {
+  fill: var(--red-primary);
+}
+
+/* Chart Grid Lines */
+.chart-grid-line {
+  stroke: var(--border-color);
+  stroke-width: 0.5;
+}
+
+/* Chart Axis Labels */
+.chart-axis-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-family);
+}
+
+/* Candlestick Styles */
+.candlestick-up {
+  fill: var(--green-primary);
+  stroke: var(--green-primary);
+}
+
+.candlestick-down {
+  fill: var(--red-primary);
+  stroke: var(--red-primary);
+}
+
+/* Chart Area Fill Gradient */
+.chart-area-gradient-green {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 200, 83, 0.2) 0%,
+    rgba(0, 200, 83, 0.05) 50%,
+    rgba(0, 200, 83, 0) 100%
+  );
+}
+
+.chart-area-gradient-red {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 82, 82, 0.2) 0%,
+    rgba(255, 82, 82, 0.05) 50%,
+    rgba(255, 82, 82, 0) 100%
+  );
+}
+
+/* Shimmer Loading Effect for Charts */
+.chart-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Full Screen Chart Mode */
+.chart-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background-color: var(--bg-primary);
+  padding: 20px;
+}
+
+.chart-fullscreen #tradingview-chart {
+  height: calc(100vh - 100px);
+}
+
+.chart-fullscreen-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  color: var(--text-primary);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.chart-fullscreen-close:hover {
+  background-color: var(--red-primary);
+  border-color: var(--red-primary);
+}

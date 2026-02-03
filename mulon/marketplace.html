@@ -308,6 +308,7 @@
               <label>
                 <span class="resource-emoji">🎴</span>
                 <span>My Cards</span>
+                <span class="input-limit-hint">(max 3)</span>
               </label>
               <button class="select-cards-btn" id="selectMyCardsBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -341,6 +342,11 @@
           <h3 class="panel-title">Asking</h3>
           <p class="panel-subtitle">What you want in return</p>
           
+          <div class="trade-limits-info">
+            <span class="limit-badge">💰 Max $250,000</span>
+            <span class="limit-badge">🎴 Max 3 cards</span>
+          </div>
+          
           <div class="asking-inputs">
             <!-- Keys Input -->
             <div class="resource-input">
@@ -358,10 +364,11 @@
               <label>
                 <span class="resource-emoji">💵</span>
                 <span>Money</span>
+                <span class="input-limit-hint">(max $250k)</span>
               </label>
               <div class="input-with-max">
                 <span class="currency-prefix">$</span>
-                <input type="number" id="askMoney" min="0" value="0" step="0.01" placeholder="0.00">
+                <input type="number" id="askMoney" min="0" max="250000" value="0" step="0.01" placeholder="0.00">
               </div>
             </div>
             
@@ -370,6 +377,7 @@
               <label>
                 <span class="resource-emoji">🎴</span>
                 <span>Cards</span>
+                <span class="input-limit-hint">(max 3)</span>
               </label>
               <button class="select-cards-btn" id="selectAnyCardsBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

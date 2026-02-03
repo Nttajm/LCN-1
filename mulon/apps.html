@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apps - Mulon</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="../css/standard.css">
+  <style>
+    .apps-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .apps-header {
+      margin-bottom: 2rem;
+    }
+
+    .apps-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .apps-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .app-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+
+    .app-card:hover {
+      transform: scale(1.05);
+    }
+
+    .app-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-icon img {
+      width: 60%;
+      height: 60%;
+      object-fit: contain;
+    }
+
+    .app-icon svg {
+      width: 50%;
+      height: 50%;
+    }
+
+    .app-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-align: center;
+    }
+
+    /* JoePay specific */
+    .app-icon.joepay {
+      background: linear-gradient(135deg, #00D632 0%, #00C853 100%);
+    }
+
+    .app-icon.joepay svg {
+      fill: white;
+    }
+
+    /* Coming soon apps */
+    .app-card.coming-soon .app-icon {
+      background: var(--bg-tertiary);
+      opacity: 0.6;
+    }
+
+    .app-card.coming-soon .app-name {
+      color: var(--text-muted);
+    }
+
+    .coming-soon-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .apps-container {
+        padding: 1rem;
+      }
+
+      .apps-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+
+      .app-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 18px;
+      }
+
+      .app-name {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">Mulon (beta)</span>
+      </a>
+    </div>
+    <div class="header-right">
+      <div class="balance-display">
+        <div class="balance-item">
+          <span class="balance-label">Balance</span>
+          <span class="balance-amount" id="userBalance">$500.00</span>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item">
+          <span class="balance-label">Portfolio</span>
+          <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
+        </div>
+      </div>
+      <div class="user-menu" id="userMenu">
+        <div class="user-avatar" id="userAvatar">
+          <span id="userInitials">?</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
+        <li><a href="leaderbaord.html" class="nav-link">Leaderboard</a></li>
+        <li><a href="casino.html" class="nav-link">Casino</a></li>
+        <li><a href="apps.html" class="nav-link active">Apps</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Apps Grid -->
+  <main class="apps-container">
+    <div class="apps-header">
+      <h1>Apps</h1>
+      <p>Transfer money and more with Mulon apps</p>
+    </div>
+
+    <div class="apps-grid">
+      <!-- JoePay - Cash App Clone -->
+      <a href="apps/joePay.html" class="app-card">
+        <div class="app-icon joepay">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
+          </svg>
+        </div>
+        <span class="app-name">JoePay</span>
+      </a>
+
+      <!-- Coming Soon Apps -->
+      <div class="app-card coming-soon">
+        <div class="app-icon">
+          <span class="coming-soon-badge">SOON</span>
+        </div>
+        <span class="app-name">MulonBank</span>
+      </div>
+
+      <div class="app-card coming-soon">
+        <div class="app-icon">
+          <span class="coming-soon-badge">SOON</span>
+        </div>
+        <span class="app-name">Stocks</span>
+      </div>
+
+      <div class="app-card coming-soon">
+        <div class="app-icon">
+          <span class="coming-soon-badge">SOON</span>
+        </div>
+        <span class="app-name">Crypto</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">Mulon</span>
+      <span class="footer-text">© 2026 Mulon Markets. For educational use only.</span>
+    </div>
+  </footer>
+
+  <script src="js/format-utils.js"></script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mulonhood - Portfolio</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/graph.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Market Bar -->
+  <header class="market-bar">
+    <div class="market-item">
+      <div class="market-info">
+        <span class="market-name">Dow Jones</span>
+        <span class="market-value" data-target="49407.66">0.00</span>
+        <span class="market-change positive">(+515.19)</span>
+      </div>
+      <span class="market-percent positive" data-target="1.05">+0.00%</span>
+      <div class="mini-chart green"></div>
+    </div>
+    <div class="market-item">
+      <div class="market-info">
+        <span class="market-name">S&P 500</span>
+        <span class="market-value" data-target="6976.44">0.00</span>
+        <span class="market-change positive">(+37.41)</span>
+      </div>
+      <span class="market-percent positive" data-target="0.54">+0.00%</span>
+      <div class="mini-chart green"></div>
+    </div>
+    <div class="market-item">
+      <div class="market-info">
+        <span class="market-name">Nasdaq</span>
+        <span class="market-value" data-target="23592.11">0.00</span>
+        <span class="market-change positive">(+130.29)</span>
+      </div>
+      <span class="market-percent positive" data-target="0.56">+0.00%</span>
+      <div class="mini-chart green"></div>
+    </div>
+    <div class="market-item">
+      <div class="market-info">
+        <span class="market-name">Russell</span>
+        <span class="market-value" data-target="2640.28">0.00</span>
+        <span class="market-change positive">(+26.54)</span>
+      </div>
+      <span class="market-percent positive" data-target="1.02">+0.00%</span>
+      <div class="mini-chart green"></div>
+    </div>
+    <div class="market-item">
+      <div class="market-info">
+        <span class="market-name">VIX</span>
+        <span class="market-value" data-target="16.34">0.00</span>
+        <span class="market-change negative">(-1.10)</span>
+      </div>
+      <span class="market-percent negative" data-target="-6.31">-0.00%</span>
+      <div class="mini-chart red"></div>
+    </div>
+  </header>
+
+  <main class="app-container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar left-sidebar">
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active">portfolio</a>
+        <a href="#" class="nav-item">markets</a>
+        <a href="#" class="nav-item">activity</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <section class="main-content">
+      <div class="content-header">
+        <h1>stock/ portfolio viewer</h1>
+      </div>
+      
+      <!-- Portfolio Value Section -->
+      <div class="portfolio-value-section">
+        <div class="portfolio-total">
+          <span class="currency-symbol">$</span>
+          <span class="portfolio-amount" data-target="24847.53">0.00</span>
+        </div>
+        <div class="portfolio-change">
+          <span class="change-amount positive">+$847.53</span>
+          <span class="change-percent positive">(+3.53%)</span>
+          <span class="change-period">Today</span>
+        </div>
+      </div>
+
+      <!-- TradingView Chart Container -->
+      <div class="chart-container">
+        <div class="chart-timeframe">
+          <button class="timeframe-btn">1D</button>
+          <button class="timeframe-btn">1W</button>
+          <button class="timeframe-btn active">1M</button>
+          <button class="timeframe-btn">3M</button>
+          <button class="timeframe-btn">1Y</button>
+          <button class="timeframe-btn">ALL</button>
+        </div>
+        <div id="tradingview-chart"></div>
+      </div>
+
+      <!-- Watchlist Section -->
+      <div class="watchlist-section">
+        <div class="watchlist-header">
+          <h2>Lists</h2>
+          <div class="watchlist-controls">
+            <button class="control-btn">≡</button>
+            <button class="control-btn">⊕</button>
+            <button class="control-btn">✎</button>
+            <button class="control-btn">+</button>
+            <button class="control-btn collapse-btn">∧</button>
+          </div>
+        </div>
+        
+        <div class="watchlist-title">
+          <span>Watchlist</span>
+        </div>
+
+        <div class="stock-list">
+          <div class="stock-item">
+            <div class="stock-info">
+              <span class="stock-symbol">AAPL</span>
+              <span class="stock-name">Apple Inc</span>
+            </div>
+            <div class="stock-chart-mini green"></div>
+            <div class="stock-price-info">
+              <span class="stock-price" data-target="269.96">$0.00</span>
+              <span class="stock-change positive">+4.04%</span>
+            </div>
+          </div>
+
+          <div class="stock-item">
+            <div class="stock-info">
+              <span class="stock-symbol">GOOGL</span>
+              <span class="stock-name">Alphabet Inc Cla...</span>
+            </div>
+            <div class="stock-chart-mini green"></div>
+            <div class="stock-price-info">
+              <span class="stock-price" data-target="343.69">$0.00</span>
+              <span class="stock-change positive">+1.61%</span>
+            </div>
+          </div>
+
+          <div class="stock-item">
+            <div class="stock-info">
+              <span class="stock-symbol">IVV</span>
+              <span class="stock-name">iShares Core S&P...</span>
+            </div>
+            <div class="stock-chart-mini green"></div>
+            <div class="stock-price-info">
+              <span class="stock-price" data-target="698.54">$0.00</span>
+              <span class="stock-change positive">+0.51%</span>
+            </div>
+          </div>
+
+          <div class="stock-item">
+            <div class="stock-info">
+              <span class="stock-symbol">MCD</span>
+              <span class="stock-name">McDonald's Corp...</span>
+            </div>
+            <div class="stock-chart-mini green"></div>
+            <div class="stock-price-info">
+              <span class="stock-price" data-target="318.53">$0.00</span>
+              <span class="stock-change positive">+1.12%</span>
+            </div>
+          </div>
+
+          <div class="stock-item">
+            <div class="stock-info">
+              <span class="stock-symbol">NVDA</span>
+              <span class="stock-name">NVIDIA Corp</span>
+            </div>
+            <div class="stock-chart-mini red"></div>
+            <div class="stock-price-info">
+              <span class="stock-price" data-target="185.61">$0.00</span>
+              <span class="stock-change negative">-2.89%</span>
+            </div>
+          </div>
+
+          <div class="stock-item">
+            <div class="stock-info">
+              <span class="stock-symbol">TSLA</span>
+              <span class="stock-name">Tesla Inc</span>
+            </div>
+            <div class="stock-chart-mini red"></div>
+            <div class="stock-price-info">
+              <span class="stock-price" data-target="421.81">$0.00</span>
+              <span class="stock-change negative">-2.00%</span>
+            </div>
+          </div>
+
+          <div class="stock-item">
+            <div class="stock-info">
+              <span class="stock-symbol">VIX</span>
+              <span class="stock-name">VIX</span>
+            </div>
+            <div class="stock-chart-mini red"></div>
+            <div class="stock-price-info">
+              <span class="stock-price" data-target="16.34">$0.00</span>
+              <span class="stock-change negative">-6.31%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar right-sidebar">
+      <div class="suggestions-section">
+        <h3>suggestions</h3>
+        <div class="suggestion-input-wrapper">
+          <input type="text" class="suggestion-input" placeholder="Search stocks...">
+        </div>
+        <div class="suggestions-list">
+          <div class="suggestion-item">
+            <span class="suggestion-symbol">AMZN</span>
+            <span class="suggestion-name">Amazon.com Inc</span>
+          </div>
+          <div class="suggestion-item">
+            <span class="suggestion-symbol">META</span>
+            <span class="suggestion-name">Meta Platforms</span>
+          </div>
+          <div class="suggestion-item">
+            <span class="suggestion-symbol">MSFT</span>
+            <span class="suggestion-name">Microsoft Corp</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- TradingView Widget Script -->
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
