@@ -3,8 +3,8 @@
 // Multi-hand mode with progressive multipliers
 // ========================================
 
-// Base multiplier per hand (1.20x with ~3.3% house edge for 33.33% win chance)
-const BASE_MULTIPLIER = 1.20;
+// Base multiplier per hand (1.67x with higher payout for 33.33% win chance)
+const BASE_MULTIPLIER = 1.67;
 
 // Multiplier presets for each hands count
 const MULTIPLIERS = {
