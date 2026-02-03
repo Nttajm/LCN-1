@@ -47,7 +47,7 @@ const googleProvider = new GoogleAuthProvider();
 // ========================================
 // ADMIN SECURITY - Data Layer Protection
 // ========================================
-const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com', 'captrojolmao@gmail.com']);
+const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com', 'captrojolmao@gmail.com', 'ssb2027tech@gmail.com']);
 
 // Verify current user is admin - called before any admin-only operation
 function requireAdmin() {

@@ -1,0 +1,641 @@
+/* ========================================
+   HORSE RACING GAME - MULON CASINO
+   Controls LEFT, Race Track RIGHT
+   ======================================== */
+
+/* Main Layout */
+.horses-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* Bet & Play Button */
+.bet-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bet-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #16a34a, #15803d);
+  transform: translateY(-1px);
+}
+
+.bet-btn:disabled {
+  background: #374151;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Lane Selection Buttons */
+.lane-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.lane-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  background: #0f1419;
+  border: 2px solid #2a3441;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lane-btn:hover {
+  border-color: #6366f1;
+  background: #1a1f26;
+}
+
+.lane-btn.active {
+  border-color: #6366f1;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+}
+
+.lane-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lane-mult {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #22c55e;
+  margin-top: 2px;
+}
+
+/* Horse Selection */
+.horse-selection-group {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.horse-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.horse-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #0f1419;
+  border: 2px solid #2a3441;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.horse-item:hover {
+  border-color: #4b5563;
+  background: #1a1f26;
+}
+
+.horse-item.selected {
+  border-color: #6366f1;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+}
+
+.horse-item:disabled,
+.horse-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.horse-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.horse-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.horse-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.horse-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.horse-stat {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.horse-stat span {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.horse-odds {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* Potential Win Display */
+.multiplier-display {
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.multiplier-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.multiplier-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #22c55e;
+}
+
+.potential-mult {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* RIGHT PANEL - Race Track Area */
+.game-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background: #0f1419;
+  position: relative;
+  overflow: hidden;
+}
+
+.race-container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Track Title */
+.track-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.track-icon {
+  font-size: 1.8rem;
+}
+
+/* Race Timer */
+.race-timer {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #f59e0b;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  letter-spacing: 2px;
+}
+
+/* ========================================
+   STRAIGHT RACE TRACK - 100m Style
+   ======================================== */
+
+.race-track {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(180deg, #c9784e 0%, #a0522d 50%, #8b4513 100%);
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 2px 15px rgba(0, 0, 0, 0.4),
+    0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  border: 3px solid #fff;
+}
+
+/* Distance Markers at Top */
+.distance-markers {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 50px 8px 50px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.distance-mark {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  min-width: 28px;
+}
+
+/* Track Lanes Container */
+.track-lanes {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Individual Lane */
+.track-lane {
+  position: relative;
+  height: 52px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, 
+    rgba(0,0,0,0.1) 0%, 
+    transparent 5%, 
+    transparent 95%, 
+    rgba(0,0,0,0.1) 100%
+  );
+}
+
+.track-lane:nth-child(odd) {
+  background: linear-gradient(90deg, 
+    rgba(0,0,0,0.15) 0%, 
+    rgba(0,0,0,0.05) 5%, 
+    rgba(0,0,0,0.05) 95%, 
+    rgba(0,0,0,0.15) 100%
+  );
+}
+
+.track-lane:last-child {
+  border-bottom: none;
+}
+
+/* Lane number on left */
+.lane-number {
+  position: absolute;
+  left: 12px;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  z-index: 15;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+/* Lane line markings (every 10m) */
+.lane-markings {
+  position: absolute;
+  top: 0;
+  left: 50px;
+  right: 50px;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.lane-mark {
+  width: 1px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Horse trail */
+.horse-trail {
+  position: absolute;
+  left: 50px;
+  height: 12px;
+  border-radius: 6px;
+  opacity: 0.5;
+  z-index: 5;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Horse on track */
+.track-horse {
+  position: absolute;
+  left: 50px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.6),
+    0 4px 10px rgba(0, 0, 0, 0.5),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+  transition: none;
+}
+
+.track-horse::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+}
+
+/* Start Line */
+.start-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50px;
+  width: 5px;
+  background: repeating-linear-gradient(
+    180deg,
+    #22c55e 0px,
+    #22c55e 8px,
+    #fff 8px,
+    #fff 16px
+  );
+  z-index: 10;
+}
+
+/* Finish Line */
+.finish-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 50px;
+  width: 24px;
+  background: repeating-conic-gradient(
+    #fff 0deg 90deg,
+    #111 90deg 180deg
+  );
+  background-size: 12px 12px;
+  z-index: 10;
+}
+
+/* Race Status */
+.race-status {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: #1a1f26;
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.status-text {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.status-text.racing {
+  color: #f59e0b;
+  font-weight: 600;
+  animation: statusPulse 1s ease-in-out infinite;
+}
+
+.race-warning {
+  display: none;
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 6px;
+  color: #fca5a5;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.race-warning.show {
+  display: block;
+  animation: warningPulse 2s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text.finished {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* Skip Button */
+.skip-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid #6366f1;
+  border-radius: 6px;
+  color: #a5b4fc;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.skip-btn:hover {
+  background: rgba(99, 102, 241, 0.3);
+  color: #fff;
+}
+
+/* Game Over Overlay */
+.game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 20, 25, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.game-over-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.game-over-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.game-over-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.game-over-title.win {
+  color: #22c55e;
+}
+
+.game-over-title.lose {
+  color: #ef4444;
+}
+
+.game-over-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.game-over-details {
+  font-size: 1rem;
+  color: #9ca3af;
+  margin-bottom: 24px;
+}
+
+.play-again-btn {
+  padding: 14px 40px;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.play-again-btn:hover {
+  background: linear-gradient(180deg, #4f46e5, #4338ca);
+  transform: translateY(-2px);
+}
+
+/* Horse Colors */
+.horse-color-0 { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.horse-color-1 { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.horse-color-2 { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.horse-color-3 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.horse-color-4 { background: linear-gradient(135deg, #a855f7, #9333ea); }
+.horse-color-5 { background: linear-gradient(135deg, #ec4899, #db2777); }
+.horse-color-6 { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.horse-color-7 { background: linear-gradient(135deg, #f97316, #ea580c); }
+.horse-color-8 { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.horse-color-9 { background: linear-gradient(135deg, #84cc16, #65a30d); }
+
+/* Trail colors match horse colors */
+.trail-color-0 { background: linear-gradient(90deg, transparent, #ef4444); }
+.trail-color-1 { background: linear-gradient(90deg, transparent, #3b82f6); }
+.trail-color-2 { background: linear-gradient(90deg, transparent, #22c55e); }
+.trail-color-3 { background: linear-gradient(90deg, transparent, #f59e0b); }
+.trail-color-4 { background: linear-gradient(90deg, transparent, #a855f7); }
+.trail-color-5 { background: linear-gradient(90deg, transparent, #ec4899); }
+.trail-color-6 { background: linear-gradient(90deg, transparent, #14b8a6); }
+.trail-color-7 { background: linear-gradient(90deg, transparent, #f97316); }
+.trail-color-8 { background: linear-gradient(90deg, transparent, #6366f1); }
+.trail-color-9 { background: linear-gradient(90deg, transparent, #84cc16); }
+
+/* Winner effect */
+.track-horse.winner {
+  animation: winnerPulse 0.4s ease-in-out infinite;
+  box-shadow: 
+    0 0 25px rgba(34, 197, 94, 0.9),
+    0 0 50px rgba(34, 197, 94, 0.5),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes winnerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .horses-layout {
+    flex-direction: column;
+  }
+
+  .controls-panel {
+    width: 100%;
+    max-width: none;
+    border-right: none;
+    border-bottom: 1px solid #2a3441;
+  }
+
+  .horse-selection-group {
+    max-height: 200px;
+  }
+
+  .track-lane {
+    height: 42px;
+  }
+
+  .track-horse {
+    width: 26px;
+    height: 26px;
+  }
+
+  .race-timer {
+    font-size: 2rem;
+  }
+
+  .distance-markers {
+    padding: 6px 40px;
+  }
+
+  .distance-mark {
+    font-size: 0.55rem;
+  }
+}

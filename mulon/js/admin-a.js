@@ -6,7 +6,7 @@ import { MulonData, Auth } from './data-a.js';
 
 // Admin email whitelist - DO NOT MODIFY THIS LIST IN CONSOLE
 // Access checks are done server-side style with real-time auth verification
-const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com', 'captrojolmao@gmail.com']);
+const ADMIN_EMAILS = Object.freeze(['joelmulonde81@gmail.com', 'jordan.herrera@crpusd.org', 'kaidenchatigny@gmail.com', 'captrojolmao@gmail.com', 'ssb2027tech@gmail.com']);
 
 
 function isAdmin(email) {
