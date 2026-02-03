@@ -1041,7 +1041,7 @@ const OrderBook = {
       };
     }
     
-    await MulonData.updateMarket(marketId, updates);
+    await MulonData._updateMarketInternal(marketId, updates);
   },
   
   // Execute a market order (immediate execution at best available price)
@@ -1095,7 +1095,7 @@ const OrderBook = {
       volume: (market.volume || 0) + Math.round(dollarAmount)
     };
     
-    await MulonData.updateMarket(marketId, updates);
+    await MulonData._updateMarketInternal(marketId, updates);
     
     // Record the trade
     const trade = {
@@ -1698,6 +1698,25 @@ const MulonData = {
       return newMarket;
     } catch (error) {
       console.error('Error adding market:', error);
+      return null;
+    }
+  },
+
+  // Internal method to update market prices (used by order system, no admin check)
+  async _updateMarketInternal(id, updates) {
+    try {
+      const marketRef = doc(marketsRef, id);
+      await updateDoc(marketRef, updates);
+      
+      // Update cache
+      const index = this.cachedMarkets.findIndex(m => m.id === id);
+      if (index !== -1) {
+        this.cachedMarkets[index] = { ...this.cachedMarkets[index], ...updates };
+      }
+      
+      return this.cachedMarkets[index];
+    } catch (error) {
+      console.error('Error updating market internally:', error);
       return null;
     }
   },
