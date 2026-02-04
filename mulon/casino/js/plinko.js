@@ -844,22 +844,10 @@ Events.on(engine, 'afterUpdate', () => {
     const centerX = canvasWidth / 2;
     const distFromCenter = ball.position.x - centerX;
     
-    // Stronger center bias - slow down balls moving away from center
-    if (Math.abs(ball.velocity.x) > 0.3) {
+    if (Math.abs(ball.velocity.x) > 0.5) {
       if ((distFromCenter > 0 && ball.velocity.x > 0) || (distFromCenter < 0 && ball.velocity.x < 0)) {
-        // Stronger damping: 0.95 instead of 0.99
-        Body.setVelocity(ball, { x: ball.velocity.x * 0.95, y: ball.velocity.y });
+        Body.setVelocity(ball, { x: ball.velocity.x * 0.99, y: ball.velocity.y });
       }
-    }
-    
-    // Additional gentle pull toward center when ball is far from center
-    if (Math.abs(distFromCenter) > 80) {
-      const pullStrength = 0.02;
-      const pullForce = distFromCenter > 0 ? -pullStrength : pullStrength;
-      Body.setVelocity(ball, { 
-        x: ball.velocity.x + pullForce, 
-        y: ball.velocity.y 
-      });
     }
     
     checkBallLanding(ball);
