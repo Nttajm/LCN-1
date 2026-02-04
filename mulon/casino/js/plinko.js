@@ -33,7 +33,7 @@ function waitForAuth() {
 // Stake percentages: Low 50%, Medium 30%, High 20%
 const multiplierTables = {
   low: {
-    16: [16, 9, 4, 2, 1.7, 1.4, 0.6, 0.3, 0.1, 0.3, 0.6, 1.4, 1.7, 2, 4, 9, 16],
+    16: [16, 9, 4, 2, 1.7, 1.4, 0.6, 0.1, 0.1, 0.1, 0.6, 1.4, 1.7, 2, 4, 9, 16],
     stake: 0.50 // 50% of stake
   },
   medium: {
@@ -75,6 +75,10 @@ let buckets = [];
 let hitBuckets = {}; // Track hit animation state per bucket index
 
 const ballColor = '#fbbf24';
+
+// Rate limiting for ball drops (max 4 balls per second)
+let lastDropTime = 0;
+const MIN_DROP_INTERVAL = 250; // 250ms = 4 balls per second max
 
 function setBetControlsLocked(locked) {
   const betInput = document.getElementById('betAmount');
@@ -255,6 +259,13 @@ function getMultColor(mult) {
 
 // Drop ball
 async function dropBall() {
+  // Rate limit: max 4 balls per second (250ms between drops)
+  const now = Date.now();
+  if (now - lastDropTime < MIN_DROP_INTERVAL) {
+    return; // Ignore spam clicks
+  }
+  lastDropTime = now;
+  
   // Check if signed in
   if (!config.isSignedIn) {
     alert('Please sign in to play!');
@@ -590,7 +601,8 @@ function startAuto() {
   
   // Get auto settings
   config.betAmount = parseFloat(document.getElementById('autoBetAmount').value) || 10;
-  autoConfig.dropsPerSecond = parseInt(document.getElementById('autoSpeedSelect').value) || 3;
+  // Cap auto speed at 4 balls per second max
+  autoConfig.dropsPerSecond = Math.min(4, parseInt(document.getElementById('autoSpeedSelect').value) || 3);
   autoConfig.totalDrops = parseInt(document.getElementById('autoDropCount').value) || 50;
   autoConfig.stopOnProfit = parseFloat(document.getElementById('autoStopProfit').value) || 0;
   autoConfig.stopOnLoss = parseFloat(document.getElementById('autoStopLoss').value) || 0;
@@ -611,8 +623,8 @@ function startAuto() {
   
   updateAutoDisplay();
   
-  // Calculate interval in ms
-  const intervalMs = 1000 / autoConfig.dropsPerSecond;
+  // Calculate interval in ms (minimum 250ms = max 4 balls per second)
+  const intervalMs = Math.max(MIN_DROP_INTERVAL, 1000 / autoConfig.dropsPerSecond);
   
   // Start auto dropping
   autoConfig.intervalId = setInterval(autoDropBall, intervalMs);
@@ -832,10 +844,22 @@ Events.on(engine, 'afterUpdate', () => {
     const centerX = canvasWidth / 2;
     const distFromCenter = ball.position.x - centerX;
     
-    if (Math.abs(ball.velocity.x) > 0.5) {
+    // Stronger center bias - slow down balls moving away from center
+    if (Math.abs(ball.velocity.x) > 0.3) {
       if ((distFromCenter > 0 && ball.velocity.x > 0) || (distFromCenter < 0 && ball.velocity.x < 0)) {
-        Body.setVelocity(ball, { x: ball.velocity.x * 0.99, y: ball.velocity.y });
+        // Stronger damping: 0.95 instead of 0.99
+        Body.setVelocity(ball, { x: ball.velocity.x * 0.95, y: ball.velocity.y });
       }
+    }
+    
+    // Additional gentle pull toward center when ball is far from center
+    if (Math.abs(distFromCenter) > 80) {
+      const pullStrength = 0.02;
+      const pullForce = distFromCenter > 0 ? -pullStrength : pullStrength;
+      Body.setVelocity(ball, { 
+        x: ball.velocity.x + pullForce, 
+        y: ball.velocity.y 
+      });
     }
     
     checkBallLanding(ball);
