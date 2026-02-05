@@ -293,6 +293,11 @@ async function cashout() {
     document.getElementById('bestWin').textContent = '$' + config.bestWin.toFixed(2);
   }
   
+  // Share to live chat if multiplier is 3x or higher
+  if (config.currentMultiplier >= 3 && window.shareCasinoWin) {
+    window.shareCasinoWin('dragon-tower', config.currentMultiplier, profit);
+  }
+  
   updateBalanceDisplay();
   updateProfitDisplay();
   

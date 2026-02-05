@@ -1181,6 +1181,11 @@
           console.error('Error awarding xps:', err);
         });
       }
+      
+      // Share to live chat if multiplier is 6x or higher
+      if (cashedOutMultiplier >= 6 && window.shareCasinoWin) {
+        window.shareCasinoWin('crash', cashedOutMultiplier, profit);
+      }
     }
     
     // Skip to crash (called when user clicks skip button after cashing out)

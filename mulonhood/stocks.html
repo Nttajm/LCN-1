@@ -24,6 +24,15 @@
     </div>
   </header>
 
+  <!-- Scrolling Market Bar -->
+  <div class="market-bar">
+    <div class="market-bar-track">
+      <div class="market-bar-content" id="marketBarContent">
+        <!-- Stocks will be populated by JS -->
+      </div>
+    </div>
+  </div>
+
   <div class="app">
     <div class="sidebar">
       <a href="index.html" class="tab-elem">
@@ -175,28 +184,30 @@
           </div>
         </div>
 
-        <div class="overview-card trending">
+        <div class="overview-card marketcap">
           <div class="card-header">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
-            <h3>Trending Now</h3>
+            <h3>Highest Market Cap</h3>
           </div>
-          <div class="card-stocks">
+          <div class="card-stocks" id="highestMarketCapStocks">
             <div class="mini-stock">
-              <span class="ticker hot">🔥 PROM</span>
-              <span class="price">$32.00</span>
-              <span class="change positive">+25.0%</span>
+              <span class="ticker">NVDA</span>
+              <span class="marketcap-val">$1.8T</span>
+              <span class="change positive">+4.8%</span>
             </div>
             <div class="mini-stock">
-              <span class="ticker hot">🔥 GRAD</span>
-              <span class="price">$55.00</span>
-              <span class="change positive">+18.5%</span>
+              <span class="ticker">META</span>
+              <span class="marketcap-val">$1.2T</span>
+              <span class="change positive">+1.5%</span>
             </div>
             <div class="mini-stock">
-              <span class="ticker hot">🔥 EXAM</span>
-              <span class="price">$15.75</span>
-              <span class="change negative">-5.2%</span>
+              <span class="ticker">ROBO</span>
+              <span class="marketcap-val">$5.2M</span>
+              <span class="change positive">+9.2%</span>
             </div>
           </div>
         </div>

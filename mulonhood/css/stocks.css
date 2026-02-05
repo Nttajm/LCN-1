@@ -1,5 +1,89 @@
 /* Stocks Page Styles */
 
+/* Scrolling Market Bar */
+.market-bar {
+  width: 100%;
+  background-color: #0a0a0a;
+  border-bottom: 0.0625rem solid #1a1a1a;
+  overflow: hidden;
+  position: relative;
+}
+
+.market-bar-track {
+  width: 100%;
+  overflow: hidden;
+  padding: 0.625rem 0;
+}
+
+.market-bar-content {
+  display: flex;
+  gap: 2rem;
+  animation: marketScroll 30s linear infinite;
+  width: max-content;
+}
+
+.market-bar-content:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marketScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.market-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.market-bar-item:hover {
+  background-color: #1a1a1a;
+}
+
+.market-bar-item .ticker {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #ffffff;
+}
+
+.market-bar-item .price {
+  font-size: 0.8125rem;
+  color: #cccccc;
+}
+
+.market-bar-item .change {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.market-bar-item .change.positive {
+  color: #00e676;
+  background-color: rgba(0, 230, 118, 0.1);
+}
+
+.market-bar-item .change.negative {
+  color: #ff5252;
+  background-color: rgba(255, 82, 82, 0.1);
+}
+
+.mini-stock .marketcap-val {
+  color: #9c27b0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
 /* Category Tabs */
 .category-tabs {
   display: flex;
@@ -81,8 +165,8 @@
   color: #2196f3;
 }
 
-.trending .card-header svg {
-  color: #ffc107;
+.marketcap .card-header svg {
+  color: #9c27b0;
 }
 
 .card-header h3 {

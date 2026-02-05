@@ -680,11 +680,75 @@ function setupSorting() {
   });
 }
 
+// Populate scrolling market bar
+function populateMarketBar() {
+  const marketBar = document.getElementById('marketBarContent');
+  if (!marketBar) return;
+  
+  // Collect all stocks from all categories
+  const allStocks = [];
+  Object.keys(stockData).forEach(category => {
+    stockData[category].forEach(stock => {
+      allStocks.push({ ...stock, category });
+    });
+  });
+  
+  // Shuffle for variety
+  allStocks.sort(() => Math.random() - 0.5);
+  
+  // Take a subset for the bar
+  const barStocks = allStocks.slice(0, 20);
+  
+  // Create HTML - duplicate for seamless loop
+  const createItems = (stocks) => {
+    return stocks.map(stock => {
+      const isPositive = stock.change >= 0;
+      const changeSign = isPositive ? '+' : '';
+      const changeClass = isPositive ? 'positive' : 'negative';
+      
+      return `
+        <div class="market-bar-item" data-ticker="${stock.ticker}" data-category="${stock.category}">
+          <span class="ticker">${stock.ticker}</span>
+          <span class="price">$${stock.price.toFixed(2)}</span>
+          <span class="change ${changeClass}">${changeSign}${stock.change.toFixed(1)}%</span>
+        </div>
+      `;
+    }).join('');
+  };
+  
+  // Duplicate content for seamless scrolling
+  marketBar.innerHTML = createItems(barStocks) + createItems(barStocks);
+  
+  // Add click handlers
+  marketBar.querySelectorAll('.market-bar-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const ticker = item.dataset.ticker;
+      const category = item.dataset.category;
+      
+      // Switch to category if needed
+      if (category !== currentCategory) {
+        currentCategory = category;
+        document.querySelectorAll('.cat-tab').forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.category === category);
+        });
+        renderStocks(category);
+      }
+      
+      // Find and open the stock
+      const stock = stockData[category].find(s => s.ticker === ticker);
+      if (stock) {
+        openStockDetail(stock);
+      }
+    });
+  });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   setupCategoryTabs();
   setupSorting();
   renderStocks(currentCategory);
+  populateMarketBar();
   
   // Setup back button
   const backBtn = document.getElementById('backBtn');

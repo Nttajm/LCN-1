@@ -266,6 +266,11 @@ async function cashout() {
     document.getElementById('bestWin').textContent = '$' + config.bestWin.toFixed(2);
   }
   
+  // Share to live chat if found 5+ gems
+  if (config.gemsFound >= 5 && window.shareCasinoWin) {
+    window.shareCasinoWin('gems', config.currentMultiplier, profit);
+  }
+  
   updateBalanceDisplay();
   updateProfitDisplay();
   

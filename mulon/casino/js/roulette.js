@@ -657,6 +657,14 @@ async function showResult(winningNumber) {
     ProfitGraph.addPoint(profit);
   }
   
+  // Share to live chat if effective multiplier is 3x or higher
+  if (totalWin > 0 && config.totalBet > 0) {
+    const effectiveMultiplier = totalWin / config.totalBet;
+    if (effectiveMultiplier >= 3 && window.shareCasinoWin) {
+      window.shareCasinoWin('roulette', effectiveMultiplier, profit);
+    }
+  }
+  
   // Show result in box
   showResultBox(winningNumber, profit);
   
