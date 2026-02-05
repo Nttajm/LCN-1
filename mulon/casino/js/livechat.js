@@ -510,28 +510,40 @@ class LiveChat {
     window.LiveChat.gameShare(game, message, multiplier, amount);
   }
 
-  // Check bad words via Cloud Function
+  // Check bad words using PurgoMalum API
   async checkBadWords(text) {
     try {
-      // Try to use Cloud Function
-      if (this.functions) {
-        const filterMessage = httpsCallable(this.functions, 'filterChatMessage');
-        const result = await filterMessage({ text });
-        return result.data;
+      // Use PurgoMalum API to check for profanity
+      const encodedText = encodeURIComponent(text);
+      
+      // First check if text contains profanity
+      const containsResponse = await fetch(
+        `https://www.purgomalum.com/service/containsprofanity?text=${encodedText}`
+      );
+      const containsProfanity = await containsResponse.text();
+      
+      if (containsProfanity === 'true') {
+        // Get the cleaned version
+        const cleanResponse = await fetch(
+          `https://www.purgomalum.com/service/plain?text=${encodedText}&fill_char=*`
+        );
+        const cleanText = await cleanResponse.text();
+        
+        return { hasBadWords: true, cleanText };
       }
+      
+      return { hasBadWords: false, cleanText: text };
     } catch (error) {
-      console.warn('LiveChat: Cloud Function not available, using client-side filter:', error);
+      console.warn('LiveChat: PurgoMalum API error, using client-side filter:', error);
+      // Fallback to client-side filtering if API fails
+      return this.clientSideFilter(text);
     }
-    
-    // Fallback: Basic client-side filtering
-    return this.clientSideFilter(text);
   }
 
   // Basic client-side filter as fallback
   clientSideFilter(text) {
-    // Basic bad words list (the real filtering should be done server-side)
     const badPatterns = [
-      /\b(f+u+c+k+|sh+i+t+|a+s+s+h+o+l+e+|b+i+t+c+h+|d+a+m+n+|c+u+n+t+|d+i+c+k+|p+u+s+s+y+|c+o+c+k+|n+i+g+g+)/gi,
+      /\b(f+u+c+k+|sh+i+t+|a+s+s+h+o+l+e+|b+i+t+c+h+|d+a+m+n+|c+u+n+t+|d+i+c+k+|p+u+s+s+y+|c+o+c+k+|r+a+p+e|n+i+g+g+)/gi,
       /\b(retard|faggot|nazi|kill\s*yourself|kys)\b/gi
     ];
     
