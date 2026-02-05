@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mulonhood | Stocks</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/stocks.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <span class="logo-text">MulonHood.</span>
+      </a>
+      <div class="search-box">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" placeholder="Search stocks...">
+      </div>
+    </div>
+  </header>
+
+  <div class="app">
+    <div class="sidebar">
+      <a href="index.html" class="tab-elem">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+          <polyline points="16 7 22 7 22 13"></polyline>
+        </svg>
+        <span>Portfolio</span>
+      </a>
+      <a href="stocks.html" class="tab-elem sel">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="20" x2="12" y2="10"></line>
+          <line x1="18" y1="20" x2="18" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="16"></line>
+        </svg>
+        <span>Stocks</span>
+      </a>
+      <a href="crypto.html" class="tab-elem">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <text x="12" y="16" text-anchor="middle" fill="currentColor" font-size="10" font-weight="bold" stroke="none">C</text>
+        </svg>
+        <span>Crypto</span>
+      </a>
+    </div>
+
+    <div class="viewer stocks-view">
+      <!-- Category Tabs -->
+      <div class="category-tabs">
+        <button class="cat-tab active" data-category="school">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+          </svg>
+          School
+        </button>
+        <button class="cat-tab" data-category="sports">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a10 10 0 0 1 0 20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+          Sports
+        </button>
+        <button class="cat-tab" data-category="tech">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          TechHigh
+        </button>
+        <button class="cat-tab" data-category="real">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          Real Stocks
+        </button>
+        <button class="cat-tab" data-category="meme">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3l1.5 4.5H18l-3.5 3 1.5 4.5L12 12l-4 3 1.5-4.5L6 7.5h4.5z"></path>
+          </svg>
+          Meme
+        </button>
+      </div>
+
+      <!-- Market Overview -->
+      <div class="market-overview">
+        <div class="overview-card winners">
+          <div class="card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+            <h3>Today's Winners</h3>
+          </div>
+          <div class="card-stocks">
+            <div class="mini-stock positive">
+              <span class="ticker">MATH</span>
+              <span class="price">$24.50</span>
+              <span class="change">+12.5%</span>
+            </div>
+            <div class="mini-stock positive">
+              <span class="ticker">BALL</span>
+              <span class="price">$18.75</span>
+              <span class="change">+8.2%</span>
+            </div>
+            <div class="mini-stock positive">
+              <span class="ticker">CODE</span>
+              <span class="price">$45.00</span>
+              <span class="change">+6.8%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-card losers">
+          <div class="card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+              <polyline points="17 18 23 18 23 12"></polyline>
+            </svg>
+            <h3>Today's Losers</h3>
+          </div>
+          <div class="card-stocks">
+            <div class="mini-stock negative">
+              <span class="ticker">CAFE</span>
+              <span class="price">$8.25</span>
+              <span class="change">-15.3%</span>
+            </div>
+            <div class="mini-stock negative">
+              <span class="ticker">PARK</span>
+              <span class="price">$12.00</span>
+              <span class="change">-9.1%</span>
+            </div>
+            <div class="mini-stock negative">
+              <span class="ticker">BAND</span>
+              <span class="price">$5.50</span>
+              <span class="change">-7.4%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-card volume">
+          <div class="card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20V10"></path>
+              <path d="M18 20V4"></path>
+              <path d="M6 20v-4"></path>
+            </svg>
+            <h3>Most Traded</h3>
+          </div>
+          <div class="card-stocks">
+            <div class="mini-stock">
+              <span class="ticker">FOOT</span>
+              <span class="volume">125.4K</span>
+              <span class="change positive">+2.1%</span>
+            </div>
+            <div class="mini-stock">
+              <span class="ticker">GAME</span>
+              <span class="volume">98.2K</span>
+              <span class="change negative">-1.5%</span>
+            </div>
+            <div class="mini-stock">
+              <span class="ticker">CLUB</span>
+              <span class="volume">87.6K</span>
+              <span class="change positive">+0.8%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-card trending">
+          <div class="card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <h3>Trending Now</h3>
+          </div>
+          <div class="card-stocks">
+            <div class="mini-stock">
+              <span class="ticker hot">🔥 PROM</span>
+              <span class="price">$32.00</span>
+              <span class="change positive">+25.0%</span>
+            </div>
+            <div class="mini-stock">
+              <span class="ticker hot">🔥 GRAD</span>
+              <span class="price">$55.00</span>
+              <span class="change positive">+18.5%</span>
+            </div>
+            <div class="mini-stock">
+              <span class="ticker hot">🔥 EXAM</span>
+              <span class="price">$15.75</span>
+              <span class="change negative">-5.2%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Grid -->
+      <div class="stocks-section">
+        <div class="section-header">
+          <h2>School Stocks</h2>
+          <div class="sort-controls">
+            <select id="sortBy">
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+              <option value="change">% Change</option>
+              <option value="volume">Volume</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="stocks-grid" id="stocksGrid">
+          <!-- Stock cards will be populated by JS -->
+        </div>
+      </div>
+
+      <!-- Stock Detail View Overlay -->
+      <div class="stock-detail-overlay" id="stockDetailOverlay">
+        <div class="stock-detail-header">
+          <button class="back-btn" id="backBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"></path>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back
+          </button>
+          <div class="stock-actions-top">
+            <button class="action-icon-btn" title="Add to Watchlist">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </button>
+            <button class="action-icon-btn" title="Share">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="stock-detail-content">
+          <div class="stock-identity">
+            <div class="stock-detail-logo" id="stockDetailLogo">M</div>
+            <div class="stock-identity-text">
+              <h1 class="stock-detail-ticker" id="stockDetailTicker">MATH</h1>
+              <p class="stock-detail-name" id="stockDetailName">Math Department</p>
+            </div>
+          </div>
+
+          <div class="stock-detail-price-section">
+            <div class="stock-detail-price value-ffm" id="stockDetailPrice">$24.50</div>
+            <div class="stock-detail-change" id="stockDetailChange">
+              <span class="change-amount">+$2.75</span>
+              <span class="change-percent">(+12.5%)</span>
+              <span class="change-period">Today</span>
+            </div>
+          </div>
+
+          <div class="stock-detail-chart">
+            <canvas id="stockDetailChart"></canvas>
+            <div class="chart-controls">
+              <button class="time-btn active" data-period="1h">1H</button>
+              <button class="time-btn" data-period="1d">1D</button>
+              <button class="time-btn" data-period="3d">3D</button>
+              <button class="time-btn" data-period="1w">1W</button>
+              <button class="time-btn" data-period="1m">1M</button>
+            </div>
+          </div>
+
+          <div class="trade-buttons">
+            <button class="trade-btn buy-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Buy
+            </button>
+            <button class="trade-btn sell-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Sell
+            </button>
+          </div>
+
+          <div class="stock-stats-grid">
+            <div class="stat-box">
+              <span class="stat-label">Market Cap</span>
+              <span class="stat-value" id="statMarketCap">$2.4M</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Volume</span>
+              <span class="stat-value" id="statVolume">45.2K</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Avg Volume</span>
+              <span class="stat-value" id="statAvgVolume">38.5K</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">High Today</span>
+              <span class="stat-value" id="statHigh">$25.80</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Low Today</span>
+              <span class="stat-value" id="statLow">$22.15</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Open</span>
+              <span class="stat-value" id="statOpen">$21.75</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">52W High</span>
+              <span class="stat-value" id="stat52High">$32.50</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">52W Low</span>
+              <span class="stat-value" id="stat52Low">$8.25</span>
+            </div>
+          </div>
+
+          <div class="your-position">
+            <h3>Your Position</h3>
+            <div class="position-grid">
+              <div class="position-box">
+                <span class="position-label">Shares</span>
+                <span class="position-value" id="positionShares">0</span>
+              </div>
+              <div class="position-box">
+                <span class="position-label">Market Value</span>
+                <span class="position-value" id="positionValue">$0.00</span>
+              </div>
+              <div class="position-box">
+                <span class="position-label">Avg Cost</span>
+                <span class="position-value" id="positionAvgCost">--</span>
+              </div>
+              <div class="position-box">
+                <span class="position-label">Total Return</span>
+                <span class="position-value" id="positionReturn">--</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-section">
+            <h3>About</h3>
+            <p class="about-text" id="stockAbout">
+              The Math Department stock represents the academic performance and popularity of mathematics courses at the school. Price fluctuates based on test scores, enrollment numbers, and competition results.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header">
+        <h3>Your Watchlist</h3>
+      </div>
+      <div class="watchlist">
+        <div class="watch-item">
+          <div class="watch-info">
+            <span class="watch-ticker">MATH</span>
+            <span class="watch-name">Math Department</span>
+          </div>
+          <div class="watch-data positive">
+            <span class="watch-price">$24.50</span>
+            <span class="watch-change">+12.5%</span>
+          </div>
+        </div>
+        <div class="watch-item">
+          <div class="watch-info">
+            <span class="watch-ticker">CODE</span>
+            <span class="watch-name">Coding Club</span>
+          </div>
+          <div class="watch-data positive">
+            <span class="watch-price">$45.00</span>
+            <span class="watch-change">+6.8%</span>
+          </div>
+        </div>
+        <div class="watch-item">
+          <div class="watch-info">
+            <span class="watch-ticker">CAFE</span>
+            <span class="watch-name">Cafeteria Inc</span>
+          </div>
+          <div class="watch-data negative">
+            <span class="watch-price">$8.25</span>
+            <span class="watch-change">-15.3%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/stocks.js"></script>
+</body>
+</html>

@@ -78,7 +78,7 @@ const ballColor = '#fbbf24';
 
 // Rate limiting for ball drops (max 4 balls per second)
 let lastDropTime = 0;
-const MIN_DROP_INTERVAL = 250; // 250ms = 4 balls per second max
+const MIN_DROP_INTERVAL = 150; // 150ms = 4 balls per second max
 
 function setBetControlsLocked(locked) {
   const betInput = document.getElementById('betAmount');
@@ -393,6 +393,11 @@ function checkBallLanding(ball) {
           // Reset streak on sub-2x win
           window.CasinoDB.resetStreak();
         }
+        
+        // Share big wins (5x+) to live chat
+        if (landedBucket.multiplier >= 5 && typeof window.shareCasinoWin === 'function') {
+          window.shareCasinoWin('plinko', landedBucket.multiplier, profit);
+        }
       }
       
       config.sessionProfit += profit;
@@ -602,7 +607,7 @@ function startAuto() {
   // Get auto settings
   config.betAmount = parseFloat(document.getElementById('autoBetAmount').value) || 10;
   // Cap auto speed at 4 balls per second max
-  autoConfig.dropsPerSecond = Math.min(4, parseInt(document.getElementById('autoSpeedSelect').value) || 3);
+  autoConfig.dropsPerSecond = Math.min(6, parseInt(document.getElementById('autoSpeedSelect').value) || 4);
   autoConfig.totalDrops = parseInt(document.getElementById('autoDropCount').value) || 50;
   autoConfig.stopOnProfit = parseFloat(document.getElementById('autoStopProfit').value) || 0;
   autoConfig.stopOnLoss = parseFloat(document.getElementById('autoStopLoss').value) || 0;

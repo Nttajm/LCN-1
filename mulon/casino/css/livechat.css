@@ -1,0 +1,648 @@
+/* ========================================
+   CASINO LIVE CHAT STYLES
+   Floating, draggable chat widget
+   ======================================== */
+
+/* Chat Container - Floating Widget */
+.livechat-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  height: 420px;
+  background: #1a1f26;
+  border: 1px solid #2a3441;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.livechat-container.minimized {
+  height: 48px;
+  width: 200px;
+}
+
+.livechat-container.minimized .livechat-body,
+.livechat-container.minimized .livechat-input-area {
+  display: none;
+}
+
+/* Chat Header - Draggable */
+.livechat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.livechat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.livechat-status {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.livechat-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.livechat-users {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 4px;
+}
+
+.livechat-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.livechat-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.livechat-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.livechat-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Chat Body - Messages Area */
+.livechat-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #0f1419;
+}
+
+.livechat-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.livechat-body::-webkit-scrollbar-track {
+  background: #1a1f26;
+}
+
+.livechat-body::-webkit-scrollbar-thumb {
+  background: #3a4451;
+  border-radius: 3px;
+}
+
+/* Message Styles */
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: #1a1f26;
+  border-radius: 8px;
+  max-width: 100%;
+  flex-shrink: 0;
+  animation: messageIn 0.2s ease-out;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-message.own-message {
+  background: #2a3f5f;
+  border: 1px solid #3a5070;
+}
+
+.chat-message-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-username {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6366f1;
+}
+
+.chat-message.own-message .chat-username {
+  color: #a5b4fc;
+}
+
+.chat-timestamp {
+  font-size: 0.65rem;
+  color: #6b7280;
+}
+
+.chat-text {
+  font-size: 0.85rem;
+  color: #e5e7eb;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+/* System Messages */
+.chat-message.system-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  text-align: center;
+}
+
+.chat-message.system-message .chat-text {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.chat-message.warning-message {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.chat-message.warning-message .chat-text {
+  color: #fbbf24;
+  font-size: 0.75rem;
+}
+
+.chat-message.info-message {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  text-align: center;
+}
+
+.chat-message.info-message .chat-text {
+  color: #a5b4fc;
+  font-size: 0.75rem;
+}
+
+/* Input Area */
+.livechat-input-area {
+  padding: 12px;
+  background: #1a1f26;
+  border-top: 1px solid #2a3441;
+  flex-shrink: 0;
+}
+
+.livechat-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.livechat-input {
+  flex: 1;
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.livechat-input:focus {
+  border-color: #6366f1;
+}
+
+.livechat-input::placeholder {
+  color: #6b7280;
+}
+
+.livechat-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.livechat-send-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.livechat-send-btn:hover {
+  transform: scale(1.05);
+}
+
+.livechat-send-btn:active {
+  transform: scale(0.95);
+}
+
+.livechat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.livechat-send-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Login Required State */
+.livechat-login-prompt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  background: #0f1419;
+}
+
+.livechat-login-prompt svg {
+  width: 48px;
+  height: 48px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.livechat-login-prompt p {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.livechat-login-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.livechat-login-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Cooldown Timer */
+.livechat-cooldown {
+  position: absolute;
+  bottom: 70px;
+  left: 12px;
+  right: 12px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  text-align: center;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Warning Counter Badge */
+.warning-badge {
+  position: absolute;
+  top: 8px;
+  right: 50px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Chat Toggle Button (when minimized) */
+.livechat-toggle-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  z-index: 9998;
+  transition: transform 0.2s;
+}
+
+.livechat-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+.livechat-toggle-btn svg {
+  width: 24px;
+  height: 24px;
+  color: #fff;
+}
+
+.livechat-toggle-btn.has-unread::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #1a1f26;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  background: #6b7280;
+  border-radius: 50%;
+  animation: typingDot 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .livechat-container {
+    width: calc(100% - 20px);
+    right: 10px;
+    bottom: 10px;
+    height: 350px;
+  }
+  
+  .livechat-container.minimized {
+    width: 160px;
+  }
+}
+
+/* ========================================
+   GAME SHARE MESSAGES
+   Stylized win announcements
+   ======================================== */
+
+.game-share-message {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  padding-right: 55px;
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  animation: gameShareIn 0.4s ease-out;
+}
+
+@keyframes gameShareIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.game-share-message::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.game-share-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.game-share-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.game-share-game {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.game-share-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.game-share-user {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.game-share-text {
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+.game-share-multiplier {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.game-share-multiplier.big-win {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  font-size: 1.1rem;
+  animation: pulse-glow 1s ease-in-out infinite;
+}
+
+.game-share-multiplier.mega-win {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(168, 85, 247, 0.3));
+  color: #f472b6;
+  font-size: 1.2rem;
+  text-shadow: 0 0 10px rgba(244, 114, 182, 0.5);
+  animation: mega-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes mega-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(244, 114, 182, 0.3);
+  }
+  50% { 
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(244, 114, 182, 0.5);
+  }
+}
+
+/* Game-specific colors */
+.game-share-message.game-plinko {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.game-share-message.game-gems,
+.game-share-message.game-mines {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(244, 114, 182, 0.15) 100%);
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.game-share-message.game-roulette {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.game-share-message.game-blackjack {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.game-share-message.game-dice {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.game-share-message.game-crash {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.game-share-message.game-wheel {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.15) 100%);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.game-share-message.game-horses {
+  background: linear-gradient(135deg, rgba(132, 204, 22, 0.15) 0%, rgba(101, 163, 13, 0.15) 100%);
+  border-color: rgba(132, 204, 22, 0.3);
+}
+
+.game-share-message.game-dragon-tower,
+.game-share-message.game-dragon {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(185, 28, 28, 0.15) 100%);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.game-share-message.game-rps {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.game-share-message.game-poker {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(51, 65, 85, 0.4) 100%);
+  border-color: rgba(100, 116, 139, 0.3);
+}
