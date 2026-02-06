@@ -5,66 +5,128 @@ const realStockCache = {};
 let isLoadingRealStocks = false;
 const defaultRealTickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX'];
 
+// School Index Data
+const indexData = [
+  {
+    id: 'SCHL',
+    name: 'Total School Index',
+    description: 'All school stocks combined',
+    icon: 'total',
+    price: 1247.50,
+    change: 3.2,
+    stocks: 28,
+    volume: 524600,
+    marketCap: '12.4M'
+  },
+  {
+    id: 'ACAD',
+    name: 'Academics Index',
+    description: 'Math, English, Science & more',
+    icon: 'school',
+    price: 425.75,
+    change: 5.8,
+    stocks: 12,
+    volume: 189400,
+    marketCap: '4.2M'
+  },
+  {
+    id: 'SPRT',
+    name: 'Sports Index',
+    description: 'All athletic departments',
+    icon: 'sports',
+    price: 312.00,
+    change: -1.2,
+    stocks: 8,
+    volume: 156800,
+    marketCap: '3.1M'
+  },
+  {
+    id: 'TECH',
+    name: 'TechHigh Index',
+    description: 'Technology & innovation clubs',
+    icon: 'tech',
+    price: 389.25,
+    change: 7.4,
+    stocks: 8,
+    volume: 134200,
+    marketCap: '3.9M'
+  },
+  {
+    id: 'ARTS',
+    name: 'Arts & Culture Index',
+    description: 'Music, drama, art & more',
+    icon: 'arts',
+    price: 120.50,
+    change: -2.8,
+    stocks: 6,
+    volume: 44200,
+    marketCap: '1.2M'
+  }
+];
+
 const stockData = {
   school: [
-    { ticker: 'MATH', name: 'Math Department', price: 24.50, change: 12.5, volume: 45200 },
-    { ticker: 'ENGR', name: 'English Class', price: 18.25, change: -2.3, volume: 32100 },
-    { ticker: 'HIST', name: 'History Society', price: 15.00, change: 5.8, volume: 28500 },
-    { ticker: 'CHEM', name: 'Chemistry Lab', price: 32.75, change: -4.1, volume: 19800 },
-    { ticker: 'PHYS', name: 'Physics Club', price: 28.00, change: 3.2, volume: 22400 },
-    { ticker: 'ART', name: 'Art Studio', price: 12.50, change: 8.9, volume: 15600 },
-    { ticker: 'CAFE', name: 'Cafeteria Inc', price: 8.25, change: -15.3, volume: 67800 },
-    { ticker: 'LIBR', name: 'Library Co', price: 22.00, change: 1.5, volume: 12300 },
-    { ticker: 'BAND', name: 'Marching Band', price: 5.50, change: -7.4, volume: 8900 },
-    { ticker: 'DRAM', name: 'Drama Club', price: 14.75, change: 4.2, volume: 11200 },
-    { ticker: 'PROM', name: 'Prom Committee', price: 32.00, change: 25.0, volume: 89500 },
-    { ticker: 'GRAD', name: 'Graduation Fund', price: 55.00, change: 18.5, volume: 56700 },
+    { ticker: 'MATH', name: 'Math Department', price: 24.50, change: 12.5, volume: 45200, marketCap: '2.4M' },
+    { ticker: 'ENGR', name: 'English Class', price: 18.25, change: -2.3, volume: 32100, marketCap: '1.8M' },
+    { ticker: 'HIST', name: 'History Society', price: 15.00, change: 5.8, volume: 28500, marketCap: '1.5M' },
+    { ticker: 'CHEM', name: 'Chemistry Lab', price: 32.75, change: -4.1, volume: 19800, marketCap: '3.3M' },
+    { ticker: 'PHYS', name: 'Physics Club', price: 28.00, change: 3.2, volume: 22400, marketCap: '2.8M' },
+    { ticker: 'ART', name: 'Art Studio', price: 12.50, change: 8.9, volume: 15600, marketCap: '1.3M' },
+    { ticker: 'CAFE', name: 'Cafeteria Inc', price: 8.25, change: -15.3, volume: 67800, marketCap: '825K' },
+    { ticker: 'LIBR', name: 'Library Co', price: 22.00, change: 1.5, volume: 12300, marketCap: '2.2M' },
+    { ticker: 'BAND', name: 'Marching Band', price: 5.50, change: -7.4, volume: 8900, marketCap: '550K' },
+    { ticker: 'DRAM', name: 'Drama Club', price: 14.75, change: 4.2, volume: 11200, marketCap: '1.5M' },
+    { ticker: 'PROM', name: 'Prom Committee', price: 32.00, change: 25.0, volume: 89500, marketCap: '3.2M' },
+    { ticker: 'GRAD', name: 'Graduation Fund', price: 55.00, change: 18.5, volume: 56700, marketCap: '5.5M' },
   ],
   sports: [
-    { ticker: 'FOOT', name: 'Football Team', price: 45.00, change: 2.1, volume: 125400 },
-    { ticker: 'BASK', name: 'Basketball Squad', price: 38.50, change: -1.8, volume: 98200 },
-    { ticker: 'BALL', name: 'Baseball Club', price: 18.75, change: 8.2, volume: 45600 },
-    { ticker: 'SOCC', name: 'Soccer League', price: 28.25, change: 5.5, volume: 67800 },
-    { ticker: 'SWIM', name: 'Swim Team', price: 22.00, change: -3.2, volume: 23400 },
-    { ticker: 'TRAK', name: 'Track & Field', price: 16.50, change: 4.8, volume: 34500 },
-    { ticker: 'TENN', name: 'Tennis Club', price: 19.75, change: -0.5, volume: 18900 },
-    { ticker: 'GOLF', name: 'Golf Team', price: 35.00, change: 2.3, volume: 12100 },
+    { ticker: 'FOOT', name: 'Football Team', price: 45.00, change: 2.1, volume: 125400, marketCap: '4.5M' },
+    { ticker: 'BASK', name: 'Basketball Squad', price: 38.50, change: -1.8, volume: 98200, marketCap: '3.9M' },
+    { ticker: 'BALL', name: 'Baseball Club', price: 18.75, change: 8.2, volume: 45600, marketCap: '1.9M' },
+    { ticker: 'SOCC', name: 'Soccer League', price: 28.25, change: 5.5, volume: 67800, marketCap: '2.8M' },
+    { ticker: 'SWIM', name: 'Swim Team', price: 22.00, change: -3.2, volume: 23400, marketCap: '2.2M' },
+    { ticker: 'TRAK', name: 'Track & Field', price: 16.50, change: 4.8, volume: 34500, marketCap: '1.7M' },
+    { ticker: 'TENN', name: 'Tennis Club', price: 19.75, change: -0.5, volume: 18900, marketCap: '2.0M' },
+    { ticker: 'GOLF', name: 'Golf Team', price: 35.00, change: 2.3, volume: 12100, marketCap: '3.5M' },
   ],
   tech: [
-    { ticker: 'CODE', name: 'Coding Club', price: 45.00, change: 6.8, volume: 78900 },
-    { ticker: 'GAME', name: 'Game Dev Society', price: 32.50, change: -1.5, volume: 98200 },
-    { ticker: 'ROBO', name: 'Robotics Team', price: 52.00, change: 9.2, volume: 56700 },
-    { ticker: 'HACK', name: 'Hackathon Inc', price: 28.75, change: 15.3, volume: 45600 },
-    { ticker: 'WEBS', name: 'Web Design Club', price: 18.25, change: 3.1, volume: 34500 },
-    { ticker: 'DATA', name: 'Data Science Lab', price: 41.00, change: -2.8, volume: 23400 },
-    { ticker: 'CYBS', name: 'Cyber Security', price: 38.50, change: 7.5, volume: 67800 },
-    { ticker: 'APPS', name: 'App Developers', price: 25.00, change: 4.2, volume: 89100 },
+    { ticker: 'CODE', name: 'Coding Club', price: 45.00, change: 6.8, volume: 78900, marketCap: '4.5M' },
+    { ticker: 'GAME', name: 'Game Dev Society', price: 32.50, change: -1.5, volume: 98200, marketCap: '3.3M' },
+    { ticker: 'ROBO', name: 'Robotics Team', price: 52.00, change: 9.2, volume: 56700, marketCap: '5.2M' },
+    { ticker: 'HACK', name: 'Hackathon Inc', price: 28.75, change: 15.3, volume: 45600, marketCap: '2.9M' },
+    { ticker: 'WEBS', name: 'Web Design Club', price: 18.25, change: 3.1, volume: 34500, marketCap: '1.8M' },
+    { ticker: 'DATA', name: 'Data Science Lab', price: 41.00, change: -2.8, volume: 23400, marketCap: '4.1M' },
+    { ticker: 'CYBS', name: 'Cyber Security', price: 38.50, change: 7.5, volume: 67800, marketCap: '3.9M' },
+    { ticker: 'APPS', name: 'App Developers', price: 25.00, change: 4.2, volume: 89100, marketCap: '2.5M' },
   ],
   real: [
-    { ticker: 'AAPL', name: 'Apple Inc', price: 185.50, change: 1.2, volume: 5670000 },
-    { ticker: 'MSFT', name: 'Microsoft', price: 378.25, change: 0.8, volume: 3450000 },
-    { ticker: 'GOOGL', name: 'Alphabet', price: 142.75, change: -0.5, volume: 2340000 },
-    { ticker: 'AMZN', name: 'Amazon', price: 178.00, change: 2.1, volume: 4560000 },
-    { ticker: 'TSLA', name: 'Tesla', price: 248.50, change: -3.2, volume: 8900000 },
-    { ticker: 'META', name: 'Meta Platforms', price: 485.00, change: 1.5, volume: 2100000 },
-    { ticker: 'NVDA', name: 'NVIDIA', price: 722.50, change: 4.8, volume: 6780000 },
-    { ticker: 'NFLX', name: 'Netflix', price: 565.25, change: -1.1, volume: 1890000 },
+    { ticker: 'AAPL', name: 'Apple Inc', price: 185.50, change: 1.2, volume: 5670000, marketCap: '2.8T' },
+    { ticker: 'MSFT', name: 'Microsoft', price: 378.25, change: 0.8, volume: 3450000, marketCap: '2.9T' },
+    { ticker: 'GOOGL', name: 'Alphabet', price: 142.75, change: -0.5, volume: 2340000, marketCap: '1.8T' },
+    { ticker: 'AMZN', name: 'Amazon', price: 178.00, change: 2.1, volume: 4560000, marketCap: '1.9T' },
+    { ticker: 'TSLA', name: 'Tesla', price: 248.50, change: -3.2, volume: 8900000, marketCap: '790B' },
+    { ticker: 'META', name: 'Meta Platforms', price: 485.00, change: 1.5, volume: 2100000, marketCap: '1.2T' },
+    { ticker: 'NVDA', name: 'NVIDIA', price: 722.50, change: 4.8, volume: 6780000, marketCap: '1.8T' },
+    { ticker: 'NFLX', name: 'Netflix', price: 565.25, change: -1.1, volume: 1890000, marketCap: '245B' },
   ],
   meme: [
-    { ticker: 'YOLO', name: 'YOLO Holdings', price: 4.20, change: 42.0, volume: 999999 },
-    { ticker: 'HODL', name: 'Diamond Hands Inc', price: 6.90, change: 69.0, volume: 888888 },
-    { ticker: 'MOON', name: 'To The Moon LLC', price: 1.00, change: -50.0, volume: 777777 },
-    { ticker: 'MEME', name: 'Meme Economy', price: 13.37, change: 13.37, volume: 666666 },
-    { ticker: 'DOGE', name: 'Much Wow Corp', price: 0.42, change: 8.5, volume: 5555555 },
-    { ticker: 'PEPE', name: 'Rare Pepe Ltd', price: 0.01, change: -25.0, volume: 444444 },
-    { ticker: 'WAGMI', name: 'We All Gonna Make It', price: 2.50, change: 100.0, volume: 333333 },
-    { ticker: 'NGMI', name: 'Not Gonna Make It', price: 0.05, change: -90.0, volume: 222222 },
+    { ticker: 'YOLO', name: 'YOLO Holdings', price: 4.20, change: 42.0, volume: 999999, marketCap: '420K' },
+    { ticker: 'HODL', name: 'Diamond Hands Inc', price: 6.90, change: 69.0, volume: 888888, marketCap: '690K' },
+    { ticker: 'MOON', name: 'To The Moon LLC', price: 1.00, change: -50.0, volume: 777777, marketCap: '100K' },
+    { ticker: 'MEME', name: 'Meme Economy', price: 13.37, change: 13.37, volume: 666666, marketCap: '1.3M' },
+    { ticker: 'DOGE', name: 'Much Wow Corp', price: 0.42, change: 8.5, volume: 5555555, marketCap: '42K' },
+    { ticker: 'PEPE', name: 'Rare Pepe Ltd', price: 0.01, change: -25.0, volume: 444444, marketCap: '1K' },
+    { ticker: 'WAGMI', name: 'We All Gonna Make It', price: 2.50, change: 100.0, volume: 333333, marketCap: '250K' },
+    { ticker: 'NGMI', name: 'Not Gonna Make It', price: 0.05, change: -90.0, volume: 222222, marketCap: '5K' },
   ]
 };
 
 let currentCategory = 'school';
 let currentStock = null;
 let stockChart = null;
+let showCharts = true;
+let showOverview = true;
+let compactView = false;
 
 // Stock descriptions by ticker
 const stockDescriptions = {
@@ -112,6 +174,12 @@ const stockDescriptions = {
   PEPE: 'Rare Pepe Ltd - Collecting the rarest of digital assets.',
   WAGMI: 'We All Gonna Make It - Optimism as a trading strategy.',
   NGMI: 'Not Gonna Make It - For the brave contrarian investor.',
+  // Index descriptions
+  SCHL: 'The Total School Index tracks the overall performance of all school-related stocks. A diversified investment in the entire school economy.',
+  ACAD: 'The Academics Index focuses on educational departments. Perfect for those betting on scholastic excellence.',
+  SPRT: 'The Sports Index captures athletic department performance. Game days and championships drive this index.',
+  TECH: 'The TechHigh Index follows innovation and technology clubs. Hackathons and tech fairs create momentum.',
+  ARTS: 'The Arts & Culture Index tracks creative departments. Performances and exhibitions influence this index.',
 };
 
 // Generate mini chart SVG path
@@ -161,7 +229,7 @@ function createStockCard(stock, isRealStock = false) {
   }
   
   return `
-    <div class="stock-card ${extraClass}" data-ticker="${stock.ticker}">
+    <div class="stock-card ${extraClass} ${changeClass}" data-ticker="${stock.ticker}">
       <div class="stock-card-header">
         <div>
           <div class="stock-ticker">${stock.ticker}${badge}</div>
@@ -176,8 +244,107 @@ function createStockCard(stock, isRealStock = false) {
       <div class="stock-mini-chart ${changeClass}">
         ${generateMiniChart(isPositive)}
       </div>
+      <div class="stock-meta">
+        <div class="meta-item">
+          <span class="meta-label">Volume</span>
+          <span class="meta-value">${formatVolume(stock.volume)}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Mkt Cap</span>
+          <span class="meta-value">${stock.marketCap || formatMarketCap(stock.volume * stock.price)}</span>
+        </div>
+      </div>
     </div>
   `;
+}
+
+// Format market cap
+function formatMarketCap(value) {
+  if (value >= 1000000000000) return '$' + (value / 1000000000000).toFixed(1) + 'T';
+  if (value >= 1000000000) return '$' + (value / 1000000000).toFixed(1) + 'B';
+  if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+  if (value >= 1000) return '$' + (value / 1000).toFixed(1) + 'K';
+  return '$' + value.toFixed(0);
+}
+
+// Create index card HTML
+function createIndexCard(index) {
+  const isPositive = index.change >= 0;
+  const changeSign = isPositive ? '+' : '';
+  const changeClass = isPositive ? 'positive' : 'negative';
+  
+  return `
+    <div class="index-card" data-index="${index.id}">
+      <div class="index-header">
+        <div class="index-info">
+          <h3>${index.name}</h3>
+          <p>${index.description}</p>
+        </div>
+        <div class="index-icon ${index.icon}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18"></path>
+            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="index-price-section">
+        <div class="index-price">$${index.price.toFixed(2)}</div>
+        <div class="index-change ${changeClass}">
+          <span class="index-change-value">${changeSign}${index.change.toFixed(2)}%</span>
+          <span class="index-change-period">Today</span>
+        </div>
+      </div>
+      <div class="index-chart ${changeClass}">
+        ${generateMiniChart(isPositive)}
+      </div>
+      <div class="index-stats">
+        <div class="index-stat">
+          <div class="index-stat-value">${index.stocks}</div>
+          <div class="index-stat-label">Stocks</div>
+        </div>
+        <div class="index-stat">
+          <div class="index-stat-value">${formatVolume(index.volume)}</div>
+          <div class="index-stat-label">Volume</div>
+        </div>
+        <div class="index-stat">
+          <div class="index-stat-value">${index.marketCap}</div>
+          <div class="index-stat-label">Mkt Cap</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Render indexes grid
+function renderIndexes() {
+  const grid = document.getElementById('stocksGrid');
+  document.querySelector('.section-header h2').textContent = 'School Indexes';
+  
+  // Hide search container if visible
+  const searchContainer = document.getElementById('realStockSearchContainer');
+  if (searchContainer) {
+    searchContainer.style.display = 'none';
+  }
+  
+  grid.className = 'index-grid';
+  grid.innerHTML = indexData.map(createIndexCard).join('');
+  
+  // Add click handlers
+  document.querySelectorAll('.index-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const indexId = card.dataset.index;
+      openIndexDetail(indexId);
+    });
+  });
+}
+
+// Open index detail (placeholder)
+function openIndexDetail(indexId) {
+  const index = indexData.find(i => i.id === indexId);
+  if (!index) return;
+  
+  // For now, show an alert - can be expanded to full detail view
+  alert(`${index.name}\n\nPrice: $${index.price.toFixed(2)}\nChange: ${index.change >= 0 ? '+' : ''}${index.change.toFixed(2)}%\nStocks: ${index.stocks}\nVolume: ${formatVolume(index.volume)}\nMarket Cap: ${index.marketCap}`);
 }
 
 // Render stocks grid
@@ -185,8 +352,19 @@ function renderStocks(category) {
   const grid = document.getElementById('stocksGrid');
   const sectionHeader = document.querySelector('.section-header');
   
+  // Reset grid class
+  grid.className = 'stocks-grid';
+  if (compactView) grid.classList.add('compact');
+  
+  // Handle indexes category
+  if (category === 'indexes') {
+    renderIndexes();
+    return;
+  }
+  
   // Update section header
   const categoryNames = {
+    indexes: 'School Indexes',
     school: 'School Stocks',
     sports: 'Sports Stocks',
     tech: 'TechHigh Stocks',
@@ -747,12 +925,72 @@ function populateMarketBar() {
 document.addEventListener('DOMContentLoaded', () => {
   setupCategoryTabs();
   setupSorting();
+  setupToggles();
   renderStocks(currentCategory);
   populateMarketBar();
+  updateMarketStats();
   
   // Setup back button
   const backBtn = document.getElementById('backBtn');
   if (backBtn) {
     backBtn.addEventListener('click', closeStockDetail);
   }
+  
+  // Update stats periodically
+  setInterval(updateMarketStats, 30000);
 });
+
+// Setup toggle buttons
+function setupToggles() {
+  const toggleOverview = document.getElementById('toggleOverview');
+  const toggleCharts = document.getElementById('toggleCharts');
+  const toggleCompact = document.getElementById('toggleCompact');
+  const viewer = document.querySelector('.stocks-view');
+  const grid = document.getElementById('stocksGrid');
+  
+  if (toggleOverview) {
+    toggleOverview.addEventListener('click', () => {
+      toggleOverview.classList.toggle('active');
+      showOverview = toggleOverview.classList.contains('active');
+      viewer.classList.toggle('hide-overview', !showOverview);
+    });
+  }
+  
+  if (toggleCharts) {
+    toggleCharts.addEventListener('click', () => {
+      toggleCharts.classList.toggle('active');
+      showCharts = toggleCharts.classList.contains('active');
+      viewer.classList.toggle('hide-charts', !showCharts);
+    });
+  }
+  
+  if (toggleCompact) {
+    toggleCompact.addEventListener('click', () => {
+      toggleCompact.classList.toggle('active');
+      compactView = toggleCompact.classList.contains('active');
+      grid.classList.toggle('compact', compactView);
+    });
+  }
+}
+
+// Update market stats (simulated)
+function updateMarketStats() {
+  const playersEl = document.getElementById('playersOnline');
+  const volumeEl = document.getElementById('totalVolume');
+  
+  if (playersEl) {
+    // Random variation
+    const basePlayers = 1247;
+    const variation = Math.floor(Math.random() * 200) - 100;
+    playersEl.textContent = (basePlayers + variation).toLocaleString();
+  }
+  
+  if (volumeEl) {
+    // Calculate total volume from all categories
+    let total = 0;
+    for (const category of Object.keys(stockData)) {
+      total += stockData[category].reduce((sum, s) => sum + s.volume, 0);
+    }
+    volumeEl.textContent = formatVolume(total);
+  }
+}

@@ -935,6 +935,45 @@
       color: #ffc107;
     }
 
+    .request-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .request-action-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .request-action-btn.accept {
+      background: var(--cashapp-green);
+      color: white;
+    }
+
+    .request-action-btn.accept:hover {
+      background: var(--cashapp-dark-green);
+    }
+
+    .request-action-btn.decline {
+      background: rgba(255, 71, 87, 0.2);
+      color: #ff4757;
+    }
+
+    .request-action-btn.decline:hover {
+      background: rgba(255, 71, 87, 0.3);
+    }
+
+    .request-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .empty-state {
       text-align: center;
       padding: 40px 20px;
@@ -1635,6 +1674,7 @@
       
       activityList.innerHTML = transactions.map(tx => {
         let icon, label, amountPrefix, cssClass;
+        let showActions = false;
         
         switch(tx.type) {
           case 'sent':
@@ -1660,6 +1700,8 @@
             label = tx.userName + ' requested';
             amountPrefix = '';
             cssClass = 'pending';
+            // Show accept/decline buttons for pending requests received
+            showActions = tx.status === 'pending';
             break;
           default:
             icon = '<circle cx="12" cy="12" r="10"/>';
@@ -1668,7 +1710,15 @@
             cssClass = '';
         }
         
-        const statusBadge = tx.status === 'pending' ? '<span class="status-badge pending">Pending</span>' : '';
+        const statusBadge = tx.status === 'pending' ? '<span class="status-badge pending">Pending</span>' : 
+                           tx.status === 'declined' ? '<span class="status-badge" style="background:rgba(255,71,87,0.2);color:#ff4757;">Declined</span>' : '';
+        
+        const actionButtons = showActions ? `
+          <div class="request-actions">
+            <button class="request-action-btn accept" data-tx-id="${tx.id}" data-action="accept">Pay ${formatCurrency(tx.amount)}</button>
+            <button class="request-action-btn decline" data-tx-id="${tx.id}" data-action="decline">Decline</button>
+          </div>
+        ` : '';
         
         return `
           <div class="activity-item ${tx.status === 'pending' ? 'pending-tx' : ''}">
@@ -1680,11 +1730,31 @@
             <div class="activity-details">
               <div class="activity-name">${label} ${statusBadge}</div>
               <div class="activity-date">${tx.date}${tx.note ? ' • ' + tx.note : ''}</div>
+              ${actionButtons}
             </div>
             <div class="activity-amount ${cssClass}">${amountPrefix}${formatCurrency(tx.amount)}</div>
           </div>
         `;
       }).join('');
+      
+      // Add click handlers for accept/decline buttons
+      activityList.querySelectorAll('.request-action-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const txId = btn.dataset.txId;
+          const action = btn.dataset.action;
+          
+          // Disable buttons while processing
+          const parent = btn.closest('.request-actions');
+          parent.querySelectorAll('button').forEach(b => b.disabled = true);
+          
+          if (action === 'accept') {
+            await acceptRequest(txId);
+          } else {
+            await declineRequest(txId);
+          }
+        });
+      });
     }
 
     // Show user select modal
@@ -1784,6 +1854,99 @@
         selectedUser = null;
         updateDisplay();
       }, 2000);
+    }
+
+    // Accept a money request - actually transfer the money now
+    async function acceptRequest(txId) {
+      try {
+        // Get the original request transaction
+        const txDoc = await getDoc(doc(joePayTransactionsRef, txId));
+        if (!txDoc.exists()) {
+          alert('Request not found');
+          return;
+        }
+        
+        const txData = txDoc.data();
+        
+        // Verify current user is the one being requested from (senderId in request)
+        if (txData.senderId !== currentUserId) {
+          alert('You cannot accept this request');
+          return;
+        }
+        
+        // Check if already processed
+        if (txData.status !== 'pending') {
+          alert('This request has already been processed');
+          return;
+        }
+        
+        const amount = txData.amount;
+        
+        // Check if user has enough balance
+        if (amount > currentBalance) {
+          alert('Insufficient balance to accept this request');
+          return;
+        }
+        
+        // Update the request status to completed
+        await updateDoc(doc(joePayTransactionsRef, txId), {
+          status: 'completed',
+          completedAt: new Date()
+        });
+        
+        // Now actually transfer the money
+        // Subtract from current user (the one who was requested from)
+        const senderDoc = await getDoc(doc(usersRef, currentUserId));
+        if (senderDoc.exists()) {
+          const senderBalance = senderDoc.data().balance || 0;
+          await updateDoc(doc(usersRef, currentUserId), {
+            balance: Math.round((senderBalance - amount) * 100) / 100
+          });
+        }
+        
+        // Add to the requester (receiverId in the request)
+        const receiverDoc = await getDoc(doc(usersRef, txData.receiverId));
+        if (receiverDoc.exists()) {
+          const receiverBalance = receiverDoc.data().balance || 0;
+          await updateDoc(doc(usersRef, txData.receiverId), {
+            balance: Math.round((receiverBalance + amount) * 100) / 100
+          });
+        }
+        
+        // Update local balance
+        currentBalance -= amount;
+        updateDisplay();
+        
+        // Show success
+        document.getElementById('successText').textContent = 'Payment Sent!';
+        document.getElementById('successSubtext').textContent = `${formatCurrency(amount)} to ${txData.receiverTag}`;
+        activityModal.classList.remove('active');
+        successOverlay.classList.add('active');
+        
+        setTimeout(() => {
+          successOverlay.classList.remove('active');
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error accepting request:', error);
+        alert('Failed to accept request: ' + error.message);
+      }
+    }
+
+    // Decline a money request
+    async function declineRequest(txId) {
+      try {
+        // Update the request status to declined
+        await updateDoc(doc(joePayTransactionsRef, txId), {
+          status: 'declined',
+          declinedAt: new Date()
+        });
+        
+        // The real-time listener will update the UI automatically
+      } catch (error) {
+        console.error('Error declining request:', error);
+        alert('Failed to decline request: ' + error.message);
+      }
     }
 
     // Setup event listeners
