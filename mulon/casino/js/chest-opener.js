@@ -3,7 +3,7 @@
 // ========================================
 
 import { cardsData, rarityWeights, uncommonPlusWeights, epicPlusWeights, getCardsByRarity } from '../../card-data/cards-data.js';
-import { CasinoDB } from './casino-auth.js';
+import { CasinoDB, CasinoAuth } from './casino-auth.js';
 import { createCardHTML, createReelCardHTML, setup3DCardTracking } from '../../card-data/card-renderer.js';
 
 // Constants - EXACT from cards.html
@@ -250,9 +250,18 @@ async function showReveal(winningCard) {
   const soundWaves = revealOverlay.querySelector('.sound-waves');
   
   // Save card to user's collection
-  const saveResult = await CasinoDB.saveCard(winningCard.cardNumber);
-  if (saveResult.success) {
-    console.log(`Card ${winningCard.cardNumber} added! Collection size: ${saveResult.totalCards}`);
+  try {
+    const saveResult = await CasinoDB.saveCard(winningCard.cardNumber);
+    if (saveResult.success) {
+      console.log(`Card ${winningCard.cardNumber} saved successfully! Doc ID: ${saveResult.cardDocId}`);
+    } else {
+      console.error(`Failed to save card ${winningCard.cardNumber}:`, saveResult.error);
+      // Show error to user
+      alert(`Failed to save card to your collection: ${saveResult.error}. Please make sure you are signed in.`);
+    }
+  } catch (error) {
+    console.error('Error saving card:', error);
+    alert('Error saving card to your collection. Please try again.');
   }
   
   // Set rarity classes
@@ -380,6 +389,12 @@ export function initChestOpener() {
 // Open chest - MAIN EXPORT FUNCTION
 export async function openChest(chestType = 'normal') {
   if (isSpinning) return { success: false, error: 'Already spinning' };
+  
+  // Check if user is signed in - REQUIRED to save cards
+  if (!CasinoAuth.currentUser) {
+    alert('Please sign in to open chests and receive cards!');
+    return { success: false, error: 'Not signed in' };
+  }
   
   // Initialize if needed
   if (!overlayElement) {

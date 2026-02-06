@@ -442,13 +442,12 @@ function showBetaModal() {
 // ========================================
 const UPDATES = [
   {
-    version: '1.1.2',
-    date: '2026-02-03',
+    version: '1.1.7',
+    date: '2026-02-05',
     changes: [
-      'Rock Paper Scissors game is now out in the casino!',
-      'Market orders are now fixed',
-      'Cards are now more valuable',
-      'Starter packs now cost real money'
+      'cards work now',
+      'stock market comming next week.',
+      'happy friday',
     ]
   },
   // Add more updates here:

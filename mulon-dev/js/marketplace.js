@@ -2055,9 +2055,11 @@ document.addEventListener('DOMContentLoaded', () => {
     closeCollectionBtn.addEventListener('click', closeCollectionModalFn);
   }
   
-  function openCollectionModal() {
+  async function openCollectionModal() {
     if (viewCollectionModal) {
       viewCollectionModal.classList.add('active');
+      // Refresh user's cards from Firebase before rendering
+      await loadUserCards();
       // Update counts
       if (myCardsCountEl) myCardsCountEl.textContent = userOwnedCards.length;
       if (allCardsCountEl) allCardsCountEl.textContent = cardsData.length;
