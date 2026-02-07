@@ -1,0 +1,22 @@
+body {
+
+}
+
+
+.app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+
+.road {
+  width: 80%;
+  height: 60px;
+  background-color: #333;
+  position: relative;
+  border-radius: 10px;
+}

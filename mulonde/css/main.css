@@ -262,6 +262,11 @@ body {
 }
 
 /* Back card content styling */
+
+.grid-item .card-back {
+
+}
+
 .grid-item .card-back .title {
   opacity: 0;
   transition: all 0.3s ease-in-out;
@@ -285,6 +290,7 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+  pointer-events: none;
 }
 
 .grid-item:hover .card-back img {
@@ -441,3 +447,99 @@ body {
    background-color: #C77A9D;
 }
 
+.slides {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-item {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Active slide — visible, in position */
+.slide-item.active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Slide exiting — drops down and out */
+.slide-item.exit {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.slide-text {
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  padding: 1rem;
+}
+
+
+/* ===================== */
+/*  EXPLAINER SLIDES     */
+/* ===================== */
+
+/* When an explainer is the active slide, it fills the card with its color */
+.slide-item.slide-explainer {
+  background-color: var(--card-color, #E8590C);
+}
+
+.slide-item.slide-explainer .explainer-card {
+  width: 100%;
+  height: 100%;
+  padding: 1.2rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.explainer-heading {
+  font-size: 1.2rem;
+  font-weight: 300;
+  margin: 0 0 0.65rem 0;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+
+.explainer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.explainer-list li {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.explainer-brand {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #fff;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  opacity: 0.85;
+}

@@ -1,0 +1,801 @@
+/* ========================================
+   COIN FLIP GAME - STAKE STYLE
+   Controls LEFT, Game RIGHT
+   ======================================== */
+
+/* Main Layout - Stake Style */
+.coinflip-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* Number of Coins Selection */
+.coins-selection {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.coins-btn {
+  flex: 1;
+  padding: 12px 8px;
+  background: #0f1419;
+  border: 2px solid #2a3441;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.coins-btn:hover {
+  border-color: #4b5563;
+  color: #fff;
+}
+
+.coins-btn.active {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+/* Payout Table */
+.payout-table {
+  background: #0f1419;
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.payout-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid #2a3441;
+}
+
+.payout-row:last-child {
+  border-bottom: none;
+}
+
+.payout-match {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.payout-mult {
+  color: #22c55e;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.payout-row.highlight {
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 4px;
+}
+
+.payout-row.highlight .payout-match,
+.payout-row.highlight .payout-mult {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+/* Side Selection Buttons */
+.side-selection {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.side-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: #1a1f26;
+  border: 2px solid #2a3441;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.side-btn:hover {
+  border-color: #4b5563;
+  background: #1f2937;
+}
+
+.side-btn.active {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.side-btn.active[data-side="heads"] {
+  border-color: #f7b733;
+  background: rgba(247, 183, 51, 0.1);
+}
+
+.side-btn.active[data-side="tails"] {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.side-coin {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.side-btn:hover .side-coin {
+  transform: scale(1.1);
+}
+
+.heads-preview {
+  background: linear-gradient(135deg, #f7b733, #d4a528);
+  box-shadow: 0 4px 15px rgba(247, 183, 51, 0.3);
+}
+
+.tails-preview {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.coin-symbol {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.side-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.side-mult {
+  font-size: 0.75rem;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* Game Panel */
+.game-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #0f1419;
+  position: relative;
+}
+
+/* Coin Container */
+.coin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  flex: 1;
+}
+
+/* Result Banner */
+.result-banner {
+  padding: 12px 30px;
+  background: #1a1f26;
+  border: 1px solid #2a3441;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 250px;
+  transition: all 0.3s ease;
+}
+
+.result-banner.win {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+}
+
+.result-banner.lose {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+}
+
+.result-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.result-banner.win .result-text {
+  color: #22c55e;
+}
+
+.result-banner.lose .result-text {
+  color: #ef4444;
+}
+
+/* Multi Coins Wrapper */
+.multi-coins-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 200px;
+}
+
+/* Coins Grid for multiple coins */
+.coins-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  max-width: 500px;
+  padding: 20px;
+}
+
+.coins-grid .coin-wrapper {
+  width: 80px;
+  height: 80px;
+}
+
+.coins-grid .coin-emoji {
+  font-size: 1.8rem;
+}
+
+.coins-grid .coin-label {
+  display: none;
+}
+
+/* Coin size based on count */
+.coins-grid.coins-2 .coin-wrapper,
+.coins-grid.coins-3 .coin-wrapper {
+  width: 100px;
+  height: 100px;
+}
+
+.coins-grid.coins-2 .coin-emoji,
+.coins-grid.coins-3 .coin-emoji {
+  font-size: 2.2rem;
+}
+
+.coins-grid.coins-5 .coin-wrapper {
+  width: 80px;
+  height: 80px;
+}
+
+.coins-grid.coins-10 .coin-wrapper {
+  width: 60px;
+  height: 60px;
+}
+
+.coins-grid.coins-10 .coin-emoji {
+  font-size: 1.4rem;
+}
+
+/* Single coin mode */
+.single-coin {
+  width: 180px;
+  height: 180px;
+}
+
+/* Result Summary */
+.result-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 25px;
+  background: #1a1f26;
+  border: 1px solid #2a3441;
+  border-radius: 12px;
+  margin-top: 15px;
+}
+
+.result-counts {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.result-heads {
+  color: #f7b733;
+}
+
+.result-tails {
+  color: #6366f1;
+}
+
+.result-separator {
+  color: #4b5563;
+}
+
+.result-payout {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.result-payout.win {
+  color: #22c55e;
+}
+
+.result-payout.partial {
+  color: #f59e0b;
+}
+
+.result-payout.lose {
+  color: #ef4444;
+}
+
+/* Multiplier Display */
+.multiplier-display {
+  background: linear-gradient(135deg, #1a1f26, #0f1419);
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.multiplier-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.multiplier-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #22c55e;
+}
+
+.potential-mult {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+
+/* Bet Button */
+.bet-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bet-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #16a34a, #15803d);
+  transform: translateY(-1px);
+}
+
+/* 3D Coin Styles */
+.coin-wrapper {
+  perspective: 1000px;
+  width: 180px;
+  height: 180px;
+}
+
+.coin {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+
+.coin.flipping {
+  animation: coinFlip 2s ease-out forwards;
+}
+
+.coin.flipping-to-tails {
+  animation: coinFlipToTails 2s ease-out forwards;
+}
+
+/* Staggered animation delays for multiple coins */
+.coins-grid .coin-wrapper:nth-child(1) .coin { animation-delay: 0ms; }
+.coins-grid .coin-wrapper:nth-child(2) .coin { animation-delay: 100ms; }
+.coins-grid .coin-wrapper:nth-child(3) .coin { animation-delay: 200ms; }
+.coins-grid .coin-wrapper:nth-child(4) .coin { animation-delay: 300ms; }
+.coins-grid .coin-wrapper:nth-child(5) .coin { animation-delay: 400ms; }
+.coins-grid .coin-wrapper:nth-child(6) .coin { animation-delay: 150ms; }
+.coins-grid .coin-wrapper:nth-child(7) .coin { animation-delay: 250ms; }
+.coins-grid .coin-wrapper:nth-child(8) .coin { animation-delay: 350ms; }
+.coins-grid .coin-wrapper:nth-child(9) .coin { animation-delay: 450ms; }
+.coins-grid .coin-wrapper:nth-child(10) .coin { animation-delay: 550ms; }
+
+@keyframes coinFlip {
+  0% {
+    transform: rotateX(0deg) translateY(0);
+  }
+  10% {
+    transform: rotateX(360deg) translateY(-80px);
+  }
+  20% {
+    transform: rotateX(720deg) translateY(-120px);
+  }
+  30% {
+    transform: rotateX(1080deg) translateY(-140px);
+  }
+  40% {
+    transform: rotateX(1440deg) translateY(-130px);
+  }
+  50% {
+    transform: rotateX(1800deg) translateY(-100px);
+  }
+  60% {
+    transform: rotateX(2160deg) translateY(-60px);
+  }
+  70% {
+    transform: rotateX(2520deg) translateY(-30px);
+  }
+  80% {
+    transform: rotateX(2880deg) translateY(-10px);
+  }
+  90% {
+    transform: rotateX(3240deg) translateY(5px);
+  }
+  100% {
+    transform: rotateX(3600deg) translateY(0);
+  }
+}
+
+@keyframes coinFlipToTails {
+  0% {
+    transform: rotateX(0deg) translateY(0);
+  }
+  10% {
+    transform: rotateX(360deg) translateY(-80px);
+  }
+  20% {
+    transform: rotateX(720deg) translateY(-120px);
+  }
+  30% {
+    transform: rotateX(1080deg) translateY(-140px);
+  }
+  40% {
+    transform: rotateX(1440deg) translateY(-130px);
+  }
+  50% {
+    transform: rotateX(1800deg) translateY(-100px);
+  }
+  60% {
+    transform: rotateX(2160deg) translateY(-60px);
+  }
+  70% {
+    transform: rotateX(2520deg) translateY(-30px);
+  }
+  80% {
+    transform: rotateX(2880deg) translateY(-10px);
+  }
+  90% {
+    transform: rotateX(3240deg) translateY(5px);
+  }
+  100% {
+    transform: rotateX(3780deg) translateY(0); /* Extra 180deg for tails */
+  }
+}
+
+.coin-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    inset 0 0 30px rgba(0,0,0,0.3),
+    0 10px 30px rgba(0,0,0,0.5);
+}
+
+.coin-heads {
+  background: linear-gradient(145deg, #fcd34d, #f7b733, #d4a528, #b8941f);
+  transform: rotateX(0deg);
+}
+
+.coin-tails {
+  background: linear-gradient(145deg, #818cf8, #6366f1, #4f46e5, #4338ca);
+  transform: rotateX(180deg);
+}
+
+.coin-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.coin-emoji {
+  font-size: 3.5rem;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+}
+
+.coin-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  letter-spacing: 2px;
+}
+
+.coin-edge {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #b8941f, #8b7355, #b8941f);
+  transform: translateZ(-5px);
+}
+
+/* Win/Lose coin glow */
+.coin.win-glow {
+  animation: winGlow 1s ease-in-out;
+}
+
+.coin.lose-glow {
+  animation: loseGlow 1s ease-in-out;
+}
+
+@keyframes winGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(34, 197, 94, 0.8));
+  }
+}
+
+@keyframes loseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(239, 68, 68, 0.8));
+  }
+}
+
+/* Flip History */
+.flip-history {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 400px;
+}
+
+.history-item {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  animation: popIn 0.3s ease-out;
+}
+
+.history-item.heads {
+  background: linear-gradient(135deg, #f7b733, #d4a528);
+  color: #fff;
+}
+
+.history-item.tails {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+}
+
+.history-item.win {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  border: 2px solid #22c55e;
+}
+
+.history-item.lose {
+  opacity: 0.5;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Results Grid */
+.results-grid {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 30px;
+  padding: 20px;
+  background: #1a1f26;
+  border-radius: 12px;
+  border: 1px solid #2a3441;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.results-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.results-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.heads-count {
+  color: #f7b733;
+}
+
+.tails-count {
+  color: #6366f1;
+}
+
+.results-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.result-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  animation: fadeIn 0.3s ease;
+}
+
+.result-dot.heads {
+  background: linear-gradient(135deg, #f7b733, #d4a528);
+  color: #fff;
+}
+
+.result-dot.tails {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .coinflip-layout {
+    flex-direction: column;
+  }
+  
+  .controls-panel {
+    width: 100%;
+    max-width: none;
+    border-right: none;
+    border-bottom: 1px solid #2a3441;
+  }
+  
+  .game-panel {
+    min-height: 500px;
+  }
+  
+  .coin-wrapper {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .coin-emoji {
+    font-size: 2.5rem;
+  }
+}
+
+/* Bet button pulsing when ready */
+.bet-btn.ready {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+}
+
+/* Disabled state during flip */
+.bet-btn:disabled {
+  background: #374151;
+  cursor: not-allowed;
+  opacity: 0.6;
+  animation: none;
+}
+
+.side-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Win amount popup */
+.win-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(34, 197, 94, 0.95);
+  padding: 20px 40px;
+  border-radius: 12px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  animation: winPopup 2s ease-out forwards;
+  z-index: 100;
+  box-shadow: 0 10px 40px rgba(34, 197, 94, 0.5);
+}
+
+@keyframes winPopup {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) translateY(-20px);
+  }
+}

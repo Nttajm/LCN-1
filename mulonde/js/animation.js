@@ -102,3 +102,48 @@ window.addEventListener("load", () => {
   setTimeout(initCircularLoader, 500);
 });
 
+
+function initSlideshows() {
+  const slideshows = document.querySelectorAll('[data-slideshow="true"]');
+
+  slideshows.forEach((container, idx) => {
+    const slides = container.querySelectorAll('.slide-item');
+    if (slides.length < 2) return; // need at least 2 to cycle
+
+    let current = 0;
+    const interval = parseInt(container.dataset.interval) || 3500;
+
+    // Stagger start so tiles don't all flip at once
+    const staggerDelay = idx * 3000;
+
+    setTimeout(() => {
+      setInterval(() => {
+        const currentSlide = slides[current];
+        const next = (current + 1) % slides.length;
+        const nextSlide = slides[next];
+
+        // Current slide exits (drops down)
+        currentSlide.classList.remove('active');
+        currentSlide.classList.add('exit');
+
+        // Next slide enters (drops in from top)
+        nextSlide.classList.remove('exit');
+        nextSlide.classList.add('active');
+
+        // Clean exit class after transition
+        setTimeout(() => {
+          currentSlide.classList.remove('exit');
+        }, 3010);
+
+        current = next;
+      }, interval);
+    }, staggerDelay);
+  });
+}
+
+// Start slideshows after the card flip finishes
+window.addEventListener("load", () => {
+  // Wait for loader (2s) + flip trigger delay (300ms) + flip anim (800ms) + buffer
+  setTimeout(initSlideshows, 3600);
+});
+

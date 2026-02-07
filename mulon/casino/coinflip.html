@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coin Flip - Mulon Casino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/casino-shared.css">
+  <link rel="stylesheet" href="css/coinflip.css">
+  <link rel="stylesheet" href="css/livechat.css">
+  <link rel="stylesheet" href="/css/standard.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a href="../index.html" class="logo">Mulon<span>.</span></a>
+    <div class="header-right">
+      <a href="../casino.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Casino
+      </a>
+      <div class="balance-box">
+        <div class="balance-label">Balance</div>
+        <div class="balance-amount" id="userBalance">$0.00</div>
+      </div>
+      <div class="balance-box keys-box">
+        <div class="balance-label">Keys</div>
+        <div class="balance-amount keys-amount" id="userKeys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> 0</div>
+      </div>
+      <div class="balance-box xps-box">
+        <div class="balance-label">XPs</div>
+        <div class="balance-amount xps-amount" id="userXPs">⚡ 0</div>
+      </div>
+      <div class="auth-box dn" id="authBox">
+        <button class="signin-btn" id="signInBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign In
+        </button>
+        <div class="user-info" id="userInfo" style="display: none;">
+          <span class="user-name" id="userName"></span>
+          <button class="signout-btn" id="signOutBtn">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Floating Profit/Loss Graph -->
+  <div class="profit-graph-container profit-graph-float" id="profitGraphContainer">
+    <div class="profit-graph-header">
+      <span class="profit-graph-title">Profit/Loss</span>
+      <span class="profit-graph-value" id="profitGraphValue">$0.00</span>
+    </div>
+    <canvas id="profitGraphCanvas"></canvas>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="coinflip-layout">
+    <!-- LEFT: Controls Panel -->
+    <div class="controls-panel">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active">Manual</button>
+      </div>
+
+      <!-- Bet Amount -->
+      <div class="control-group">
+        <label class="control-label">Bet Amount</label>
+        <div class="bet-input-wrap">
+          <div class="currency-icon">$</div>
+          <input type="number" class="bet-input" id="betAmount" value="10" min="1" max="10000">
+          <div class="bet-btns">
+            <button class="bet-adj" onclick="adjustBet(0.5)">½</button>
+            <button class="bet-adj" onclick="adjustBet(2)">2×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Number of Coins -->
+      <div class="control-group">
+        <label class="control-label">Number of Coins</label>
+        <div class="coins-selection" id="coinsSelection">
+          <button class="coins-btn active" data-coins="1">1</button>
+          <button class="coins-btn" data-coins="2">2</button>
+          <button class="coins-btn" data-coins="3">3</button>
+          <button class="coins-btn" data-coins="5">5</button>
+          <button class="coins-btn" data-coins="10">10</button>
+        </div>
+      </div>
+
+      <!-- Side Selection -->
+      <div class="control-group">
+        <label class="control-label">Pick Your Side</label>
+        <div class="side-selection">
+          <button class="side-btn active" data-side="heads" id="headsBtn">
+            <div class="side-coin heads-preview">
+              <span class="coin-symbol">👑</span>
+            </div>
+            <span class="side-name">Heads</span>
+          </button>
+          <button class="side-btn" data-side="tails" id="tailsBtn">
+            <div class="side-coin tails-preview">
+              <span class="coin-symbol">🦅</span>
+            </div>
+            <span class="side-name">Tails</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Payout Info -->
+      <div class="control-group">
+        <label class="control-label">Payouts</label>
+        <div class="payout-table" id="payoutTable">
+          <div class="payout-row">
+            <span class="payout-match">1/1 match</span>
+            <span class="payout-mult">1.98x</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Potential Win Display -->
+      <div class="control-group">
+        <div class="multiplier-display">
+          <div class="multiplier-label">Max Potential Win</div>
+          <div class="multiplier-value" id="potentialWin">$19.80</div>
+          <div class="potential-mult" id="potentialMult">1.98x (1/1 match)</div>
+        </div>
+      </div>
+
+      <!-- Bet Button -->
+      <div class="control-group" style="border-bottom: none;">
+        <button class="bet-btn" id="flipBtn">Flip! $<span id="betBtnAmount">10</span></button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-box">
+        <div class="stat-row">
+          <span class="stat-label">Profit</span>
+          <span class="stat-value" id="sessionProfit">$0.00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Flips</span>
+          <span class="stat-value" id="flipsPlayed">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Best Win</span>
+          <span class="stat-value profit" id="bestWin">$0.00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Win Streak</span>
+          <span class="stat-value" id="winStreak">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Game Panel -->
+    <div class="game-panel">
+      <div class="coin-container">
+        <!-- Result Banner -->
+        <div class="result-banner" id="resultBanner">
+          <span class="result-text" id="resultText">Pick a side and flip!</span>
+        </div>
+
+        <!-- Multiple Coins Container -->
+        <div class="multi-coins-wrapper" id="multiCoinsWrapper">
+          <!-- Single coin for 1 coin mode -->
+          <div class="coin-wrapper single-coin" id="singleCoinWrapper">
+            <div class="coin" id="coin">
+              <div class="coin-face coin-heads">
+                <div class="coin-inner">
+                  <span class="coin-emoji">👑</span>
+                  <span class="coin-label">HEADS</span>
+                </div>
+              </div>
+              <div class="coin-face coin-tails">
+                <div class="coin-inner">
+                  <span class="coin-emoji">🦅</span>
+                  <span class="coin-label">TAILS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Multi coins container (generated by JS) -->
+          <div class="coins-grid" id="coinsGrid" style="display: none;"></div>
+        </div>
+
+        <!-- Result Summary -->
+        <div class="result-summary" id="resultSummary" style="display: none;">
+          <div class="result-counts">
+            <span class="result-heads" id="resultHeads">👑 0</span>
+            <span class="result-separator">|</span>
+            <span class="result-tails" id="resultTails">🦅 0</span>
+          </div>
+          <div class="result-payout" id="resultPayout"></div>
+        </div>
+
+        <!-- Flip History -->
+        <div class="flip-history" id="flipHistory">
+          <!-- History items will be added here -->
+        </div>
+      </div>
+
+      <!-- Recent Results Grid -->
+      <div class="results-grid">
+        <div class="results-header">
+          <span class="results-title">Recent Flips</span>
+          <span class="results-stats">
+            <span class="heads-count" id="headsCount">H: 0</span>
+            <span class="tails-count" id="tailsCount">T: 0</span>
+          </span>
+        </div>
+        <div class="results-row" id="resultsRow">
+          <!-- Results will be added here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Chat -->
+  <div class="livechat-container" id="livechatContainer">
+    <div class="livechat-header" id="livechatToggle">
+      <span>💬 Live Chat</span>
+      <span class="livechat-toggle-icon">▼</span>
+    </div>
+    <div class="livechat-messages" id="livechatMessages"></div>
+    <div class="livechat-input-wrap">
+      <input type="text" class="livechat-input" id="livechatInput" placeholder="Type a message..." maxlength="200">
+      <button class="livechat-send" id="livechatSend">Send</button>
+    </div>
+  </div>
+
+  <script src="js/casino-auth.js"></script>
+  <script src="js/casino-globals.js"></script>
+  <script src="js/livechat.js"></script>
+  <script src="js/coinflip.js"></script>
+</body>
+</html>
