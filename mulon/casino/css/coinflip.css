@@ -434,16 +434,19 @@
   position: relative;
   transform-style: preserve-3d;
   transition: none;
+  transform: rotateX(0deg); /* Default to heads */
 }
 
-/* Show heads by default */
+/* Show heads - explicit state */
 .coin.show-heads {
-  transform: rotateX(0deg);
+  transform: rotateX(0deg) !important;
+  animation: none !important;
 }
 
-/* Show tails */
+/* Show tails - explicit state */
 .coin.show-tails {
-  transform: rotateX(180deg);
+  transform: rotateX(180deg) !important;
+  animation: none !important;
 }
 
 /* Flip animation - lands on heads */

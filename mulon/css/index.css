@@ -1601,6 +1601,284 @@
   font-size: 1rem;
 }
 
+/* ========================================
+   MULTI-OPTION MARKET STYLES (Featured)
+   ======================================== */
+.multi-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
+.featured-card.multi-option .featured-card-info {
+  flex: 1;
+}
+
+.multi-prob-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.multi-prob-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.multi-prob-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.multi-prob-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.multi-prob-percent {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.multi-prob-bar {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.multi-prob-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.multi-prob-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.multi-bet-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.multi-bet-btn.yes {
+  background: var(--green-bg);
+  color: var(--green-primary);
+  border: 1px solid var(--green-primary);
+}
+
+.multi-bet-btn.yes:hover {
+  background: var(--green-primary);
+  color: white;
+}
+
+.multi-bet-btn.no {
+  background: var(--red-bg);
+  color: var(--red-primary);
+  border: 1px solid var(--red-primary);
+}
+
+.multi-bet-btn.no:hover {
+  background: var(--red-primary);
+  color: white;
+}
+
+.multi-bet-btn .price {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Multi-option Market Cards (Grid) */
+.market-card.multi-option {
+  position: relative;
+}
+
+.multi-options-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+}
+
+.multi-option-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.option-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.option-label {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option-price {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.more-options {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding-left: 1.25rem;
+}
+
+.view-multi-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.view-multi-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Multi-Options Modal */
+.multi-options-modal {
+  max-width: 560px;
+  width: 95%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.multi-options-modal .modal-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.multi-options-modal .modal-header h3 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+.multi-options-modal .modal-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.multi-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.multi-option-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.multi-option-row .option-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.multi-option-row .option-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.multi-option-row .option-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.multi-option-row .option-prob {
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  width: 50px;
+  text-align: right;
+}
+
+.multi-option-row .option-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.multi-option-row .multi-bet-btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 600px) {
+  .multi-option-row {
+    flex-wrap: wrap;
+  }
+  
+  .multi-option-row .option-info {
+    flex: 1 1 100%;
+  }
+  
+  .multi-option-row .option-prob {
+    flex: 0;
+    margin-right: auto;
+  }
+  
+  .multi-option-row .option-actions {
+    flex: 1;
+  }
+  
+  .multi-option-row .multi-bet-btn {
+    flex: 1;
+  }
+}
+
 /* Suggestion Modal */
 .suggest-modal {
   max-width: 480px;

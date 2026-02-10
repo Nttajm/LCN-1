@@ -218,6 +218,26 @@ function renderMarketItem(market) {
   // Format end time
   const endTimeDisplay = market.endTime || '23:59';
   
+  // Check if multi-option market
+  const isMulti = market.marketType === 'multi';
+  
+  // Build price display
+  let priceDisplay;
+  if (isMulti && market.options) {
+    priceDisplay = market.options.slice(0, 3).map(opt => 
+      `<span style="color: ${opt.color}">${opt.label} ${opt.price}%</span>`
+    ).join(' · ');
+    if (market.options.length > 3) {
+      priceDisplay += ` +${market.options.length - 3} more`;
+    }
+  } else {
+    const yesLabel = market.customLabels && market.yesLabel ? market.yesLabel : 'Yes';
+    const noLabel = market.customLabels && market.noLabel ? market.noLabel : 'No';
+    priceDisplay = `<span class="yes">${yesLabel} ${market.yesPrice}¢</span> / <span class="no">${noLabel} ${market.noPrice}¢</span>`;
+  }
+  
+  const typeBadge = isMulti ? '<span class="market-item-type multi">📊 Multi</span>' : '';
+  
   return `
     <div class="market-item ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
       <div class="market-item-content">
@@ -227,10 +247,8 @@ function renderMarketItem(market) {
         </div>
         <div class="market-item-meta">
           <span class="market-item-tag ${market.category}">${category.icon} ${category.label}</span>
-          <span class="market-item-price">
-            <span class="yes">${market.yesPrice}¢</span> / 
-            <span class="no">${market.noPrice}¢</span>
-          </span>
+          ${typeBadge}
+          <span class="market-item-price">${priceDisplay}</span>
           <span class="market-item-date">Ends ${MulonData.formatDate(market.endDate)} @ ${endTimeDisplay}</span>
           ${market.featured ? '<span class="market-item-featured">⭐ Featured</span>' : ''}
         </div>
@@ -292,18 +310,67 @@ function attachMarketItemListeners() {
 // ========================================
 let isEditMode = false;
 let editingMarketId = null;
+let currentMarketType = 'binary';
+let multiOptions = [];
+
+// Default colors for multi-option markets
+const OPTION_COLORS = [
+  '#3b82f6', // blue
+  '#f59e0b', // amber
+  '#10b981', // emerald
+  '#8b5cf6', // violet
+  '#ef4444', // red
+  '#06b6d4', // cyan
+  '#f97316', // orange
+  '#84cc16', // lime
+  '#ec4899', // pink
+  '#6366f1', // indigo
+];
 
 function setupForm() {
   const form = document.getElementById('marketForm');
   const yesPriceInput = document.getElementById('yesPrice');
   const noPricePreview = document.getElementById('noPricePreview');
   const cancelBtn = document.getElementById('cancelBtn');
+  const customLabelsCheckbox = document.getElementById('customLabels');
+  const customLabelsRow = document.getElementById('customLabelsRow');
+  
+  // Market type toggle
+  const typeBinaryBtn = document.getElementById('typeBinary');
+  const typeMultiBtn = document.getElementById('typeMulti');
+  const binaryOptions = document.getElementById('binaryOptions');
+  const multiOptionsSection = document.getElementById('multiOptionsSection');
+  const addOptionBtn = document.getElementById('addOptionBtn');
+  
+  // Type toggle handlers
+  if (typeBinaryBtn) {
+    typeBinaryBtn.addEventListener('click', () => setMarketType('binary'));
+  }
+  if (typeMultiBtn) {
+    typeMultiBtn.addEventListener('click', () => setMarketType('multi'));
+  }
+  
+  // Add option button
+  if (addOptionBtn) {
+    addOptionBtn.addEventListener('click', () => addMultiOption());
+  }
   
   // Update No price preview when Yes price changes
   yesPriceInput.addEventListener('input', function() {
     const yesPrice = parseInt(this.value) || 0;
     noPricePreview.textContent = Math.max(0, 100 - yesPrice);
   });
+  
+  // Toggle custom labels fields
+  if (customLabelsCheckbox && customLabelsRow) {
+    customLabelsCheckbox.addEventListener('change', function() {
+      customLabelsRow.style.display = this.checked ? 'flex' : 'none';
+      if (!this.checked) {
+        document.getElementById('yesLabel').value = '';
+        document.getElementById('noLabel').value = '';
+      }
+    });
+  }
   
   // Cancel button
   cancelBtn.addEventListener('click', resetForm);
@@ -314,18 +381,40 @@ function setupForm() {
 
     if (!isAccessAllowed()) return;
     
+    const isMulti = currentMarketType === 'multi';
+    
     const formData = {
       title: document.getElementById('title').value.trim(),
       subtitle: document.getElementById('subtitle').value.trim(),
       category: document.getElementById('category').value,
-      yesPrice: parseInt(document.getElementById('yesPrice').value),
-      noPrice: 100 - parseInt(document.getElementById('yesPrice').value),
       startDate: document.getElementById('startDate').value,
       endDate: document.getElementById('endDate').value,
       endTime: document.getElementById('endTime').value || '15:00',
       volume: parseInt(document.getElementById('volume').value) || 0,
-      featured: document.getElementById('featured').checked
+      featured: document.getElementById('featured').checked,
+      marketType: currentMarketType
     };
+    
+    if (isMulti) {
+      // Multi-option market
+      formData.options = multiOptions.map((opt, idx) => ({
+        id: opt.id || `opt_${idx}`,
+        label: opt.label,
+        price: opt.price,
+        color: opt.color
+      }));
+      formData.yesPrice = null;
+      formData.noPrice = null;
+      formData.customLabels = false;
+    } else {
+      // Binary market
+      formData.yesPrice = parseInt(document.getElementById('yesPrice').value);
+      formData.noPrice = 100 - formData.yesPrice;
+      formData.customLabels = document.getElementById('customLabels').checked;
+      formData.yesLabel = document.getElementById('yesLabel').value.trim() || null;
+      formData.noLabel = document.getElementById('noLabel').value.trim() || null;
+      formData.options = null;
+    }
     
     // Add category info
     const category = MulonData.categories[formData.category];
@@ -340,9 +429,27 @@ function setupForm() {
       return;
     }
     
-    if (formData.yesPrice < 1 || formData.yesPrice > 99) {
-      showToast('Yes price must be between 1 and 99', 'error');
-      return;
+    // Validate based on market type
+    if (isMulti) {
+      if (multiOptions.length < 2) {
+        showToast('Multi-option markets need at least 2 options', 'error');
+        return;
+      }
+      const totalProb = multiOptions.reduce((sum, opt) => sum + (opt.price || 0), 0);
+      if (totalProb !== 100) {
+        showToast('Option probabilities must sum to 100%', 'error');
+        return;
+      }
+      const emptyLabels = multiOptions.some(opt => !opt.label || !opt.label.trim());
+      if (emptyLabels) {
+        showToast('All options must have labels', 'error');
+        return;
+      }
+    } else {
+      if (formData.yesPrice < 1 || formData.yesPrice > 99) {
+        showToast('Yes price must be between 1 and 99', 'error');
+        return;
+      }
     }
     
     if (new Date(formData.endDate) <= new Date(formData.startDate)) {
@@ -392,13 +499,36 @@ function editMarket(marketId) {
   document.getElementById('title').value = market.title;
   document.getElementById('subtitle').value = market.subtitle || '';
   document.getElementById('category').value = market.category;
-  document.getElementById('yesPrice').value = market.yesPrice;
-  document.getElementById('noPricePreview').textContent = market.noPrice;
   document.getElementById('startDate').value = market.startDate;
   document.getElementById('endDate').value = market.endDate;
   document.getElementById('endTime').value = market.endTime || '15:00';
   document.getElementById('volume').value = market.volume || 0;
   document.getElementById('featured').checked = market.featured || false;
+  
+  // Set market type
+  const isMulti = market.marketType === 'multi';
+  if (isMulti) {
+    multiOptions = (market.options || []).map(opt => ({
+      id: opt.id,
+      label: opt.label,
+      price: opt.price,
+      color: opt.color
+    }));
+    setMarketType('multi');
+  } else {
+    document.getElementById('yesPrice').value = market.yesPrice || 50;
+    document.getElementById('noPricePreview').textContent = market.noPrice || 50;
+    
+    // Populate custom labels
+    const customLabelsCheckbox = document.getElementById('customLabels');
+    const customLabelsRow = document.getElementById('customLabelsRow');
+    customLabelsCheckbox.checked = market.customLabels || false;
+    customLabelsRow.style.display = market.customLabels ? 'flex' : 'none';
+    document.getElementById('yesLabel').value = market.yesLabel || '';
+    document.getElementById('noLabel').value = market.noLabel || '';
+    
+    setMarketType('binary');
+  }
   
   // Update UI
   document.getElementById('formTitle').textContent = '✏️ Edit Market';
@@ -552,6 +682,101 @@ function hideMarketTrades() {
   }
 }
 
+// ========================================
+// MULTI-OPTION MARKET FUNCTIONS
+// ========================================
+function setMarketType(type) {
+  currentMarketType = type;
+  
+  const typeBinaryBtn = document.getElementById('typeBinary');
+  const typeMultiBtn = document.getElementById('typeMulti');
+  const binaryOptions = document.getElementById('binaryOptions');
+  const customLabelsRow = document.getElementById('customLabelsRow');
+  const multiOptionsSection = document.getElementById('multiOptionsSection');
+  const yesPriceGroup = document.getElementById('yesPrice').closest('.form-group');
+  
+  if (type === 'binary') {
+    typeBinaryBtn.classList.add('active');
+    typeMultiBtn.classList.remove('active');
+    binaryOptions.style.display = 'flex';
+    multiOptionsSection.style.display = 'none';
+    yesPriceGroup.style.display = 'block';
+  } else {
+    typeMultiBtn.classList.add('active');
+    typeBinaryBtn.classList.remove('active');
+    binaryOptions.style.display = 'none';
+    customLabelsRow.style.display = 'none';
+    multiOptionsSection.style.display = 'block';
+    yesPriceGroup.style.display = 'none';
+    
+    // Initialize with 2 options if empty
+    if (multiOptions.length === 0) {
+      addMultiOption('Option 1', 50);
+      addMultiOption('Option 2', 50);
+    }
+  }
+}
+
+function addMultiOption(label = '', price = 0) {
+  const id = `opt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const color = OPTION_COLORS[multiOptions.length % OPTION_COLORS.length];
+  
+  multiOptions.push({ id, label, price, color });
+  renderMultiOptions();
+}
+
+function removeMultiOption(id) {
+  multiOptions = multiOptions.filter(opt => opt.id !== id);
+  renderMultiOptions();
+}
+
+function updateMultiOption(id, field, value) {
+  const option = multiOptions.find(opt => opt.id === id);
+  if (option) {
+    option[field] = field === 'price' ? parseInt(value) || 0 : value;
+    updateProbabilityTotal();
+  }
+}
+
+function renderMultiOptions() {
+  const list = document.getElementById('multiOptionsList');
+  if (!list) return;
+  
+  list.innerHTML = multiOptions.map((opt, idx) => `
+    <div class="multi-option-item" data-id="${opt.id}">
+      <input type="color" class="option-color" value="${opt.color}" 
+             onchange="window.updateMultiOptionColor('${opt.id}', this.value)">
+      <input type="text" placeholder="Option name" value="${escapeHtml(opt.label)}" 
+             oninput="window.updateMultiOption('${opt.id}', 'label', this.value)">
+      <input type="number" min="1" max="99" placeholder="%" value="${opt.price}" 
+             oninput="window.updateMultiOption('${opt.id}', 'price', this.value)">
+      <span class="option-percent">%</span>
+      ${multiOptions.length > 2 ? `
+        <button type="button" class="remove-option" onclick="window.removeMultiOption('${opt.id}')">×</button>
+      ` : ''}
+    </div>
+  `).join('');
+  
+  updateProbabilityTotal();
+}
+
+function updateProbabilityTotal() {
+  const total = multiOptions.reduce((sum, opt) => sum + (opt.price || 0), 0);
+  const totalEl = document.getElementById('totalProbability');
+  if (totalEl) {
+    totalEl.textContent = `${total}%`;
+    totalEl.classList.toggle('invalid', total !== 100);
+  }
+}
+
+// Make functions available globally for inline handlers
+window.updateMultiOption = updateMultiOption;
+window.updateMultiOptionColor = (id, color) => {
+  const option = multiOptions.find(opt => opt.id === id);
+  if (option) option.color = color;
+};
+window.removeMultiOption = removeMultiOption;
+
 function resetForm() {
   isEditMode = false;
   editingMarketId = null;
@@ -560,6 +785,17 @@ function resetForm() {
   document.getElementById('marketId').value = '';
   document.getElementById('yesPrice').value = 50;
   document.getElementById('noPricePreview').textContent = '50';
+  
+  // Reset custom labels
+  document.getElementById('customLabels').checked = false;
+  document.getElementById('customLabelsRow').style.display = 'none';
+  document.getElementById('yesLabel').value = '';
+  document.getElementById('noLabel').value = '';
+  
+  // Reset multi-options
+  currentMarketType = 'binary';
+  multiOptions = [];
+  setMarketType('binary');
   
   // Reset UI
   document.getElementById('formTitle').textContent = '➕ Create New Market';
@@ -737,8 +973,24 @@ function showResolveModal(marketId) {
   
   const modal = document.getElementById('resolveModal');
   const titleEl = document.getElementById('resolveMarketTitle');
+  const resolveYesBtn = document.getElementById('resolveYes');
+  const resolveNoBtn = document.getElementById('resolveNo');
   
   if (titleEl) titleEl.textContent = market.title;
+  
+  // Update button labels for custom labels
+  const yesLabel = market.customLabels && market.yesLabel ? market.yesLabel : 'YES';
+  const noLabel = market.customLabels && market.noLabel ? market.noLabel : 'NO';
+  
+  if (resolveYesBtn) {
+    const labelSpan = resolveYesBtn.querySelector('span:last-child');
+    if (labelSpan) labelSpan.textContent = yesLabel;
+  }
+  if (resolveNoBtn) {
+    const labelSpan = resolveNoBtn.querySelector('span:last-child');
+    if (labelSpan) labelSpan.textContent = noLabel;
+  }
+  
   if (modal) modal.classList.add('active');
 }
 

@@ -113,6 +113,61 @@
             </div>
           </div>
 
+          <!-- Market Type Toggle -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Market Type</label>
+              <div class="market-type-toggle">
+                <button type="button" class="type-btn active" data-type="binary" id="typeBinary">
+                  <span class="type-icon">⚖️</span>
+                  <span>Binary (Yes/No)</span>
+                </button>
+                <button type="button" class="type-btn" data-type="multi" id="typeMulti">
+                  <span class="type-icon">📊</span>
+                  <span>Multi-Option</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Binary Options (Custom Labels) -->
+          <div class="form-row binary-options" id="binaryOptions">
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="customLabels" name="customLabels">
+                <span class="checkmark"></span>
+                Custom Yes/No Labels
+              </label>
+              <span class="form-hint">Use custom button labels (e.g., Lakers vs Cavs)</span>
+            </div>
+          </div>
+
+          <div class="form-row custom-labels-row" id="customLabelsRow" style="display: none;">
+            <div class="form-group">
+              <label for="yesLabel">"Yes" Label</label>
+              <input type="text" id="yesLabel" name="yesLabel" placeholder="e.g., Lakers" maxlength="20">
+            </div>
+            <div class="form-group">
+              <label for="noLabel">"No" Label</label>
+              <input type="text" id="noLabel" name="noLabel" placeholder="e.g., Cavs" maxlength="20">
+            </div>
+          </div>
+
+          <!-- Multi-Option Section -->
+          <div class="multi-options-section" id="multiOptionsSection" style="display: none;">
+            <div class="multi-options-header">
+              <label>Options (probabilities must sum to 100%)</label>
+              <button type="button" class="btn btn-sm btn-primary" id="addOptionBtn">+ Add Option</button>
+            </div>
+            <div class="multi-options-list" id="multiOptionsList">
+              <!-- Options added dynamically -->
+            </div>
+            <div class="multi-options-total">
+              <span>Total Probability:</span>
+              <span id="totalProbability" class="probability-sum">0%</span>
+            </div>
+          </div>
+
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
             <button type="submit" class="btn btn-primary" id="submitBtn">Create Market</button>

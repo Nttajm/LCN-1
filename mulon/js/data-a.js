@@ -649,14 +649,15 @@ const UserData = {
     return this.data.balance;
   },
   
-  async addPosition(marketId, marketTitle, choice, shares, costBasis, price) {
+  async addPosition(marketId, marketTitle, choice, shares, costBasis, price, optionId = null) {
     if (!this.data) return [];
     
     const tradeId = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const timestamp = new Date().toISOString();
     
+    // For multi-option markets, include optionId in the key
     const existingIndex = this.data.positions.findIndex(
-      p => p.marketId === marketId && p.choice === choice
+      p => p.marketId === marketId && p.choice === choice && (p.optionId || null) === optionId
     );
     
     if (existingIndex !== -1) {
@@ -668,7 +669,7 @@ const UserData = {
       existing.tradeIds = existing.tradeIds || [];
       existing.tradeIds.push(tradeId);
     } else {
-      this.data.positions.push({
+      const position = {
         marketId,
         marketTitle,
         choice,
@@ -676,13 +677,17 @@ const UserData = {
         costBasis,
         avgPrice: price,
         purchaseDate: timestamp,
-        tradeIds: [tradeId] // Track trade IDs
-      });
+        tradeIds: [tradeId]
+      };
+      if (optionId) {
+        position.optionId = optionId;
+      }
+      this.data.positions.push(position);
     }
     
     // Add transaction record
     this.data.transactions = this.data.transactions || [];
-    this.data.transactions.unshift({
+    const transaction = {
       type: 'buy',
       marketId,
       choice,
@@ -691,13 +696,17 @@ const UserData = {
       cost: costBasis,
       tradeId,
       timestamp
-    });
+    };
+    if (optionId) {
+      transaction.optionId = optionId;
+    }
+    this.data.transactions.unshift(transaction);
     
     await this.save();
     
     // Save to central positions collection for tracking
     try {
-      await setDoc(doc(positionsRef, tradeId), {
+      const positionData = {
         tradeId,
         userId: this.userId,
         marketId,
@@ -708,7 +717,11 @@ const UserData = {
         price,
         timestamp,
         status: 'active'
-      });
+      };
+      if (optionId) {
+        positionData.optionId = optionId;
+      }
+      await setDoc(doc(positionsRef, tradeId), positionData);
     } catch (error) {
       console.warn('Could not save to central positions collection:', error);
     }
@@ -1046,15 +1059,25 @@ const OrderBook = {
   
   // Execute a market order (immediate execution at best available price)
   // Returns: { filled: boolean, avgPrice: number, shares: number, cost: number }
-  async executeMarketOrder(marketId, side, choice, dollarAmount, userId = 'anonymous') {
+  async executeMarketOrder(marketId, side, choice, dollarAmount, userId = 'anonymous', optionId = null) {
     await this.initBook(marketId);
     const market = MulonData.getMarket(marketId);
     if (!market) return { filled: false, error: 'Market not found' };
     
-    // For prediction markets: buying YES is like selling NO and vice versa
-    // Price of YES + Price of NO = 100 (always)
+    // Check if this is a multi-option market
+    const isMulti = market.marketType === 'multi' && optionId && market.options;
+    let currentPrice, option;
     
-    const currentPrice = choice === 'yes' ? market.yesPrice : market.noPrice;
+    if (isMulti) {
+      option = market.options.find(o => o.id === optionId);
+      if (!option) return { filled: false, error: 'Option not found' };
+      currentPrice = choice === 'yes' ? option.price : (100 - option.price);
+    } else {
+      // For prediction markets: buying YES is like selling NO and vice versa
+      // Price of YES + Price of NO = 100 (always)
+      currentPrice = choice === 'yes' ? market.yesPrice : market.noPrice;
+    }
+    
     const pricePerShare = currentPrice / 100; // Convert cents to dollars
     const shares = dollarAmount / pricePerShare;
     
@@ -1063,8 +1086,66 @@ const OrderBook = {
     const liquidity = market.volume || 1000;
     const impactFactor = Math.min(dollarAmount / liquidity, 0.15); // Max 15% impact per trade
     
-    let newYesPrice, newNoPrice;
+    let newYesPrice, newNoPrice, newOptionPrice;
     
+    if (isMulti) {
+      // Multi-option: adjust the specific option's price
+      if (side === 'buy') {
+        if (choice === 'yes') {
+          newOptionPrice = Math.min(99, Math.round(option.price + (impactFactor * 100)));
+        } else {
+          newOptionPrice = Math.max(1, Math.round(option.price - (impactFactor * 100)));
+        }
+      } else {
+        if (choice === 'yes') {
+          newOptionPrice = Math.max(1, Math.round(option.price - (impactFactor * 100)));
+        } else {
+          newOptionPrice = Math.min(99, Math.round(option.price + (impactFactor * 100)));
+        }
+      }
+      
+      // Update the option price in the market
+      const updatedOptions = market.options.map(o => 
+        o.id === optionId ? { ...o, price: newOptionPrice } : o
+      );
+      
+      const updates = {
+        options: updatedOptions,
+        volume: (market.volume || 0) + Math.round(dollarAmount)
+      };
+      
+      await MulonData._updateMarketInternal(marketId, updates);
+      
+      // Record the trade
+      const trade = {
+        id: 'trade_' + Date.now(),
+        marketId,
+        optionId,
+        side,
+        choice,
+        shares: Math.round(shares * 100) / 100,
+        price: currentPrice,
+        cost: dollarAmount,
+        priceAfter: choice === 'yes' ? newOptionPrice : (100 - newOptionPrice),
+        userId,
+        orderType: 'market',
+        timestamp: new Date().toISOString()
+      };
+      
+      await this.saveTrade(trade);
+      await this.updateOrderBookFromTrade(marketId, trade);
+      
+      return {
+        filled: true,
+        shares: trade.shares,
+        avgPrice: currentPrice,
+        cost: dollarAmount,
+        newPrice: choice === 'yes' ? newOptionPrice : (100 - newOptionPrice),
+        priceChange: (choice === 'yes' ? newOptionPrice : (100 - newOptionPrice)) - currentPrice
+      };
+    }
+    
+    // Binary market logic
     if (side === 'buy') {
       if (choice === 'yes') {
         // Buying YES pushes YES price up

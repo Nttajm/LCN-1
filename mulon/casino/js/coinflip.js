@@ -222,18 +222,8 @@ function setupCoinsGrid() {
       html += `
         <div class="coin-wrapper" data-index="${i}">
           <div class="coin ${stateClass}" id="coin-${i}">
-            <div class="coin-face coin-heads">
-              <div class="coin-inner">
-                <span class="coin-emoji">&#x1F48E;</span>
-                <span class="coin-label">H</span>
-              </div>
-            </div>
-            <div class="coin-face coin-tails">
-              <div class="coin-inner">
-                <span class="coin-emoji">&#x1FA99;</span>
-                <span class="coin-label">T</span>
-              </div>
-            </div>
+            <div class="coin-face coin-heads"></div>
+            <div class="coin-face coin-tails"></div>
           </div>
         </div>
       `;
@@ -355,6 +345,38 @@ async function flipCoins() {
   const animDuration = config.coinCount === 1 ? 1600 : 2000;
   await new Promise(resolve => setTimeout(resolve, animDuration));
   
+  // After animation, set the final state FIRST, then remove animation class
+  if (config.coinCount === 1) {
+    const coin = document.getElementById('coin');
+    // First, set the correct state class
+    if (config.singleCoinState === 'tails') {
+      coin.classList.remove('show-heads');
+      coin.classList.add('show-tails');
+    } else {
+      coin.classList.remove('show-tails');
+      coin.classList.add('show-heads');
+    }
+    // Then remove animation classes (state class !important will take over)
+    coin.classList.remove('flip-to-heads', 'flip-to-tails');
+  } else {
+    for (let i = 0; i < config.coinCount; i++) {
+      const coin = document.getElementById(`coin-${i}`);
+      if (coin) {
+        const state = config.lastCoinStates[`multi-${config.coinCount}-${i}`];
+        // First, set the correct state class
+        if (state === 'tails') {
+          coin.classList.remove('show-heads');
+          coin.classList.add('show-tails');
+        } else {
+          coin.classList.remove('show-tails');
+          coin.classList.add('show-heads');
+        }
+        // Then remove animation classes
+        coin.classList.remove('flip-to-heads', 'flip-to-tails');
+      }
+    }
+  }
+  
   // Calculate win/loss status (winAmount was already calculated before animation)
   let profit = 0;
   let isWin = multiplier > 0;
@@ -368,8 +390,8 @@ async function flipCoins() {
     const payoutEl = document.getElementById('resultPayout');
     
     summaryEl.style.display = 'flex';
-    headsEl.innerHTML = '&#x1F48E; ' + headsHit;
-    tailsEl.innerHTML = '&#x1FA99; ' + tailsHit;
+    headsEl.textContent = '\u25C6 ' + headsHit;
+    tailsEl.textContent = '\u25CF ' + tailsHit;
     
     if (isWin) {
       payoutEl.textContent = `${matches}/${config.coinCount} = ${multiplier.toFixed(2)}x = $${winAmount.toFixed(2)}`;

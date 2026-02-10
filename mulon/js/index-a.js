@@ -1131,6 +1131,9 @@ function renderFeaturedSlide(market, index) {
   const hasBet = !!userPosition;
   const canBet = !isResolved && !isPending && !hasBet;
   
+  // Check if multi-option market
+  const isMulti = market.marketType === 'multi' && market.options && market.options.length > 0;
+  
   // Status display
   let statusBadge = '';
   if (isResolved) {
@@ -1140,14 +1143,55 @@ function renderFeaturedSlide(market, index) {
     statusBadge = `<span class="market-result pending">⏳ Awaiting Result</span>`;
   }
   
+  // Build probability display based on market type
+  let probDisplay;
+  if (isMulti) {
+    probDisplay = `
+      <div class="multi-prob-bars">
+        ${market.options.map(opt => `
+          <div class="multi-prob-row">
+            <div class="multi-prob-info">
+              <span class="multi-prob-label">${opt.label}</span>
+              <span class="multi-prob-percent" style="color: ${opt.color}">${opt.price}%</span>
+            </div>
+            <div class="multi-prob-bar">
+              <div class="multi-prob-fill" style="width: ${opt.price}%; background: ${opt.color};"></div>
+            </div>
+            ${canBet ? `
+              <div class="multi-prob-actions">
+                <button class="multi-bet-btn yes" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="yes">
+                  Yes <span class="price">${opt.price}¢</span>
+                </button>
+                <button class="multi-bet-btn no" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="no">
+                  No <span class="price">${100 - opt.price}¢</span>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else {
+    probDisplay = `
+      <div class="probability-bar">
+        <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
+      </div>
+      <div class="prob-labels">
+        <span class="prob-yes">${market.yesPrice}% Yes</span>
+        <span class="prob-no">${market.noPrice}% No</span>
+      </div>
+    `;
+  }
+  
   return `
     <div class="featured-slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}">
-      <div class="featured-card ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
+      <div class="featured-card ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''} ${isMulti ? 'multi-option' : ''}" data-market-id="${market.id}">
         <div class="featured-card-main">
           <div class="featured-card-info">
             <div class="card-header">
               <div class="card-category">
                 <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
+                ${isMulti ? '<span class="multi-badge">📊 Multi</span>' : ''}
                 <span class="volume">${MulonData.formatVolume(market.volume)}</span>
               </div>
               <div class="card-time">
@@ -1162,15 +1206,10 @@ function renderFeaturedSlide(market, index) {
             <p class="card-subtitle">${market.subtitle || ''}</p>
             ${statusBadge}
             
-            <div class="probability-bar">
-              <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
-            </div>
-            <div class="prob-labels">
-              <span class="prob-yes">${market.yesPrice}% Yes</span>
-              <span class="prob-no">${market.noPrice}% No</span>
-            </div>
+            ${probDisplay}
           </div>
           
+          ${!isMulti ? `
           <div class="featured-card-graph" data-market-id="${market.id}">
             <div class="graph-header">
               <span class="graph-price">${market.yesPrice}%</span>
@@ -1194,16 +1233,17 @@ function renderFeaturedSlide(market, index) {
               <span class="graph-date-end">Now</span>
             </div>
           </div>
+          ` : ''}
         </div>
 
-        ${canBet ? `
+        ${canBet && !isMulti ? `
           <div class="bet-buttons">
             <button class="bet-btn yes" data-market-id="${market.id}" data-choice="yes">
-              <div class="bet-label">Yes</div>
+              <div class="bet-label">${market.customLabels && market.yesLabel ? market.yesLabel : 'Yes'}</div>
               <div class="bet-price">${market.yesPrice}¢</div>
             </button>
             <button class="bet-btn no" data-market-id="${market.id}" data-choice="no">
-              <div class="bet-label">No</div>
+              <div class="bet-label">${market.customLabels && market.noLabel ? market.noLabel : 'No'}</div>
               <div class="bet-price">${market.noPrice}¢</div>
             </button>
           </div>
@@ -1215,7 +1255,7 @@ function renderFeaturedSlide(market, index) {
           <div class="user-position-display ${userPosition.choice}">
             <div class="position-badge ${userPosition.choice}">
               <span class="position-icon">${userPosition.choice === 'yes' ? '✓' : '✗'}</span>
-              <span class="position-label">You picked ${userPosition.choice.toUpperCase()}</span>
+              <span class="position-label">You picked ${market.customLabels ? (userPosition.choice === 'yes' ? (market.yesLabel || 'YES') : (market.noLabel || 'NO')) : userPosition.choice.toUpperCase()}</span>
             </div>
             <div class="position-details">
               <span>${userPosition.shares} shares @ ${userPosition.avgPrice}¢</span>
@@ -1445,6 +1485,9 @@ function renderMarketCard(market) {
   const hasBet = !!userPosition;
   const canBet = !isResolved && !isPending && !hasBet;
   
+  // Check if multi-option market
+  const isMulti = market.marketType === 'multi' && market.options && market.options.length > 0;
+  
   // Status badge
   let statusBadge = '';
   if (isResolved) {
@@ -1452,6 +1495,43 @@ function renderMarketCard(market) {
     statusBadge = `<span class="card-status resolved ${market.resolvedOutcome}">${outcome}</span>`;
   } else if (isPending) {
     statusBadge = `<span class="card-status pending">⏳ Pending</span>`;
+  }
+  
+  // Multi-option content
+  if (isMulti) {
+    const topOptions = market.options.slice(0, 3); // Show top 3 options in card
+    return `
+      <div class="market-card multi-option ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
+        <div class="card-category">
+          <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
+          <span class="multi-badge">📊 Multi</span>
+          ${statusBadge}
+        </div>
+        <h4 class="card-title">${market.title}</h4>
+        ${market.subtitle ? `<p class="card-description">${market.subtitle}</p>` : ''}
+        <div class="card-meta">
+          <span class="card-volume">${MulonData.formatVolume(market.volume)}</span>
+          <span class="card-time-text">Ends ${MulonData.formatDate(market.endDate)}</span>
+        </div>
+        <div class="multi-options-preview">
+          ${topOptions.map(opt => `
+            <div class="multi-option-preview-row">
+              <span class="option-dot" style="background: ${opt.color};"></span>
+              <span class="option-label">${opt.label}</span>
+              <span class="option-price" style="color: ${opt.color};">${opt.price}%</span>
+            </div>
+          `).join('')}
+          ${market.options.length > 3 ? `<div class="more-options">+${market.options.length - 3} more</div>` : ''}
+        </div>
+        ${canBet ? `
+          <button class="view-multi-btn" data-market-id="${market.id}">View Options</button>
+        ` : `
+          <div class="market-closed-compact">
+            ${isResolved ? 'Resolved' : 'Closed'}
+          </div>
+        `}
+      </div>
+    `;
   }
   
   return `
@@ -1472,18 +1552,18 @@ function renderMarketCard(market) {
       ${canBet ? `
         <div class="bet-buttons compact">
           <button class="bet-btn yes compact" data-market-id="${market.id}" data-choice="yes">
-            <span>Yes</span>
+            <span>${market.customLabels && market.yesLabel ? market.yesLabel : 'Yes'}</span>
             <span class="price">${market.yesPrice}¢</span>
           </button>
           <button class="bet-btn no compact" data-market-id="${market.id}" data-choice="no">
-            <span>No</span>
+            <span>${market.customLabels && market.noLabel ? market.noLabel : 'No'}</span>
             <span class="price">${market.noPrice}¢</span>
           </button>
         </div>
       ` : hasBet ? `
         <div class="user-position-compact ${userPosition.choice}">
           <span class="position-icon">${userPosition.choice === 'yes' ? '✓' : '✗'}</span>
-          <span>You picked ${userPosition.choice.toUpperCase()}</span>
+          <span>You picked ${market.customLabels ? (userPosition.choice === 'yes' ? (market.yesLabel || 'YES') : (market.noLabel || 'NO')) : userPosition.choice.toUpperCase()}</span>
         </div>
       ` : `
         <div class="market-closed-compact">
@@ -1503,6 +1583,8 @@ let currentChoice = 'yes';
 let currentYesPrice = 69;
 let currentNoPrice = 31;
 let currentMarketId = null;
+let currentMarket = null;
+let currentOptionId = null;
 
 function setupModal() {
   modal = document.getElementById('betModal');
@@ -1607,6 +1689,15 @@ function setupModal() {
       buyBtn.textContent = 'Processing...';
       
       try {
+        // Determine if this is a multi-option market
+        const isMulti = market.marketType === 'multi' && currentOptionId;
+        let optionLabel = '';
+        
+        if (isMulti) {
+          const option = market.options.find(o => o.id === currentOptionId);
+          optionLabel = option ? option.label : '';
+        }
+        
         // Execute order through the order book (with user ID)
         const userId = Auth.getUser()?.uid || 'anonymous';
         const result = await OrderBook.executeMarketOrder(
@@ -1614,7 +1705,8 @@ function setupModal() {
           'buy',
           currentChoice,
           amount,
-          userId
+          userId,
+          currentOptionId // Pass option ID for multi-option markets
         );
         
         if (!result.filled) {
@@ -1624,13 +1716,20 @@ function setupModal() {
         
         // Deduct from balance and add position
         await UserData.updateBalance(-amount);
+        
+        // Create position title
+        const positionTitle = isMulti 
+          ? `${market.title}: ${optionLabel}` 
+          : market.title;
+        
         await UserData.addPosition(
           currentMarketId,
-          market.title,
+          positionTitle,
           currentChoice,
           result.shares,
           amount,
-          result.avgPrice
+          result.avgPrice,
+          currentOptionId // Pass option ID
         );
         
         // Show price impact
@@ -1647,6 +1746,9 @@ function setupModal() {
         updateUserUI();
         renderMarkets(); // Re-render to show new prices
         closeModal();
+        
+        // Reset option ID
+        currentOptionId = null;
         
       } catch (error) {
         console.error('Order execution error:', error);
@@ -1673,6 +1775,7 @@ function attachBetButtonListeners() {
       if (!market) return;
       
       currentMarketId = marketId;
+      currentMarket = market;
       currentYesPrice = market.yesPrice;
       currentNoPrice = market.noPrice;
       currentChoice = choice;
@@ -1685,6 +1788,12 @@ function attachBetButtonListeners() {
       if (yesPrice) yesPrice.textContent = market.yesPrice + '¢';
       if (noPrice) noPrice.textContent = market.noPrice + '¢';
       
+      // Update button labels (custom or default)
+      const yesLabel = market.customLabels && market.yesLabel ? market.yesLabel : 'Yes';
+      const noLabel = market.customLabels && market.noLabel ? market.noLabel : 'No';
+      if (priceYesBtn) priceYesBtn.querySelector('span').textContent = yesLabel;
+      if (priceNoBtn) priceNoBtn.querySelector('span').textContent = noLabel;
+      
       updateModalChoice();
       updatePayout();
       
@@ -1696,8 +1805,64 @@ function attachBetButtonListeners() {
     });
   });
 
-  // Make market cards clickable
-  const marketCards = document.querySelectorAll('.market-card');
+  // Multi-option bet buttons
+  const multiBetButtons = document.querySelectorAll('.multi-bet-btn');
+  multiBetButtons.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      
+      const marketId = this.dataset.marketId;
+      const optionId = this.dataset.optionId;
+      const choice = this.dataset.choice;
+      const market = MulonData.getMarket(marketId);
+      
+      if (!market || !market.options) return;
+      
+      const option = market.options.find(o => o.id === optionId);
+      if (!option) return;
+      
+      currentMarketId = marketId;
+      currentMarket = market;
+      currentOptionId = optionId;
+      currentYesPrice = option.price;
+      currentNoPrice = 100 - option.price;
+      currentChoice = choice;
+      
+      // Update modal content for multi-option
+      const category = MulonData.getCategory(market.category);
+      
+      if (modalTitle) modalTitle.textContent = `${market.title}: ${option.label}`;
+      document.querySelector('.modal-market-icon').textContent = category.icon;
+      if (yesPrice) yesPrice.textContent = option.price + '¢';
+      if (noPrice) noPrice.textContent = (100 - option.price) + '¢';
+      
+      // Update button labels for multi-option
+      if (priceYesBtn) priceYesBtn.querySelector('span').textContent = 'Yes';
+      if (priceNoBtn) priceNoBtn.querySelector('span').textContent = 'No';
+      
+      updateModalChoice();
+      updatePayout();
+      
+      // Show modal
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+
+  // View multi-option button handler
+  const viewMultiBtns = document.querySelectorAll('.view-multi-btn');
+  viewMultiBtns.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const marketId = this.dataset.marketId;
+      openMultiOptionsModal(marketId);
+    });
+  });
+
+  // Make market cards clickable (only non-multi cards)
+  const marketCards = document.querySelectorAll('.market-card:not(.multi-option)');
   marketCards.forEach(card => {
     card.addEventListener('click', function(e) {
       if (e.target.closest('.bet-btn')) return;
@@ -1714,12 +1879,118 @@ function closeModal() {
   }
 }
 
+// Multi-option modal
+function openMultiOptionsModal(marketId) {
+  const market = MulonData.getMarket(marketId);
+  if (!market || !market.options) return;
+  
+  const category = MulonData.getCategory(market.category);
+  
+  // Create or get modal
+  let multiModal = document.getElementById('multiOptionsModal');
+  if (!multiModal) {
+    multiModal = document.createElement('div');
+    multiModal.id = 'multiOptionsModal';
+    multiModal.className = 'modal-overlay';
+    document.body.appendChild(multiModal);
+  }
+  
+  multiModal.innerHTML = `
+    <div class="modal multi-options-modal">
+      <button class="modal-close" onclick="closeMultiOptionsModal()">×</button>
+      <div class="modal-header">
+        <span class="modal-market-icon">${category.icon}</span>
+        <h3>${market.title}</h3>
+        ${market.subtitle ? `<p class="modal-subtitle">${market.subtitle}</p>` : ''}
+      </div>
+      <div class="multi-options-list">
+        ${market.options.map(opt => `
+          <div class="multi-option-row">
+            <div class="option-info">
+              <span class="option-color" style="background: ${opt.color};"></span>
+              <span class="option-name">${opt.label}</span>
+            </div>
+            <div class="option-prob" style="color: ${opt.color};">${opt.price}%</div>
+            <div class="option-actions">
+              <button class="multi-bet-btn yes" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="yes">
+                Yes <span class="price">${opt.price}¢</span>
+              </button>
+              <button class="multi-bet-btn no" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="no">
+                No <span class="price">${100 - opt.price}¢</span>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  
+  multiModal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  
+  // Attach event listeners to buttons
+  multiModal.querySelectorAll('.multi-bet-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeMultiOptionsModal();
+      
+      const optionId = this.dataset.optionId;
+      const choice = this.dataset.choice;
+      const option = market.options.find(o => o.id === optionId);
+      
+      if (!option) return;
+      
+      currentMarketId = marketId;
+      currentMarket = market;
+      currentOptionId = optionId;
+      currentYesPrice = option.price;
+      currentNoPrice = 100 - option.price;
+      currentChoice = choice;
+      
+      if (modalTitle) modalTitle.textContent = `${market.title}: ${option.label}`;
+      document.querySelector('.modal-market-icon').textContent = category.icon;
+      if (yesPrice) yesPrice.textContent = option.price + '¢';
+      if (noPrice) noPrice.textContent = (100 - option.price) + '¢';
+      if (priceYesBtn) priceYesBtn.querySelector('span').textContent = 'Yes';
+      if (priceNoBtn) priceNoBtn.querySelector('span').textContent = 'No';
+      
+      updateModalChoice();
+      updatePayout();
+      
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+  
+  // Close on overlay click
+  multiModal.addEventListener('click', function(e) {
+    if (e.target === multiModal) {
+      closeMultiOptionsModal();
+    }
+  });
+}
+
+function closeMultiOptionsModal() {
+  const multiModal = document.getElementById('multiOptionsModal');
+  if (multiModal) {
+    multiModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+window.closeMultiOptionsModal = closeMultiOptionsModal;
+
 function updateModalChoice() {
+  // Get custom labels if available
+  const yesLabel = currentMarket && currentMarket.customLabels && currentMarket.yesLabel ? currentMarket.yesLabel : 'Yes';
+  const noLabel = currentMarket && currentMarket.customLabels && currentMarket.noLabel ? currentMarket.noLabel : 'No';
+  
   if (currentChoice === 'yes') {
     if (priceYesBtn) priceYesBtn.classList.add('active');
     if (priceNoBtn) priceNoBtn.classList.remove('active');
     if (modalChoice) {
-      modalChoice.textContent = 'Yes';
+      modalChoice.textContent = yesLabel;
       modalChoice.className = 'choice-yes';
     }
     if (oddsValue) oddsValue.textContent = currentYesPrice + '¢';
@@ -1727,7 +1998,7 @@ function updateModalChoice() {
     if (priceNoBtn) priceNoBtn.classList.add('active');
     if (priceYesBtn) priceYesBtn.classList.remove('active');
     if (modalChoice) {
-      modalChoice.textContent = 'No';
+      modalChoice.textContent = noLabel;
       modalChoice.className = 'choice-no';
     }
     if (oddsValue) oddsValue.textContent = currentNoPrice + '¢';
@@ -2189,6 +2460,11 @@ function updatePortfolioDisplay() {
       const pnlPercent = ((currentValue / pos.costBasis - 1) * 100).toFixed(1);
       const isResolved = market?.resolved === true;
       
+      // Get custom label or default
+      const choiceLabel = market && market.customLabels 
+        ? (pos.choice === 'yes' ? (market.yesLabel || 'YES') : (market.noLabel || 'NO'))
+        : pos.choice.toUpperCase();
+      
       return `
         <div class="position-item" data-market-id="${pos.marketId}">
           <div class="position-header">
@@ -2197,7 +2473,7 @@ function updatePortfolioDisplay() {
           </div>
           <div class="position-details">
             <div class="position-info">
-              <span class="position-badge ${pos.choice}">${pos.choice.toUpperCase()}</span>
+              <span class="position-badge ${pos.choice}">${choiceLabel}</span>
               <span class="position-shares">${pos.shares.toFixed(2)} shares @ ${pos.avgPrice}¢</span>
             </div>
             <div class="position-value">
@@ -2232,6 +2508,8 @@ function updateWatchlistDisplay() {
       if (!market) return '';
       
       const category = MulonData.getCategory(market.category);
+      const yesLabel = market.customLabels && market.yesLabel ? market.yesLabel : 'Yes';
+      const noLabel = market.customLabels && market.noLabel ? market.noLabel : 'No';
       
       return `
         <div class="watchlist-item" data-market-id="${marketId}">
@@ -2239,8 +2517,8 @@ function updateWatchlistDisplay() {
           <div class="watchlist-info">
             <div class="watchlist-title">${market.title}</div>
             <div class="watchlist-price">
-              <span style="color: var(--green-primary)">Yes ${market.yesPrice}¢</span> · 
-              <span style="color: var(--red-primary)">No ${market.noPrice}¢</span>
+              <span style="color: var(--green-primary)">${yesLabel} ${market.yesPrice}¢</span> · 
+              <span style="color: var(--red-primary)">${noLabel} ${market.noPrice}¢</span>
             </div>
           </div>
           <button class="watchlist-remove" data-market-id="${marketId}">
