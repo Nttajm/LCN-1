@@ -328,15 +328,25 @@ const Auth = {
         
         console.log('User signed in:', user.displayName);
       } else {
+        // User signed out - set up anonymous mode
         this.currentUser = null;
-        UserData.data = null;
-        UserData.userId = null;
-        console.log('User signed out');
+        UserData.userId = 'anonymous';
+        UserData.loadAnonymousData(); // Load anonymous data from localStorage
+        console.log('User signed out, switched to anonymous mode');
       }
       
       // Notify all listeners
       this.authStateListeners.forEach(listener => listener(this.currentUser));
     });
+    
+    // Ensure anonymous mode is set up if no user after a short delay
+    setTimeout(() => {
+      if (!this.currentUser && (!UserData.userId || UserData.userId === null)) {
+        UserData.userId = 'anonymous';
+        UserData.loadAnonymousData();
+        console.log('Initialized anonymous mode on startup');
+      }
+    }, 500);
   },
   
   // Sign in with Google - redirects to waitlist if not approved
@@ -413,8 +423,37 @@ window.Auth = Auth;
 // USER DATA (Firebase-backed)
 // ========================================
 const UserData = {
+  STORAGE_KEY: 'mulon_anonymous_user',
   data: null,
   userId: null,
+  
+  // Load anonymous user data from localStorage
+  loadAnonymousData() {
+    if (this.userId === 'anonymous' && !this.data) {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        try {
+          this.data = JSON.parse(stored);
+        } catch (error) {
+          console.error('Error parsing anonymous data:', error);
+          this.data = this.getDefault();
+        }
+      } else {
+        this.data = this.getDefault();
+      }
+    }
+  },
+  
+  // Save anonymous user data to localStorage
+  saveAnonymousData() {
+    if (this.userId === 'anonymous' && this.data) {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.data));
+      } catch (error) {
+        console.error('Error saving anonymous data:', error);
+      }
+    }
+  },
   
   getDefault(userProfile = {}) {
     return {
@@ -465,13 +504,20 @@ const UserData = {
     return this.data;
   },
   
-  // Save user data to Firebase
+  // Save user data to Firebase or localStorage (anonymous)
   async save() {
     if (!this.userId || !this.data) return;
-    try {
-      await setDoc(doc(usersRef, this.userId), this.data);
-    } catch (error) {
-      console.error('Error saving user data:', error);
+    
+    if (this.userId === 'anonymous') {
+      // Save to localStorage for anonymous users
+      this.saveAnonymousData();
+    } else {
+      // Save to Firebase for authenticated users
+      try {
+        await setDoc(doc(usersRef, this.userId), this.data);
+      } catch (error) {
+        console.error('Error saving user data:', error);
+      }
     }
   },
   
@@ -652,6 +698,15 @@ const UserData = {
   async addPosition(marketId, marketTitle, choice, shares, costBasis, price, optionId = null) {
     if (!this.data) return [];
     
+    // Validate shares to prevent infinity or NaN
+    if (!isFinite(shares) || isNaN(shares) || shares <= 0) {
+      console.error('Invalid shares value:', shares);
+      return this.data.positions;
+    }
+    
+    // Round shares to 2 decimal places
+    shares = Math.round(shares * 100) / 100;
+    
     const tradeId = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const timestamp = new Date().toISOString();
     
@@ -730,6 +785,10 @@ const UserData = {
   },
   
   getPositions() {
+    // For anonymous users, load data from localStorage if not already loaded
+    if (!this.data && this.userId === 'anonymous') {
+      this.loadAnonymousData();
+    }
     return this.get().positions || [];
   },
   
@@ -1071,15 +1130,29 @@ const OrderBook = {
     if (isMulti) {
       option = market.options.find(o => o.id === optionId);
       if (!option) return { filled: false, error: 'Option not found' };
-      currentPrice = choice === 'yes' ? option.price : (100 - option.price);
+      // Ensure option price is valid (between 1 and 99)
+      const optPrice = Math.max(1, Math.min(99, option.price || 50));
+      currentPrice = choice === 'yes' ? optPrice : (100 - optPrice);
     } else {
       // For prediction markets: buying YES is like selling NO and vice versa
       // Price of YES + Price of NO = 100 (always)
-      currentPrice = choice === 'yes' ? market.yesPrice : market.noPrice;
+      const yesP = Math.max(1, Math.min(99, market.yesPrice || 50));
+      const noP = 100 - yesP;
+      currentPrice = choice === 'yes' ? yesP : noP;
+    }
+    
+    // Ensure currentPrice is valid to prevent infinity
+    if (!currentPrice || currentPrice <= 0 || currentPrice >= 100) {
+      currentPrice = 50;
     }
     
     const pricePerShare = currentPrice / 100; // Convert cents to dollars
     const shares = dollarAmount / pricePerShare;
+    
+    // Validate shares
+    if (!isFinite(shares) || isNaN(shares) || shares <= 0) {
+      return { filled: false, error: 'Invalid share calculation' };
+    }
     
     // Calculate price impact based on order size relative to liquidity
     // Larger orders move the price more
@@ -1090,19 +1163,24 @@ const OrderBook = {
     
     if (isMulti) {
       // Multi-option: adjust the specific option's price
+      // Use validated option price
+      const safeOptPrice = Math.max(1, Math.min(99, option.price || 50));
       if (side === 'buy') {
         if (choice === 'yes') {
-          newOptionPrice = Math.min(99, Math.round(option.price + (impactFactor * 100)));
+          newOptionPrice = Math.min(99, Math.round(safeOptPrice + (impactFactor * 100)));
         } else {
-          newOptionPrice = Math.max(1, Math.round(option.price - (impactFactor * 100)));
+          newOptionPrice = Math.max(1, Math.round(safeOptPrice - (impactFactor * 100)));
         }
       } else {
         if (choice === 'yes') {
-          newOptionPrice = Math.max(1, Math.round(option.price - (impactFactor * 100)));
+          newOptionPrice = Math.max(1, Math.round(safeOptPrice - (impactFactor * 100)));
         } else {
-          newOptionPrice = Math.min(99, Math.round(option.price + (impactFactor * 100)));
+          newOptionPrice = Math.min(99, Math.round(safeOptPrice + (impactFactor * 100)));
         }
       }
+      
+      // Ensure newOptionPrice is valid
+      newOptionPrice = Math.max(1, Math.min(99, newOptionPrice || 50));
       
       // Update the option price in the market
       const updatedOptions = market.options.map(o => 
@@ -1116,6 +1194,9 @@ const OrderBook = {
       
       await MulonData._updateMarketInternal(marketId, updates);
       
+      // Calculate safe shares value
+      const safeShares = Math.max(0.01, Math.round(shares * 100) / 100);
+      
       // Record the trade
       const trade = {
         id: 'trade_' + Date.now(),
@@ -1123,7 +1204,7 @@ const OrderBook = {
         optionId,
         side,
         choice,
-        shares: Math.round(shares * 100) / 100,
+        shares: safeShares,
         price: currentPrice,
         cost: dollarAmount,
         priceAfter: choice === 'yes' ? newOptionPrice : (100 - newOptionPrice),
@@ -1137,7 +1218,7 @@ const OrderBook = {
       
       return {
         filled: true,
-        shares: trade.shares,
+        shares: safeShares,
         avgPrice: currentPrice,
         cost: dollarAmount,
         newPrice: choice === 'yes' ? newOptionPrice : (100 - newOptionPrice),
@@ -1178,13 +1259,16 @@ const OrderBook = {
     
     await MulonData._updateMarketInternal(marketId, updates);
     
+    // Calculate safe shares value
+    const safeShares = Math.max(0.01, Math.round(shares * 100) / 100);
+    
     // Record the trade
     const trade = {
       id: 'trade_' + Date.now(),
       marketId,
       side,
       choice,
-      shares: Math.round(shares * 100) / 100,
+      shares: safeShares,
       price: currentPrice,
       cost: dollarAmount,
       priceAfter: choice === 'yes' ? newYesPrice : newNoPrice,
@@ -1199,7 +1283,7 @@ const OrderBook = {
     
     return {
       filled: true,
-      shares: trade.shares,
+      shares: safeShares,
       avgPrice: currentPrice,
       cost: dollarAmount,
       newPrice: choice === 'yes' ? newYesPrice : newNoPrice,
@@ -1838,6 +1922,15 @@ const MulonData = {
         return { success: false, error: 'Market already resolved' };
       }
       
+      const isMulti = market.marketType === 'multi' && market.options && market.options.length > 0;
+      let winningOption = null;
+      if (isMulti) {
+        winningOption = market.options.find(o => o.id === outcome);
+        if (!winningOption) {
+          return { success: false, error: 'Invalid winning option' };
+        }
+      }
+
       // Get all users and find positions in this market
       const usersSnapshot = await getDocs(usersRef);
       let payoutCount = 0;
@@ -1856,7 +1949,22 @@ const MulonData = {
           const resolvedPositions = [];
           
           for (const pos of marketPositions) {
-            const won = pos.choice === outcome;
+            let won = false;
+            if (isMulti) {
+              let optionId = pos.optionId || null;
+              if (!optionId && pos.marketTitle && market.title) {
+                const prefix = `${market.title}: `;
+                if (pos.marketTitle.startsWith(prefix)) {
+                  const label = pos.marketTitle.slice(prefix.length).trim();
+                  const matched = market.options.find(o => o.label === label);
+                  if (matched) optionId = matched.id;
+                }
+              }
+              won = optionId === outcome && pos.choice === 'yes';
+            } else {
+              won = pos.choice === outcome;
+            }
+
             const payout = won ? pos.shares : 0; // Each share pays $1 if correct
             
             resolvedPositions.push({
@@ -1867,6 +1975,7 @@ const MulonData = {
               avgPrice: pos.avgPrice || Math.round((pos.costBasis / pos.shares) * 100) / 100,
               cost: pos.costBasis,
               outcome: outcome,
+              outcomeLabel: isMulti && winningOption ? winningOption.label : undefined,
               won: won,
               payout: payout,
               timestamp: new Date().toISOString()
@@ -1906,6 +2015,7 @@ const MulonData = {
       await this.updateMarket(marketId, {
         resolved: true,
         resolvedOutcome: outcome,
+        resolvedOutcomeLabel: winningOption ? winningOption.label : undefined,
         resolvedAt: new Date().toISOString()
       });
       

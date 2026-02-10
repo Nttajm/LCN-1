@@ -507,8 +507,8 @@
     <div class="modal resolve-modal">
       <h3>🎯 Resolve Market</h3>
       <p class="resolve-market-title" id="resolveMarketTitle">Market title here</p>
-      <p class="resolve-question">What was the outcome?</p>
-      <div class="resolve-buttons">
+      <p class="resolve-question" id="resolveQuestion">What was the outcome?</p>
+      <div class="resolve-buttons" id="resolveBinaryButtons">
         <button class="btn btn-resolve btn-yes" id="resolveYes">
           <span class="resolve-icon">✓</span>
           <span>YES</span>
@@ -518,6 +518,7 @@
           <span>NO</span>
         </button>
       </div>
+      <div class="resolve-multi-options" id="resolveOptionsList" style="display: none;"></div>
       <p class="resolve-warning">⚠️ This will pay out all winning positions and cannot be undone.</p>
       <button class="btn btn-secondary resolve-cancel" id="cancelResolve">Cancel</button>
     </div>

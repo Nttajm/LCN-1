@@ -2,7 +2,7 @@
 // MULON - Main Site JavaScript
 // ========================================
 
-import { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync } from './data.js';
+import { MulonData, OrderBook, Auth, UserData, OnboardingState, OverUnderSync } from './data-a.js';
 import { checkMaintenanceAccess, MAINTENANCE_MODE } from './maintenance.js';
 
 localStorage.setItem('lol', 'nice try, but i learnt from last time.');
@@ -37,6 +37,31 @@ function formatProfit(amount) {
   const [whole, decimal] = Math.abs(value).toFixed(2).split('.');
   const formatted = formatWithCommas(whole) + '.' + decimal;
   return (value >= 0 ? '+' : '-') + '$' + formatted;
+}
+
+// Resolve multi-option position (supports legacy positions without optionId)
+function getMultiMarketPosition(positions, market) {
+  const direct = positions.find(p => p.marketId === market.id && p.optionId);
+  if (direct) {
+    return { position: direct, optionId: direct.optionId };
+  }
+
+  const legacy = positions.find(p => p.marketId === market.id);
+  if (!legacy) {
+    return { position: null, optionId: null };
+  }
+
+  let resolvedOptionId = null;
+  if (legacy.marketTitle && market.title) {
+    const prefix = `${market.title}: `;
+    if (legacy.marketTitle.startsWith(prefix)) {
+      const label = legacy.marketTitle.slice(prefix.length).trim();
+      const matched = (market.options || []).find(o => o.label === label);
+      if (matched) resolvedOptionId = matched.id;
+    }
+  }
+
+  return { position: legacy, optionId: resolvedOptionId };
 }
 
 // Export to window for use in other files
@@ -1127,12 +1152,18 @@ function renderFeaturedSlide(market, index) {
   
   // Check if user already has a position in this market
   const positions = UserData.getPositions();
-  const userPosition = positions.find(p => p.marketId === market.id);
+  const userPosition = positions.find(p => p.marketId === market.id && !p.optionId);
   const hasBet = !!userPosition;
-  const canBet = !isResolved && !isPending && !hasBet;
+  const canBet = !isResolved && !isPending;
   
   // Check if multi-option market
   const isMulti = market.marketType === 'multi' && market.options && market.options.length > 0;
+  
+  // For multi-option, check if user has ANY position on this market (one pick only)
+  const multiPosition = isMulti ? getMultiMarketPosition(positions, market) : { position: null, optionId: null };
+  const userMultiPosition = multiPosition.position;
+  const pickedOptionId = multiPosition.optionId;
+  const hasMultiBet = !!userMultiPosition;
   
   // Status display
   let statusBadge = '';
@@ -1148,27 +1179,33 @@ function renderFeaturedSlide(market, index) {
   if (isMulti) {
     probDisplay = `
       <div class="multi-prob-bars">
-        ${market.options.map(opt => `
-          <div class="multi-prob-row">
-            <div class="multi-prob-info">
-              <span class="multi-prob-label">${opt.label}</span>
-              <span class="multi-prob-percent" style="color: ${opt.color}">${opt.price}%</span>
-            </div>
-            <div class="multi-prob-bar">
-              <div class="multi-prob-fill" style="width: ${opt.price}%; background: ${opt.color};"></div>
-            </div>
-            ${canBet ? `
-              <div class="multi-prob-actions">
-                <button class="multi-bet-btn yes" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="yes">
-                  Yes <span class="price">${opt.price}¢</span>
-                </button>
-                <button class="multi-bet-btn no" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="no">
-                  No <span class="price">${100 - opt.price}¢</span>
-                </button>
+        ${market.options.map(opt => {
+          const isPickedOption = hasMultiBet && pickedOptionId && pickedOptionId === opt.id;
+          const showBought = hasMultiBet && !pickedOptionId;
+          const isLocked = hasMultiBet && !isPickedOption;
+          return `
+            <div class="multi-prob-row ${isPickedOption ? 'has-position' : ''} ${isLocked ? 'locked' : ''}">
+              <div class="multi-prob-info">
+                <span class="multi-prob-label">${opt.label}</span>
+                <span class="multi-prob-percent">${opt.price}%</span>
               </div>
-            ` : ''}
-          </div>
-        `).join('')}
+              <div class="multi-prob-actions">
+                ${canBet && !hasMultiBet ? `
+                  <button class="multi-bet-btn yes" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="yes">
+                    Yes
+                  </button>
+                  <button class="multi-bet-btn no" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="no">
+                    No
+                  </button>
+                ` : isPickedOption ? `
+                  <span class="mini-position ${userMultiPosition.choice}">${userMultiPosition.choice === 'yes' ? '✓' : '✗'}</span>
+                ` : showBought ? `
+                  <span class="mini-position neutral">Bought</span>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
   } else {
@@ -1236,7 +1273,7 @@ function renderFeaturedSlide(market, index) {
           ` : ''}
         </div>
 
-        ${canBet && !isMulti ? `
+        ${canBet && !isMulti && !hasBet ? `
           <div class="bet-buttons">
             <button class="bet-btn yes" data-market-id="${market.id}" data-choice="yes">
               <div class="bet-label">${market.customLabels && market.yesLabel ? market.yesLabel : 'Yes'}</div>
@@ -1251,7 +1288,7 @@ function renderFeaturedSlide(market, index) {
             <span class="payout yes-payout">$100 → $${Math.round(100 / (market.yesPrice / 100))}</span>
             <span class="payout no-payout">$100 → $${Math.round(100 / (market.noPrice / 100))}</span>
           </div>
-        ` : hasBet ? `
+        ` : hasBet && !isMulti ? `
           <div class="user-position-display ${userPosition.choice}">
             <div class="position-badge ${userPosition.choice}">
               <span class="position-icon">${userPosition.choice === 'yes' ? '✓' : '✗'}</span>
@@ -1261,11 +1298,11 @@ function renderFeaturedSlide(market, index) {
               <span>${userPosition.shares} shares @ ${userPosition.avgPrice}¢</span>
             </div>
           </div>
-        ` : `
+        ` : !isMulti ? `
           <div class="market-closed-notice">
             ${isResolved ? 'Market Resolved' : 'Betting Closed'}
           </div>
-        `}
+        ` : ''}
       </div>
     </div>
   `;
@@ -1481,9 +1518,9 @@ function renderMarketCard(market) {
   
   // Check if user already has a position in this market
   const positions = UserData.getPositions();
-  const userPosition = positions.find(p => p.marketId === market.id);
+  const userPosition = positions.find(p => p.marketId === market.id && !p.optionId);
   const hasBet = !!userPosition;
-  const canBet = !isResolved && !isPending && !hasBet;
+  const canBet = !isResolved && !isPending;
   
   // Check if multi-option market
   const isMulti = market.marketType === 'multi' && market.options && market.options.length > 0;
@@ -1499,40 +1536,54 @@ function renderMarketCard(market) {
   
   // Multi-option content
   if (isMulti) {
-    const topOptions = market.options.slice(0, 3); // Show top 3 options in card
+    // For multi-option, check if user has ANY position on this market (incl. legacy)
+    const multiPosition = getMultiMarketPosition(positions, market);
+    const userMarketPosition = multiPosition.position;
+    const pickedOptionId = multiPosition.optionId;
+    const hasAnyBet = !!userMarketPosition;
+    
     return `
       <div class="market-card multi-option ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
         <div class="card-category">
           <span class="category-tag ${market.category}">${category.icon} ${category.label}</span>
-          <span class="multi-badge">📊 Multi</span>
           ${statusBadge}
         </div>
         <h4 class="card-title">${market.title}</h4>
-        ${market.subtitle ? `<p class="card-description">${market.subtitle}</p>` : ''}
+        <div class="multi-options-card-list">
+          ${market.options.map(opt => {
+            const isPickedOption = hasAnyBet && pickedOptionId && pickedOptionId === opt.id;
+            const showBought = hasAnyBet && !pickedOptionId;
+            const isLocked = hasAnyBet && !isPickedOption;
+            return `
+              <div class="multi-option-card-row ${isPickedOption ? 'has-position' : ''} ${isLocked ? 'locked' : ''}">
+                <div class="option-info-left">
+                  <span class="option-name">${opt.label}</span>
+                </div>
+                <div class="option-info-right">
+                  <span class="option-percent">${opt.price}%</span>
+                  ${canBet && !hasAnyBet ? `
+                    <button class="mini-bet-btn yes" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="yes">Yes</button>
+                    <button class="mini-bet-btn no" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="no">No</button>
+                  ` : isPickedOption ? `
+                    <span class="mini-position ${userMarketPosition.choice}">${userMarketPosition.choice === 'yes' ? '✓' : '✗'}</span>
+                  ` : showBought ? `
+                    <span class="mini-position neutral">Bought</span>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
         <div class="card-meta">
           <span class="card-volume">${MulonData.formatVolume(market.volume)}</span>
-          <span class="card-time-text">Ends ${MulonData.formatDate(market.endDate)}</span>
+          <span class="card-time-text">Ends ${MulonData.formatDate(market.endDate)}${market.endTime ? ' @ ' + market.endTime : ''}</span>
         </div>
-        <div class="multi-options-preview">
-          ${topOptions.map(opt => `
-            <div class="multi-option-preview-row">
-              <span class="option-dot" style="background: ${opt.color};"></span>
-              <span class="option-label">${opt.label}</span>
-              <span class="option-price" style="color: ${opt.color};">${opt.price}%</span>
-            </div>
-          `).join('')}
-          ${market.options.length > 3 ? `<div class="more-options">+${market.options.length - 3} more</div>` : ''}
-        </div>
-        ${canBet ? `
-          <button class="view-multi-btn" data-market-id="${market.id}">View Options</button>
-        ` : `
-          <div class="market-closed-compact">
-            ${isResolved ? 'Resolved' : 'Closed'}
-          </div>
-        `}
       </div>
     `;
   }
+  
+  // Binary market - check if user has bet (not per option)
+  const canBetBinary = canBet && !hasBet;
   
   return `
     <div class="market-card ${isResolved ? 'resolved' : ''} ${isPending ? 'pending' : ''}" data-market-id="${market.id}">
@@ -1549,7 +1600,7 @@ function renderMarketCard(market) {
       <div class="probability-bar small">
         <div class="prob-fill" style="width: ${market.yesPrice}%;"></div>
       </div>
-      ${canBet ? `
+      ${canBetBinary ? `
         <div class="bet-buttons compact">
           <button class="bet-btn yes compact" data-market-id="${market.id}" data-choice="yes">
             <span>${market.customLabels && market.yesLabel ? market.yesLabel : 'Yes'}</span>
@@ -1684,6 +1735,23 @@ function setupModal() {
         return;
       }
       
+      // Check if user already has a position on this market
+      const positions = UserData.getPositions();
+      const isMultiCheck = market.marketType === 'multi';
+      let existingPosition;
+      
+      if (isMultiCheck) {
+        // For multi-option: block if user has ANY position on this market
+        existingPosition = positions.find(p => p.marketId === currentMarketId);
+      } else {
+        existingPosition = positions.find(p => p.marketId === currentMarketId && !p.optionId);
+      }
+      
+      if (existingPosition) {
+        showNotification('You already have a position on this market', 'error');
+        return;
+      }
+      
       // Disable button while processing
       buyBtn.disabled = true;
       buyBtn.textContent = 'Processing...';
@@ -1805,9 +1873,55 @@ function attachBetButtonListeners() {
     });
   });
 
-  // Multi-option bet buttons
+  // Multi-option bet buttons (featured slider and modal)
   const multiBetButtons = document.querySelectorAll('.multi-bet-btn');
   multiBetButtons.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      
+      const marketId = this.dataset.marketId;
+      const optionId = this.dataset.optionId;
+      const choice = this.dataset.choice;
+      const market = MulonData.getMarket(marketId);
+      
+      if (!market || !market.options) return;
+      
+      const option = market.options.find(o => o.id === optionId);
+      if (!option) return;
+      
+      currentMarketId = marketId;
+      currentMarket = market;
+      currentOptionId = optionId;
+      currentYesPrice = option.price;
+      currentNoPrice = 100 - option.price;
+      currentChoice = choice;
+      
+      // Update modal content for multi-option
+      const category = MulonData.getCategory(market.category);
+      
+      if (modalTitle) modalTitle.textContent = `${market.title}: ${option.label}`;
+      document.querySelector('.modal-market-icon').textContent = category.icon;
+      if (yesPrice) yesPrice.textContent = option.price + '¢';
+      if (noPrice) noPrice.textContent = (100 - option.price) + '¢';
+      
+      // Update button labels for multi-option
+      if (priceYesBtn) priceYesBtn.querySelector('span').textContent = 'Yes';
+      if (priceNoBtn) priceNoBtn.querySelector('span').textContent = 'No';
+      
+      updateModalChoice();
+      updatePayout();
+      
+      // Show modal
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+
+  // Mini bet buttons (market cards with inline Yes/No)
+  const miniBetButtons = document.querySelectorAll('.mini-bet-btn');
+  miniBetButtons.forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       
@@ -1895,6 +2009,12 @@ function openMultiOptionsModal(marketId) {
     document.body.appendChild(multiModal);
   }
   
+  const positions = UserData.getPositions();
+  const multiPosition = getMultiMarketPosition(positions, market);
+  const userMarketPosition = multiPosition.position;
+  const pickedOptionId = multiPosition.optionId;
+  const hasAnyBet = !!userMarketPosition;
+  
   multiModal.innerHTML = `
     <div class="modal multi-options-modal">
       <button class="modal-close" onclick="closeMultiOptionsModal()">×</button>
@@ -1904,23 +2024,34 @@ function openMultiOptionsModal(marketId) {
         ${market.subtitle ? `<p class="modal-subtitle">${market.subtitle}</p>` : ''}
       </div>
       <div class="multi-options-list">
-        ${market.options.map(opt => `
-          <div class="multi-option-row">
-            <div class="option-info">
-              <span class="option-color" style="background: ${opt.color};"></span>
-              <span class="option-name">${opt.label}</span>
+        ${market.options.map(opt => {
+          const isPickedOption = hasAnyBet && pickedOptionId && pickedOptionId === opt.id;
+          const showBought = hasAnyBet && !pickedOptionId;
+          const isLocked = hasAnyBet && !isPickedOption;
+          return `
+            <div class="multi-option-row ${isPickedOption ? 'has-position' : ''} ${isLocked ? 'locked' : ''}">
+              <div class="option-info">
+                <span class="option-color" style="background: ${opt.color};"></span>
+                <span class="option-name">${opt.label}</span>
+              </div>
+              <div class="option-prob" style="color: ${opt.color};">${opt.price}%</div>
+              <div class="option-actions">
+                ${!hasAnyBet ? `
+                  <button class="multi-bet-btn yes" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="yes">
+                    Yes <span class="price">${opt.price}¢</span>
+                  </button>
+                  <button class="multi-bet-btn no" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="no">
+                    No <span class="price">${100 - opt.price}¢</span>
+                  </button>
+                ` : isPickedOption ? `
+                  <span class="mini-position ${userMarketPosition.choice}">${userMarketPosition.choice === 'yes' ? '✓ Picked' : '✗ Picked'}</span>
+                ` : showBought ? `
+                  <span class="mini-position neutral">Bought</span>
+                ` : ''}
+              </div>
             </div>
-            <div class="option-prob" style="color: ${opt.color};">${opt.price}%</div>
-            <div class="option-actions">
-              <button class="multi-bet-btn yes" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="yes">
-                Yes <span class="price">${opt.price}¢</span>
-              </button>
-              <button class="multi-bet-btn no" data-market-id="${market.id}" data-option-id="${opt.id}" data-choice="no">
-                No <span class="price">${100 - opt.price}¢</span>
-              </button>
-            </div>
-          </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     </div>
   `;

@@ -203,11 +203,19 @@ function renderMarketItem(market) {
   const isResolved = market.resolved === true;
   const isPending = isExpired && !isResolved;
   
+  // Check if multi-option market
+  const isMulti = market.marketType === 'multi';
+  
   // Status badge
   let statusBadge = '';
   if (isResolved) {
-    const outcome = market.resolvedOutcome === 'yes' ? '✓ YES' : '✗ NO';
-    const outcomeClass = market.resolvedOutcome === 'yes' ? 'resolved-yes' : 'resolved-no';
+    let outcome = market.resolvedOutcome === 'yes' ? '✓ YES' : '✗ NO';
+    let outcomeClass = market.resolvedOutcome === 'yes' ? 'resolved-yes' : 'resolved-no';
+    if (isMulti && market.options) {
+      const resolvedLabel = market.resolvedOutcomeLabel || (market.options.find(o => o.id === market.resolvedOutcome)?.label);
+      outcome = resolvedLabel ? `✓ ${resolvedLabel}` : '✓ RESOLVED';
+      outcomeClass = 'resolved-yes';
+    }
     statusBadge = `<span class="market-status ${outcomeClass}">${outcome}</span>`;
   } else if (isPending) {
     statusBadge = `<span class="market-status pending">⏳ Pending</span>`;
@@ -217,9 +225,6 @@ function renderMarketItem(market) {
   
   // Format end time
   const endTimeDisplay = market.endTime || '23:59';
-  
-  // Check if multi-option market
-  const isMulti = market.marketType === 'multi';
   
   // Build price display
   let priceDisplay;
@@ -261,7 +266,16 @@ function renderMarketItem(market) {
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
           </button>
-        ` : ''}
+        ` : `
+          <button class="btn-icon make-again" data-id="${market.id}" title="Make Again">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+              <path d="m16 6-4-2-4 2"></path>
+              <path d="M8 18v-7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v7"></path>
+              <path d="M10 12h4"></path>
+            </svg>
+          </button>
+        `}
         <button class="btn-icon edit" data-id="${market.id}" title="Edit">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
@@ -301,6 +315,14 @@ function attachMarketItemListeners() {
     btn.addEventListener('click', function() {
       const marketId = this.dataset.id;
       showResolveModal(marketId);
+    });
+  });
+  
+  // Make Again buttons
+  document.querySelectorAll('.btn-icon.make-again').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const marketId = this.dataset.id;
+      makeMarketAgain(marketId);
     });
   });
 }
@@ -515,6 +537,7 @@ function editMarket(marketId) {
       color: opt.color
     }));
     setMarketType('multi');
+    renderMultiOptions(); // Render the options after setting type
   } else {
     document.getElementById('yesPrice').value = market.yesPrice || 50;
     document.getElementById('noPricePreview').textContent = market.noPrice || 50;
@@ -537,6 +560,75 @@ function editMarket(marketId) {
   
   // Show trades section and load trades
   showMarketTrades(marketId);
+  
+  // Scroll to form
+  document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function makeMarketAgain(marketId) {
+  const market = MulonData.getMarket(marketId);
+  if (!market) return;
+
+  if (!isAccessAllowed()) return;
+  
+  // Reset to create mode
+  isEditMode = false;
+  editingMarketId = null;
+  
+  // Populate form with existing market data but clear ID
+  document.getElementById('marketId').value = '';
+  document.getElementById('title').value = market.title;
+  document.getElementById('subtitle').value = market.subtitle || '';
+  document.getElementById('category').value = market.category;
+  
+  // Set dates to current/future dates  
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  document.getElementById('startDate').value = today.toISOString().split('T')[0];
+  document.getElementById('endDate').value = tomorrow.toISOString().split('T')[0];
+  document.getElementById('endTime').value = market.endTime || '15:00';
+  document.getElementById('volume').value = 0; // Reset volume to 0 for new market
+  document.getElementById('featured').checked = false; // Don't auto-feature recreated markets
+  
+  // Set market type and copy all options/settings
+  const isMulti = market.marketType === 'multi';
+  if (isMulti) {
+    multiOptions = (market.options || []).map(opt => ({
+      id: opt.id,
+      label: opt.label,
+      price: opt.price,
+      color: opt.color
+    }));
+    setMarketType('multi');
+    renderMultiOptions(); // Render the options after setting type
+  } else {
+    // Reset prices to 50/50 for new market
+    document.getElementById('yesPrice').value = 50;
+    document.getElementById('noPricePreview').textContent = 50;
+    
+    // Copy custom labels
+    const customLabelsCheckbox = document.getElementById('customLabels');
+    const customLabelsRow = document.getElementById('customLabelsRow');
+    customLabelsCheckbox.checked = market.customLabels || false;
+    customLabelsRow.style.display = market.customLabels ? 'flex' : 'none';
+    document.getElementById('yesLabel').value = market.yesLabel || '';
+    document.getElementById('noLabel').value = market.noLabel || '';
+    
+    setMarketType('binary');
+  }
+  
+  // Update UI for create mode
+  document.getElementById('formTitle').textContent = '🔄 Create Market Again';
+  document.getElementById('submitBtn').textContent = 'Create Market';
+  document.querySelector('.form-panel').classList.remove('editing');
+  
+  // Hide trades section since this is a new market
+  const tradesSection = document.getElementById('marketTradesSection');
+  if (tradesSection) tradesSection.style.display = 'none';
+  
+  showToast(`Market data loaded! You can now edit the details and create a new market.`, 'success');
   
   // Scroll to form
   document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
@@ -944,6 +1036,7 @@ function setupResolveModal() {
   const cancelBtn = document.getElementById('cancelResolve');
   const resolveYesBtn = document.getElementById('resolveYes');
   const resolveNoBtn = document.getElementById('resolveNo');
+  const resolveOptionsList = document.getElementById('resolveOptionsList');
   const modal = document.getElementById('resolveModal');
   
   if (cancelBtn) {
@@ -963,6 +1056,28 @@ function setupResolveModal() {
   if (resolveNoBtn) {
     resolveNoBtn.addEventListener('click', () => resolveMarket('no'));
   }
+
+  if (resolveOptionsList) {
+    resolveOptionsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('.resolve-option-yes, .resolve-option-no');
+      if (!btn) return;
+      
+      const optionId = btn.dataset.optionId;
+      const outcome = btn.dataset.outcome;
+      
+      if (outcome === 'yes') {
+        // This option wins - resolve the market with this option
+        resolveMarket(optionId);
+      } else {
+        // This option loses - just update UI to show it's been marked as no
+        // We don't actually resolve until a "yes" is clicked
+        btn.closest('.resolve-option-item').classList.add('marked-no');
+        btn.disabled = true;
+        const yesBtn = btn.closest('.resolve-option-item').querySelector('.resolve-option-yes');
+        if (yesBtn) yesBtn.disabled = true;
+      }
+    });
+  }
 }
 
 function showResolveModal(marketId) {
@@ -975,20 +1090,61 @@ function showResolveModal(marketId) {
   const titleEl = document.getElementById('resolveMarketTitle');
   const resolveYesBtn = document.getElementById('resolveYes');
   const resolveNoBtn = document.getElementById('resolveNo');
+  const resolveQuestion = document.getElementById('resolveQuestion');
+  const resolveBinaryButtons = document.getElementById('resolveBinaryButtons');
+  const resolveOptionsList = document.getElementById('resolveOptionsList');
   
   if (titleEl) titleEl.textContent = market.title;
   
-  // Update button labels for custom labels
-  const yesLabel = market.customLabels && market.yesLabel ? market.yesLabel : 'YES';
-  const noLabel = market.customLabels && market.noLabel ? market.noLabel : 'NO';
-  
-  if (resolveYesBtn) {
-    const labelSpan = resolveYesBtn.querySelector('span:last-child');
-    if (labelSpan) labelSpan.textContent = yesLabel;
-  }
-  if (resolveNoBtn) {
-    const labelSpan = resolveNoBtn.querySelector('span:last-child');
-    if (labelSpan) labelSpan.textContent = noLabel;
+  const isMulti = market.marketType === 'multi' && market.options && market.options.length > 0;
+
+  if (isMulti) {
+    if (resolveQuestion) resolveQuestion.textContent = 'For each option, choose Yes (winner) or No (loser):';
+    if (resolveBinaryButtons) resolveBinaryButtons.style.display = 'none';
+    if (resolveOptionsList) {
+      resolveOptionsList.style.display = 'grid';
+      resolveOptionsList.innerHTML = market.options.map(opt => `
+        <div class="resolve-option-item" data-option-id="${opt.id}">
+          <div class="resolve-option-info">
+            <span class="resolve-option-label">
+              <span class="resolve-option-dot" style="background: ${opt.color};"></span>
+              ${opt.label}
+            </span>
+            <span class="resolve-option-price">${opt.price}%</span>
+          </div>
+          <div class="resolve-option-actions">
+            <button class="btn btn-resolve btn-yes resolve-option-yes" data-option-id="${opt.id}" data-outcome="yes" type="button">
+              <span class="resolve-icon">✓</span>
+              <span>Yes</span>
+            </button>
+            <button class="btn btn-resolve btn-no resolve-option-no" data-option-id="${opt.id}" data-outcome="no" type="button">
+              <span class="resolve-icon">✗</span>
+              <span>No</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+  } else {
+    if (resolveQuestion) resolveQuestion.textContent = 'What was the outcome?';
+    if (resolveBinaryButtons) resolveBinaryButtons.style.display = 'flex';
+    if (resolveOptionsList) {
+      resolveOptionsList.style.display = 'none';
+      resolveOptionsList.innerHTML = '';
+    }
+
+    // Update button labels for custom labels
+    const yesLabel = market.customLabels && market.yesLabel ? market.yesLabel : 'YES';
+    const noLabel = market.customLabels && market.noLabel ? market.noLabel : 'NO';
+    
+    if (resolveYesBtn) {
+      const labelSpan = resolveYesBtn.querySelector('span:last-child');
+      if (labelSpan) labelSpan.textContent = yesLabel;
+    }
+    if (resolveNoBtn) {
+      const labelSpan = resolveNoBtn.querySelector('span:last-child');
+      if (labelSpan) labelSpan.textContent = noLabel;
+    }
   }
   
   if (modal) modal.classList.add('active');
@@ -1009,17 +1165,23 @@ async function resolveMarket(outcome) {
   
   const resolveYesBtn = document.getElementById('resolveYes');
   const resolveNoBtn = document.getElementById('resolveNo');
+  const resolveOptionBtns = document.querySelectorAll('#resolveOptionsList .resolve-option-yes, #resolveOptionsList .resolve-option-no');
   
   // Disable buttons while processing
   if (resolveYesBtn) resolveYesBtn.disabled = true;
   if (resolveNoBtn) resolveNoBtn.disabled = true;
+  resolveOptionBtns.forEach(btn => { btn.disabled = true; });
   
   try {
     // Resolve the market and pay out winners
     const result = await MulonData.resolveMarket(resolvingMarketId, outcome);
     
     if (result.success) {
-      showToast(`Market resolved as ${outcome.toUpperCase()}! ${result.payoutCount} positions paid out.`, 'success');
+      let outcomeLabel = outcome.toUpperCase();
+      if (market.marketType === 'multi' && market.options) {
+        outcomeLabel = market.options.find(o => o.id === outcome)?.label || outcome;
+      }
+      showToast(`Market resolved as ${outcomeLabel}! ${result.payoutCount} positions paid out.`, 'success');
       hideResolveModal();
       await renderMarketList();
     } else {
@@ -1031,6 +1193,7 @@ async function resolveMarket(outcome) {
   } finally {
     if (resolveYesBtn) resolveYesBtn.disabled = false;
     if (resolveNoBtn) resolveNoBtn.disabled = false;
+    resolveOptionBtns.forEach(btn => { btn.disabled = false; });
   }
 }
 
