@@ -23,12 +23,15 @@ const gameState = {
   dealerHand: [],
   splitHand: [],
   betAmount: 0,
+  mainBet: 0,
+  splitBet: 0,
   insuranceBet: 0,
   isPlaying: false,
   isPlayerTurn: false,
   isDealerTurn: false,
   hasSplit: false,
-  hasDoubled: false,
+  hasDoubledMain: false,
+  hasDoubledSplit: false,
   activeSplitHand: false, // false = main hand, true = split hand
   sessionProfit: 0,
   handsPlayed: 0,
@@ -564,9 +567,12 @@ async function startGame() {
   gameState.isPlayerTurn = false;
   gameState.isDealerTurn = false;
   gameState.hasSplit = false;
-  gameState.hasDoubled = false;
+  gameState.hasDoubledMain = false;
+  gameState.hasDoubledSplit = false;
   gameState.activeSplitHand = false;
   gameState.insuranceBet = 0;
+  gameState.mainBet = betAmount;
+  gameState.splitBet = 0;
   
   // Create new deck if needed
   if (gameState.deck.length < 52) {
@@ -652,6 +658,9 @@ function startPlayerTurn() {
 function updateActionButtons() {
   const playerScore = calculateScore(gameState.playerHand);
   const balance = window.CasinoAuth ? window.CasinoAuth.getBalance() : 0;
+  const activeHand = gameState.activeSplitHand ? gameState.splitHand : gameState.playerHand;
+  const activeHandBet = gameState.activeSplitHand ? gameState.splitBet : gameState.mainBet;
+  const activeHandDoubled = gameState.activeSplitHand ? gameState.hasDoubledSplit : gameState.hasDoubledMain;
   
   // Hit/Stand always available during player turn
   elements.hitBtn.disabled = !gameState.isPlayerTurn || playerScore >= 21;
@@ -667,9 +676,9 @@ function updateActionButtons() {
   
   // Double available only on first action with enough balance
   const canDouble = gameState.isPlayerTurn && 
-    gameState.playerHand.length === 2 && 
-    !gameState.hasDoubled &&
-    balance >= gameState.betAmount;
+    activeHand.length === 2 && 
+    !activeHandDoubled &&
+    balance >= activeHandBet;
   elements.doubleDownBtn.disabled = !canDouble;
 }
 
@@ -764,6 +773,7 @@ async function split() {
   updateBalanceDisplay();
   
   gameState.hasSplit = true;
+  gameState.splitBet = gameState.betAmount;
   
   // Move second card to split hand
   const secondCard = gameState.playerHand.pop();
@@ -785,7 +795,7 @@ async function split() {
 }
 
 async function doubleDown() {
-  if (!gameState.isPlayerTurn || gameState.hasDoubled) return;
+  if (!gameState.isPlayerTurn || (gameState.activeSplitHand ? gameState.hasDoubledSplit : gameState.hasDoubledMain)) return;
   
   // Connection check
   if (window.ConnectionMonitor && !window.ConnectionMonitor.canPlay()) {
@@ -794,26 +804,40 @@ async function doubleDown() {
   }
   
   // Deduct additional bet
-  await window.CasinoDB.updateBalance(-gameState.betAmount);
-  gameState.betAmount *= 2;
-  gameState.hasDoubled = true;
+  const activeHandBet = gameState.activeSplitHand ? gameState.splitBet : gameState.mainBet;
+  await window.CasinoDB.updateBalance(-activeHandBet);
+  if (gameState.activeSplitHand) {
+    gameState.splitBet = activeHandBet * 2;
+    gameState.hasDoubledSplit = true;
+  } else {
+    gameState.mainBet = activeHandBet * 2;
+    gameState.hasDoubledMain = true;
+  }
   updateBalanceDisplay();
   
   // Deal one more card and stand
-  await dealCardTo(gameState.playerHand, elements.playerCards, false, 0);
+  const targetHand = gameState.activeSplitHand ? gameState.splitHand : gameState.playerHand;
+  const targetContainer = gameState.activeSplitHand ? elements.splitCards : elements.playerCards;
+  await dealCardTo(targetHand, targetContainer, false, 0);
   updateScores();
   
-  const score = calculateScore(gameState.playerHand);
+  const score = calculateScore(targetHand);
   
   if (score > 21) {
-    elements.playerCards.classList.add('bust');
+    targetContainer.classList.add('bust');
     playSound('bust');
     setTimeout(() => {
-      elements.playerCards.classList.remove('bust');
+      targetContainer.classList.remove('bust');
     }, 500);
   }
   
   // Automatically stand after double
+  if (gameState.hasSplit && !gameState.activeSplitHand) {
+    gameState.activeSplitHand = true;
+    updateActionButtons();
+    return;
+  }
+  
   gameState.isPlayerTurn = false;
   disableActionButtons();
   await dealerTurn();
@@ -948,13 +972,13 @@ async function determineWinner() {
   const mainHandResult = compareHands(playerScore, dealerScore);
   
   if (mainHandResult === 'win') {
-    totalWinnings += gameState.betAmount * 2 / (gameState.hasSplit ? 2 : 1);
+    totalWinnings += gameState.mainBet * 2;
     resultType = 'win';
     // Mark winning cards
     markCards(elements.playerCards, 'winning');
     markCards(elements.dealerCards, 'losing');
   } else if (mainHandResult === 'push') {
-    totalWinnings += gameState.betAmount / (gameState.hasSplit ? 2 : 1);
+    totalWinnings += gameState.mainBet;
     resultType = 'push';
   } else {
     markCards(elements.playerCards, 'losing');
@@ -967,11 +991,11 @@ async function determineWinner() {
     const splitResult = compareHands(splitScore, dealerScore);
     
     if (splitResult === 'win') {
-      totalWinnings += gameState.betAmount;
+      totalWinnings += gameState.splitBet * 2;
       if (resultType !== 'win') resultType = 'win';
       markCards(elements.splitCards, 'winning');
     } else if (splitResult === 'push') {
-      totalWinnings += gameState.betAmount / 2;
+      totalWinnings += gameState.splitBet;
       if (resultType === 'lose') resultType = 'push';
     } else {
       markCards(elements.splitCards, 'losing');
@@ -1005,7 +1029,8 @@ async function endGame(result, winnings) {
   gameState.isDealerTurn = false;
   
   // Calculate profit
-  const profit = winnings - gameState.betAmount - (gameState.hasSplit ? gameState.betAmount / 2 : 0);
+  const totalBet = gameState.mainBet + (gameState.hasSplit ? gameState.splitBet : 0);
+  const profit = winnings - totalBet;
   
   // End game session in database
   if (window.CasinoDB && window.CasinoDB.endGameSession) {
