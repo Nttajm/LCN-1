@@ -131,7 +131,8 @@ export const TOOLS = {
       { id: 'separator', icon: '─', label: 'Divider', action: 'add-separator' },
       { id: 'dropdown', icon: '▼', label: 'Toggle', action: 'add-dropdown' },
       { id: 'group', icon: '▭', label: 'Group', action: 'add-group' },
-      { id: 'gallery', icon: '☷', label: 'Gallery', action: 'add-gallery' }
+      { id: 'gallery', icon: '☷', label: 'Gallery', action: 'add-gallery' },
+      { id: 'ftable', icon: '☰', label: 'Formatted Table', action: 'add-ftable' }
     ],
     'Media': [
       { id: 'link', icon: '🔗', label: 'Link', action: 'add-link' },
@@ -167,6 +168,13 @@ export const TOOLS = {
     'Icon': [
       { id: 'edit-icon', icon: '✏️', label: 'Change Icon', action: 'edit-icon' },
       { id: 'remove-icon', icon: '🗑️', label: 'Remove Icon', action: 'remove-icon' }
+    ]
+  },
+
+  // Formatted Table block tools
+  FTABLE: {
+    'Actions': [
+      { id: 'delete', icon: '🗑️', label: 'Delete', action: 'delete' }
     ]
   },
 

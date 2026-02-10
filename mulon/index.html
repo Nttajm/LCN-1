@@ -267,12 +267,12 @@
       <div class="balance-display">
         <div class="balance-item">
           <span class="balance-label">Balance</span>
-          <span class="balance-amount" id="userBalance">$500.00</span>
+          <span class="balance-amount" id="userBalance" data-format="balance" data-amount="500">$500.00</span>
         </div>
         <div class="balance-divider"></div>
         <div class="balance-item">
           <span class="balance-label">Portfolio</span>
-          <span class="balance-amount portfolio-value" id="portfolioValue">$0.00</span>
+          <span class="balance-amount portfolio-value" id="portfolioValue" data-format="balance" data-amount="0">$0.00</span>
         </div>
         <div class="balance-divider"></div>
         <div class="balance-item keys-item">
@@ -370,11 +370,11 @@
         <div class="portfolio-summary">
           <div class="portfolio-stat">
             <span class="stat-label">Total Value</span>
-            <span class="stat-value" id="totalValue">$500.00</span>
+            <span class="stat-value" id="totalValue" data-format="balance" data-amount="500">$500.00</span>
           </div>
           <div class="portfolio-stat">
             <span class="stat-label">Total P&L</span>
-            <span class="stat-value pnl-positive" id="totalPnl">+$0.00</span>
+            <span class="stat-value pnl-positive" id="totalPnl" data-format="currency" data-amount="0">+$0.00</span>
           </div>
         </div>
         
@@ -402,11 +402,11 @@
         <div class="cashouts-summary">
           <div class="portfolio-stat">
             <span class="stat-label">Total Won</span>
-            <span class="stat-value cashout-won" id="totalWon">$0.00</span>
+            <span class="stat-value cashout-won" id="totalWon" data-format="balance" data-amount="0">$0.00</span>
           </div>
           <div class="portfolio-stat">
             <span class="stat-label">Total Lost</span>
-            <span class="stat-value cashout-lost" id="totalLost">$0.00</span>
+            <span class="stat-value cashout-lost" id="totalLost" data-format="balance" data-amount="0">$0.00</span>
           </div>
         </div>
         
@@ -491,7 +491,7 @@
           <p class="daily-key-desc" id="dailyKeyDesc">Claim your free rewards!</p>
           <div class="reward-preview" id="rewardPreview">
             <span class="reward-item keys"><img src="/bp/EE/assets/ouths/key.png" alt="" class="mini-key-icon">+<span id="previewKeys">3</span></span>
-            <span class="reward-item balance">+$<span id="previewBalance">150</span></span>
+            <span class="reward-item balance">+$<span id="previewBalance" data-format="money" data-amount="150">150.00</span></span>
             <span class="reward-multiplier" id="rewardMultiplier">1.0x</span>
           </div>
         </div>
@@ -640,7 +640,7 @@
         </div>
         <div class="info-row highlight">
           <span class="info-label">Payout if Correct</span>
-          <span class="info-value payout-value" id="payoutValue">$0</span>
+          <span class="info-value payout-value" id="payoutValue" data-format="balance" data-amount="0">$0.00</span>
         </div>
       </div>
       
@@ -679,7 +679,7 @@
             <span class="beta-icon">🔄</span>
             <div>
               <strong>Full Reset at Launch</strong>
-              <p>When Mulon officially launches, all balances will be reset to <strong>$1,000</strong> with <strong>60 keys</strong>.</p>
+              <p>When Mulon officially launches, all balances will be reset to <strong data-format="balance" data-amount="1000">$1,000.00</strong> with <strong>60 keys</strong>.</p>
             </div>
           </div>
           
@@ -796,8 +796,9 @@
   </div>
 
   <script src="js/format-utils.js"></script>
-  <script type="module" src="js/data.js"></script>
-  <script type="module" src="js/index.js"></script>
+  <script src="js/money-formatter.js"></script>
+  <script type="module" src="js/data-a.js"></script>
+  <script type="module" src="js/index-a.js"></script>
   
   <!-- JoePay Notification System -->
   <script type="module">

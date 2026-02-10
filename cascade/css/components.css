@@ -1434,3 +1434,448 @@
   }
 }
 
+/* ==========================================================================
+ * FORMATTED TABLE BLOCK
+ * ========================================================================== */
+
+.ftable-block {
+  width: 100%;
+}
+
+.ftable-block__wrapper {
+  background-color: var(--bg-primary);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  width: 100%;
+}
+
+.ftable-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width) solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.ftable-block__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  min-height: 1.5em;
+  outline: none;
+  flex: 1;
+}
+
+.ftable-block__title:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-placeholder);
+}
+
+.ftable-block__menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity 0.15s, background-color 0.15s;
+  flex-shrink: 0;
+}
+
+.ftable-block:hover .ftable-block__menu-btn,
+.ftable-block__menu-btn:focus {
+  opacity: 1;
+}
+
+.ftable-block__menu-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* === Formatted Table Size Variants === */
+/* Resizing handled via inline width from size menu (same as groups/galleries) */
+
+.ftable-block__table-wrap {
+  overflow-x: auto;
+}
+
+/* === Table === */
+
+.ftable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  table-layout: fixed;
+}
+
+.ftable thead {
+  background-color: var(--bg-tertiary);
+}
+
+.ftable__th {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  border-bottom: var(--border-width) solid var(--border-color);
+  border-right: var(--border-width) solid var(--border-light);
+  white-space: nowrap;
+  min-width: 120px;
+  position: relative;
+  user-select: none;
+}
+
+.ftable__th:last-child {
+  border-right: none;
+}
+
+/* Column resize handle */
+.ftable__col-resizer {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+  background: transparent;
+  transition: background-color var(--transition-fast);
+}
+
+.ftable__col-resizer:hover,
+.ftable__col-resizer:active {
+  background-color: var(--notion-blue);
+}
+
+.ftable__type-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-xs);
+  padding: 2px 4px;
+  border-radius: var(--border-radius-xs);
+  color: var(--text-tertiary);
+  margin-right: var(--space-1);
+  transition: background-color var(--transition-fast);
+}
+
+.ftable__type-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.ftable__col-name {
+  outline: none;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+}
+
+.ftable__col-name:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-placeholder);
+}
+
+/* Add column */
+.ftable__add-col {
+  padding: var(--space-2);
+  text-align: center;
+  min-width: 40px;
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.ftable__add-col-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-lg);
+  color: var(--text-tertiary);
+  padding: 0 var(--space-2);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+  line-height: 1;
+}
+
+.ftable__add-col-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Table cells */
+.ftable__td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width) solid var(--border-light);
+  border-right: var(--border-width) solid var(--border-light);
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ftable__td:last-child {
+  border-right: none;
+}
+
+.ftable__td--empty {
+  min-width: 40px;
+  width: 40px;
+}
+
+/* Cell types */
+.ftable__text,
+.ftable__desc {
+  outline: none;
+  min-height: 1.4em;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.ftable__text:empty::before,
+.ftable__desc:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-placeholder);
+}
+
+.ftable__desc {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  max-height: 4em;
+  overflow-y: auto;
+}
+
+.ftable__date-input,
+.ftable__number-input,
+.ftable__url-input {
+  border: none;
+  background: transparent;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  padding: 0;
+  font-family: inherit;
+}
+
+.ftable__date-input:focus,
+.ftable__number-input:focus,
+.ftable__url-input:focus {
+  background-color: var(--bg-hover);
+  border-radius: var(--border-radius-xs);
+}
+
+.ftable__date-display {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--border-radius-xs);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.ftable__date-display:hover {
+  background-color: var(--bg-hover);
+}
+
+.ftable__checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--notion-blue);
+}
+
+.ftable__select {
+  border: none;
+  background: transparent;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.ftable__url-link {
+  color: var(--notion-blue);
+  text-decoration: underline;
+  font-size: var(--text-sm);
+  word-break: break-all;
+}
+
+.ftable__url-link:hover {
+  color: #0a5d85;
+}
+
+/* Tags */
+.ftable__tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.ftable__tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full);
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  white-space: nowrap;
+}
+
+.ftable__tag:hover {
+  opacity: 0.8;
+}
+
+.ftable__tag-input {
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  outline: none;
+  width: 28px;
+  min-width: 28px;
+  max-width: 100px;
+  padding: 2px 4px;
+  color: var(--text-tertiary);
+  font-family: inherit;
+}
+
+.ftable__tag-input:focus {
+  width: 80px;
+  background-color: var(--bg-hover);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Status */
+.ftable__status-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.ftable__status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--border-radius-full);
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  border: none;
+  cursor: pointer;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.ftable__status:hover {
+  opacity: 0.9;
+  filter: brightness(1.1);
+}
+
+/* Pickers (column type & status) */
+.ftable__type-picker,
+.ftable__status-picker {
+  background-color: var(--bg-primary);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  min-width: 160px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ftable__type-picker-item,
+.ftable__status-picker-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.ftable__type-picker-item:hover,
+.ftable__status-picker-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.ftable__type-picker-item.is-active {
+  background-color: var(--notion-blue-bg);
+  color: var(--notion-blue);
+}
+
+.ftable__type-picker-icon {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ftable__status-picker-item::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--border-radius-full);
+  background-color: var(--status-color, var(--text-tertiary));
+  flex-shrink: 0;
+}
+
+.ftable__status-picker-item--clear::before {
+  background-color: var(--text-tertiary);
+}
+
+/* Add-row button (in header bar) */
+.ftable-block__add-row-btn {
+  background: none;
+  border: var(--border-width) solid var(--border-color);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-tertiary);
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  margin-right: var(--space-1);
+  opacity: 0;
+}
+
+.ftable-block:hover .ftable-block__add-row-btn,
+.ftable-block__add-row-btn:focus {
+  opacity: 1;
+}
+
+.ftable-block__add-row-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+/* Row hover highlight */
+.ftable tbody tr:hover {
+  background-color: var(--bg-hover);
+}
+
+/* Dark theme readability for table inputs */
+@media (prefers-color-scheme: dark) {
+  .ftable__date-input,
+  .ftable__number-input,
+  .ftable__url-input,
+  .ftable__select {
+    color-scheme: dark;
+  }
+}

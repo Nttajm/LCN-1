@@ -1139,7 +1139,7 @@
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
       <button class="nav-item active">
-        <span class="nav-balance" id="navBalance">$500</span>
+        <span class="nav-balance" id="navBalance" data-format="balance" data-amount="500">$500.00</span>
       </button>
       <button class="nav-item">
         <svg viewBox="0 0 24 24" stroke-width="2">
@@ -1254,7 +1254,7 @@
       </div>
       <div class="balance-card">
         <div class="balance-label">JoePay Balance</div>
-        <div class="balance-value" id="profileBalance">$500.00</div>
+        <div class="balance-value" id="profileBalance" data-format="balance" data-amount="500">$500.00</div>
       </div>
       <a href="../apps.html" class="back-btn">
         <svg viewBox="0 0 24 24" stroke-width="2">
@@ -2045,5 +2045,6 @@
     // Initialize app
     init();
   </script>
+  <script src="../js/money-formatter.js"></script>
 </body>
 </html>

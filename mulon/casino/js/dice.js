@@ -395,7 +395,7 @@ function initEventListeners() {
   // Double button
   elements.doubleBtn.addEventListener('click', () => {
     const current = parseFloat(elements.betAmount.value) || 0;
-    const balance = window.CasinoAuth ? window.CasinoAuth.getBalance() : 500;
+    const balance = window.CasinoAuth ? window.CasinoAuth.getBalance() : 500.00;
     const newAmount = Math.min(current * 2, balance);
     elements.betAmount.value = newAmount.toFixed(2);
     gameState.betAmount = newAmount;
@@ -404,7 +404,7 @@ function initEventListeners() {
   
   // Balance button (use full balance)
   elements.balanceBtn.addEventListener('click', () => {
-    const balance = window.CasinoAuth ? window.CasinoAuth.getBalance() : 500;
+    const balance = window.CasinoAuth ? window.CasinoAuth.getBalance() : 500.00;
     elements.betAmount.value = balance.toFixed(2);
     gameState.betAmount = balance;
     updateNetGain();

@@ -20,6 +20,57 @@
 // SERIALIZATION (DOM → JSON)
 // ==========================================================================
 
+/* ── Date formatting helpers (mirrors blocks.js) ──────────────── */
+const S_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function s_ordinalSuffix(d) {
+  if (d > 3 && d < 21) return 'th';
+  switch (d % 10) { case 1: return 'st'; case 2: return 'nd'; case 3: return 'rd'; default: return 'th'; }
+}
+
+function s_formatDatePretty(iso) {
+  if (!iso) return '';
+  const parts = iso.split('-');
+  if (parts.length !== 3) return iso;
+  const m = parseInt(parts[1], 10);
+  const d = parseInt(parts[2], 10);
+  if (!m || !d || m < 1 || m > 12) return iso;
+  return `${S_MONTH_NAMES[m - 1]} ${d}${s_ordinalSuffix(d)}`;
+}
+
+function s_setupDateCell(td, isoValue) {
+  td.innerHTML = '';
+  const hidden = createElement('input', { attrs: { type: 'hidden', value: isoValue || '' } });
+  hidden.className = 'ftable__date-value';
+  td.appendChild(hidden);
+
+  const pretty = s_formatDatePretty(isoValue);
+  if (pretty) {
+    const display = createElement('span', { className: 'ftable__date-display', text: pretty });
+    td.appendChild(display);
+    display.addEventListener('click', (e) => { e.stopPropagation(); s_showDatePicker(td, hidden); });
+  } else {
+    s_showDatePicker(td, hidden);
+  }
+}
+
+function s_showDatePicker(td, hidden) {
+  const oldD = td.querySelector('.ftable__date-display'); if (oldD) oldD.remove();
+  const oldI = td.querySelector('.ftable__date-input');   if (oldI) oldI.remove();
+  const input = createElement('input', { className: 'ftable__date-input', attrs: { type: 'date', value: hidden.value || '' } });
+  td.appendChild(input);
+  input.focus();
+  const commit = () => {
+    if (input.value) hidden.value = input.value;
+    s_setupDateCell(td, hidden.value);
+  };
+  input.addEventListener('change', commit);
+  input.addEventListener('blur', () => {
+    setTimeout(() => { if (td.contains(input)) commit(); }, 150);
+  });
+}
+
+
 /**
  * Serialize the entire board to a structured format
  * @returns {Object} Board data object
@@ -137,7 +188,8 @@ function serializeBlock(block) {
     dropdown: serializeDropdownBlock,
     group: serializeGroupBlock,
     gallery: serializeGalleryBlock,
-    gcal: serializeGCalBlock
+    gcal: serializeGCalBlock,
+    ftable: serializeFTableBlock
   };
   
   const serializer = serializers[type];
@@ -480,6 +532,8 @@ function serializeGroupBlock(block, id) {
       size: sizeMatch ? sizeMatch[1] : 'full',
       color: colorMatch ? colorMatch[1] : null,
       contentId: block.dataset.contentId,
+      inlineWidth: block.style.width || null,
+      inlineFlex: block.style.flex || null,
       cssClasses: {
         block: Array.from(block.classList)
       }
@@ -535,6 +589,8 @@ function serializeGalleryBlock(block, id) {
     props: {
       size: sizeMatch ? sizeMatch[1] : 'full',
       tabs,
+      inlineWidth: block.style.width || null,
+      inlineFlex: block.style.flex || null,
       cssClasses: {
         block: Array.from(block.classList)
       }
@@ -583,6 +639,79 @@ function serializeGCalBlock(block, id) {
       }
     }
   };
+}
+
+function serializeFTableBlock(block, id) {
+  const titleEl = block.querySelector('.ftable-block__title');
+  const title = titleEl?.textContent || '';
+  const table = block.querySelector('table.ftable');
+
+  // Serialize columns from <thead>
+  const columns = [];
+  table?.querySelectorAll('thead th[data-col-id]').forEach(th => {
+    columns.push({
+      id: th.dataset.colId,
+      name: th.querySelector('.ftable__col-name')?.textContent || '',
+      type: th.dataset.colType || 'text',
+      width: th.style.width || null
+    });
+  });
+
+  // Serialize rows from <tbody>
+  const rows = [];
+  table?.querySelectorAll('tbody tr').forEach(tr => {
+    const rowId = tr.dataset.rowId || '';
+    const cells = {};
+
+    tr.querySelectorAll('td[data-col-id]').forEach(td => {
+      const colId = td.dataset.colId;
+      const colType = td.dataset.colType || 'text';
+      cells[colId] = extractCellValueForSerialize(td, colType);
+    });
+
+    rows.push({ id: rowId, cells });
+  });
+
+  return {
+    type: 'ftable',
+    id,
+    props: {
+      title,
+      columns,
+      rows,
+      inlineWidth: block.style.width || null,
+      inlineFlex: block.style.flex || null,
+      cssClasses: {
+        block: Array.from(block.classList)
+      }
+    }
+  };
+}
+
+function extractCellValueForSerialize(td, type) {
+  switch (type) {
+    case 'checkbox':
+      return td.querySelector('input')?.checked ? 'true' : 'false';
+    case 'date':
+      return td.querySelector('.ftable__date-value')?.value || td.querySelector('input')?.value || '';
+    case 'tags': {
+      const tags = [];
+      td.querySelectorAll('.ftable__tag').forEach(tag => tags.push(tag.textContent));
+      return tags.join(',');
+    }
+    case 'status':
+      return td.querySelector('.ftable__status')?.dataset.status || '';
+    case 'select':
+      return td.querySelector('select')?.value || '';
+    case 'url': {
+      const a = td.querySelector('a');
+      return a ? a.href : (td.querySelector('input')?.value || '');
+    }
+    case 'number':
+      return td.querySelector('input')?.value || '';
+    default:
+      return td.querySelector('[contenteditable]')?.textContent || td.textContent.trim();
+  }
 }
 
 // ==========================================================================
@@ -743,7 +872,8 @@ function deserializeBlock(blockData) {
     dropdown: deserializeDropdownBlock,
     group: deserializeGroupBlock,
     gallery: deserializeGalleryBlock,
-    gcal: deserializeGCalBlock
+    gcal: deserializeGCalBlock,
+    ftable: deserializeFTableBlock
   };
   
   const deserializer = deserializers[blockData.type];
@@ -1303,7 +1433,7 @@ function deserializeDropdownBlock(data) {
 
 function deserializeGroupBlock(data) {
   const { id, props = {}, children = [] } = data;
-  const { size, color, contentId, cssClasses } = props;
+  const { size, color, contentId, cssClasses, inlineWidth, inlineFlex } = props;
   const actualContentId = contentId || generateId('content');
   
   // Build block classes
@@ -1324,6 +1454,10 @@ function deserializeGroupBlock(data) {
     className: blockClasses,
     data: { blockId: id, blockType: 'group', contentId: actualContentId }
   });
+
+  // Restore inline size from resize menu
+  if (inlineWidth) { block.style.width = inlineWidth; }
+  if (inlineFlex) { block.style.flex = inlineFlex; }
   
   // Header with menu
   const header = createElement('div', { className: 'group-block__header' });
@@ -1355,7 +1489,7 @@ function deserializeGroupBlock(data) {
 
 function deserializeGalleryBlock(data) {
   const { id, props = {} } = data;
-  const { size, tabs = [], cssClasses } = props;
+  const { size, tabs = [], cssClasses, inlineWidth, inlineFlex } = props;
   
   // Build block classes
   let blockClasses = `item gallery-block ${size ? `size--${size}` : ''}`.trim();
@@ -1374,6 +1508,10 @@ function deserializeGalleryBlock(data) {
     className: blockClasses,
     data: { blockId: id, blockType: 'gallery' }
   });
+
+  // Restore inline size from resize menu
+  if (inlineWidth) { block.style.width = inlineWidth; }
+  if (inlineFlex) { block.style.flex = inlineFlex; }
   
   // Tab bar
   const tabBar = createElement('div', { className: 'gallery-block__tabs' });
@@ -1814,6 +1952,415 @@ function deserializeGCalBlock(data) {
   block.appendChild(wrapper);
   
   return block;
+}
+
+// ==========================================================================
+// FORMATTED TABLE DESERIALIZER
+// ==========================================================================
+
+function deserializeFTableBlock(data) {
+  const { id, props = {} } = data;
+  const { title = '', columns = [], rows = [], cssClasses, inlineWidth, inlineFlex } = props;
+
+  // We reuse the block creator from blocks.js for consistency.
+  // But since the creator appends to the DOM, we build manually here.
+
+  let blockClasses = 'item ftable-block';
+  if (cssClasses?.block) {
+    const saved = cssClasses.block.filter(cls => cls !== 'item' && cls !== 'ftable-block');
+    if (saved.length) blockClasses += ' ' + saved.join(' ');
+  }
+
+  const block = createElement('div', {
+    className: blockClasses,
+    data: { blockId: id, blockType: 'ftable' }
+  });
+
+  // Restore inline size from resize menu
+  if (inlineWidth) { block.style.width = inlineWidth; }
+  if (inlineFlex) { block.style.flex = inlineFlex; }
+
+  // Floaty
+  const floaty = createElement('div', {
+    className: 'floaty',
+    html: `
+      <button class="floaty__btn js-block-menu" data-block-id="${id}" data-block-type="ftable" type="button">
+        <img src="icons/edit.png" alt="Edit">
+      </button>
+    `
+  });
+
+  const wrapper = createElement('div', { className: 'ftable-block__wrapper' });
+
+  // Title
+  const headerBar = createElement('div', { className: 'ftable-block__header' });
+  const titleEl = createElement('div', {
+    className: 'ftable-block__title',
+    attrs: { contenteditable: 'true', 'data-placeholder': 'Table title...' },
+    data: { blockId: id }
+  });
+  titleEl.textContent = title;
+  headerBar.appendChild(titleEl);
+
+  // + Add row button
+  const addRowBtn = createElement('button', {
+    className: 'ftable-block__add-row-btn',
+    attrs: { type: 'button', title: 'Add row' },
+    html: '+'
+  });
+  headerBar.appendChild(addRowBtn);
+
+  // ⋯ menu button (resize)
+  const menuBtn = createElement('button', {
+    className: 'ftable-block__menu-btn js-size-menu',
+    attrs: { type: 'button', 'data-block-id': id },
+    html: '⋯'
+  });
+  headerBar.appendChild(menuBtn);
+
+  wrapper.appendChild(headerBar);
+
+  // Table
+  const tableWrap = createElement('div', { className: 'ftable-block__table-wrap' });
+  const table = createElement('table', { className: 'ftable' });
+
+  // Column type definitions (mirror from blocks.js)
+  const COL_TYPES = [
+    { id: 'text', label: 'Text', icon: 'Aa' },
+    { id: 'number', label: 'Number', icon: '#' },
+    { id: 'date', label: 'Date', icon: '📅' },
+    { id: 'tags', label: 'Tags', icon: '🏷️' },
+    { id: 'status', label: 'Status', icon: '⏳' },
+    { id: 'checkbox', label: 'Checkbox', icon: '☑️' },
+    { id: 'description', label: 'Description', icon: '📝' },
+    { id: 'select', label: 'Select', icon: '▾' },
+    { id: 'url', label: 'URL', icon: '🔗' }
+  ];
+
+  const STATUS_OPTIONS = [
+    { id: 'todo', label: 'To Do', color: '#0b6e99' },
+    { id: 'in-progress', label: 'In Progress', color: '#d9730d' },
+    { id: 'complete', label: 'Complete', color: '#0f7b6c' },
+    { id: 'dnf', label: 'DNF', color: '#e03e3e' }
+  ];
+
+  const TAG_COLORS = [
+    '#0b6e99', '#0f7b6c', '#d9730d', '#e03e3e', '#6940a5',
+    '#ad1a72', '#64473a', '#dfab01', '#5dade2', '#b084cc'
+  ];
+
+  function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+    return h;
+  }
+
+  // --- thead ---
+  const thead = createElement('thead');
+  const headRow = createElement('tr');
+  columns.forEach(col => {
+    const th = createElement('th', {
+      className: 'ftable__th',
+      data: { colId: col.id, colType: col.type }
+    });
+    const typeInfo = COL_TYPES.find(t => t.id === col.type) || COL_TYPES[0];
+    const typeBtn = createElement('button', {
+      className: 'ftable__type-btn',
+      attrs: { type: 'button', title: `Column type: ${typeInfo.label}` },
+      text: typeInfo.icon
+    });
+    typeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDeserializedColumnTypePicker(th, col, block, table, COL_TYPES, STATUS_OPTIONS, TAG_COLORS, hashStr);
+    });
+    const nameSpan = createElement('span', {
+      className: 'ftable__col-name',
+      attrs: { contenteditable: 'true', 'data-placeholder': 'Column' },
+      text: col.name || ''
+    });
+    th.appendChild(typeBtn);
+    th.appendChild(nameSpan);
+
+    // Restore saved column width
+    if (col.width) th.style.width = col.width;
+
+    // Resize handle
+    const resizer = createElement('div', { className: 'ftable__col-resizer' });
+    resizer.addEventListener('mousedown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const startX = e.clientX, startW = th.offsetWidth;
+      const onMove = (ev) => { th.style.width = Math.max(60, startW + (ev.clientX - startX)) + 'px'; };
+      const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.body.style.cursor = ''; };
+      document.body.style.cursor = 'col-resize';
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+    th.appendChild(resizer);
+
+    headRow.appendChild(th);
+  });
+
+  // Add col button
+  const addColTh = createElement('th', {
+    className: 'ftable__add-col',
+    html: '<button class="ftable__add-col-btn" type="button" title="Add column">+</button>'
+  });
+  addColTh.querySelector('button').addEventListener('click', () => {
+    deserializedAddColumn(block, table, COL_TYPES, STATUS_OPTIONS, TAG_COLORS, hashStr);
+  });
+  headRow.appendChild(addColTh);
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  // --- tbody ---
+  const tbody = createElement('tbody');
+  rows.forEach(rowData => {
+    const tr = createElement('tr', { data: { rowId: rowData.id || generateId('row') } });
+    columns.forEach(col => {
+      const td = createElement('td', {
+        className: 'ftable__td',
+        data: { colType: col.type, colId: col.id }
+      });
+      const value = rowData.cells?.[col.id] ?? '';
+      deserializedRenderCell(td, col.type, value, STATUS_OPTIONS, TAG_COLORS, hashStr);
+      tr.appendChild(td);
+    });
+    const emptyTd = createElement('td', { className: 'ftable__td ftable__td--empty' });
+    tr.appendChild(emptyTd);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  wrapper.appendChild(tableWrap);
+
+  // Wire up add-row button (already in header bar)
+  addRowBtn.addEventListener('click', () => {
+    const currentCols = [];
+    table.querySelectorAll('thead th[data-col-id]').forEach(th => {
+      currentCols.push({ id: th.dataset.colId, name: th.querySelector('.ftable__col-name')?.textContent || '', type: th.dataset.colType || 'text' });
+    });
+    const tr = createElement('tr', { data: { rowId: generateId('row') } });
+    currentCols.forEach(col => {
+      const td = createElement('td', { className: 'ftable__td', data: { colType: col.type, colId: col.id } });
+      deserializedRenderCell(td, col.type, '', STATUS_OPTIONS, TAG_COLORS, hashStr);
+      tr.appendChild(td);
+    });
+    const emptyTd = createElement('td', { className: 'ftable__td ftable__td--empty' });
+    tr.appendChild(emptyTd);
+    tbody.insertBefore(tr, tbody.firstChild);
+  });
+
+  block.appendChild(floaty);
+  block.appendChild(wrapper);
+
+  return block;
+}
+
+/* Helper: render cell during deserialization (mirrors blocks.js renderCell) */
+function deserializedRenderCell(td, type, value, STATUS_OPTIONS, TAG_COLORS, hashStr) {
+  switch (type) {
+    case 'checkbox': {
+      const cb = createElement('input', { className: 'ftable__checkbox', attrs: { type: 'checkbox' } });
+      cb.checked = value === 'true' || value === true;
+      td.appendChild(cb);
+      break;
+    }
+    case 'date': {
+      s_setupDateCell(td, value || '');
+      break;
+    }
+    case 'tags': {
+      const wrap = createElement('div', { className: 'ftable__tags-wrap' });
+      (value ? value.split(',').filter(Boolean) : []).forEach(t => {
+        const ci = Math.abs(hashStr(t.trim())) % TAG_COLORS.length;
+        const tag = createElement('span', { className: 'ftable__tag', text: t.trim() });
+        tag.style.backgroundColor = TAG_COLORS[ci];
+        tag.style.color = '#fff';
+        tag.addEventListener('click', () => tag.remove());
+        wrap.appendChild(tag);
+      });
+      const addInput = createElement('input', { className: 'ftable__tag-input', attrs: { type: 'text', placeholder: '+' } });
+      addInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && addInput.value.trim()) {
+          e.preventDefault();
+          const ci = Math.abs(hashStr(addInput.value.trim())) % TAG_COLORS.length;
+          const tag = createElement('span', { className: 'ftable__tag', text: addInput.value.trim() });
+          tag.style.backgroundColor = TAG_COLORS[ci];
+          tag.style.color = '#fff';
+          tag.addEventListener('click', () => tag.remove());
+          wrap.insertBefore(tag, addInput);
+          addInput.value = '';
+        }
+      });
+      wrap.appendChild(addInput);
+      td.appendChild(wrap);
+      break;
+    }
+    case 'status': {
+      const statusWrap = createElement('div', { className: 'ftable__status-wrap' });
+      const current = STATUS_OPTIONS.find(s => s.id === value) || null;
+      const badge = createElement('button', {
+        className: 'ftable__status',
+        attrs: { type: 'button' },
+        data: { status: current?.id || '' },
+        text: current?.label || 'Set status'
+      });
+      if (current) { badge.style.backgroundColor = current.color; badge.style.color = '#fff'; }
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.ftable__status-picker').forEach(p => p.remove());
+        const picker = createElement('div', { className: 'ftable__status-picker' });
+        STATUS_OPTIONS.forEach(s => {
+          const item = createElement('div', { className: 'ftable__status-picker-item', text: s.label });
+          item.style.setProperty('--status-color', s.color);
+          item.addEventListener('click', () => {
+            badge.textContent = s.label; badge.dataset.status = s.id;
+            badge.style.backgroundColor = s.color; badge.style.color = '#fff';
+            picker.remove();
+          });
+          picker.appendChild(item);
+        });
+        const clearItem = createElement('div', { className: 'ftable__status-picker-item ftable__status-picker-item--clear', text: 'Clear' });
+        clearItem.addEventListener('click', () => {
+          badge.textContent = 'Set status'; badge.dataset.status = '';
+          badge.style.backgroundColor = ''; badge.style.color = '';
+          picker.remove();
+        });
+        picker.appendChild(clearItem);
+        const rect = badge.getBoundingClientRect();
+        picker.style.position = 'fixed'; picker.style.left = `${rect.left}px`;
+        picker.style.top = `${rect.bottom + 4}px`; picker.style.zIndex = '1100';
+        document.body.appendChild(picker);
+        const close = (ev) => {
+          if (!picker.contains(ev.target) && ev.target !== badge) { picker.remove(); document.removeEventListener('click', close, true); }
+        };
+        setTimeout(() => document.addEventListener('click', close, true), 0);
+      });
+      statusWrap.appendChild(badge);
+      td.appendChild(statusWrap);
+      break;
+    }
+    case 'select': {
+      const sel = createElement('select', { className: 'ftable__select' });
+      ['', 'Option 1', 'Option 2', 'Option 3'].forEach(o => {
+        const opt = createElement('option', { text: o, attrs: { value: o } });
+        if (o === value) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      td.appendChild(sel);
+      break;
+    }
+    case 'url': {
+      if (value && (value.startsWith('http://') || value.startsWith('https://'))) {
+        td.appendChild(createElement('a', { className: 'ftable__url-link', attrs: { href: value, target: '_blank', rel: 'noopener' }, text: value }));
+      } else {
+        const input = createElement('input', { className: 'ftable__url-input', attrs: { type: 'url', placeholder: 'https://...', value: value || '' } });
+        input.addEventListener('change', () => {
+          const v = input.value.trim();
+          if (v && (v.startsWith('http://') || v.startsWith('https://'))) {
+            td.innerHTML = ''; td.dataset.colType = 'url';
+            td.appendChild(createElement('a', { className: 'ftable__url-link', attrs: { href: v, target: '_blank', rel: 'noopener' }, text: v }));
+          }
+        });
+        td.appendChild(input);
+      }
+      break;
+    }
+    case 'number': {
+      td.appendChild(createElement('input', { className: 'ftable__number-input', attrs: { type: 'number', value: value || '', placeholder: '0' } }));
+      break;
+    }
+    case 'description': {
+      const div = createElement('div', { className: 'ftable__desc', attrs: { contenteditable: 'true', 'data-placeholder': 'Description...' } });
+      div.textContent = value || '';
+      td.appendChild(div);
+      break;
+    }
+    default: {
+      const div = createElement('div', { className: 'ftable__text', attrs: { contenteditable: 'true', 'data-placeholder': 'Type...' } });
+      div.textContent = value || '';
+      td.appendChild(div);
+      break;
+    }
+  }
+}
+
+/* Helper: column type picker for deserialized tables */
+function openDeserializedColumnTypePicker(th, col, block, table, COL_TYPES, STATUS_OPTIONS, TAG_COLORS, hashStr) {
+  document.querySelectorAll('.ftable__type-picker').forEach(p => p.remove());
+  const picker = createElement('div', { className: 'ftable__type-picker' });
+  COL_TYPES.forEach(t => {
+    const item = createElement('div', {
+      className: `ftable__type-picker-item ${t.id === col.type ? 'is-active' : ''}`,
+      html: `<span class="ftable__type-picker-icon">${t.icon}</span><span>${t.label}</span>`
+    });
+    item.addEventListener('click', () => {
+      th.dataset.colType = t.id; col.type = t.id;
+      const btn = th.querySelector('.ftable__type-btn');
+      if (btn) { btn.textContent = t.icon; btn.title = `Column type: ${t.label}`; }
+      const colIndex = Array.from(th.parentElement.children).indexOf(th);
+      table.querySelectorAll('tbody tr').forEach(tr => {
+        const td = tr.children[colIndex];
+        if (td && td.dataset.colId) {
+          const oldVal = extractDeserializedCellValue(td);
+          td.innerHTML = ''; td.className = 'ftable__td'; td.dataset.colType = t.id;
+          deserializedRenderCell(td, t.id, oldVal, STATUS_OPTIONS, TAG_COLORS, hashStr);
+        }
+      });
+      picker.remove();
+    });
+    picker.appendChild(item);
+  });
+  const rect = th.getBoundingClientRect();
+  picker.style.position = 'fixed'; picker.style.left = `${rect.left}px`;
+  picker.style.top = `${rect.bottom + 4}px`; picker.style.zIndex = '1100';
+  document.body.appendChild(picker);
+  const close = (e) => { if (!picker.contains(e.target)) { picker.remove(); document.removeEventListener('click', close, true); } };
+  setTimeout(() => document.addEventListener('click', close, true), 0);
+}
+
+function extractDeserializedCellValue(td) {
+  const type = td.dataset.colType || 'text';
+  switch (type) {
+    case 'checkbox': return td.querySelector('input')?.checked ? 'true' : 'false';
+    case 'date': return td.querySelector('.ftable__date-value')?.value || td.querySelector('input')?.value || '';
+    case 'tags': { const t = []; td.querySelectorAll('.ftable__tag').forEach(tag => t.push(tag.textContent)); return t.join(','); }
+    case 'status': return td.querySelector('.ftable__status')?.dataset.status || '';
+    case 'select': return td.querySelector('select')?.value || '';
+    case 'url': { const a = td.querySelector('a'); return a ? a.href : (td.querySelector('input')?.value || ''); }
+    default: return td.querySelector('[contenteditable]')?.textContent || td.textContent.trim();
+  }
+}
+
+function deserializedAddColumn(block, table, COL_TYPES, STATUS_OPTIONS, TAG_COLORS, hashStr) {
+  const newCol = { id: generateId('col'), name: 'New Column', type: 'text' };
+  const thead = table.querySelector('thead tr');
+  const addColTh = thead.querySelector('.ftable__add-col');
+  const th = createElement('th', { className: 'ftable__th', data: { colId: newCol.id, colType: newCol.type } });
+  const typeInfo = COL_TYPES[0];
+  const typeBtn = createElement('button', { className: 'ftable__type-btn', attrs: { type: 'button', title: `Column type: ${typeInfo.label}` }, text: typeInfo.icon });
+  typeBtn.addEventListener('click', (e) => { e.stopPropagation(); openDeserializedColumnTypePicker(th, newCol, block, table, COL_TYPES, STATUS_OPTIONS, TAG_COLORS, hashStr); });
+  const nameSpan = createElement('span', { className: 'ftable__col-name', attrs: { contenteditable: 'true', 'data-placeholder': 'Column' }, text: newCol.name });
+  th.appendChild(typeBtn); th.appendChild(nameSpan);
+  // Resize handle
+  const resizer = createElement('div', { className: 'ftable__col-resizer' });
+  resizer.addEventListener('mousedown', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const startX = e.clientX, startW = th.offsetWidth;
+    const onMove = (ev) => { th.style.width = Math.max(60, startW + (ev.clientX - startX)) + 'px'; };
+    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.body.style.cursor = ''; };
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+  th.appendChild(resizer);
+  thead.insertBefore(th, addColTh);
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    const emptyTd = tr.querySelector('.ftable__td--empty');
+    const td = createElement('td', { className: 'ftable__td', data: { colType: 'text', colId: newCol.id } });
+    deserializedRenderCell(td, 'text', '', STATUS_OPTIONS, TAG_COLORS, hashStr);
+    tr.insertBefore(td, emptyTd);
+  });
 }
 
 // ==========================================================================

@@ -18,6 +18,7 @@ import {
   createGalleryBlock,
   createQuoteBlock,
   createGCalBlock,
+  createFormattedTableBlock,
   deleteBlock 
 } from './blocks.js';
 import { loadBoard, saveNotes, debouncedSave, applyPendingRemoteUpdates } from './backend.js';
@@ -745,6 +746,9 @@ function handleBlockMenuClick(e) {
     case 'gcal':
       tools = TOOLS.GCAL;
       break;
+    case 'ftable':
+      tools = TOOLS.FTABLE;
+      break;
     default:
       tools = TOOLS.TEXT;
   }
@@ -779,10 +783,11 @@ function createSizeMenu(blockId) {
   });
   
   const sizes = [
-    { id: 'quarter', label: '1/4', width: '25%' },
-    { id: 'half', label: '1/2', width: '50%' },
+    { id: 'full', label: 'Full', width: '100%' },
     { id: 'three-quarter', label: '3/4', width: '75%' },
-    { id: 'three-fifth', label: '3/5', width: '60%' }
+    { id: 'three-fifth', label: '3/5', width: '60%' },
+    { id: 'half', label: '1/2', width: '50%' },
+    { id: 'quarter', label: '1/4', width: '25%' }
   ];
   
   sizes.forEach(size => {
@@ -795,8 +800,13 @@ function createSizeMenu(blockId) {
     item.addEventListener('click', () => {
       const block = document.querySelector(`[data-block-id="${blockId}"]`);
       if (block) {
-        block.style.width = size.width;
-        block.style.flex = 'none';
+        if (size.id === 'full') {
+          block.style.width = '';
+          block.style.flex = '';
+        } else {
+          block.style.width = size.width;
+          block.style.flex = 'none';
+        }
       }
       closeSizeMenus();
     });
@@ -1071,6 +1081,9 @@ function handleAddAction(action) {
       break;
     case 'add-gcal':
       createGCalBlock();
+      break;
+    case 'add-ftable':
+      createFormattedTableBlock();
       break;
     case 'add-image':
     case 'add-video':
@@ -1694,6 +1707,8 @@ function handleOutsideClick(e) {
 
 function closeAllMenus() {
   $$('.tools-menu').forEach(menu => menu.remove());
+  $$('.size-menu').forEach(menu => menu.remove());
+  $$('.ftable__type-picker').forEach(p => p.remove());
   closeIconPicker();
   closeCoverPicker();
 }

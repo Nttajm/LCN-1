@@ -278,9 +278,9 @@
             
             <div class="bulk-quick-actions">
               <span class="quick-label">Quick Set:</span>
-              <button class="btn btn-sm btn-outline" data-set-amount="500">$500</button>
-              <button class="btn btn-sm btn-outline" data-set-amount="1000">$1000</button>
-              <button class="btn btn-sm btn-outline" data-set-amount="0">$0</button>
+              <button class="btn btn-sm btn-outline" data-set-amount="500" data-format="balance" data-amount="500">$500.00</button>
+              <button class="btn btn-sm btn-outline" data-set-amount="1000" data-format="balance" data-amount="1000">$1,000.00</button>
+              <button class="btn btn-sm btn-outline" data-set-amount="0" data-format="balance" data-amount="0">$0.00</button>
             </div>
           </div>
           
@@ -364,7 +364,7 @@
             </span>
             <span class="stat-item">
               <span class="stat-label">Total Balance:</span>
-              <span class="stat-value" id="totalBalanceSum">$0.00</span>
+              <span class="stat-value" id="totalBalanceSum" data-format="balance" data-amount="0">$0.00</span>
             </span>
             <span class="stat-item">
               <span class="stat-label">Total Keys:</span>
@@ -520,6 +520,7 @@
     <span class="toast-message" id="toastMessage">Market created successfully!</span>
   </div>
 
+  <script src="js/money-formatter.js"></script>
   <script type="module" src="js/data-a.js"></script>
   <script type="module" src="js/admin-a.js"></script>
 </body>

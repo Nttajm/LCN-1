@@ -948,9 +948,42 @@ function injectCategoryStyles(categories) {
 let currentSlide = 0;
 let featuredMarketsData = [];
 
+// Sort markets: active/recent first, done (resolved/expired) at the bottom
+function sortMarketsForDisplay(markets) {
+  return markets.sort((a, b) => {
+    const now = new Date();
+    const aExpired = now > new Date(`${a.endDate}T${a.endTime || '23:59'}`);
+    const bExpired = now > new Date(`${b.endDate}T${b.endTime || '23:59'}`);
+    const aResolved = a.resolved === true;
+    const bResolved = b.resolved === true;
+
+    // Resolved markets go to the very bottom
+    if (aResolved || bResolved) {
+      if (aResolved && bResolved) return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      if (aResolved) return 1;
+      if (bResolved) return -1;
+      return 0;
+    }
+
+    // Expired (pending result) markets go below active ones
+    if (aExpired || bExpired) {
+      if (aExpired && bExpired) return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      if (aExpired) return 1;
+      if (bExpired) return -1;
+      return 0;
+    }
+
+    // Active markets: most recent first
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  });
+}
+
 function renderMarkets() {
   const currentCat = getCurrentCategory();
   let markets = MulonData.getActiveMarkets();
+  
+  // Sort: active/recent first, done bets at the bottom
+  markets = sortMarketsForDisplay(markets);
   
   // Filter by category if specified
   const isFiltered = currentCat && currentCat !== 'all';

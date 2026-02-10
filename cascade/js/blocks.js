@@ -1001,6 +1001,648 @@ export function createDropdownBlock(options = {}) {
 }
 
 // ==========================================================================
+// FORMATTED TABLE BLOCK
+// ==========================================================================
+
+/**
+ * Column type definitions for the formatted table.
+ * Each type has a render and editor function.
+ */
+const FTABLE_COLUMN_TYPES = [
+  { id: 'text',        label: 'Text',        icon: 'Aa' },
+  { id: 'number',      label: 'Number',      icon: '#'  },
+  { id: 'date',        label: 'Date',        icon: '📅' },
+  { id: 'tags',        label: 'Tags',        icon: '🏷️' },
+  { id: 'status',      label: 'Status',      icon: '⏳' },
+  { id: 'checkbox',    label: 'Checkbox',    icon: '☑️' },
+  { id: 'description', label: 'Description', icon: '📝' },
+  { id: 'select',      label: 'Select',      icon: '▾'  },
+  { id: 'url',         label: 'URL',         icon: '🔗' }
+];
+
+const FTABLE_STATUS_OPTIONS = [
+  { id: 'todo',        label: 'To Do',       color: '#0b6e99' },
+  { id: 'in-progress', label: 'In Progress', color: '#d9730d' },
+  { id: 'complete',    label: 'Complete',     color: '#0f7b6c' },
+  { id: 'dnf',         label: 'DNF',         color: '#e03e3e' }
+];
+
+const FTABLE_TAG_COLORS = [
+  '#0b6e99', '#0f7b6c', '#d9730d', '#e03e3e', '#6940a5',
+  '#ad1a72', '#64473a', '#dfab01', '#5dade2', '#b084cc'
+];
+
+/**
+ * Create a formatted table block
+ */
+export function createFormattedTableBlock(options = {}) {
+  const {
+    title = '',
+    columns = [
+      { id: generateId('col'), name: 'Task', type: 'text' },
+      { id: generateId('col'), name: 'Status', type: 'status' },
+      { id: generateId('col'), name: 'Due', type: 'date' }
+    ],
+    rows = []
+  } = options;
+
+  const blockId = generateId('block');
+
+  // Block container
+  const block = createElement('div', {
+    className: 'item ftable-block',
+    data: { blockId, blockType: 'ftable' }
+  });
+
+  const floaty = createBlockFloaty(blockId, 'ftable');
+
+  // Wrapper
+  const wrapper = createElement('div', { className: 'ftable-block__wrapper' });
+
+  // Title row
+  const headerBar = createElement('div', { className: 'ftable-block__header' });
+  const titleEl = createElement('div', {
+    className: 'ftable-block__title',
+    attrs: { contenteditable: 'true', 'data-placeholder': 'Table title...' },
+    data: { blockId }
+  });
+  titleEl.textContent = title;
+  headerBar.appendChild(titleEl);
+
+  // + Add row button
+  const addRowBtn = createElement('button', {
+    className: 'ftable-block__add-row-btn',
+    attrs: { type: 'button', title: 'Add row' },
+    html: '+'
+  });
+  headerBar.appendChild(addRowBtn);
+
+  // ⋯ menu button (resize)
+  const menuBtn = createElement('button', {
+    className: 'ftable-block__menu-btn js-size-menu',
+    attrs: { type: 'button', 'data-block-id': blockId },
+    html: '⋯'
+  });
+  headerBar.appendChild(menuBtn);
+
+  wrapper.appendChild(headerBar);
+
+  // Scrollable table container
+  const tableWrap = createElement('div', { className: 'ftable-block__table-wrap' });
+  const table = createElement('table', { className: 'ftable' });
+
+  // --- Build <thead> ---
+  const thead = createElement('thead');
+  const headRow = createElement('tr');
+
+  columns.forEach(col => {
+    const th = buildColumnHeader(col, block, table);
+    headRow.appendChild(th);
+  });
+
+  // "Add column" header cell
+  const addColTh = createElement('th', {
+    className: 'ftable__add-col',
+    html: '<button class="ftable__add-col-btn" type="button" title="Add column">+</button>'
+  });
+  addColTh.querySelector('button').addEventListener('click', () => {
+    addTableColumn(block, table);
+  });
+  headRow.appendChild(addColTh);
+
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  // --- Build <tbody> ---
+  const tbody = createElement('tbody');
+
+  if (rows.length > 0) {
+    rows.forEach(rowData => {
+      const tr = buildTableRow(columns, rowData, block);
+      tbody.appendChild(tr);
+    });
+  } else {
+    // One empty starter row
+    const tr = buildTableRow(columns, {}, block);
+    tbody.appendChild(tr);
+  }
+
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  wrapper.appendChild(tableWrap);
+
+  // Wire up add-row button (already in header bar)
+  addRowBtn.addEventListener('click', () => {
+    const currentCols = getColumnsFromTable(table);
+    const tr = buildTableRow(currentCols, {}, block);
+    tbody.insertBefore(tr, tbody.firstChild);
+  });
+
+  block.appendChild(floaty);
+  block.appendChild(wrapper);
+
+  // Append to board (standard pattern)
+  if (state.targetRow) {
+    const targetRow = document.getElementById(state.targetRow);
+    if (targetRow) {
+      targetRow.appendChild(block);
+      state.targetRow = null;
+    } else {
+      const row = state.printMode === 'board' ? createRow(blockId) : null;
+      if (row) { row.appendChild(block); appendToBoard(row); }
+      else { appendToBoard(block); }
+    }
+  } else {
+    const row = state.printMode === 'board' ? createRow(blockId) : null;
+    if (row) { row.appendChild(block); appendToBoard(row); }
+    else { appendToBoard(block); }
+  }
+
+  return block;
+}
+
+/* --- Helpers for the formatted table --- */
+
+function getColumnsFromTable(table) {
+  const cols = [];
+  table.querySelectorAll('thead th[data-col-id]').forEach(th => {
+    cols.push({
+      id: th.dataset.colId,
+      name: th.querySelector('.ftable__col-name')?.textContent || '',
+      type: th.dataset.colType || 'text'
+    });
+  });
+  return cols;
+}
+
+function buildColumnHeader(col, block, table) {
+  const th = createElement('th', {
+    className: 'ftable__th',
+    data: { colId: col.id, colType: col.type }
+  });
+  if (col.width) th.style.width = col.width;
+
+  const typeInfo = FTABLE_COLUMN_TYPES.find(t => t.id === col.type) || FTABLE_COLUMN_TYPES[0];
+
+  // Type icon (clickable to change type)
+  const typeBtn = createElement('button', {
+    className: 'ftable__type-btn',
+    attrs: { type: 'button', title: `Column type: ${typeInfo.label}` },
+    text: typeInfo.icon
+  });
+  typeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openColumnTypePicker(th, col, block, table);
+  });
+
+  // Column name
+  const nameSpan = createElement('span', {
+    className: 'ftable__col-name',
+    attrs: { contenteditable: 'true', 'data-placeholder': 'Column' },
+    text: col.name || ''
+  });
+
+  th.appendChild(typeBtn);
+  th.appendChild(nameSpan);
+
+  // Resize handle
+  const resizer = createElement('div', { className: 'ftable__col-resizer' });
+  resizer.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startW = th.offsetWidth;
+    const onMove = (ev) => {
+      const newW = Math.max(60, startW + (ev.clientX - startX));
+      th.style.width = newW + 'px';
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+    };
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+  th.appendChild(resizer);
+
+  return th;
+}
+
+function openColumnTypePicker(th, col, block, table) {
+  // Remove existing picker
+  document.querySelectorAll('.ftable__type-picker').forEach(p => p.remove());
+
+  const picker = createElement('div', { className: 'ftable__type-picker' });
+
+  FTABLE_COLUMN_TYPES.forEach(t => {
+    const item = createElement('div', {
+      className: `ftable__type-picker-item ${t.id === col.type ? 'is-active' : ''}`,
+      html: `<span class="ftable__type-picker-icon">${t.icon}</span><span>${t.label}</span>`
+    });
+    item.addEventListener('click', () => {
+      // Update column type
+      th.dataset.colType = t.id;
+      col.type = t.id;
+      const btn = th.querySelector('.ftable__type-btn');
+      if (btn) { btn.textContent = t.icon; btn.title = `Column type: ${t.label}`; }
+
+      // Re-render all cells in this column
+      const colIndex = Array.from(th.parentElement.children).indexOf(th);
+      table.querySelectorAll('tbody tr').forEach(tr => {
+        const td = tr.children[colIndex];
+        if (td) {
+          const oldValue = extractCellValue(td);
+          td.innerHTML = '';
+          td.className = 'ftable__td';
+          td.dataset.colType = t.id;
+          renderCell(td, t.id, oldValue);
+        }
+      });
+
+      picker.remove();
+    });
+    picker.appendChild(item);
+  });
+
+  // Position
+  const rect = th.getBoundingClientRect();
+  picker.style.position = 'fixed';
+  picker.style.left = `${rect.left}px`;
+  picker.style.top = `${rect.bottom + 4}px`;
+  picker.style.zIndex = '1100';
+  document.body.appendChild(picker);
+
+  // Close on outside click
+  const close = (e) => {
+    if (!picker.contains(e.target)) {
+      picker.remove();
+      document.removeEventListener('click', close, true);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', close, true), 0);
+}
+
+function extractCellValue(td) {
+  const type = td.dataset.colType || 'text';
+  switch (type) {
+    case 'checkbox':
+      return td.querySelector('input')?.checked ? 'true' : 'false';
+    case 'date':
+      return td.querySelector('.ftable__date-value')?.value || td.querySelector('input')?.value || '';
+    case 'tags': {
+      const tags = [];
+      td.querySelectorAll('.ftable__tag').forEach(tag => tags.push(tag.textContent));
+      return tags.join(',');
+    }
+    case 'status':
+      return td.querySelector('.ftable__status')?.dataset.status || '';
+    case 'select':
+      return td.querySelector('select')?.value || '';
+    case 'url': {
+      const a = td.querySelector('a');
+      return a ? a.href : (td.querySelector('input')?.value || td.textContent.trim());
+    }
+    default:
+      return td.querySelector('[contenteditable]')?.textContent || td.textContent.trim();
+  }
+}
+
+function buildTableRow(columns, rowData = {}, block) {
+  const rowId = rowData.id || generateId('row');
+  const tr = createElement('tr', { data: { rowId } });
+
+  columns.forEach(col => {
+    const td = createElement('td', {
+      className: 'ftable__td',
+      data: { colType: col.type, colId: col.id }
+    });
+    const value = rowData.cells?.[col.id] ?? '';
+    renderCell(td, col.type, value);
+    tr.appendChild(td);
+  });
+
+  // Empty cell to match the add-col column
+  const emptyTd = createElement('td', { className: 'ftable__td ftable__td--empty' });
+  tr.appendChild(emptyTd);
+
+  return tr;
+}
+
+/* ── Date formatting helpers ───────────────────────────── */
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function ordinalSuffix(d) {
+  if (d > 3 && d < 21) return 'th';
+  switch (d % 10) { case 1: return 'st'; case 2: return 'nd'; case 3: return 'rd'; default: return 'th'; }
+}
+
+/** Convert ISO date (YYYY-MM-DD) → "August 19th". Returns '' for empty/invalid. */
+function formatDatePretty(iso) {
+  if (!iso) return '';
+  const parts = iso.split('-');
+  if (parts.length !== 3) return iso;
+  const m = parseInt(parts[1], 10);
+  const d = parseInt(parts[2], 10);
+  if (!m || !d || m < 1 || m > 12) return iso;
+  return `${MONTH_NAMES[m - 1]} ${d}${ordinalSuffix(d)}`;
+}
+
+/**
+ * Set up a date cell: if a value exists show formatted text, otherwise show
+ * the native date picker. Clicking the formatted text re-opens the picker.
+ */
+function setupDateCell(td, isoValue) {
+  td.innerHTML = '';
+
+  // Hidden input stores the ISO value for serialization
+  const hidden = createElement('input', { attrs: { type: 'hidden', value: isoValue || '' } });
+  hidden.className = 'ftable__date-value';
+  td.appendChild(hidden);
+
+  const pretty = formatDatePretty(isoValue);
+
+  if (pretty) {
+    // Show the formatted label
+    const display = createElement('span', { className: 'ftable__date-display', text: pretty });
+    td.appendChild(display);
+    display.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showDatePicker(td, hidden);
+    });
+  } else {
+    // No value yet — show the native picker right away
+    showDatePicker(td, hidden);
+  }
+}
+
+/** Replace the display span with a native date picker; on change swap back to label. */
+function showDatePicker(td, hidden) {
+  const oldDisplay = td.querySelector('.ftable__date-display');
+  if (oldDisplay) oldDisplay.remove();
+  const oldInput = td.querySelector('.ftable__date-input');
+  if (oldInput) oldInput.remove();
+
+  const input = createElement('input', {
+    className: 'ftable__date-input',
+    attrs: { type: 'date', value: hidden.value || '' }
+  });
+  td.appendChild(input);
+  input.focus();
+
+  const commit = () => {
+    if (input.value) hidden.value = input.value;
+    setupDateCell(td, hidden.value);
+  };
+
+  input.addEventListener('change', commit);
+  input.addEventListener('blur', () => {
+    // Small delay so 'change' fires first when picking from calendar
+    setTimeout(() => { if (td.contains(input)) commit(); }, 150);
+  });
+}
+
+function renderCell(td, type, value) {
+  switch (type) {
+
+    case 'checkbox': {
+      const cb = createElement('input', {
+        className: 'ftable__checkbox',
+        attrs: { type: 'checkbox' }
+      });
+      cb.checked = value === 'true' || value === true;
+      td.appendChild(cb);
+      break;
+    }
+
+    case 'date': {
+      setupDateCell(td, value || '');
+      break;
+    }
+
+    case 'tags': {
+      const tagWrap = createElement('div', { className: 'ftable__tags-wrap' });
+      const existing = value ? value.split(',').filter(Boolean) : [];
+      existing.forEach(t => {
+        const tag = createTagChip(t.trim(), tagWrap);
+        tagWrap.appendChild(tag);
+      });
+      // Add tag input
+      const addInput = createElement('input', {
+        className: 'ftable__tag-input',
+        attrs: { type: 'text', placeholder: '+' }
+      });
+      addInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && addInput.value.trim()) {
+          e.preventDefault();
+          const tag = createTagChip(addInput.value.trim(), tagWrap);
+          tagWrap.insertBefore(tag, addInput);
+          addInput.value = '';
+        }
+      });
+      tagWrap.appendChild(addInput);
+      td.appendChild(tagWrap);
+      break;
+    }
+
+    case 'status': {
+      const statusEl = createElement('div', { className: 'ftable__status-wrap' });
+      const current = FTABLE_STATUS_OPTIONS.find(s => s.id === value) || null;
+      const badge = createElement('button', {
+        className: 'ftable__status',
+        attrs: { type: 'button' },
+        data: { status: current?.id || '' },
+        text: current?.label || 'Set status'
+      });
+      if (current) {
+        badge.style.backgroundColor = current.color;
+        badge.style.color = '#fff';
+      }
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openStatusPicker(badge, statusEl);
+      });
+      statusEl.appendChild(badge);
+      td.appendChild(statusEl);
+      break;
+    }
+
+    case 'select': {
+      const sel = createElement('select', { className: 'ftable__select' });
+      const opts = ['', 'Option 1', 'Option 2', 'Option 3'];
+      opts.forEach(o => {
+        const opt = createElement('option', { text: o, attrs: { value: o } });
+        if (o === value) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      td.appendChild(sel);
+      break;
+    }
+
+    case 'url': {
+      if (value && (value.startsWith('http://') || value.startsWith('https://'))) {
+        const a = createElement('a', {
+          className: 'ftable__url-link',
+          attrs: { href: value, target: '_blank', rel: 'noopener' },
+          text: value
+        });
+        td.appendChild(a);
+      } else {
+        const input = createElement('input', {
+          className: 'ftable__url-input',
+          attrs: { type: 'url', placeholder: 'https://...', value: value || '' }
+        });
+        input.addEventListener('change', () => {
+          const v = input.value.trim();
+          if (v && (v.startsWith('http://') || v.startsWith('https://'))) {
+            td.innerHTML = '';
+            td.dataset.colType = 'url';
+            const a = createElement('a', {
+              className: 'ftable__url-link',
+              attrs: { href: v, target: '_blank', rel: 'noopener' },
+              text: v
+            });
+            td.appendChild(a);
+          }
+        });
+        td.appendChild(input);
+      }
+      break;
+    }
+
+    case 'number': {
+      const input = createElement('input', {
+        className: 'ftable__number-input',
+        attrs: { type: 'number', value: value || '', placeholder: '0' }
+      });
+      td.appendChild(input);
+      break;
+    }
+
+    case 'description': {
+      const div = createElement('div', {
+        className: 'ftable__desc',
+        attrs: { contenteditable: 'true', 'data-placeholder': 'Description...' }
+      });
+      div.textContent = value || '';
+      td.appendChild(div);
+      break;
+    }
+
+    default: { // 'text'
+      const div = createElement('div', {
+        className: 'ftable__text',
+        attrs: { contenteditable: 'true', 'data-placeholder': 'Type...' }
+      });
+      div.textContent = value || '';
+      td.appendChild(div);
+      break;
+    }
+  }
+}
+
+function createTagChip(text, container) {
+  const colorIndex = Math.abs(hashString(text)) % FTABLE_TAG_COLORS.length;
+  const color = FTABLE_TAG_COLORS[colorIndex];
+
+  const tag = createElement('span', {
+    className: 'ftable__tag',
+    text
+  });
+  tag.style.backgroundColor = color;
+  tag.style.color = '#fff';
+
+  // Remove on click
+  tag.addEventListener('click', () => tag.remove());
+
+  return tag;
+}
+
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+function openStatusPicker(badge, container) {
+  document.querySelectorAll('.ftable__status-picker').forEach(p => p.remove());
+
+  const picker = createElement('div', { className: 'ftable__status-picker' });
+  FTABLE_STATUS_OPTIONS.forEach(s => {
+    const item = createElement('div', {
+      className: 'ftable__status-picker-item',
+      text: s.label
+    });
+    item.style.setProperty('--status-color', s.color);
+    item.addEventListener('click', () => {
+      badge.textContent = s.label;
+      badge.dataset.status = s.id;
+      badge.style.backgroundColor = s.color;
+      badge.style.color = '#fff';
+      picker.remove();
+    });
+    picker.appendChild(item);
+  });
+
+  // Clear option
+  const clearItem = createElement('div', {
+    className: 'ftable__status-picker-item ftable__status-picker-item--clear',
+    text: 'Clear'
+  });
+  clearItem.addEventListener('click', () => {
+    badge.textContent = 'Set status';
+    badge.dataset.status = '';
+    badge.style.backgroundColor = '';
+    badge.style.color = '';
+    picker.remove();
+  });
+  picker.appendChild(clearItem);
+
+  const rect = badge.getBoundingClientRect();
+  picker.style.position = 'fixed';
+  picker.style.left = `${rect.left}px`;
+  picker.style.top = `${rect.bottom + 4}px`;
+  picker.style.zIndex = '1100';
+  document.body.appendChild(picker);
+
+  const close = (e) => {
+    if (!picker.contains(e.target) && e.target !== badge) {
+      picker.remove();
+      document.removeEventListener('click', close, true);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', close, true), 0);
+}
+
+function addTableColumn(block, table) {
+  const newCol = {
+    id: generateId('col'),
+    name: 'New Column',
+    type: 'text'
+  };
+
+  const thead = table.querySelector('thead tr');
+  const addColTh = thead.querySelector('.ftable__add-col');
+  const th = buildColumnHeader(newCol, block, table);
+  thead.insertBefore(th, addColTh);
+
+  // Add a cell to every existing row
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    const emptyTd = tr.querySelector('.ftable__td--empty');
+    const td = createElement('td', {
+      className: 'ftable__td',
+      data: { colType: 'text', colId: newCol.id }
+    });
+    renderCell(td, 'text', '');
+    tr.insertBefore(td, emptyTd);
+  });
+}
+
+// ==========================================================================
 // GROUP BLOCK
 // ==========================================================================
 
