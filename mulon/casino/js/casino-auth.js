@@ -26,6 +26,29 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { checkMaintenanceAccess, MAINTENANCE_MODE } from '../../js/maintenance.js';
 
+// ========================================
+// MONEY FORMATTING UTILITIES
+// ========================================
+function formatWithCommas(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function formatBalance(amount) {
+  const value = parseFloat(amount) || 0;
+  const [whole, decimal] = value.toFixed(2).split('.');
+  return `$${formatWithCommas(whole)}.${decimal}`;
+}
+
+function formatProfit(amount) {
+  const value = parseFloat(amount) || 0;
+  const [whole, decimal] = Math.abs(value).toFixed(2).split('.');
+  const formatted = formatWithCommas(whole) + '.' + decimal;
+  return (value >= 0 ? '+' : '-') + '$' + formatted;
+}
+
+// Export to window for casino games
+window.FormatUtils = { formatWithCommas, formatBalance, formatProfit };
+
 // Firebase configuration (same as main Mulon app)
 const firebaseConfig = {
     apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",

@@ -1102,8 +1102,27 @@
 }
 
 .users-list {
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
+}
+
+/* Load More Container */
+.load-more-container {
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.load-more-btn {
+  padding: 0.75rem 2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .user-admin-item {

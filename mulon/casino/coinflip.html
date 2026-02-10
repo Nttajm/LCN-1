@@ -32,7 +32,7 @@
       </div>
       <div class="balance-box xps-box">
         <div class="balance-label">XPs</div>
-        <div class="balance-amount xps-amount" id="userXPs">⚡ 0</div>
+        <div class="balance-amount xps-amount" id="userXPs">&#x26A1; 0</div>
       </div>
       <div class="auth-box dn" id="authBox">
         <button class="signin-btn" id="signInBtn">
@@ -77,8 +77,8 @@
           <div class="currency-icon">$</div>
           <input type="number" class="bet-input" id="betAmount" value="10" min="1" max="10000">
           <div class="bet-btns">
-            <button class="bet-adj" onclick="adjustBet(0.5)">½</button>
-            <button class="bet-adj" onclick="adjustBet(2)">2×</button>
+            <button class="bet-adj" onclick="adjustBet(0.5)">1/2</button>
+            <button class="bet-adj" onclick="adjustBet(2)">2x</button>
           </div>
         </div>
       </div>
@@ -101,13 +101,13 @@
         <div class="side-selection">
           <button class="side-btn active" data-side="heads" id="headsBtn">
             <div class="side-coin heads-preview">
-              <span class="coin-symbol">👑</span>
+              <span class="coin-symbol">&#x1F48E;</span>
             </div>
             <span class="side-name">Heads</span>
           </button>
           <button class="side-btn" data-side="tails" id="tailsBtn">
             <div class="side-coin tails-preview">
-              <span class="coin-symbol">🦅</span>
+              <span class="coin-symbol">&#x1FA99;</span>
             </div>
             <span class="side-name">Tails</span>
           </button>
@@ -172,16 +172,16 @@
         <div class="multi-coins-wrapper" id="multiCoinsWrapper">
           <!-- Single coin for 1 coin mode -->
           <div class="coin-wrapper single-coin" id="singleCoinWrapper">
-            <div class="coin" id="coin">
+            <div class="coin show-heads" id="coin">
               <div class="coin-face coin-heads">
                 <div class="coin-inner">
-                  <span class="coin-emoji">👑</span>
+                  <span class="coin-emoji">&#x1F48E;</span>
                   <span class="coin-label">HEADS</span>
                 </div>
               </div>
               <div class="coin-face coin-tails">
                 <div class="coin-inner">
-                  <span class="coin-emoji">🦅</span>
+                  <span class="coin-emoji">&#x1FA99;</span>
                   <span class="coin-label">TAILS</span>
                 </div>
               </div>
@@ -194,9 +194,9 @@
         <!-- Result Summary -->
         <div class="result-summary" id="resultSummary" style="display: none;">
           <div class="result-counts">
-            <span class="result-heads" id="resultHeads">👑 0</span>
+            <span class="result-heads" id="resultHeads">&#x1F48E; 0</span>
             <span class="result-separator">|</span>
-            <span class="result-tails" id="resultTails">🦅 0</span>
+            <span class="result-tails" id="resultTails">&#x1FA99; 0</span>
           </div>
           <div class="result-payout" id="resultPayout"></div>
         </div>
@@ -226,8 +226,8 @@
   <!-- Live Chat -->
   <div class="livechat-container" id="livechatContainer">
     <div class="livechat-header" id="livechatToggle">
-      <span>💬 Live Chat</span>
-      <span class="livechat-toggle-icon">▼</span>
+      <span>&#x1F4AC; Live Chat</span>
+      <span class="livechat-toggle-icon">&#x25BC;</span>
     </div>
     <div class="livechat-messages" id="livechatMessages"></div>
     <div class="livechat-input-wrap">
@@ -236,9 +236,8 @@
     </div>
   </div>
 
-  <script src="js/casino-auth.js"></script>
+  <script type="module" src="js/casino-auth.js"></script>
   <script src="js/casino-globals.js"></script>
-  <script src="js/livechat.js"></script>
   <script src="js/coinflip.js"></script>
 </body>
 </html>

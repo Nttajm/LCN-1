@@ -1107,7 +1107,8 @@
       elements.cashoutBtn.style.display = 'block';
       elements.cashoutBtn.disabled = false;
       elements.cashoutBtn.classList.add('active');
-      elements.cashoutBtn.textContent = 'Cash Out $' + betAmount.toFixed(2);
+      const fmt = window.FormatUtils;
+      elements.cashoutBtn.textContent = 'Cash Out ' + (fmt ? fmt.formatBalance(betAmount) : '$' + betAmount.toFixed(2));
       
       // Start round immediately
       setTimeout(() => {
@@ -1137,7 +1138,8 @@
       playSound('cashout');
       
       elements.multiplierDisplay.classList.add('cashed-out');
-      elements.statusText.textContent = `+$${profit.toFixed(2)}`;
+      const fmt = window.FormatUtils;
+      elements.statusText.textContent = fmt ? fmt.formatProfit(profit) : `+$${profit.toFixed(2)}`;
       elements.statusText.className = 'status-text win';
       
       elements.cashoutBtn.disabled = true;
@@ -1245,7 +1247,8 @@
         game.sessionProfit -= game.betAmount;
         game.gamesPlayed++;
         
-        elements.statusText.textContent = `-$${game.betAmount.toFixed(2)} & -1 🔑`;
+        const fmt = window.FormatUtils;
+        elements.statusText.textContent = (fmt ? fmt.formatProfit(-game.betAmount) : `-$${game.betAmount.toFixed(2)}`) + ' & -1 🔑';
         elements.statusText.className = 'status-text loss';
         
         // Record loss - deducts 1 key and resets streak
@@ -1457,15 +1460,17 @@
       elements.sessionProfit.textContent = fmt ? fmt.formatProfit(game.sessionProfit) : ((game.sessionProfit >= 0 ? '+' : '') + '$' + game.sessionProfit.toFixed(2));
       elements.sessionProfit.className = 'stat-value ' + (game.sessionProfit >= 0 ? 'profit' : 'loss');
       elements.gamesPlayed.textContent = game.gamesPlayed;
-      elements.bestWin.textContent = '+$' + game.bestWin.toFixed(2);
+      elements.bestWin.textContent = fmt ? fmt.formatProfit(game.bestWin) : '+$' + game.bestWin.toFixed(2);
     }
 
     // Show win popup
     function showWinPopup(amount, multiplier) {
       const popup = document.createElement('div');
       popup.className = 'win-popup';
+      const fmt = window.FormatUtils;
+      const profit = amount - game.betAmount;
       popup.innerHTML = `
-        <div class="win-amount">+$${(amount - game.betAmount).toFixed(2)}</div>
+        <div class="win-amount">${fmt ? fmt.formatProfit(profit) : '+$' + profit.toFixed(2)}</div>
         <div class="win-mult">${multiplier.toFixed(2)}x</div>
       `;
       

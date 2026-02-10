@@ -409,7 +409,8 @@ function checkBallLanding(ball) {
       
       if (profit > config.bestWin) {
         config.bestWin = profit;
-        document.getElementById('bestWin').textContent = '$' + config.bestWin.toFixed(2);
+        const fmt = window.FormatUtils;
+        document.getElementById('bestWin').textContent = fmt ? fmt.formatBalance(config.bestWin) : '$' + config.bestWin.toFixed(2);
       }
 
       // Balance already updated for the bet; update again here so losses display immediately.
@@ -445,9 +446,11 @@ function animateBucket(index) {
 function showBigWin(amount, mult) {
   const popup = document.createElement('div');
   popup.className = 'win-popup';
+  const fmt = window.FormatUtils;
+  const formatted = fmt ? fmt.formatProfit(amount) : '+$' + amount.toFixed(2);
   popup.innerHTML = `
     <h3>🎉 BIG WIN!</h3>
-    <div class="win-amount">+$${amount.toFixed(2)}</div>
+    <div class="win-amount">${formatted}</div>
     <div class="win-mult">${mult}x Multiplier</div>
   `;
   document.body.appendChild(popup);
@@ -490,9 +493,11 @@ function addResult(mult, profit) {
   
   const item = document.createElement('div');
   item.className = `result-item ${isWin ? (isBigWin ? 'big-win' : 'win') : 'loss'}`;
+  const fmt = window.FormatUtils;
+  const profitStr = fmt ? (isWin ? fmt.formatProfit(profit) : fmt.formatProfit(profit)) : (isWin ? '+' : '') + '$' + profit.toFixed(2);
   item.innerHTML = `
     <span style="color: ${getMultTextColor(mult)}">${mult}x</span>
-    <span style="color: ${isWin ? '#22c55e' : '#ef4444'}">${isWin ? '+' : ''}$${profit.toFixed(2)}</span>
+    <span style="color: ${isWin ? '#22c55e' : '#ef4444'}">${profitStr}</span>
   `;
   
   history.insertBefore(item, history.firstChild);
@@ -750,7 +755,8 @@ function updateAutoDisplay() {
   if (autoProfitEl) {
     const currentBalance = window.CasinoAuth?.getBalance() || 0;
     const profit = currentBalance - autoConfig.startingBalance;
-    autoProfitEl.textContent = (profit >= 0 ? '+' : '') + '$' + profit.toFixed(2);
+    const fmt = window.FormatUtils;
+    autoProfitEl.textContent = fmt ? fmt.formatProfit(profit) : (profit >= 0 ? '+' : '') + '$' + profit.toFixed(2);
     autoProfitEl.className = 'stat-value ' + (profit >= 0 ? 'profit' : 'loss');
   }
 }
@@ -903,7 +909,9 @@ Events.on(render, 'afterRender', () => {
 function showRefreshPenalty(amount, ballsLost) {
   const penaltyEl = document.getElementById('refreshPenaltyNotice');
   if (penaltyEl) {
-    penaltyEl.textContent = `⚠️ Refresh penalty: -$${amount.toFixed(2)} (${ballsLost} ball${ballsLost > 1 ? 's' : ''} lost)`;
+    const fmt = window.FormatUtils;
+    const formatted = fmt ? fmt.formatBalance(amount) : '$' + amount.toFixed(2);
+    penaltyEl.textContent = `⚠️ Refresh penalty: -${formatted} (${ballsLost} ball${ballsLost > 1 ? 's' : ''} lost)`;
     penaltyEl.style.display = 'block';
     
     // Hide after 5 seconds

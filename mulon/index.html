@@ -795,8 +795,6 @@
     </div>
   </div>
 
-  <script src="js/format-utils.js"></script>
-  <script src="js/money-formatter.js"></script>
   <script type="module" src="js/data-a.js"></script>
   <script type="module" src="js/index-a.js"></script>
   
@@ -1044,31 +1042,6 @@
       setupJoePayNotifications();
     }
   </script>
-  <script>
-    // The Great Reset Countdown - January 29, 2026
-    function updateResetCountdown() {
-      const resetDate = new Date('2026-01-29T00:00:00').getTime();
-      const now = new Date().getTime();
-      const distance = resetDate - now;
-      
-      if (distance < 0) {
-        document.getElementById('resetCountdownBanner').innerHTML = '<div class="reset-countdown-content"><div class="reset-icon">🎉</div><div class="reset-info"><h3 class="reset-title">THE GREAT RESET IS HERE!</h3><p class="reset-desc">Welcome to the official launch of Mulon!</p></div></div>';
-        return;
-      }
-      
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const secs = Math.floor((distance % (1000 * 60)) / 1000);
-      
-      document.getElementById('resetDays').textContent = days.toString().padStart(2, '0');
-      document.getElementById('resetHours').textContent = hours.toString().padStart(2, '0');
-      document.getElementById('resetMins').textContent = mins.toString().padStart(2, '0');
-      document.getElementById('resetSecs').textContent = secs.toString().padStart(2, '0');
-    }
-    
-    updateResetCountdown();
-    setInterval(updateResetCountdown, 1000);
-  </script>
+
 </body>
 </html>

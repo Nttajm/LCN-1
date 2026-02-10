@@ -6,7 +6,7 @@
 // For n coins, payouts are based on binomial probability
 const PAYOUTS = {
   1: { 1: 1.98 },
-  2: { 1: 1.45, 2: 3.92 },
+  2: { 1: 1.45, 2: 2.92 },
   3: { 1: 1.10, 2: 2.18, 3: 7.84 },
   5: { 1: 0, 2: 1.15, 3: 2.30, 4: 6.20, 5: 31.00 },
   10: { 1: 0, 2: 0, 3: 0, 4: 0.95, 5: 1.50, 6: 2.50, 7: 6.00, 8: 20.00, 9: 80.00, 10: 950.00 }
@@ -26,7 +26,9 @@ const config = {
   results: [],
   headsCount: 0,
   tailsCount: 0,
-  isSignedIn: false
+  isSignedIn: false,
+  lastCoinStates: {},
+  singleCoinState: 'heads'
 };
 
 // Wait for auth to be ready
@@ -51,6 +53,12 @@ async function init() {
   
   if (window.ProfitGraph) {
     ProfitGraph.init();
+  }
+  
+  // Initialize single coin state
+  const coin = document.getElementById('coin');
+  if (coin) {
+    coin.classList.add('show-heads');
   }
   
   updatePayoutTable();
@@ -188,26 +196,41 @@ function setupCoinsGrid() {
   if (config.coinCount === 1) {
     singleWrapper.style.display = 'block';
     coinsGrid.style.display = 'none';
+    
+    // Set single coin to its last known state
+    const coin = document.getElementById('coin');
+    if (coin) {
+      coin.classList.remove('flip-to-heads', 'flip-to-tails', 'win-glow', 'lose-glow');
+      if (config.singleCoinState === 'tails') {
+        coin.classList.add('show-tails');
+        coin.classList.remove('show-heads');
+      } else {
+        coin.classList.add('show-heads');
+        coin.classList.remove('show-tails');
+      }
+    }
   } else {
     singleWrapper.style.display = 'none';
     coinsGrid.style.display = 'flex';
     coinsGrid.className = `coins-grid coins-${config.coinCount}`;
     
-    // Generate coins
+    // Generate coins with their last known states
     let html = '';
     for (let i = 0; i < config.coinCount; i++) {
+      const lastState = config.lastCoinStates[`multi-${config.coinCount}-${i}`] || 'heads';
+      const stateClass = lastState === 'tails' ? 'show-tails' : 'show-heads';
       html += `
         <div class="coin-wrapper" data-index="${i}">
-          <div class="coin" id="coin-${i}">
+          <div class="coin ${stateClass}" id="coin-${i}">
             <div class="coin-face coin-heads">
               <div class="coin-inner">
-                <span class="coin-emoji">👑</span>
+                <span class="coin-emoji">&#x1F48E;</span>
                 <span class="coin-label">H</span>
               </div>
             </div>
             <div class="coin-face coin-tails">
               <div class="coin-inner">
-                <span class="coin-emoji">🦅</span>
+                <span class="coin-emoji">&#x1FA99;</span>
                 <span class="coin-label">T</span>
               </div>
             </div>
@@ -226,9 +249,9 @@ function setupCoinsGrid() {
 async function flipCoins() {
   if (config.isFlipping) return;
   
-  // Check balance
-  if (window.CasinoAuth && window.CasinoAuth.isSignedIn) {
-    const balance = window.CasinoAuth.getBalance();
+  // Check if signed in and has balance
+  if (window.CasinoAuth && window.CasinoAuth.currentUser) {
+    const balance = window.CasinoAuth.userData?.balance || 0;
     if (balance < config.betAmount) {
       showResult('Insufficient balance!', false);
       return;
@@ -249,12 +272,7 @@ async function flipCoins() {
   tailsBtn.disabled = true;
   coinsBtns.forEach(b => b.disabled = true);
   
-  // Deduct bet
-  if (window.CasinoAuth && window.CasinoAuth.isSignedIn) {
-    await window.CasinoAuth.updateBalance(-config.betAmount);
-  }
-  
-  // Determine results for each coin
+  // Determine results for each coin BEFORE animation
   const coinResults = [];
   let headsHit = 0;
   let tailsHit = 0;
@@ -266,6 +284,27 @@ async function flipCoins() {
     else tailsHit++;
   }
   
+  // Calculate winnings
+  const matches = config.selectedSide === 'heads' ? headsHit : tailsHit;
+  const payouts = PAYOUTS[config.coinCount];
+  const multiplier = payouts[matches] || 0;
+  const winAmount = config.betAmount * multiplier;
+  
+  // Process bet using CasinoDB (handles balance atomically)
+  if (window.CasinoDB && window.CasinoAuth?.currentUser) {
+    const result = await window.CasinoDB.safeGameRound(config.betAmount, winAmount, 'coinflip');
+    if (!result.success) {
+      showResult(result.error || 'Bet failed!', false);
+      config.isFlipping = false;
+      config.flipsPlayed--;
+      flipBtn.disabled = false;
+      headsBtn.disabled = false;
+      tailsBtn.disabled = false;
+      coinsBtns.forEach(b => b.disabled = false);
+      return;
+    }
+  }
+  
   // Update total counts
   config.headsCount += headsHit;
   config.tailsCount += tailsHit;
@@ -274,43 +313,49 @@ async function flipCoins() {
   if (config.coinCount === 1) {
     // Single coin mode
     const coin = document.getElementById('coin');
-    coin.classList.remove('flipping', 'flipping-to-tails', 'win-glow', 'lose-glow');
-    coin.style.transform = 'rotateX(0deg)';
+    
+    // Remove all animation/state classes
+    coin.classList.remove('flip-to-heads', 'flip-to-tails', 'win-glow', 'lose-glow', 'show-heads', 'show-tails');
+    
+    // Force reflow to restart animation
     void coin.offsetWidth;
     
+    // Apply the flip animation based on result
     if (coinResults[0] === 'tails') {
-      coin.classList.add('flipping-to-tails');
+      coin.classList.add('flip-to-tails');
+      config.singleCoinState = 'tails';
     } else {
-      coin.classList.add('flipping');
+      coin.classList.add('flip-to-heads');
+      config.singleCoinState = 'heads';
     }
   } else {
     // Multi coin mode
     for (let i = 0; i < config.coinCount; i++) {
       const coin = document.getElementById(`coin-${i}`);
       if (coin) {
-        coin.classList.remove('flipping', 'flipping-to-tails', 'win-glow', 'lose-glow');
-        coin.style.transform = 'rotateX(0deg)';
+        // Remove all animation/state classes
+        coin.classList.remove('flip-to-heads', 'flip-to-tails', 'win-glow', 'lose-glow', 'show-heads', 'show-tails');
+        
+        // Force reflow
         void coin.offsetWidth;
         
+        // Apply flip animation based on result
         if (coinResults[i] === 'tails') {
-          coin.classList.add('flipping-to-tails');
+          coin.classList.add('flip-to-tails');
+          config.lastCoinStates[`multi-${config.coinCount}-${i}`] = 'tails';
         } else {
-          coin.classList.add('flipping');
+          coin.classList.add('flip-to-heads');
+          config.lastCoinStates[`multi-${config.coinCount}-${i}`] = 'heads';
         }
       }
     }
   }
   
-  // Wait for animation (longest delay + animation time)
-  const animDuration = config.coinCount === 1 ? 2000 : 2600;
+  // Wait for animation (1.5s animation + stagger delays)
+  const animDuration = config.coinCount === 1 ? 1600 : 2000;
   await new Promise(resolve => setTimeout(resolve, animDuration));
   
-  // Calculate winnings
-  const matches = config.selectedSide === 'heads' ? headsHit : tailsHit;
-  const payouts = PAYOUTS[config.coinCount];
-  const multiplier = payouts[matches] || 0;
-  const winAmount = config.betAmount * multiplier;
-  
+  // Calculate win/loss status (winAmount was already calculated before animation)
   let profit = 0;
   let isWin = multiplier > 0;
   let isPartialWin = isWin && matches < config.coinCount;
@@ -323,11 +368,11 @@ async function flipCoins() {
     const payoutEl = document.getElementById('resultPayout');
     
     summaryEl.style.display = 'flex';
-    headsEl.textContent = '👑 ' + headsHit;
-    tailsEl.textContent = '🦅 ' + tailsHit;
+    headsEl.innerHTML = '&#x1F48E; ' + headsHit;
+    tailsEl.innerHTML = '&#x1FA99; ' + tailsHit;
     
     if (isWin) {
-      payoutEl.textContent = `${matches}/${config.coinCount} = ${multiplier.toFixed(2)}x → $${winAmount.toFixed(2)}`;
+      payoutEl.textContent = `${matches}/${config.coinCount} = ${multiplier.toFixed(2)}x = $${winAmount.toFixed(2)}`;
       payoutEl.className = 'result-payout ' + (isPartialWin ? 'partial' : 'win');
     } else {
       payoutEl.textContent = `${matches}/${config.coinCount} = No payout`;
@@ -355,11 +400,6 @@ async function flipCoins() {
     config.currentStreak++;
     config.winStreak = Math.max(config.winStreak, config.currentStreak);
     config.bestWin = Math.max(config.bestWin, winAmount);
-    
-    // Add winnings
-    if (window.CasinoAuth && window.CasinoAuth.isSignedIn) {
-      await window.CasinoAuth.updateBalance(winAmount);
-    }
     
     // Show win
     const winText = isPartialWin 
@@ -432,7 +472,7 @@ function addToHistory(matches, total, isWin) {
   
   if (total === 1) {
     item.classList.add(config.selectedSide);
-    item.textContent = isWin ? '✓' : '✗';
+    item.textContent = isWin ? '\u2713' : '\u2717';
   } else {
     item.textContent = `${matches}/${total}`;
     item.style.width = 'auto';

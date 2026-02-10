@@ -2034,7 +2034,7 @@ const MulonData = {
     }
   },
 
-  // Get all users (for admin)
+  // Get all users (for admin) - Fast version without loading cards subcollections
   async getAllUsers() {
     try {
       const usersSnapshot = await getDocs(usersRef);
@@ -2043,20 +2043,10 @@ const MulonData = {
       for (const userDoc of usersSnapshot.docs) {
         const userData = userDoc.data();
         
-        // Load cards from subcollection (where cards are actually stored)
-        let userCards = [];
-        try {
-          const cardsCollectionRef = collection(db, 'mulon_users', userDoc.id, 'cards');
-          const cardsQuery = query(cardsCollectionRef, where('hasCard', '==', true));
-          const cardsSnapshot = await getDocs(cardsQuery);
-          cardsSnapshot.forEach((cardDoc) => {
-            userCards.push({ docId: cardDoc.id, ...cardDoc.data() });
-          });
-        } catch (cardError) {
-          console.warn(`Error loading cards for user ${userDoc.id}:`, cardError);
-          // Fallback to ownedCards array if subcollection fails
-          userCards = userData.ownedCards || [];
-        }
+        // Don't load cards from subcollection here - too slow
+        // Cards will be loaded on-demand when user clicks the cards button
+        // Use cardsCount field if available, otherwise use ownedCards array length
+        const cardsCount = userData.cardsCount ?? (userData.ownedCards?.length || 0);
         
         users.push({
           id: userDoc.id,
@@ -2066,7 +2056,8 @@ const MulonData = {
           keys: userData.keys || 0,
           balance: userData.balance || 0,
           positions: userData.positions || [],
-          ownedCards: userCards,
+          cardsCount: cardsCount, // Just the count, not actual cards
+          ownedCards: null, // Will be loaded on-demand
           createdAt: userData.createdAt || null,
           lastLoginAt: userData.lastLoginAt || null,
           banned: userData.banned || false,

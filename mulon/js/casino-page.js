@@ -1,6 +1,16 @@
 import { CasinoAuth, CasinoDB } from '../casino/js/casino-auth.js';
     import { initChestOpener, openChest } from '../casino/js/chest-opener.js';
     
+    // Format balance with commas
+    function formatWithCommas(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    function formatBalance(amount) {
+      const value = parseFloat(amount) || 0;
+      const [whole, decimal] = value.toFixed(2).split('.');
+      return `$${formatWithCommas(whole)}.${decimal}`;
+    }
+    
     // User menu dropdown toggle
     const userMenu = document.getElementById('userMenu');
     const userDropdown = document.getElementById('userDropdown');
@@ -235,18 +245,25 @@ import { CasinoAuth, CasinoDB } from '../casino/js/casino-auth.js';
     function updateUI() {
       const user = CasinoAuth.currentUser;
       const balance = CasinoAuth.getBalance();
-      const xps = CasinoAuth.getCharges ? CasinoAuth.getCharges() : (CasinoAuth.getXPs ? CasinoAuth.getXPs() : 0);
+      const xps = CasinoAuth.getXPs ? CasinoAuth.getXPs() : 0;
       
       // Update balance display
       const balanceEl = document.getElementById('userBalance');
       if (balanceEl) {
-        balanceEl.textContent = '$' + balance.toFixed(2);
+        balanceEl.textContent = formatBalance(balance);
       }
       
       // Update xps display
       const xpsEl = document.getElementById('userXPs');
       if (xpsEl) {
         xpsEl.textContent = '⚡ ' + xps;
+      }
+      
+      // Update keys display
+      const keysEl = document.getElementById('userKeys');
+      if (keysEl) {
+        const keys = CasinoAuth.getKeys ? CasinoAuth.getKeys() : 0;
+        keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
       }
       
       // Update level bar

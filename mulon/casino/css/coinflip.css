@@ -116,42 +116,75 @@
 }
 
 .side-btn.active[data-side="heads"] {
-  border-color: #f7b733;
-  background: rgba(247, 183, 51, 0.1);
+  border-color: #5b6eae;
+  background: rgba(91, 110, 174, 0.1);
 }
 
 .side-btn.active[data-side="tails"] {
-  border-color: #6366f1;
-  background: rgba(99, 102, 241, 0.1);
+  border-color: #f7a832;
+  background: rgba(247, 168, 50, 0.1);
 }
 
 .side-coin {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   transition: transform 0.2s ease;
+  position: relative;
 }
 
 .side-btn:hover .side-coin {
   transform: scale(1.1);
 }
 
+/* Heads preview = blue circle with dark diamond */
 .heads-preview {
-  background: linear-gradient(135deg, #f7b733, #d4a528);
-  box-shadow: 0 4px 15px rgba(247, 183, 51, 0.3);
+  background: #5b6eae;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
 }
 
+.heads-preview::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: #1a2233;
+  transform: rotate(45deg);
+  border-radius: 3px;
+}
+
+.heads-preview .coin-symbol {
+  display: none;
+}
+
+/* Tails preview = orange donut */
 .tails-preview {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  background: #f7a832;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+}
+
+.tails-preview::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #1a2233;
+  border-radius: 50%;
+}
+
+.tails-preview .coin-symbol {
+  display: none;
 }
 
 .coin-symbol {
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  display: none;
 }
 
 .side-name {
@@ -310,11 +343,11 @@
 }
 
 .result-heads {
-  color: #f7b733;
+  color: #00d4ff;
 }
 
 .result-tails {
-  color: #6366f1;
+  color: #f7b733;
 }
 
 .result-separator {
@@ -400,98 +433,100 @@
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.1s ease-out;
+  transition: none;
 }
 
-.coin.flipping {
-  animation: coinFlip 2s ease-out forwards;
+/* Show heads by default */
+.coin.show-heads {
+  transform: rotateX(0deg);
 }
 
-.coin.flipping-to-tails {
-  animation: coinFlipToTails 2s ease-out forwards;
+/* Show tails */
+.coin.show-tails {
+  transform: rotateX(180deg);
+}
+
+/* Flip animation - lands on heads */
+.coin.flip-to-heads {
+  animation: flipToHeads 1.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Flip animation - lands on tails */
+.coin.flip-to-tails {
+  animation: flipToTails 1.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 /* Staggered animation delays for multiple coins */
 .coins-grid .coin-wrapper:nth-child(1) .coin { animation-delay: 0ms; }
-.coins-grid .coin-wrapper:nth-child(2) .coin { animation-delay: 100ms; }
-.coins-grid .coin-wrapper:nth-child(3) .coin { animation-delay: 200ms; }
-.coins-grid .coin-wrapper:nth-child(4) .coin { animation-delay: 300ms; }
-.coins-grid .coin-wrapper:nth-child(5) .coin { animation-delay: 400ms; }
-.coins-grid .coin-wrapper:nth-child(6) .coin { animation-delay: 150ms; }
-.coins-grid .coin-wrapper:nth-child(7) .coin { animation-delay: 250ms; }
-.coins-grid .coin-wrapper:nth-child(8) .coin { animation-delay: 350ms; }
-.coins-grid .coin-wrapper:nth-child(9) .coin { animation-delay: 450ms; }
-.coins-grid .coin-wrapper:nth-child(10) .coin { animation-delay: 550ms; }
+.coins-grid .coin-wrapper:nth-child(2) .coin { animation-delay: 80ms; }
+.coins-grid .coin-wrapper:nth-child(3) .coin { animation-delay: 160ms; }
+.coins-grid .coin-wrapper:nth-child(4) .coin { animation-delay: 240ms; }
+.coins-grid .coin-wrapper:nth-child(5) .coin { animation-delay: 320ms; }
+.coins-grid .coin-wrapper:nth-child(6) .coin { animation-delay: 120ms; }
+.coins-grid .coin-wrapper:nth-child(7) .coin { animation-delay: 200ms; }
+.coins-grid .coin-wrapper:nth-child(8) .coin { animation-delay: 280ms; }
+.coins-grid .coin-wrapper:nth-child(9) .coin { animation-delay: 360ms; }
+.coins-grid .coin-wrapper:nth-child(10) .coin { animation-delay: 440ms; }
 
-@keyframes coinFlip {
+/* Flip to heads animation - coin goes up and lands showing diamond (0deg = heads visible) */
+@keyframes flipToHeads {
   0% {
-    transform: rotateX(0deg) translateY(0);
+    transform: translateY(0) rotateX(0deg);
   }
   10% {
-    transform: rotateX(360deg) translateY(-80px);
+    transform: translateY(-80px) rotateX(360deg);
   }
-  20% {
-    transform: rotateX(720deg) translateY(-120px);
-  }
-  30% {
-    transform: rotateX(1080deg) translateY(-140px);
+  25% {
+    transform: translateY(-150px) rotateX(720deg);
   }
   40% {
-    transform: rotateX(1440deg) translateY(-130px);
+    transform: translateY(-180px) rotateX(1080deg);
   }
-  50% {
-    transform: rotateX(1800deg) translateY(-100px);
-  }
-  60% {
-    transform: rotateX(2160deg) translateY(-60px);
+  55% {
+    transform: translateY(-150px) rotateX(1440deg);
   }
   70% {
-    transform: rotateX(2520deg) translateY(-30px);
+    transform: translateY(-80px) rotateX(1800deg);
   }
-  80% {
-    transform: rotateX(2880deg) translateY(-10px);
+  85% {
+    transform: translateY(-20px) rotateX(2160deg);
   }
-  90% {
-    transform: rotateX(3240deg) translateY(5px);
+  92% {
+    transform: translateY(10px) rotateX(2160deg);
   }
   100% {
-    transform: rotateX(3600deg) translateY(0);
+    transform: translateY(0) rotateX(2160deg);
   }
 }
 
-@keyframes coinFlipToTails {
+/* Flip to tails animation - coin goes up and lands showing circle (180deg = tails visible) */
+@keyframes flipToTails {
   0% {
-    transform: rotateX(0deg) translateY(0);
+    transform: translateY(0) rotateX(0deg);
   }
   10% {
-    transform: rotateX(360deg) translateY(-80px);
+    transform: translateY(-80px) rotateX(360deg);
   }
-  20% {
-    transform: rotateX(720deg) translateY(-120px);
-  }
-  30% {
-    transform: rotateX(1080deg) translateY(-140px);
+  25% {
+    transform: translateY(-150px) rotateX(720deg);
   }
   40% {
-    transform: rotateX(1440deg) translateY(-130px);
+    transform: translateY(-180px) rotateX(1080deg);
   }
-  50% {
-    transform: rotateX(1800deg) translateY(-100px);
-  }
-  60% {
-    transform: rotateX(2160deg) translateY(-60px);
+  55% {
+    transform: translateY(-150px) rotateX(1440deg);
   }
   70% {
-    transform: rotateX(2520deg) translateY(-30px);
+    transform: translateY(-80px) rotateX(1800deg);
   }
-  80% {
-    transform: rotateX(2880deg) translateY(-10px);
+  85% {
+    transform: translateY(-20px) rotateX(2340deg);
   }
-  90% {
-    transform: rotateX(3240deg) translateY(5px);
+  92% {
+    transform: translateY(10px) rotateX(2340deg);
   }
   100% {
-    transform: rotateX(3780deg) translateY(0); /* Extra 180deg for tails */
+    transform: translateY(0) rotateX(2340deg);
   }
 }
 
@@ -501,42 +536,59 @@
   height: 100%;
   border-radius: 50%;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 
-    inset 0 0 30px rgba(0,0,0,0.3),
-    0 10px 30px rgba(0,0,0,0.5);
 }
 
+/* HEADS = Blue circle with dark diamond inside */
 .coin-heads {
-  background: linear-gradient(145deg, #fcd34d, #f7b733, #d4a528, #b8941f);
+  background: #5b6eae;
   transform: rotateX(0deg);
 }
 
+/* Dark diamond shape inside heads */
+.coin-heads::after {
+  content: '';
+  position: absolute;
+  width: 45%;
+  height: 45%;
+  background: #1a2233;
+  transform: rotate(45deg);
+  border-radius: 6px;
+}
+
+.coin-heads .coin-inner {
+  display: none;
+}
+
+/* TAILS = Orange donut (circle with hole) */
 .coin-tails {
-  background: linear-gradient(145deg, #818cf8, #6366f1, #4f46e5, #4338ca);
+  background: #f7a832;
   transform: rotateX(180deg);
 }
 
-.coin-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+/* Dark center hole for donut effect */
+.coin-tails::after {
+  content: '';
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  background: #1a2233;
+  border-radius: 50%;
+}
+
+.coin-tails .coin-inner {
+  display: none;
 }
 
 .coin-emoji {
-  font-size: 3.5rem;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  display: none;
 }
 
 .coin-label {
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  letter-spacing: 2px;
+  display: none;
 }
 
 .coin-edge {

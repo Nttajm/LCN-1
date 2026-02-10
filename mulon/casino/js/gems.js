@@ -150,7 +150,9 @@ function updateMultiplierDisplay() {
     threeGemsMultEl.textContent = threeGemsMult.toFixed(2) + 'x';
   }
   if (threeGemsWinEl) {
-    threeGemsWinEl.textContent = '$' + (config.betAmount * threeGemsMult).toFixed(2);
+    const fmt = window.FormatUtils;
+    const winAmount = config.betAmount * threeGemsMult;
+    threeGemsWinEl.textContent = fmt ? fmt.formatBalance(winAmount) : '$' + winAmount.toFixed(2);
   }
   
   // Update cashout button state
@@ -172,7 +174,8 @@ function updateCashoutButton() {
     }
   } else {
     cashoutBtn.classList.remove('disabled');
-    cashoutBtn.textContent = `Cashout $${potentialWin}`;
+    const fmt = window.FormatUtils;
+    cashoutBtn.textContent = `Cashout ${fmt ? fmt.formatBalance(parseFloat(potentialWin)) : '$' + potentialWin}`;
   }
 }
 
@@ -263,7 +266,8 @@ async function cashout() {
   
   if (profit > config.bestWin) {
     config.bestWin = profit;
-    document.getElementById('bestWin').textContent = '$' + config.bestWin.toFixed(2);
+    const fmt = window.FormatUtils;
+    document.getElementById('bestWin').textContent = fmt ? fmt.formatBalance(config.bestWin) : '$' + config.bestWin.toFixed(2);
   }
   
   // Share to live chat if found 5+ gems
@@ -300,14 +304,15 @@ async function gameOver(won, amount = 0) {
   const title = document.getElementById('gameOverTitle');
   const amountEl = document.getElementById('gameOverAmount');
   
+  const fmt = window.FormatUtils;
   if (won) {
     title.textContent = '🎉 You Won!';
     title.className = 'game-over-title win';
-    amountEl.textContent = '+$' + amount.toFixed(2);
+    amountEl.textContent = fmt ? fmt.formatProfit(amount) : '+$' + amount.toFixed(2);
   } else {
     title.textContent = '💥 Boom!';
     title.className = 'game-over-title lose';
-    amountEl.textContent = '-$' + config.betAmount.toFixed(2) + ' & -1 🔑';
+    amountEl.textContent = (fmt ? fmt.formatProfit(-config.betAmount) : '-$' + config.betAmount.toFixed(2)) + ' & -1 🔑';
     config.sessionProfit -= config.betAmount;
     
     // Update profit graph

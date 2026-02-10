@@ -740,12 +740,13 @@ function showResultBox(number, profit) {
   }
   
   // Set win/loss amount
+  const fmt = window.FormatUtils;
   if (profit >= 0) {
-    resultAmount.textContent = '+$' + profit.toFixed(2);
+    resultAmount.textContent = fmt ? fmt.formatProfit(profit) : '+$' + profit.toFixed(2);
     resultAmount.className = 'result-amount win';
     resultBox.className = 'result-box win';
   } else {
-    resultAmount.textContent = '-$' + Math.abs(profit).toFixed(2);
+    resultAmount.textContent = fmt ? fmt.formatProfit(profit) : '-$' + Math.abs(profit).toFixed(2);
     resultAmount.className = 'result-amount loss';
     resultBox.className = 'result-box loss';
   }
@@ -758,17 +759,14 @@ function updateStats() {
   const profitEl = document.getElementById('sessionProfit');
   const spinsEl = document.getElementById('spinsCount');
   const bestEl = document.getElementById('bestWin');
+  const fmt = window.FormatUtils;
   
-  if (config.sessionProfit >= 0) {
-    profitEl.textContent = '+$' + config.sessionProfit.toFixed(2);
-    profitEl.className = 'stat-value profit';
-  } else {
-    profitEl.textContent = '-$' + Math.abs(config.sessionProfit).toFixed(2);
-    profitEl.className = 'stat-value loss';
-  }
+  profitEl.textContent = fmt ? fmt.formatProfit(config.sessionProfit) : 
+    (config.sessionProfit >= 0 ? '+$' : '-$') + Math.abs(config.sessionProfit).toFixed(2);
+  profitEl.className = 'stat-value ' + (config.sessionProfit >= 0 ? 'profit' : 'loss');
   
   spinsEl.textContent = config.spinsCount;
-  bestEl.textContent = '$' + config.bestWin.toFixed(2);
+  bestEl.textContent = fmt ? fmt.formatBalance(config.bestWin) : '$' + config.bestWin.toFixed(2);
 }
 
 // Update balance display
@@ -974,7 +972,9 @@ function loadLastBets() {
 function showRefreshPenalty(amount) {
   const penaltyEl = document.getElementById('refreshPenaltyNotice');
   if (penaltyEl) {
-    penaltyEl.textContent = `⚠️ Refresh penalty: -$${amount.toFixed(2)} (bet lost while spinning)`;
+    const fmt = window.FormatUtils;
+    const formatted = fmt ? fmt.formatBalance(amount) : '$' + amount.toFixed(2);
+    penaltyEl.textContent = `⚠️ Refresh penalty: -${formatted} (bet lost while spinning)`;
     penaltyEl.style.display = 'block';
     
     // Hide after 5 seconds

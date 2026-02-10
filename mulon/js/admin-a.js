@@ -1105,6 +1105,11 @@ function setupUsersManagement() {
   setupCardsModal();
 }
 
+// Pagination state
+const USERS_PER_PAGE = 40;
+let displayedUsersCount = 0;
+let currentFilteredUsers = [];
+
 async function loadAllUsers() {
   const usersList = document.getElementById('usersList');
   if (usersList) {
@@ -1113,6 +1118,10 @@ async function loadAllUsers() {
   
   allUsers = await MulonData.getAllUsers();
   usersLoaded = true;
+  
+  // Reset pagination
+  displayedUsersCount = 0;
+  currentFilteredUsers = allUsers;
   
   updateUsersStats();
   renderUsersList(allUsers);
@@ -1145,13 +1154,23 @@ function updateUsersStats() {
   
   const totalCards = document.getElementById('totalCardsSum');
   if (totalCards) {
-    const cardsSum = allUsers.reduce((acc, user) => acc + (user.ownedCards?.length || 0), 0);
+    // Use cardsCount (fast) or ownedCards.length if cards were loaded
+    const cardsSum = allUsers.reduce((acc, user) => {
+      if (user.ownedCards !== null) {
+        return acc + (user.ownedCards?.length || 0);
+      }
+      return acc + (user.cardsCount || 0);
+    }, 0);
     totalCards.textContent = cardsSum;
   }
 }
 
 function filterAndRenderUsers(searchTerm) {
+  // Reset pagination when filtering
+  displayedUsersCount = 0;
+  
   if (!searchTerm.trim()) {
+    currentFilteredUsers = allUsers;
     renderUsersList(allUsers);
     return;
   }
@@ -1162,12 +1181,19 @@ function filterAndRenderUsers(searchTerm) {
     (user.email || '').toLowerCase().includes(term)
   );
   
+  currentFilteredUsers = filtered;
   renderUsersList(filtered);
 }
 
-function renderUsersList(users) {
+function renderUsersList(users, append = false) {
   const usersList = document.getElementById('usersList');
   if (!usersList) return;
+  
+  // Store current filtered users for pagination
+  if (!append) {
+    currentFilteredUsers = users;
+    displayedUsersCount = 0;
+  }
   
   if (users.length === 0) {
     usersList.innerHTML = `
@@ -1179,7 +1205,23 @@ function renderUsersList(users) {
     return;
   }
   
-  usersList.innerHTML = users.map(user => `
+  // Get the next batch of users to display
+  const startIndex = displayedUsersCount;
+  const endIndex = Math.min(startIndex + USERS_PER_PAGE, users.length);
+  const usersToRender = users.slice(startIndex, endIndex);
+  displayedUsersCount = endIndex;
+  
+  // Helper to get card count for a user
+  const getCardCount = (user) => {
+    if (user.ownedCards !== null && user.ownedCards !== undefined) {
+      return user.ownedCards.length;
+    }
+    return user.cardsCount || 0;
+  };
+  
+  const usersHtml = usersToRender.map(user => {
+    const cardCount = getCardCount(user);
+    return `
     <div class="user-admin-item ${user.banned ? 'user-banned' : ''}" data-user-id="${user.id}">
       ${user.banned ? '<span class="banned-indicator" title="User is banned">🚫</span>' : ''}
       ${user.photoURL 
@@ -1194,8 +1236,8 @@ function renderUsersList(users) {
         ${user.positions.length} position${user.positions.length !== 1 ? 's' : ''}
         ${user.positions.length > 0 ? '<span class="edit-icon">✏️</span>' : ''}
       </button>
-      <button class="user-cards-count ${(user.ownedCards || []).length > 0 ? 'has-cards clickable' : ''}" data-user-id="${user.id}" title="Click to view/edit cards">
-        🃏 ${(user.ownedCards || []).length} card${(user.ownedCards || []).length !== 1 ? 's' : ''}
+      <button class="user-cards-count ${cardCount > 0 ? 'has-cards' : ''} clickable" data-user-id="${user.id}" title="Click to view/edit cards">
+        🃏 ${cardCount} card${cardCount !== 1 ? 's' : ''}
         <span class="edit-icon">✏️</span>
       </button>
       <div class="user-admin-balance">
@@ -1227,10 +1269,50 @@ function renderUsersList(users) {
         </button>
       </div>
     </div>
-  `).join('');
+  `}).join('');
   
+  // Add Load More button if there are more users
+  const hasMoreUsers = displayedUsersCount < users.length;
+  const loadMoreHtml = hasMoreUsers ? `
+    <div class="load-more-container">
+      <button class="btn btn-secondary load-more-btn" id="loadMoreUsersBtn">
+        Load More Users (${users.length - displayedUsersCount} remaining)
+      </button>
+    </div>
+  ` : '';
+  
+  if (append) {
+    // Remove old load more button if exists
+    const oldLoadMore = usersList.querySelector('.load-more-container');
+    if (oldLoadMore) oldLoadMore.remove();
+    // Append new users
+    usersList.insertAdjacentHTML('beforeend', usersHtml + loadMoreHtml);
+  } else {
+    usersList.innerHTML = usersHtml + loadMoreHtml;
+  }
+  
+  // Attach Load More button listener
+  const loadMoreBtn = document.getElementById('loadMoreUsersBtn');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', function() {
+      this.disabled = true;
+      this.textContent = 'Loading...';
+      // Small delay to show loading state
+      setTimeout(() => {
+        renderUsersList(currentFilteredUsers, true);
+      }, 50);
+    });
+  }
+  
+  // Attach event listeners to newly added items
+  attachUserItemListeners(usersList);
+}
+
+// Separate function to attach event listeners to user items
+function attachUserItemListeners(usersList) {
   // Attach positions view/edit listeners
-  usersList.querySelectorAll('.user-positions-count.clickable').forEach(btn => {
+  usersList.querySelectorAll('.user-positions-count.clickable:not([data-listener])').forEach(btn => {
+    btn.setAttribute('data-listener', 'true');
     btn.addEventListener('click', function() {
       const userId = this.dataset.userId;
       const user = allUsers.find(u => u.id === userId);
@@ -1241,7 +1323,8 @@ function renderUsersList(users) {
   });
   
   // Attach cards view/edit listeners
-  usersList.querySelectorAll('.user-cards-count').forEach(btn => {
+  usersList.querySelectorAll('.user-cards-count:not([data-listener])').forEach(btn => {
+    btn.setAttribute('data-listener', 'true');
     btn.addEventListener('click', async function() {
       const userId = this.dataset.userId;
       const user = allUsers.find(u => u.id === userId);
@@ -1252,7 +1335,8 @@ function renderUsersList(users) {
   });
   
   // Attach save button listeners (saves both balance and keys)
-  usersList.querySelectorAll('.save-user').forEach(btn => {
+  usersList.querySelectorAll('.save-user:not([data-listener])').forEach(btn => {
+    btn.setAttribute('data-listener', 'true');
     btn.addEventListener('click', async function() {
       if (!isAccessAllowed()) return;
       const userId = this.dataset.userId;
@@ -1301,7 +1385,8 @@ function renderUsersList(users) {
   });
   
   // Attach reset positions button listeners
-  usersList.querySelectorAll('.reset-positions').forEach(btn => {
+  usersList.querySelectorAll('.reset-positions:not([data-listener])').forEach(btn => {
+    btn.setAttribute('data-listener', 'true');
     btn.addEventListener('click', async function() {
       if (!isAccessAllowed()) return;
       if (this.disabled) return;
@@ -1337,7 +1422,8 @@ function renderUsersList(users) {
   });
   
   // Attach ban button listeners
-  usersList.querySelectorAll('.ban-user').forEach(btn => {
+  usersList.querySelectorAll('.ban-user:not([data-listener])').forEach(btn => {
+    btn.setAttribute('data-listener', 'true');
     btn.addEventListener('click', async function() {
       if (!isAccessAllowed()) return;
       
@@ -1403,7 +1489,8 @@ function renderUsersList(users) {
   });
   
   // Highlight changed inputs
-  usersList.querySelectorAll('.user-balance-input').forEach(input => {
+  usersList.querySelectorAll('.user-balance-input:not([data-listener])').forEach(input => {
+    input.setAttribute('data-listener', 'true');
     input.addEventListener('input', function() {
       const original = parseFloat(this.dataset.original);
       const current = parseFloat(this.value);
@@ -1411,7 +1498,8 @@ function renderUsersList(users) {
     });
   });
   
-  usersList.querySelectorAll('.user-keys-input').forEach(input => {
+  usersList.querySelectorAll('.user-keys-input:not([data-listener])').forEach(input => {
+    input.setAttribute('data-listener', 'true');
     input.addEventListener('input', function() {
       const original = parseInt(this.dataset.original);
       const current = parseInt(this.value);
@@ -1588,11 +1676,21 @@ function setupCardsModal() {
         const userIndex = allUsers.findIndex(u => u.id === currentCardsUser.id);
         if (userIndex !== -1) {
           allUsers[userIndex].ownedCards = [];
+          allUsers[userIndex].cardsCount = 0;
           updateUsersStats();
+          
+          // Update the card count button in the users list
+          const userItem = document.querySelector(`.user-admin-item[data-user-id="${currentCardsUser.id}"]`);
+          if (userItem) {
+            const cardBtn = userItem.querySelector('.user-cards-count');
+            if (cardBtn) {
+              cardBtn.innerHTML = `🃏 0 cards <span class="edit-icon">✏️</span>`;
+              cardBtn.classList.remove('has-cards');
+            }
+          }
         }
         currentCardsUser.ownedCards = [];
         renderCardsModalList([]);
-        renderUsersList(allUsers);
       } else {
         showToast('Error: ' + result.error, 'error');
       }
@@ -1628,12 +1726,26 @@ function setupCardsModal() {
         const newCard = { cardNumber: normalizedCardNumber, addedAt: new Date().toISOString(), addedBy: 'admin' };
         const userIndex = allUsers.findIndex(u => u.id === currentCardsUser.id);
         if (userIndex !== -1) {
+          if (allUsers[userIndex].ownedCards === null) {
+            allUsers[userIndex].ownedCards = [];
+          }
           allUsers[userIndex].ownedCards.push(newCard);
+          allUsers[userIndex].cardsCount = allUsers[userIndex].ownedCards.length;
           updateUsersStats();
+          
+          // Update the card count button in the users list
+          const userItem = document.querySelector(`.user-admin-item[data-user-id="${currentCardsUser.id}"]`);
+          if (userItem) {
+            const cardBtn = userItem.querySelector('.user-cards-count');
+            if (cardBtn) {
+              const count = allUsers[userIndex].ownedCards.length;
+              cardBtn.innerHTML = `🃏 ${count} card${count !== 1 ? 's' : ''} <span class="edit-icon">✏️</span>`;
+              cardBtn.classList.add('has-cards');
+            }
+          }
         }
         currentCardsUser.ownedCards.push(newCard);
         renderCardsModalList(currentCardsUser.ownedCards);
-        renderUsersList(allUsers);
       } else {
         showToast('Error: ' + result.error, 'error');
       }
@@ -1656,6 +1768,9 @@ async function showUserCardsModal(user) {
   const userInfo = document.getElementById('cardsModalUser');
   const cardsList = document.getElementById('cardsModalList');
   
+  // Get current card count (from cardsCount or ownedCards if loaded)
+  const currentCount = user.ownedCards !== null ? user.ownedCards.length : (user.cardsCount || 0);
+  
   // Show loading state
   cardsList.innerHTML = '<div class="loading-state">Loading cards...</div>';
   
@@ -1669,7 +1784,7 @@ async function showUserCardsModal(user) {
       <div class="modal-user-details">
         <span class="modal-user-name">${escapeHtml(user.displayName)}</span>
         <span class="modal-user-email">${escapeHtml(user.email)}</span>
-        <span class="modal-user-cards" id="modalCardsCount">Cards: Loading...</span>
+        <span class="modal-user-cards" id="modalCardsCount">Cards: ${currentCount} (loading...)</span>
       </div>
     </div>
   `;
@@ -1692,6 +1807,21 @@ async function showUserCardsModal(user) {
   const userIndex = allUsers.findIndex(u => u.id === user.id);
   if (userIndex !== -1) {
     allUsers[userIndex].ownedCards = freshCards;
+    allUsers[userIndex].cardsCount = freshCards.length;
+    
+    // Update the card count button in the users list
+    const userItem = document.querySelector(`.user-admin-item[data-user-id="${user.id}"]`);
+    if (userItem) {
+      const cardBtn = userItem.querySelector('.user-cards-count');
+      if (cardBtn) {
+        cardBtn.innerHTML = `🃏 ${freshCards.length} card${freshCards.length !== 1 ? 's' : ''} <span class="edit-icon">✏️</span>`;
+        if (freshCards.length > 0) {
+          cardBtn.classList.add('has-cards');
+        } else {
+          cardBtn.classList.remove('has-cards');
+        }
+      }
+    }
   }
   
   // Update card count in header
@@ -1702,6 +1832,9 @@ async function showUserCardsModal(user) {
   
   // Render cards
   renderCardsModalList(freshCards);
+  
+  // Update stats
+  updateUsersStats();
 }
 
 function closeCardsModal() {
@@ -1764,6 +1897,7 @@ function renderCardsModalList(cards) {
           if (cardIndex !== -1) {
             allUsers[userIndex].ownedCards.splice(cardIndex, 1);
           }
+          allUsers[userIndex].cardsCount = allUsers[userIndex].ownedCards.length;
           updateUsersStats();
           
           // Update just the card count badge in the users list

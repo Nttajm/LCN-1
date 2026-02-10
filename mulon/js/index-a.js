@@ -1794,7 +1794,7 @@ function updatePayout() {
   }
   
   // Update payout
-  payoutValue.textContent = '$' + payout;
+  payoutValue.textContent = formatBalance(parseFloat(payout));
   
   if (currentChoice === 'yes') {
     payoutValue.style.color = 'var(--green-primary)';
@@ -2160,16 +2160,15 @@ function updatePortfolioDisplay() {
   const balance = UserData.getBalance();
   
   if (portfolioValue) {
-    portfolioValue.textContent = '$' + portfolioTotal.toFixed(2);
+    portfolioValue.textContent = formatBalance(portfolioTotal);
   }
   
   if (totalValue) {
-    totalValue.textContent = '$' + (balance + portfolioTotal).toFixed(2);
+    totalValue.textContent = formatBalance(balance + portfolioTotal);
   }
   
   if (totalPnl) {
-    const pnlSign = pnl >= 0 ? '+' : '';
-    totalPnl.textContent = pnlSign + '$' + pnl.toFixed(2);
+    totalPnl.textContent = formatProfit(pnl);
     totalPnl.className = 'stat-value ' + (pnl >= 0 ? 'pnl-positive' : 'pnl-negative');
   }
   
@@ -2202,9 +2201,9 @@ function updatePortfolioDisplay() {
               <span class="position-shares">${pos.shares.toFixed(2)} shares @ ${pos.avgPrice}¢</span>
             </div>
             <div class="position-value">
-              <div class="position-current">$${currentValue.toFixed(2)}</div>
+              <div class="position-current">${formatBalance(currentValue)}</div>
               <div class="position-pnl ${posPnl >= 0 ? 'positive' : 'negative'}">
-                ${posPnl >= 0 ? '+' : ''}$${posPnl.toFixed(2)} (${pnlPercent}%)
+                ${formatProfit(posPnl)} (${pnlPercent}%)
               </div>
             </div>
           </div>

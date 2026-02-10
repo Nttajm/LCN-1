@@ -19,6 +19,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
+// Money formatting utilities
+function formatWithCommas(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function formatBalance(amount) {
+  const value = parseFloat(amount) || 0;
+  const [whole, decimal] = value.toFixed(2).split('.');
+  return `$${formatWithCommas(whole)}.${decimal}`;
+}
+
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
@@ -729,7 +739,7 @@ async function loadUserData() {
         userBannerStatus = null;
       }
       
-      document.getElementById('userBalance').textContent = `$${userBalance.toFixed(2)}`;
+      document.getElementById('userBalance').textContent = formatBalance(userBalance);
       document.getElementById('userKeys').innerHTML = `<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ${userKeys}`;
       
       // Re-render items to show purchased status
@@ -790,7 +800,7 @@ function openPurchaseModal(type, item, price, currency = 'usd') {
     const info = packInfo[item];
     itemName.textContent = info.name;
     itemDesc.textContent = info.description;
-    priceEl.textContent = `$${price.toFixed(2)} USD (REAL MONEY)`;
+    priceEl.textContent = `${formatBalance(price)} USD (REAL MONEY)`;
     priceEl.style.color = '#ff6b6b';
     realMoneyConfirm.style.display = 'block';
     confirmAmount.textContent = price.toFixed(2);
@@ -805,7 +815,7 @@ function openPurchaseModal(type, item, price, currency = 'usd') {
       priceEl.innerHTML = `<img src="/bp/EE/assets/ouths/key.png" alt="" style="width:20px;height:20px;vertical-align:middle;"> ${price} Keys`;
       priceEl.style.color = 'var(--text-primary)';
     } else {
-      priceEl.textContent = `$${price.toFixed(2)} (In-Game Balance)`;
+      priceEl.textContent = `${formatBalance(price)} (In-Game Balance)`;
       priceEl.style.color = 'var(--green-primary)';
     }
     
@@ -908,7 +918,7 @@ async function confirmPurchase() {
         
       } else {
         if (userBalance < price) {
-          alert(`Not enough balance! You need $${price.toFixed(2)} but only have $${userBalance.toFixed(2)}.`);
+          alert(`Not enough balance! You need ${formatBalance(price)} but only have ${formatBalance(userBalance)}.`);
           return;
         }
         
@@ -921,7 +931,7 @@ async function confirmPurchase() {
         
         userBalance = newBalance;
         userCustomizations[item] = true; // Update local state
-        document.getElementById('userBalance').textContent = `$${userBalance.toFixed(2)}`;
+        document.getElementById('userBalance').textContent = formatBalance(userBalance);
       }
       
       closePurchaseModal();

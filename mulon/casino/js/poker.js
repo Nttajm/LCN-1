@@ -1087,8 +1087,10 @@ class PokerController {
   // ========================================
 
   updateBalanceDisplay() {
+    const fmt = window.FormatUtils;
     if (this.elements.userBalance) {
-      this.elements.userBalance.textContent = '$' + CasinoAuth.getBalance().toFixed(2);
+      const balance = CasinoAuth.getBalance();
+      this.elements.userBalance.textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
     }
     if (this.elements.userKeys) {
       this.elements.userKeys.innerHTML = `<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ${CasinoAuth.getKeys()}`;
@@ -2067,7 +2069,10 @@ class PokerController {
     // Check if user has enough balance
     const currentBalance = CasinoAuth.getBalance();
     if (currentBalance < this.selectedBuyIn) {
-      this.showToast(`Insufficient balance. You need $${this.selectedBuyIn} but have $${currentBalance.toFixed(2)}`, 'error');
+      const fmt = window.FormatUtils;
+      const balanceStr = fmt ? fmt.formatBalance(currentBalance) : '$' + currentBalance.toFixed(2);
+      const buyInStr = fmt ? fmt.formatBalance(this.selectedBuyIn) : '$' + this.selectedBuyIn;
+      this.showToast(`Insufficient balance. You need ${buyInStr} but have ${balanceStr}`, 'error');
       return;
     }
 
@@ -3005,7 +3010,10 @@ class PokerController {
     
     if (currentBalance < buyIn) {
       // Player is broke - auto return to lobby
-      this.showToast(`Insufficient balance ($${currentBalance.toFixed(2)}) for buy-in ($${buyIn})`, 'error');
+      const fmt = window.FormatUtils;
+      const balanceStr = fmt ? fmt.formatBalance(currentBalance) : '$' + currentBalance.toFixed(2);
+      const buyInStr = fmt ? fmt.formatBalance(buyIn) : '$' + buyIn;
+      this.showToast(`Insufficient balance (${balanceStr}) for buy-in (${buyInStr})`, 'error');
       await this.handleReturnToLobby();
       return;
     }

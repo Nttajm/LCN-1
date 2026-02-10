@@ -168,7 +168,8 @@ function updateBalanceDisplay() {
   const keysEl = document.getElementById('userKeys');
   const xpsEl = document.getElementById('userXPs');
   
-  if (balanceEl) balanceEl.textContent = '$' + balance.toFixed(2);
+  const fmt = window.FormatUtils;
+  if (balanceEl) balanceEl.textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
   if (keysEl) keysEl.innerHTML = `<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ${keys}`;
   if (xpsEl) xpsEl.textContent = '⚡ ' + xps;
   
@@ -853,7 +854,8 @@ async function handleInsurance(accepted) {
       // Insurance pays 2:1
       const insuranceWin = gameState.insuranceBet * 3;
       await window.CasinoDB.updateBalance(insuranceWin);
-      showToast(`Insurance paid $${insuranceWin.toFixed(2)}`);
+      const fmt = window.FormatUtils;
+      showToast(`Insurance paid ${fmt ? fmt.formatBalance(insuranceWin) : '$' + insuranceWin.toFixed(2)}`);
     }
     await endGame('lose', 0);
   } else {
@@ -1075,11 +1077,12 @@ function showResult(result, profit) {
   elements.resultText.textContent = resultText[result];
   elements.resultText.className = 'result-text ' + result;
   
+  const fmt = window.FormatUtils;
   if (profit >= 0) {
-    elements.resultAmount.textContent = '+$' + profit.toFixed(2);
+    elements.resultAmount.textContent = fmt ? fmt.formatProfit(profit) : '+$' + profit.toFixed(2);
     elements.resultAmount.className = 'result-amount positive';
   } else {
-    elements.resultAmount.textContent = '-$' + Math.abs(profit).toFixed(2);
+    elements.resultAmount.textContent = fmt ? fmt.formatProfit(profit) : '-$' + Math.abs(profit).toFixed(2);
     elements.resultAmount.className = 'result-amount negative';
   }
   
@@ -1092,9 +1095,9 @@ function showResult(result, profit) {
 }
 
 function updateStats() {
+  const fmt = window.FormatUtils;
   if (elements.sessionProfit) {
-    const profitValue = gameState.sessionProfit.toFixed(2);
-    elements.sessionProfit.textContent = (gameState.sessionProfit >= 0 ? '+$' : '-$') + Math.abs(profitValue);
+    elements.sessionProfit.textContent = fmt ? fmt.formatProfit(gameState.sessionProfit) : (gameState.sessionProfit >= 0 ? '+$' : '-$') + Math.abs(gameState.sessionProfit).toFixed(2);
     elements.sessionProfit.classList.toggle('positive', gameState.sessionProfit >= 0);
     elements.sessionProfit.classList.toggle('negative', gameState.sessionProfit < 0);
   }
@@ -1104,7 +1107,7 @@ function updateStats() {
   }
   
   if (elements.bestWin) {
-    elements.bestWin.textContent = '$' + gameState.bestWin.toFixed(2);
+    elements.bestWin.textContent = fmt ? fmt.formatBalance(gameState.bestWin) : '$' + gameState.bestWin.toFixed(2);
     elements.bestWin.classList.toggle('positive', gameState.bestWin > 0);
   }
 }

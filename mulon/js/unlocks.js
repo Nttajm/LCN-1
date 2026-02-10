@@ -25,6 +25,16 @@ import { cardsData, getCardByNumber } from '../card-data/cards-data.js';
 // Import level utilities
 import { calculateLevel } from './level-utils.js';
 
+// Money formatting utilities
+function formatWithCommas(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function formatBalance(amount) {
+  const value = parseFloat(amount) || 0;
+  const [whole, decimal] = value.toFixed(2).split('.');
+  return `$${formatWithCommas(whole)}.${decimal}`;
+}
+
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAGcg43F94bWqUuyLH-AjghrAfduEVQ8ZM",
@@ -821,7 +831,7 @@ async function loadUserData() {
       }
       
       // Update header displays
-      document.getElementById('userBalance').textContent = `$${userBalance.toFixed(2)}`;
+      document.getElementById('userBalance').textContent = formatBalance(userBalance);
       document.getElementById('userKeys').innerHTML = `<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ${userKeys}`;
       
       // Update stats
@@ -1177,7 +1187,7 @@ async function confirmUnlock() {
     
     // Update UI
     document.getElementById('userKeys').innerHTML = `<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ${userKeys}`;
-    document.getElementById('userBalance').textContent = `$${userBalance.toFixed(2)}`;
+    document.getElementById('userBalance').textContent = formatBalance(userBalance);
     document.getElementById('userCardsCount').textContent = userOwnedCards.length.toString();
     document.getElementById('unlocksCompletedCount').textContent = userCompletedUnlocks.length.toString();
     

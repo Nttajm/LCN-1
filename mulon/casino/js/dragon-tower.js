@@ -181,12 +181,15 @@ function updateDisplays() {
   
   // Potential win
   const potentialWin = (config.betAmount * config.currentMultiplier).toFixed(2);
-  document.getElementById('potentialWin').innerHTML = `Win: <span>$${potentialWin}</span>`;
+  const fmt = window.FormatUtils;
+  const potentialWinFormatted = fmt ? fmt.formatBalance(parseFloat(potentialWin)) : '$' + potentialWin;
+  document.getElementById('potentialWin').innerHTML = `Win: <span>${potentialWinFormatted}</span>`;
   
   // Next level preview
   const nextMult = calculateMultiplier(config.currentLevel + 1);
+  const nextWinAmount = config.betAmount * nextMult;
   document.getElementById('nextMultiplier').textContent = nextMult.toFixed(2) + 'x';
-  document.getElementById('nextWin').textContent = '$' + (config.betAmount * nextMult).toFixed(2);
+  document.getElementById('nextWin').textContent = fmt ? fmt.formatBalance(nextWinAmount) : '$' + nextWinAmount.toFixed(2);
   
   // Difficulty info
   const settings = difficultySettings[config.difficulty];
@@ -290,7 +293,8 @@ async function cashout() {
   
   if (profit > config.bestWin) {
     config.bestWin = profit;
-    document.getElementById('bestWin').textContent = '$' + config.bestWin.toFixed(2);
+    const fmt = window.FormatUtils;
+    document.getElementById('bestWin').textContent = fmt ? fmt.formatBalance(config.bestWin) : '$' + config.bestWin.toFixed(2);
   }
   
   // Share to live chat if multiplier is 3x or higher
@@ -331,15 +335,16 @@ async function gameOver(won, amount = 0) {
   const title = document.getElementById('gameOverTitle');
   const amountEl = document.getElementById('gameOverAmount');
   
+  const fmt = window.FormatUtils;
   if (won) {
     title.textContent = '🐉 Victory!';
     title.className = 'game-over-title win';
-    amountEl.textContent = '+$' + amount.toFixed(2);
+    amountEl.textContent = fmt ? fmt.formatProfit(amount) : '+$' + amount.toFixed(2);
     amountEl.style.color = '#22c55e';
   } else {
     title.textContent = '💀 Fallen!';
     title.className = 'game-over-title lose';
-    amountEl.textContent = '-$' + config.betAmount.toFixed(2) + ' & -1 🔑';
+    amountEl.textContent = (fmt ? fmt.formatProfit(-config.betAmount) : '-$' + config.betAmount.toFixed(2)) + ' & -1 🔑';
     amountEl.style.color = '#ef4444';
     config.sessionProfit -= config.betAmount;
     

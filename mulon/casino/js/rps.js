@@ -288,10 +288,11 @@ function showResult(result, amount, isFinal = true) {
   const playerHand = document.getElementById('playerHand');
   const cpuHand = document.getElementById('cpuHand');
   
+  const fmt = window.FormatUtils;
   if (result === 'win') {
     if (isFinal) {
       resultText.textContent = '🎉 YOU WIN!';
-      resultAmount.textContent = '+$' + amount.toFixed(2);
+      resultAmount.textContent = fmt ? fmt.formatProfit(amount) : '+$' + amount.toFixed(2);
       resultAmount.className = 'result-amount positive';
     } else {
       resultText.textContent = '✓ Round Won!';
@@ -304,7 +305,7 @@ function showResult(result, amount, isFinal = true) {
   } else if (result === 'lose') {
     resultText.textContent = '💔 YOU LOSE';
     resultText.className = 'result-text lose';
-    resultAmount.textContent = '-$' + amount.toFixed(2) + ' & -1 🔑';
+    resultAmount.textContent = (fmt ? fmt.formatProfit(-amount) : '-$' + amount.toFixed(2)) + ' & -1 🔑';
     resultAmount.className = 'result-amount negative';
     playerHand.classList.add('loser');
     cpuHand.classList.add('winner');
@@ -372,7 +373,8 @@ async function cashout() {
   
   resultText.textContent = '💰 CASHED OUT!';
   resultText.className = 'result-text win';
-  resultAmount.textContent = '+$' + winAmount.toFixed(2);
+  const fmt = window.FormatUtils;
+  resultAmount.textContent = fmt ? fmt.formatProfit(winAmount) : '+$' + winAmount.toFixed(2);
   resultAmount.className = 'result-amount positive';
   resultDisplay.classList.add('show');
   document.getElementById('playAgainBtn').classList.add('show');

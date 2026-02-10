@@ -180,7 +180,8 @@ function updateBalanceDisplay() {
     const keys = window.CasinoAuth.getKeys();
     const xps = window.CasinoAuth.getXPs ? window.CasinoAuth.getXPs() : 0;
     
-    if (balanceEl) balanceEl.textContent = '$' + balance.toFixed(2);
+    const fmt = window.FormatUtils;
+    if (balanceEl) balanceEl.textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
     if (keysEl) keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
     if (xpsEl) xpsEl.textContent = '⚡ ' + xps;
   }
@@ -369,7 +370,8 @@ function updateNetGain() {
   const profitOnWinEl = document.getElementById('profitOnWin');
   if (profitOnWinEl) {
     const totalWin = bet * multiplier;
-    profitOnWinEl.textContent = '$' + totalWin.toFixed(2);
+    const fmt = window.FormatUtils;
+    profitOnWinEl.textContent = fmt ? fmt.formatBalance(totalWin) : '$' + totalWin.toFixed(2);
   }
 }
 
@@ -740,12 +742,13 @@ function renderHistory() {
 }
 
 function updateStats() {
-  elements.sessionProfit.textContent = (gameState.sessionProfit >= 0 ? '$' : '-$') + 
-    Math.abs(gameState.sessionProfit).toFixed(2);
+  const fmt = window.FormatUtils;
+  elements.sessionProfit.textContent = fmt ? fmt.formatProfit(gameState.sessionProfit) : 
+    (gameState.sessionProfit >= 0 ? '+$' : '-$') + Math.abs(gameState.sessionProfit).toFixed(2);
   elements.sessionProfit.className = 'stat-value ' + (gameState.sessionProfit >= 0 ? 'profit' : 'loss');
   
   elements.gamesPlayed.textContent = gameState.gamesPlayed;
-  elements.bestWin.textContent = '$' + gameState.bestWin.toFixed(2);
+  elements.bestWin.textContent = fmt ? fmt.formatBalance(gameState.bestWin) : '$' + gameState.bestWin.toFixed(2);
 }
 
 // ========================================
