@@ -9,7 +9,7 @@ const PAYOUTS = {
   2: { 1: 1.25, 2: 2.20 },
   3: { 1: 0.90, 2: 1.80, 3: 5.50 },
   5: { 1: 0, 2: 0.95, 3: 1.90, 4: 5.00, 5: 16.00 },
-  10: { 1: 0, 2: 0, 3: 0, 4: 0.50, 5: 1.10, 6: 2.00, 7: 4.50, 8: 15.00, 9: 60.00, 10: 750.00 }
+  10: { 1: 0, 2: 0, 3: 0, 4: 0.50, 5: 0.80, 6: 1.78, 7: 4.50, 8: 12.00, 9: 50.00, 10: 200.00 }
 };
 
 // Game Configuration
@@ -466,16 +466,16 @@ async function flipCoins() {
     config.sessionProfit += profit;
     config.currentStreak++;
     config.winStreak = Math.max(config.winStreak, config.currentStreak);
-    config.bestWin = Math.max(config.bestWin, winAmount);
+    config.bestWin = Math.max(config.bestWin, profit);
     
     // Show win
     const winText = isPartialWin 
-      ? `${matches}/${config.coinCount} - WON $${winAmount.toFixed(2)}!`
-      : `PERFECT! WON $${winAmount.toFixed(2)}!`;
+      ? `${matches}/${config.coinCount} - WON $${profit.toFixed(2)}!`
+      : `PERFECT! WON $${profit.toFixed(2)}!`;
     showResult(winText, true);
     
     // Show win popup
-    showWinPopup(winAmount);
+    showWinPopup(profit);
     
     // Add XP
     if (window.CasinoAuth && window.CasinoAuth.addXP) {
@@ -497,8 +497,9 @@ async function flipCoins() {
   // Add to history
   addToHistory(matches, config.coinCount, isWin);
   
-  // Update stats
+  // Update stats and balance display
   updateStatsDisplay();
+  updateBalanceDisplay();
   
   // Re-enable buttons
   config.isFlipping = false;
