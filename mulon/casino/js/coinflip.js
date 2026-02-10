@@ -2,14 +2,14 @@
 // COIN FLIP GAME - STAKE STYLE (MULTI-COIN)
 // ========================================
 
-// Payout multipliers based on matches (with ~1% house edge)
-// For n coins, payouts are based on binomial probability
+// Payout multipliers based on matches (with ~8-12% house edge)
+// For n coins, payouts are reduced for higher house advantage
 const PAYOUTS = {
-  1: { 1: 1.98 },
-  2: { 1: 1.45, 2: 2.62 },
-  3: { 1: 1.10, 2: 2.18, 3: 6.84 },
-  5: { 1: 0, 2: 1.15, 3: 2.30, 4: 6.20, 5: 21.00 },
-  10: { 1: 0, 2: 0, 3: 0, 4: 0.85, 5: 1.50, 6: 2.50, 7: 6.00, 8: 20.00, 9: 80.00, 10: 950.00 }
+  1: { 1: 1.85 },
+  2: { 1: 1.25, 2: 2.20 },
+  3: { 1: 0.90, 2: 1.80, 3: 5.50 },
+  5: { 1: 0, 2: 0.95, 3: 1.90, 4: 5.00, 5: 16.00 },
+  10: { 1: 0, 2: 0, 3: 0, 4: 0.50, 5: 1.10, 6: 2.00, 7: 4.50, 8: 15.00, 9: 60.00, 10: 750.00 }
 };
 
 // Game Configuration
@@ -49,6 +49,10 @@ function waitForAuth() {
 async function init() {
   await waitForAuth();
   
+  // Initialize auth with maintenance check
+  const hasAccess = await window.CasinoAuth.initWithMaintenanceCheck();
+  if (!hasAccess) return; // Stop if redirecting to maintenance
+  
   setupEventListeners();
   
   if (window.ProfitGraph) {
@@ -64,6 +68,47 @@ async function init() {
   updatePayoutTable();
   updateBetDisplay();
   updateStatsDisplay();
+  
+  // Listen for auth state changes
+  window.CasinoAuth.onAuthStateChange((user, userData) => {
+    config.isSignedIn = !!user;
+    updateBalanceDisplay();
+    updateKeysDisplay();
+    updateXPsDisplay();
+  });
+  
+  // Listen for balance updates from other tabs or game actions
+  window.addEventListener('balanceUpdated', () => {
+    updateBalanceDisplay();
+  });
+}
+
+// Update balance display
+function updateBalanceDisplay() {
+  const balance = window.CasinoAuth?.getBalance() ?? 0;
+  const fmt = window.FormatUtils;
+  const balanceEl = document.getElementById('userBalance');
+  if (balanceEl) {
+    balanceEl.textContent = fmt ? fmt.formatBalance(balance) : '$' + balance.toFixed(2);
+  }
+}
+
+// Update keys display
+function updateKeysDisplay() {
+  const keys = window.CasinoAuth?.getKeys() ?? 0;
+  const keysEl = document.getElementById('userKeys');
+  if (keysEl) {
+    keysEl.innerHTML = '<img src="/bp/EE/assets/ouths/key.png" alt="" class="key-icon"> ' + keys;
+  }
+}
+
+// Update XPs display
+function updateXPsDisplay() {
+  const xps = window.CasinoAuth?.getXPs() ?? 0;
+  const xpsEl = document.getElementById('userXPs');
+  if (xpsEl) {
+    xpsEl.textContent = '⚡ ' + xps;
+  }
 }
 
 // Setup event listeners
