@@ -1,0 +1,147 @@
+.clock-js-import {
+    display: inline-block;
+}
+
+.clock-js-import .device-frame {
+    background: linear-gradient(145deg, #d4d4d4, #a8a8a8);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 
+        0 4px 8px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.5);
+    position: relative;
+}
+
+.clock-js-import .device-frame::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 2px solid #888;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+/* Corner screws */
+.clock-js-import .screw {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle at 30% 30%, #888, #444);
+    border-radius: 50%;
+    border: 1px solid #333;
+}
+.clock-js-import .screw::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 2px;
+    background: #333;
+}
+.clock-js-import .screw.tl { top: 15px; left: 15px; }
+.clock-js-import .screw.tr { top: 15px; right: 15px; }
+.clock-js-import .screw.bl { bottom: 15px; left: 15px; }
+.clock-js-import .screw.br { bottom: 15px; right: 15px; }
+
+.clock-js-import .speaker-grille {
+    background: #666;
+    width: 280px;
+    height: 140px;
+    margin: 20px auto;
+    border-radius: 4px;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            #555 2px,
+            #555 4px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            #555 2px,
+            #555 4px
+        );
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.clock-js-import .led-display {
+    background: #111;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 10px auto;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.clock-js-import .dot-matrix {
+    display: grid;
+    grid-template-columns: repeat(50, 5px);
+    grid-template-rows: repeat(20, 5px);
+    gap: 1px;
+    background: #0a0a0a;
+    padding: 5px;
+    border-radius: 2px;
+}
+
+.clock-js-import .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    transition: background-color 0.1s, box-shadow 0.1s;
+}
+
+.clock-js-import .dot.on-yellow {
+    background: #ffdd00;
+    box-shadow: 0 0 4px #ffdd00, 0 0 8px #ffaa00;
+}
+
+.clock-js-import .dot.on-green {
+    background: #00ff00;
+    box-shadow: 0 0 4px #00ff00, 0 0 8px #00aa00;
+}
+
+.clock-js-import .dot.on-red {
+    background: #ff3333;
+    box-shadow: 0 0 4px #ff3333, 0 0 8px #aa0000;
+}
+
+.clock-js-import .dot.on-orange {
+    background: #ff8800;
+    box-shadow: 0 0 4px #ff8800, 0 0 8px #cc5500;
+}
+
+.clock-js-import .brand-label {
+    text-align: right;
+    font-size: 8px;
+    color: #666;
+    margin-top: 10px;
+    padding-right: 10px;
+}
+
+.clock-js-import .status-leds {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 10px 0;
+}
+
+.clock-js-import .status-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #333;
+    border: 1px solid #222;
+}
+
+.clock-js-import .status-led.active {
+    background: #00ff00;
+    box-shadow: 0 0 4px #00ff00;
+}

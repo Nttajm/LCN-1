@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Five Nights at Tech</title>
+  <link rel="stylesheet" href="css/startgame.css">
+  <link rel="stylesheet" href="css/game-utils.css">
+  <link rel="icon" href="https://lcnjoel.com/css/standard.css">
+  <link rel="stylesheet" href="../css/standard.css">
+  <link rel="stylesheet" href="css/clock.css">
+</head>
+<body>
+  <main class="start-game screen" id="top-start-screen" aria-label="Five Nights at Freddy's home screen">
+    <section class="menu">
+      <h1 class="title">
+        <span>Five</span>
+        <span>Nights</span>
+        <span>At</span>
+        <span>Tech</span>
+      </h1>
+      <nav class="actions" aria-label="Main menu">
+        <button type="button" data-action="new-game"><span class="caret">&gt;&gt;</span> New Game</button>
+        <button type="button" data-action="continue">Continue</button>
+      </nav>
+    </section>
+
+    <footer class="footer">
+      <span class="version">v 1.13</span>
+      <span class="credit">© 2026 LCN TEAM</span>
+    </footer>
+  </main>
+  <div class="game ">
+    <div class="newspaper">
+      <img src="assets/newspaper.jpg" alt="Newspaper">
+    </div>
+    <div class="clock-show dn">
+      <div class="clock-js-import"></div>
+    </div>
+    <div class="game-view">
+      <div class="student-center"></div>
+      <div class="cameras"></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/animation.js"></script>
+  <script type="module" src="js/util.js"></script>
+  <script type="module" src="js/clock.js"></script>
+  <script type="module" src="js/game.js"></script>
+
+
+</body>
+</html>
