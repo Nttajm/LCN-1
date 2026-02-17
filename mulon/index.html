@@ -10,6 +10,32 @@
   <link rel="stylesheet" href="../css/standard.css">
 </head>
 <body>
+  <!-- Archived Notice Modal -->
+  <div class="archived-modal-overlay" id="archivedModal">
+    <div class="archived-modal">
+      <div class="archived-content">
+        <h2 class="archived-title">No Longer Supported</h2>
+        <div class="archived-gravestone">
+          <svg xmlns="http://www.w3.org/2000/svg" width="120" height="140" viewBox="0 0 120 140" fill="none">
+            <!-- Gravestone shape -->
+            <rect x="20" y="40" width="80" height="90" fill="#5a5a5a" stroke="#3a3a3a" stroke-width="2"/>
+            <path d="M20 40 Q20 10, 60 10 Q100 10, 100 40" fill="#5a5a5a" stroke="#3a3a3a" stroke-width="2"/>
+            <!-- RIP text -->
+            <text x="60" y="75" font-size="24" font-weight="bold" fill="#8a8a8a" text-anchor="middle">ARCHIVED</text>
+            <line x1="35" y1="85" x2="85" y2="85" stroke="#4a4a4a" stroke-width="2"/>
+            <text x="60" y="105" font-size="12" fill="#7a7a7a" text-anchor="middle">Mulon</text>
+            <!-- Ground -->
+            <rect x="10" y="130" width="100" height="10" fill="#4a4a4a"/>
+          </svg>
+        </div>
+        <p class="archived-description">
+          Mulon is no longer receiving updates, and Joel has moved to other projects that you may hear of soon.
+        </p>
+        <button class="archived-btn" id="dismissArchivedBtn">Continue Anyway</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Onboarding/Tutorial Overlay -->
   <div class="onboarding-overlay" id="onboardingOverlay">
     <!-- Segment 0: From the Creator -->
@@ -791,6 +817,31 @@
 
   <script type="module" src="js/data-a.js"></script>
   <script type="module" src="js/index-a.js"></script>
+  
+  <!-- Archived Modal Script -->
+  <script>
+    // Show archived modal on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const archivedModal = document.getElementById('archivedModal');
+      const dismissBtn = document.getElementById('dismissArchivedBtn');
+      
+      // Check if user has already dismissed the archived notice
+      const hasSeenArchived = localStorage.getItem('mulon_archived_dismissed');
+      
+      if (!hasSeenArchived && archivedModal) {
+        archivedModal.style.display = 'flex';
+        
+        if (dismissBtn) {
+          dismissBtn.addEventListener('click', () => {
+            archivedModal.style.display = 'none';
+            localStorage.setItem('mulon_archived_dismissed', 'true');
+          });
+        }
+      } else if (archivedModal) {
+        archivedModal.style.display = 'none';
+      }
+    });
+  </script>
   
   <!-- JoePay Notification System -->
   <script type="module">

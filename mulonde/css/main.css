@@ -125,26 +125,6 @@ body {
 
 /* mian page */
 
-.nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 4rem;
-
-  font-size: 1.3rem;
-
-  display: flex;
-  justify-content: space-around;
-  font-family: roboto;
-
-  padding-top: 0.5rem;
-}
-
-.nav-links-cont .nav-link:hover{
-  cursor: pointer;
-  text-decoration: underline;
-}
 
 .cont {
   margin-top: 2rem;
@@ -166,6 +146,39 @@ body {
   display: flex;
   justify-content: space-between;
   font-weight: 200;
+}
+
+.grid-context .right {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.names {
+  display: flex;
+  flex-direction: column;
+}
+
+.names .first {
+  font-size: 1.4rem;
+  font-weight: 500; 
+}
+
+.names .last {
+  font-size: 0.8rem;
+  font-weight: 300; 
+}
+
+.right .pfp {
+  height: 2rem;
+  width: 2rem;
+  aspect-ratio: 1/1;
+}
+
+.right .pfp img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .grid {
@@ -218,10 +231,13 @@ body {
 .grid-item .card-back {
   transform: rotateX(180deg);
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-  /* Background colors defined per item */
+  position: relative;
 }
+
+.grid-item .card-back *:not(img) {
+  z-index: 2;
+}
+
 
 /* Loader styles */
 .grid-item .loader {
@@ -262,10 +278,6 @@ body {
 }
 
 /* Back card content styling */
-
-.grid-item .card-back {
-
-}
 
 .grid-item .card-back .title {
   opacity: 0;
@@ -337,6 +349,10 @@ body {
   transition-delay: 0.4s;
 }
 
+.grid.flip-on #item-weather-rp .cards {
+  transition-delay: 0.45s;
+}
+
 #item-0 {
    grid-row-start: 1;
    grid-column-start: 7;
@@ -389,7 +405,7 @@ body {
 }
 
 #item-4 .card-back {
-   background-color: #676986;
+   background-color:  #38c219;
 }
 
 #item-5 {
@@ -447,6 +463,86 @@ body {
    background-color: #C77A9D;
 }
 
+#item-weather-rp {
+  background-color: #0b82dd; 
+   grid-row-start: 3;
+   grid-column-start: 2;
+
+   grid-row-end: 4;
+   grid-column-end: 3;
+
+   font-size: 0.8rem;
+}
+
+#item-date {
+ background-color: #DB5588; 
+   grid-row-start: 1;
+   grid-column-start: 3;
+
+   grid-row-end: 2;
+   grid-column-end: 4;
+}
+
+.date-holder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.8rem;
+  font-weight: 300;
+  font-size: 0.7rem;
+  justify-content: space-between;
+}
+
+.date-holder .s-1 {
+  padding-top: 0.2rem;
+  display: flex;
+  gap: -0.4rem;
+  flex-direction: column;
+}
+
+.date-holder .date {
+  font-size: 3rem !important;
+  font-weight: 400 !important;
+  color: #fff;
+  margin-bottom: -0.3rem;
+}
+
+.date-holder .calendar {
+  justify-self: flex-end;
+
+}
+
+.weaather-holder {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem;
+  font-size: 0.4rem;
+  font-weight: 400;
+}
+
+.weather-holder .temp {
+  font-size: 1.2rem !important;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 0.15rem; 
+}
+
+.weather-holder .info {
+  font-size: 0.8rem !important;
+  font-weight: 300;
+}
+
+.weaather-holder .app {
+  align-self: flex-end;
+  font-size: 0.675rem;
+  font-weight: 300;
+}
+
+
 .slides {
   width: 100%;
   height: 100%;
@@ -481,6 +577,10 @@ body {
   opacity: 0;
 }
 
+#i-games {
+  scale: 0.5;
+}
+
 .slide-text {
   font-size: 1.4rem;
   font-weight: 600;
@@ -510,12 +610,21 @@ body {
   box-sizing: border-box;
 }
 
+.item-small .explainer-card {
+  padding: 0.8rem 0.9rem !important;
+}
+
 .explainer-heading {
   font-size: 1.2rem;
   font-weight: 300;
   margin: 0 0 0.65rem 0;
   color: #fff;
   letter-spacing: 0.01em;
+}
+
+.item-small .explainer-heading {
+  font-size: 1rem !important;
+  margin-bottom: 0.2rem !important;
 }
 
 .explainer-list {
@@ -528,11 +637,20 @@ body {
   flex: 1;
 }
 
+.item-small .explainer-list {
+  gap: 0.14rem !important;
+  font-size: 0.65rem !important;
+}
+
 .explainer-list li {
   font-size: 0.82rem;
   font-weight: 400;
   color: #fff;
   line-height: 1.4;
+}
+
+.item-small .explainer-list li {
+  font-size: 0.65rem !important;
 }
 
 .explainer-brand {
@@ -542,4 +660,9 @@ body {
   margin-top: auto;
   padding-top: 0.6rem;
   opacity: 0.85;
+}
+
+.item-small .explainer-brand {
+  font-size: 0.6rem !important;
+  padding-top: 0.4rem !important;
 }

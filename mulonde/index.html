@@ -24,32 +24,24 @@
       </div>
     </div>
   </div>
-  <div class="nav">
-    <div class="logo">
-      <span>
-        JM
-      </span>
-    </div>
-    <div class="nav-links-cont">
-      <span class="nav-link">
-        Work, 
-      </span>
-      <span class="nav-link">
-        About, 
-      </span>
-      <span class="nav-link">
-        Contact
-      </span>
-    </div>
-  </div>
+
+
   <div class="hero cont">
     <div class="grid-context">
-      <div class="left"></div>
-      <div class="right">
+      <div class="left">
         <span>
-                  Recent Work
+          Home
         </span>
       </div>
+      <div class="right">
+          <div class="names">
+            <span class="first">Joel</span>
+            <span class="last">Mulonde</span>
+          </div>
+          <div class="pfp">
+            <img src="https://lh3.googleusercontent.com/a/ACg8ocLUOs5qeaGZBxkgmmCnwTjGv-XNEkNcK3a0Xeqjw188AmxmvWcJ=s83-c-mo" alt="">
+          </div>
+        </div>
     </div>
     <div class="grid">
       <div id="item-0" class="grid-item">
@@ -73,11 +65,10 @@
               </div>
               <div class="slide-item slide-explainer" style="--card-color: #E8590C;">
                 <div class="explainer-card">
-                  <h3 class="explainer-heading">Personal's</h3>
+                  <h3 class="explainer-heading">Demos</h3>
                   <ul class="explainer-list">
-                    <li>My personal work testing my skills</li>
-                    <li>Creative experiments</li>
-                    <li>Self-initiated projects</li>
+                    <li>Interactive prototypes made for various projects</li>
+                    <li>Creative experiments showcasing different techniques</li>
                   </ul>
                   <span class="explainer-brand">JM</span>
                 </div>
@@ -128,32 +119,25 @@
           </div>
         </div>
       </div>
-      <div id="item-4" class="grid-item">
+      <div id="item-4" class="grid-item item-small">
         <div class="cards">
           <div class="card card-front">
           </div>
           <div class="card card-back">
             <div class="slides" data-slideshow="true" data-interval="4000">
-              <div class="slide-item active">
-                <div class="slide-text">VISUAL SYSTEMS</div>
-              </div>
-              <div class="slide-item">
-                <div class="slide-text">MOTION DESIGN</div>
-              </div>
-              <div class="slide-item">
-                <div class="slide-text">UI / UX</div>
-              </div>
-              <div class="slide-item slide-explainer" style="--card-color: #1971C2;">
+
+              <div class="slide-item slide-explainer wImg" style="--card-color: #38c219;">
                 <div class="explainer-card">
-                  <h3 class="explainer-heading">Client Work</h3>
-                  <ul class="explainer-list">
-                    <li>Brand identities</li>
-                    <li>Web design &amp; development</li>
-                    <li>Visual systems</li>
-                  </ul>
-                  <span class="explainer-brand">JM</span>
+                  <h3 class="explainer-heading">Games</h3>
+                  <img class="spicon" id="i-games" src="icons/games.png" alt="game-icon">
                 </div>
               </div>
+                <div class="slide-item">
+                  <img src="data/work/games/overunderThs.png" alt="overunder-logo">
+                </div>
+                 <div class="slide-item">
+                  <img src="data/work/games/mulon.png" alt="overunder-logo">
+                </div>
             </div>
           </div>
         </div>
@@ -188,14 +172,6 @@
           </div>
         </div>
       </div>
-      <div id="item-7" class="grid-item">
-        <div class="cards">
-          <div class="card card-front">
-          </div>
-          <div class="card card-back">
-          </div>
-        </div>
-      </div>
       <div id="item-8" class="grid-item">
         <div class="cards">
           <div class="card card-front">
@@ -226,15 +202,12 @@
           </div>
         </div>
       </div>
-      <div id="item-9" class="grid-item">
+      <div id="item-9" class="grid-item item-small">
         <div class="cards">
           <div class="card card-front">
           </div>
           <div class="card card-back">
             <div class="slides" data-slideshow="true" data-interval="3200">
-              <div class="slide-item active">
-                <div class="slide-text">2024</div>
-              </div>
               <div class="slide-item">
                 <div class="slide-text">ARCHIVE</div>
               </div>
@@ -253,9 +226,51 @@
           </div>
         </div>
       </div>
+      <div id="item-weather-rp" class="grid-item">
+        <div class="cards">
+          <div class="card card-front">
+          </div>
+          <div class="card card-back">
+            <div class="weather-holder">
+              <div class="temp">67°</div>
+              <div class="info">
+                  <div class="place">
+                Rhonert Park, CA
+              </div>
+              <div class="desc">
+                Partly Cloudy
+              </div>
+              <div class="hi-low">
+                64° / 52°
+              </div>
+              </div>
+              <div class="app">
+                Weather
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="item-date"class="grid-item">
+        <div class="cards">
+          <div class="card card-front">
+          </div>
+          <div class="card card-back">
+            <div class="date-holder">
+              <div class="s-1">
+                <div class="date">15</div>
+                <div class="day">Saturday</div>
+              </div>
+              <div class="calender">Calender</div>
+            </div>
+          </div>
+        </div>
+
+      </di>
     </div>
   </div>
 
 </body>
 <script src="js/animation.js" type="module"></script>
+<script src="js/api.js"></script>
 </html>
