@@ -199,42 +199,60 @@
         </div>
         <div class="d-box">
           <h2>Key stats</h2>
-          <div class="stats-flex js-team-stats">
-            <div class="team-stat d-box d-inland">
-              <span>Win ratio %</span>
-              <span>92</span>
+          <div class="stats-container">
+            <div class="stats-left">
+              <div class="matches-circle">
+                <svg viewBox="0 0 100 100" class="progress-ring">
+                  <circle class="progress-ring-bg" cx="50" cy="50" r="40" />
+                  <circle class="progress-ring-won" cx="50" cy="50" r="40" />
+                  <circle class="progress-ring-draw" cx="50" cy="50" r="40" />
+                  <circle class="progress-ring-lost" cx="50" cy="50" r="40" />
+                </svg>
+                <div class="matches-center">
+                  <span class="matches-number js-matches-played">0</span>
+                  <span class="matches-label">Matches<br>played</span>
+                </div>
+              </div>
+              <div class="wdl-legend">
+                <div class="legend-item"><span class="dot won"></span><span class="js-wins-count">0</span> Won</div>
+                <div class="legend-item"><span class="dot draw"></span><span class="js-draws-count">0</span> Drawn</div>
+                <div class="legend-item"><span class="dot lost"></span><span class="js-losses-count">0</span> Lost</div>
+              </div>
             </div>
-            <div class="team-stat d-box d-inland">
-              <span>Goals scored Current season</span>
-              <span>12</span>
-            </div>
-            <div class="team-stat d-box d-inland">
-              <span>Goals conceded</span>
-              <span>12</span>
-            </div>
-            <div class="team-stat d-box d-inland">
-              <span>Goals scored</span>
-              <span>12</span>
-            </div>
-            <div class="team-stat d-box d-inland">
-              <span>Goals per game ratio %</span>
-              <span>1.2</span>
-            </div>
-            <div class="team-stat d-box d-inland">
-              <span>Wins (Last 20 Games)</span>
-              <span>15</span>
-            </div>
-            <div class="team-stat d-box d-inland">
-              <span>Losses (Last 20 Games)</span>
-              <span>3</span>
-            </div>
-            <div class="team-stat d-box d-inland">
-              <span>Win-Loss Difference</span>
-              <span>+12</span>
-            </div>
-            <div class="team-stat d-box d-inland">
-              <span>Clean Sheets</span>
-              <span>8</span>
+            <div class="stats-grid js-team-stats">
+              <div class="stat-item">
+                <span class="stat-value js-goals-scored">0</span>
+                <span class="stat-label">Goals</span>
+                <span class="stat-sub js-goals-per-match">0 avg. per match</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value js-goals-conceded">0</span>
+                <span class="stat-label">Goals conceded</span>
+                <span class="stat-sub js-conceded-per-match">0 avg. per match</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value js-win-ratio">0%</span>
+                <span class="stat-label">Win ratio</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value js-clean-sheets">0</span>
+                <span class="stat-label">Clean sheets</span>
+                <span class="stat-sub js-clean-sheets-avg">0 avg. per match</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value js-goal-diff">0</span>
+                <span class="stat-label">Goal difference</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value"><span class="card-icon yellow">🟨</span><span class="js-yellow-cards">0</span></span>
+                <span class="stat-label">Yellow cards</span>
+                <span class="stat-sub js-yellow-avg">0 avg. per match</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value"><span class="card-icon red">🟥</span><span class="js-red-cards">0</span></span>
+                <span class="stat-label">Red cards</span>
+                <span class="stat-sub js-red-avg">0 avg. per match</span>
+              </div>
             </div>
           </div>
         </div>

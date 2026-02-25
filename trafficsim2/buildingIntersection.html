@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Builder with Intersections</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: #1a1a2e;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #eee;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        canvas {
+            background: #2d5a27;
+            border: 2px solid #333;
+            cursor: crosshair;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <h1>Road Builder</h1>
+    <p>Click and drag to draw roads. Intersections will appear where roads cross.</p>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <button onclick="clearCanvas()">Clear All</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let isDrawing = false;
+        let startX, startY;
+        let roads = [];
+        let intersections = [];
+        const roadWidth = 20;
+        const intersectionSize = 30;
+
+        // Draw everything
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#2d5a27';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw roads
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = roadWidth;
+            ctx.lineCap = 'round';
+
+            roads.forEach(road => {
+                ctx.beginPath();
+                ctx.moveTo(road.x1, road.y1);
+                ctx.lineTo(road.x2, road.y2);
+                ctx.stroke();
+            });
+
+            // Draw intersections as squares
+            ctx.fillStyle = '#444';
+            intersections.forEach(inter => {
+                ctx.fillRect(
+                    inter.x - intersectionSize / 2,
+                    inter.y - intersectionSize / 2,
+                    intersectionSize,
+                    intersectionSize
+                );
+            });
+
+            // Draw crosswalks at intersections
+            ctx.fillStyle = '#fff';
+            const stripeWidth = 3;
+            const stripeLength = roadWidth - 4;
+            const numStripes = 5;
+            const crosswalkDist = intersectionSize / 2 + 8;
+
+            intersections.forEach(inter => {
+                // Top crosswalk - vertical white stripes across horizontal road
+                for (let i = 0; i < numStripes; i++) {
+                    const xPos = inter.x - (numStripes * stripeWidth) / 2 + i * stripeWidth * 2;
+                    ctx.fillRect(xPos, inter.y - crosswalkDist - stripeLength, stripeWidth, stripeLength);
+                }
+                // Bottom crosswalk
+                for (let i = 0; i < numStripes; i++) {
+                    const xPos = inter.x - (numStripes * stripeWidth) / 2 + i * stripeWidth * 2;
+                    ctx.fillRect(xPos, inter.y + crosswalkDist, stripeWidth, stripeLength);
+                }
+                // Left crosswalk - horizontal white stripes across vertical road
+                for (let i = 0; i < numStripes; i++) {
+                    const yPos = inter.y - (numStripes * stripeWidth) / 2 + i * stripeWidth * 2;
+                    ctx.fillRect(inter.x - crosswalkDist - stripeLength, yPos, stripeLength, stripeWidth);
+                }
+                // Right crosswalk
+                for (let i = 0; i < numStripes; i++) {
+                    const yPos = inter.y - (numStripes * stripeWidth) / 2 + i * stripeWidth * 2;
+                    ctx.fillRect(inter.x + crosswalkDist, yPos, stripeLength, stripeWidth);
+                }
+            });
+        }
+
+        // Check if two line segments intersect
+        function getLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (Math.abs(denom) < 0.0001) return null; // parallel lines
+
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+            const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+
+            if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+                return {
+                    x: x1 + t * (x2 - x1),
+                    y: y1 + t * (y2 - y1)
+                };
+            }
+            return null;
+        }
+
+        // Find all intersections for the new road
+        function findIntersections(newRoad) {
+            const newIntersections = [];
+            
+            roads.forEach(road => {
+                const point = getLineIntersection(
+                    newRoad.x1, newRoad.y1, newRoad.x2, newRoad.y2,
+                    road.x1, road.y1, road.x2, road.y2
+                );
+                
+                if (point) {
+                    // Check if intersection already exists nearby
+                    const exists = intersections.some(inter => 
+                        Math.abs(inter.x - point.x) < intersectionSize &&
+                        Math.abs(inter.y - point.y) < intersectionSize
+                    );
+                    
+                    if (!exists) {
+                        newIntersections.push(point);
+                    }
+                }
+            });
+            
+            return newIntersections;
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+
+            // Redraw with preview
+            draw();
+            
+            // Draw preview line
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = roadWidth;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            
+            const rect = canvas.getBoundingClientRect();
+            const endX = e.clientX - rect.left;
+            const endY = e.clientY - rect.top;
+
+            // Only add road if it has some length
+            const length = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+            if (length > 10) {
+                const newRoad = { x1: startX, y1: startY, x2: endX, y2: endY };
+                
+                // Find intersections before adding the road
+                const newIntersections = findIntersections(newRoad);
+                intersections.push(...newIntersections);
+                
+                roads.push(newRoad);
+            }
+            
+            draw();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (isDrawing) {
+                isDrawing = false;
+                draw();
+            }
+        });
+
+        // Clear canvas
+        function clearCanvas() {
+            roads = [];
+            intersections = [];
+            draw();
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>

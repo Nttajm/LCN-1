@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrafficSim3.6</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .map {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: #ffffff;
+      cursor: crosshair;
+      background-image: 
+        radial-gradient(circle, #cacaca81 1px, transparent 1px);
+      background-size: 25px 25px;
+    }
+  </style>
+</head>
+<body>
+  <div class="map">
+    <canvas id="mapCanvas"></canvas>
+  </div>
+</body>
+<script>
+  let dm = document
+  function E_ById(id) {
+    return dm.getElementById(id);
+  }
+  let startingPoint = null;
+  const mapCanvas = E_ById('mapCanvas');
+</script>
+</html>

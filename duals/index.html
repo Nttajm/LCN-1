@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duels</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+
+  <!-- Onboarding Overlay -->
+  <div class="onboarding-overlay" id="onboardingOverlay">
+    <!-- Segment 1: Welcome & Sign In -->
+    <div class="onboarding-segment active" data-segment="1">
+      <div class="onboarding-content">
+        <div class="onboarding-logo">
+          <h1>Duels</h1>
+          <p class="tagline">Challenge. Compete. Conquer.</p>
+        </div>
+        
+        <div class="onboarding-actions">
+          <button class="google-signin-btn" id="googleSignInBtn">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+        </div>
+        
+        <p class="onboarding-note">Sign in to save your progress & stats</p>
+      </div>
+    </div>
+
+    <!-- Segment 2: Username Setup -->
+    <div class="onboarding-segment" data-segment="2">
+      <div class="onboarding-content">
+        <div class="onboarding-logo">
+          <h1>Duels</h1>
+        </div>
+        
+        <div class="username-form">
+          <h2 class="form-title">Choose your username</h2>
+          <p class="form-subtitle">This is how other players will see you</p>
+          
+          <div class="username-input-wrapper">
+            <input type="text" class="username-input" id="usernameInput" placeholder="Enter username" maxlength="20" autocomplete="off">
+            <p class="username-error" id="usernameError">Username is required</p>
+          </div>
+          
+          <button class="submit-username-btn" id="submitUsernameBtn">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="main-app" id="mainApp">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Request Section -->
+      <div class="sidebar-section request-section">
+        <h3 class="sidebar-title">Game Requests</h3>
+        <div class="request-list" id="requestList">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" width="32" height="32">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <p>No pending requests</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Online Users Section -->
+      <div class="sidebar-section online-users-section">
+        <h3 class="sidebar-title">
+          <span>Online Users</span>
+          <span class="online-count" id="onlineCount">0</span>
+        </h3>
+        <div class="user-list" id="userList">
+          <div class="user-item">
+            <div class="user-avatar" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);">J</div>
+            <div class="user-info">
+              <span class="user-name">John_Doe</span>
+              <span class="user-status">In Game</span>
+            </div>
+            <div class="user-actions">
+              <button class="challenge-btn" title="Challenge to duel">
+                Duel
+              </button>
+            </div>
+          </div>
+          <div class="user-item">
+            <div class="user-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">S</div>
+            <div class="user-info">
+              <span class="user-name">Sarah_G</span>
+              <span class="user-status online">Online</span>
+            </div>
+            <div class="user-actions">
+              <button class="challenge-btn" title="Challenge to duel">
+                Duel
+              </button>
+            </div>
+          </div>
+          <div class="user-item">
+            <div class="user-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">M</div>
+            <div class="user-info">
+              <span class="user-name">Mike_Pro</span>
+              <span class="user-status online">Online</span>
+            </div>
+            <div class="user-actions">
+              <button class="challenge-btn" title="Challenge to duel">
+                Duel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Duels</h1>
+        <p class="welcome-message" id="welcomeMessage">Welcome!</p>
+      </header>
+    
+    <section class="games-section">
+      <div class="games-grid">
+        
+        <!-- Tic Tac Toe -->
+        <div class="game-card" data-game="tictactoe">
+          <div class="game-card-bg" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);">
+            <div class="game-icon">
+              <svg viewBox="0 0 100 100" width="80" height="80">
+                <!-- Tic Tac Toe Grid -->
+                <line x1="35" y1="10" x2="35" y2="90" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                <line x1="65" y1="10" x2="65" y2="90" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                <line x1="10" y1="35" x2="90" y2="35" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                <line x1="10" y1="65" x2="90" y2="65" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                <!-- X -->
+                <line x1="15" y1="15" x2="30" y2="30" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+                <line x1="30" y1="15" x2="15" y2="30" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+                <!-- O -->
+                <circle cx="77" cy="77" r="10" stroke="#34d399" stroke-width="4" fill="none"/>
+              </svg>
+            </div>
+          </div>
+          <span class="game-name">Tic Tac Toe</span>
+          <span class="player-badge">2</span>
+        </div>
+        
+        <!-- Coin Flip -->
+        <div class="game-card" data-game="coinflip">
+          <div class="game-card-bg" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+            <div class="game-icon">
+              <svg viewBox="0 0 100 100" width="80" height="80">
+                <!-- Coin -->
+                <ellipse cx="50" cy="50" rx="35" ry="35" fill="#fcd34d" stroke="#fbbf24" stroke-width="4"/>
+                <ellipse cx="50" cy="50" rx="28" ry="28" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                <!-- Dollar sign -->
+                <text x="50" y="62" font-size="36" font-weight="bold" fill="#b45309" text-anchor="middle">$</text>
+              </svg>
+            </div>
+          </div>
+          <span class="game-name">Coin Flip</span>
+          <span class="player-badge">2</span>
+        </div>
+        
+      </div>
+    </section>
+    
+    <!-- Lobby Bar -->
+    <div class="lobby-bar">
+      <div class="lobby-header">
+        <h4 class="lobby-title">My Lobby</h4>
+        <span class="lobby-count">1 player</span>
+      </div>
+      <div class="lobby-players">
+        <div class="lobby-player">
+          <div class="lobby-avatar" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">Y</div>
+          <span class="lobby-username">You</span>
+        </div>
+      </div>
+    </div>
+    </main>
+  </div>
+
+</body>
+<script type="module" src="js/dual.js"></script>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Draw Lines</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .board {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: #ffffff;
+      cursor: crosshair;
+      background-image: 
+        radial-gradient(circle, #cacaca81 1px, transparent 1px);
+      background-size: 25px 25px;
+    }
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    #config-panel {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 20, 30, 0.88);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #ddd;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      z-index: 100;
+      user-select: none;
+    }
+    #config-panel label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    #config-panel .seg-preview {
+      display: flex; flex-direction: column; gap: 3px; justify-content: center;
+    }
+    #config-panel .seg-preview span {
+      display: block; height: 2px; border-radius: 1px;
+    }
+    .lane-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #fff;
+      padding: 4px 12px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+    .lane-btn.active { background: rgba(100,200,100,0.25); border-color: #4c4; color: #9f9; }
+    .lane-btn:hover:not(.active) { background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <div class="board" onclick="handleClick(event)">
+    <svg id="canvas"></svg>
+  </div>
+
+  <div id="config-panel">
+    <span style="color:#aaa;font-size:11px;letter-spacing:1px">ROAD CONFIG</span>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,0.15)"></div>
+    <button class="lane-btn active" id="btn-2lane" onclick="setLaneMode(2)">2 Lane</button>
+    <button class="lane-btn" id="btn-4lane" onclick="setLaneMode(4)">4 Lane</button>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,0.15)"></div>
+    <div class="seg-preview" id="seg-preview">
+      <span style="width:40px;background:#000"></span>
+      <span style="width:40px;background:#ffcc00"></span>
+    </div>
+    <span id="lane-label" style="color:#9f9;min-width:60px">2 lanes</span>
+  </div>
+
+  <script>
+    let firstPoint = null;
+    const svg = document.getElementById('canvas');
+    let segments = [];
+    let segmentCounter = 1;
+    let nodes = new Map();
+    const LANE_OFFSET = 4;
+
+    // Current drawing mode
+    let currentLaneCount = 2;
+
+    function getLaneOffsets(laneCount) {
+      if (laneCount === 4) return [-LANE_OFFSET * 1.5, -LANE_OFFSET * 0.5, LANE_OFFSET * 0.5, LANE_OFFSET * 1.5];
+      return [-LANE_OFFSET, LANE_OFFSET]; // 2 lane default
+    }
+
+    function setLaneMode(n) {
+      currentLaneCount = n;
+      document.getElementById('btn-2lane').classList.toggle('active', n === 2);
+      document.getElementById('btn-4lane').classList.toggle('active', n === 4);
+      document.getElementById('lane-label').textContent = n + ' lanes';
+      const preview = document.getElementById('seg-preview');
+      preview.innerHTML = getLaneOffsets(n).map((o, i) => {
+        const colors = ['#000','#333','#ffcc00','#ffaa00'];
+        return `<span style="width:40px;background:${colors[i % colors.length]}"></span>`;
+      }).join('');
+    }
+
+    function snapToGrid(value) {
+      return Math.round(value / 25) * 25;
+    }
+
+    function getNodeKey(x, y) {
+      return `${x},${y}`;
+    }
+
+    // Calculate perpendicular offset points for lanes
+    function getLanePoints(x1, y1, x2, y2, laneOffsets) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      
+      if (length === 0) return laneOffsets.map(() => ({ x1, y1, x2, y2 }));
+      
+      // Perpendicular unit vector (rotated 90 degrees)
+      const perpX = -dy / length;
+      const perpY = dx / length;
+      
+      return laneOffsets.map(offset => ({
+        x1: x1 + perpX * offset,
+        y1: y1 + perpY * offset,
+        x2: x2 + perpX * offset,
+        y2: y2 + perpY * offset
+      }));
+    }
+
+    function shortenLine(x1, y1, x2, y2, shortenStart, shortenEnd) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      
+      if (length === 0) return { x1, y1, x2, y2 };
+      
+      const unitX = dx / length;
+      const unitY = dy / length;
+      
+      return {
+        x1: shortenStart ? x1 + unitX * 12.5 : x1,
+        y1: shortenStart ? y1 + unitY * 12.5 : y1,
+        x2: shortenEnd ? x2 - unitX * 12.5 : x2,
+        y2: shortenEnd ? y2 - unitY * 12.5 : y2
+      };
+    }
+
+    // Check if point (px,py) lies on segment interior (not at endpoints)
+    function pointOnSegment(px, py, seg) {
+      const x1 = seg.startNode.x, y1 = seg.startNode.y;
+      const x2 = seg.endNode.x,   y2 = seg.endNode.y;
+      if ((px === x1 && py === y1) || (px === x2 && py === y2)) return false;
+      const dx = x2 - x1, dy = y2 - y1;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq === 0) return false;
+      const t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+      if (t <= 0 || t >= 1) return false;
+      const closestX = x1 + t * dx;
+      const closestY = y1 + t * dy;
+      return Math.abs(closestX - px) < 0.5 && Math.abs(closestY - py) < 0.5;
+    }
+
+    // Split an existing segment at (px,py), replacing it with two segments sharing a new node
+    function splitSegmentAtPoint(seg, px, py) {
+      const origStart = seg.startNode;
+      const origEnd   = seg.endNode;
+
+      // Remove original from both endpoint node lists
+      const startKey = getNodeKey(origStart.x, origStart.y);
+      const endKey   = getNodeKey(origEnd.x,   origEnd.y);
+      nodes.get(startKey).segments = nodes.get(startKey).segments.filter(s => s.id !== seg.id);
+      nodes.get(startKey).count--;
+      nodes.get(endKey).segments   = nodes.get(endKey).segments.filter(s => s.id !== seg.id);
+      nodes.get(endKey).count--;
+
+      // Erase visuals of original segment
+      if (seg.lineElements) seg.lineElements.forEach(el => el.remove());
+      segments = segments.filter(s => s.id !== seg.id);
+
+      // Register the split node
+      const splitKey = getNodeKey(px, py);
+      if (!nodes.has(splitKey)) nodes.set(splitKey, { count: 0, segments: [] });
+
+      function addSeg(ax, ay, bx, by) {
+        const kA = getNodeKey(ax, ay);
+        const kB = getNodeKey(bx, by);
+        if (!nodes.has(kA)) nodes.set(kA, { count: 0, segments: [] });
+        if (!nodes.has(kB)) nodes.set(kB, { count: 0, segments: [] });
+        const s = { id: segmentCounter++, startNode: { x: ax, y: ay }, endNode: { x: bx, y: by }, laneCount: seg.laneCount || 2, lineElements: [] };
+        segments.push(s);
+        nodes.get(kA).segments.push(s); nodes.get(kA).count++;
+        nodes.get(kB).segments.push(s); nodes.get(kB).count++;
+        return s;
+      }
+
+      const segA = addSeg(origStart.x, origStart.y, px, py);
+      const segB = addSeg(px, py, origEnd.x, origEnd.y);
+      redrawSegment(segA);
+      redrawSegment(segB);
+
+      // Refresh junctions at all three involved nodes
+      [startKey, endKey, splitKey].forEach(k => {
+        const nd = nodes.get(k);
+        if (!nd) return;
+        svg.querySelectorAll(`rect[data-node="${k}"]`).forEach(el => el.remove());
+        svg.querySelectorAll(`path[data-junction="${k}"]`).forEach(el => el.remove());
+        if (nd.count > 1) {
+          const [nx, ny] = k.split(',').map(Number);
+          drawJunctionSquare(nx, ny, nd.count);
+          const jEl = nd.count === 2 ? svg.querySelector('circle:last-of-type') : svg.querySelector('rect:last-of-type');
+          if (jEl) jEl.setAttribute('data-node', k);
+          calculateCurves(nx, ny);
+        }
+      });
+
+      return splitKey;
+    }
+
+    function drawJunctionSquare(x, y, segmentCount) {
+      if (segmentCount === 2) {
+        // Only 2 segments meeting: draw a light transparent circle instead
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', '12.5');
+        circle.setAttribute('fill', 'rgba(144, 238, 144, 0.2)');
+        circle.setAttribute('stroke', 'rgba(144, 238, 144, 0.8)');
+        circle.setAttribute('stroke-width', '1.5');
+        svg.appendChild(circle);
+      } else {
+        // 3+ segments: solid green square
+        const square = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        square.setAttribute('x', x - 12.5);
+        square.setAttribute('y', y - 12.5);
+        square.setAttribute('width', '25');
+        square.setAttribute('height', '25');
+        square.setAttribute('fill', 'none');
+        square.setAttribute('stroke', 'green');
+        square.setAttribute('stroke-width', '2');
+        svg.appendChild(square);
+      }
+    }
+
+    // Draw a single bezier lane curve inside a junction
+    function drawLaneCurve(nodeX, nodeY, dir1, entryOffset, dir2, exitOffset, nodeKey, segIdA, segIdB, laneIdx) {
+      const entryX = nodeX + dir1.dx * 12.5 + dir1.perpX * entryOffset;
+      const entryY = nodeY + dir1.dy * 12.5 + dir1.perpY * entryOffset;
+      const exitX  = nodeX + dir2.dx * 12.5 + dir2.perpX * exitOffset;
+      const exitY  = nodeY + dir2.dy * 12.5 + dir2.perpY * exitOffset;
+      const ctrl1X = nodeX + dir1.dx * 8 + dir1.perpX * entryOffset;
+      const ctrl1Y = nodeY + dir1.dy * 8 + dir1.perpY * entryOffset;
+      const ctrl2X = nodeX + dir2.dx * 8 + dir2.perpX * exitOffset;
+      const ctrl2Y = nodeY + dir2.dy * 8 + dir2.perpY * exitOffset;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${entryX} ${entryY} C ${ctrl1X} ${ctrl1Y}, ${ctrl2X} ${ctrl2Y}, ${exitX} ${exitY}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', entryOffset < 0 ? '#e74c3c' : '#3498db');
+      path.setAttribute('stroke-width', '0.75');
+      path.setAttribute('data-junction', nodeKey);
+      path.setAttribute('data-from-segment', segIdA);
+      path.setAttribute('data-to-segment', segIdB);
+      path.setAttribute('data-lane', laneIdx);
+      svg.appendChild(path);
+    }
+
+    function calculateCurves(nodeX, nodeY) {
+      const nodeKey = getNodeKey(nodeX, nodeY);
+      const nodeData = nodes.get(nodeKey);
+      if (!nodeData || nodeData.count < 2) return;
+
+      svg.querySelectorAll(`path[data-junction="${nodeKey}"]`).forEach(c => c.remove());
+
+      // Build direction info per segment, including its own lane offsets
+      const directions = [];
+      nodeData.segments.forEach(segment => {
+        const isStart = segment.startNode.x === nodeX && segment.startNode.y === nodeY;
+        const otherX = isStart ? segment.endNode.x : segment.startNode.x;
+        const otherY = isStart ? segment.endNode.y : segment.startNode.y;
+        const dx = otherX - nodeX, dy = otherY - nodeY;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        if (length === 0) return;
+        const perpX = -dy / length, perpY = dx / length;
+        directions.push({
+          segment, isStart,
+          dx: dx / length, dy: dy / length,
+          perpX, perpY,
+          offsets: getLaneOffsets(segment.laneCount || 2)
+        });
+      });
+
+      nodeData.paths = [];
+
+      for (let i = 0; i < directions.length; i++) {
+        for (let j = i + 1; j < directions.length; j++) {
+          const dir1 = directions[i];
+          const dir2 = directions[j];
+          const offs1 = dir1.offsets;
+          const offs2 = dir2.offsets;
+          const sameLaneCount = offs1.length === offs2.length;
+
+          if (sameLaneCount) {
+            // Same lane count: mirror lane index so same physical side connects
+            // (each dir's perp points in a different direction, so index N on dir1
+            //  corresponds to the mirrored index on dir2 to avoid DNA crossing)
+            const n = offs1.length;
+            for (let laneIdx = 0; laneIdx < n; laneIdx++) {
+              const entryOffset = offs1[laneIdx];
+              const exitOffset  = offs2[n - 1 - laneIdx];
+              // here !!! (same lane-count curve connection)
+              drawLaneCurve(nodeX, nodeY, dir2, entryOffset, dir1, exitOffset, nodeKey, dir1.segment.id, dir2.segment.id, laneIdx);
+            }
+          } else {
+            // Mixed: 2-lane side fans out to each lane of the 4-lane side
+            const smallDir  = offs1.length < offs2.length ? dir1 : dir2;
+            const bigDir    = offs1.length < offs2.length ? dir2 : dir1;
+            const smallOffs = offs1.length < offs2.length ? offs1 : offs2;
+            const bigOffs   = offs1.length < offs2.length ? offs2 : offs1;
+
+            // Mirror the big-side slice: because bigDir's perp points opposite to smallDir's perp,
+            // small lane 0 (negative on smallDir) is the same physical side as the POSITIVE half
+            // of the big road, and small lane 1 (positive) matches the NEGATIVE half.
+            const half = bigOffs.length / 2;
+            const n = smallOffs.length;
+            smallOffs.forEach((sOff, si) => {
+              // Mirrored: si=0 → positive half of big road, si=1 → negative half
+              const bigSlice = si === 0 ? bigOffs.slice(half) : bigOffs.slice(0, half);
+              bigSlice.forEach((bOff, bi) => {
+                const fromDir = smallDir;
+                const toDir   = bigDir;
+                // here !!! (2-lane ↔ 4-lane curve connection)
+                drawLaneCurve(nodeX, nodeY, fromDir, sOff, toDir, bOff, nodeKey, dir1.segment.id, dir2.segment.id, si * half + bi);
+              });
+            });
+          }
+
+          nodeData.paths.push({ segmentA: dir1.segment.id, segmentB: dir2.segment.id });
+        }
+      }
+    }
+
+    function redrawSegment(segment) {
+      const laneOffsets = getLaneOffsets(segment.laneCount || 2);
+      // Remove old line elements
+      if (segment.lineElements) segment.lineElements.forEach(el => el.remove());
+      segment.lineElements = [];
+
+      // Check if start or end nodes are junctions
+      const startKey = getNodeKey(segment.startNode.x, segment.startNode.y);
+      const endKey = getNodeKey(segment.endNode.x, segment.endNode.y);
+      const startIsJunction = nodes.get(startKey) && nodes.get(startKey).count > 1;
+      const endIsJunction = nodes.get(endKey) && nodes.get(endKey).count > 1;
+
+      let x1 = segment.startNode.x;
+      let y1 = segment.startNode.y;
+      let x2 = segment.endNode.x;
+      let y2 = segment.endNode.y;
+
+      // Shorten line if either end is a junction
+      const shortened = shortenLine(x1, y1, x2, y2, startIsJunction, endIsJunction);
+      x1 = shortened.x1;
+      y1 = shortened.y1;
+      x2 = shortened.x2;
+      y2 = shortened.y2;
+
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      if (segLen === 0) return;
+
+      const ux = dx / segLen; // unit vector along segment
+      const uy = dy / segLen;
+      const perpX = -uy;     // perpendicular unit vector
+      const perpY = ux;
+
+      const laneColorPalette = ['#000000', '#333333', '#ffcc00', '#ffaa00'];
+      const laneColors = laneOffsets.map((_, i) => laneColorPalette[i % laneColorPalette.length]);
+
+      // Arrow size & spacing
+      const arrowLen = 6;       // length of arrow head arms
+      const arrowAngle = 0.45;  // radians, ~25°
+      const spacing = 25;       // one arrow every 25px (matches grid)
+      const numArrows = Math.max(1, Math.floor(segLen / spacing));
+      const step = segLen / numArrows;
+
+      laneOffsets.forEach((offset, idx) => {
+        const color = laneColors[idx];
+
+        // Lane line
+        const lx1 = x1 + perpX * offset;
+        const ly1 = y1 + perpY * offset;
+        const lx2 = x2 + perpX * offset;
+        const ly2 = y2 + perpY * offset;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', lx1);
+        line.setAttribute('y1', ly1);
+        line.setAttribute('x2', lx2);
+        line.setAttribute('y2', ly2);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('data-segment', segment.id);
+        line.setAttribute('data-lane', idx);
+        svg.appendChild(line);
+        segment.lineElements.push(line);
+
+        // Lane 0 (black) goes from end→start, lane 1 (yellow) goes start→end (flipped)
+        const forward = idx !== 0;
+        // Direction of travel along this lane
+        const tux = forward ? ux : -ux;
+        const tuy = forward ? uy : -uy;
+
+        // Place arrows evenly spaced, centered in the segment
+        for (let a = 0; a < numArrows; a++) {
+          // Center of this arrow along the segment, offset half a step from each end
+          const t = (a + 0.5) * step;
+          // Base point of arrow along segment, projected onto the lane
+          const ax = (forward ? x1 + tux * t : x2 + tux * t) + perpX * offset;
+          const ay = (forward ? y1 + tuy * t : y2 + tuy * t) + perpY * offset;
+
+          // Arrowhead tip
+          const tipX = ax + tux * arrowLen * 0.5;
+          const tipY = ay + tuy * arrowLen * 0.5;
+
+          // Two arms going back from tip
+          const arm1X = tipX - tux * arrowLen * Math.cos(arrowAngle) + tuy * arrowLen * Math.sin(arrowAngle);
+          const arm1Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) - tux * arrowLen * Math.sin(arrowAngle);
+          const arm2X = tipX - tux * arrowLen * Math.cos(arrowAngle) - tuy * arrowLen * Math.sin(arrowAngle);
+          const arm2Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) + tux * arrowLen * Math.sin(arrowAngle);
+
+          const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          arrow.setAttribute('points', `${arm1X},${arm1Y} ${tipX},${tipY} ${arm2X},${arm2Y}`);
+          arrow.setAttribute('fill', 'none');
+          arrow.setAttribute('stroke', color);
+          arrow.setAttribute('stroke-width', '1');
+          arrow.setAttribute('stroke-opacity', '0.8');
+          arrow.setAttribute('data-segment', segment.id);
+          arrow.setAttribute('data-lane', idx);
+          svg.appendChild(arrow);
+          segment.lineElements.push(arrow);
+        }
+      });
+    }
+
+    function handleClick(event) {
+      const x = snapToGrid(event.clientX);
+      const y = snapToGrid(event.clientY);
+
+      // Check if this point lies on the interior of any existing segment → split it first
+      const hitSeg = segments.find(seg => pointOnSegment(x, y, seg));
+      if (hitSeg) {
+        splitSegmentAtPoint(hitSeg, x, y);
+        // Now (x,y) is a proper node — fall through to place firstPoint / end a segment here
+      }
+
+      if (!firstPoint) {
+        // Store first point
+        firstPoint = { x, y };
+        
+        // Draw a small circle at first point
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', '4');
+        circle.setAttribute('fill', 'red');
+        svg.appendChild(circle);
+      } else {
+        // Register nodes
+        const startKey = getNodeKey(firstPoint.x, firstPoint.y);
+        const endKey = getNodeKey(x, y);
+
+        if (!nodes.has(startKey)) {
+          nodes.set(startKey, { count: 0, segments: [] });
+        }
+        if (!nodes.has(endKey)) {
+          nodes.set(endKey, { count: 0, segments: [] });
+        }
+
+        nodes.get(startKey).count++;
+        nodes.get(endKey).count++;
+
+        // Save segment data
+        const segment = {
+          id: segmentCounter,
+          startNode: { x: firstPoint.x, y: firstPoint.y },
+          endNode: { x: x, y: y },
+          laneCount: currentLaneCount,
+          lineElements: []
+        };
+        segments.push(segment);
+        
+        nodes.get(startKey).segments.push(segment);
+        nodes.get(endKey).segments.push(segment);
+
+        // Draw circle at second point
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', '4');
+        circle.setAttribute('fill', 'red');
+        svg.appendChild(circle);
+        
+        console.log(`Segment ${segmentCounter}: nodeStart(${firstPoint.x}, ${firstPoint.y}) endNode(${x}, ${y}) lanes:${currentLaneCount}`);
+        segmentCounter++;
+
+        // Redraw all affected segments
+        const affectedSegments = new Set([...nodes.get(startKey).segments, ...nodes.get(endKey).segments]);
+        affectedSegments.forEach(seg => redrawSegment(seg));
+
+        // Draw junction squares for nodes with multiple connections
+        if (nodes.get(startKey).count > 1) {
+          // Remove old junction marker if exists
+          svg.querySelectorAll(`rect[data-node="${startKey}"], circle[data-node="${startKey}"]`).forEach(el => el.remove());
+          const startCount = nodes.get(startKey).count;
+          drawJunctionSquare(firstPoint.x, firstPoint.y, startCount);
+          const startEl = startCount === 2 ? svg.querySelector('circle:last-of-type') : svg.querySelector('rect:last-of-type');
+          if (startEl) startEl.setAttribute('data-node', startKey);
+          calculateCurves(firstPoint.x, firstPoint.y);
+        }
+        if (nodes.get(endKey).count > 1) {
+          svg.querySelectorAll(`rect[data-node="${endKey}"], circle[data-node="${endKey}"]`).forEach(el => el.remove());
+          const endCount = nodes.get(endKey).count;
+          drawJunctionSquare(x, y, endCount);
+          const endEl = endCount === 2 ? svg.querySelector('circle:last-of-type') : svg.querySelector('rect:last-of-type');
+          if (endEl) endEl.setAttribute('data-node', endKey);
+          calculateCurves(x, y);
+        }
+
+        // Reset for next line
+        firstPoint = null;
+      }
+    }
+  </script>
+</body>
+</html>

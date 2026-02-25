@@ -1,20 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Simulator</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app">
-    <div class="road" data-length="3u" id="">
-      <div class="lane">
-        <div class="car"></div>
-      </div>
-      <div class="lane"></div>
+    <div class="container">
+        <div class="toolbar">
+            <h2>Traffic Sim</h2>
+            <div class="tool-group">
+                <label>Drawing Mode:</label>
+                <button id="straightBtn" class="tool-btn active">📏 Straight</button>
+                <button id="curveBtn" class="tool-btn">🔄 Curve</button>
+                <button id="freeDrawBtn" class="tool-btn">✏️ Freehand</button>
+            </div>
+            <div class="tool-group">
+                <button id="eraseBtn" class="tool-btn">🗑️ Erase</button>
+            </div>
+            <div class="tool-group">
+                <label>Road Width:</label>
+                <input type="range" id="roadWidth" min="40" max="120" value="80">
+                <span id="roadWidthValue">80</span>
+            </div>
+            <div class="tool-group">
+                <label>Lanes:</label>
+                <select id="laneCount">
+                    <option value="2">2 Lanes</option>
+                    <option value="4" selected>4 Lanes</option>
+                    <option value="6">6 Lanes</option>
+                </select>
+            </div>
+            <div class="tool-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="oneWayCheckbox">
+                    <span>🚗 One-Way Road (press O)</span>
+                </label>
+            </div>
+            <div class="tool-group">
+                <button id="clearBtn" class="action-btn">Clear All</button>
+            </div>
+            <hr>
+            <div class="tool-group">
+                <label>Spawn Rate:</label>
+                <input type="range" id="spawnRate" min="500" max="5000" value="2000">
+                <span id="spawnRateValue">2s</span>
+            </div>
+            <div class="tool-group">
+                <label>Car Speed:</label>
+                <input type="range" id="carSpeed" min="1" max="10" value="3">
+                <span id="carSpeedValue">3</span>
+            </div>
+            <div class="tool-group">
+                <button id="startBtn" class="action-btn start">▶️ Start Simulation</button>
+                <button id="pauseBtn" class="action-btn pause" disabled>⏸️ Pause</button>
+            </div>
+            <hr>
+            <div class="stats">
+                <p>Cars: <span id="carCount">0</span></p>
+                <p>Spawn Points: <span id="spawnCount">0</span></p>
+            </div>
+            <div class="instructions">
+                <h4>Instructions:</h4>
+                <ul>
+                    <li><b>Straight:</b> Click start & end point</li>
+                    <li><b>Curve:</b> Click start, drag for curve, release at end</li>
+                    <li><b>Freehand:</b> Click and drag freely</li>
+                    <li>Snap to road endpoints (yellow circles)</li>
+                    <li>Cars auto-switch lanes</li>
+                </ul>
+            </div>
+        </div>
+        <div class="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
     </div>
-  </div>
+    <script src="game.js"></script>
 </body>
-<script src="game.js"></script>
 </html>

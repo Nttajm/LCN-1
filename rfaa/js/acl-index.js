@@ -497,6 +497,10 @@ function addMatchDialog(startMatch, mdIndex) {
     const team1Goals = [];
     const team2Goals = [];
     const assist1 = [];
+    const team1YellowCards = [];
+    const team1RedCards = [];
+    const team2YellowCards = [];
+    const team2RedCards = [];
 
     console.log(matchdayIndex, 'matchday');
 
@@ -570,6 +574,30 @@ function addMatchDialog(startMatch, mdIndex) {
                     <input type="number" id="team1-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team1-goal-list"></ul>
+                <div class="add-card">
+                    <div class="fl-r fl-ai add-options">
+                        <div class="fl-r fl-ai" id="team1-add-yellow">
+                            <span style="background: yellow; padding: 2px 8px; border-radius: 2px;">🟨</span> Yellow Card
+                        </div>
+                        <select id="team1-yellow-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <div class="fl-r fl-ai add-options">
+                        <div class="fl-r fl-ai" id="team1-add-red">
+                            <span style="background: red; padding: 2px 8px; border-radius: 2px; color: white;">🟥</span> Red Card
+                        </div>
+                        <select id="team1-red-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <input type="number" id="team1-card-minute" placeholder="Minute" min="1" max="120">
+                </div>
+                <ul class="card-list" id="team1-card-list"></ul>
             </div>
 
             <div class="team-man" id="team2">
@@ -619,6 +647,30 @@ function addMatchDialog(startMatch, mdIndex) {
                     <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team2-goal-list"></ul>
+                <div class="add-card">
+                    <div class="fl-r fl-ai add-options">
+                        <div class="fl-r fl-ai" id="team2-add-yellow">
+                            <span style="background: yellow; padding: 2px 8px; border-radius: 2px;">🟨</span> Yellow Card
+                        </div>
+                        <select id="team2-yellow-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <div class="fl-r fl-ai add-options">
+                        <div class="fl-r fl-ai" id="team2-add-red">
+                            <span style="background: red; padding: 2px 8px; border-radius: 2px; color: white;">🟥</span> Red Card
+                        </div>
+                        <select id="team2-red-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <input type="number" id="team2-card-minute" placeholder="Minute" min="1" max="120">
+                </div>
+                <ul class="card-list" id="team2-card-list"></ul>
             </div>
         </div>
         <div class="full-btn btn" id="create-match-btn"><span>CREATE MATCH</span></div>
@@ -644,11 +696,15 @@ function addMatchDialog(startMatch, mdIndex) {
         const team = getTeamById(team1Select.value);
         team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
         playerAssist1.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        document.querySelector('#team1-yellow-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        document.querySelector('#team1-red-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
     }
     function updateTeam2Inputs() {
         const team = getTeamById(team2Select.value);
         team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
         playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        document.querySelector('#team2-yellow-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        document.querySelector('#team2-red-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
     }
     updateTeam1Inputs();
     updateTeam2Inputs();
@@ -779,6 +835,28 @@ function addMatchDialog(startMatch, mdIndex) {
         updateScores();
     });
 
+    // Add yellow card for team 1
+    document.querySelector('#team1-add-yellow').addEventListener('click', () => {
+        const player = document.querySelector('#team1-yellow-player-select').value;
+        const minute = document.querySelector('#team1-card-minute').value;
+        if (player && minute) {
+            team1YellowCards.push({ player, minute: parseInt(minute), type: 'yellow' });
+            renderCards(document.querySelector('#team1-card-list'), team1YellowCards, team1RedCards);
+            document.querySelector('#team1-card-minute').value = '';
+        }
+    });
+
+    // Add red card for team 1
+    document.querySelector('#team1-add-red').addEventListener('click', () => {
+        const player = document.querySelector('#team1-red-player-select').value;
+        const minute = document.querySelector('#team1-card-minute').value;
+        if (player && minute) {
+            team1RedCards.push({ player, minute: parseInt(minute), type: 'red' });
+            renderCards(document.querySelector('#team1-card-list'), team1YellowCards, team1RedCards);
+            document.querySelector('#team1-card-minute').value = '';
+        }
+    });
+
     // Add goal for team 2
     document.querySelector('#team2-add-goal').addEventListener('click', () => {
         const player = team2PlayerSelect.value;
@@ -798,6 +876,28 @@ function addMatchDialog(startMatch, mdIndex) {
         team2Goals.push({ player, minute, assit, type: gaolType });
         renderGoals(team2GoalList, team2Goals);
         updateScores();
+    });
+
+    // Add yellow card for team 2
+    document.querySelector('#team2-add-yellow').addEventListener('click', () => {
+        const player = document.querySelector('#team2-yellow-player-select').value;
+        const minute = document.querySelector('#team2-card-minute').value;
+        if (player && minute) {
+            team2YellowCards.push({ player, minute: parseInt(minute), type: 'yellow' });
+            renderCards(document.querySelector('#team2-card-list'), team2YellowCards, team2RedCards);
+            document.querySelector('#team2-card-minute').value = '';
+        }
+    });
+
+    // Add red card for team 2
+    document.querySelector('#team2-add-red').addEventListener('click', () => {
+        const player = document.querySelector('#team2-red-player-select').value;
+        const minute = document.querySelector('#team2-card-minute').value;
+        if (player && minute) {
+            team2RedCards.push({ player, minute: parseInt(minute), type: 'red' });
+            renderCards(document.querySelector('#team2-card-list'), team2YellowCards, team2RedCards);
+            document.querySelector('#team2-card-minute').value = '';
+        }
     });
 
     // Create match
@@ -842,7 +942,11 @@ function addMatchDialog(startMatch, mdIndex) {
             appearances: appearances,
             seed: Math.floor(Math.random() * 10000),
             goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit }))
-                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit })))
+                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit }))),
+            yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
+                .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
+            redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
+                .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 })))
             });
         } else {
             const thisStandbyMatch = matchday.games[thisMatchIdex]
@@ -862,6 +966,10 @@ function addMatchDialog(startMatch, mdIndex) {
             seed: Math.floor(Math.random() * 10000),
             goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit }))
                 .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit }))),
+            yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
+                .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
+            redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
+                .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             standby: false
             });
         }
@@ -898,6 +1006,42 @@ function addMatchDialog(startMatch, mdIndex) {
                 goals.splice(i, 1);
                 renderGoals(container, goals);
                 updateScores();
+            });
+        });
+    }
+
+    function renderCards(container, yellowCards, redCards) {
+        const allCards = [
+            ...yellowCards.map((card, index) => ({ ...card, index, isYellow: true })),
+            ...redCards.map((card, index) => ({ ...card, index, isYellow: false }))
+        ].sort((a, b) => a.minute - b.minute);
+
+        container.innerHTML = allCards.map(card => {
+            let displayMinute = card.minute;
+            if (card.minute >= 91 && card.minute <= 98) {
+                displayMinute = `90+${card.minute - 90}`;
+            } else if (card.minute >= 121 && card.minute <= 129) {
+                displayMinute = `120+${card.minute - 120}`;
+            }
+            const cardIcon = card.isYellow ? '🟨' : '🟥';
+            return `
+                <li>
+                    ${cardIcon} ${card.player} - ${displayMinute}' 
+                    <button class="remove-card-btn" data-index="${card.index}" data-yellow="${card.isYellow}">❌</button>
+                </li>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.remove-card-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const i = parseInt(btn.getAttribute('data-index'));
+                const isYellow = btn.getAttribute('data-yellow') === 'true';
+                if (isYellow) {
+                    yellowCards.splice(i, 1);
+                } else {
+                    redCards.splice(i, 1);
+                }
+                renderCards(container, yellowCards, redCards);
             });
         });
     }

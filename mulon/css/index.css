@@ -4,6 +4,110 @@
    ======================================== */
 
 /* ========================================
+   ARCHIVED NOTICE MODAL
+   ======================================== */
+.archived-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 1;
+  animation: fadeIn 0.3s ease;
+}
+
+.archived-modal {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 2px solid #444;
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.archived-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.archived-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e0e0e0;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.archived-gravestone {
+  margin: 1rem 0;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
+  animation: gravestoneFloat 3s ease-in-out infinite;
+}
+
+@keyframes gravestoneFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.archived-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #b0b0b0;
+  margin: 0;
+  max-width: 400px;
+}
+
+.archived-btn {
+  background: linear-gradient(135deg, #555 0%, #333 100%);
+  color: white;
+  border: 1px solid #666;
+  border-radius: 12px;
+  padding: 0.875rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.archived-btn:hover {
+  background: linear-gradient(135deg, #666 0%, #444 100%);
+  border-color: #777;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.archived-btn:active {
+  transform: translateY(0);
+}
+
+/* ========================================
    NEW FEATURES ANNOUNCEMENT BANNER
    ======================================== */
 .new-features-banner {
