@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Path Maker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background: white;
+        }
+        canvas {
+            display: block;
+            background: rgb(217, 214, 144);
+        }
+        #info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="info">Click to start drawing a path. Click again to add points. Press Enter to finish and spawn cars.</div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const info = document.getElementById('info');
+        
+        // All completed paths with their cars
+        let paths = []; // Array of {points: [], cars: [], lastSpawnTime: 0, id: unique}
+        let pathIdCounter = 0;
+        
+        // Current path being drawn
+        let currentPath = [];
+        let isDrawing = false;
+        let previewPoint = null;
+        let hoveredPoint = null; // {pathIndex, pointIndex, point} - tracks which point cursor is near
+        const POINT_HOVER_RADIUS = 20; // How close cursor needs to be to trigger hover
+        
+        // Car settings
+        const CAR_WIDTH = 30;
+        const CAR_HEIGHT = 15;
+        const CAR_SPEED = 2;
+        const SPAWN_INTERVAL = 1500; // ms between car spawns
+        const CURVE_RADIUS = 25; // Radius for curves at path endpoints
+        
+        // Make canvas full screen
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            draw();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Calculate distance between two points
+        function getDistance(p1, p2) {
+            return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+        }
+        
+        // Calculate angle between two points
+        function getAngle(p1, p2) {
+            return Math.atan2(p2.y - p1.y, p2.x - p1.x);
+        }
+        
+        // Find if cursor is near any point on any path
+        function findNearbyPoint(point) {
+            for (let i = 0; i < paths.length; i++) {
+                const path = paths[i];
+                for (let j = 0; j < path.points.length; j++) {
+                    const pathPoint = path.points[j];
+                    if (getDistance(point, pathPoint) <= POINT_HOVER_RADIUS) {
+                        return { 
+                            pathIndex: i, 
+                            pointIndex: j, 
+                            point: pathPoint,
+                            isEndpoint: j === 0 || j === path.points.length - 1
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+        
+        // Get point along path at given distance using cached segments
+        function getPointOnPath(path, distance) {
+            const segments = path.segments || buildPathSegments(path.points);
+            
+            let traveled = 0;
+            for (const segment of segments) {
+                if (traveled + segment.length >= distance) {
+                    const remaining = distance - traveled;
+                    const t = segment.length > 0 ? remaining / segment.length : 0;
+                    
+                    if (segment.type === 'line') {
+                        const x = segment.p1.x + (segment.p2.x - segment.p1.x) * t;
+                        const y = segment.p1.y + (segment.p2.y - segment.p1.y) * t;
+                        const angle = getAngle(segment.p1, segment.p2);
+                        return { x, y, angle };
+                    } else if (segment.type === 'curve') {
+                        // Quadratic bezier curve point calculation
+                        const t1 = 1 - t;
+                        const x = t1 * t1 * segment.p1.x + 2 * t1 * t * segment.control.x + t * t * segment.p2.x;
+                        const y = t1 * t1 * segment.p1.y + 2 * t1 * t * segment.control.y + t * t * segment.p2.y;
+                        
+                        // Calculate tangent for angle
+                        const dx = 2 * t1 * (segment.control.x - segment.p1.x) + 2 * t * (segment.p2.x - segment.control.x);
+                        const dy = 2 * t1 * (segment.control.y - segment.p1.y) + 2 * t * (segment.p2.y - segment.control.y);
+                        const angle = Math.atan2(dy, dx);
+                        
+                        return { x, y, angle };
+                    }
+                }
+                traveled += segment.length;
+            }
+            
+            // Return end point
+            const points = path.points;
+            const lastIdx = points.length - 1;
+            if (lastIdx < 1) return { x: points[0].x, y: points[0].y, angle: 0 };
+            return {
+                x: points[lastIdx].x,
+                y: points[lastIdx].y,
+                angle: getAngle(points[lastIdx-1], points[lastIdx])
+            };
+        }
+        
+        // Build path segments with curves at connection points
+        function buildPathSegments(points, branchFrom = null) {
+            if (points.length < 2) return [];
+            
+            const segments = [];
+            let currentStart = points[0];
+            
+            // If this path branches from another, add a curve at the start
+            let startIndex = 0;
+            if (branchFrom && points.length >= 2) {
+                const p0 = points[0]; // Branch point
+                const p1 = points[1]; // First point after branch
+                
+                const distFromBranch = getDistance(p0, p1);
+                
+                // Create curve at the beginning of the branch
+                if (distFromBranch > CURVE_RADIUS) {
+                    const curveEndRatio = CURVE_RADIUS / distFromBranch;
+                    const curveEnd = {
+                        x: p0.x + (p1.x - p0.x) * curveEndRatio,
+                        y: p0.y + (p1.y - p0.y) * curveEndRatio
+                    };
+                    
+                    // Use the branch point as control for smooth transition
+                    const curveLength = approximateBezierLength(p0, p0, curveEnd);
+                    
+                    segments.push({
+                        type: 'curve',
+                        p1: { ...p0 },
+                        control: { x: p0.x, y: p0.y },
+                        p2: curveEnd,
+                        length: curveLength
+                    });
+                    
+                    currentStart = curveEnd;
+                    startIndex = 1; // Skip the branch point in main loop
+                }
+            }
+            
+            for (let i = startIndex; i < points.length - 1; i++) {
+                const p1 = points[i];
+                const p2 = points[i + 1];
+                const segmentLength = getDistance(currentStart, p2);
+                
+                // Check if there's a next segment for curving
+                const hasNextSegment = i < points.length - 2;
+                
+                if (hasNextSegment) {
+                    const p3 = points[i + 2];
+                    const distToCorner = getDistance(currentStart, p2);
+                    const distFromCorner = getDistance(p2, p3);
+                    
+                    // Only curve if we have enough room
+                    if (distToCorner > CURVE_RADIUS && distFromCorner > CURVE_RADIUS) {
+                        // Straight part before curve
+                        const straightLength = distToCorner - CURVE_RADIUS;
+                        const ratio = straightLength / distToCorner;
+                        const straightEnd = {
+                            x: currentStart.x + (p2.x - currentStart.x) * ratio,
+                            y: currentStart.y + (p2.y - currentStart.y) * ratio
+                        };
+                        
+                        segments.push({
+                            type: 'line',
+                            p1: { ...currentStart },
+                            p2: straightEnd,
+                            length: straightLength
+                        });
+                        
+                        // Curve around the corner
+                        const curveEndRatio = CURVE_RADIUS / distFromCorner;
+                        const curveEnd = {
+                            x: p2.x + (p3.x - p2.x) * curveEndRatio,
+                            y: p2.y + (p3.y - p2.y) * curveEndRatio
+                        };
+                        
+                        // Calculate actual curve length using bezier approximation
+                        const curveLength = approximateBezierLength(straightEnd, p2, curveEnd);
+                        
+                        segments.push({
+                            type: 'curve',
+                            p1: straightEnd,
+                            control: { x: p2.x, y: p2.y },
+                            p2: curveEnd,
+                            length: curveLength
+                        });
+                        
+                        currentStart = curveEnd;
+                    } else {
+                        // Not enough room, straight line to corner
+                        segments.push({
+                            type: 'line',
+                            p1: { ...currentStart },
+                            p2: { x: p2.x, y: p2.y },
+                            length: distToCorner
+                        });
+                        currentStart = { x: p2.x, y: p2.y };
+                    }
+                } else {
+                    // Last segment - straight line to end
+                    const dist = getDistance(currentStart, p2);
+                    segments.push({
+                        type: 'line',
+                        p1: { ...currentStart },
+                        p2: { x: p2.x, y: p2.y },
+                        length: dist
+                    });
+                }
+            }
+            
+            return segments;
+        }
+        
+        // Approximate bezier curve length
+        function approximateBezierLength(p1, control, p2) {
+            // Use chord length + control polygon length / 2 approximation
+            const chord = getDistance(p1, p2);
+            const polygon = getDistance(p1, control) + getDistance(control, p2);
+            return (chord + polygon) / 2;
+        }
+        
+        // Get total path length including curves
+        function getTotalPathLength(path) {
+            const segments = path.segments || buildPathSegments(path.points);
+            return segments.reduce((sum, seg) => sum + seg.length, 0);
+        }
+        
+        // Spawn a new car on a specific path
+        function spawnCar(path) {
+            if (path.points.length < 2) return;
+            path.cars.push({
+                distance: 0,
+                color: 'teal',
+                currentPathId: path.id,
+                visitedPaths: [path.id]
+            });
+        }
+        
+        // Find branches at a specific path point
+        function findBranchesAtPoint(pathId, pointIndex) {
+            const branches = [];
+            const mainPath = paths.find(p => p.id === pathId);
+            if (!mainPath) return branches;
+            
+            const branchPoint = mainPath.points[pointIndex];
+            
+            // Find all paths that start at this point (excluding paths already visited)
+            paths.forEach(path => {
+                if (path.id === pathId) return;
+                
+                // Check if this path branches from the point
+                if (path.branchFrom && 
+                    path.branchFrom.pathId === pathId && 
+                    path.branchFrom.pointIndex === pointIndex) {
+                    branches.push(path);
+                }
+            });
+            
+            return branches;
+        }
+        
+        // Update cars for all paths
+        function updateCars() {
+            paths.forEach(path => {
+                const totalLength = getTotalPathLength(path);
+                const newCars = [];
+                
+                path.cars.forEach(car => {
+                    car.distance += CAR_SPEED;
+                    
+                    // Check if car reached end of current path
+                    if (car.distance >= totalLength) {
+                        // Look for branches at the end point
+                        const branches = findBranchesAtPoint(car.currentPathId, path.points.length - 1);
+                        const availableBranches = branches.filter(b => !car.visitedPaths.includes(b.id));
+                        
+                        if (availableBranches.length > 0) {
+                            // Randomly choose a branch
+                            const chosenBranch = availableBranches[Math.floor(Math.random() * availableBranches.length)];
+                            
+                            // Transfer car to the branch
+                            car.currentPathId = chosenBranch.id;
+                            car.distance = 0;
+                            car.visitedPaths.push(chosenBranch.id);
+                            chosenBranch.cars.push(car);
+                        }
+                        // If no branches, car disappears (don't add to newCars)
+                    } else {
+                        // Check for mid-path branches
+                        const currentPoint = Math.floor((car.distance / totalLength) * (path.points.length - 1));
+                        const branches = findBranchesAtPoint(car.currentPathId, currentPoint);
+                        const availableBranches = branches.filter(b => !car.visitedPaths.includes(b.id));
+                        
+                        if (availableBranches.length > 0 && Math.random() < 0.3) {
+                            // 30% chance to take a branch when passing through
+                            const chosenBranch = availableBranches[Math.floor(Math.random() * availableBranches.length)];
+                            
+                            car.currentPathId = chosenBranch.id;
+                            car.distance = 0;
+                            car.visitedPaths.push(chosenBranch.id);
+                            chosenBranch.cars.push(car);
+                        } else {
+                            newCars.push(car);
+                        }
+                    }
+                });
+                
+                path.cars = newCars;
+            });
+        }
+        
+        // Draw everything
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw all completed paths
+            paths.forEach(path => {
+                if (path.points.length > 1) {
+                    // Use cached segments
+                    const segments = path.segments;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(path.points[0].x, path.points[0].y);
+                    
+                    for (const segment of segments) {
+                        if (segment.type === 'line') {
+                            ctx.lineTo(segment.p2.x, segment.p2.y);
+                        } else if (segment.type === 'curve') {
+                            ctx.quadraticCurveTo(
+                                segment.control.x, segment.control.y,
+                                segment.p2.x, segment.p2.y
+                            );
+                        }
+                    }
+                    
+                    ctx.strokeStyle = 'teal';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+                
+                // Draw path points for completed paths
+                path.points.forEach((point, idx) => {
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = idx === 0 ? 'green' : (idx === path.points.length - 1 ? 'red' : 'teal');
+                    ctx.fill();
+                });
+            });
+            
+            // Draw hover indicator on any point if not currently drawing
+            if (!isDrawing && hoveredPoint) {
+                ctx.beginPath();
+                ctx.arc(hoveredPoint.point.x, hoveredPoint.point.y, 15, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 128, 128, 0.3)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(0, 128, 128, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // Draw all completed paths cars
+            paths.forEach(path => {
+                path.cars.forEach(car => {
+                    const pos = getPointOnPath(path, car.distance);
+                    
+                    ctx.save();
+                    ctx.translate(pos.x, pos.y);
+                    ctx.rotate(pos.angle);
+                    
+                    // Draw car rectangle centered on path
+                    ctx.fillStyle = car.color;
+                    ctx.fillRect(-CAR_WIDTH / 2, -CAR_HEIGHT / 2, CAR_WIDTH, CAR_HEIGHT);
+                    
+                    // Add some detail to car
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect(CAR_WIDTH / 4, -CAR_HEIGHT / 2 + 2, CAR_WIDTH / 4 - 2, CAR_HEIGHT - 4);
+                    
+                    ctx.restore();
+                });
+            });
+            
+            // Draw current path being drawn
+            if (currentPath.length > 1) {
+                const segments = buildPathSegments(currentPath, currentPath.branchFrom);
+                
+                ctx.beginPath();
+                ctx.moveTo(currentPath[0].x, currentPath[0].y);
+                
+                for (const segment of segments) {
+                    if (segment.type === 'line') {
+                        ctx.lineTo(segment.p2.x, segment.p2.y);
+                    } else if (segment.type === 'curve') {
+                        ctx.quadraticCurveTo(
+                            segment.control.x, segment.control.y,
+                            segment.p2.x, segment.p2.y
+                        );
+                    }
+                }
+                
+                ctx.strokeStyle = 'teal';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+            
+            // Draw current path points
+            currentPath.forEach((point, idx) => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = idx === 0 ? 'green' : 'teal';
+                ctx.fill();
+            });
+            
+            // Draw preview line and info
+            if (isDrawing && previewPoint && currentPath.length > 0) {
+                const lastPoint = currentPath[currentPath.length - 1];
+                
+                // Preview line (dashed)
+                ctx.beginPath();
+                ctx.moveTo(lastPoint.x, lastPoint.y);
+                ctx.lineTo(previewPoint.x, previewPoint.y);
+                ctx.strokeStyle = 'rgba(0, 128, 128, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Preview point
+                ctx.beginPath();
+                ctx.arc(previewPoint.x, previewPoint.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 128, 128, 0.7)';
+                ctx.fill();
+                
+                // Distance info
+                const dist = getDistance(lastPoint, previewPoint);
+                const midX = (lastPoint.x + previewPoint.x) / 2;
+                const midY = (lastPoint.y + previewPoint.y) / 2;
+                
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#333';
+                ctx.fillText(`${Math.round(dist)}px`, midX + 10, midY - 10);
+                
+                // Position info near cursor
+                ctx.fillText(`(${Math.round(previewPoint.x)}, ${Math.round(previewPoint.y)})`, previewPoint.x + 15, previewPoint.y - 15);
+            }
+            
+            // Update info text
+            const totalCars = paths.reduce((sum, p) => sum + p.cars.length, 0);
+            if (isDrawing) {
+                info.textContent = `Drawing path... Points: ${currentPath.length} | Press Enter to finish | Press Escape to cancel`;
+            } else {
+                info.textContent = `Paths: ${paths.length} | Cars: ${totalCars} | Click to start a new path | Press 'R' to reset all`;
+            }
+        }
+        
+        // Handle mouse click
+        canvas.addEventListener('click', (e) => {
+            const point = { x: e.clientX, y: e.clientY };
+            
+            if (!isDrawing) {
+                // Check if clicking near any point to branch from it
+                const nearPoint = findNearbyPoint(point);
+                if (nearPoint) {
+                    // Start a new path branching from this point
+                    isDrawing = true;
+                    currentPath = [{ x: nearPoint.point.x, y: nearPoint.point.y }];
+                    
+                    // Store branch information for later
+                    currentPath.branchFrom = {
+                        pathId: paths[nearPoint.pathIndex].id,
+                        pointIndex: nearPoint.pointIndex
+                    };
+                    
+                    hoveredPoint = null;
+                } else {
+                    // Start a completely new path
+                    isDrawing = true;
+                    currentPath = [point];
+                }
+            } else {
+                currentPath.push(point);
+            }
+            
+            draw();
+        });
+        
+        // Handle mouse move for preview
+        canvas.addEventListener('mousemove', (e) => {
+            const point = { x: e.clientX, y: e.clientY };
+            
+            if (isDrawing) {
+                previewPoint = point;
+                draw();
+            } else {
+                // Check for any point hover
+                const nearPoint = findNearbyPoint(point);
+                if (nearPoint !== hoveredPoint) {
+                    hoveredPoint = nearPoint;
+                    draw();
+                }
+            }
+        });
+        
+        // Handle keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && isDrawing && currentPath.length >= 2) {
+                // Finish current path and add to paths array
+                const newPath = {
+                    id: pathIdCounter++,
+                    points: [...currentPath],
+                    cars: [],
+                    lastSpawnTime: 0
+                };
+                
+                // Store branch information if this path branches from another
+                if (currentPath.branchFrom) {
+                    newPath.branchFrom = currentPath.branchFrom;
+                }
+                
+                // Cache the segments for smooth car movement (pass branch info for curve)
+                newPath.segments = buildPathSegments(newPath.points, newPath.branchFrom);
+                paths.push(newPath);
+                isDrawing = false;
+                currentPath = [];
+                previewPoint = null;
+                draw();
+            } else if (e.key === 'Escape') {
+                // Cancel current path only
+                isDrawing = false;
+                currentPath = [];
+                previewPoint = null;
+                draw();
+            } else if (e.key === 'r' || e.key === 'R') {
+                // Reset everything
+                isDrawing = false;
+                currentPath = [];
+                previewPoint = null;
+                paths = [];
+                draw();
+            }
+        });
+        
+        // Animation loop
+        function animate(timestamp) {
+            // Spawn cars on all paths periodically
+            paths.forEach(path => {
+                if (path.points.length >= 2) {
+                    if (timestamp - path.lastSpawnTime > SPAWN_INTERVAL) {
+                        spawnCar(path);
+                        path.lastSpawnTime = timestamp;
+                    }
+                }
+            });
+            
+            // Update all cars
+            if (paths.length > 0) {
+                updateCars();
+                draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Initialize
+        resizeCanvas();
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

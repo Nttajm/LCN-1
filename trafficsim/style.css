@@ -1,22 +1,193 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    overflow: hidden;
 }
 
-
-.app {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  justify-content: center;
-  align-items: center;
-  background-color: #f0f0f0;
+.container {
+    display: flex;
+    height: 100vh;
 }
 
+.toolbar {
+    width: 250px;
+    background: #16213e;
+    padding: 20px;
+    overflow-y: auto;
+    border-right: 2px solid #0f3460;
+}
 
-.road {
-  width: 80%;
-  height: 60px;
-  background-color: #333;
-  position: relative;
-  border-radius: 10px;
+.toolbar h2 {
+    color: #e94560;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.tool-group {
+    margin-bottom: 15px;
+}
+
+.tool-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.tool-btn {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 5px;
+    background: #0f3460;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s;
+    font-size: 13px;
+}
+
+.tool-btn:hover {
+    background: #1a508b;
+    transform: translateX(3px);
+}
+
+.tool-btn.active {
+    background: #e94560;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+}
+
+.action-btn {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 5px;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.action-btn.start {
+    background: #27ae60;
+}
+
+.action-btn.start:hover {
+    background: #2ecc71;
+}
+
+.action-btn.pause {
+    background: #f39c12;
+}
+
+.action-btn.pause:hover {
+    background: #f1c40f;
+}
+
+.action-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin: 5px 0;
+}
+
+select {
+    width: 100%;
+    padding: 8px;
+    background: #0f3460;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px;
+    background: #0f3460;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.checkbox-label:hover {
+    background: #1a508b;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"]:checked + span {
+    color: #27ae60;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #0f3460;
+    margin: 15px 0;
+}
+
+.stats {
+    background: #0f3460;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.stats p {
+    margin: 5px 0;
+}
+
+.stats span {
+    color: #e94560;
+    font-weight: bold;
+}
+
+.instructions {
+    font-size: 12px;
+    color: #888;
+}
+
+.instructions h4 {
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.instructions ul {
+    padding-left: 20px;
+}
+
+.instructions li {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.instructions b {
+    color: #e94560;
+}
+
+.canvas-container {
+    flex: 1;
+    position: relative;
+}
+
+#gameCanvas {
+    display: block;
+    background: #2d5a27;
+    cursor: crosshair;
 }

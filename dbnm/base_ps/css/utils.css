@@ -16,6 +16,10 @@ body {
 
 .prompt {
     color: rgb(81, 231, 211);
+    display: inline-flex;
+    gap: 0.1rem;
+    width: fit-content;
+    white-space: nowrap;
 }
 
 .js_cont {
@@ -201,3 +205,85 @@ input {
     background-color: #d9a3b3;
     color: black;
 }
+
+.loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader .dots {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.t_di {
+    border-radius: 50%;
+    
+    display: flex;
+    gap: 3px;
+}
+
+.dot {
+    border-radius: 3rem;
+    background-color: rgb(140, 140, 140);
+    width: 4px;
+    height: 4px;
+
+}
+
+.middle .dot:nth-child(2) {
+    background-color: rgb(140, 140, 140);
+}
+
+/* Clockwise animation around center dot */
+@keyframes highlight-sequence {
+    0%, 100% { background-color: rgb(140, 140, 140); }
+    10%, 20% { background-color: aqua; }
+}
+
+/* Top row */
+.top .dot:nth-child(1) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 0s;
+}
+
+.top .dot:nth-child(2) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 0.15s;
+}
+
+.top .dot:nth-child(3) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 0.3s;
+}
+
+/* Middle row */
+.middle .dot:nth-child(3) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 0.45s;
+}
+
+/* Bottom row */
+.bottom .dot:nth-child(3) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 0.6s;
+}
+
+.bottom .dot:nth-child(2) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 0.75s;
+}
+
+.bottom .dot:nth-child(1) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 0.9s;
+}
+
+/* Middle left */
+.middle .dot:nth-child(1) {
+    animation: highlight-sequence 1.2s ease-in-out infinite;
+    animation-delay: 1.05s;
+}
+

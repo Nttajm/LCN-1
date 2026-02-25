@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Sim 4.5</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+            position: relative;
+            cursor: crosshair;
+        }
+        
+        .path-line {
+            position: absolute;
+            background-color: teal;
+            height: 3px;
+            transform-origin: 0 50%;
+            pointer-events: none;
+        }
+        
+        .preview-line {
+            position: absolute;
+            background-color: rgba(0, 128, 128, 0.5);
+            height: 3px;
+            transform-origin: 0 50%;
+            pointer-events: none;
+            border-style: dashed;
+        }
+        
+        .point-marker {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: teal;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        
+        .distance-label {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        
+        .car {
+            position: absolute;
+            width: 30px;
+            height: 15px;
+            background-color: #e74c3c;
+            border-radius: 3px;
+            transform-origin: center center;
+            pointer-events: none;
+        }
+        
+        .car:nth-child(odd) {
+            background-color: #3498db;
+        }
+        
+        .car:nth-child(3n) {
+            background-color: #f39c12;
+        }
+        
+        .car:nth-child(4n) {
+            background-color: #9b59b6;
+        }
+        
+        #sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        #sidebar h2 {
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid teal;
+            font-size: 18px;
+        }
+        
+        #sidebar h3 {
+            margin: 15px 0 10px 0;
+            font-size: 14px;
+            color: #95a5a6;
+            text-transform: uppercase;
+        }
+        
+        .config-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+        }
+        
+        .config-item label {
+            font-size: 14px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #7f8c8d;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: teal;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #34495e;
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            color: teal;
+            font-weight: bold;
+        }
+        
+        .snap-indicator {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #34495e;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .snap-direction {
+            font-size: 18px;
+            font-weight: bold;
+            color: teal;
+            margin-top: 5px;
+        }
+        
+        #container {
+            width: calc(100vw - 250px);
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <div id="sidebar">
+        <h2>🚗 Traffic Sim 4.5</h2>
+        
+        <h3>Configuration</h3>
+        
+        <div class="config-item">
+            <label>Snap to 90°</label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="snapToggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="snap-indicator" id="snapIndicator" style="display: none;">
+            Snap Direction
+            <div class="snap-direction" id="snapDirection">→ RIGHT</div>
+        </div>
+        
+        <h3>Statistics</h3>
+        
+        <div class="stat-item">
+            <span>Active Cars</span>
+            <span class="stat-value" id="statCars">0</span>
+        </div>
+        
+        <div class="stat-item">
+            <span>Path Segments</span>
+            <span class="stat-value" id="statSegments">0</span>
+        </div>
+        
+        <div class="stat-item">
+            <span>Total Path Length</span>
+            <span class="stat-value" id="statLength">0 px</span>
+        </div>
+        
+        <div class="stat-item">
+            <span>Cars Spawned</span>
+            <span class="stat-value" id="statSpawned">0</span>
+        </div>
+    </div>
+    
+    <script>
+        const container = document.getElementById('container');
+        
+        let pathPoints = [];
+        let isDrawing = false;
+        let startPoint = null;
+        let previewLine = null;
+        let distanceLabel = null;
+        let cars = [];
+        let pathSegments = [];
+        
+        // Configuration
+        let snapTo90 = false;
+        let currentSnapDirection = 'RIGHT';
+        let totalCarsSpawned = 0;
+        
+        // UI Elements
+        const snapToggle = document.getElementById('snapToggle');
+        const snapIndicator = document.getElementById('snapIndicator');
+        const snapDirectionEl = document.getElementById('snapDirection');
+        const statCars = document.getElementById('statCars');
+        const statSegments = document.getElementById('statSegments');
+        const statLength = document.getElementById('statLength');
+        const statSpawned = document.getElementById('statSpawned');
+        
+        // Toggle snap to 90 degrees
+        snapToggle.addEventListener('change', (e) => {
+            snapTo90 = e.target.checked;
+            snapIndicator.style.display = snapTo90 ? 'block' : 'none';
+        });
+        
+        // Get snapped coordinates based on angle
+        function getSnappedPoint(x1, y1, x2, y2) {
+            if (!snapTo90) return { x: x2, y: y2 };
+            
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+            
+            const normalizedAngle = ((angle % 360) + 360) % 360;
+            
+            let snappedX = x2;
+            let snappedY = y2;
+            const distance = Math.max(Math.abs(dx), Math.abs(dy));
+            
+            if (normalizedAngle >= 315 || normalizedAngle < 45) {
+                // RIGHT
+                snappedX = x1 + distance;
+                snappedY = y1;
+                currentSnapDirection = 'RIGHT';
+                snapDirectionEl.textContent = '→ RIGHT';
+            } else if (normalizedAngle >= 45 && normalizedAngle < 135) {
+                // DOWN
+                snappedX = x1;
+                snappedY = y1 + distance;
+                currentSnapDirection = 'DOWN';
+                snapDirectionEl.textContent = '↓ DOWN';
+            } else if (normalizedAngle >= 135 && normalizedAngle < 225) {
+                // LEFT
+                snappedX = x1 - distance;
+                snappedY = y1;
+                currentSnapDirection = 'LEFT';
+                snapDirectionEl.textContent = '← LEFT';
+            } else {
+                // UP
+                snappedX = x1;
+                snappedY = y1 - distance;
+                currentSnapDirection = 'UP';
+                snapDirectionEl.textContent = '↑ UP';
+            }
+            
+            return { x: snappedX, y: snappedY };
+        }
+        
+        // Update stats display
+        function updateStats() {
+            statCars.textContent = cars.length;
+            statSegments.textContent = pathSegments.length;
+            
+            const totalLength = pathSegments.reduce((sum, seg) => sum + seg.distance, 0);
+            statLength.textContent = Math.round(totalLength) + ' px';
+            statSpawned.textContent = totalCarsSpawned;
+        }
+        
+        // Create preview elements
+        function createPreviewLine() {
+            previewLine = document.createElement('div');
+            previewLine.className = 'preview-line';
+            previewLine.style.display = 'none';
+            container.appendChild(previewLine);
+            
+            distanceLabel = document.createElement('div');
+            distanceLabel.className = 'distance-label';
+            distanceLabel.style.display = 'none';
+            container.appendChild(distanceLabel);
+        }
+        
+        createPreviewLine();
+        
+        // Calculate distance between two points
+        function getDistance(x1, y1, x2, y2) {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+        
+        // Calculate angle between two points
+        function getAngle(x1, y1, x2, y2) {
+            return Math.atan2(y2 - y1, x2 - x1);
+        }
+        
+        // Update preview line position
+        function updatePreviewLine(x1, y1, x2, y2) {
+            // Apply snapping if enabled
+            const snapped = getSnappedPoint(x1, y1, x2, y2);
+            x2 = snapped.x;
+            y2 = snapped.y;
+            
+            const distance = getDistance(x1, y1, x2, y2);
+            const angle = getAngle(x1, y1, x2, y2) * (180 / Math.PI);
+            
+            previewLine.style.left = x1 + 'px';
+            previewLine.style.top = y1 + 'px';
+            previewLine.style.width = distance + 'px';
+            previewLine.style.transform = `rotate(${angle}deg)`;
+            previewLine.style.display = 'block';
+            
+            // Update distance label
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            distanceLabel.textContent = `${Math.round(distance)}px | (${Math.round(x2)}, ${Math.round(y2)})`;
+            distanceLabel.style.left = midX + 'px';
+            distanceLabel.style.top = (midY - 25) + 'px';
+            distanceLabel.style.display = 'block';
+        }
+        
+        // Create a point marker
+        function createPointMarker(x, y) {
+            const marker = document.createElement('div');
+            marker.className = 'point-marker';
+            marker.style.left = x + 'px';
+            marker.style.top = y + 'px';
+            container.appendChild(marker);
+            return marker;
+        }
+        
+        // Create a path line segment
+        function createPathLine(x1, y1, x2, y2) {
+            const line = document.createElement('div');
+            line.className = 'path-line';
+            
+            const distance = getDistance(x1, y1, x2, y2);
+            const angle = getAngle(x1, y1, x2, y2) * (180 / Math.PI);
+            
+            line.style.left = x1 + 'px';
+            line.style.top = y1 + 'px';
+            line.style.width = distance + 'px';
+            line.style.transform = `rotate(${angle}deg)`;
+            
+            container.appendChild(line);
+            
+            // Store segment data for car movement
+            pathSegments.push({
+                x1, y1, x2, y2,
+                distance,
+                angle: getAngle(x1, y1, x2, y2)
+            });
+            
+            return line;
+        }
+        
+        // Handle click on container
+        container.addEventListener('click', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (!isDrawing) {
+                // First click - set start point
+                startPoint = { x, y };
+                isDrawing = true;
+                createPointMarker(x, y);
+                pathPoints.push({ x, y });
+            } else {
+                // Apply snapping if enabled
+                const snapped = getSnappedPoint(startPoint.x, startPoint.y, x, y);
+                const finalX = snapped.x;
+                const finalY = snapped.y;
+                
+                // Second click - create path
+                createPathLine(startPoint.x, startPoint.y, finalX, finalY);
+                createPointMarker(finalX, finalY);
+                pathPoints.push({ x: finalX, y: finalY });
+                
+                // Hide preview
+                previewLine.style.display = 'none';
+                distanceLabel.style.display = 'none';
+                
+                // Update stats
+                updateStats();
+                
+                // Start spawning cars if this is the first path
+                if (pathSegments.length === 1) {
+                    startSpawningCars();
+                }
+                
+                // Set new start point for next segment
+                startPoint = { x: finalX, y: finalY };
+            }
+        });
+        
+        // Handle mouse move for preview
+        container.addEventListener('mousemove', (e) => {
+            if (!isDrawing || !startPoint) return;
+            
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            updatePreviewLine(startPoint.x, startPoint.y, x, y);
+        });
+        
+        // Car class
+        class Car {
+            constructor() {
+                this.element = document.createElement('div');
+                this.element.className = 'car';
+                container.appendChild(this.element);
+                
+                this.segmentIndex = 0;
+                this.progress = 0;
+                this.maxSpeed = 1 + Math.random() * 2; // Max speed
+                this.speed = this.maxSpeed;
+                this.active = true;
+                this.x = 0;
+                this.y = 0;
+                
+                this.updatePosition();
+            }
+            
+            // Get total distance traveled along the entire path
+            getTotalProgress() {
+                let total = 0;
+                for (let i = 0; i < this.segmentIndex; i++) {
+                    total += pathSegments[i].distance;
+                }
+                return total + this.progress;
+            }
+            
+            updatePosition() {
+                if (this.segmentIndex >= pathSegments.length) {
+                    this.active = false;
+                    this.element.remove();
+                    return;
+                }
+                
+                const segment = pathSegments[this.segmentIndex];
+                const t = this.progress / segment.distance;
+                
+                // Interpolate position along the segment
+                this.x = segment.x1 + (segment.x2 - segment.x1) * t;
+                this.y = segment.y1 + (segment.y2 - segment.y1) * t;
+                
+                // Rotate car to match path direction
+                const angleDeg = segment.angle * (180 / Math.PI);
+                
+                this.element.style.left = (this.x - 15) + 'px'; // Center the car
+                this.element.style.top = (this.y - 7.5) + 'px';
+                this.element.style.transform = `rotate(${angleDeg}deg)`;
+            }
+            
+            // Check distance to car ahead
+            checkCarAhead() {
+                const myProgress = this.getTotalProgress();
+                const detectionDistance = 50; // How far ahead to look
+                const minDistance = 35; // Minimum safe distance
+                
+                let closestDistance = Infinity;
+                
+                for (const otherCar of cars) {
+                    if (otherCar === this || !otherCar.active) continue;
+                    
+                    const otherProgress = otherCar.getTotalProgress();
+                    const distanceAhead = otherProgress - myProgress;
+                    
+                    // Only consider cars ahead of us (positive distance)
+                    if (distanceAhead > 0 && distanceAhead < detectionDistance) {
+                        closestDistance = Math.min(closestDistance, distanceAhead);
+                    }
+                }
+                
+                return closestDistance;
+            }
+            
+            update() {
+                if (!this.active || pathSegments.length === 0) return;
+                
+                // Check for car ahead and adjust speed
+                const distanceToCarAhead = this.checkCarAhead();
+                const minDistance = 35;
+                const detectionDistance = 50;
+                
+                if (distanceToCarAhead < detectionDistance) {
+                    // Slow down proportionally to how close the car ahead is
+                    const slowFactor = Math.max(0, (distanceToCarAhead - minDistance) / (detectionDistance - minDistance));
+                    this.speed = this.maxSpeed * slowFactor;
+                    
+                    // If too close, stop completely
+                    if (distanceToCarAhead <= minDistance) {
+                        this.speed = 0;
+                    }
+                } else {
+                    // No car ahead, accelerate back to max speed
+                    this.speed = Math.min(this.maxSpeed, this.speed + 0.1);
+                }
+                
+                this.progress += this.speed;
+                
+                // Check if we need to move to next segment
+                while (this.segmentIndex < pathSegments.length && 
+                       this.progress >= pathSegments[this.segmentIndex].distance) {
+                    this.progress -= pathSegments[this.segmentIndex].distance;
+                    this.segmentIndex++;
+                }
+                
+                this.updatePosition();
+            }
+        }
+        
+        // Spawn cars periodically
+        let spawnInterval = null;
+        
+        function startSpawningCars() {
+            if (spawnInterval) return;
+            
+            spawnInterval = setInterval(() => {
+                if (pathSegments.length > 0) {
+                    cars.push(new Car());
+                    totalCarsSpawned++;
+                }
+            }, 1500); // Spawn a car every 1.5 seconds
+        }
+        
+        // Animation loop
+        function animate() {
+            // Update all cars
+            cars = cars.filter(car => {
+                car.update();
+                return car.active;
+            });
+            
+            // Update stats
+            updateStats();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

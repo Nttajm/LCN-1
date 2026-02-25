@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segment Builder - TM:PE Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Side Panel */
+        .side-panel {
+            width: 280px;
+            background: linear-gradient(180deg, #16213e 0%, #0f3460 100%);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-right: 2px solid #e94560;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #e94560;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .config-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .config-section h3 {
+            font-size: 0.9em;
+            color: #00d9ff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .segment-type-btn {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 5px 0;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .segment-type-btn.single {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+
+        .segment-type-btn.dual {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+        }
+
+        .segment-type-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .segment-type-btn.active {
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-icon {
+            width: 30px;
+            height: 20px;
+            position: relative;
+        }
+
+        .btn-icon.single-icon::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: white;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 2px;
+        }
+
+        .btn-icon.dual-icon::before,
+        .btn-icon.dual-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+        }
+
+        .btn-icon.dual-icon::before {
+            top: 4px;
+        }
+
+        .btn-icon.dual-icon::after {
+            bottom: 4px;
+        }
+
+        .config-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .config-option:last-child {
+            border-bottom: none;
+        }
+
+        .config-option label {
+            font-size: 0.85em;
+            color: #ccc;
+        }
+
+        .config-option input[type="range"] {
+            width: 100px;
+            accent-color: #e94560;
+        }
+
+        .config-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #e94560;
+        }
+
+        .config-option input[type="color"] {
+            width: 40px;
+            height: 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn.delete {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .action-btn.clear {
+            background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats {
+            font-size: 0.8em;
+            color: #888;
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .stats span {
+            color: #00d9ff;
+            font-weight: bold;
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #1a1a2e;
+            background-image: 
+                radial-gradient(circle at 1px 1px, #333 1px, transparent 0);
+            background-size: 30px 30px;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+            border: 1px solid #e94560;
+        }
+
+        /* Instructions */
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: #ccc;
+            text-align: center;
+            border: 1px solid #444;
+        }
+
+        .instructions kbd {
+            background: #444;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #00d9ff;
+        }
+
+        /* Mode indicator */
+        .mode-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(233, 69, 96, 0.9);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="side-panel">
+        <div class="panel-title">🛣️ Segment Builder</div>
+        
+        <div class="config-section">
+            <h3>Segment Type</h3>
+            <button class="segment-type-btn single active" onclick="setSegmentType('single')">
+                <div class="btn-icon single-icon"></div>
+                Single Segment
+            </button>
+            <button class="segment-type-btn dual" onclick="setSegmentType('dual')">
+                <div class="btn-icon dual-icon"></div>
+                Dual Parallel
+            </button>
+        </div>
+
+        <div class="config-section">
+            <h3>Segment Options</h3>
+            <div class="config-option">
+                <label>Curve Strength</label>
+                <input type="range" id="curveStrength" min="0" max="100" value="50" oninput="updateConfig()">
+            </div>
+            <div class="config-option">
+                <label>Parallel Gap</label>
+                <input type="range" id="parallelGap" min="5" max="50" value="15" oninput="updateConfig()">
+            </div>
+            <div class="config-option">
+                <label>Snap to Grid</label>
+                <input type="checkbox" id="snapGrid" checked oninput="updateConfig()">
+            </div>
+            <div class="config-option">
+                <label>Show Nodes</label>
+                <input type="checkbox" id="showNodes" checked oninput="updateConfig()">
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Colors</h3>
+            <div class="config-option">
+                <label>Segment Color</label>
+                <input type="color" id="segmentColor" value="#2ecc71" oninput="updateConfig()">
+            </div>
+            <div class="config-option">
+                <label>Node Color</label>
+                <input type="color" id="nodeColor" value="#00d9ff" oninput="updateConfig()">
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Actions</h3>
+            <button class="action-btn delete" onclick="deleteSelected()">🗑️ Delete Selected</button>
+            <button class="action-btn clear" onclick="clearAll()">⚠️ Clear All</button>
+        </div>
+
+        <div class="stats">
+            Segments: <span id="segmentCount">0</span> | Nodes: <span id="nodeCount">0</span>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+        <div class="mode-indicator" id="modeIndicator">Build Mode</div>
+        <div class="tooltip" id="tooltip"></div>
+        <div class="instructions">
+            <kbd>Click</kbd> to place node | <kbd>Click node</kbd> to connect | 
+            <kbd>Drag node</kbd> to move | <kbd>ESC</kbd> cancel | <kbd>DEL</kbd> delete selected
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const tooltip = document.getElementById('tooltip');
+        const modeIndicator = document.getElementById('modeIndicator');
+
+        // State
+        let nodes = [];
+        let segments = [];
+        let selectedNode = null;
+        let hoveredNode = null;
+        let draggingNode = null;
+        let buildingFromNode = null;
+        let mousePos = { x: 0, y: 0 };
+        let segmentType = 'single';
+
+        // Config
+        let config = {
+            curveStrength: 50,
+            parallelGap: 15,
+            snapGrid: true,
+            showNodes: true,
+            segmentColor: '#2ecc71',
+            nodeColor: '#00d9ff',
+            nodeRadius: 12,
+            segmentWidth: 4,
+            gridSize: 30
+        };
+
+        // Resize canvas
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            render();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Node class
+        class Node {
+            constructor(x, y) {
+                this.id = Date.now() + Math.random();
+                this.x = x;
+                this.y = y;
+                this.connections = []; // segment IDs
+            }
+        }
+
+        // Segment class
+        class Segment {
+            constructor(node1Id, node2Id, type = 'single') {
+                this.id = Date.now() + Math.random();
+                this.node1Id = node1Id;
+                this.node2Id = node2Id;
+                this.type = type;
+                this.color = config.segmentColor;
+            }
+        }
+
+        // Snap to grid
+        function snapToGrid(x, y) {
+            if (!config.snapGrid) return { x, y };
+            return {
+                x: Math.round(x / config.gridSize) * config.gridSize,
+                y: Math.round(y / config.gridSize) * config.gridSize
+            };
+        }
+
+        // Find node at position
+        function findNodeAt(x, y, excludeId = null) {
+            for (let node of nodes) {
+                if (excludeId && node.id === excludeId) continue;
+                const dist = Math.hypot(node.x - x, node.y - y);
+                if (dist <= config.nodeRadius + 5) {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        // Get node by ID
+        function getNodeById(id) {
+            return nodes.find(n => n.id === id);
+        }
+
+        // Calculate control points for bezier curve
+        function calculateControlPoints(node1, node2, segmentId) {
+            const dx = node2.x - node1.x;
+            const dy = node2.y - node1.y;
+            const dist = Math.hypot(dx, dy);
+            const curveAmount = (config.curveStrength / 100) * dist * 0.5;
+
+            // Get connected segments for each node
+            const node1Segments = node1.connections.filter(id => id !== segmentId);
+            const node2Segments = node2.connections.filter(id => id !== segmentId);
+
+            let cp1 = { x: node1.x + dx * 0.3, y: node1.y + dy * 0.3 };
+            let cp2 = { x: node2.x - dx * 0.3, y: node2.y - dy * 0.3 };
+
+            // Adjust control point based on other connections
+            if (node1Segments.length > 0) {
+                const avgAngle = getAverageDirection(node1, node1Segments, node2);
+                cp1.x = node1.x + Math.cos(avgAngle) * curveAmount * 2;
+                cp1.y = node1.y + Math.sin(avgAngle) * curveAmount * 2;
+            }
+
+            if (node2Segments.length > 0) {
+                const avgAngle = getAverageDirection(node2, node2Segments, node1);
+                cp2.x = node2.x + Math.cos(avgAngle) * curveAmount * 2;
+                cp2.y = node2.y + Math.sin(avgAngle) * curveAmount * 2;
+            }
+
+            return { cp1, cp2 };
+        }
+
+        // Get average direction from node to other connected nodes
+        function getAverageDirection(fromNode, segmentIds, toNode) {
+            const toAngle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x);
+            
+            if (segmentIds.length === 0) return toAngle;
+
+            let angles = [];
+            for (let segId of segmentIds) {
+                const seg = segments.find(s => s.id === segId);
+                if (!seg) continue;
+                const otherNodeId = seg.node1Id === fromNode.id ? seg.node2Id : seg.node1Id;
+                const otherNode = getNodeById(otherNodeId);
+                if (otherNode) {
+                    const angle = Math.atan2(otherNode.y - fromNode.y, otherNode.x - fromNode.x);
+                    angles.push(angle);
+                }
+            }
+
+            if (angles.length === 0) return toAngle;
+
+            // Return direction that flows smoothly between connections
+            const avgOtherAngle = angles.reduce((a, b) => a + b, 0) / angles.length;
+            // Blend between pointing to target and smooth transition
+            return toAngle;
+        }
+
+        // Draw bezier curve
+        function drawBezierSegment(node1, node2, segment, offset = 0) {
+            const { cp1, cp2 } = calculateControlPoints(node1, node2, segment.id);
+
+            ctx.beginPath();
+            ctx.strokeStyle = segment.color;
+            ctx.lineWidth = config.segmentWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (offset !== 0) {
+                // Calculate perpendicular offset for parallel lines
+                const angle = Math.atan2(node2.y - node1.y, node2.x - node1.x);
+                const perpAngle = angle + Math.PI / 2;
+                const offsetX = Math.cos(perpAngle) * offset;
+                const offsetY = Math.sin(perpAngle) * offset;
+
+                ctx.moveTo(node1.x + offsetX, node1.y + offsetY);
+                ctx.bezierCurveTo(
+                    cp1.x + offsetX, cp1.y + offsetY,
+                    cp2.x + offsetX, cp2.y + offsetY,
+                    node2.x + offsetX, node2.y + offsetY
+                );
+            } else {
+                ctx.moveTo(node1.x, node1.y);
+                ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, node2.x, node2.y);
+            }
+
+            ctx.stroke();
+        }
+
+        // Draw segment
+        function drawSegment(segment) {
+            const node1 = getNodeById(segment.node1Id);
+            const node2 = getNodeById(segment.node2Id);
+            if (!node1 || !node2) return;
+
+            if (segment.type === 'dual') {
+                const gap = config.parallelGap / 2;
+                drawBezierSegment(node1, node2, segment, gap);
+                drawBezierSegment(node1, node2, segment, -gap);
+            } else {
+                drawBezierSegment(node1, node2, segment, 0);
+            }
+        }
+
+        // Draw node
+        function drawNode(node) {
+            const isHovered = hoveredNode && hoveredNode.id === node.id;
+            const isSelected = selectedNode && selectedNode.id === node.id;
+            const isBuilding = buildingFromNode && buildingFromNode.id === node.id;
+
+            // Outer glow for selected/building
+            if (isSelected || isBuilding) {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, config.nodeRadius + 8, 0, Math.PI * 2);
+                ctx.fillStyle = isBuilding ? 'rgba(233, 69, 96, 0.3)' : 'rgba(0, 217, 255, 0.3)';
+                ctx.fill();
+            }
+
+            // Node circle
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, config.nodeRadius, 0, Math.PI * 2);
+            
+            // Fill based on state
+            if (isHovered || isSelected) {
+                ctx.fillStyle = '#e94560';
+            } else if (node.connections.length > 1) {
+                // Junction node
+                ctx.fillStyle = '#f39c12';
+            } else {
+                ctx.fillStyle = config.nodeColor;
+            }
+            ctx.fill();
+
+            // Border
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Connection count indicator
+            if (node.connections.length > 1) {
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.connections.length, node.x, node.y);
+            }
+        }
+
+        // Draw preview line when building
+        function drawPreviewLine() {
+            if (!buildingFromNode) return;
+
+            const snapped = snapToGrid(mousePos.x, mousePos.y);
+            const targetNode = findNodeAt(mousePos.x, mousePos.y, buildingFromNode.id);
+
+            ctx.setLineDash([10, 10]);
+            ctx.strokeStyle = 'rgba(233, 69, 96, 0.7)';
+            ctx.lineWidth = config.segmentWidth;
+            ctx.lineCap = 'round';
+
+            if (segmentType === 'dual') {
+                const gap = config.parallelGap / 2;
+                const angle = Math.atan2(
+                    (targetNode ? targetNode.y : snapped.y) - buildingFromNode.y,
+                    (targetNode ? targetNode.x : snapped.x) - buildingFromNode.x
+                );
+                const perpAngle = angle + Math.PI / 2;
+                const offsetX = Math.cos(perpAngle) * gap;
+                const offsetY = Math.sin(perpAngle) * gap;
+
+                ctx.beginPath();
+                ctx.moveTo(buildingFromNode.x + offsetX, buildingFromNode.y + offsetY);
+                ctx.lineTo(
+                    (targetNode ? targetNode.x : snapped.x) + offsetX,
+                    (targetNode ? targetNode.y : snapped.y) + offsetY
+                );
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(buildingFromNode.x - offsetX, buildingFromNode.y - offsetY);
+                ctx.lineTo(
+                    (targetNode ? targetNode.x : snapped.x) - offsetX,
+                    (targetNode ? targetNode.y : snapped.y) - offsetY
+                );
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(buildingFromNode.x, buildingFromNode.y);
+                ctx.lineTo(
+                    targetNode ? targetNode.x : snapped.x,
+                    targetNode ? targetNode.y : snapped.y
+                );
+                ctx.stroke();
+            }
+
+            ctx.setLineDash([]);
+
+            // Draw preview node
+            if (!targetNode) {
+                ctx.beginPath();
+                ctx.arc(snapped.x, snapped.y, config.nodeRadius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 217, 255, 0.5)';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        // Main render function
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw segments
+            for (let segment of segments) {
+                drawSegment(segment);
+            }
+
+            // Draw preview
+            drawPreviewLine();
+
+            // Draw nodes
+            if (config.showNodes) {
+                for (let node of nodes) {
+                    drawNode(node);
+                }
+            }
+
+            // Update stats
+            document.getElementById('segmentCount').textContent = segments.length;
+            document.getElementById('nodeCount').textContent = nodes.length;
+        }
+
+        // Create segment between two nodes
+        function createSegment(node1, node2) {
+            const segment = new Segment(node1.id, node2.id, segmentType);
+            segment.color = config.segmentColor;
+            segments.push(segment);
+            node1.connections.push(segment.id);
+            node2.connections.push(segment.id);
+            return segment;
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
+
+            // Handle dragging
+            if (draggingNode) {
+                const snapped = snapToGrid(mousePos.x, mousePos.y);
+                draggingNode.x = snapped.x;
+                draggingNode.y = snapped.y;
+
+                // Check if we're hovering over another node to merge
+                const targetNode = findNodeAt(mousePos.x, mousePos.y, draggingNode.id);
+                if (targetNode) {
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = mousePos.x + 15 + 'px';
+                    tooltip.style.top = mousePos.y + 15 + 'px';
+                    tooltip.textContent = 'Release to merge nodes';
+                } else {
+                    tooltip.style.display = 'none';
+                }
+
+                render();
+                return;
+            }
+
+            // Check hover
+            hoveredNode = findNodeAt(mousePos.x, mousePos.y);
+
+            if (hoveredNode) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = mousePos.x + 15 + 'px';
+                tooltip.style.top = mousePos.y + 15 + 'px';
+                if (buildingFromNode) {
+                    tooltip.textContent = 'Click to connect';
+                } else {
+                    tooltip.textContent = `Node (${hoveredNode.connections.length} connections)\nDrag to move`;
+                }
+            } else {
+                tooltip.style.display = 'none';
+            }
+
+            render();
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Left click only
+
+            const clickedNode = findNodeAt(mousePos.x, mousePos.y);
+
+            if (clickedNode) {
+                if (buildingFromNode) {
+                    // Connect to existing node
+                    if (clickedNode.id !== buildingFromNode.id) {
+                        createSegment(buildingFromNode, clickedNode);
+                        buildingFromNode = clickedNode; // Continue building from this node
+                        modeIndicator.textContent = 'Continue Building...';
+                    }
+                } else {
+                    // Start dragging or building
+                    draggingNode = clickedNode;
+                    selectedNode = clickedNode;
+                }
+            } else {
+                // Click on empty space
+                const snapped = snapToGrid(mousePos.x, mousePos.y);
+
+                if (buildingFromNode) {
+                    // Create new node and connect
+                    const newNode = new Node(snapped.x, snapped.y);
+                    nodes.push(newNode);
+                    createSegment(buildingFromNode, newNode);
+                    buildingFromNode = newNode; // Continue building from new node
+                    modeIndicator.textContent = 'Continue Building...';
+                } else {
+                    // Start new segment
+                    const newNode = new Node(snapped.x, snapped.y);
+                    nodes.push(newNode);
+                    buildingFromNode = newNode;
+                    selectedNode = newNode;
+                    modeIndicator.textContent = 'Building...';
+                }
+            }
+
+            render();
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (draggingNode) {
+                // Check if we should merge with another node
+                const targetNode = findNodeAt(mousePos.x, mousePos.y, draggingNode.id);
+                if (targetNode) {
+                    mergeNodes(draggingNode, targetNode);
+                }
+                draggingNode = null;
+                tooltip.style.display = 'none';
+            }
+            render();
+        });
+
+        canvas.addEventListener('dblclick', (e) => {
+            const clickedNode = findNodeAt(mousePos.x, mousePos.y);
+            if (clickedNode) {
+                // Start building from this node
+                buildingFromNode = clickedNode;
+                selectedNode = clickedNode;
+                modeIndicator.textContent = 'Building from Node...';
+                render();
+            }
+        });
+
+        // Merge two nodes
+        function mergeNodes(sourceNode, targetNode) {
+            // Transfer all connections from source to target
+            for (let segId of sourceNode.connections) {
+                const seg = segments.find(s => s.id === segId);
+                if (seg) {
+                    if (seg.node1Id === sourceNode.id) {
+                        seg.node1Id = targetNode.id;
+                    } else {
+                        seg.node2Id = targetNode.id;
+                    }
+                    if (!targetNode.connections.includes(segId)) {
+                        targetNode.connections.push(segId);
+                    }
+                }
+            }
+
+            // Remove source node
+            nodes = nodes.filter(n => n.id !== sourceNode.id);
+
+            // Remove any self-referencing segments
+            segments = segments.filter(s => s.node1Id !== s.node2Id);
+
+            // Clean up target node connections
+            targetNode.connections = targetNode.connections.filter(segId => 
+                segments.some(s => s.id === segId)
+            );
+
+            if (selectedNode && selectedNode.id === sourceNode.id) {
+                selectedNode = targetNode;
+            }
+            if (buildingFromNode && buildingFromNode.id === sourceNode.id) {
+                buildingFromNode = targetNode;
+            }
+        }
+
+        // Keyboard events
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                buildingFromNode = null;
+                selectedNode = null;
+                modeIndicator.textContent = 'Build Mode';
+                render();
+            } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                deleteSelected();
+            }
+        });
+
+        // Config functions
+        function setSegmentType(type) {
+            segmentType = type;
+            document.querySelectorAll('.segment-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.segment-type-btn.${type}`).classList.add('active');
+        }
+
+        function updateConfig() {
+            config.curveStrength = parseInt(document.getElementById('curveStrength').value);
+            config.parallelGap = parseInt(document.getElementById('parallelGap').value);
+            config.snapGrid = document.getElementById('snapGrid').checked;
+            config.showNodes = document.getElementById('showNodes').checked;
+            config.segmentColor = document.getElementById('segmentColor').value;
+            config.nodeColor = document.getElementById('nodeColor').value;
+            render();
+        }
+
+        function deleteSelected() {
+            if (selectedNode) {
+                // Delete all segments connected to this node
+                const segmentsToRemove = selectedNode.connections.slice();
+                for (let segId of segmentsToRemove) {
+                    const seg = segments.find(s => s.id === segId);
+                    if (seg) {
+                        // Remove from other node
+                        const otherNodeId = seg.node1Id === selectedNode.id ? seg.node2Id : seg.node1Id;
+                        const otherNode = getNodeById(otherNodeId);
+                        if (otherNode) {
+                            otherNode.connections = otherNode.connections.filter(id => id !== segId);
+                        }
+                    }
+                }
+                segments = segments.filter(s => !segmentsToRemove.includes(s.id));
+                nodes = nodes.filter(n => n.id !== selectedNode.id);
+
+                if (buildingFromNode && buildingFromNode.id === selectedNode.id) {
+                    buildingFromNode = null;
+                    modeIndicator.textContent = 'Build Mode';
+                }
+                selectedNode = null;
+                render();
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Clear all segments and nodes?')) {
+                nodes = [];
+                segments = [];
+                selectedNode = null;
+                buildingFromNode = null;
+                hoveredNode = null;
+                draggingNode = null;
+                modeIndicator.textContent = 'Build Mode';
+                render();
+            }
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>

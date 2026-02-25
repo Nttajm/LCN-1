@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Sim 3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a2e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        .instructions {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #444;
+            background: #2d2d44;
+            cursor: crosshair;
+        }
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4a4a6a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5a5a8a;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .sidebar {
+            background: #2a2a4a;
+            padding: 15px;
+            border-radius: 8px;
+            width: 180px;
+        }
+        .sidebar h3 {
+            margin-bottom: 15px;
+            font-size: 14px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+        .option-group {
+            margin-bottom: 15px;
+        }
+        .option-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        .option-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #3a3a5a;
+            border: 2px solid transparent;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .option-btn:hover {
+            background: #4a4a6a;
+        }
+        .option-btn.active {
+            border-color: #88aaff;
+            background: #4a4a7a;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        .controls button {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Traffic Simulator</h1>
+    <p class="instructions">Click and drag to draw roads (snaps to 90°). Cars spawn at one end and travel to the other.</p>
+    <div class="container">
+        <div class="sidebar">
+            <h3>Road Options</h3>
+            <div class="option-group">
+                <label>Lane Type</label>
+                <button class="option-btn active" id="oneLaneBtn">One Lane</button>
+                <button class="option-btn" id="twoLaneBtn">Two Lanes</button>
+            </div>
+            <div class="controls">
+                <button id="clearBtn">Clear All</button>
+            </div>
+        </div>
+        <canvas id="canvas" width="800" height="600"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let roads = [];
+        let paths = [];
+        let cars = [];
+        let snapPoints = [];
+        let intersections = [];
+        let isDrawing = false;
+        let startX, startY;
+        let snappedPoint = null; // The snap point we're starting from
+        let hoveredSnapPoint = null; // For visual feedback
+        let nextPathId = 1;
+        let nextSnapId = 1;
+        let nextIntersectionId = 1;
+        
+        const ROAD_WIDTH = 24;
+        const SNAP_RADIUS = 15; // How close to snap
+        const INTERSECTION_SNAP_RADIUS = 20; // Larger radius for intersection corners
+        const CAR_WIDTH = 16;
+        const CAR_HEIGHT = 10;
+        const CAR_SPEED = 2;
+        const SPAWN_INTERVAL = 2000; // ms between car spawns per road
+        const LANE_GAP = 4; // gap between two lanes
+        
+        let laneType = 'one'; // 'one' or 'two'
+        
+        // Lane type button handlers
+        document.getElementById('oneLaneBtn').addEventListener('click', () => {
+            laneType = 'one';
+            document.getElementById('oneLaneBtn').classList.add('active');
+            document.getElementById('twoLaneBtn').classList.remove('active');
+        });
+        
+        document.getElementById('twoLaneBtn').addEventListener('click', () => {
+            laneType = 'two';
+            document.getElementById('twoLaneBtn').classList.add('active');
+            document.getElementById('oneLaneBtn').classList.remove('active');
+        });
+        
+        // Mouse event handlers
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // Check if clicking on a snap point
+            snappedPoint = findNearestSnapPoint(mouseX, mouseY);
+            
+            if (snappedPoint) {
+                startX = snappedPoint.x;
+                startY = snappedPoint.y;
+            } else {
+                startX = mouseX;
+                startY = mouseY;
+            }
+            isDrawing = true;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+            
+            // Always check for hovered snap point (for visual feedback)
+            hoveredSnapPoint = findNearestSnapPoint(currentX, currentY);
+            
+            if (!isDrawing) {
+                draw(); // Redraw to show hover state
+                return;
+            }
+            
+            // Determine end point (snap if near a snap point)
+            let endX = currentX;
+            let endY = currentY;
+            const endSnapPoint = findNearestSnapPoint(currentX, currentY, snappedPoint);
+            if (endSnapPoint) {
+                endX = endSnapPoint.x;
+                endY = endSnapPoint.y;
+            }
+            
+            // Redraw everything
+            draw();
+            
+            // Draw preview road (snapped to 90 degrees)
+            const road = calculateRoad(startX, startY, endX, endY);
+            drawRoadPreview(road);
+        });
+        
+        canvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            
+            const rect = canvas.getBoundingClientRect();
+            let endX = e.clientX - rect.left;
+            let endY = e.clientY - rect.top;
+            
+            // Check if ending on a snap point
+            const endSnapPoint = findNearestSnapPoint(endX, endY, snappedPoint);
+            if (endSnapPoint) {
+                endX = endSnapPoint.x;
+                endY = endSnapPoint.y;
+            }
+            
+            const road = calculateRoad(startX, startY, endX, endY);
+            
+            // Only add road if it has some length
+            if (road.length > ROAD_WIDTH) {
+                road.lastSpawn = 0;
+                roads.push(road);
+                
+                // Create path for this road
+                const path = createPathForRoad(road);
+                paths.push(path);
+                road.pathId = path.id;
+                
+                // Create snap points at both ends of the road
+                createSnapPointsForPath(path, snappedPoint, endSnapPoint);
+                
+                // Connect paths if we snapped to existing points
+                if (snappedPoint) {
+                    connectPaths(snappedPoint, path, 'start');
+                    connectToIntersection(snappedPoint, path, 'start');
+                }
+                if (endSnapPoint) {
+                    connectPaths(endSnapPoint, path, 'end');
+                    connectToIntersection(endSnapPoint, path, 'end');
+                }
+                
+                // Check for new intersections (crossing roads)
+                checkForNewIntersections(road);
+                
+                // If two-lane mode, add opposite direction road
+                if (laneType === 'two') {
+                    const oppositeRoad = createOppositeLane(road);
+                    oppositeRoad.lastSpawn = 0;
+                    roads.push(oppositeRoad);
+                    
+                    // Create path for opposite road
+                    const oppositePath = createPathForRoad(oppositeRoad);
+                    paths.push(oppositePath);
+                    oppositeRoad.pathId = oppositePath.id;
+                    
+                    // Create snap points for opposite lane too
+                    createSnapPointsForPath(oppositePath, null, null);
+                }
+            }
+            
+            snappedPoint = null;
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            if (isDrawing) {
+                isDrawing = false;
+                draw();
+            }
+        });
+        
+        // Calculate road snapped to 90 degrees
+        function calculateRoad(x1, y1, x2, y2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            
+            let direction;
+            let length;
+            let roadX, roadY, roadW, roadH;
+            
+            // Determine if horizontal or vertical based on which delta is larger
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // Horizontal road
+                if (dx > 0) {
+                    direction = 'right';
+                    length = dx;
+                    roadX = x1;
+                    roadY = y1 - ROAD_WIDTH / 2;
+                    roadW = length;
+                    roadH = ROAD_WIDTH;
+                } else {
+                    direction = 'left';
+                    length = -dx;
+                    roadX = x2;
+                    roadY = y1 - ROAD_WIDTH / 2;
+                    roadW = length;
+                    roadH = ROAD_WIDTH;
+                }
+            } else {
+                // Vertical road
+                if (dy > 0) {
+                    direction = 'down';
+                    length = dy;
+                    roadX = x1 - ROAD_WIDTH / 2;
+                    roadY = y1;
+                    roadW = ROAD_WIDTH;
+                    roadH = length;
+                } else {
+                    direction = 'up';
+                    length = -dy;
+                    roadX = x1 - ROAD_WIDTH / 2;
+                    roadY = y2;
+                    roadW = ROAD_WIDTH;
+                    roadH = length;
+                }
+            }
+            
+            return {
+                x: roadX,
+                y: roadY,
+                width: roadW,
+                height: roadH,
+                direction: direction,
+                length: Math.max(roadW, roadH)
+            };
+        }
+        
+        // Create opposite lane for two-lane roads
+        function createOppositeLane(road) {
+            const offset = ROAD_WIDTH + LANE_GAP;
+            let oppositeDir;
+            let newX = road.x;
+            let newY = road.y;
+            
+            switch (road.direction) {
+                case 'right':
+                    oppositeDir = 'left';
+                    newY = road.y + offset;
+                    break;
+                case 'left':
+                    oppositeDir = 'right';
+                    newY = road.y - offset;
+                    break;
+                case 'down':
+                    oppositeDir = 'up';
+                    newX = road.x + offset;
+                    break;
+                case 'up':
+                    oppositeDir = 'down';
+                    newX = road.x - offset;
+                    break;
+            }
+            
+            return {
+                x: newX,
+                y: newY,
+                width: road.width,
+                height: road.height,
+                direction: oppositeDir,
+                length: road.length
+            };
+        }
+        
+        // Create a path for a road
+        function createPathForRoad(road) {
+            let startX, startY, endX, endY;
+            
+            // Path runs through center of road
+            switch (road.direction) {
+                case 'right':
+                    startX = road.x;
+                    startY = road.y + road.height / 2;
+                    endX = road.x + road.width;
+                    endY = startY;
+                    break;
+                case 'left':
+                    startX = road.x + road.width;
+                    startY = road.y + road.height / 2;
+                    endX = road.x;
+                    endY = startY;
+                    break;
+                case 'down':
+                    startX = road.x + road.width / 2;
+                    startY = road.y;
+                    endX = startX;
+                    endY = road.y + road.height;
+                    break;
+                case 'up':
+                    startX = road.x + road.width / 2;
+                    startY = road.y + road.height;
+                    endX = startX;
+                    endY = road.y;
+                    break;
+            }
+            
+            return {
+                id: nextPathId++,
+                road: road,
+                startX: startX,
+                startY: startY,
+                endX: endX,
+                endY: endY,
+                direction: road.direction,
+                nextPath: null, // Connected path at the end
+                isCurved: false, // Is this a curved path?
+                controlX: null, // Bezier control point X
+                controlY: null  // Bezier control point Y
+            };
+        }
+        
+        // Create a curved path for intersection turns
+        function createCurvedPath(fromDir, toDir, centerX, centerY) {
+            const offset = ROAD_WIDTH / 2;
+            let startX, startY, endX, endY, controlX, controlY;
+            
+            // Calculate start, end, and control points based on turn direction
+            // fromDir is where car comes FROM, toDir is where car goes TO
+            switch (fromDir + '-' + toDir) {
+                // Coming from left, turning down
+                case 'right-down':
+                    startX = centerX - offset;
+                    startY = centerY;
+                    endX = centerX;
+                    endY = centerY + offset;
+                    controlX = centerX - offset;
+                    controlY = centerY + offset;
+                    break;
+                // Coming from left, turning up
+                case 'right-up':
+                    startX = centerX - offset;
+                    startY = centerY;
+                    endX = centerX;
+                    endY = centerY - offset;
+                    controlX = centerX - offset;
+                    controlY = centerY - offset;
+                    break;
+                // Coming from right, turning down
+                case 'left-down':
+                    startX = centerX + offset;
+                    startY = centerY;
+                    endX = centerX;
+                    endY = centerY + offset;
+                    controlX = centerX + offset;
+                    controlY = centerY + offset;
+                    break;
+                // Coming from right, turning up
+                case 'left-up':
+                    startX = centerX + offset;
+                    startY = centerY;
+                    endX = centerX;
+                    endY = centerY - offset;
+                    controlX = centerX + offset;
+                    controlY = centerY - offset;
+                    break;
+                // Coming from top, turning right
+                case 'down-right':
+                    startX = centerX;
+                    startY = centerY - offset;
+                    endX = centerX + offset;
+                    endY = centerY;
+                    controlX = centerX + offset;
+                    controlY = centerY - offset;
+                    break;
+                // Coming from top, turning left
+                case 'down-left':
+                    startX = centerX;
+                    startY = centerY - offset;
+                    endX = centerX - offset;
+                    endY = centerY;
+                    controlX = centerX - offset;
+                    controlY = centerY - offset;
+                    break;
+                // Coming from bottom, turning right
+                case 'up-right':
+                    startX = centerX;
+                    startY = centerY + offset;
+                    endX = centerX + offset;
+                    endY = centerY;
+                    controlX = centerX + offset;
+                    controlY = centerY + offset;
+                    break;
+                // Coming from bottom, turning left
+                case 'up-left':
+                    startX = centerX;
+                    startY = centerY + offset;
+                    endX = centerX - offset;
+                    endY = centerY;
+                    controlX = centerX - offset;
+                    controlY = centerY + offset;
+                    break;
+                default:
+                    return null;
+            }
+            
+            return {
+                id: nextPathId++,
+                road: null,
+                startX: startX,
+                startY: startY,
+                endX: endX,
+                endY: endY,
+                direction: toDir,
+                nextPath: null,
+                isCurved: true,
+                controlX: controlX,
+                controlY: controlY,
+                fromDir: fromDir,
+                toDir: toDir
+            };
+        }
+        
+        // Find nearest snap point within SNAP_RADIUS (includes intersection corners)
+        function findNearestSnapPoint(x, y, excludePoint = null) {
+            let nearest = null;
+            let nearestDist = SNAP_RADIUS;
+            
+            // Check regular snap points
+            for (const sp of snapPoints) {
+                if (excludePoint && sp.id === excludePoint.id) continue;
+                
+                const dist = Math.sqrt((sp.x - x) ** 2 + (sp.y - y) ** 2);
+                if (dist < nearestDist) {
+                    nearestDist = dist;
+                    nearest = sp;
+                }
+            }
+            
+            // Check intersection corner snap points (with larger radius)
+            for (const intersection of intersections) {
+                for (const corner of intersection.corners) {
+                    if (excludePoint && corner.id === excludePoint.id) continue;
+                    
+                    const dist = Math.sqrt((corner.x - x) ** 2 + (corner.y - y) ** 2);
+                    if (dist < INTERSECTION_SNAP_RADIUS && dist < nearestDist) {
+                        nearestDist = dist;
+                        nearest = corner;
+                    }
+                }
+            }
+            
+            return nearest;
+        }
+        
+        // Create snap points at path ends (skip if already connected)
+        function createSnapPointsForPath(path, startSnap, endSnap) {
+            // Add snap point at start if not connected
+            if (!startSnap) {
+                snapPoints.push({
+                    id: nextSnapId++,
+                    x: path.startX,
+                    y: path.startY,
+                    pathId: path.id,
+                    isStart: true
+                });
+            }
+            
+            // Add snap point at end if not connected
+            if (!endSnap) {
+                snapPoints.push({
+                    id: nextSnapId++,
+                    x: path.endX,
+                    y: path.endY,
+                    pathId: path.id,
+                    isStart: false
+                });
+            }
+        }
+        
+        // Connect two paths via a snap point
+        function connectPaths(snapPoint, newPath, connectionType) {
+            const existingPath = paths.find(p => p.id === snapPoint.pathId);
+            if (!existingPath) return;
+            
+            // If the snap point is at the END of the existing path,
+            // connect existing path's end to new path's start
+            if (!snapPoint.isStart) {
+                existingPath.nextPath = newPath.id;
+            }
+            
+            // If new path ends at a snap point that's at the START of an existing path,
+            // the new path should connect to that path
+            if (connectionType === 'end' && snapPoint.isStart) {
+                newPath.nextPath = existingPath.id;
+            }
+            
+            // Remove the used snap point (it's now connected)
+            const snapIndex = snapPoints.findIndex(sp => sp.id === snapPoint.id);
+            if (snapIndex !== -1) {
+                snapPoints.splice(snapIndex, 1);
+            }
+        }
+        
+        // Check if two roads intersect (cross each other)
+        function checkRoadIntersection(road1, road2) {
+            // One must be horizontal, one vertical
+            const road1Horizontal = road1.direction === 'left' || road1.direction === 'right';
+            const road2Horizontal = road2.direction === 'left' || road2.direction === 'right';
+            
+            if (road1Horizontal === road2Horizontal) return null; // Both same orientation
+            
+            const hRoad = road1Horizontal ? road1 : road2;
+            const vRoad = road1Horizontal ? road2 : road1;
+            
+            // Check if they actually cross
+            const hCenterY = hRoad.y + hRoad.height / 2;
+            const vCenterX = vRoad.x + vRoad.width / 2;
+            
+            // Horizontal road spans X
+            const hLeft = hRoad.x;
+            const hRight = hRoad.x + hRoad.width;
+            
+            // Vertical road spans Y
+            const vTop = vRoad.y;
+            const vBottom = vRoad.y + vRoad.height;
+            
+            // Check crossing
+            if (vCenterX > hLeft && vCenterX < hRight && hCenterY > vTop && hCenterY < vBottom) {
+                return { x: vCenterX, y: hCenterY, hRoad, vRoad };
+            }
+            
+            return null;
+        }
+        
+        // Create an intersection at a crossing point
+        function createIntersection(crossPoint) {
+            const { x, y, hRoad, vRoad } = crossPoint;
+            const offset = ROAD_WIDTH / 2 + 2;
+            
+            // Create corner snap points for the intersection
+            const corners = [
+                { id: nextSnapId++, x: x - offset, y: y - offset, corner: 'topLeft', intersectionId: nextIntersectionId, isIntersectionCorner: true },
+                { id: nextSnapId++, x: x + offset, y: y - offset, corner: 'topRight', intersectionId: nextIntersectionId, isIntersectionCorner: true },
+                { id: nextSnapId++, x: x - offset, y: y + offset, corner: 'bottomLeft', intersectionId: nextIntersectionId, isIntersectionCorner: true },
+                { id: nextSnapId++, x: x + offset, y: y + offset, corner: 'bottomRight', intersectionId: nextIntersectionId, isIntersectionCorner: true }
+            ];
+            
+            const intersection = {
+                id: nextIntersectionId++,
+                x: x,
+                y: y,
+                hRoad: hRoad,
+                vRoad: vRoad,
+                corners: corners,
+                curvedPaths: []
+            };
+            
+            // Create curved paths for all possible turns
+            const turnCombos = [
+                ['right', 'down'], ['right', 'up'],
+                ['left', 'down'], ['left', 'up'],
+                ['down', 'right'], ['down', 'left'],
+                ['up', 'right'], ['up', 'left']
+            ];
+            
+            for (const [from, to] of turnCombos) {
+                const curvedPath = createCurvedPath(from, to, x, y);
+                if (curvedPath) {
+                    curvedPath.intersectionId = intersection.id;
+                    intersection.curvedPaths.push(curvedPath);
+                    paths.push(curvedPath);
+                }
+            }
+            
+            intersections.push(intersection);
+            return intersection;
+        }
+        
+        // Check for intersections when a new road is added
+        function checkForNewIntersections(newRoad) {
+            for (const existingRoad of roads) {
+                if (existingRoad === newRoad) continue;
+                
+                const crossPoint = checkRoadIntersection(newRoad, existingRoad);
+                if (crossPoint) {
+                    // Check if intersection already exists at this point
+                    const existingIntersection = intersections.find(i => 
+                        Math.abs(i.x - crossPoint.x) < 5 && Math.abs(i.y - crossPoint.y) < 5
+                    );
+                    
+                    if (!existingIntersection) {
+                        createIntersection(crossPoint);
+                    }
+                }
+            }
+        }
+        
+        // Connect a path to intersection curved paths
+        function connectToIntersection(snapPoint, newPath, connectionType) {
+            if (!snapPoint.isIntersectionCorner) return;
+            
+            const intersection = intersections.find(i => i.id === snapPoint.intersectionId);
+            if (!intersection) return;
+            
+            // Find which direction the new path is coming from/going to
+            const pathDir = newPath.direction;
+            
+            // Find curved paths that can connect
+            for (const curvedPath of intersection.curvedPaths) {
+                if (connectionType === 'start') {
+                    // New path starts at intersection - connect curved path end to new path start
+                    if (curvedPath.toDir === pathDir) {
+                        // Check if curve end is near our snap point
+                        const dist = Math.sqrt((curvedPath.endX - snapPoint.x) ** 2 + (curvedPath.endY - snapPoint.y) ** 2);
+                        if (dist < ROAD_WIDTH) {
+                            curvedPath.nextPath = newPath.id;
+                        }
+                    }
+                } else {
+                    // New path ends at intersection - connect new path to curved paths
+                    // Find opposite direction (where we're coming from)
+                    const oppositeDir = { 'left': 'right', 'right': 'left', 'up': 'down', 'down': 'up' }[pathDir];
+                    if (curvedPath.fromDir === oppositeDir) {
+                        const dist = Math.sqrt((curvedPath.startX - snapPoint.x) ** 2 + (curvedPath.startY - snapPoint.y) ** 2);
+                        if (dist < ROAD_WIDTH) {
+                            newPath.nextPath = curvedPath.id;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Draw snap points
+        function drawSnapPoints() {
+            // Draw regular snap points
+            for (const sp of snapPoints) {
+                const isHovered = hoveredSnapPoint && hoveredSnapPoint.id === sp.id;
+                
+                // Outer circle
+                ctx.beginPath();
+                ctx.arc(sp.x, sp.y, isHovered ? 10 : 8, 0, Math.PI * 2);
+                ctx.fillStyle = isHovered ? '#ffaa00' : '#ff6600';
+                ctx.fill();
+                
+                // Inner circle
+                ctx.beginPath();
+                ctx.arc(sp.x, sp.y, isHovered ? 5 : 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            }
+            
+            // Draw intersection corner snap points
+            for (const intersection of intersections) {
+                for (const corner of intersection.corners) {
+                    const isHovered = hoveredSnapPoint && hoveredSnapPoint.id === corner.id;
+                    
+                    // Square shape for intersection corners
+                    const size = isHovered ? 10 : 8;
+                    ctx.fillStyle = isHovered ? '#00ffaa' : '#00cc88';
+                    ctx.fillRect(corner.x - size/2, corner.y - size/2, size, size);
+                    
+                    // Inner square
+                    const innerSize = isHovered ? 5 : 4;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(corner.x - innerSize/2, corner.y - innerSize/2, innerSize, innerSize);
+                }
+            }
+        }
+        
+        // Draw a path (debug visualization)
+        function drawPath(path) {
+            ctx.strokeStyle = path.isCurved ? '#ff00ff' : '#00cccc'; // magenta for curves, teal for straight
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(path.startX, path.startY);
+            
+            if (path.isCurved && path.controlX !== null) {
+                // Draw quadratic bezier curve
+                ctx.quadraticCurveTo(path.controlX, path.controlY, path.endX, path.endY);
+            } else {
+                ctx.lineTo(path.endX, path.endY);
+            }
+            ctx.stroke();
+            
+            // Draw path ID label
+            ctx.fillStyle = path.isCurved ? '#ff88ff' : '#00ffff';
+            ctx.font = '10px Arial';
+            const midX = (path.startX + path.endX) / 2;
+            const midY = (path.startY + path.endY) / 2;
+            ctx.fillText('P' + path.id, midX - 8, midY - 5);
+        }
+        
+        // Draw a road
+        function drawRoad(road) {
+            // Road background
+            ctx.fillStyle = '#555';
+            ctx.fillRect(road.x, road.y, road.width, road.height);
+            
+            // Road border
+            ctx.strokeStyle = '#777';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(road.x, road.y, road.width, road.height);
+        }
+        
+        function drawRoadPreview(road) {
+            ctx.globalAlpha = 0.5;
+            drawRoad(road);
+            ctx.globalAlpha = 1;
+        }
+        
+        // Draw a car
+        function drawCar(car) {
+            ctx.fillStyle = car.color;
+            ctx.save();
+            ctx.translate(car.x, car.y);
+            
+            // Rotate based on direction or angle (for curves)
+            if (car.angle !== undefined) {
+                ctx.rotate(car.angle);
+            } else {
+                if (car.direction === 'up') ctx.rotate(-Math.PI / 2);
+                else if (car.direction === 'down') ctx.rotate(Math.PI / 2);
+                else if (car.direction === 'left') ctx.rotate(Math.PI);
+            }
+            
+            // Draw car (pointing right by default)
+            ctx.fillRect(-CAR_WIDTH / 2, -CAR_HEIGHT / 2, CAR_WIDTH, CAR_HEIGHT);
+            
+            // Windshield
+            ctx.fillStyle = '#88ccff';
+            ctx.fillRect(CAR_WIDTH / 2 - 6, -CAR_HEIGHT / 2 + 2, 4, CAR_HEIGHT - 4);
+            
+            ctx.restore();
+        }
+        
+        // Spawn a car on a road (follows its path)
+        function spawnCar(road) {
+            // Find the path for this road
+            const path = paths.find(p => p.id === road.pathId);
+            if (!path) return;
+            
+            // Random car color
+            const colors = ['#ff4444', '#44ff44', '#4444ff', '#ffff44', '#ff44ff', '#44ffff', '#ff8800', '#8800ff'];
+            
+            cars.push({
+                x: path.startX,
+                y: path.startY,
+                direction: path.direction,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                path: path,
+                road: road
+            });
+        }
+        
+        // Update car positions (follow their path)
+        function updateCars() {
+            for (let i = cars.length - 1; i >= 0; i--) {
+                const car = cars[i];
+                const path = car.path;
+                
+                if (path.isCurved) {
+                    // Move along bezier curve using t parameter
+                    if (car.t === undefined) car.t = 0;
+                    car.t += CAR_SPEED / 50; // Adjust speed for curve length
+                    
+                    if (car.t >= 1) {
+                        // Reached end of curve
+                        car.t = 1;
+                        car.x = path.endX;
+                        car.y = path.endY;
+                        
+                        // Check for next path
+                        if (path.nextPath) {
+                            const nextPath = paths.find(p => p.id === path.nextPath);
+                            if (nextPath) {
+                                car.path = nextPath;
+                                car.direction = nextPath.direction;
+                                car.x = nextPath.startX;
+                                car.y = nextPath.startY;
+                                car.t = 0;
+                                continue;
+                            }
+                        }
+                        cars.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Calculate position on quadratic bezier curve
+                    const t = car.t;
+                    const mt = 1 - t;
+                    car.x = mt * mt * path.startX + 2 * mt * t * path.controlX + t * t * path.endX;
+                    car.y = mt * mt * path.startY + 2 * mt * t * path.controlY + t * t * path.endY;
+                    
+                    // Calculate direction for car rotation (tangent of curve)
+                    const tx = 2 * mt * (path.controlX - path.startX) + 2 * t * (path.endX - path.controlX);
+                    const ty = 2 * mt * (path.controlY - path.startY) + 2 * t * (path.endY - path.controlY);
+                    car.angle = Math.atan2(ty, tx);
+                } else {
+                    // Move car based on direction (straight path)
+                    switch (car.direction) {
+                        case 'right': car.x += CAR_SPEED; break;
+                        case 'left': car.x -= CAR_SPEED; break;
+                        case 'down': car.y += CAR_SPEED; break;
+                        case 'up': car.y -= CAR_SPEED; break;
+                    }
+                    
+                    // Check if car reached end of current path
+                    let reachedEnd = false;
+                    
+                    switch (car.direction) {
+                        case 'right': reachedEnd = car.x >= path.endX; break;
+                        case 'left': reachedEnd = car.x <= path.endX; break;
+                        case 'down': reachedEnd = car.y >= path.endY; break;
+                        case 'up': reachedEnd = car.y <= path.endY; break;
+                    }
+                    
+                    if (reachedEnd) {
+                        // Check if there's a connected path to follow
+                        if (path.nextPath) {
+                            const nextPath = paths.find(p => p.id === path.nextPath);
+                            if (nextPath) {
+                                // Transfer car to next path
+                                car.path = nextPath;
+                                car.direction = nextPath.direction;
+                                car.x = nextPath.startX;
+                                car.y = nextPath.startY;
+                                car.t = 0;
+                                continue;
+                            }
+                        }
+                        
+                        // No connected path, check if car is off the road completely
+                        let offRoad = false;
+                        switch (car.direction) {
+                            case 'right': offRoad = car.x > path.endX + CAR_WIDTH; break;
+                            case 'left': offRoad = car.x < path.endX - CAR_WIDTH; break;
+                            case 'down': offRoad = car.y > path.endY + CAR_HEIGHT; break;
+                            case 'up': offRoad = car.y < path.endY - CAR_HEIGHT; break;
+                        }
+                        
+                        if (offRoad) {
+                            cars.splice(i, 1);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Spawn cars periodically - only from paths that have an open start (not connected to previous path)
+        function spawnCarsOnRoads(timestamp) {
+            // Find paths that have a snap point at their start (meaning they're entry points)
+            for (const path of paths) {
+                // Check if this path has an open start (snap point at isStart=true)
+                const hasOpenStart = snapPoints.some(sp => sp.pathId === path.id && sp.isStart === true);
+                
+                if (hasOpenStart) {
+                    const road = path.road;
+                    if (timestamp - road.lastSpawn > SPAWN_INTERVAL) {
+                        spawnCarOnPath(path);
+                        road.lastSpawn = timestamp;
+                    }
+                }
+            }
+        }
+        
+        // Spawn a car directly on a path
+        function spawnCarOnPath(path) {
+            const colors = ['#ff4444', '#44ff44', '#4444ff', '#ffff44', '#ff44ff', '#44ffff', '#ff8800', '#8800ff'];
+            
+            cars.push({
+                x: path.startX,
+                y: path.startY,
+                direction: path.direction,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                path: path,
+                road: path.road
+            });
+        }
+        
+        // Main draw function
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw all roads
+            for (const road of roads) {
+                drawRoad(road);
+            }
+            
+            // Draw all paths (debug visualization)
+            for (const path of paths) {
+                drawPath(path);
+            }
+            
+            // Draw snap points
+            drawSnapPoints();
+            
+            // Draw all cars
+            for (const car of cars) {
+                drawCar(car);
+            }
+        }
+        
+        // Animation loop
+        let lastTime = 0;
+        function animate(timestamp) {
+            updateCars();
+            spawnCarsOnRoads(timestamp);
+            draw();
+            requestAnimationFrame(animate);
+        }
+        
+        // Clear button
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            roads = [];
+            paths = [];
+            cars = [];
+            snapPoints = [];
+            intersections = [];
+            nextPathId = 1;
+            nextSnapId = 1;
+            nextIntersectionId = 1;
+            draw();
+        });
+        
+        // Start animation
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

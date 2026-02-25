@@ -588,51 +588,192 @@ function classColorBias(bias, input) {
     }
 
 
-function renderTeamStats() {
-    const output = document.querySelector('.js-team-stats')
-    output.innerHTML = ''
+function getTeamCards(team) {
+    if (!team) return { yellow: 0, red: 0 };
 
-    const winRatio = (getTeamWinRatio(team) * 100).toFixed(2);
-    const goalsScored = getTeamGoalsScored(team);
-    const goalsConceded = getGoalsConceded(team);
-    const goalsPerGame = getGoalsPerGameRatio(team).toFixed(2);
+    let yellowCards = 0;
+    let redCards = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id || game.team2 === team.id) {
+                    // Count yellow cards for the team
+                    if (game.yellowCards && Array.isArray(game.yellowCards)) {
+                        game.yellowCards.forEach(card => {
+                            if (card.team === team.id) {
+                                yellowCards++;
+                            }
+                        });
+                    }
+                    // Count red cards for the team
+                    if (game.redCards && Array.isArray(game.redCards)) {
+                        game.redCards.forEach(card => {
+                            if (card.team === team.id) {
+                                redCards++;
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    });
+
+    return { yellow: yellowCards, red: redCards };
+}
+
+function getTeamCleanSheets(team) {
+    if (!team) return 0;
+
+    let cleanSheets = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id && game.score2 === 0) {
+                    cleanSheets++;
+                } else if (game.team2 === team.id && game.score1 === 0) {
+                    cleanSheets++;
+                }
+            });
+        });
+    });
+
+    return cleanSheets;
+}
+
+function getTeamDraws(team) {
+    if (!team) return 0;
+
+    let draws = 0;
+
+    seasons.forEach(season => {
+        if (!season.matchdays) return;
+
+        season.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (game.team1 === team.id || game.team2 === team.id) {
+                    if (game.score1 === game.score2) {
+                        draws++;
+                    }
+                }
+            });
+        });
+    });
+
+    return draws;
+}
+
+function renderTeamStats() {
+    const gamesPlayed = getTeamGamesPlayed(team);
     const wins = getTeamWins(team);
     const losses = getTeamLosses(team);
-    const winLossDifference = wins - losses;
+    const draws = getTeamDraws(team);
+    const goalsScored = getTeamGoalsScored(team);
+    const goalsConceded = getGoalsConceded(team);
+    const cleanSheets = getTeamCleanSheets(team);
+    const cards = getTeamCards(team);
+    const winRatio = gamesPlayed > 0 ? ((wins / gamesPlayed) * 100).toFixed(0) : 0;
+    const goalDiff = goalsScored - goalsConceded;
+    const goalsPerMatch = gamesPlayed > 0 ? (goalsScored / gamesPlayed).toFixed(2) : 0;
+    const concededPerMatch = gamesPlayed > 0 ? (goalsConceded / gamesPlayed).toFixed(2) : 0;
+    const cleanSheetsAvg = gamesPlayed > 0 ? (cleanSheets / gamesPlayed).toFixed(2) : 0;
+    const yellowAvg = gamesPlayed > 0 ? (cards.yellow / gamesPlayed).toFixed(2) : 0;
+    const redAvg = gamesPlayed > 0 ? (cards.red / gamesPlayed).toFixed(2) : 0;
 
+    // Update matches circle
+    const matchesNumber = document.querySelector('.js-matches-played');
+    if (matchesNumber) matchesNumber.textContent = gamesPlayed;
 
+    const winsCount = document.querySelector('.js-wins-count');
+    if (winsCount) winsCount.textContent = wins;
 
-    output.innerHTML = `
-        <div class="team-stat d-box d-inland ${classColorBias(100, winRatio)}">
-            <span>Win ratio %</span>
-            <span>${winRatio}</span>
-        </div>
-        <div class="team-stat d-box d-inland ${classColorBias(getRightGoalScoreBias(getTeamGamesPlayed(team)), goalsScored)}">
-            <span>Goals scored</span>
-            <span>${goalsScored}</span>
-        </div>
-        <div class="team-stat d-box d-inland ${classColorBias(getRightGoalScoreBias(getTeamGamesPlayed(team)), goalsConceded)}">
-            <span>Goals conceded</span>
-            <span>${goalsConceded}</span>
-        </div>
-        <div class="team-stat d-box d-inland ${classColorBias(1.50, goalsPerGame)}">
-            <span>Goals per game ratio</span>
-            <span>${goalsPerGame}</span>
-        </div>
-        <div class="team-stat d-box d-inland ${classColorBias(getTeamGamesPlayed(team), wins)}">
-            <span>Wins</span>
-            <span>${wins}</span>
-        </div>
-        <div class="team-stat d-box d-inland ${classColorBias(getTeamGamesPlayed(team), losses)}">
-            <span>Losses</span>
-            <span>${losses}</span>
-        </div>
-        <div class="team-stat d-box d-inland">
-            <span>Win-Loss Difference</span>
-            <span>${winLossDifference}</span>
-        </div>
-    `;
+    const drawsCount = document.querySelector('.js-draws-count');
+    if (drawsCount) drawsCount.textContent = draws;
 
+    const lossesCount = document.querySelector('.js-losses-count');
+    if (lossesCount) lossesCount.textContent = losses;
+
+    // Update progress ring
+    const circumference = 2 * Math.PI * 40; // 251.2
+    const wonCircle = document.querySelector('.progress-ring-won');
+    const drawCircle = document.querySelector('.progress-ring-draw');
+    const lostCircle = document.querySelector('.progress-ring-lost');
+
+    if (gamesPlayed > 0 && wonCircle && drawCircle && lostCircle) {
+        const wonPercent = wins / gamesPlayed;
+        const drawPercent = draws / gamesPlayed;
+        const lostPercent = losses / gamesPlayed;
+
+        const wonOffset = circumference * (1 - wonPercent);
+        const drawOffset = circumference * (1 - drawPercent);
+        const lostOffset = circumference * (1 - lostPercent);
+
+        // Won starts at 0
+        wonCircle.style.strokeDashoffset = wonOffset;
+        
+        // Draw starts where won ends
+        drawCircle.style.strokeDasharray = circumference;
+        drawCircle.style.strokeDashoffset = circumference - (circumference * drawPercent);
+        drawCircle.style.transform = `rotate(${wonPercent * 360 - 90}deg)`;
+        drawCircle.style.transformOrigin = '50% 50%';
+        
+        // Lost starts where draw ends
+        lostCircle.style.strokeDasharray = circumference;
+        lostCircle.style.strokeDashoffset = circumference - (circumference * lostPercent);
+        lostCircle.style.transform = `rotate(${(wonPercent + drawPercent) * 360 - 90}deg)`;
+        lostCircle.style.transformOrigin = '50% 50%';
+    }
+
+    // Update stats grid
+    const statsGrid = document.querySelector('.stats-grid');
+    if (statsGrid) {
+        statsGrid.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-value">${goalsScored}</span>
+                <span class="stat-label">Goals</span>
+                <span class="stat-sub">${goalsPerMatch} avg. per match</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${goalsConceded}</span>
+                <span class="stat-label">Goals conceded</span>
+                <span class="stat-sub">${concededPerMatch} avg. per match</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${winRatio}%</span>
+                <span class="stat-label">Win ratio</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${cleanSheets}</span>
+                <span class="stat-label">Clean sheets</span>
+                <span class="stat-sub">${cleanSheetsAvg} avg. per match</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${goalDiff >= 0 ? '+' : ''}${goalDiff}</span>
+                <span class="stat-label">Goal difference</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value"><span class="card-icon yellow">🟨</span>${cards.yellow}</span>
+                <span class="stat-label">Yellow cards</span>
+                <span class="stat-sub">${yellowAvg} avg. per match</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value"><span class="card-icon red">🟥</span>${cards.red}</span>
+                <span class="stat-label">Red cards</span>
+                <span class="stat-sub">${redAvg} avg. per match</span>
+            </div>
+        `;
+    }
 }
 
 renderTeamStats()
