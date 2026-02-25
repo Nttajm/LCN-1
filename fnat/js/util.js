@@ -1,6 +1,6 @@
 // button toggling main menu, start screen - done by ai - chatgbt
 
-import { startGame_Anim } from "./animation.js";
+import { startGame_Anim } from "./animation.js"; 
 
 function initStartMenuNavigation() {
   const menu = document.querySelector('.start-game .actions');

@@ -1,9 +1,5 @@
 import { CLOCK_SET } from "./clock.js";
 import { startGame } from "./game.js";
-let game = {
-  isNew : true, // if it is a new game itll show like thw newspaper animation, if not itll show the normal start screen
-  gameStarted : false, // like if the game has started or not
-}
 
 
 // start the fnaf news thingy
