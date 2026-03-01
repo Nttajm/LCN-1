@@ -197,8 +197,9 @@
          * @param {string} time - Time in "HH:MM" or "HH:MM:SS" format
          * @param {string} ampm - "AM" or "PM"
          * @param {number|string} dateParam - Days offset (number) OR custom text string to display in date area
+         * @param {boolean} isStatic - when true the clock will remain fixed at the set time instead of advancing
          */
-        setManualTime(time, ampm, dateParam = 0) {
+        setManualTime(time, ampm, dateParam = 0, isStatic = false) {
             const parts = time.split(':');
             let hours = parseInt(parts[0], 10);
             const minutes = parseInt(parts[1], 10);
@@ -230,7 +231,8 @@
                 seconds: seconds,
                 baseDate: baseDate,
                 customDateText: customDateText,
-                setAt: Date.now()
+                setAt: Date.now(),
+                isStatic: isStatic
             };
             
             this.updateDisplay();
@@ -249,6 +251,13 @@
          */
         getCurrentTime() {
             if (this.manualTime) {
+                // If the manual time is static, return fixed date/time ignoring elapsed
+                if (this.manualTime.isStatic) {
+                    const date = new Date(this.manualTime.baseDate);
+                    date.setHours(this.manualTime.hours, this.manualTime.minutes, this.manualTime.seconds);
+                    return date;
+                }
+
                 // Calculate elapsed seconds since manual time was set
                 const elapsed = Math.floor((Date.now() - this.manualTime.setAt) / 1000);
                 
@@ -518,12 +527,13 @@
      * Manually set the time on all clocks
      * @param {string} time - Time in "HH:MM" or "HH:MM:SS" format (e.g., "10:30" or "10:30:45")
      * @param {string} ampm - "AM" or "PM"
-     * @param {number} daysOffset - Days to add to today's date (e.g., 1 = tomorrow, -1 = yesterday)
+     * @param {number|string} daysOffset - Days to add to today's date (e.g., 1 = tomorrow, -1 = yesterday) or custom text
+     * @param {boolean} isStatic - if true the displayed time will remain fixed instead of ticking forward
      */
-     function CLOCK_SET(time, ampm, daysOffset = 0) {
+     function CLOCK_SET(time, ampm, daysOffset = 0, isStatic = false) {
         const instances = getClockInstances();
         instances.forEach(clock => {
-            clock.setManualTime(time, ampm, daysOffset);
+            clock.setManualTime(time, ampm, daysOffset, isStatic);
         });
     }
 

@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Josu</title>
+    <link rel="stylesheet" href="css/startgame.css">
+    <link rel="stylesheet" href="css/game.css">k
+    <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+    <div class="sc_wrapper dn">
+        <div class="screen start">
+        <div class="middlebar">
+
+            <!-- Settings -->
+            <div class="mbar-item settings-btn">
+                <div class="gear">⚙</div>
+                <span>settings</span>
+            </div>
+
+            <!-- Logo (replace src with your actual logo path) -->
+            <div class="mbar-item logo js-play">
+                <img src="assets/logo-josu.png" alt="josu logo">
+            </div>
+
+            <!-- Play -->
+            <div class="mbar-item js-play">
+                <div class="btn-icon">
+                    <!-- osu! circle icon -->
+                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="9" stroke="white" stroke-width="2"/>
+                        <circle cx="11" cy="11" r="4" fill="white"/>
+                    </svg>
+                </div>
+                <span>play</span>
+            </div>
+
+            <!-- Edit / Make -->
+            <div class="mbar-item edit">
+                <div class="btn-icon">
+                    <!-- pencil icon -->
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"/>
+                        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                    </svg>
+                </div>
+                <span>make</span>
+            </div>
+
+            <!-- Browse -->
+            <div class="mbar-item browse">
+                <div class="btn-icon">
+                    <!-- music note icon -->
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"/>
+                        <circle cx="6" cy="18" r="3"/>
+                        <circle cx="18" cy="16" r="3"/>
+                    </svg>
+                </div>
+                <span>browse</span>
+            </div>
+
+            <!-- Exit -->
+            <div class="mbar-item exit">
+                <div class="btn-icon">
+                    <!-- X icon -->
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </div>
+                <span>exit</span>
+            </div>
+
+        </div>
+    </div>
+    </div>
+
+    <div class="sc_wrapper">
+        <div class="screen game" style="background-image: url(songs/ttto/main.png);">
+            <div class="explainer">
+                <!-- Header -->
+                <div class="explainer-header">
+                    <div class="ranked-badge">RANKED</div>
+                    <h1 class="explainer-title">Moment</h1>
+                    <p class="explainer-artist">MIMI</p>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="explainer-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">▶</span>
+                        <span class="stat-value">1,792</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">⏱</span>
+                        <span class="stat-value">03:20</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">♪</span>
+                        <span class="stat-value">126</span>
+                    </div>
+                </div>
+
+                <!-- Difficulty Pill -->
+                <div class="difficulty-pill">
+                    <span class="difficulty-star">★ 1.03</span>
+                    <span class="difficulty-name">kartofle's Easy</span>
+                    <span class="difficulty-mapper">mapped by Kurisu Makise</span>
+                </div>
+
+                <!-- Details Grid -->
+                <div class="explainer-details">
+                    <div class="detail-column">
+                        <span class="detail-label">Notes</span>
+                        <span class="detail-value">400</span>
+                    </div>
+                    <div class="detail-column">
+                        <span class="detail-label">Hold Notes</span>
+                        <span class="detail-value">3</span>
+                    </div>
+                    <div class="detail-column">
+                        <span class="detail-label">Key Count</span>
+                        <span class="detail-value">9</span>
+                    </div>
+                    <div class="detail-column">
+                        <span class="detail-label">Accuracy</span>
+                        <span class="detail-value">6</span>
+                    </div>
+                </div>
+            </div>
+            <div class="songs">
+                <div class="song-item selected">
+                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
+                        <div class="selected-item">
+                            <span class="selected-icon">▶</span>
+                        </div>
+                        <div class="song-i-info">
+                            <h2 class="song-title">Moment</h2>
+                            <p class="song-artist">MIMI</p>
+                        </div>
+                    </div>
+                    <div class="song-difficulties">
+                        <div class="song-difficulty-pill selected">
+                            
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ 1.03</span>
+                        </div>
+                        <div class="song-difficulty-pill">
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ .63</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="song-item ">
+                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
+                        <div class="selected-item">
+                            <span class="selected-icon">▶</span>
+                        </div>
+                        <div class="song-i-info">
+                            <h2 class="song-title">Moment</h2>
+                            <p class="song-artist">MIMI</p>
+                        </div>
+                    </div>
+                    <div class="song-difficulties">
+                        <div class="song-difficulty-pill selected">
+                            
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ 1.03</span>
+                        </div>
+                        <div class="song-difficulty-pill">
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ .63</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="song-item ">
+                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
+                        <div class="selected-item">
+                            <span class="selected-icon">▶</span>
+                        </div>
+                        <div class="song-i-info">
+                            <h2 class="song-title">Moment</h2>
+                            <p class="song-artist">MIMI</p>
+                        </div>
+                    </div>
+                    <div class="song-difficulties">
+                        <div class="song-difficulty-pill selected">
+                            
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ 1.03</span>
+                        </div>
+                        <div class="song-difficulty-pill">
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ .63</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="song-item ">
+                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
+                        <div class="selected-item">
+                            <span class="selected-icon">▶</span>
+                        </div>
+                        <div class="song-i-info">
+                            <h2 class="song-title">Moment</h2>
+                            <p class="song-artist">MIMI</p>
+                        </div>
+                    </div>
+                    <div class="song-difficulties">
+                        <div class="song-difficulty-pill selected">
+                            
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ 1.03</span>
+                        </div>
+                        <div class="song-difficulty-pill">
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ .63</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="song-item ">
+                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
+                        <div class="selected-item">
+                            <span class="selected-icon">▶</span>
+                        </div>
+                        <div class="song-i-info">
+                            <h2 class="song-title">Moment</h2>
+                            <p class="song-artist">MIMI</p>
+                        </div>
+                    </div>
+                    <div class="song-difficulties">
+                        <div class="song-difficulty-pill selected">
+                            
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ 1.03</span>
+                        </div>
+                        <div class="song-difficulty-pill">
+                            <span class="difficulty-name">kartofle's Easy</span>
+                            <span class="difficulty-star">★ .63</span>
+                        </div>
+                    </div>
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const playBtn = document.querySelectorAll('.js-play');
+    const startScreen = document.querySelector('.screen.start');
+
+    playBtn.forEach(btn => {
+        btn.addEventListener('click', () => {
+            startScreen.classList.add('dn');
+        });
+    });
+
+    
+
+    
+</script>
+</html>

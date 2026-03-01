@@ -14,10 +14,10 @@
       width: 100vw;
       height: 100vh;
       position: relative;
-      background: #ffffff;
+      background: #bebdbd;
       cursor: crosshair;
       background-image: 
-        radial-gradient(circle, #cacaca81 1px, transparent 1px);
+        radial-gradient(circle, #00000081 1px, transparent 1px);
       background-size: 25px 25px;
     }
   </style>
@@ -25,14 +25,7 @@
 <body>
   <div class="map">
     <canvas id="mapCanvas"></canvas>
-  </div>
+  </div> 
 </body>
-<script>
-  let dm = document
-  function E_ById(id) {
-    return dm.getElementById(id);
-  }
-  let startingPoint = null;
-  const mapCanvas = E_ById('mapCanvas');
-</script>
+<script src="js/engine.js"></script>
 </html>

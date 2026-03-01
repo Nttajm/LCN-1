@@ -185,9 +185,13 @@
     .opening-game {
       animation: fadeIn 2.5s ease forwards;
       pointer-events: all !important;
-    }
+    } 
 
     @keyframes fadeIn {
+      from {
+        opacity: 0;
+        visibility: visible;
+      }
       to {
         opacity: 1;
         visibility: visible;
@@ -204,6 +208,6 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none !important;
-    display: none !important;
   }
 }
+

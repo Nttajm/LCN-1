@@ -1,8 +1,33 @@
+
+/* Import a pixelated, FNAF-style display font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&family=Cal+Sans&family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Pixelify+Sans:wght@400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Space+Grotesk:wght@300..700&family=Special+Gothic+Expanded+One&display=swap');
+
 body {
   background-color: black;
   overflow: hidden;
-}
+}  
 
+:root {
+  --f1: 'Press Start 2P', cursive, sans-serif;
+  --f2: 'Alan Sans', sans-serif;
+  --f3: 'Cal Sans', sans-serif;
+  --f4: 'DM Serif Text', serif;
+  --f5: 'Doto', sans-serif;
+  --f6: 'Fredoka', cursive, sans-serif;
+  --f7: 'IBM Plex Mono', monospace;
+  --f8: 'Merriweather Sans', sans-serif;
+  --f9: 'Neuton', serif;
+  --f10: 'Oswald', sans-serif;
+  --f11: 'Pacifico', cursive;
+  --f12: 'Pirata One', serif;
+  --f13: 'Pixelify Sans', sans-serif;
+  --f14: 'Playfair Display', serif;
+  --f15: 'Roboto Mono', monospace;
+  --f16: 'Roboto', sans-serif;
+  --f17: 'Space Grotesk', sans-serif;
+  --f18: 'Special Gothic Expanded One', sans-serif;
+}
 * {
   overflow: hidden;
 }
@@ -26,6 +51,7 @@ body {
   height: 100vh;
   pointer-events: none;
   z-index: 2;
+  opacity: 0;
 }
 
 .newspaper {
@@ -33,6 +59,13 @@ body {
   width: 100vw;
   height: 100vh;
   z-index: 2 !important;
+  opacity: 1;
+  transition: opacity 2.5s ease-out;
+}
+
+.newspaper.closing-news {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .newspaper img {
@@ -51,6 +84,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 3;
 }
 
 .student-center {
@@ -58,15 +92,122 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-30%, -40%);
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   scale: 1.3;
   background-image: url('../assets/dark-stc.png');
   background-position: center;
   background-size: cover;
 }
 
+.game-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+} 
 
+.game-ui {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+}
 
-#openDoorLeft {
+.game-border {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: solid 2px white;
+  scale: 0.95;
+
+}
+
+.game-clock {
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  scale: 0.3;
+}
+
+.arrows {
+  position: absolute;
+  top: 50%; 
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 3%;
+  /* Use a pixelated FNAF-style display font for arrow labels */
+  font-family: "Pixelify Sans", sans-serif !important;
+  color: #fff;
+  font-size: 3.2rem;
+  letter-spacing: 0.06em;
+  pointer-events: auto;
+  align-items: center;
+  opacity: 0.4;
+}
+
+.cameras-button {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+/* ipad view: center and scale to fill most of the viewport */
+.ipad {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80vw;
+  height: 80vh;
+  transform: translate(-50%, -50%);
+  background-color: #000;
+  border: 5px solid #1b1b1b;
+  border-radius: 40px;
+  box-sizing: border-box;
+  z-index: 4;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.ipad .screen {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 90%;
+  height: 90%;
+  background-color: #111;
+  border-radius: 20px;
+}
+
+.ipad .camera-hole {
+  position: absolute;
+  top: 50%;
+  left: 1%;
+  width: 7px;
+  height: 7px;
+  background-color: #222;
+  border: 2px solid #555;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.ipad .home-button {
+  position: absolute;
+  top: 50%;
+  right: 1%;
+  width: 40px;
+  height: 40px;
+  background-color: #222;
+  border: 2px solid #555;
+  border-radius: 50%;
+  transform: translateY(-50%);
 }

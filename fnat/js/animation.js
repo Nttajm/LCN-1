@@ -2,30 +2,59 @@ import { CLOCK_SET } from "./clock.js";
 import { startGame } from "./game.js";
 
 
-// start the fnaf news thingy
-export function startGame_Anim() {
   const startScreen = document.querySelector('.start-game');
   const gameContainer = document.querySelector('.game');
   const newspaper = document.querySelector('.newspaper');
-  if (!startScreen) return;
+  const clockShow = document.querySelector('.clock-show');
 
+    const gameView = document.querySelector('.game-view');
+
+
+const devMode = true; // if true, itll skip the newspaper animation and go straight to the game
+
+if (devMode) {
+  startScreen.classList.add('dn');
+  newspaper.classList.add('dn');
+  clockShow.classList.add('dn');
+  gameContainer.classList.remove('dn');
+  gameContainer.classList.add('opening-game');
+  gameView.classList.add('opening-game');
+  startGame();
+}
+
+
+// start the fnaf news thingy
+export function startGame_Anim() {
+
+  if (!startScreen) return;
+ 
   gameContainer.classList.remove('dn');
   gameContainer.classList.add('opening-game');
 
-  // remove after seconds is what it does, timeot for 3 seconds before it removes the newspaper and shows the game
+  // After 5 seconds, fade out newspaper to black over 2.5 seconds
+  setTimeout(() => {
+    newspaper.classList.add('closing-news');
+  }, 5000);
+
   setTimeout(() => {
     startScreen.classList.add('dn');
-    newspaper.classList.add('closing-news');
-  }, 6000);
+  }, 4000);
 
+  // After 7.5 seconds (5s + 2.5s fade), show black screen with clock
   setTimeout(() => {
-    startGame();
     showClock_Anim(true);
-  }, 9000);
+    startGame();
+  }, 7500);
 
+  // After 10.5 seconds (clock shows for 3 seconds), hide clock and start game
   setTimeout(() => {
     showClock_Anim(false);
-  }, 14000);
+  }, 12500);
+
+  setTimeout(() => { 
+    gameView.classList.add("opening-game");
+  }, 13000);
+
 
 }
 

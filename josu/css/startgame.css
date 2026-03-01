@@ -1,0 +1,253 @@
+/* startgame.css - osu! inspired start screen */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.sc_wrapper {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-size: cover;
+    background-position: center;
+}
+
+/* ── Background ── */
+.screen.start {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #c8c8c8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Floating triangle pattern */
+.screen.start::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    /* solid grey triangles (bottom-left area) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cpolygon points='60,820 160,640 260,820' fill='%23b8b8b8'/%3E%3Cpolygon points='0,760 80,620 160,760' fill='%23b0b0b0'/%3E%3Cpolygon points='200,900 320,700 440,900' fill='%23b5b5b5'/%3E%3Cpolygon points='1300,820 1420,620 1540,820' fill='%23b8b8b8'/%3E%3Cpolygon points='1400,900 1500,740 1600,900' fill='%23b0b0b0'/%3E%3C/svg%3E");
+  background-size: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Pink outline triangles overlay */
+.screen.start::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cpolygon points='600,40 660,140 540,140' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='720,80 800,220 640,220' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='820,60 870,150 770,150' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='860,140 960,310 760,310' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='960,200 1060,370 860,370' fill='none' stroke='%23d4518a' stroke-width='2.5'/%3E%3Cpolygon points='1000,320 1100,490 900,490' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='640,300 720,440 560,440' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='700,460 780,590 620,590' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='640,550 720,690 560,690' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='820,500 900,640 740,640' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='1050,440 1130,580 970,580' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='1100,560 1200,730 1000,730' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='1200,460 1280,600 1120,600' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='480,640 560,780 400,780' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='580,700 660,840 500,840' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='750,680 830,820 670,820' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-size: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Middle bar ── */
+.middlebar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 88px;
+  background: rgba(30, 30, 30, 0.88);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+/* ── Generic bar item ── */
+.mbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 40px;
+  cursor: pointer;
+  position: relative;
+  transition: filter 0.15s;
+}
+
+.mbar-item.logo {
+    transform: skew(0deg);
+    z-index: 20;
+    margin-right: -50px;
+}
+
+.mbar-item:hover {
+  filter: brightness(1.15);
+}
+
+.mbar-item span {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  margin-top: 6px;
+}
+
+/* ── Settings icon ── */
+.mbar-item.settings-btn .icon {
+  font-size: 26px;
+  color: #ccc;
+}
+
+/* ── Logo item ── */
+.mbar-item.logo {
+  padding: 0;
+  width: 260px;
+  overflow: visible;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.mbar-item.logo img {
+  width: 240px;
+  object-fit: contain;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  /* Burst / glow ring */
+  filter:
+    drop-shadow(0 0 14px rgba(255,255,255,0.85))
+    drop-shadow(0 0 28px rgba(255,80,160,0.6));
+  animation: logoPulse 2s ease-in-out infinite alternate;
+  z-index: 20;
+}
+
+@keyframes logoPulse {
+  from { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)) drop-shadow(0 0 22px rgba(255,80,160,0.5)); }
+  to   { filter: drop-shadow(0 0 22px rgba(255,255,255,1))   drop-shadow(0 0 44px rgba(255,80,160,0.9)); }
+}
+
+/* White starburst ring behind logo */
+.mbar-item.logo::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  background: conic-gradient(
+    white 0deg, transparent 8deg,
+    white 10deg, transparent 18deg,
+    white 20deg, transparent 28deg,
+    white 30deg, transparent 38deg,
+    white 40deg, transparent 48deg,
+    white 50deg, transparent 58deg,
+    white 60deg, transparent 68deg,
+    white 70deg, transparent 78deg,
+    white 80deg, transparent 88deg,
+    white 90deg, transparent 98deg,
+    white 100deg, transparent 108deg,
+    white 110deg, transparent 118deg,
+    white 120deg, transparent 128deg,
+    white 130deg, transparent 138deg,
+    white 140deg, transparent 148deg,
+    white 150deg, transparent 158deg,
+    white 160deg, transparent 168deg,
+    white 170deg, transparent 178deg,
+    white 180deg, transparent 188deg,
+    white 190deg, transparent 198deg,
+    white 200deg, transparent 208deg,
+    white 210deg, transparent 218deg,
+    white 220deg, transparent 228deg,
+    white 230deg, transparent 238deg,
+    white 240deg, transparent 248deg,
+    white 250deg, transparent 258deg,
+    white 260deg, transparent 268deg,
+    white 270deg, transparent 278deg,
+    white 280deg, transparent 288deg,
+    white 290deg, transparent 298deg,
+    white 300deg, transparent 308deg,
+    white 310deg, transparent 318deg,
+    white 320deg, transparent 328deg,
+    white 330deg, transparent 338deg,
+    white 340deg, transparent 348deg,
+    white 350deg, transparent 360deg
+  );
+  mask: radial-gradient(transparent 58px, black 60px, black 82px, transparent 84px);
+  -webkit-mask: radial-gradient(transparent 58px, black 60px, black 82px, transparent 84px);
+  animation: burstSpin 12s linear infinite;
+  z-index: 15;
+  opacity: 0.9;
+}
+
+@keyframes burstSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ── Colored action buttons ── */
+.mbar-item.play   { background: #7c5fc7; }
+.mbar-item.edit   { background: #e89a20; }
+.mbar-item.browse { background: #8ac420; }
+.mbar-item.exit   { background: #e0267a; }
+
+.mbar-item.play,
+.mbar-item.edit,
+.mbar-item.browse,
+.mbar-item.exit {
+  min-width: 120px;
+  padding: 0 24px;
+}
+
+.mbar-item .btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+  margin-bottom: 2px;
+}
+
+/* ── Settings icon (left side) ── */
+.settings-btn {
+  min-width: 100px;
+}
+.settings-btn .gear {
+  font-size: 28px;
+  color: #aaa;
+  transition: transform 0.4s;
+}
+.settings-btn:hover .gear {
+  transform: rotate(60deg);
+  color: #fff;
+}

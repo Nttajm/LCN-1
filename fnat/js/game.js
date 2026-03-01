@@ -15,7 +15,7 @@ const elemems = {
 export let game = {
   isNew : true, // if it is a new game itll show like thw newspaper animation, if not itll show the normal start screen
   gameStarted : false, // like if the game has started or not
-  loop: flase,
+  loop: false,
   time: 0,
   night: 1,
   aiLevel: 1,
@@ -35,9 +35,10 @@ export let scene = {
 
 
 export function startGame() {
-  CLOCK_SET('12:00', 'AM', 'NIGHT 1');
-  game.loop = true; 
-  initGameLoop();
+  // set the clock to show 12:00 AM with a custom date text and keep it static
+  CLOCK_SET('12:00', 'AM', 'NIGHT 1', true);
+  // game.loop = true; 
+  // initGameLoop();
 }
 
 
@@ -96,4 +97,7 @@ function HELPER_updateTime(divby) {
   const hours = Math.floor(game.time / divby) + 12;
     const displayHour = hours > 12 ? hours - 12 : hours;
     CLOCK_SET(`${displayHour}:00`, 'AM', `NIGHT ${game.night}`);
+}
+
+function events() {
 }
