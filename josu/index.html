@@ -266,6 +266,45 @@
         </div>
 
         <div class="lefwrito" style="background-image: url(songs/ttto/main.png);">
+            <!-- Countdown Overlay -->
+            <div class="countdown-overlay" id="countdownOverlay">
+                <div class="countdown-number" id="countdownNumber">3</div>
+            </div>
+            
+            <!-- Audio Equalizer -->
+            <div class="audio-equalizer" id="audioEqualizer">
+                <div class="eq-bar" style="--delay: 0s;"></div>
+                <div class="eq-bar" style="--delay: 0.1s;"></div>
+                <div class="eq-bar" style="--delay: 0.2s;"></div>
+                <div class="eq-bar" style="--delay: 0.15s;"></div>
+                <div class="eq-bar" style="--delay: 0.05s;"></div>
+                <div class="eq-bar" style="--delay: 0.25s;"></div>
+                <div class="eq-bar" style="--delay: 0.12s;"></div>
+                <div class="eq-bar" style="--delay: 0.08s;"></div>
+                <div class="eq-bar" style="--delay: 0.18s;"></div>
+                <div class="eq-bar" style="--delay: 0.22s;"></div>
+                <div class="eq-bar" style="--delay: 0.03s;"></div>
+                <div class="eq-bar" style="--delay: 0.16s;"></div>
+                <div class="eq-bar" style="--delay: 0.09s;"></div>
+                <div class="eq-bar" style="--delay: 0.21s;"></div>
+                <div class="eq-bar" style="--delay: 0.14s;"></div>
+                <div class="eq-bar" style="--delay: 0.06s;"></div>
+                <div class="eq-bar" style="--delay: 0.19s;"></div>
+                <div class="eq-bar" style="--delay: 0.11s;"></div>
+                <div class="eq-bar" style="--delay: 0.24s;"></div>
+                <div class="eq-bar" style="--delay: 0.07s;"></div>
+                <div class="eq-bar" style="--delay: 0.17s;"></div>
+                <div class="eq-bar" style="--delay: 0.02s;"></div>
+                <div class="eq-bar" style="--delay: 0.13s;"></div>
+                <div class="eq-bar" style="--delay: 0.23s;"></div>
+                <div class="eq-bar" style="--delay: 0.04s;"></div>
+                <div class="eq-bar" style="--delay: 0.2s;"></div>
+                <div class="eq-bar" style="--delay: 0.1s;"></div>
+                <div class="eq-bar" style="--delay: 0.15s;"></div>
+                <div class="eq-bar" style="--delay: 0.08s;"></div>
+                <div class="eq-bar" style="--delay: 0.22s;"></div>
+            </div>
+            
             <!-- Accuracy Bar -->
             <div class="accuracy-bar-container" id="accuracyBarContainer">
                 <div class="accuracy-bar">
@@ -962,14 +1001,20 @@
         isPaused = !isPaused;
         if (isPaused) {
             pauseMenu.classList.add('active');
+            // Pause audio
+            if (gameAudio) gameAudio.pause();
         } else {
             pauseMenu.classList.remove('active');
+            // Resume audio
+            if (gameAudio) gameAudio.play();
         }
     }
 
     function resumeGame() {
         isPaused = false;
         pauseMenu.classList.remove('active');
+        // Resume audio
+        if (gameAudio) gameAudio.play();
     }
 
     function quitGame() {
@@ -1001,8 +1046,14 @@
 
     pauseContinue.addEventListener('click', resumeGame);
     pauseRetry.addEventListener('click', () => {
-        // For now, retry just resumes (implement actual retry logic later)
-        resumeGame();
+        // Stop current game and restart
+        isPaused = false;
+        pauseMenu.classList.remove('active');
+        stopTaikoGame();
+        // Small delay before restarting to ensure cleanup
+        setTimeout(() => {
+            startTaikoGame();
+        }, 100);
     });
     pauseQuit.addEventListener('click', quitGame);
 
@@ -1049,6 +1100,20 @@
     let currentStars = 0;
     let currentMapper = '';
     const GREAT_WINDOW = 50; // ms - perfect timing
+    const GAME_START_DELAY = 3000; // 3 second countdown before game starts
+
+    // Audio elements
+    let gameAudio = null;
+    let currentAudioPath = null;
+    let audioContext = null;
+    let analyser = null;
+    let audioSource = null;
+    let equalizerAnimationId = null;
+    let dataArray = null;
+    const countdownOverlay = document.getElementById('countdownOverlay');
+    const countdownNumber = document.getElementById('countdownNumber');
+    const audioEqualizer = document.getElementById('audioEqualizer');
+    const eqBars = audioEqualizer.querySelectorAll('.eq-bar');
 
     // UI elements for accuracy
     const accuracyFill = document.getElementById('accuracyFill');
@@ -1074,7 +1139,9 @@
             artist: song.artist,
             diffName: diff.name,
             stars: diff.stars,
-            mapper: diff.mapper
+            mapper: diff.mapper,
+            audio: song.audio || null,
+            audioCorrection: song.audioCorrection || 0
         };
     }
 
@@ -1090,6 +1157,8 @@
         let sd = data;
         let spd = speed;
         let sTime = songTime;
+        let audioPath = null;
+        let audioOffset = 0; // Audio correction in ms (negative = audio starts earlier)
         
         // If no data passed, get from current selection
         if (!sd) {
@@ -1103,6 +1172,8 @@
                 currentDiffName = info.diffName;
                 currentStars = info.stars;
                 currentMapper = info.mapper;
+                audioPath = info.audio;
+                audioOffset = info.audioCorrection || 0;
             }
         } else if (songInfo) {
             currentSongTitle = songInfo.title;
@@ -1110,6 +1181,8 @@
             currentDiffName = songInfo.diffName;
             currentStars = songInfo.stars;
             currentMapper = songInfo.mapper;
+            audioPath = songInfo.audio;
+            audioOffset = songInfo.audioCorrection || 0;
         }
         
         if (!sd || sd.length === 0) {
@@ -1139,10 +1212,217 @@
         nextNoteIdx = 0;
         nextTimingLineSec = 0;
         noteTrack.innerHTML = '';
-        gameStartTime = performance.now();
-        gameRunning = true;
         
-        requestAnimationFrame(taikoGameLoop);
+        // Setup audio if available
+        currentAudioPath = audioPath;
+        setupAudio(audioPath, audioOffset);
+        
+        // Show countdown and start after delay
+        startCountdown(() => {
+            gameStartTime = performance.now();
+            gameRunning = true;
+            
+            // Start audio with fade-in (apply audio correction offset)
+            playAudioWithFadeIn(audioOffset);
+            
+            // Start equalizer animation
+            audioEqualizer.classList.add('active');
+            
+            requestAnimationFrame(taikoGameLoop);
+        });
+    }
+    
+    // Setup audio element with Web Audio API for visualization
+    let currentAudioOffset = 0; // Store audio offset for playback
+    
+    function setupAudio(audioPath, audioOffset = 0) {
+        // Stop any existing audio and cleanup
+        stopAudio();
+        
+        // Store the audio offset
+        currentAudioOffset = audioOffset;
+        
+        if (!audioPath) {
+            gameAudio = null;
+            return;
+        }
+        
+        gameAudio = new Audio(audioPath);
+        gameAudio.volume = 0; // Start at 0 for fade-in
+        gameAudio.preload = 'auto';
+        gameAudio.crossOrigin = 'anonymous'; // Required for Web Audio API
+        
+        // Setup Web Audio API for visualization
+        try {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            // Create analyser node
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 128; // Results in 64 frequency bins
+            analyser.smoothingTimeConstant = 0.8;
+            
+            // Create data array for frequency data
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            
+            // Connect audio to analyser (do this when audio plays)
+            gameAudio.addEventListener('play', () => {
+                if (!audioSource) {
+                    audioSource = audioContext.createMediaElementSource(gameAudio);
+                    audioSource.connect(analyser);
+                    analyser.connect(audioContext.destination);
+                }
+            }, { once: true });
+            
+        } catch (e) {
+            console.warn('Web Audio API not supported:', e);
+        }
+    }
+    
+    // Animate equalizer based on real audio frequencies
+    function updateEqualizer() {
+        if (!analyser || !dataArray || !gameRunning) {
+            return;
+        }
+        
+        // If paused, keep animation loop running but don't update bars
+        if (isPaused) {
+            equalizerAnimationId = requestAnimationFrame(updateEqualizer);
+            return;
+        }
+        
+        // Get frequency data
+        analyser.getByteFrequencyData(dataArray);
+        
+        // Map frequency data to equalizer bars
+        const barCount = eqBars.length;
+        const step = Math.floor(dataArray.length / barCount);
+        
+        for (let i = 0; i < barCount; i++) {
+            // Get average of a range of frequencies for this bar
+            let sum = 0;
+            const startIdx = i * step;
+            const endIdx = Math.min(startIdx + step, dataArray.length);
+            for (let j = startIdx; j < endIdx; j++) {
+                sum += dataArray[j];
+            }
+            const average = sum / (endIdx - startIdx);
+            
+            // Convert to height (0-255 to 4-70px)
+            const minHeight = 4;
+            const maxHeight = 70;
+            const height = minHeight + (average / 255) * (maxHeight - minHeight);
+            
+            eqBars[i].style.height = height + 'px';
+        }
+        
+        equalizerAnimationId = requestAnimationFrame(updateEqualizer);
+    }
+    
+    // Play audio with fade-in effect
+    // audioOffset: negative = audio starts earlier (notes delayed relative to audio)
+    //              positive = audio starts later (notes come before audio)
+    function playAudioWithFadeIn(audioOffset = 0) {
+        if (!gameAudio) return;
+        
+        // Resume audio context if suspended (required for some browsers)
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        // Calculate start time based on offset
+        // Negative offset: skip ahead in the audio (audio was meant to start earlier)
+        // Positive offset: delay the audio start
+        const startTimeMs = Math.max(0, -audioOffset); // Convert to positive ms to skip
+        const delayMs = Math.max(0, audioOffset); // Delay if positive offset
+        
+        const startAudio = () => {
+            gameAudio.currentTime = startTimeMs / 1000; // Convert ms to seconds
+            gameAudio.volume = 0;
+            gameAudio.play().catch(e => console.warn('Audio playback failed:', e));
+            
+            // Fade in over 1 second
+            const fadeInDuration = 1000;
+            const fadeInSteps = 20;
+            const fadeInInterval = fadeInDuration / fadeInSteps;
+            const volumeStep = 1 / fadeInSteps;
+            let currentStep = 0;
+            
+            const fadeInterval = setInterval(() => {
+                currentStep++;
+                if (currentStep >= fadeInSteps) {
+                    gameAudio.volume = 1;
+                    clearInterval(fadeInterval);
+                } else {
+                    gameAudio.volume = Math.min(1, volumeStep * currentStep);
+                }
+            }, fadeInInterval);
+            
+            // Start equalizer visualization
+            updateEqualizer();
+        };
+        
+        // If positive offset, delay the audio start
+        if (delayMs > 0) {
+            setTimeout(startAudio, delayMs);
+        } else {
+            startAudio();
+        }
+    }
+    
+    // Stop audio
+    function stopAudio() {
+        // Stop equalizer animation
+        if (equalizerAnimationId) {
+            cancelAnimationFrame(equalizerAnimationId);
+            equalizerAnimationId = null;
+        }
+        
+        // Reset equalizer bars
+        eqBars.forEach(bar => {
+            bar.style.height = '4px';
+        });
+        
+        if (gameAudio) {
+            gameAudio.pause();
+            gameAudio.currentTime = 0;
+        }
+        
+        // Disconnect audio source for next song
+        if (audioSource) {
+            try {
+                audioSource.disconnect();
+            } catch (e) {}
+            audioSource = null;
+        }
+        
+        audioEqualizer.classList.remove('active');
+    }
+    
+    // Countdown before game starts
+    function startCountdown(callback) {
+        countdownOverlay.classList.add('active');
+        let count = 3;
+        countdownNumber.textContent = count;
+        countdownNumber.classList.add('animate');
+        
+        const countdownInterval = setInterval(() => {
+            count--;
+            if (count <= 0) {
+                clearInterval(countdownInterval);
+                countdownOverlay.classList.remove('active');
+                countdownNumber.classList.remove('animate');
+                callback();
+            } else {
+                countdownNumber.textContent = count;
+                // Re-trigger animation
+                countdownNumber.classList.remove('animate');
+                void countdownNumber.offsetWidth; // Force reflow
+                countdownNumber.classList.add('animate');
+            }
+        }, 1000);
     }
 
     function stopTaikoGame() {
@@ -1150,6 +1430,7 @@
         if (noteTrack) noteTrack.innerHTML = '';
         gameNotes = [];
         timingLines = [];
+        stopAudio();
     }
 
     // Update accuracy UI
@@ -1187,6 +1468,7 @@
     // Show results screen
     function showResults() {
         gameRunning = false;
+        stopAudio();
         
         const totalHits = stats.great + stats.ok + stats.miss;
         const accuracy = totalHits > 0 ? ((stats.great * 100 + stats.ok * 50) / (totalHits * 100)) * 100 : 0;
@@ -1497,7 +1779,10 @@
     // Results screen button handlers
     document.getElementById('resultsRetry').addEventListener('click', () => {
         hideResults();
-        startTaikoGame();
+        // Small delay before restarting to ensure cleanup
+        setTimeout(() => {
+            startTaikoGame();
+        }, 100);
     });
 
     document.getElementById('resultsBack').addEventListener('click', () => {

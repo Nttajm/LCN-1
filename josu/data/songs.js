@@ -7,6 +7,7 @@ export const songs = [
         artist: "The Weeknd",
         time: '00:07',
         image: 'songs/theweeknd/main.png',
+        audio: 'songs/theweeknd/audio.mp3',
         ranked: true,
         difficulties: [
             { name: "Easy", speed: 1, mapper: "joelM", stars: 0.79,
@@ -55,11 +56,11 @@ export const songs = [
         artist: "hisohkah",
         time: '2:48',
         image: 'songs/school_rooftop/main.png',
+        audio: 'songs/school_rooftop/audio.mp3',
         ranked: true,
+        audioCorrection: 400,
         difficulties: [
-            { name: "nooby", mapper: "joelM", stars: 4.10 },
-            { name: "nooby", mapper: "joelM", stars: 6.51 },
-
+            { name: "nooby", mapper: "joelM", stars: 4.10, songData: songKeys.school_rooftop.medium },
         ]
     },
     {

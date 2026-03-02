@@ -719,8 +719,8 @@
                 <span class="info-value highlight" id="noteCount">0</span>
             </div>
             <div class="info-item">
-                <span class="info-label">Duration</span>
-                <span class="info-value" id="durationDisplay">0:00</span>
+                <label class="info-label">Duration (mm:ss)</label>
+                <input type="text" id="durationInput" placeholder="1:00" value="1:00" style="width: 80px; background: #16213e; border: 1px solid #0f3460; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 14px;">
             </div>
         </div>
 
@@ -908,6 +908,7 @@
             songArtist: document.getElementById('songArtist'),
             difficultyName: document.getElementById('difficultyName'),
             bpmInput: document.getElementById('bpmInput'),
+            durationInput: document.getElementById('durationInput'),
             zoomSlider: document.getElementById('zoomSlider'),
             volumeSlider: document.getElementById('volumeSlider'),
             snapToggle: document.getElementById('snapToggle'),
@@ -983,6 +984,14 @@
             return `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
 
+        function timeStringToMs(timeStr) {
+            const parts = timeStr.split(':');
+            if (parts.length !== 2) return 60000; // Default 1 minute
+            const minutes = parseInt(parts[0]) || 0;
+            const seconds = parseInt(parts[1]) || 0;
+            return (minutes * 60 + seconds) * 1000;
+        }
+
         function timeToX(time) {
             return TRACK_OFFSET + (time / 1000) * state.zoom;
         }
@@ -1029,7 +1038,7 @@
                 state.audioLoaded = true;
                 
                 // Update UI
-                elements.durationDisplay.textContent = msToTimeString(state.duration);
+                elements.durationInput.value = msToTimeString(state.duration);
                 elements.waveformPlaceholder.style.display = 'none';
                 
                 // Draw waveform
@@ -1428,6 +1437,30 @@
             drawTimeRuler();
         });
 
+        // Duration input
+        elements.durationInput.addEventListener('change', () => {
+            const newDuration = timeStringToMs(elements.durationInput.value);
+            if (newDuration > 0) {
+                state.duration = newDuration;
+                updateTrackWidth();
+                renderNotes();
+                drawTimeRuler();
+                updateStatus(`Duration set to ${msToTimeString(state.duration)}`);
+            } else {
+                // Reset to current duration if invalid
+                elements.durationInput.value = msToTimeString(state.duration);
+            }
+        });
+
+        // Duration input focus styling
+        elements.durationInput.addEventListener('focus', () => {
+            elements.durationInput.style.borderColor = '#e94560';
+        });
+        
+        elements.durationInput.addEventListener('blur', () => {
+            elements.durationInput.style.borderColor = '#0f3460';
+        });
+
         // Zoom slider
         elements.zoomSlider.addEventListener('input', () => {
             state.zoom = parseInt(elements.zoomSlider.value);
@@ -1761,7 +1794,7 @@
                     const maxTime = Math.max(...state.notes.map(n => n.time));
                     if (maxTime > state.duration) {
                         state.duration = maxTime + 5000;
-                        elements.durationDisplay.textContent = msToTimeString(state.duration);
+                        elements.durationInput.value = msToTimeString(state.duration);
                     }
                     
                     updateTrackWidth();
@@ -1811,7 +1844,7 @@
         function init() {
             // Set default duration (1 minute)
             state.duration = 60000;
-            elements.durationDisplay.textContent = msToTimeString(state.duration);
+            elements.durationInput.value = msToTimeString(state.duration);
             
             // Initialize track width
             updateTrackWidth();
