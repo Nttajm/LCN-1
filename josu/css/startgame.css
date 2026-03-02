@@ -21,8 +21,12 @@ body {
     position: absolute;
     top: 0;
     left: 0;
+    overflow: hidden;
 }
 
+#startWrapper {
+  z-index: 10;
+}
 .screen {
     width: 100%;
     height: 100%;
@@ -33,221 +37,292 @@ body {
     background-position: center;
 }
 
-/* ── Background ── */
+/* ══════════════════════════════════════════════════
+   BACKGROUND
+   ══════════════════════════════════════════════════ */
 .screen.start {
   position: relative;
   width: 100%;
   height: 100%;
-  background-color: #c8c8c8;
+  background-color: #c0c0c0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  transition: transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transform-origin: center center;
 }
 
-/* Floating triangle pattern */
+.screen.start.exiting {
+  transform: scale(0.8) translateX(-60%);
+  opacity: 0;
+}
+
+/* Solid grey triangles */
 .screen.start::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image:
-    /* solid grey triangles (bottom-left area) */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cpolygon points='60,820 160,640 260,820' fill='%23b8b8b8'/%3E%3Cpolygon points='0,760 80,620 160,760' fill='%23b0b0b0'/%3E%3Cpolygon points='200,900 320,700 440,900' fill='%23b5b5b5'/%3E%3Cpolygon points='1300,820 1420,620 1540,820' fill='%23b8b8b8'/%3E%3Cpolygon points='1400,900 1500,740 1600,900' fill='%23b0b0b0'/%3E%3C/svg%3E");
+  inset: -40px;
+  background: radial-gradient(circle at center, #a8c8e8 0%, #5a8ab8 100%);      
+  /* background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cpolygon points='0,50 120,280 -120,280' fill='%23aeaeae'/%3E%3Cpolygon points='100,0 260,300 -60,300' fill='%23a8a8a8'/%3E%3Cpolygon points='280,80 440,370 120,370' fill='%23a4a4a4'/%3E%3Cpolygon points='60,200 180,420 -60,420' fill='%23b0b0b0'/%3E%3Cpolygon points='380,30 520,280 240,280' fill='%23a6a6a6'/%3E%3Cpolygon points='460,200 580,410 340,410' fill='%23ababab'/%3E%3Cpolygon points='500,60 600,240 400,240' fill='%23a9a9a9'/%3E%3Cpolygon points='820,20 980,280 660,280' fill='%23a5a5a5'/%3E%3Cpolygon points='920,100 1060,340 780,340' fill='%23ababab'/%3E%3Cpolygon points='1050,40 1180,280 920,280' fill='%23a8a8a8'/%3E%3Cpolygon points='1200,100 1380,400 1020,400' fill='%23a4a4a4'/%3E%3Cpolygon points='1350,30 1500,280 1200,280' fill='%23aeaeae'/%3E%3Cpolygon points='1500,80 1620,320 1380,320' fill='%23a6a6a6'/%3E%3Cpolygon points='80,500 220,740 -60,740' fill='%23ababab'/%3E%3Cpolygon points='200,580 360,850 40,850' fill='%23a8a8a8'/%3E%3Cpolygon points='1300,520 1460,800 1140,800' fill='%23a5a5a5'/%3E%3Cpolygon points='1420,600 1580,880 1260,880' fill='%23ababab'/%3E%3C/svg%3E"); */
   background-size: cover;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Pink outline triangles overlay */
+/* Pink outline triangles */
 .screen.start::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cpolygon points='600,40 660,140 540,140' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='720,80 800,220 640,220' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='820,60 870,150 770,150' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='860,140 960,310 760,310' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='960,200 1060,370 860,370' fill='none' stroke='%23d4518a' stroke-width='2.5'/%3E%3Cpolygon points='1000,320 1100,490 900,490' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='640,300 720,440 560,440' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='700,460 780,590 620,590' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='640,550 720,690 560,690' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='820,500 900,640 740,640' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='1050,440 1130,580 970,580' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='1100,560 1200,730 1000,730' fill='none' stroke='%23d4518a' stroke-width='2'/%3E%3Cpolygon points='1200,460 1280,600 1120,600' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='480,640 560,780 400,780' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='580,700 660,840 500,840' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3Cpolygon points='750,680 830,820 670,820' fill='none' stroke='%23d4518a' stroke-width='1.5'/%3E%3C/svg%3E");
+  /* background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cpolygon points='560,50 640,200 480,200' fill='none' stroke='%23c24b80' stroke-width='1.8' opacity='0.5'/%3E%3Cpolygon points='670,70 730,170 610,170' fill='none' stroke='%23c24b80' stroke-width='1.2' opacity='0.4'/%3E%3Cpolygon points='720,40 820,220 620,220' fill='none' stroke='%23c24b80' stroke-width='2' opacity='0.5'/%3E%3Cpolygon points='780,80 840,180 720,180' fill='none' stroke='%23c24b80' stroke-width='1.2' opacity='0.35'/%3E%3Cpolygon points='850,130 980,380 720,380' fill='none' stroke='%23c24b80' stroke-width='2.2' opacity='0.55'/%3E%3Cpolygon points='940,60 1020,210 860,210' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.4'/%3E%3Cpolygon points='1020,160 1140,400 900,400' fill='none' stroke='%23c24b80' stroke-width='2' opacity='0.45'/%3E%3Cpolygon points='1100,80 1180,240 1020,240' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.4'/%3E%3Cpolygon points='560,350 660,550 460,550' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.35'/%3E%3Cpolygon points='640,480 740,670 540,670' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.35'/%3E%3Cpolygon points='530,560 620,720 440,720' fill='none' stroke='%23c24b80' stroke-width='1.2' opacity='0.3'/%3E%3Cpolygon points='760,440 860,630 660,630' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.4'/%3E%3Cpolygon points='880,500 980,690 780,690' fill='none' stroke='%23c24b80' stroke-width='1.8' opacity='0.45'/%3E%3Cpolygon points='700,620 800,810 600,810' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.3'/%3E%3Cpolygon points='980,370 1080,560 880,560' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.4'/%3E%3Cpolygon points='1100,480 1240,740 960,740' fill='none' stroke='%23c24b80' stroke-width='2' opacity='0.45'/%3E%3Cpolygon points='1180,350 1280,540 1080,540' fill='none' stroke='%23c24b80' stroke-width='1.5' opacity='0.35'/%3E%3C/svg%3E"); */
   background-size: cover;
   pointer-events: none;
   z-index: 0;
 }
 
-/* ── Middle bar ── */
+/* ══════════════════════════════════════════════════
+   MIDDLE BAR
+   ══════════════════════════════════════════════════ */
 .middlebar {
   position: relative;
   z-index: 10;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: stretch;
   width: 100%;
-  height: 88px;
-  background: rgba(30, 30, 30, 0.88);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  height: 90px;
+  background: rgba(28, 28, 28, 0.92);
+  box-shadow: 0 2px 30px rgba(0,0,0,0.35);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.4s ease;
 }
 
-/* ── Generic bar item ── */
+.screen.start.exiting .middlebar {
+  transform: translateX(-500px);
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════════════
+   GENERIC BAR ITEM
+   ══════════════════════════════════════════════════ */
 .mbar-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 0 40px;
+  padding: 0 30px;
   cursor: pointer;
   position: relative;
-  transition: filter 0.15s;
+  transform: skewX(-8deg);
+  transition: padding 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              filter 0.2s ease,
+              opacity 0.45s ease,
+              translate 0.45s ease;
 }
 
-.mbar-item.logo {
-    transform: skew(0deg);
-    z-index: 20;
-    margin-right: -50px;
+/* Un-skew inner content so text/icons stay upright */
+.mbar-item > * {
+  transform: skewX(8deg);
 }
 
+/* Hover: widen + subtle bounce */
 .mbar-item:hover {
-  filter: brightness(1.15);
+  padding: 0 42px;
+  filter: brightness(1.12);
+}
+
+.mbar-item:active {
+  filter: brightness(0.95);
+  transition: padding 0.1s ease, filter 0.05s ease;
 }
 
 .mbar-item span {
   color: #fff;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: lowercase;
-  margin-top: 6px;
+  margin-top: 5px;
+  white-space: nowrap;
 }
 
-/* ── Settings icon ── */
-.mbar-item.settings-btn .icon {
-  font-size: 26px;
-  color: #ccc;
+/* ── Exit animation for individual items ── */
+.mbar-item.fade-out {
+  translate: -90px 0;
+  opacity: 0;
+}
+.mbar-item.settings-btn.fade-out { transition-delay: 0ms; }
+.mbar-item.logo.fade-out         { transition-delay: 40ms; }
+.mbar-item.js-play:not(.logo).fade-out { transition-delay: 80ms; }
+.mbar-item.edit.fade-out         { transition-delay: 120ms; }
+.mbar-item.browse.fade-out       { transition-delay: 160ms; }
+.mbar-item.exit.fade-out         { transition-delay: 200ms; }
+
+/* ══════════════════════════════════════════════════
+   SETTINGS (far left)
+   ══════════════════════════════════════════════════ */
+.mbar-item.settings-btn {
+  background: rgba(30, 30, 30, 0.98);
+  min-width: 110px;
+  padding: 0 34px;
+  /* Clip right diagonal edge */
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  margin-right: -6px;
+}
+.mbar-item.settings-btn:hover {
+  padding: 0 44px;
+}
+.settings-btn .gear {
+  font-size: 30px;
+  color: #aaa;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s;
+}
+.settings-btn:hover .gear {
+  transform: skewX(8deg) rotate(60deg);
+  color: #fff;
 }
 
-/* ── Logo item ── */
+/* ══════════════════════════════════════════════════
+   LOGO
+   ══════════════════════════════════════════════════ */
 .mbar-item.logo {
+  transform: skewX(0deg);  /* Logo stays un-skewed */
+  z-index: 20;
   padding: 0;
-  width: 260px;
+  width: 240px;
   overflow: visible;
   flex-shrink: 0;
   position: relative;
+  margin-right: -20px;
+  margin-left: -10px;
+  background: transparent !important;
+}
+
+.mbar-item.logo:hover {
+  padding: 0;
+}
+
+.mbar-item.logo > * {
+  transform: skewX(0deg);
 }
 
 .mbar-item.logo img {
-  width: 240px;
-  object-fit: contain;
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  /* Burst / glow ring */
-  filter:
-    drop-shadow(0 0 14px rgba(255,255,255,0.85))
-    drop-shadow(0 0 28px rgba(255,80,160,0.6));
-  animation: logoPulse 2s ease-in-out infinite alternate;
+  border: 6px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 20px rgba(255,255,255,0.4),
+              0 0 60px rgba(255, 80, 160, 0.25);
+  animation: logoPulse 3s ease-in-out infinite alternate;
   z-index: 20;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease;
+}
+
+.mbar-item.logo:hover img {
+  transform: translate(-50%, -50%) scale(1.04);
+  box-shadow: 0 0 30px rgba(255,255,255,0.6),
+              0 0 80px rgba(255, 80, 160, 0.4);
+}
+
+/* No starburst/conic ring */
+.mbar-item.logo::before {
+  display: none;
 }
 
 @keyframes logoPulse {
-  from { filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)) drop-shadow(0 0 22px rgba(255,80,160,0.5)); }
-  to   { filter: drop-shadow(0 0 22px rgba(255,255,255,1))   drop-shadow(0 0 44px rgba(255,80,160,0.9)); }
+  from { box-shadow: 0 0 18px rgba(255,255,255,0.35), 0 0 50px rgba(255,80,160,0.2); }
+  to   { box-shadow: 0 0 28px rgba(255,255,255,0.55), 0 0 70px rgba(255,80,160,0.35); }
 }
 
-/* White starburst ring behind logo */
-.mbar-item.logo::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 168px;
-  height: 168px;
-  border-radius: 50%;
-  background: conic-gradient(
-    white 0deg, transparent 8deg,
-    white 10deg, transparent 18deg,
-    white 20deg, transparent 28deg,
-    white 30deg, transparent 38deg,
-    white 40deg, transparent 48deg,
-    white 50deg, transparent 58deg,
-    white 60deg, transparent 68deg,
-    white 70deg, transparent 78deg,
-    white 80deg, transparent 88deg,
-    white 90deg, transparent 98deg,
-    white 100deg, transparent 108deg,
-    white 110deg, transparent 118deg,
-    white 120deg, transparent 128deg,
-    white 130deg, transparent 138deg,
-    white 140deg, transparent 148deg,
-    white 150deg, transparent 158deg,
-    white 160deg, transparent 168deg,
-    white 170deg, transparent 178deg,
-    white 180deg, transparent 188deg,
-    white 190deg, transparent 198deg,
-    white 200deg, transparent 208deg,
-    white 210deg, transparent 218deg,
-    white 220deg, transparent 228deg,
-    white 230deg, transparent 238deg,
-    white 240deg, transparent 248deg,
-    white 250deg, transparent 258deg,
-    white 260deg, transparent 268deg,
-    white 270deg, transparent 278deg,
-    white 280deg, transparent 288deg,
-    white 290deg, transparent 298deg,
-    white 300deg, transparent 308deg,
-    white 310deg, transparent 318deg,
-    white 320deg, transparent 328deg,
-    white 330deg, transparent 338deg,
-    white 340deg, transparent 348deg,
-    white 350deg, transparent 360deg
-  );
-  mask: radial-gradient(transparent 58px, black 60px, black 82px, transparent 84px);
-  -webkit-mask: radial-gradient(transparent 58px, black 60px, black 82px, transparent 84px);
-  animation: burstSpin 12s linear infinite;
-  z-index: 15;
-  opacity: 0.9;
-}
-
-@keyframes burstSpin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* ── Colored action buttons ── */
-.mbar-item.play   { background: #7c5fc7; }
-.mbar-item.edit   { background: #e89a20; }
-.mbar-item.browse { background: #8ac420; }
+/* ══════════════════════════════════════════════════
+   COLORED ACTION BUTTONS
+   ══════════════════════════════════════════════════ */
+.mbar-item.js-play:not(.logo) { background: #6c5cc1; }
+.mbar-item.edit   { background: #e8a020; }
+.mbar-item.browse { background: #8ec420; }
 .mbar-item.exit   { background: #e0267a; }
 
-.mbar-item.play,
+.mbar-item.js-play:not(.logo),
 .mbar-item.edit,
 .mbar-item.browse,
 .mbar-item.exit {
-  min-width: 120px;
-  padding: 0 24px;
+  min-width: 100px;
+  padding: 0 32px;
+}
+
+.mbar-item.js-play:not(.logo):hover,
+.mbar-item.edit:hover,
+.mbar-item.browse:hover,
+.mbar-item.exit:hover {
+  padding: 0 44px;
 }
 
 .mbar-item .btn-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 2.5px solid rgba(255,255,255,0.7);
+  border: 2.5px solid rgba(255,255,255,0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   color: white;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
-/* ── Settings icon (left side) ── */
-.settings-btn {
-  min-width: 100px;
+/* ══════════════════════════════════════════════════
+   TIP BAR
+   ══════════════════════════════════════════════════ */
+.tip-bar {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(35, 35, 35, 0.92);
+  border-radius: 14px;
+  padding: 14px 36px;
+  text-align: center;
+  z-index: 10;
+  max-width: 700px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
-.settings-btn .gear {
-  font-size: 28px;
-  color: #aaa;
-  transition: transform 0.4s;
+
+.screen.start.exiting .tip-bar {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
 }
-.settings-btn:hover .gear {
-  transform: rotate(60deg);
-  color: #fff;
+
+.tip-bar .tip-label {
+  color: #ff79b0;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tip-bar .tip-label::before {
+  content: '💡';
+  font-size: 13px;
+}
+
+.tip-bar .tip-text {
+  color: #ddd;
+  font-size: 13.5px;
+  line-height: 1.4;
 }

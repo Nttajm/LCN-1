@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Josu</title>
     <link rel="stylesheet" href="css/startgame.css">
-    <link rel="stylesheet" href="css/game.css">k
+    <link rel="stylesheet" href="css/game.css">
     <link rel="stylesheet" href="../css/standard.css">
 </head>
 <body>
-    <div class="sc_wrapper dn">
+    <div class="sc_wrapper" id="startWrapper">
         <div class="screen start">
         <div class="middlebar">
 
@@ -46,7 +46,7 @@
                         <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
                     </svg>
                 </div>
-                <span>make</span>
+                <span>edit</span>
             </div>
 
             <!-- Browse -->
@@ -75,12 +75,23 @@
             </div>
 
         </div>
+        
+        <!-- Tip Bar -->
+        <div class="tip-bar">
+            <div class="tip-label">A tip for you:</div>
+            <div class="tip-text">Use D and F keys for outer and inner drum hits. Press ESC to pause during gameplay!</div>
+        </div>
     </div>
     </div>
 
-    <div class="sc_wrapper">
-        <div class="screen game" style="background-image: url(songs/ttto/main.png);">
-            <div class="explainer">
+    <div class="sc_wrapper" id="gameScreenWrapper">
+        <div class="screen game">
+            <div class="background">
+                <img src="songs/ttto/main.png" alt="Background" id="img1">
+                <img src="songs/ttto/main.png" alt="Background" id="img2">
+
+            </div>
+            <div class="explainer fade-left">
                 <!-- Header -->
                 <div class="explainer-header">
                     <div class="ranked-badge">RANKED</div>
@@ -131,134 +142,1414 @@
                     </div>
                 </div>
             </div>
-            <div class="songs">
-                <div class="song-item selected">
-                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
-                        <div class="selected-item">
-                            <span class="selected-icon">▶</span>
+            <!-- Records Panel -->
+            <div class="records-panel fade-left">
+                <div class="records-header">RECORDS</div>
+                <div class="records-list" id="recordsList">
+                    <!-- Records will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="filter-panel fade-right">
+                <!-- Search Bar -->
+                <div class="filter-search">
+                    <input type="text" class="search-input" placeholder="search..." id="searchInput">
+                    <span class="search-matches"><span id="matchCount">5</span> matches</span>
+                    <button class="search-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Star Rating Slider -->
+                <div class="filter-star-rating">
+                    <span class="star-label">Star Rating</span>
+                    <div class="star-slider-container">
+                        <span class="star-value" id="starMinValue">0.0</span>
+                        <div class="star-slider-track">
+                            <div class="star-slider-fill" id="starSliderFill"></div>
+                            <input type="range" class="star-slider" id="starMinSlider" min="0" max="10" step="0.1" value="0">
+                            <input type="range" class="star-slider" id="starMaxSlider" min="0" max="10" step="0.1" value="10">
                         </div>
-                        <div class="song-i-info">
-                            <h2 class="song-title">Moment</h2>
-                            <p class="song-artist">MIMI</p>
+                        <span class="star-value star-infinity" id="starMaxValue">∞</span>
+                    </div>
+                    <button class="show-converts-btn">Show converts</button>
+                </div>
+                
+                <!-- Filter Options Row -->
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <span class="filter-option-label">Sort</span>
+                        <select class="filter-select">
+                            <option>Title</option>
+                            <option>Artist</option>
+                            <option>Difficulty</option>
+                            <option>Date Added</option>
+                        </select>
+                    </div>
+                    <div class="filter-option">
+                        <span class="filter-option-label">Group</span>
+                        <select class="filter-select">
+                            <option>None</option>
+                            <option>Artist</option>
+                            <option>Difficulty</option>
+                            <option>Date Added</option>
+                        </select>
+                    </div>
+                    <div class="filter-option">
+                        <span class="filter-option-label">Collection</span>
+                        <select class="filter-select">
+                            <option>All beatmaps</option>
+                            <option>Favorites</option>
+                            <option>Recently Played</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="songs fade-right" id="songsContainer">
+                <!-- Songs generated by JavaScript -->
+            </div>
+
+            <!-- Loading Screen Overlay -->
+            <div class="loading-screen" id="loadingScreen">
+                <div class="loading-content">
+                    <h1 class="loading-title" id="loadingTitle">Song Title</h1>
+                    <p class="loading-artist" id="loadingArtist">Artist</p>
+                    <div class="loading-image-bar" id="loadingImageBar">
+                        <div class="loading-image-inner"></div>
+                    </div>
+                    <div class="loading-bar-container">
+                        <div class="loading-bar-track">
+                            <div class="loading-bar-fill" id="loadingBarFill"></div>
                         </div>
                     </div>
-                    <div class="song-difficulties">
-                        <div class="song-difficulty-pill selected">
-                            
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ 1.03</span>
-                        </div>
-                        <div class="song-difficulty-pill">
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ .63</span>
+                    <div class="more-info">
+                        <span>
+                            mapped by Joel M
+                        </span>
+                        <span>
+                            rating: ★ 1.03
+                        </span>
+                        <span>
+                            click (esc) to cancel
+                        </span>
+                    </div>
+                </div>
+                <button class="loading-back-btn" id="loadingBackBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                    <span>Back</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="sc_wrapper game-wrapper dn " id="gameWrapper">
+        <div class="quiter"></div>
+        <!-- Pause Menu -->
+        <div class="pause-menu" id="pauseMenu">
+            <div class="pause-header">
+                <div class="pause-progress-bar">
+                    <div class="pause-progress-fill"></div>
+                </div>
+                <h1 class="pause-title">paused</h1>
+                <div class="pause-progress-indicator">
+                    <div class="pause-progress-line"></div>
+                </div>
+            </div>
+            <div class="pause-buttons">
+                <button class="pause-btn continue-btn" id="pauseContinue">Continue</button>
+                <button class="pause-btn retry-btn" id="pauseRetry">Retry</button>
+                <button class="pause-btn quit-btn" id="pauseQuit">Quit</button>
+            </div>
+        </div>
+
+        <div class="lefwrito" style="background-image: url(songs/ttto/main.png);">
+            <!-- Accuracy Bar -->
+            <div class="accuracy-bar-container" id="accuracyBarContainer">
+                <div class="accuracy-bar">
+                    <div class="accuracy-fill" id="accuracyFill"></div>
+                </div>
+                <div class="accuracy-info">
+                    <span class="accuracy-percent" id="accuracyPercent">100%</span>
+                    <span class="combo-display" id="comboDisplay">0x</span>
+                </div>
+            </div>
+            <div class="takio-bar">
+                <div class="drums">
+                    <div class="drum ldrum" id="key-d">
+                        <div class="innerDrum ldrum" id="key-f">
                         </div>
                     </div>
                 </div>
-                <div class="song-item ">
-                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
-                        <div class="selected-item">
-                            <span class="selected-icon">▶</span>
-                        </div>
-                        <div class="song-i-info">
-                            <h2 class="song-title">Moment</h2>
-                            <p class="song-artist">MIMI</p>
-                        </div>
+                <div class="hit">
+                    <div class="line"></div>
+                    <div class="circle">
                     </div>
-                    <div class="song-difficulties">
-                        <div class="song-difficulty-pill selected">
-                            
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ 1.03</span>
-                        </div>
-                        <div class="song-difficulty-pill">
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ .63</span>
-                        </div>
+                    <div class="innerCircle">
+
                     </div>
                 </div>
-                <div class="song-item ">
-                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
-                        <div class="selected-item">
-                            <span class="selected-icon">▶</span>
-                        </div>
-                        <div class="song-i-info">
-                            <h2 class="song-title">Moment</h2>
-                            <p class="song-artist">MIMI</p>
-                        </div>
-                    </div>
-                    <div class="song-difficulties">
-                        <div class="song-difficulty-pill selected">
-                            
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ 1.03</span>
-                        </div>
-                        <div class="song-difficulty-pill">
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ .63</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="song-item ">
-                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
-                        <div class="selected-item">
-                            <span class="selected-icon">▶</span>
-                        </div>
-                        <div class="song-i-info">
-                            <h2 class="song-title">Moment</h2>
-                            <p class="song-artist">MIMI</p>
-                        </div>
-                    </div>
-                    <div class="song-difficulties">
-                        <div class="song-difficulty-pill selected">
-                            
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ 1.03</span>
-                        </div>
-                        <div class="song-difficulty-pill">
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ .63</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="song-item ">
-                    <div class="song-pill" style="background-image: url(songs/ttto/main.png);">
-                        <div class="selected-item">
-                            <span class="selected-icon">▶</span>
-                        </div>
-                        <div class="song-i-info">
-                            <h2 class="song-title">Moment</h2>
-                            <p class="song-artist">MIMI</p>
-                        </div>
-                    </div>
-                    <div class="song-difficulties">
-                        <div class="song-difficulty-pill selected">
-                            
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ 1.03</span>
-                        </div>
-                        <div class="song-difficulty-pill">
-                            <span class="difficulty-name">kartofle's Easy</span>
-                            <span class="difficulty-star">★ .63</span>
-                        </div>
-                    </div>
-                </div>
+                <div class="note-track" id="noteTrack"></div>
+            </div>
             
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="results-header">
+                <h1 class="results-song-title" id="resultsSongTitle">Song Title</h1>
+                <p class="results-song-artist" id="resultsSongArtist">Artist</p>
+            </div>
+            <div class="results-grade-container">
+                <div class="grade-ring">
+                    <svg class="grade-ring-svg" viewBox="0 0 200 200">
+                        <circle class="grade-ring-bg" cx="100" cy="100" r="90" />
+                        <circle class="grade-ring-progress" id="gradeRingProgress" cx="100" cy="100" r="90" />
+                        <circle class="grade-ring-color" id="gradeRingColor" cx="100" cy="100" r="75" />
+                    </svg>
+                    <div class="grade-letter" id="gradeLetter">D</div>
+                </div>
+                <div class="results-score" id="resultsScore">0</div>
+                <div class="results-difficulty">
+                    <span class="results-stars" id="resultsStars">★ 0.79</span>
+                    <span class="results-diff-name" id="resultsDiffName">Easy</span>
+                </div>
+                <p class="results-mapper" id="resultsMapper">mapped by joelM</p>
+            </div>
+            <div class="results-stats">
+                <div class="stat-row">
+                    <div class="stat-box">
+                        <span class="stat-label">ACCURACY</span>
+                        <span class="stat-value" id="resultsAccuracy">0%</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">MAX COMBO</span>
+                        <span class="stat-value" id="resultsMaxCombo">0<span class="stat-sub">/0</span></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">PP</span>
+                        <span class="stat-value" id="resultsPP">0</span>
+                    </div>
+                </div>
+                <div class="stat-row hit-stats">
+                    <div class="stat-box great">
+                        <span class="stat-label">GREAT</span>
+                        <span class="stat-value" id="resultsGreat">0</span>
+                    </div>
+                    <div class="stat-box ok">
+                        <span class="stat-label">OK</span>
+                        <span class="stat-value" id="resultsOk">0</span>
+                    </div>
+                    <div class="stat-box miss">
+                        <span class="stat-label">MISS</span>
+                        <span class="stat-value" id="resultsMiss">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="results-buttons">
+                <button class="results-btn retry-btn" id="resultsRetry">Retry</button>
+                <button class="results-btn back-btn" id="resultsBack">Back</button>
             </div>
         </div>
     </div>
 </body>
-<script>
+<script type="module">
+    import { songs } from './data/songs.js';
+
+    // Developer mode - skip all menus and go straight to game
+    const isdevForGame = false;
+
+    // Store currently selected song info
+    let currentSelectedSong = {
+        bgImage: 'songs/ttto/main.png',
+        title: '',
+        artist: ''
+    };
+
+    // Helper function to get difficulty level (1-6) from star rating
+    function getDiffLevel(stars) {
+        if (stars < 1) return 1;      // Beginner
+        if (stars < 2) return 2;      // Easy
+        if (stars < 3) return 3;      // Normal
+        if (stars < 4) return 4;      // Hard
+        if (stars < 5) return 5;      // Expert
+        return 6;                      // Expert+
+    }
+
+    // Generate star dots HTML based on star rating
+    function generateStarDots(stars) {
+        const fullStars = Math.floor(stars);
+        const hasHalf = stars % 1 >= 0.5;
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                html += '<span class="star-dot filled"></span>';
+            } else if (i === fullStars && hasHalf) {
+                html += '<span class="star-dot half"></span>';
+            } else {
+                html += '<span class="star-dot"></span>';
+            }
+        }
+        return html;
+    }
+
+    // Generate mode dots HTML showing unique difficulty levels
+    function generateModeDots(difficulties) {
+        const levels = [...new Set(difficulties.map(d => getDiffLevel(d.stars)))].sort((a, b) => a - b);
+        return levels.map(level => `<span class="mode-dot active diff-${level}"></span>`).join('');
+    }
+
+    // Generate song HTML
+    function generateSongHTML(song, isSelected = false) {
+        const difficultiesHTML = song.difficulties.map((diff, idx) => `
+            <div class="song-difficulty-pill diff-${getDiffLevel(diff.stars)}${idx === 0 ? ' selected' : ''}" data-diff-index="${idx}">
+                <div class="diff-header">
+                    <span class="difficulty-name">${diff.name}</span>
+                    <span class="difficulty-mapper">mapped by ${diff.mapper}</span>
+                </div>
+                <div class="diff-stars">
+                    <span class="difficulty-star">★ ${diff.stars.toFixed(2)}</span>
+                    <div class="star-dots">
+                        ${generateStarDots(diff.stars)}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="song-item${isSelected ? ' selected' : ''}" data-song-id="${song.id}">
+                <div class="song-pill" style="background-image: url(${song.image});">
+                    <div class="selected-item">
+                        <span class="selected-icon">›</span>
+                    </div>
+                    <div class="song-i-info">
+                        <h2 class="song-title">${song.title}</h2>
+                        <p class="song-artist">${song.artist}</p>
+                        <div class="song-meta">
+                            <span class="song-ranked-badge">${song.ranked ? 'RANKED' : 'UNRANKED'}</span>
+                            <div class="mode-dots">
+                                ${generateModeDots(song.difficulties)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="song-difficulties">
+                    ${difficultiesHTML}
+                </div>
+            </div>
+        `;
+    }
+
+    // Render all songs
+    function renderSongs() {
+        const container = document.getElementById('songsContainer');
+        container.innerHTML = songs.map((song, idx) => generateSongHTML(song, idx === 0)).join('');
+    }
+
+    // Initialize songs
+    renderSongs();
+
     const playBtn = document.querySelectorAll('.js-play');
     const startScreen = document.querySelector('.screen.start');
+    const startWrapper = document.getElementById('startWrapper');
+    const gameScreenWrapper = document.getElementById('gameScreenWrapper');
 
     playBtn.forEach(btn => {
         btn.addEventListener('click', () => {
-            startScreen.classList.add('dn');
+            // Add fade-out class to all menu bar items (staggered via CSS)
+            const mbarItems = document.querySelectorAll('.mbar-item');
+            mbarItems.forEach(item => item.classList.add('fade-out'));
+            
+            // Add exiting class to start screen (scale + fade + translate)
+            startScreen.classList.add('exiting');
+            
+            // Get game screen elements (already have fade classes from HTML)
+            const songsEl = document.querySelector('.songs');
+            const filterEl = document.querySelector('.filter-panel');
+            const explainerEl = document.querySelector('.explainer');
+            const recordsEl = document.querySelector('.records-panel');
+            
+            // Set background entrance offset (will slide from right)
+            entranceOffsetX = 150;
+            
+            // After animation completes, hide the start screen and show game screen
+            setTimeout(() => {
+                startWrapper.classList.add('dn');
+                gameScreenWrapper.classList.remove('dn');
+                // Reset classes for potential return
+                startScreen.classList.remove('exiting');
+                mbarItems.forEach(item => item.classList.remove('fade-out'));
+                
+                // Animate game screen elements in (remove fade classes after a brief moment)
+                setTimeout(() => {
+                    songsEl.classList.remove('fade-right');
+                    filterEl.classList.remove('fade-right');
+                    explainerEl.classList.remove('fade-left');
+                    if (recordsEl) recordsEl.classList.remove('fade-left');
+                }, 50);
+            }, 550);
         });
     });
 
-    
+    // Background image handling
+    const img1 = document.getElementById('img1');
+    const img2 = document.getElementById('img2');
+    let currentActiveImg = 'img1'; // Track which image is currently visible
 
+    // ══════════════════════════════════════════════════════════════
+    // PARALLAX MOUSE EFFECT
+    // ══════════════════════════════════════════════════════════════
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let entranceOffsetX = 0; // Extra offset for entrance animation (slides from right)
+    const parallaxStrength = 20; // Max pixels of movement
+
+    document.addEventListener('mousemove', (e) => {
+        // Calculate mouse position relative to center of screen (0 to 1, centered at 0.5)
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        
+        // Normalize to -1 to 1 range
+        targetX = (e.clientX - centerX) / centerX;
+        targetY = (e.clientY - centerY) / centerY;
+    });
+
+    function updateParallax() {
+        // Smooth interpolation
+        mouseX += (targetX - mouseX) * 0.08;
+        mouseY += (targetY - mouseY) * 0.08;
+        
+        // Smoothly reduce entrance offset to 0
+        entranceOffsetX *= 0.92;
+        if (Math.abs(entranceOffsetX) < 0.5) entranceOffsetX = 0;
+        
+        // Apply transform to both background images (with entrance offset)
+        const translateX = mouseX * parallaxStrength + entranceOffsetX;
+        const translateY = mouseY * parallaxStrength;
+        
+        img1.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px))`;
+        img2.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px))`;
+        
+        requestAnimationFrame(updateParallax);
+    }
     
+    // Start parallax animation loop
+    updateParallax();
+
+    function changeBackground(imageSrc) {
+        const activeImg = currentActiveImg === 'img1' ? img1 : img2;
+        const inactiveImg = currentActiveImg === 'img1' ? img2 : img1;
+        
+        // Set the new image source on the inactive image
+        inactiveImg.src = imageSrc;
+        
+        // Crossfade: show inactive, hide active
+        inactiveImg.style.opacity = '1';
+        activeImg.style.opacity = '0';
+        
+        // Switch which image is considered active
+        currentActiveImg = currentActiveImg === 'img1' ? 'img2' : 'img1';
+    }
+
+    // Update explainer div with selected song information
+    function updateExplainer(songItem) {
+        // Get song info
+        const titleEl = songItem.querySelector('.song-title');
+        const artistEl = songItem.querySelector('.song-artist');
+        const selectedDifficultyPill = songItem.querySelector('.song-difficulty-pill.selected');
+        
+        if (!titleEl || !artistEl || !selectedDifficultyPill) return;
+        
+        const title = titleEl.textContent;
+        const artist = artistEl.textContent;
+        const diffName = selectedDifficultyPill.querySelector('.difficulty-name')?.textContent || '';
+        const diffStar = selectedDifficultyPill.querySelector('.difficulty-star')?.textContent || '';
+        const diffMapper = selectedDifficultyPill.querySelector('.difficulty-mapper')?.textContent || '';
+        
+        // Update explainer title and artist
+        document.querySelector('.explainer-title').textContent = title;
+        document.querySelector('.explainer-artist').textContent = artist;
+        
+        // Update difficulty info in explainer
+        document.querySelector('.explainer .difficulty-star').textContent = diffStar;
+        document.querySelector('.explainer .difficulty-name').textContent = diffName;
+        document.querySelector('.explainer .difficulty-mapper').textContent = diffMapper;
+    }
+
+    // Set initial background from selected song
+    function setInitialBackground() {
+        const selectedSong = document.querySelector('.song-item.selected .song-pill');
+        if (selectedSong) {
+            const bgImage = selectedSong.style.backgroundImage;
+            const imageUrl = bgImage.replace(/url\(["']?([^"']*)["']?\)/, '$1');
+            if (imageUrl) {
+                img1.src = imageUrl;
+                // Store initial selected song background
+                currentSelectedSong.bgImage = imageUrl;
+            }
+        }
+        
+        // Initialize explainer with selected song
+        const selectedSongItem = document.querySelector('.song-item.selected');
+        if (selectedSongItem) {
+            updateExplainer(selectedSongItem);
+            // Store initial selected song info
+            const titleEl = selectedSongItem.querySelector('.song-title');
+            const artistEl = selectedSongItem.querySelector('.song-artist');
+            if (titleEl) currentSelectedSong.title = titleEl.textContent;
+            if (artistEl) currentSelectedSong.artist = artistEl.textContent;
+        }
+    }
+
+    // Scroll-based width animation for song items
+    const songsContainer = document.querySelector('.songs');
+    
+    function getSongItems() {
+        return document.querySelectorAll('.song-item');
+    }
+
+    function updateSongWidths() {
+        const viewportCenter = window.innerHeight / 2;
+        const songItems = getSongItems();
+
+        songItems.forEach(item => {
+            const itemRect = item.getBoundingClientRect();
+            const itemCenter = itemRect.top + itemRect.height / 2;
+            
+            // Calculate distance from viewport center (0 = at center, 1 = at edge)
+            const distanceFromCenter = Math.abs(itemCenter - viewportCenter);
+            const maxDistance = window.innerHeight / 2;
+            const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
+            
+            // Map to width: 90% at center, 60% at edges
+            const minWidth = 60;
+            const maxWidth = 83;
+            const width = maxWidth - (normalizedDistance * (maxWidth - minWidth));
+            
+            item.style.setProperty('--item-width', `${width}%`);
+        });
+    }
+
+    // Update on scroll
+    songsContainer.addEventListener('scroll', updateSongWidths);
+    
+    // Initial updates
+    updateSongWidths();
+    setInitialBackground();
+    loadRecords(); // Load saved records on startup
+    
+    // Update on resize
+    window.addEventListener('resize', updateSongWidths);
+
+    // Click to select song with background change (using event delegation)
+    songsContainer.addEventListener('click', (e) => {
+        // Ignore clicks on difficulty pills (handled separately for loading)
+        if (e.target.closest('.song-difficulty-pill')) return;
+        
+        const songItem = e.target.closest('.song-item');
+        if (!songItem) return;
+        
+        const songItems = getSongItems();
+        songItems.forEach(s => s.classList.remove('selected'));
+        songItem.classList.add('selected');
+        
+        // Get background image from clicked song
+        const songPill = songItem.querySelector('.song-pill');
+        if (songPill && songPill.style.backgroundImage) {
+            const bgImage = songPill.style.backgroundImage;
+            const imageUrl = bgImage.replace(/url\(["']?([^"']*)["']?\)/, '$1');
+            if (imageUrl) {
+                changeBackground(imageUrl);
+                // Store currently selected song background
+                currentSelectedSong.bgImage = imageUrl;
+            }
+        }
+        
+        // Store currently selected song info
+        const titleEl = songItem.querySelector('.song-title');
+        const artistEl = songItem.querySelector('.song-artist');
+        if (titleEl) currentSelectedSong.title = titleEl.textContent;
+        if (artistEl) currentSelectedSong.artist = artistEl.textContent;
+        
+        // Update explainer with new song info
+        updateExplainer(songItem);
+        
+        // Re-calculate widths after selection change
+        setTimeout(updateSongWidths, 50);
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // STAR RATING SLIDER
+    // ══════════════════════════════════════════════════════════════
+    const starMinSlider = document.getElementById('starMinSlider');
+    const starMaxSlider = document.getElementById('starMaxSlider');
+    const starMinValue = document.getElementById('starMinValue');
+    const starMaxValue = document.getElementById('starMaxValue');
+    const starSliderFill = document.getElementById('starSliderFill');
+    const matchCount = document.getElementById('matchCount');
+    const searchInput = document.getElementById('searchInput');
+
+    function getSongStarRating(songItem) {
+        // Get the highest star rating from the song's difficulties
+        const starElements = songItem.querySelectorAll('.song-difficulty-pill .difficulty-star');
+        let maxRating = 0;
+        starElements.forEach(el => {
+            const text = el.textContent.replace('★', '').trim();
+            const rating = parseFloat(text);
+            if (!isNaN(rating) && rating > maxRating) {
+                maxRating = rating;
+            }
+        });
+        return maxRating;
+    }
+
+    function updateSliderTrack() {
+        const minVal = parseFloat(starMinSlider.value);
+        const maxVal = parseFloat(starMaxSlider.value);
+        const minPercent = (minVal / 10) * 100;
+        const maxPercent = (maxVal / 10) * 100;
+        
+        // Update overlays: left side (min) and right side (max)
+        starSliderFill.style.width = minPercent + '%';
+        document.querySelector('.star-slider-track').style.setProperty('--max-overlay', (100 - maxPercent) + '%');
+    }
+
+    function filterSongs() {
+        const minVal = parseFloat(starMinSlider.value);
+        const maxVal = parseFloat(starMaxSlider.value);
+        const searchText = searchInput.value.toLowerCase().trim();
+        const songItems = getSongItems();
+        
+        let visibleCount = 0;
+        
+        songItems.forEach(item => {
+            const starRating = getSongStarRating(item);
+            const titleEl = item.querySelector('.song-title');
+            const artistEl = item.querySelector('.song-artist');
+            const title = titleEl ? titleEl.textContent.toLowerCase() : '';
+            const artist = artistEl ? artistEl.textContent.toLowerCase() : '';
+            
+            // Check star rating filter
+            const passesStarFilter = starRating >= minVal && (maxVal >= 10 || starRating <= maxVal);
+            
+            // Check search filter
+            const passesSearchFilter = searchText === '' || 
+                title.includes(searchText) || 
+                artist.includes(searchText);
+            
+            if (passesStarFilter && passesSearchFilter) {
+                item.style.display = '';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        matchCount.textContent = visibleCount;
+        updateSongWidths();
+    }
+
+    function updateStarSliders() {
+        let minVal = parseFloat(starMinSlider.value);
+        let maxVal = parseFloat(starMaxSlider.value);
+        
+        // Ensure min doesn't exceed max
+        if (minVal > maxVal) {
+            if (this === starMinSlider) {
+                starMinSlider.value = maxVal;
+                minVal = maxVal;
+            } else {
+                starMaxSlider.value = minVal;
+                maxVal = minVal;
+            }
+        }
+        
+        // Update display values
+        starMinValue.textContent = minVal.toFixed(1);
+        starMaxValue.textContent = maxVal >= 10 ? '∞' : maxVal.toFixed(1);
+        
+        updateSliderTrack();
+        filterSongs();
+    }
+
+    starMinSlider.addEventListener('input', updateStarSliders);
+    starMaxSlider.addEventListener('input', updateStarSliders);
+    searchInput.addEventListener('input', filterSongs);
+    
+    // Initialize
+    updateSliderTrack();
+    filterSongs();
+
+    // ══════════════════════════════════════════════════════════════
+    // LOADING SEQUENCE
+    // ══════════════════════════════════════════════════════════════
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingTitle = document.getElementById('loadingTitle');
+    const loadingArtist = document.getElementById('loadingArtist');
+    const loadingImageBar = document.getElementById('loadingImageBar');
+    const loadingBarFill = document.getElementById('loadingBarFill');
+    const loadingBackBtn = document.getElementById('loadingBackBtn');
+    const gameWrapper = document.getElementById('gameWrapper');
+    const background = document.querySelector('.background');
+    const explainer = document.querySelector('.explainer');
+    const filterPanel = document.querySelector('.filter-panel');
+    let loadingInterval = null;
+    let loadingTimeout = null;
+    let isLoading = false;
+    let ingame = false;
+    let isPaused = false;
+    const pauseMenu = document.getElementById('pauseMenu');
+    const pauseContinue = document.getElementById('pauseContinue');
+    const pauseRetry = document.getElementById('pauseRetry');
+    const pauseQuit = document.getElementById('pauseQuit');
+
+    function startLoadingSequence(songItem) {
+        if (isLoading) return;
+        isLoading = true;
+
+        // Get song info
+        const title = songItem.querySelector('.song-title')?.textContent || '';
+        const artist = songItem.querySelector('.song-artist')?.textContent || '';
+        const songPill = songItem.querySelector('.song-pill');
+        const bgImage = songPill?.style.backgroundImage?.replace(/url\(["']?([^"']*)["']?\)/, '$1') || '';
+        
+        // Get selected difficulty info
+        const selectedDiff = songItem.querySelector('.song-difficulty-pill.selected');
+        const mapper = selectedDiff?.querySelector('.difficulty-mapper')?.textContent || '';
+        const stars = selectedDiff?.querySelector('.difficulty-star')?.textContent || '';
+
+        // Set loading screen content
+        loadingTitle.textContent = title;
+        loadingArtist.textContent = artist;
+        loadingImageBar.querySelector('.loading-image-inner').style.backgroundImage = `url(${bgImage})`;
+        
+        // Update more-info section
+        const moreInfo = loadingScreen.querySelector('.more-info');
+        if (moreInfo) {
+            moreInfo.innerHTML = `
+                <span>${mapper}</span>
+                <span>rating: ${stars}</span>
+                <span>click (esc) to cancel</span>
+            `;
+        }
+        
+        loadingBarFill.style.width = '0%';
+
+        // Slide UI elements out
+        songsContainer.classList.add('fade-right');
+        filterPanel.classList.add('fade-right');
+        explainer.classList.add('fade-left');
+        
+        // Hide records panel with fade-left animation
+        const recordsPanel = document.querySelector('.records-panel');
+        if (recordsPanel) recordsPanel.classList.add('fade-left');
+
+        // Blur background
+        background.classList.add('blurred');
+
+        // Show loading screen
+        loadingScreen.classList.add('active');
+
+        // Animate loading bar
+        let progress = 0;
+        loadingInterval = setInterval(() => {
+            progress += Math.random() * 8 + 2;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+
+                // After bar fills, transition to game
+                loadingTimeout = setTimeout(() => {
+                    // Hide loading screen
+                    loadingScreen.classList.remove('active');
+                    
+                    // Set lefwrito background to current song's background (dimmed)
+                    const lefwrito = document.querySelector('.lefwrito');
+                    if (lefwrito && currentSelectedSong.bgImage) {
+                        lefwrito.style.backgroundImage = `url(${currentSelectedSong.bgImage})`;
+                    }
+                    
+                    // Show game wrapper
+                    gameWrapper.classList.remove('dn');
+                    gameWrapper.classList.add('in-game');
+                    
+                    // Set ingame to true
+                    ingame = true;
+                    
+                    // Start the taiko game
+                    startTaikoGame();
+                }, 400);
+            }
+            loadingBarFill.style.width = progress + '%';
+        }, 200);
+    }
+
+    function cancelLoadingSequence() {
+        isLoading = false;
+
+        // Stop loading animation
+        if (loadingInterval) {
+            clearInterval(loadingInterval);
+            loadingInterval = null;
+        }
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            loadingTimeout = null;
+        }
+
+        // Hide game wrapper
+        gameWrapper.classList.add('dn');
+        gameWrapper.classList.remove('in-game');
+
+        // Hide loading screen
+        loadingScreen.classList.remove('active');
+
+        // Slide UI elements back
+        songsContainer.classList.remove('fade-right');
+        filterPanel.classList.remove('fade-right');
+        explainer.classList.remove('fade-left');
+        
+        // Show records panel again
+        const recordsPanel = document.querySelector('.records-panel');
+        if (recordsPanel) recordsPanel.classList.remove('fade-left');
+
+        // Unblur background
+        background.classList.remove('blurred');
+
+        // Reset loading bar
+        loadingBarFill.style.width = '0%';
+    }
+
+    // Click on difficulty pill to start loading
+    songsContainer.addEventListener('click', (e) => {
+        const diffPill = e.target.closest('.song-difficulty-pill');
+        if (!diffPill || isLoading) return;
+
+        const songItem = diffPill.closest('.song-item');
+        if (!songItem) return;
+
+        // Mark this difficulty as selected
+        songItem.querySelectorAll('.song-difficulty-pill').forEach(p => p.classList.remove('selected'));
+        diffPill.classList.add('selected');
+        updateExplainer(songItem);
+
+        startLoadingSequence(songItem);
+    });
+
+    // Back button cancels loading
+    loadingBackBtn.addEventListener('click', cancelLoadingSequence);
+
+    // Escape key cancels loading or toggles pause menu
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (loadingScreen.classList.contains('active')) {
+                cancelLoadingSequence();
+            } else if (ingame) {
+                togglePauseMenu();
+            }
+        }
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // PAUSE MENU
+    // ══════════════════════════════════════════════════════════════
+    function togglePauseMenu() {
+        isPaused = !isPaused;
+        if (isPaused) {
+            pauseMenu.classList.add('active');
+        } else {
+            pauseMenu.classList.remove('active');
+        }
+    }
+
+    function resumeGame() {
+        isPaused = false;
+        pauseMenu.classList.remove('active');
+    }
+
+    function quitGame() {
+        isPaused = false;
+        ingame = false;
+        pauseMenu.classList.remove('active');
+        
+        // Hide game wrapper
+        gameWrapper.classList.add('dn');
+        gameWrapper.classList.remove('in-game');
+        
+        // Show UI elements again
+        songsContainer.classList.remove('fade-right');
+        filterPanel.classList.remove('fade-right');
+        explainer.classList.remove('fade-left');
+        background.classList.remove('blurred');
+        
+        // Show records panel again
+        const recordsPanel = document.querySelector('.records-panel');
+        if (recordsPanel) recordsPanel.classList.remove('fade-left');
+        
+        // Reset loading bar
+        loadingBarFill.style.width = '0%';
+        isLoading = false;
+
+        // Stop the taiko game
+        stopTaikoGame();
+    }
+
+    pauseContinue.addEventListener('click', resumeGame);
+    pauseRetry.addEventListener('click', () => {
+        // For now, retry just resumes (implement actual retry logic later)
+        resumeGame();
+    });
+    pauseQuit.addEventListener('click', quitGame);
+
+    // ══════════════════════════════════════════════════════════════
+    // TAIKO GAME ENGINE
+    // ══════════════════════════════════════════════════════════════
+    const noteTrack = document.getElementById('noteTrack');
+    const takioBarEl = document.querySelector('.takio-bar');
+    const hitZone = document.querySelector('.hit');
+    const drumOuter = document.getElementById('key-d');
+    const drumInner = document.getElementById('key-f');
+    const hitCircle = document.querySelector('.hit .circle');
+
+    const BASE_TRAVEL_TIME = 2000; // base ms for note to travel (at speed 1.0)
+    const HIT_WINDOW = 150;  // ms tolerance for hit detection (~90% accuracy)
+    const NOTE_SIZE = 80;
+
+    let travelTime = BASE_TRAVEL_TIME; // actual travel time (modified by speed)
+    let gameNotes = [];
+    let songNoteData = [];
+    let gameStartTime = 0;
+    let gameRunning = false;
+    let nextNoteIdx = 0;
+
+    // Timing lines
+    let timingLines = [];
+    let nextTimingLineSec = 0;
+    const TIMING_LINE_INTERVAL = 1000; // ms between timing lines (1 second)
+
+    // Score tracking
+    let stats = {
+        great: 0,
+        ok: 0,
+        miss: 0,
+        combo: 0,
+        maxCombo: 0,
+        score: 0,
+        totalNotes: 0
+    };
+    let songDuration = 0; // ms
+    let currentSongTitle = '';
+    let currentSongArtist = '';
+    let currentDiffName = '';
+    let currentStars = 0;
+    let currentMapper = '';
+    const GREAT_WINDOW = 50; // ms - perfect timing
+
+    // UI elements for accuracy
+    const accuracyFill = document.getElementById('accuracyFill');
+    const accuracyPercent = document.getElementById('accuracyPercent');
+    const comboDisplay = document.getElementById('comboDisplay');
+    const resultsScreen = document.getElementById('resultsScreen');
+
+    function getCurrentSongInfo() {
+        const selectedSongItem = document.querySelector('.song-item.selected');
+        if (!selectedSongItem) return null;
+        const songId = parseInt(selectedSongItem.dataset.songId);
+        const selectedDiffPill = selectedSongItem.querySelector('.song-difficulty-pill.selected');
+        if (!selectedDiffPill) return null;
+        const diffIdx = parseInt(selectedDiffPill.dataset.diffIndex);
+        const song = songs.find(s => s.id === songId);
+        if (!song || !song.difficulties[diffIdx]) return null;
+        const diff = song.difficulties[diffIdx];
+        return {
+            songData: diff.songData || null,
+            speed: diff.speed || 1.0,
+            time: song.time || '0:00',
+            title: song.title,
+            artist: song.artist,
+            diffName: diff.name,
+            stars: diff.stars,
+            mapper: diff.mapper
+        };
+    }
+
+    // Convert time string "3:22" to milliseconds
+    function timeStringToMs(timeStr) {
+        const parts = timeStr.split(':');
+        const minutes = parseInt(parts[0]) || 0;
+        const seconds = parseInt(parts[1]) || 0;
+        return (minutes * 60 + seconds) * 1000;
+    }
+
+    function startTaikoGame(data, speed = 1.0, songTime = '0:30', songInfo = null) {
+        let sd = data;
+        let spd = speed;
+        let sTime = songTime;
+        
+        // If no data passed, get from current selection
+        if (!sd) {
+            const info = getCurrentSongInfo();
+            if (info) {
+                sd = info.songData;
+                spd = info.speed;
+                sTime = info.time;
+                currentSongTitle = info.title;
+                currentSongArtist = info.artist;
+                currentDiffName = info.diffName;
+                currentStars = info.stars;
+                currentMapper = info.mapper;
+            }
+        } else if (songInfo) {
+            currentSongTitle = songInfo.title;
+            currentSongArtist = songInfo.artist;
+            currentDiffName = songInfo.diffName;
+            currentStars = songInfo.stars;
+            currentMapper = songInfo.mapper;
+        }
+        
+        if (!sd || sd.length === 0) {
+            console.warn('No song data available for this difficulty');
+            return;
+        }
+        
+        // Calculate travel time based on speed
+        travelTime = BASE_TRAVEL_TIME / spd;
+        songDuration = timeStringToMs(sTime);
+        
+        // Reset stats
+        stats = {
+            great: 0,
+            ok: 0,
+            miss: 0,
+            combo: 0,
+            maxCombo: 0,
+            score: 0,
+            totalNotes: sd.length
+        };
+        updateAccuracyUI();
+        
+        songNoteData = [...sd];
+        gameNotes = [];
+        timingLines = [];
+        nextNoteIdx = 0;
+        nextTimingLineSec = 0;
+        noteTrack.innerHTML = '';
+        gameStartTime = performance.now();
+        gameRunning = true;
+        
+        requestAnimationFrame(taikoGameLoop);
+    }
+
+    function stopTaikoGame() {
+        gameRunning = false;
+        if (noteTrack) noteTrack.innerHTML = '';
+        gameNotes = [];
+        timingLines = [];
+    }
+
+    // Update accuracy UI
+    function updateAccuracyUI() {
+        const totalHits = stats.great + stats.ok + stats.miss;
+        let accuracy = 100;
+        if (totalHits > 0) {
+            accuracy = ((stats.great * 100 + stats.ok * 50) / (totalHits * 100)) * 100;
+        }
+        
+        accuracyFill.style.width = accuracy + '%';
+        accuracyPercent.textContent = accuracy.toFixed(1) + '%';
+        
+        // Update fill color class
+        accuracyFill.classList.remove('low', 'medium', 'high');
+        if (accuracy >= 80) accuracyFill.classList.add('high');
+        else if (accuracy >= 50) accuracyFill.classList.add('medium');
+        else accuracyFill.classList.add('low');
+        
+        // Update combo display
+        comboDisplay.textContent = stats.combo + 'x';
+        comboDisplay.classList.toggle('high-combo', stats.combo >= 20);
+    }
+
+    // Calculate grade based on accuracy
+    function calculateGrade(accuracy) {
+        if (accuracy >= 100) return 'SS';
+        if (accuracy >= 95) return 'S';
+        if (accuracy >= 90) return 'A';
+        if (accuracy >= 80) return 'B';
+        if (accuracy >= 70) return 'C';
+        return 'D';
+    }
+
+    // Show results screen
+    function showResults() {
+        gameRunning = false;
+        
+        const totalHits = stats.great + stats.ok + stats.miss;
+        const accuracy = totalHits > 0 ? ((stats.great * 100 + stats.ok * 50) / (totalHits * 100)) * 100 : 0;
+        const grade = calculateGrade(accuracy);
+        
+        // Update results UI
+        document.getElementById('resultsSongTitle').textContent = currentSongTitle;
+        document.getElementById('resultsSongArtist').textContent = currentSongArtist;
+        document.getElementById('resultsScore').textContent = stats.score.toLocaleString();
+        document.getElementById('resultsStars').textContent = '★ ' + currentStars.toFixed(2);
+        document.getElementById('resultsDiffName').textContent = currentDiffName;
+        document.getElementById('resultsMapper').textContent = 'mapped by ' + currentMapper;
+        document.getElementById('resultsAccuracy').textContent = accuracy.toFixed(2) + '%';
+        document.getElementById('resultsMaxCombo').innerHTML = stats.maxCombo + '<span class="stat-sub">/' + stats.totalNotes + '</span>';
+        document.getElementById('resultsPP').textContent = Math.floor(accuracy * 2); // Simple PP calculation
+        document.getElementById('resultsGreat').textContent = stats.great;
+        document.getElementById('resultsOk').textContent = stats.ok;
+        document.getElementById('resultsMiss').textContent = stats.miss;
+        
+        // Update grade display
+        const gradeLetter = document.getElementById('gradeLetter');
+        const gradeRingColor = document.getElementById('gradeRingColor');
+        const gradeRingProgress = document.getElementById('gradeRingProgress');
+        
+        gradeLetter.textContent = grade;
+        gradeLetter.className = 'grade-letter grade-' + grade.toLowerCase();
+        gradeRingColor.setAttribute('class', 'grade-ring-color grade-' + grade.toLowerCase());
+        
+        // Animate the ring (circumference = 2 * PI * r)
+        const colorCircumference = 2 * Math.PI * 75; // r=75
+        const progressCircumference = 2 * Math.PI * 90; // r=90
+        const offset = colorCircumference * (1 - accuracy / 100);
+        const progressOffset = progressCircumference * (1 - accuracy / 100);
+        
+        setTimeout(() => {
+            gradeRingColor.style.strokeDashoffset = offset;
+            gradeRingProgress.style.strokeDashoffset = progressOffset;
+        }, 100);
+        
+        // Save the record
+        saveRecord({
+            song: currentSongTitle,
+            artist: currentSongArtist,
+            diff: currentDiffName,
+            stars: currentStars,
+            score: stats.score,
+            accuracy: accuracy,
+            grade: grade,
+            maxCombo: stats.maxCombo,
+            date: Date.now()
+        });
+        
+        // Refresh records display
+        loadRecords();
+        
+        // Show results screen
+        resultsScreen.classList.add('active');
+    }
+
+    // Save a game record to localStorage
+    function saveRecord(record) {
+        let records = JSON.parse(localStorage.getItem('josuRecords') || '[]');
+        records.unshift(record); // Add to beginning (most recent first)
+        records = records.slice(0, 50); // Keep max 50 records
+        localStorage.setItem('josuRecords', JSON.stringify(records));
+    }
+
+    // Load and display records in the records panel
+    function loadRecords() {
+        const recordsList = document.getElementById('recordsList');
+        if (!recordsList) return;
+        
+        const records = JSON.parse(localStorage.getItem('josuRecords') || '[]');
+        
+        if (records.length === 0) {
+            recordsList.innerHTML = '<div class="records-empty">No records yet</div>';
+            return;
+        }
+        
+        // Show up to 6 records
+        const displayRecords = records.slice(0, 6);
+        
+        recordsList.innerHTML = displayRecords.map(r => `
+            <div class="record-item">
+                <div class="record-grade grade-${r.grade.toLowerCase()}">${r.grade}</div>
+                <div class="record-info">
+                    <div class="record-song">${r.song}</div>
+                    <div class="record-diff">${r.diff}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="record-score">${r.score.toLocaleString()}</div>
+                    <div class="record-accuracy">${r.accuracy.toFixed(2)}%</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Hide results and go back to song select
+    function hideResults() {
+        resultsScreen.classList.remove('active');
+        
+        // Reset ring animations
+        document.getElementById('gradeRingColor').style.strokeDashoffset = 471.24;
+        document.getElementById('gradeRingProgress').style.strokeDashoffset = 565.48;
+    }
+
+    function getHitZoneX() {
+        const barRect = takioBarEl.getBoundingClientRect();
+        const hitRect = hitZone.getBoundingClientRect();
+        return hitRect.left - barRect.left;
+    }
+
+    function createNoteEl(noteData) {
+        const el = document.createElement('div');
+        el.className = `taiko-note note-${noteData.key}`;
+        el.innerHTML = `
+            <div class="note-inner">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </div>
+        `;
+        noteTrack.appendChild(el);
+        return el;
+    }
+
+    function createTimingLine(seconds) {
+        const el = document.createElement('div');
+        el.className = 'timing-line';
+        el.innerHTML = `<span class="timing-label">${seconds}s</span>`;
+        noteTrack.appendChild(el);
+        return el;
+    }
+
+    function taikoGameLoop(timestamp) {
+        if (!gameRunning) return;
+        if (isPaused) {
+            requestAnimationFrame(taikoGameLoop);
+            return;
+        }
+
+        const elapsed = timestamp - gameStartTime;
+        const hitX = getHitZoneX();
+        const barWidth = takioBarEl.getBoundingClientRect().width;
+        const travelDistance = barWidth - hitX;
+
+        // Spawn timing lines
+        while (nextTimingLineSec * TIMING_LINE_INTERVAL - elapsed <= travelTime) {
+            const lineTime = nextTimingLineSec * TIMING_LINE_INTERVAL;
+            const el = createTimingLine(nextTimingLineSec);
+            timingLines.push({ time: lineTime, element: el });
+            nextTimingLineSec++;
+        }
+
+        // Update timing line positions
+        for (let i = timingLines.length - 1; i >= 0; i--) {
+            const line = timingLines[i];
+            const timeUntilHit = line.time - elapsed;
+            const progress = timeUntilHit / travelTime;
+            const x = hitX + progress * travelDistance;
+            line.element.style.left = x + 'px';
+
+            // Remove lines that have passed off screen
+            if (timeUntilHit < -500) {
+                line.element.remove();
+                timingLines.splice(i, 1);
+            }
+        }
+
+        // Spawn notes that should now be visible
+        while (nextNoteIdx < songNoteData.length) {
+            const nd = songNoteData[nextNoteIdx];
+            if (nd.time - elapsed <= travelTime) {
+                const el = createNoteEl(nd);
+                gameNotes.push({
+                    key: nd.key,
+                    time: nd.time,
+                    element: el,
+                    state: 'active'
+                });
+                nextNoteIdx++;
+            } else {
+                break;
+            }
+        }
+
+        // Update positions & check misses
+        for (const note of gameNotes) {
+            if (note.state !== 'active') continue;
+            const timeUntilHit = note.time - elapsed;
+            const progress = timeUntilHit / travelTime;
+            const x = hitX + progress * travelDistance - NOTE_SIZE / 2;
+            note.element.style.left = x + 'px';
+
+            if (timeUntilHit < -HIT_WINDOW) {
+                triggerMiss(note);
+            }
+        }
+
+        // Clean up finished notes
+        gameNotes = gameNotes.filter(n => n.state !== 'removed');
+
+        // Check if song is over (all notes processed and none active)
+        const allNotesProcessed = nextNoteIdx >= songNoteData.length;
+        const noActiveNotes = gameNotes.every(n => n.state !== 'active');
+        const songTimeElapsed = elapsed >= songDuration + 1000; // Add 1 second buffer
+        
+        if (allNotesProcessed && noActiveNotes && songTimeElapsed) {
+            showResults();
+            return;
+        }
+
+        requestAnimationFrame(taikoGameLoop);
+    }
+
+    function triggerHit(note, timingDiff) {
+        note.state = 'animating';
+        note.element.classList.add('note-hit');
+
+        // Determine if GREAT or OK based on timing
+        const isGreat = timingDiff <= GREAT_WINDOW;
+        
+        // Update stats
+        if (isGreat) {
+            stats.great++;
+            stats.score += 300 * (1 + stats.combo * 0.1);
+        } else {
+            stats.ok++;
+            stats.score += 100 * (1 + stats.combo * 0.05);
+        }
+        stats.combo++;
+        if (stats.combo > stats.maxCombo) stats.maxCombo = stats.combo;
+        stats.score = Math.floor(stats.score);
+        updateAccuracyUI();
+
+        // Add hit label (GREAT or OK)
+        const label = document.createElement('div');
+        label.className = isGreat ? 'great-label' : 'ok-label';
+        label.textContent = isGreat ? 'GREAT' : 'OK';
+        note.element.appendChild(label);
+
+        // Flash the hit circle
+        hitCircle.classList.add('hit-flash');
+        setTimeout(() => hitCircle.classList.remove('hit-flash'), 200);
+
+        // Light up the corresponding drum
+        const drum = note.key === 'd' ? drumOuter : drumInner;
+        drum.classList.add('drum-hit');
+        setTimeout(() => drum.classList.remove('drum-hit'), 200);
+
+        setTimeout(() => {
+            note.element.remove();
+            note.state = 'removed';
+        }, 600);
+    }
+
+    function triggerMiss(note) {
+        note.state = 'animating';
+        note.element.classList.add('note-miss');
+
+        // Update stats
+        stats.miss++;
+        stats.combo = 0;
+        updateAccuracyUI();
+
+        // Add MISS label on the note
+        const label = document.createElement('div');
+        label.className = 'miss-label';
+        label.textContent = 'MISS';
+        note.element.appendChild(label);
+
+        setTimeout(() => {
+            note.element.remove();
+            note.state = 'removed';
+        }, 600);
+    }
+
+    // Key press handler for taiko hits
+    document.addEventListener('keydown', (e) => {
+        if (!gameRunning || isPaused) return;
+        if (e.key !== 'd' && e.key !== 'f') return;
+        e.preventDefault();
+
+        const elapsed = performance.now() - gameStartTime;
+
+        // Animate drum press
+        const drum = e.key === 'd' ? drumOuter : drumInner;
+        drum.classList.add('drum-press');
+        setTimeout(() => drum.classList.remove('drum-press'), 100);
+
+        // Find closest matching active note within hit window
+        let best = null;
+        let bestDiff = Infinity;
+        for (const note of gameNotes) {
+            if (note.state !== 'active' || note.key !== e.key) continue;
+            const diff = Math.abs(note.time - elapsed);
+            if (diff < bestDiff && diff <= HIT_WINDOW) {
+                bestDiff = diff;
+                best = note;
+            }
+        }
+
+        if (best) {
+            triggerHit(best, bestDiff);
+        }
+    });
+
+    // Results screen button handlers
+    document.getElementById('resultsRetry').addEventListener('click', () => {
+        hideResults();
+        startTaikoGame();
+    });
+
+    document.getElementById('resultsBack').addEventListener('click', () => {
+        hideResults();
+        quitGame();
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // DEV MODE: SKIP STRAIGHT TO GAME
+    // ══════════════════════════════════════════════════════════════
+    if (isdevForGame) {
+        // Hide start screen
+        startScreen.classList.add('dn');
+        
+        // Set lefwrito background
+        const lefwrito = document.querySelector('.lefwrito');
+        if (lefwrito && currentSelectedSong.bgImage) {
+            lefwrito.style.backgroundImage = `url(${currentSelectedSong.bgImage})`;
+        }
+        
+        // Show game wrapper immediately
+        gameWrapper.classList.remove('dn');
+        gameWrapper.classList.add('in-game');
+        
+        // Hide song selection UI
+        songsContainer.classList.add('fade-right');
+        filterPanel.classList.add('fade-right');
+        explainer.classList.add('fade-left');
+        background.classList.add('blurred');
+        
+        // Hide records panel with fade-left animation
+        const recordsPanel = document.querySelector('.records-panel');
+        if (recordsPanel) recordsPanel.classList.add('fade-left');
+        
+        // Set game state
+        ingame = true;
+
+        // Start game with first available song data and speed
+        const devSong = songs[0];
+        const devDiff = devSong?.difficulties[0];
+        const devSongData = devDiff?.songData;
+        const devSpeed = devDiff?.speed || 1.0;
+        const devTime = devSong?.time || '0:30';
+        const devSongInfo = {
+            title: devSong?.title || 'Unknown',
+            artist: devSong?.artist || 'Unknown',
+            diffName: devDiff?.name || 'Normal',
+            stars: devDiff?.stars || 1.0,
+            mapper: devDiff?.mapper || 'Unknown'
+        };
+        startTaikoGame(devSongData, devSpeed, devTime, devSongInfo);
+    }
+
 </script>
 </html>
