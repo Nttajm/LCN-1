@@ -656,6 +656,77 @@
         .context-menu-item.danger {
             color: #e94560;
         }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-left: 16px;
+            padding-left: 16px;
+            border-left: 1px solid #0f3460;
+        }
+
+        .mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #0f3460;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            background: #1a4a7a;
+            color: #fff;
+        }
+
+        .mode-btn.active {
+            background: #1a4a7a;
+            border-color: #e94560;
+            color: #fff;
+        }
+
+        .mode-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Arrow mode track colors */
+        .track-label.key-left {
+            color: #ff3399;
+        }
+        .track-label.key-down {
+            color: #ff3399;
+        }
+        .track-label.key-up {
+            color: #ff3399;
+        }
+        .track-label.key-right {
+            color: #ff3399;
+        }
+
+        .note.note-left,
+        .note.note-down,
+        .note.note-up,
+        .note.note-right {
+            background: linear-gradient(135deg, #ff3399, #cc2277);
+            border: 2px solid #ff66aa;
+            box-shadow: 0 0 10px rgba(255, 51, 153, 0.4);
+        }
+
+        /* Track visibility based on mode */
+        .tracks-scroll.mode-taiko .track-lane.arrow-track {
+            display: none;
+        }
+        .tracks-scroll.mode-arrow .track-lane.taiko-track {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -684,6 +755,14 @@
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                 </svg>
                 Clear All
+            </button>
+            <button class="btn primary" id="saveProjectBtn" title="Save project to browser storage">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save Project
             </button>
             <button class="btn success" id="saveBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -721,6 +800,21 @@
             <div class="info-item">
                 <label class="info-label">Duration (mm:ss)</label>
                 <input type="text" id="durationInput" placeholder="1:00" value="1:00" style="width: 80px; background: #16213e; border: 1px solid #0f3460; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 14px;">
+            </div>
+            <div class="mode-selector">
+                <button class="mode-btn active" id="modeTaikoBtn" title="Taiko Mode (D/F keys)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"/>
+                        <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                    </svg>
+                    Taiko
+                </button>
+                <button class="mode-btn" id="modeArrowBtn" title="Arrow Mode (D/F/J/K keys)">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="12,2 18,10 14,10 14,14 18,14 12,22 6,14 10,14 10,10 6,10"/>
+                    </svg>
+                    Arrow
+                </button>
             </div>
         </div>
 
@@ -794,16 +888,32 @@
 
             <!-- Tracks Area -->
             <div class="tracks-area" id="tracksArea">
-                <div class="tracks-scroll" id="tracksScroll">
-                    <!-- D Key Track -->
-                    <div class="track-lane" data-key="d">
+                <div class="tracks-scroll mode-taiko" id="tracksScroll">
+                    <!-- Taiko Mode Tracks -->
+                    <div class="track-lane taiko-track" data-key="d">
                         <div class="track-label key-d">D</div>
                         <div class="track-content" id="trackD"></div>
                     </div>
-                    <!-- F Key Track -->
-                    <div class="track-lane" data-key="f">
+                    <div class="track-lane taiko-track" data-key="f">
                         <div class="track-label key-f">F</div>
                         <div class="track-content" id="trackF"></div>
+                    </div>
+                    <!-- Arrow Mode Tracks -->
+                    <div class="track-lane arrow-track" data-key="left">
+                        <div class="track-label key-left">←</div>
+                        <div class="track-content" id="trackLeft"></div>
+                    </div>
+                    <div class="track-lane arrow-track" data-key="down">
+                        <div class="track-label key-down">↓</div>
+                        <div class="track-content" id="trackDown"></div>
+                    </div>
+                    <div class="track-lane arrow-track" data-key="up">
+                        <div class="track-label key-up">↑</div>
+                        <div class="track-content" id="trackUp"></div>
+                    </div>
+                    <div class="track-lane arrow-track" data-key="right">
+                        <div class="track-label key-right">→</div>
+                        <div class="track-content" id="trackRight"></div>
                     </div>
                     <!-- Playhead -->
                     <div class="playhead" id="tracksPlayhead" style="left: 60px;"></div>
@@ -813,10 +923,14 @@
 
         <!-- Bottom Bar -->
         <div class="bottom-bar">
-            <div class="key-hints">
+            <div class="key-hints" id="keyHints">
                 <div class="key-hint"><kbd>Space</kbd> Play/Pause</div>
-                <div class="key-hint"><kbd>D</kbd> Place Red Note</div>
-                <div class="key-hint"><kbd>F</kbd> Place Blue Note</div>
+                <div class="key-hint taiko-hint"><kbd>D</kbd> Place Red Note</div>
+                <div class="key-hint taiko-hint"><kbd>F</kbd> Place Blue Note</div>
+                <div class="key-hint arrow-hint" style="display:none"><kbd>D</kbd> Left</div>
+                <div class="key-hint arrow-hint" style="display:none"><kbd>F</kbd> Down</div>
+                <div class="key-hint arrow-hint" style="display:none"><kbd>J</kbd> Up</div>
+                <div class="key-hint arrow-hint" style="display:none"><kbd>K</kbd> Right</div>
                 <div class="key-hint"><kbd>Delete</kbd> Remove Selected</div>
                 <div class="key-hint"><kbd>R</kbd> Toggle Record Mode</div>
             </div>
@@ -877,7 +991,7 @@
         // STATE MANAGEMENT
         // ══════════════════════════════════════════════════════════════
         const state = {
-            notes: [],                  // Array of { key: 'd'|'f', time: number }
+            notes: [],                  // Array of { key: 'd'|'f'|'left'|'down'|'up'|'right', time: number }
             selectedNotes: new Set(),   // Set of selected note indices
             isPlaying: false,
             isRecording: false,
@@ -886,7 +1000,8 @@
             zoom: 50,                   // Pixels per second
             bpm: 120,
             snapToGrid: true,
-            audioLoaded: false
+            audioLoaded: false,
+            mode: 'taiko'               // 'taiko' or 'arrow'
         };
 
         // ══════════════════════════════════════════════════════════════
@@ -899,6 +1014,7 @@
             recordBtn: document.getElementById('recordBtn'),
             loadAudioBtn: document.getElementById('loadAudioBtn'),
             saveBtn: document.getElementById('saveBtn'),
+            saveProjectBtn: document.getElementById('saveProjectBtn'),
             clearBtn: document.getElementById('clearBtn'),
             importBtn: document.getElementById('importBtn'),
             
@@ -927,7 +1043,15 @@
             tracksScroll: document.getElementById('tracksScroll'),
             trackD: document.getElementById('trackD'),
             trackF: document.getElementById('trackF'),
+            trackLeft: document.getElementById('trackLeft'),
+            trackDown: document.getElementById('trackDown'),
+            trackUp: document.getElementById('trackUp'),
+            trackRight: document.getElementById('trackRight'),
             tracksPlayhead: document.getElementById('tracksPlayhead'),
+            
+            // Mode buttons
+            modeTaikoBtn: document.getElementById('modeTaikoBtn'),
+            modeArrowBtn: document.getElementById('modeArrowBtn'),
             
             // Waveform
             waveformArea: document.getElementById('waveformArea'),
@@ -1171,9 +1295,13 @@
         }
 
         function renderNotes() {
-            // Clear tracks
+            // Clear all tracks
             elements.trackD.innerHTML = '';
             elements.trackF.innerHTML = '';
+            elements.trackLeft.innerHTML = '';
+            elements.trackDown.innerHTML = '';
+            elements.trackUp.innerHTML = '';
+            elements.trackRight.innerHTML = '';
             
             // Draw grid lines
             drawGridLines();
@@ -1183,14 +1311,27 @@
                 const noteEl = document.createElement('div');
                 noteEl.className = `note note-${note.key}${state.selectedNotes.has(index) ? ' selected' : ''}`;
                 noteEl.style.left = `${timeToX(note.time) - TRACK_OFFSET - 18}px`;
-                noteEl.textContent = note.key.toUpperCase();
+                
+                // Display label based on key type
+                const labelMap = {
+                    'd': 'D', 'f': 'F',
+                    'left': '←', 'down': '↓', 'up': '↑', 'right': '→'
+                };
+                noteEl.textContent = labelMap[note.key] || note.key.toUpperCase();
                 noteEl.dataset.index = index;
                 
                 // Add to appropriate track
-                if (note.key === 'd') {
-                    elements.trackD.appendChild(noteEl);
-                } else {
-                    elements.trackF.appendChild(noteEl);
+                const trackMap = {
+                    'd': elements.trackD,
+                    'f': elements.trackF,
+                    'left': elements.trackLeft,
+                    'down': elements.trackDown,
+                    'up': elements.trackUp,
+                    'right': elements.trackRight
+                };
+                const track = trackMap[note.key];
+                if (track) {
+                    track.appendChild(noteEl);
                 }
             });
             
@@ -1222,26 +1363,55 @@
                 gridHTML += `<div class="${cls}" style="left: ${x}px;"></div>`;
             }
             
-            // Add grid to both tracks
-            const existingGridD = elements.trackD.querySelector('.grid-container');
-            const existingGridF = elements.trackF.querySelector('.grid-container');
+            // Add grid to all tracks
+            const allTracks = [
+                elements.trackD, elements.trackF,
+                elements.trackLeft, elements.trackDown, elements.trackUp, elements.trackRight
+            ];
             
-            if (!existingGridD) {
-                const gridContainer = document.createElement('div');
-                gridContainer.className = 'grid-container';
-                gridContainer.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;';
-                gridContainer.innerHTML = gridHTML;
-                elements.trackD.appendChild(gridContainer);
-            }
-            
-            if (!existingGridF) {
-                const gridContainer = document.createElement('div');
-                gridContainer.className = 'grid-container';
-                gridContainer.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;';
-                gridContainer.innerHTML = gridHTML;
-                elements.trackF.appendChild(gridContainer);
-            }
+            allTracks.forEach(track => {
+                if (!track.querySelector('.grid-container')) {
+                    const gridContainer = document.createElement('div');
+                    gridContainer.className = 'grid-container';
+                    gridContainer.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;';
+                    gridContainer.innerHTML = gridHTML;
+                    track.appendChild(gridContainer);
+                }
+            });
         }
+
+        // ══════════════════════════════════════════════════════════════
+        // MODE SWITCHING
+        // ══════════════════════════════════════════════════════════════
+        function setMode(mode) {
+            state.mode = mode;
+            
+            // Update UI
+            elements.modeTaikoBtn.classList.toggle('active', mode === 'taiko');
+            elements.modeArrowBtn.classList.toggle('active', mode === 'arrow');
+            
+            // Update tracks visibility
+            elements.tracksScroll.classList.remove('mode-taiko', 'mode-arrow');
+            elements.tracksScroll.classList.add(`mode-${mode}`);
+            
+            // Update key hints
+            document.querySelectorAll('.taiko-hint').forEach(el => {
+                el.style.display = mode === 'taiko' ? '' : 'none';
+            });
+            document.querySelectorAll('.arrow-hint').forEach(el => {
+                el.style.display = mode === 'arrow' ? '' : 'none';
+            });
+            
+            // Clear notes when switching mode (or keep them, user choice)
+            // For now, let's keep notes but warn user
+            updateStatus(`Switched to ${mode === 'taiko' ? 'Taiko' : 'Arrow'} mode`);
+            
+            renderNotes();
+        }
+
+        // Mode button event listeners
+        elements.modeTaikoBtn.addEventListener('click', () => setMode('taiko'));
+        elements.modeArrowBtn.addEventListener('click', () => setMode('arrow'));
 
         // ══════════════════════════════════════════════════════════════
         // PLAYBACK
@@ -1374,12 +1544,12 @@
 
         function clearAllNotes() {
             if (state.notes.length === 0) return;
-            if (!confirm('Are you sure you want to clear all notes?')) return;
+            if (!confirm('Clear all notes?')) return;
             
             state.notes = [];
             state.selectedNotes.clear();
             renderNotes();
-            updateStatus('All notes cleared');
+            updateStatus('All notes cleared (save project to update saved data)');
         }
 
         function duplicateNote(index) {
@@ -1391,7 +1561,21 @@
 
         function toggleNoteType(index) {
             if (index < 0 || index >= state.notes.length) return;
-            state.notes[index].key = state.notes[index].key === 'd' ? 'f' : 'd';
+            const note = state.notes[index];
+            
+            // Determine which keys to cycle based on note's current type
+            const taikoKeys = ['d', 'f'];
+            const arrowKeys = ['left', 'down', 'up', 'right'];
+            
+            // Check if current note is taiko or arrow type
+            if (taikoKeys.includes(note.key)) {
+                const currentIdx = taikoKeys.indexOf(note.key);
+                note.key = taikoKeys[(currentIdx + 1) % taikoKeys.length];
+            } else if (arrowKeys.includes(note.key)) {
+                const currentIdx = arrowKeys.indexOf(note.key);
+                note.key = arrowKeys[(currentIdx + 1) % arrowKeys.length];
+            }
+            
             renderNotes();
             updateStatus('Note type toggled');
         }
@@ -1485,7 +1669,9 @@
             // Ignore if typing in input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             
-            switch(e.key.toLowerCase()) {
+            const key = e.key.toLowerCase();
+            
+            switch(key) {
                 case ' ':
                     e.preventDefault();
                     if (state.isPlaying) pause();
@@ -1494,10 +1680,25 @@
                     
                 case 'd':
                 case 'f':
-                    // Place note at current playhead position
-                    // Works in record mode OR anytime (for manual placement)
+                    // In Taiko mode: D and F are notes
+                    // In Arrow mode: D=left, F=down
                     if (state.isRecording || !state.isPlaying) {
-                        addNote(e.key.toLowerCase(), state.currentTime);
+                        if (state.mode === 'taiko') {
+                            addNote(key, state.currentTime);
+                        } else {
+                            // Arrow mode mapping
+                            const arrowKey = key === 'd' ? 'left' : 'down';
+                            addNote(arrowKey, state.currentTime);
+                        }
+                    }
+                    break;
+                
+                case 'j':
+                case 'k':
+                    // Only in Arrow mode: J=up, K=right
+                    if (state.mode === 'arrow' && (state.isRecording || !state.isPlaying)) {
+                        const arrowKey = key === 'j' ? 'up' : 'right';
+                        addNote(arrowKey, state.currentTime);
                     }
                     break;
                     
@@ -1741,12 +1942,14 @@
             const title = elements.songTitle.value || 'Untitled';
             const artist = elements.songArtist.value || 'Unknown';
             const difficulty = elements.difficultyName.value || 'Normal';
+            const modeLabel = state.mode === 'taiko' ? 'Taiko' : 'Arrow (updown)';
             
             const notesStr = state.notes.map(n => 
                 `    { key: '${n.key}', time: ${n.time} }`
             ).join(',\n');
             
             return `// ${title} - ${artist} [${difficulty}]
+// Mode: ${modeLabel}
 // Total notes: ${state.notes.length}
 // Duration: ${msToTimeString(state.duration)}
 
@@ -1839,23 +2042,98 @@
         });
 
         // ══════════════════════════════════════════════════════════════
+        // PROJECT SAVE/LOAD (localStorage)
+        // ══════════════════════════════════════════════════════════════
+        const PROJECT_STORAGE_KEY = 'josu_editor_project';
+
+        function saveProject() {
+            const projectData = {
+                notes: state.notes,
+                mode: state.mode,
+                bpm: state.bpm,
+                duration: state.duration,
+                songTitle: elements.songTitle.value,
+                songArtist: elements.songArtist.value,
+                difficultyName: elements.difficultyName.value,
+                savedAt: new Date().toISOString()
+            };
+            
+            try {
+                localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(projectData));
+                updateStatus(`Project saved! (${state.notes.length} notes)`);
+            } catch (err) {
+                console.error('Error saving project:', err);
+                updateStatus('Error saving project');
+            }
+        }
+
+        function loadProject() {
+            try {
+                const saved = localStorage.getItem(PROJECT_STORAGE_KEY);
+                if (!saved) return false;
+                
+                const projectData = JSON.parse(saved);
+                
+                // Restore state
+                state.notes = projectData.notes || [];
+                state.mode = projectData.mode || 'taiko';
+                state.bpm = projectData.bpm || 120;
+                state.duration = projectData.duration || 60000;
+                
+                // Restore UI inputs
+                if (projectData.songTitle) elements.songTitle.value = projectData.songTitle;
+                if (projectData.songArtist) elements.songArtist.value = projectData.songArtist;
+                if (projectData.difficultyName) elements.difficultyName.value = projectData.difficultyName;
+                elements.bpmInput.value = state.bpm;
+                elements.durationInput.value = msToTimeString(state.duration);
+                
+                // Apply mode
+                setMode(state.mode);
+                
+                // Update UI
+                updateTrackWidth();
+                renderNotes();
+                drawTimeRuler();
+                
+                const savedDate = projectData.savedAt ? new Date(projectData.savedAt).toLocaleString() : 'unknown';
+                updateStatus(`Project loaded (${state.notes.length} notes, saved ${savedDate})`);
+                return true;
+            } catch (err) {
+                console.error('Error loading project:', err);
+                return false;
+            }
+        }
+
+        function clearSavedProject() {
+            localStorage.removeItem(PROJECT_STORAGE_KEY);
+        }
+
+        // Save project button
+        elements.saveProjectBtn.addEventListener('click', saveProject);
+
+        // ══════════════════════════════════════════════════════════════
         // INITIALIZATION
         // ══════════════════════════════════════════════════════════════
         function init() {
-            // Set default duration (1 minute)
-            state.duration = 60000;
-            elements.durationInput.value = msToTimeString(state.duration);
+            // Try to load saved project first
+            const loaded = loadProject();
             
-            // Initialize track width
-            updateTrackWidth();
-            
-            // Draw initial time ruler
-            drawTimeRuler();
-            
-            // Render empty notes
-            renderNotes();
-            
-            updateStatus('Ready - Load audio or start placing notes');
+            if (!loaded) {
+                // Set default duration (1 minute)
+                state.duration = 60000;
+                elements.durationInput.value = msToTimeString(state.duration);
+                
+                // Initialize track width
+                updateTrackWidth();
+                
+                // Draw initial time ruler
+                drawTimeRuler();
+                
+                // Render empty notes
+                renderNotes();
+                
+                updateStatus('Ready - Load audio or start placing notes');
+            }
         }
 
         init();
