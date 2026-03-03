@@ -1,0 +1,368 @@
+/* ══════════════════════════════════════════════════════════════
+   ARROW MODE - FNF-STYLE FALLING ARROWS
+   ══════════════════════════════════════════════════════════════ */
+
+/* Mode indicator icons next to mode dots */
+.mode-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 2px;
+    opacity: 0.7;
+}
+
+.mode-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Arrow game container - full screen overlay within lefwrito */
+.arrow-game {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 5;
+}
+
+.arrow-game.active {
+    display: flex;
+}
+
+/* The 4-lane container */
+.arrow-lanes {
+    position: relative;
+    width: 320px;
+    height: 100%;
+    display: flex;
+}
+
+/* Individual lane */
+.arrow-lane {
+    flex: 1;
+    width: 80px;
+    height: 100%;
+    position: relative;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+/* Dark lane background */
+.arrow-lanes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: -1;
+}
+
+/* Lane borders */
+.arrow-lanes::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-left: 2px solid rgba(255, 255, 255, 0.12);
+    border-right: 2px solid rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ── RECEPTOR (static arrows at bottom) ── */
+.arrow-receptor-row {
+    position: absolute;
+    bottom: 80px;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    display: flex;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.arrow-receptor {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.arrow-receptor .receptor-arrow {
+    width: 54px;
+    height: 54px;
+    opacity: 1;
+    transition: opacity 0.08s ease, transform 0.08s ease, filter 0.08s ease;
+}
+
+/* Receptor glow on key press */
+.arrow-receptor.pressed .receptor-arrow {
+    opacity: 1;
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 10px rgba(255, 50, 150, 0.9));
+}
+
+.arrow-receptor.hit-flash .receptor-arrow {
+    opacity: 1;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 14px rgba(255, 50, 150, 1));
+}
+
+/* ── RECEPTOR DEFAULT COLORS (dark muted gray-purple) ── */
+.arrow-receptor .receptor-arrow .arrow-border { fill: #2a2235; }
+.arrow-receptor .receptor-arrow .arrow-fill { fill: #3d3350; }
+
+/* Pressed receptor - bright magenta */
+.arrow-receptor.pressed .receptor-arrow .arrow-border { fill: #cc2080; }
+.arrow-receptor.pressed .receptor-arrow .arrow-fill { fill: #ff40a0; }
+
+/* ── FALLING ARROW NOTES ── */
+.arrow-note {
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Arrow SVG styling - bold with glow */
+.arrow-note svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px rgba(255, 50, 150, 0.7));
+}
+
+/* Falling note colors - bright magenta/pink with darker border */
+.arrow-note svg .arrow-border { fill: #aa1870; }
+.arrow-note svg .arrow-fill { fill: #ff3399; }
+
+/* Slight per-direction hue variation for visual interest */
+.arrow-note.arrow-left svg .arrow-border { fill: #aa1870; }
+.arrow-note.arrow-left svg .arrow-fill { fill: #ff3399; }
+.arrow-note.arrow-down svg .arrow-border { fill: #aa1870; }
+.arrow-note.arrow-down svg .arrow-fill { fill: #ff3399; }
+.arrow-note.arrow-up svg .arrow-border { fill: #aa1870; }
+.arrow-note.arrow-up svg .arrow-fill { fill: #ff3399; }
+.arrow-note.arrow-right svg .arrow-border { fill: #aa1870; }
+.arrow-note.arrow-right svg .arrow-fill { fill: #ff3399; }
+
+/* ── HIT ANIMATIONS ── */
+.arrow-note.note-hit {
+    animation: arrowHit 0.3s ease-out forwards;
+}
+
+@keyframes arrowHit {
+    0% { opacity: 1; transform: translateX(-50%) scale(1); }
+    50% { opacity: 0.6; transform: translateX(-50%) scale(1.3); }
+    100% { opacity: 0; transform: translateX(-50%) scale(1.5); }
+}
+
+.arrow-note.note-miss {
+    animation: arrowMiss 0.5s ease-out forwards;
+}
+
+@keyframes arrowMiss {
+    0% { opacity: 1; filter: brightness(1); }
+    30% { filter: brightness(0.3) grayscale(1); }
+    100% { opacity: 0; filter: brightness(0.2) grayscale(1); }
+}
+
+/* ── HIT JUDGMENT LABELS ── */
+.arrow-judgment {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    pointer-events: none;
+    z-index: 20;
+    white-space: nowrap;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.arrow-judgment.perfect {
+    color: #00eaff;
+    animation: judgmentPop 0.6s ease-out forwards;
+}
+
+.arrow-judgment.great {
+    color: #44ff44;
+    animation: judgmentPop 0.6s ease-out forwards;
+}
+
+.arrow-judgment.ok {
+    color: #ffcc00;
+    animation: judgmentPop 0.6s ease-out forwards;
+}
+
+.arrow-judgment.miss {
+    color: #ff4444;
+    animation: judgmentPop 0.6s ease-out forwards;
+}
+
+@keyframes judgmentPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    30% { transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -80%) scale(0.9); }
+}
+
+/* ── COMBO COUNTER (centered in arrow area) ── */
+.arrow-combo {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+    text-align: center;
+    pointer-events: none;
+}
+
+.arrow-combo-number {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+    line-height: 1;
+    transition: transform 0.1s ease;
+}
+
+.arrow-combo-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.arrow-combo-number.bump {
+    animation: comboBump 0.15s ease-out;
+}
+
+@keyframes comboBump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* ── RECEPTOR HIT FLASH EFFECT ── */
+.receptor-flash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 50, 150, 0.5);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.receptor-flash.flash {
+    animation: receptorFlash 0.2s ease-out;
+}
+
+@keyframes receptorFlash {
+    0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.8); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+/* ── KEY LABELS below receptors ── */
+.key-labels {
+    position: absolute;
+    bottom: 55px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    z-index: 10;
+}
+
+.key-label {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.3);
+    letter-spacing: 1px;
+    font-family: 'Nunito', monospace;
+}
+
+/* ── ACCURACY BAR for arrow mode (reuse existing) ── */
+.arrow-accuracy-bar {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.arrow-accuracy-bar .accuracy-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.arrow-accuracy-bar .accuracy-fill {
+    height: 100%;
+    width: 100%;
+    background: #44ff44;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.arrow-accuracy-bar .accuracy-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.arrow-accuracy-bar .accuracy-percent {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.arrow-accuracy-bar .combo-display {
+    color: #ffcc00;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+/* Hide taiko bar when in arrow mode */
+.lefwrito.arrow-mode .takio-bar {
+    display: none;
+}
+
+.lefwrito.arrow-mode .accuracy-bar-container {
+    display: none;
+}
