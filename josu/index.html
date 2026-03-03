@@ -1101,6 +1101,7 @@
     let currentMapper = '';
     const GREAT_WINDOW = 50; // ms - perfect timing
     const GAME_START_DELAY = 3000; // 3 second countdown before game starts
+    const TRACK_START_BUFFER = 3000; // 3 second buffer before notes start (gives player time to prepare)
 
     // Audio elements
     let gameAudio = null;
@@ -1206,24 +1207,31 @@
         };
         updateAccuracyUI();
         
-        songNoteData = [...sd];
+        songNoteData = sd.map(note => ({
+            ...note,
+            time: note.time + TRACK_START_BUFFER // Add buffer so notes don't start immediately
+        }));
         gameNotes = [];
         timingLines = [];
         nextNoteIdx = 0;
-        nextTimingLineSec = 0;
+        nextTimingLineSec = Math.floor(TRACK_START_BUFFER / 1000); // Start timing lines after buffer
         noteTrack.innerHTML = '';
         
-        // Setup audio if available
+        // Adjust song duration to account for buffer
+        songDuration = timeStringToMs(sTime) + TRACK_START_BUFFER;
+        
+        // Setup audio if available (audio will be delayed by the buffer)
         currentAudioPath = audioPath;
-        setupAudio(audioPath, audioOffset);
+        const totalAudioOffset = audioOffset + TRACK_START_BUFFER;
+        setupAudio(audioPath, totalAudioOffset);
         
         // Show countdown and start after delay
         startCountdown(() => {
             gameStartTime = performance.now();
             gameRunning = true;
             
-            // Start audio with fade-in (apply audio correction offset)
-            playAudioWithFadeIn(audioOffset);
+            // Start audio with fade-in (apply total offset including buffer)
+            playAudioWithFadeIn(totalAudioOffset);
             
             // Start equalizer animation
             audioEqualizer.classList.add('active');

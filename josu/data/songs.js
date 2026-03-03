@@ -8,6 +8,7 @@ export const songs = [
         time: '00:07',
         image: 'songs/theweeknd/main.png',
         audio: 'songs/theweeknd/audio.mp3',
+        inGameGif: 'songs/theweeknd/gif.gif',
         ranked: true,
         difficulties: [
             { name: "Easy", speed: 1, mapper: "joelM", stars: 0.79,
@@ -32,11 +33,37 @@ export const songs = [
         id: 2,
         title: "iloveyou",
         artist: "wiv.",
-        time: '4:15',
+        time: '2:04',
         image: 'songs/iloveu/main.png',
         ranked: true,
+        audio: 'songs/iloveu/audio.mp3',
+        audioCorrection: 500,
         difficulties: [
-            { name: "Easy", mapper: "joelM", stars: 1.03 },
+            { name: "hard", mapper: "joelM", stars: 2.83, speed: 1, songData: songKeys.iloveu.hard },
+            { name: "harderr", mapper: "joelM", stars: 3.13, speed: 1.8, songData: songKeys.iloveu.hard },
+        ]
+    },
+    {
+        id: 7,
+        title: "dothatshit",
+        artist: "Playboi Carti",
+        time: '3:04',
+        image: 'songs/dothatshit/main.png',
+        audio: 'songs/dothatshit/audio.mp3',
+        ranked: true,
+        difficulties: [
+            { name: "Normal", mapper: "Jordan H.", stars: 2.10 },
+        ]
+    },
+    {
+        id: 67,
+        title: "Flashing Lights",
+        artist: "Kanye West",
+        time: '3:58',
+        image: 'songs/flashing_lights/main.png',
+        ranked: true,
+        difficulties: [
+            { name: "medium", mapper: "joelM", stars: 2.67 },
         ]
     },
     {
