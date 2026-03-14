@@ -52,7 +52,8 @@ export const songs = [
         audio: 'songs/dothatshit/audio.mp3',
         ranked: true,
         difficulties: [
-            { name: "Normal", mapper: "Jordan H.", stars: 2.10, mode: 'updowno' },
+            { name: "Normal", mapper: "Jordan H.", stars: 2.10 },
+            {name: "Hard", mapper: "Jordan H.", stars: 2.50, mode: "updown", speed: 1, songData: songKeys.dothatshit.hard },
         ]
     },
     {

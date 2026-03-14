@@ -638,23 +638,28 @@
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6), 0 2px 12px rgba(255, 255, 255, 0.4);
 }
 
-/* Difficulty indicator dot */
-.song-difficulty-pill::before {
-    content: '';
+/* Mode icon inside difficulty pill */
+.pill-mode-icon {
     position: absolute;
-    left: 10px;
+    left: 6px;
     top: 50%;
     transform: translateY(-50%);
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.35);
-    border: 2px solid rgba(255,255,255,0.55);
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
 }
 
-.song-difficulty-pill.selected::before {
-    background: #fff;
-    border-color: #fff;
+.pill-mode-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.song-difficulty-pill.selected .pill-mode-icon {
+    opacity: 1;
 }
 
 .diff-header {
@@ -1724,6 +1729,8 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
+.hit-stats .stat-box.perfect .stat-label { color: #00eaff; }
+.hit-stats .stat-box.perfect .stat-value { color: #00eaff; }
 .hit-stats .stat-box.great .stat-label { color: #00ccff; }
 .hit-stats .stat-box.great .stat-value { color: #00ccff; }
 .hit-stats .stat-box.ok .stat-label { color: #88ff00; }

@@ -7,6 +7,7 @@
     <title>Josu</title>
     <link rel="stylesheet" href="css/startgame.css">
     <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="css/arrows.css">
     <link rel="stylesheet" href="../css/standard.css">
 </head>
 <body>
@@ -339,6 +340,75 @@
                 </div>
                 <div class="note-track" id="noteTrack"></div>
             </div>
+
+            <!-- Arrow Mode Game Area -->
+            <div class="arrow-game" id="arrowGame">
+                <div class="arrow-lanes" id="arrowLanes">
+                    <!-- 4 lanes: left, down, up, right -->
+                    <div class="arrow-lane" data-dir="left">
+                        <div class="arrow-receptor">
+                            <svg class="receptor-arrow" viewBox="0 0 64 64">
+                                <polygon class="arrow-border" points="4,32 28,6 28,20 60,20 60,44 28,44 28,58"/>
+                                <polygon class="arrow-fill" points="8,32 30,10 30,22 56,22 56,42 30,42 30,54"/>
+                            </svg>
+                            <div class="receptor-flash"></div>
+                        </div>
+                    </div>
+                    <div class="arrow-lane" data-dir="down">
+                        <div class="arrow-receptor">
+                            <svg class="receptor-arrow" viewBox="0 0 64 64">
+                                <polygon class="arrow-border" points="32,60 6,36 20,36 20,4 44,4 44,36 58,36"/>
+                                <polygon class="arrow-fill" points="32,56 10,34 22,34 22,8 42,8 42,34 54,34"/>
+                            </svg>
+                            <div class="receptor-flash"></div>
+                        </div>
+                    </div>
+                    <div class="arrow-lane" data-dir="up">
+                        <div class="arrow-receptor">
+                            <svg class="receptor-arrow" viewBox="0 0 64 64">
+                                <polygon class="arrow-border" points="32,4 58,28 44,28 44,60 20,60 20,28 6,28"/>
+                                <polygon class="arrow-fill" points="32,8 54,30 42,30 42,56 22,56 22,30 10,30"/>
+                            </svg>
+                            <div class="receptor-flash"></div>
+                        </div>
+                    </div>
+                    <div class="arrow-lane" data-dir="right">
+                        <div class="arrow-receptor">
+                            <svg class="receptor-arrow" viewBox="0 0 64 64">
+                                <polygon class="arrow-border" points="60,32 36,6 36,20 4,20 4,44 36,44 36,58"/>
+                                <polygon class="arrow-fill" points="56,32 34,10 34,22 8,22 8,42 34,42 34,54"/>
+                            </svg>
+                            <div class="receptor-flash"></div>
+                        </div>
+                    </div>
+                    <!-- Receptor row positioning -->
+                    <div class="arrow-receptor-row" id="arrowReceptorRow"></div>
+                    <!-- Key labels -->
+                    <div class="key-labels">
+                        <div class="key-label">D</div>
+                        <div class="key-label">F</div>
+                        <div class="key-label">J</div>
+                        <div class="key-label">K</div>
+                    </div>
+                    <!-- Combo display -->
+                    <div class="arrow-combo" id="arrowCombo">
+                        <div class="arrow-combo-number" id="arrowComboNumber">0</div>
+                        <div class="arrow-combo-label">COMBO</div>
+                    </div>
+                    <!-- Judgment display -->
+                    <div id="arrowJudgment"></div>
+                </div>
+                <!-- Accuracy bar for arrow mode -->
+                <div class="arrow-accuracy-bar" id="arrowAccuracyBar">
+                    <div class="accuracy-bar">
+                        <div class="accuracy-fill" id="arrowAccuracyFill"></div>
+                    </div>
+                    <div class="accuracy-info">
+                        <span class="accuracy-percent" id="arrowAccuracyPercent">100%</span>
+                        <span class="combo-display" id="arrowComboDisplay">0x</span>
+                    </div>
+                </div>
+            </div>
             
         </div>
 
@@ -380,6 +450,10 @@
                     </div>
                 </div>
                 <div class="stat-row hit-stats">
+                    <div class="stat-box perfect" id="resultsPerfectBox" style="display:none;">
+                        <span class="stat-label">PERFECT</span>
+                        <span class="stat-value" id="resultsPerfect">0</span>
+                    </div>
                     <div class="stat-box great">
                         <span class="stat-label">GREAT</span>
                         <span class="stat-value" id="resultsGreat">0</span>
@@ -441,16 +515,31 @@
         return html;
     }
 
-    // Generate mode dots HTML showing unique difficulty levels
+    // Generate mode dots HTML showing unique difficulty levels + mode icons
     function generateModeDots(difficulties) {
         const levels = [...new Set(difficulties.map(d => getDiffLevel(d.stars)))].sort((a, b) => a - b);
-        return levels.map(level => `<span class="mode-dot active diff-${level}"></span>`).join('');
+        const hasArrow = difficulties.some(d => d.mode === 'updown');
+        const hasTaiko = difficulties.some(d => !d.mode || d.mode === 'taiko');
+        let icons = '';
+        if (hasTaiko) {
+            icons += `<span class="mode-icon" title="Taiko"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="white"/></svg></span>`;
+        }
+        if (hasArrow) {
+            icons += `<span class="mode-icon" title="Arrow"><svg viewBox="0 0 24 24" fill="white"><polygon points="12,4 4,14 9,14 9,20 15,20 15,14 20,14"/></svg></span>`;
+        }
+        return icons + levels.map(level => `<span class="mode-dot active diff-${level}"></span>`).join('');
     }
 
     // Generate song HTML
     function generateSongHTML(song, isSelected = false) {
-        const difficultiesHTML = song.difficulties.map((diff, idx) => `
-            <div class="song-difficulty-pill diff-${getDiffLevel(diff.stars)}${idx === 0 ? ' selected' : ''}" data-diff-index="${idx}">
+        const difficultiesHTML = song.difficulties.map((diff, idx) => {
+            const mode = diff.mode || 'taiko';
+            const modeIcon = mode === 'updown'
+                ? `<span class="pill-mode-icon arrow-mode-icon" title="Arrow"><svg viewBox="0 0 24 24" fill="white"><polygon points="12,2 18,10 14,10 14,14 18,14 12,22 6,14 10,14 10,10 6,10"/></svg></span>`
+                : `<span class="pill-mode-icon taiko-mode-icon" title="Taiko"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="white"/></svg></span>`;
+            return `
+            <div class="song-difficulty-pill diff-${getDiffLevel(diff.stars)}${idx === 0 ? ' selected' : ''}" data-diff-index="${idx}" data-mode="${mode}">
+                ${modeIcon}
                 <div class="diff-header">
                     <span class="difficulty-name">${diff.name}</span>
                     <span class="difficulty-mapper">mapped by ${diff.mapper}</span>
@@ -461,8 +550,8 @@
                         ${generateStarDots(diff.stars)}
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
 
         return `
             <div class="song-item${isSelected ? ' selected' : ''}" data-song-id="${song.id}">
@@ -1047,8 +1136,9 @@
         loadingBarFill.style.width = '0%';
         isLoading = false;
 
-        // Stop the taiko game
+        // Stop the game (both modes)
         stopTaikoGame();
+        currentGameMode = 'taiko';
     }
 
     pauseContinue.addEventListener('click', resumeGame);
@@ -1149,7 +1239,8 @@
             stars: diff.stars,
             mapper: diff.mapper,
             audio: song.audio || null,
-            audioCorrection: song.audioCorrection || 0
+            audioCorrection: song.audioCorrection || 0,
+            mode: diff.mode || 'taiko'
         };
     }
 
@@ -1161,12 +1252,331 @@
         return (minutes * 60 + seconds) * 1000;
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // ARROW GAME ENGINE
+    // ══════════════════════════════════════════════════════════════
+    let currentGameMode = 'taiko'; // 'taiko' or 'updown'
+    const arrowGame = document.getElementById('arrowGame');
+    const arrowLanes = document.getElementById('arrowLanes');
+    const arrowJudgment = document.getElementById('arrowJudgment');
+    const arrowComboNumber = document.getElementById('arrowComboNumber');
+    const arrowAccuracyFill = document.getElementById('arrowAccuracyFill');
+    const arrowAccuracyPercent = document.getElementById('arrowAccuracyPercent');
+    const arrowComboDisplay = document.getElementById('arrowComboDisplay');
+
+    const ARROW_FALL_TIME = 1500; // ms for arrow to fall from top to receptor
+    const ARROW_HIT_WINDOW = 180; // ms tolerance
+    const ARROW_PERFECT_WINDOW = 35; // ms for PERFECT
+    const ARROW_GREAT_WINDOW = 80; // ms for GREAT
+    // OK is anything within HIT_WINDOW but outside GREAT_WINDOW
+
+    const ARROW_KEY_MAP = {
+        'd': 'left',
+        'f': 'down',
+        'j': 'up',
+        'k': 'right'
+    };
+
+    const ARROW_DIR_INDEX = { 'left': 0, 'down': 1, 'up': 2, 'right': 3 };
+
+    let arrowNotes = [];
+    let arrowSongData = [];
+    let arrowNextIdx = 0;
+    let arrowGameRunning = false;
+    let arrowStartTime = 0;
+    let arrowFallTime = ARROW_FALL_TIME;
+
+    let arrowStats = {
+        perfect: 0,
+        great: 0,
+        ok: 0,
+        miss: 0,
+        combo: 0,
+        maxCombo: 0,
+        score: 0,
+        totalNotes: 0
+    };
+
+    // Get receptor Y position (bottom of receptor row)
+    function getReceptorY() {
+        const lane = arrowLanes.querySelector('.arrow-lane');
+        const receptor = lane.querySelector('.arrow-receptor');
+        const laneRect = arrowLanes.getBoundingClientRect();
+        const recRect = receptor.getBoundingClientRect();
+        return recRect.top + recRect.height / 2 - laneRect.top;
+    }
+
+    function createArrowSVG(dir) {
+        const svgs = {
+            'left': '<svg viewBox="0 0 64 64"><polygon class="arrow-border" points="4,32 28,6 28,20 60,20 60,44 28,44 28,58"/><polygon class="arrow-fill" points="8,32 30,10 30,22 56,22 56,42 30,42 30,54"/></svg>',
+            'down': '<svg viewBox="0 0 64 64"><polygon class="arrow-border" points="32,60 6,36 20,36 20,4 44,4 44,36 58,36"/><polygon class="arrow-fill" points="32,56 10,34 22,34 22,8 42,8 42,34 54,34"/></svg>',
+            'up': '<svg viewBox="0 0 64 64"><polygon class="arrow-border" points="32,4 58,28 44,28 44,60 20,60 20,28 6,28"/><polygon class="arrow-fill" points="32,8 54,30 42,30 42,56 22,56 22,30 10,30"/></svg>',
+            'right': '<svg viewBox="0 0 64 64"><polygon class="arrow-border" points="60,32 36,6 36,20 4,20 4,44 36,44 36,58"/><polygon class="arrow-fill" points="56,32 34,10 34,22 8,22 8,42 34,42 34,54"/></svg>'
+        };
+        return svgs[dir] || svgs['up'];
+    }
+
+    function spawnArrowNote(noteData) {
+        const dir = noteData.key; // 'left', 'down', 'up', 'right'
+        const laneIdx = ARROW_DIR_INDEX[dir];
+        const lane = arrowLanes.querySelectorAll('.arrow-lane')[laneIdx];
+        if (!lane) return null;
+
+        const el = document.createElement('div');
+        el.className = `arrow-note arrow-${dir}`;
+        el.innerHTML = createArrowSVG(dir);
+        lane.appendChild(el);
+        return el;
+    }
+
+    function updateArrowAccuracy() {
+        const totalHits = arrowStats.perfect + arrowStats.great + arrowStats.ok + arrowStats.miss;
+        let accuracy = 100;
+        if (totalHits > 0) {
+            accuracy = ((arrowStats.perfect * 100 + arrowStats.great * 80 + arrowStats.ok * 50) / (totalHits * 100)) * 100;
+        }
+        arrowAccuracyFill.style.width = accuracy + '%';
+        arrowAccuracyPercent.textContent = accuracy.toFixed(1) + '%';
+        arrowComboDisplay.textContent = arrowStats.combo + 'x';
+        arrowComboNumber.textContent = arrowStats.combo;
+
+        // Also update the main accuracy UI so results screen works
+        stats.great = arrowStats.perfect + arrowStats.great;
+        stats.ok = arrowStats.ok;
+        stats.miss = arrowStats.miss;
+        stats.combo = arrowStats.combo;
+        stats.maxCombo = arrowStats.maxCombo;
+        stats.score = arrowStats.score;
+        stats.totalNotes = arrowStats.totalNotes;
+    }
+
+    function showArrowJudgment(type) {
+        arrowJudgment.innerHTML = '';
+        const el = document.createElement('div');
+        el.className = `arrow-judgment ${type}`;
+        el.textContent = type.toUpperCase();
+        arrowJudgment.appendChild(el);
+        setTimeout(() => el.remove(), 600);
+    }
+
+    function arrowTriggerHit(note, timingDiff) {
+        note.state = 'hit';
+        note.element.classList.add('note-hit');
+
+        let type;
+        if (timingDiff <= ARROW_PERFECT_WINDOW) {
+            type = 'perfect';
+            arrowStats.perfect++;
+            arrowStats.score += 500 * (1 + arrowStats.combo * 0.1);
+        } else if (timingDiff <= ARROW_GREAT_WINDOW) {
+            type = 'great';
+            arrowStats.great++;
+            arrowStats.score += 300 * (1 + arrowStats.combo * 0.08);
+        } else {
+            type = 'ok';
+            arrowStats.ok++;
+            arrowStats.score += 100 * (1 + arrowStats.combo * 0.05);
+        }
+        arrowStats.combo++;
+        if (arrowStats.combo > arrowStats.maxCombo) arrowStats.maxCombo = arrowStats.combo;
+        arrowStats.score = Math.floor(arrowStats.score);
+
+        showArrowJudgment(type);
+        updateArrowAccuracy();
+
+        // Combo bump animation
+        arrowComboNumber.classList.remove('bump');
+        void arrowComboNumber.offsetWidth;
+        arrowComboNumber.classList.add('bump');
+
+        // Receptor flash
+        const laneIdx = ARROW_DIR_INDEX[note.dir];
+        const lane = arrowLanes.querySelectorAll('.arrow-lane')[laneIdx];
+        const flash = lane.querySelector('.receptor-flash');
+        flash.classList.remove('flash');
+        void flash.offsetWidth;
+        flash.classList.add('flash');
+
+        setTimeout(() => {
+            note.element.remove();
+            note.state = 'removed';
+        }, 300);
+    }
+
+    function arrowTriggerMiss(note) {
+        note.state = 'miss';
+        note.element.classList.add('note-miss');
+        arrowStats.miss++;
+        arrowStats.combo = 0;
+        showArrowJudgment('miss');
+        updateArrowAccuracy();
+
+        setTimeout(() => {
+            note.element.remove();
+            note.state = 'removed';
+        }, 500);
+    }
+
+    function arrowGameLoop(timestamp) {
+        if (!arrowGameRunning) return;
+        if (isPaused) {
+            requestAnimationFrame(arrowGameLoop);
+            return;
+        }
+
+        const elapsed = timestamp - arrowStartTime;
+        const receptorY = getReceptorY();
+        const lanesHeight = arrowLanes.getBoundingClientRect().height;
+
+        // Spawn notes that should now be visible (spawn above viewport)
+        while (arrowNextIdx < arrowSongData.length) {
+            const nd = arrowSongData[arrowNextIdx];
+            if (nd.time - elapsed <= arrowFallTime) {
+                const el = spawnArrowNote(nd);
+                if (el) {
+                    arrowNotes.push({
+                        dir: nd.key,
+                        time: nd.time,
+                        element: el,
+                        state: 'active'
+                    });
+                }
+                arrowNextIdx++;
+            } else {
+                break;
+            }
+        }
+
+        // Update positions (fall from top to receptor)
+        for (const note of arrowNotes) {
+            if (note.state !== 'active') continue;
+            const timeUntilHit = note.time - elapsed;
+            const progress = timeUntilHit / arrowFallTime; // 1 = top, 0 = at receptor
+            const y = receptorY - (progress * receptorY) - 27; // center the 54px arrow
+            note.element.style.top = y + 'px';
+
+            // Miss if passed receptor by too much
+            if (timeUntilHit < -ARROW_HIT_WINDOW) {
+                arrowTriggerMiss(note);
+            }
+        }
+
+        // Clean up
+        arrowNotes = arrowNotes.filter(n => n.state !== 'removed');
+
+        // Check if song is over
+        const allDone = arrowNextIdx >= arrowSongData.length;
+        const noActive = arrowNotes.every(n => n.state !== 'active');
+        // End 3 seconds after last note or when song duration elapses
+        const lastNoteTime = arrowSongData.length > 0 ? arrowSongData[arrowSongData.length - 1].time : 0;
+        const songOver = elapsed >= Math.min(songDuration + 1000, lastNoteTime + 3000);
+
+        if (allDone && noActive && songOver) {
+            showResults();
+            return;
+        }
+
+        requestAnimationFrame(arrowGameLoop);
+    }
+
+    // Arrow key handler
+    document.addEventListener('keydown', (e) => {
+        if (!arrowGameRunning || isPaused) return;
+        const dir = ARROW_KEY_MAP[e.key.toLowerCase()];
+        if (!dir) return;
+        e.preventDefault();
+
+        // Visual feedback on receptor
+        const laneIdx = ARROW_DIR_INDEX[dir];
+        const lane = arrowLanes.querySelectorAll('.arrow-lane')[laneIdx];
+        const receptor = lane.querySelector('.arrow-receptor');
+        receptor.classList.add('pressed');
+        setTimeout(() => receptor.classList.remove('pressed'), 100);
+
+        const elapsed = performance.now() - arrowStartTime;
+
+        // Find closest matching note
+        let best = null;
+        let bestDiff = Infinity;
+        for (const note of arrowNotes) {
+            if (note.state !== 'active' || note.dir !== dir) continue;
+            const diff = Math.abs(note.time - elapsed);
+            if (diff < bestDiff && diff <= ARROW_HIT_WINDOW) {
+                bestDiff = diff;
+                best = note;
+            }
+        }
+
+        if (best) {
+            arrowTriggerHit(best, bestDiff);
+        }
+    });
+
+    function startArrowGame(sd, spd, sTime, audioPath, audioOffset) {
+        arrowFallTime = ARROW_FALL_TIME / spd;
+        arrowStats = {
+            perfect: 0, great: 0, ok: 0, miss: 0,
+            combo: 0, maxCombo: 0, score: 0,
+            totalNotes: sd.length
+        };
+
+        arrowSongData = sd.map(note => ({
+            ...note,
+            time: note.time + TRACK_START_BUFFER
+        }));
+        arrowNotes = [];
+        arrowNextIdx = 0;
+
+        // Clear lane notes
+        arrowLanes.querySelectorAll('.arrow-note').forEach(n => n.remove());
+
+        // Show arrow game, hide taiko
+        const lefwrito = document.querySelector('.lefwrito');
+        lefwrito.classList.add('arrow-mode');
+        arrowGame.classList.add('active');
+
+        // Reset accuracy display
+        arrowComboNumber.textContent = '0';
+        updateArrowAccuracy();
+
+        // Setup song duration
+        songDuration = timeStringToMs(sTime) + TRACK_START_BUFFER;
+
+        // Setup audio
+        const totalAudioOffset = audioOffset + TRACK_START_BUFFER;
+        currentAudioPath = audioPath;
+        setupAudio(audioPath, totalAudioOffset);
+
+        // Countdown then start
+        startCountdown(() => {
+            arrowStartTime = performance.now();
+            arrowGameRunning = true;
+            gameRunning = true; // For pause detection
+
+            playAudioWithFadeIn(totalAudioOffset);
+            audioEqualizer.classList.add('active');
+
+            requestAnimationFrame(arrowGameLoop);
+        });
+    }
+
+    function stopArrowGame() {
+        arrowGameRunning = false;
+        arrowNotes = [];
+        arrowLanes.querySelectorAll('.arrow-note').forEach(n => n.remove());
+        const lefwrito = document.querySelector('.lefwrito');
+        lefwrito.classList.remove('arrow-mode');
+        arrowGame.classList.remove('active');
+        stopAudio();
+    }
+
     function startTaikoGame(data, speed = 1.0, songTime = '0:30', songInfo = null) {
         let sd = data;
         let spd = speed;
         let sTime = songTime;
         let audioPath = null;
         let audioOffset = 0; // Audio correction in ms (negative = audio starts earlier)
+        let gameMode = 'taiko';
         
         // If no data passed, get from current selection
         if (!sd) {
@@ -1182,6 +1592,7 @@
                 currentMapper = info.mapper;
                 audioPath = info.audio;
                 audioOffset = info.audioCorrection || 0;
+                gameMode = info.mode || 'taiko';
             }
         } else if (songInfo) {
             currentSongTitle = songInfo.title;
@@ -1191,6 +1602,19 @@
             currentMapper = songInfo.mapper;
             audioPath = songInfo.audio;
             audioOffset = songInfo.audioCorrection || 0;
+            gameMode = songInfo.mode || 'taiko';
+        }
+
+        currentGameMode = gameMode;
+
+        // If arrow mode, delegate to arrow game engine
+        if (currentGameMode === 'updown') {
+            if (!sd || sd.length === 0) {
+                console.warn('No song data for arrow mode');
+                return;
+            }
+            startArrowGame(sd, spd, sTime, audioPath, audioOffset);
+            return;
         }
         
         if (!sd || sd.length === 0) {
@@ -1442,9 +1866,13 @@
 
     function stopTaikoGame() {
         gameRunning = false;
+        if (currentGameMode === 'updown') {
+            stopArrowGame();
+        }
         if (noteTrack) noteTrack.innerHTML = '';
         gameNotes = [];
         timingLines = [];
+        arrowGameRunning = false;
         stopAudio();
     }
 
@@ -1483,10 +1911,37 @@
     // Show results screen
     function showResults() {
         gameRunning = false;
+        arrowGameRunning = false;
         stopAudio();
         
-        const totalHits = stats.great + stats.ok + stats.miss;
-        const accuracy = totalHits > 0 ? ((stats.great * 100 + stats.ok * 50) / (totalHits * 100)) * 100 : 0;
+        let totalHits, accuracy;
+        const perfectBox = document.getElementById('resultsPerfectBox');
+        
+        if (currentGameMode === 'updown') {
+            totalHits = arrowStats.perfect + arrowStats.great + arrowStats.ok + arrowStats.miss;
+            accuracy = totalHits > 0 ? ((arrowStats.perfect * 100 + arrowStats.great * 80 + arrowStats.ok * 50) / (totalHits * 100)) * 100 : 0;
+            perfectBox.style.display = '';
+            document.getElementById('resultsPerfect').textContent = arrowStats.perfect;
+            document.getElementById('resultsGreat').textContent = arrowStats.great;
+            document.getElementById('resultsOk').textContent = arrowStats.ok;
+            document.getElementById('resultsMiss').textContent = arrowStats.miss;
+            // Sync stats for record saving
+            stats.great = arrowStats.perfect + arrowStats.great;
+            stats.ok = arrowStats.ok;
+            stats.miss = arrowStats.miss;
+            stats.combo = arrowStats.combo;
+            stats.maxCombo = arrowStats.maxCombo;
+            stats.score = arrowStats.score;
+            stats.totalNotes = arrowStats.totalNotes;
+        } else {
+            totalHits = stats.great + stats.ok + stats.miss;
+            accuracy = totalHits > 0 ? ((stats.great * 100 + stats.ok * 50) / (totalHits * 100)) * 100 : 0;
+            perfectBox.style.display = 'none';
+            document.getElementById('resultsGreat').textContent = stats.great;
+            document.getElementById('resultsOk').textContent = stats.ok;
+            document.getElementById('resultsMiss').textContent = stats.miss;
+        }
+        
         const grade = calculateGrade(accuracy);
         
         // Update results UI
@@ -1498,10 +1953,7 @@
         document.getElementById('resultsMapper').textContent = 'mapped by ' + currentMapper;
         document.getElementById('resultsAccuracy').textContent = accuracy.toFixed(2) + '%';
         document.getElementById('resultsMaxCombo').innerHTML = stats.maxCombo + '<span class="stat-sub">/' + stats.totalNotes + '</span>';
-        document.getElementById('resultsPP').textContent = Math.floor(accuracy * 2); // Simple PP calculation
-        document.getElementById('resultsGreat').textContent = stats.great;
-        document.getElementById('resultsOk').textContent = stats.ok;
-        document.getElementById('resultsMiss').textContent = stats.miss;
+        document.getElementById('resultsPP').textContent = Math.floor(accuracy * 2);
         
         // Update grade display
         const gradeLetter = document.getElementById('gradeLetter');
@@ -1771,7 +2223,7 @@
 
     // Key press handler for taiko hits
     document.addEventListener('keydown', (e) => {
-        if (!gameRunning || isPaused) return;
+        if (!gameRunning || isPaused || currentGameMode === 'updown') return;
         if (e.key !== 'd' && e.key !== 'f') return;
         e.preventDefault();
 
