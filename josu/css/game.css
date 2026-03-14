@@ -417,7 +417,7 @@
   flex-direction: column;
   margin-left: auto;
   margin-bottom: 6px;
-  transition: width 0.15s ease-out;
+  transition: width 0.45s var(--smooth-dept);
   transform-origin: right center;
   position: relative;
 }
@@ -547,8 +547,16 @@
   text-transform: uppercase;
 }
 
+.song-ranked-badge.local-badge {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
 .song-item.selected .song-ranked-badge {
   background: linear-gradient(135deg, #5cb85c, #3d8b3d);
+}
+
+.song-item.selected .song-ranked-badge.local-badge {
+  background: linear-gradient(135deg, #8e44ad, #7d3c98);
 }
 
 .mode-dots {
@@ -598,33 +606,46 @@
     position: relative;
     cursor: pointer;
     overflow: hidden;
-    transition: transform 0.1s ease, background 0.15s ease;
+    transition: all 0.2s var(--smooth-dept);
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
+
 /* Difficulty level colors (osu-inspired) */
 .song-difficulty-pill.diff-1 {
-    background: linear-gradient(135deg, #2a6090 0%, #1a4570 100%);
+    background:
+        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.05) 19px, transparent 20px),
+        linear-gradient(135deg, #2a6090 0%, #1a4570 100%);
 }
 
 .song-difficulty-pill.diff-2 {
-    background: linear-gradient(135deg, #4a7030 0%, #3a5520 100%);
+    background:
+        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.05) 19px, transparent 20px),
+        linear-gradient(135deg, #4a7030 0%, #3a5520 100%);
 }
 
 .song-difficulty-pill.diff-3 {
-    background: linear-gradient(135deg, #907820 0%, #705810 100%);
+    background:
+        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.05) 19px, transparent 20px),
+        linear-gradient(135deg, #907820 0%, #705810 100%);
 }
 
 .song-difficulty-pill.diff-4 {
-    background: linear-gradient(135deg, #903050 0%, #701838 100%);
+    background:
+        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.05) 19px, transparent 20px),
+        linear-gradient(135deg, #903050 0%, #701838 100%);
 }
 
 .song-difficulty-pill.diff-5 {
-    background: linear-gradient(135deg, #6030a0 0%, #401880 100%);
+    background:
+        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.05) 19px, transparent 20px),
+        linear-gradient(135deg, #6030a0 0%, #401880 100%);
 }
 
 .song-difficulty-pill.diff-6 {
-    background: linear-gradient(135deg, #4030a0 0%, #301880 100%);
+    background:
+        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.05) 19px, transparent 20px),
+        linear-gradient(135deg, #4030a0 0%, #301880 100%);
 }
 
 .song-difficulty-pill:hover {
@@ -779,6 +800,42 @@
 
 .records-panel {
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SONG SELECT BACK BUTTON
+   ══════════════════════════════════════════════════════════════ */
+.song-select-back-btn {
+    position: absolute;
+    bottom: 32px;
+    left: 36px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: #ff2da0;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(255, 45, 160, 0.45);
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.45s ease;
+    letter-spacing: 0.02em;
+}
+
+.song-select-back-btn:hover {
+    background: #ff56b1;
+    transform: scale(1.05);
+}
+
+.song-select-back-btn.fade-left {
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Background blur during loading */

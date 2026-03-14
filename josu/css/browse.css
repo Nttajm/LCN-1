@@ -1,0 +1,635 @@
+/* browse.css - osu! beatmap listing style */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #1a1a2e;
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════════════
+   BACKGROUND
+   ══════════════════════════════════════════════════ */
+.browse-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.25);
+  transform: scale(1.15);
+  transition: background-image 0.6s ease;
+}
+
+.browse-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(26,26,46,0.7) 0%, rgba(26,26,46,0.95) 100%);
+}
+
+/* ══════════════════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════════════════ */
+.browse-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(180deg, rgba(20, 20, 40, 0.98) 0%, rgba(20, 20, 40, 0.92) 100%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 0 32px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0 12px;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.header-logo svg {
+  width: 28px;
+  height: 28px;
+}
+
+.header-logo span {
+  opacity: 0.9;
+}
+
+/* Back button */
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.back-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Search bar */
+.search-bar {
+  flex: 1;
+  position: relative;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px 48px 10px 18px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  font-size: 15px;
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.search-bar input::placeholder {
+  color: rgba(255,255,255,0.35);
+}
+
+.search-bar input:focus {
+  border-color: rgba(100,200,255,0.4);
+  background: rgba(0,0,0,0.45);
+}
+
+.search-bar .search-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.4);
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════
+   FILTER BAR
+   ══════════════════════════════════════════════════ */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 10px 0 14px;
+  font-size: 13px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  color: rgba(255,255,255,0.45);
+  font-weight: 700;
+  min-width: 80px;
+  text-align: right;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.filter-option {
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: rgba(255,255,255,0.55);
+  font-weight: 600;
+  font-size: 12.5px;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.filter-option:hover {
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.06);
+}
+
+.filter-option.active {
+  color: #fff;
+  background: rgba(100,200,255,0.18);
+}
+
+.filter-option.highlight {
+  color: #ffcc22;
+  font-weight: 800;
+}
+
+/* ══════════════════════════════════════════════════
+   SORT BAR
+   ══════════════════════════════════════════════════ */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 32px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+}
+
+.sort-option {
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+  user-select: none;
+}
+
+.sort-option:hover {
+  color: rgba(255,255,255,0.8);
+}
+
+.sort-option.active {
+  color: #fff;
+}
+
+.sort-option.active::after {
+  content: ' ▾';
+  font-size: 10px;
+}
+
+.sort-spacer {
+  flex: 1;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.view-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.view-btn:hover, .view-btn.active {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+/* ══════════════════════════════════════════════════
+   SONG GRID
+   ══════════════════════════════════════════════════ */
+.songs-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 16px 32px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ══════════════════════════════════════════════════
+   SONG CARD
+   ══════════════════════════════════════════════════ */
+.song-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(30, 30, 50, 0.7);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  min-height: 100px;
+}
+
+.song-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* Card background image (faded cover) */
+.song-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.35;
+  transition: opacity 0.2s;
+}
+
+.song-card:hover .song-card-bg {
+  opacity: 0.5;
+}
+
+.song-card-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(20,20,40,0.3) 0%, rgba(20,20,40,0.75) 50%, rgba(20,20,40,0.9) 100%);
+}
+
+/* Square cover thumbnail on left */
+.song-card-cover {
+  width: 100px;
+  height: 100px;
+  min-width: 100px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.song-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Card text content */
+.song-card-info {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 2px;
+}
+
+.song-card-title {
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+.song-card-artist {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-card-mapper {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Featured Artist badge */
+.badge-featured {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(60, 180, 220, 0.22);
+  color: #5ec8e8;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Bottom row: badges + difficulty dots */
+.song-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* Ranked / Loved badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-ranked {
+  background: rgba(100, 200, 100, 0.2);
+  color: #78e078;
+}
+
+.badge-loved {
+  background: rgba(255, 102, 170, 0.2);
+  color: #ff6aaa;
+}
+
+.badge-unranked {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.45);
+}
+
+/* Mode icon (taiko drum, arrow) */
+.mode-icon {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* Difficulty dots */
+.diff-dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.diff-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Difficulty colors matching osu! style */
+.diff-dot.diff-1 { background: #88b300; }  /* Easy - green */
+.diff-dot.diff-2 { background: #66ccff; }  /* Normal - blue */
+.diff-dot.diff-3 { background: #ffcc22; }  /* Hard - yellow */
+.diff-dot.diff-4 { background: #ff6688; }  /* Insane - pink */
+.diff-dot.diff-5 { background: #cc33ff; }  /* Expert - purple */
+.diff-dot.diff-6 { background: #444444; border: 1.5px solid #888; }  /* Expert+ - dark */
+
+/* ══════════════════════════════════════════════════
+   HOVER ACTIONS (download + like)
+   ══════════════════════════════════════════════════ */
+.song-card-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  z-index: 5;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.song-card:hover .song-card-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+  backdrop-filter: blur(4px);
+}
+
+.action-btn:hover {
+  background: rgba(100,200,255,0.3);
+  color: #fff;
+  transform: scale(1.12);
+}
+
+.action-btn.liked {
+  color: #ff6aaa;
+}
+
+.action-btn.liked:hover {
+  background: rgba(255,102,170,0.3);
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ══════════════════════════════════════════════════
+   LIBRARY STATE
+   ══════════════════════════════════════════════════ */
+.song-card.in-library {
+  border: 2px solid #4cde6f;
+  box-shadow: 0 0 12px rgba(76, 222, 111, 0.25);
+}
+
+.remove-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(220, 50, 50, 0.85);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.18s, transform 0.18s, background 0.15s;
+  backdrop-filter: blur(4px);
+}
+
+.song-card.in-library:hover .remove-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.remove-btn:hover {
+  background: rgba(220, 50, 50, 1);
+  transform: scale(1.12) !important;
+}
+
+.remove-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Download button active state */
+.action-btn.downloaded {
+  color: #4cde6f;
+}
+
+.action-btn.downloaded:hover {
+  background: rgba(76, 222, 111, 0.25);
+}
+
+/* ══════════════════════════════════════════════════
+   MATCH COUNT
+   ══════════════════════════════════════════════════ */
+.match-info {
+  text-align: center;
+  padding: 12px;
+  color: rgba(255,255,255,0.35);
+  font-size: 13px;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .songs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .songs-grid {
+    grid-template-columns: 1fr;
+    padding: 12px 16px 40px;
+  }
+
+  .browse-header {
+    padding: 0 16px;
+  }
+
+  .sort-bar {
+    padding: 10px 16px;
+  }
+
+  .filter-bar {
+    display: none; /* collapse on mobile */
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   SCROLLBAR
+   ══════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* No results */
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255,255,255,0.3);
+  font-size: 16px;
+  font-weight: 700;
+}

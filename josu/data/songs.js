@@ -1,6 +1,6 @@
 import { songKeys } from './keys.js';
 
-export const songs = [
+ const songsI = [
     {
         id: 1,
         title: "Blinding Lights",
@@ -50,9 +50,10 @@ export const songs = [
         time: '3:04',
         image: 'songs/dothatshit/main.png',
         audio: 'songs/dothatshit/audio.mp3',
+        inGameGif: 'songs/dothatshit/gif.gif',
         ranked: true,
         difficulties: [
-            { name: "Normal", mapper: "Jordan H.", stars: 2.10 },
+            { name: "Normal", mapper: "Jordan H.", stars: 2.10, mode: "taiko" },
             {name: "Hard", mapper: "Jordan H.", stars: 2.50, mode: "updown", speed: 1, songData: songKeys.dothatshit.hard },
         ]
     },
@@ -113,4 +114,66 @@ export const songs = [
             { name: "Hard", mapper: "joelM", stars: 3.50 },
         ]
     }
-]
+];
+
+// ══════════════════════════════════════════════════════════════
+// STORAGE KEYS
+// ══════════════════════════════════════════════════════════════
+const PUBLISHED_SONGS_KEY = 'josu_published_songs';  // Public database (visible in browse)
+const LOCAL_SONGS_KEY = 'josu_local_songs';          // User's personal library
+
+// ══════════════════════════════════════════════════════════════
+// PUBLISHED SONGS (for browse page - simulated public database)
+// ══════════════════════════════════════════════════════════════
+function getPublishedSongs() {
+    try {
+        const saved = localStorage.getItem(PUBLISHED_SONGS_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (e) {
+        console.error('Error loading published songs:', e);
+    }
+    return [];
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOCAL LIBRARY (user's personal game library)
+// ══════════════════════════════════════════════════════════════
+function getLocalSongs() {
+    try {
+        const saved = localStorage.getItem(LOCAL_SONGS_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (e) {
+        console.error('Error loading local songs:', e);
+    }
+    return [];
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORTS
+// ══════════════════════════════════════════════════════════════
+
+// songs: Published songs only (for browse page)
+export const songs = getPublishedSongs();
+
+// builtInSongs: Hardcoded official songs (for reference/fallback)
+export const builtInSongs = songsI;
+
+// localLibrary: User's personal library (uploaded to game)
+export const localLibrary = getLocalSongs();
+
+// allPlayableSongs: Everything the user can actually play
+// (built-in + local library + published by them)
+export function getAllPlayableSongs() {
+    const published = getPublishedSongs();
+    const local = getLocalSongs();
+    
+    // Combine: built-in songs + local library (avoiding duplicates)
+    const localIds = new Set(local.map(s => s.id));
+    const publishedIds = new Set(published.map(s => s.id));
+    
+    return [
+        ...songsI,
+        ...local.filter(s => !publishedIds.has(s.id)),  // Local not already published
+        ...published.filter(s => !localIds.has(s.id))   // Published not already local
+    ];
+}

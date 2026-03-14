@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song – Josu</title>
+    <link rel="stylesheet" href="../css/standard.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <h1>Josu <span>Beat Map Studio</span></h1>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="dashboard.html">Dashboard</a>
+        <span class="sep">›</span>
+        <span class="current" id="breadcrumbSongName">Song</span>
+    </div>
+
+    <!-- Page -->
+    <div class="page">
+
+        <!-- Song Header -->
+        <div class="song-header">
+            <div class="song-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13"/>
+                    <circle cx="6" cy="18" r="3"/>
+                    <circle cx="18" cy="16" r="3"/>
+                </svg>
+            </div>
+            <div class="song-info">
+                <h2 id="songTitle">Song Title</h2>
+                <div class="artist" id="songArtist">Artist</div>
+                <div class="meta" id="songMeta"></div>
+            </div>
+            <div class="song-actions">
+                <button class="btn sm" id="uploadLibraryBtn" style="background: #9b59b6;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload to Library
+                </button>
+                <button class="btn sm primary" id="publishBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                    Publish to Browse
+                </button>
+                <button class="btn sm" id="editSongBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                    Edit
+                </button>
+                <button class="btn sm danger" id="deleteSongBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Delete
+                </button>
+            </div>
+        </div>
+
+        <!-- Difficulties -->
+        <div class="diff-list-header">
+            <h3>Difficulties</h3>
+        </div>
+
+        <div class="cards" id="diffsGrid">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
+    <!-- New Difficulty Modal -->
+    <div class="modal-overlay" id="newDiffModal">
+        <div class="modal">
+            <h2>Create New Difficulty</h2>
+            <div class="form-group">
+                <label for="newDiffName">Difficulty Name *</label>
+                <input type="text" id="newDiffName" placeholder="e.g. Easy, Hard, Expert">
+            </div>
+            <div class="form-group">
+                <label for="newDiffMode">Mode</label>
+                <select id="newDiffMode">
+                    <option value="taiko">Taiko (D/F keys)</option>
+                    <option value="arrow">Arrow (D/F/J/K keys)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="newDiffBpm">BPM</label>
+                <input type="number" id="newDiffBpm" value="120" min="60" max="300">
+            </div>
+            <div class="form-group">
+                <label for="newDiffStars">Stars (Difficulty Rating)</label>
+                <input type="number" id="newDiffStars" value="1.0" min="0" max="10" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="newDiffSpeed">Speed Multiplier</label>
+                <input type="number" id="newDiffSpeed" value="1.0" min="0.1" max="3.0" step="0.1">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelDiffBtn">Cancel</button>
+                <button class="btn primary" id="createDiffBtn">Create & Open Editor</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Difficulty Modal -->
+    <div class="modal-overlay" id="editDiffModal">
+        <div class="modal">
+            <h2>Edit Difficulty</h2>
+            <div class="form-group">
+                <label for="editDiffName">Difficulty Name *</label>
+                <input type="text" id="editDiffName" placeholder="e.g. Easy, Hard, Expert">
+            </div>
+            <div class="form-group">
+                <label for="editDiffMode">Mode</label>
+                <select id="editDiffMode">
+                    <option value="taiko">Taiko (D/F keys)</option>
+                    <option value="arrow">Arrow (D/F/J/K keys)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editDiffBpm">BPM</label>
+                <input type="number" id="editDiffBpm" min="60" max="300">
+            </div>
+            <div class="form-group">
+                <label for="editDiffStars">Stars (Difficulty Rating)</label>
+                <input type="number" id="editDiffStars" min="0" max="10" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="editDiffSpeed">Speed Multiplier</label>
+                <input type="number" id="editDiffSpeed" min="0.1" max="3.0" step="0.1">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelEditDiffBtn">Cancel</button>
+                <button class="btn primary" id="saveDiffBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Song Modal -->
+    <div class="modal-overlay" id="editSongModal">
+        <div class="modal">
+            <h2>Edit Song</h2>
+            <div class="form-group">
+                <label for="editSongTitle">Song Title *</label>
+                <input type="text" id="editSongTitle" placeholder="e.g. Blinding Lights">
+            </div>
+            <div class="form-group">
+                <label for="editSongArtist">Artist</label>
+                <input type="text" id="editSongArtist" placeholder="e.g. The Weeknd">
+            </div>
+            <div class="form-group">
+                <label for="editSongImage">Cover Image URL</label>
+                <input type="text" id="editSongImage" placeholder="https://example.com/cover.jpg">
+            </div>
+            <div class="form-group">
+                <label for="editSongGif">In-Game GIF URL</label>
+                <input type="text" id="editSongGif" placeholder="https://example.com/ingame.gif">
+            </div>
+            <div class="form-group">
+                <label for="editSongAudio">Audio File Path</label>
+                <input type="text" id="editSongAudio" placeholder="e.g. songs/nevada/audio.mp3">
+            </div>
+            <div class="form-group">
+                <label for="editSongAudioCorrection">Audio Correction (ms)</label>
+                <input type="number" id="editSongAudioCorrection" placeholder="0" value="0">
+                <small>Positive values delay audio, negative values advance it</small>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelEditSongBtn">Cancel</button>
+                <button class="btn primary" id="saveSongBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/store.js"></script>
+    <script src="js/song.js"></script>
+</body>
+</html>
