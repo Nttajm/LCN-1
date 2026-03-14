@@ -614,6 +614,40 @@
             display: none;
         }
 
+        /* Start Button */
+        .start-prompt-btn {
+            background: linear-gradient(135deg, #e94560, #c73652);
+            border: none;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 0 16px rgba(233, 69, 96, 0.4);
+        }
+
+        .start-prompt-btn:hover {
+            background: linear-gradient(135deg, #ff6b6b, #e94560);
+            box-shadow: 0 0 24px rgba(233, 69, 96, 0.7);
+            transform: scale(1.04);
+        }
+
+        .start-prompt-btn.waiting {
+            animation: startPulse 0.8s infinite;
+            background: linear-gradient(135deg, #ffb347, #e94560);
+        }
+
+        @keyframes startPulse {
+            0%, 100% { box-shadow: 0 0 16px rgba(233, 69, 96, 0.5); }
+            50% { box-shadow: 0 0 36px rgba(255, 180, 70, 0.9); transform: scale(1.06); }
+        }
+
         /* Volume Control */
         .volume-control {
             display: flex;
@@ -720,7 +754,7 @@
             </div>
             <div class="info-item">
                 <label class="info-label">Duration (mm:ss)</label>
-                <input type="text" id="durationInput" placeholder="1:00" value="1:00" style="width: 80px; background: #16213e; border: 1px solid #0f3460; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 14px;">
+                <input type="text" id="durationInput" placeholder="3:00" value="3:00" style="width: 80px; background: #16213e; border: 1px solid #0f3460; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 14px;">
             </div>
         </div>
 
@@ -813,6 +847,10 @@
 
         <!-- Bottom Bar -->
         <div class="bottom-bar">
+            <button class="start-prompt-btn" id="startPromptBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Click D or F to Start
+            </button>
             <div class="key-hints">
                 <div class="key-hint"><kbd>Space</kbd> Play/Pause</div>
                 <div class="key-hint"><kbd>D</kbd> Place Red Note</div>
@@ -881,6 +919,7 @@
             selectedNotes: new Set(),   // Set of selected note indices
             isPlaying: false,
             isRecording: false,
+            waitingForStart: false,     // Waiting for D/F to begin playback+record
             currentTime: 0,             // Current playback time in ms
             duration: 0,                // Total duration in ms
             zoom: 50,                   // Pixels per second
@@ -946,6 +985,9 @@
             copyCodeBtn: document.getElementById('copyCodeBtn'),
             doImportBtn: document.getElementById('doImportBtn'),
             
+            // Start Prompt
+            startPromptBtn: document.getElementById('startPromptBtn'),
+            
             // Context Menu
             contextMenu: document.getElementById('contextMenu'),
             contextDelete: document.getElementById('contextDelete'),
@@ -986,7 +1028,7 @@
 
         function timeStringToMs(timeStr) {
             const parts = timeStr.split(':');
-            if (parts.length !== 2) return 60000; // Default 1 minute
+            if (parts.length !== 2) return (60000 * 3); // Default 3 minutes
             const minutes = parseInt(parts[0]) || 0;
             const seconds = parseInt(parts[1]) || 0;
             return (minutes * 60 + seconds) * 1000;
@@ -1480,6 +1522,16 @@
         // Clear button
         elements.clearBtn.addEventListener('click', clearAllNotes);
 
+        // Start Prompt button
+        elements.startPromptBtn.addEventListener('click', () => {
+            state.waitingForStart = !state.waitingForStart;
+            elements.startPromptBtn.classList.toggle('waiting', state.waitingForStart);
+            elements.startPromptBtn.innerHTML = state.waitingForStart
+                ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg> Waiting... Press D or F'
+                : '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Click D or F to Start';
+            updateStatus(state.waitingForStart ? 'Press D or F to begin playback & recording' : 'Ready');
+        });
+
         // Keyboard events
         document.addEventListener('keydown', (e) => {
             // Ignore if typing in input
@@ -1493,13 +1545,30 @@
                     break;
                     
                 case 'd':
-                case 'f':
+                case 'f': {
+                    // If waiting for D/F to start, kick off playback + recording
+                    if (state.waitingForStart) {
+                        state.waitingForStart = false;
+                        elements.startPromptBtn.classList.remove('waiting');
+                        elements.startPromptBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Click D or F to Start';
+                        // Start recording
+                        state.isRecording = true;
+                        elements.recordBtn.classList.add('recording');
+                        elements.recordingIndicator.classList.add('active');
+                        // Start playback
+                        play();
+                        // Place the triggering note
+                        addNote(e.key.toLowerCase(), state.currentTime);
+                        updateStatus('Recording started');
+                        break;
+                    }
                     // Place note at current playhead position
                     // Works in record mode OR anytime (for manual placement)
                     if (state.isRecording || !state.isPlaying) {
                         addNote(e.key.toLowerCase(), state.currentTime);
                     }
                     break;
+                }
                     
                 case 'r':
                     elements.recordBtn.click();

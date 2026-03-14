@@ -1995,3 +1995,32 @@
 .eq-bar:nth-child(4n) {
   width: 8px;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   SONG PROGRESS BAR
+   ══════════════════════════════════════════════════════════════ */
+.song-progress-bar-wrap {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  z-index: 20;
+}
+
+.song-progress-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.song-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 12px rgba(255, 255, 255, 0.5);
+  transition: width 0.25s linear;
+}

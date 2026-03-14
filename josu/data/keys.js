@@ -1,4 +1,5 @@
 export const songKeys = {
+    
     blindingLights: {
         easy:// Untitled - Unknown [Normal]
 // Total notes: 72

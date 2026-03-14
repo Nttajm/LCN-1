@@ -315,6 +315,13 @@
                     <span class="combo-display" id="comboDisplay">0x</span>
                 </div>
             </div>
+            <!-- Song Progress Bar -->
+            <div class="song-progress-bar-wrap" id="songProgressWrap">
+                <div class="song-progress-track">
+                    <div class="song-progress-fill" id="songProgressFill"></div>
+                </div>
+            </div>
+
             <div class="takio-bar">
                 <div class="drums">
                     <div class="drum ldrum" id="key-d">
@@ -1611,6 +1618,8 @@
         return el;
     }
 
+    const songProgressFill = document.getElementById('songProgressFill');
+
     function taikoGameLoop(timestamp) {
         if (!gameRunning) return;
         if (isPaused) {
@@ -1619,6 +1628,12 @@
         }
 
         const elapsed = timestamp - gameStartTime;
+
+        // Update progress bar
+        if (songDuration > 0) {
+            const pct = Math.min(100, (elapsed / songDuration) * 100);
+            songProgressFill.style.width = pct + '%';
+        }
         const hitX = getHitZoneX();
         const barWidth = takioBarEl.getBoundingClientRect().width;
         const travelDistance = barWidth - hitX;
