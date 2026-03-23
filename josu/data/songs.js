@@ -120,7 +120,8 @@ import { songKeys } from './keys.js';
 // STORAGE KEYS
 // ══════════════════════════════════════════════════════════════
 const PUBLISHED_SONGS_KEY = 'josu_published_songs';  // Public database (visible in browse)
-const LOCAL_SONGS_KEY = 'josu_local_songs';          // User's personal library
+const LOCAL_SONGS_KEY = 'josu_local_songs';          // User's personal unpublished songs
+const DOWNLOADED_KEY = 'josu_downloaded_songs';      // IDs of songs downloaded from browse
 
 // ══════════════════════════════════════════════════════════════
 // PUBLISHED SONGS (for browse page - simulated public database)
@@ -136,7 +137,7 @@ function getPublishedSongs() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// LOCAL LIBRARY (user's personal game library)
+// LOCAL LIBRARY (user's personal unpublished songs)
 // ══════════════════════════════════════════════════════════════
 function getLocalSongs() {
     try {
@@ -149,6 +150,42 @@ function getLocalSongs() {
 }
 
 // ══════════════════════════════════════════════════════════════
+// DOWNLOADED SONGS (IDs referencing the published database)
+// ══════════════════════════════════════════════════════════════
+function getDownloadedSongIds() {
+    try {
+        const saved = localStorage.getItem(DOWNLOADED_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (e) {
+        console.error('Error loading downloaded song IDs:', e);
+    }
+    return [];
+}
+
+// Resolve downloaded IDs to actual song objects from Firebase
+async function getDownloadedSongs() {
+    const ids = getDownloadedSongIds();
+    if (ids.length === 0) return [];
+
+    // Try fetching from Firebase first
+    if (typeof JosuFirebase !== 'undefined') {
+        try {
+            const results = await Promise.all(
+                ids.map(id => JosuFirebase.getPublishedSongById(String(id)))
+            );
+            const songs = results.filter(Boolean);
+            if (songs.length > 0) return songs;
+        } catch (e) {
+            console.warn('Failed to load downloaded songs from Firebase:', e.message);
+        }
+    }
+
+    // Fallback to localStorage published songs
+    const published = getPublishedSongs();
+    return ids.map(id => published.find(s => (s.id || s.storeId) === id)).filter(Boolean);
+}
+
+// ══════════════════════════════════════════════════════════════
 // EXPORTS
 // ══════════════════════════════════════════════════════════════
 
@@ -158,22 +195,47 @@ export const songs = getPublishedSongs();
 // builtInSongs: Hardcoded official songs (for reference/fallback)
 export const builtInSongs = songsI;
 
-// localLibrary: User's personal library (uploaded to game)
+// localLibrary: User's personal unpublished library
 export const localLibrary = getLocalSongs();
 
 // allPlayableSongs: Everything the user can actually play
-// (built-in + local library + published by them)
-export function getAllPlayableSongs() {
-    const published = getPublishedSongs();
+// (built-in + local unpublished + downloaded from browse)
+export async function getAllPlayableSongs() {
     const local = getLocalSongs();
+    const downloaded = await getDownloadedSongs();
     
-    // Combine: built-in songs + local library (avoiding duplicates)
-    const localIds = new Set(local.map(s => s.id));
-    const publishedIds = new Set(published.map(s => s.id));
+    // Track IDs to avoid duplicates (use id or storeId)
+    const seen = new Set();
+    const result = [];
     
-    return [
-        ...songsI,
-        ...local.filter(s => !publishedIds.has(s.id)),  // Local not already published
-        ...published.filter(s => !localIds.has(s.id))   // Published not already local
-    ];
+    function songKey(song) { return String(song.id || song.storeId); }
+    
+    // Add built-in songs first
+    for (const song of songsI) {
+        const key = songKey(song);
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(song);
+        }
+    }
+    
+    // Add local unpublished songs
+    for (const song of local) {
+        const key = songKey(song);
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(song);
+        }
+    }
+    
+    // Add downloaded songs from browse
+    for (const song of downloaded) {
+        const key = songKey(song);
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(song);
+        }
+    }
+    
+    return result;
 }

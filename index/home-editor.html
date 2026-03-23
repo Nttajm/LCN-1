@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Layout — LCN</title>
+    <link rel="stylesheet" href="../css/home-editor.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <header class="he-header">
+        <div class="he-header-inner">
+            <a href="../index.html" class="he-back">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </a>
+            <span class="he-header-title">Home Layout</span>
+            <div class="he-header-actions">
+                <span class="he-save-status" id="he-save-status"></span>
+                <button class="he-btn he-btn--publish" id="he-publish">Publish Layout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="he-canvas">
+        <section class="he-section">
+            <div class="he-section-label">Featured</div>
+            <div class="he-featured-row">
+                <div class="he-slot he-slot--featured" data-slot="featured-0">
+                    <div class="he-slot-empty">
+                        <span class="he-slot-plus">+</span>
+                        <span class="he-slot-hint">Main Featured</span>
+                    </div>
+                </div>
+                <div class="he-side-col" id="he-side-slots">
+                    <div class="he-slot he-slot--side" data-slot="side-0">
+                        <div class="he-slot-empty">
+                            <span class="he-slot-plus">+</span>
+                            <span class="he-slot-hint">Side 1</span>
+                        </div>
+                    </div>
+                    <div class="he-slot he-slot--side" data-slot="side-1">
+                        <div class="he-slot-empty">
+                            <span class="he-slot-plus">+</span>
+                            <span class="he-slot-hint">Side 2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="he-section">
+            <div class="he-section-label">Recents</div>
+            <div class="he-recents-grid" id="he-recents-slots">
+                <div class="he-slot he-slot--recent" data-slot="recent-0">
+                    <div class="he-slot-empty">
+                        <span class="he-slot-plus">+</span>
+                        <span class="he-slot-hint">Recent 1</span>
+                    </div>
+                </div>
+                <div class="he-slot he-slot--recent" data-slot="recent-1">
+                    <div class="he-slot-empty">
+                        <span class="he-slot-plus">+</span>
+                        <span class="he-slot-hint">Recent 2</span>
+                    </div>
+                </div>
+                <div class="he-slot he-slot--recent" data-slot="recent-2">
+                    <div class="he-slot-empty">
+                        <span class="he-slot-plus">+</span>
+                        <span class="he-slot-hint">Recent 3</span>
+                    </div>
+                </div>
+                <div class="he-slot he-slot--recent" data-slot="recent-3">
+                    <div class="he-slot-empty">
+                        <span class="he-slot-plus">+</span>
+                        <span class="he-slot-hint">Recent 4</span>
+                    </div>
+                </div>
+                <div class="he-slot he-slot--recent" data-slot="recent-4">
+                    <div class="he-slot-empty">
+                        <span class="he-slot-plus">+</span>
+                        <span class="he-slot-hint">Recent 5</span>
+                    </div>
+                </div>
+                <div class="he-slot he-slot--recent" data-slot="recent-5">
+                    <div class="he-slot-empty">
+                        <span class="he-slot-plus">+</span>
+                        <span class="he-slot-hint">Recent 6</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="he-picker-overlay" id="he-picker-overlay">
+        <div class="he-picker">
+            <div class="he-picker-head">
+                <span class="he-picker-title">Choose Document</span>
+                <button class="he-picker-close" id="he-picker-close">&times;</button>
+            </div>
+            <div class="he-picker-filters">
+                <input type="text" class="he-picker-search" id="he-picker-search" placeholder="Search docs...">
+                <select class="he-picker-cat" id="he-picker-cat">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="he-picker-list" id="he-picker-list"></div>
+            <div class="he-picker-foot">
+                <button class="he-btn" id="he-picker-clear">Clear Slot</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="he-toast" id="he-toast"></div>
+
+    <script src="../js/home-editor.js"></script>
+</body>
+</html>

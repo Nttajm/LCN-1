@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects — LCN</title>
+  <link rel="stylesheet" href="../css/standard.css">
+  <link rel="stylesheet" href="../css/home_2026/home.css">
+  <link rel="stylesheet" href="../css/home_2026/doc.css">
+  <link rel="stylesheet" href="../css/home_2026/projects.css">
+</head>
+<body>
+  <script src="../js/nav.js" data-root="../"></script>
+
+  <div class="pg-hero">
+    <img class="pg-hero-img" src="../a_home_assets/gradients/g_1.jpg" alt="">
+    <div class="pg-hero-overlay"></div>
+    <div class="pg-hero-inner">
+      <h1 class="pg-hero-title">Projects</h1>
+      <div class="pg-filter-row">
+        <div class="pg-tabs" id="proj-tabs"></div>
+        <div class="pg-view-toggle">
+          <button class="pg-view-btn active" data-view="list" aria-label="List view">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <button class="pg-view-btn" data-view="card" aria-label="Card view">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pg-body">
+    <div class="pg-list" id="proj-list">
+      <div id="pg-loading" style="padding:3rem;text-align:center;color:#71717a;font-size:.9rem;">Loading...</div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/projects.js"></script>
+</body>
+</html>

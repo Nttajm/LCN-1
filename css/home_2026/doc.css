@@ -1,0 +1,179 @@
+.pg-hero {
+    position: relative;
+    width: 100%;
+    height: 28vh;
+    min-height: 10rem;
+    overflow: hidden;
+}
+
+.pg-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.pg-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.pg-hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.67rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 1.83rem;
+    gap: 1.5rem;
+}
+
+.pg-hero-title {
+    font-size: 3.6rem;
+    font-weight: 400;
+    color: var(--bswhite);
+    margin: 0;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pg-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.pg-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.33rem;
+}
+
+.pg-tab {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    font-size: 1rem;
+    font-family: var(--font_1);
+    font-weight: 400;
+    padding: 0.42rem 1.17rem;
+    border-radius: 100px;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pg-tab:hover {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.08);
+}
+
+.pg-tab.active {
+    color: var(--bswhite);
+    background: rgba(255,255,255,0.12);
+}
+
+.pg-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.33rem;
+}
+
+.pg-ctrl-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 1rem;
+    font-family: var(--font_1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    padding: 0.33rem 0.83rem;
+    border-radius: 0.5rem;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.pg-ctrl-btn:hover {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.07);
+}
+
+.pg-ctrl-sep {
+    width: 1px;
+    height: 1.33rem;
+    background: rgba(255,255,255,0.15);
+}
+
+.pg-view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.17rem;
+}
+
+.pg-view-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    padding: 0.42rem 0.58rem;
+    border-radius: 0.42rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.pg-view-btn.active {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.1);
+}
+
+.pg-view-btn:hover {
+    color: rgba(255,255,255,0.7);
+}
+
+.pg-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.67rem 6.67rem;
+}
+
+.pg-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.pg-item-cat {
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.02em;
+}
+
+.pg-item-date {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.28);
+}
+
+.pg-item-desc {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.38);
+    line-height: 1.65;
+    margin: 0;
+}
+
+.pg-list > *:nth-child(1) { animation-delay: 0.05s; }
+.pg-list > *:nth-child(2) { animation-delay: 0.1s; }
+.pg-list > *:nth-child(3) { animation-delay: 0.15s; }
+.pg-list > *:nth-child(4) { animation-delay: 0.2s; }
+.pg-list > *:nth-child(5) { animation-delay: 0.25s; }
+.pg-list > *:nth-child(6) { animation-delay: 0.3s; }

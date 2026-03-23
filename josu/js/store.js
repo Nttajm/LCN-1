@@ -107,7 +107,7 @@ const JosuStore = (() => {
             duration: duration || 60000,
             stars: stars != null ? stars : 1.0,
             speed: speed != null ? speed : 1.0,
-            notes: [],
+            songData: [],
             createdAt: now(),
             updatedAt: now()
         };
@@ -160,7 +160,12 @@ const JosuStore = (() => {
     }
 
     function isInLocalLibrary(songId) {
-        return _loadLocalSongs().some(s => s._storeId === songId);
+        return _loadLocalSongs().some(s => s._storeId === songId || s.localProjectId === songId);
+    }
+
+    function _msToTimeStr(ms) {
+        const s = Math.floor(ms / 1000);
+        return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
     }
 
     function uploadToLocalLibrary(songId) {
@@ -168,8 +173,17 @@ const JosuStore = (() => {
         if (!song) return false;
         const diffs = getDifficulties(songId);
 
+        // Convert mode for game compatibility ('arrow' -> 'updown')
+        function convertMode(mode) {
+            if (mode === 'arrow') return 'updown';
+            return mode || 'taiko';
+        }
+
+        const maxDuration = diffs.length > 0 ? Math.max(...diffs.map(d => d.duration || 0)) : 0;
+
         const localEntry = {
             _storeId: songId,
+            localProjectId: songId, // Also set for compatibility with editor uploads
             id: 'local_' + songId,
             title: song.title,
             artist: song.artist || '',
@@ -177,26 +191,34 @@ const JosuStore = (() => {
             audio: song.audio || '',
             inGameGif: song.inGameGif || '',
             audioCorrection: song.audioCorrection || 0,
+            time: maxDuration > 0 ? _msToTimeStr(maxDuration) : '',
             ranked: false,
             isLocal: true,
-            difficulties: diffs.map(d => ({
-                name: d.name,
-                mapper: 'You',
-                stars: d.stars || 1.0,
-                mode: d.mode || 'taiko',
-                speed: d.speed || 1.0,
-                songData: d.notes || []
-            }))
+            difficulties: diffs.map(d => {
+                // Get songData - ensure we get the actual array (with fallback for old 'notes' property)
+                const data = Array.isArray(d.songData) ? [...d.songData] : 
+                             Array.isArray(d.notes) ? [...d.notes] : [];
+                return {
+                    name: d.name,
+                    mapper: 'You',
+                    stars: d.stars || 1.0,
+                    mode: convertMode(d.mode),
+                    speed: d.speed || 1.0,
+                    songData: data
+                };
+            })
         };
 
-        const locals = _loadLocalSongs().filter(s => s._storeId !== songId);
+        // Remove any existing entry with same songId (check both _storeId and localProjectId)
+        const locals = _loadLocalSongs().filter(s => s._storeId !== songId && s.localProjectId !== songId);
         locals.push(localEntry);
         _saveLocalSongs(locals);
         return true;
     }
 
     function removeFromLocalLibrary(songId) {
-        const locals = _loadLocalSongs().filter(s => s._storeId !== songId);
+        // Remove entries with matching _storeId or localProjectId
+        const locals = _loadLocalSongs().filter(s => s._storeId !== songId && s.localProjectId !== songId);
         _saveLocalSongs(locals);
     }
 
@@ -234,26 +256,48 @@ const JosuStore = (() => {
         if (!song) return false;
         const diffs = getDifficulties(songId);
 
+        // Convert mode for game compatibility ('arrow' -> 'updown')
+        function convertMode(mode) {
+            if (mode === 'arrow') return 'updown';
+            return mode || 'taiko';
+        }
+
+        // Generate a stable database ID for this published song
+        const dbId = 'pub_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        
+        // Check if already published (update instead of creating new)
+        const existing = _loadPublishedSongs().find(s => s._storeId === songId);
+        const finalId = existing ? existing.id : dbId;
+
+        const maxDuration = diffs.length > 0 ? Math.max(...diffs.map(d => d.duration || 0)) : 0;
+
         const publishedEntry = {
             _storeId: songId,
-            id: 'pub_' + songId,
+            id: finalId,
             title: song.title,
             artist: song.artist || '',
             image: song.coverImage || '',
             audio: song.audio || '',
             inGameGif: song.inGameGif || '',
             audioCorrection: song.audioCorrection || 0,
+            time: maxDuration > 0 ? _msToTimeStr(maxDuration) : '',
             ranked: false,
             isPublished: true,
-            publishedAt: now(),
-            difficulties: diffs.map(d => ({
-                name: d.name,
-                mapper: 'You',
-                stars: d.stars || 1.0,
-                mode: d.mode || 'taiko',
-                speed: d.speed || 1.0,
-                songData: d.notes || []
-            }))
+            publishedAt: existing ? existing.publishedAt : now(),
+            updatedAt: now(),
+            difficulties: diffs.map(d => {
+                // Get songData - ensure we get the actual array (with fallback for old 'notes' property)
+                const data = Array.isArray(d.songData) ? [...d.songData] : 
+                             Array.isArray(d.notes) ? [...d.notes] : [];
+                return {
+                    name: d.name,
+                    mapper: 'You',
+                    stars: d.stars || 1.0,
+                    mode: convertMode(d.mode),
+                    speed: d.speed || 1.0,
+                    songData: data
+                };
+            })
         };
 
         const published = _loadPublishedSongs().filter(s => s._storeId !== songId);
@@ -265,6 +309,60 @@ const JosuStore = (() => {
     function unpublishFromBrowse(songId) {
         const published = _loadPublishedSongs().filter(s => s._storeId !== songId);
         _savePublishedSongs(published);
+    }
+
+    // Get a published song by its database ID
+    function getPublishedSongById(dbId) {
+        return _loadPublishedSongs().find(s => s.id === dbId) || null;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // DOWNLOADED SONGS (user's library from browse)
+    // Just stores database IDs - actual song data lives in published DB
+    // ══════════════════════════════════════════════════════════
+    const DOWNLOADED_KEY = 'josu_downloaded_songs';
+
+    function _loadDownloadedIds() {
+        try {
+            const raw = localStorage.getItem(DOWNLOADED_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) { console.error('JosuStore: load downloaded ids error', e); }
+        return [];
+    }
+
+    function _saveDownloadedIds(arr) {
+        try {
+            localStorage.setItem(DOWNLOADED_KEY, JSON.stringify(arr));
+        } catch (e) { console.error('JosuStore: save downloaded ids error', e); }
+    }
+
+    function getDownloadedSongIds() {
+        return _loadDownloadedIds();
+    }
+
+    function isDownloaded(dbId) {
+        return _loadDownloadedIds().includes(dbId);
+    }
+
+    function downloadSong(dbId) {
+        const ids = _loadDownloadedIds();
+        if (!ids.includes(dbId)) {
+            ids.push(dbId);
+            _saveDownloadedIds(ids);
+        }
+        return true;
+    }
+
+    function removeDownload(dbId) {
+        const ids = _loadDownloadedIds().filter(id => id !== dbId);
+        _saveDownloadedIds(ids);
+    }
+
+    // Get all downloaded songs (resolved from published database)
+    function getDownloadedSongs() {
+        const ids = _loadDownloadedIds();
+        const published = _loadPublishedSongs();
+        return ids.map(id => published.find(s => s.id === id)).filter(Boolean);
     }
 
     // Legacy compatibility aliases
@@ -292,10 +390,10 @@ const JosuStore = (() => {
                 duration: old.duration || 60000
             });
 
-            // Put notes into the difficulty we just created
+            // Put songData into the difficulty we just created
             const diffs = getDifficulties(song.id);
             if (diffs.length > 0) {
-                updateDifficulty(song.id, diffs[0].id, { notes: old.notes || [] });
+                updateDifficulty(song.id, diffs[0].id, { songData: old.songData || old.notes || [] });
             }
 
             // Remove old key so migration only runs once
@@ -320,15 +418,22 @@ const JosuStore = (() => {
         updateDifficulty,
         deleteDifficulty,
         migrateOldProject,
-        // Local library (user's personal game library)
+        // Local library (user's personal game library - unpublished)
         getLocalSongs,
         isInLocalLibrary,
         uploadToLocalLibrary,
         removeFromLocalLibrary,
         // Published songs database (visible in browse)
         getPublishedSongs,
+        getPublishedSongById,
         isPublished,
         publishToBrowse,
-        unpublishFromBrowse
+        unpublishFromBrowse,
+        // Downloaded songs (user's library from browse - just IDs)
+        getDownloadedSongIds,
+        getDownloadedSongs,
+        isDownloaded,
+        downloadSong,
+        removeDownload
     };
 })();

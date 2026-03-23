@@ -79,7 +79,7 @@
         document.title = `${s.title} – Josu`;
 
         const diffs = JosuStore.getDifficulties(songId);
-        const totalNotes = diffs.reduce((sum, d) => sum + (d.notes ? d.notes.length : 0), 0);
+        const totalNotes = diffs.reduce((sum, d) => sum + ((d.songData || d.notes || []).length), 0);
         const created = new Date(s.createdAt).toLocaleDateString();
         metaEl.innerHTML = `
             <span>${diffs.length} difficult${diffs.length !== 1 ? 'ies' : 'y'}</span>
@@ -102,7 +102,7 @@
         </div>`;
 
         diffs.forEach(diff => {
-            const noteCount = diff.notes ? diff.notes.length : 0;
+            const noteCount = (diff.songData || diff.notes || []).length;
             const updated = new Date(diff.updatedAt).toLocaleDateString();
             const modeLabel = diff.mode === 'taiko' ? 'Taiko' : 'Arrow';
             const stars = diff.stars != null ? diff.stars.toFixed(2) + '★' : 'N/A';
@@ -363,7 +363,9 @@
     function updatePublishBtn() {
         const published = JosuStore.isPublished(songId);
         if (published) {
-            publishBtn.textContent = 'Unpublish';
+            publishBtn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                Unpublish`;
             publishBtn.classList.remove('primary');
             publishBtn.classList.add('danger');
         } else {
@@ -375,13 +377,165 @@
         }
     }
 
-    publishBtn.addEventListener('click', () => {
-        if (JosuStore.isPublished(songId)) {
-            JosuStore.unpublishFromBrowse(songId);
+    // ── Publish Modal ────────────────────────────────────────
+    const publishModal      = document.getElementById('publishModal');
+    const publishAudioInput = document.getElementById('publishAudioInput');
+    const publishAudioName  = document.getElementById('publishAudioName');
+    const chooseAudioBtn    = document.getElementById('chooseAudioBtn');
+    const cancelPublishBtn  = document.getElementById('cancelPublishBtn');
+    const doPublishBtn      = document.getElementById('doPublishBtn');
+    const publishStatus     = document.getElementById('publishStatus');
+    const publishProgress   = document.getElementById('publishProgress');
+    const publishProgressBar = document.getElementById('publishProgressBar');
+    const existingAudioGroup = document.getElementById('existingAudioGroup');
+    const existingAudioUrlEl = document.getElementById('existingAudioUrl');
+
+    function openPublishModal() {
+        publishAudioInput.value = '';
+        publishAudioName.textContent = 'No file chosen';
+        publishStatus.style.display = 'none';
+        publishProgress.style.display = 'none';
+        publishProgressBar.style.width = '0%';
+        doPublishBtn.disabled = false;
+        doPublishBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+            </svg> Publish`;
+
+        // Show existing audio URL if present
+        const s = JosuStore.getSong(songId);
+        if (s.audio) {
+            existingAudioGroup.style.display = '';
+            existingAudioUrlEl.textContent = s.audio;
         } else {
-            JosuStore.publishToBrowse(songId);
+            existingAudioGroup.style.display = 'none';
         }
-        updatePublishBtn();
+
+        publishModal.classList.add('active');
+    }
+
+    function closePublishModal() {
+        publishModal.classList.remove('active');
+    }
+
+    function setPublishStatus(msg, type = 'info') {
+        publishStatus.style.display = 'block';
+        const colors = {
+            info:    { bg: 'rgba(78,205,196,0.1)',  color: '#4ecdc4' },
+            error:   { bg: 'rgba(231,76,60,0.15)',   color: '#e74c3c' },
+            success: { bg: 'rgba(46,204,113,0.15)',  color: '#2ecc71' }
+        };
+        const c = colors[type] || colors.info;
+        publishStatus.style.background = c.bg;
+        publishStatus.style.color = c.color;
+        publishStatus.style.border = `1px solid ${c.color}33`;
+        publishStatus.textContent = msg;
+    }
+
+    chooseAudioBtn.addEventListener('click', () => publishAudioInput.click());
+
+    publishAudioInput.addEventListener('change', () => {
+        const file = publishAudioInput.files[0];
+        publishAudioName.textContent = file ? file.name : 'No file chosen';
+    });
+
+    cancelPublishBtn.addEventListener('click', closePublishModal);
+
+    publishModal.addEventListener('click', (e) => {
+        if (e.target === publishModal) closePublishModal();
+    });
+
+    function msToTimeStr(ms) {
+        const s = Math.floor(ms / 1000);
+        return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    doPublishBtn.addEventListener('click', async () => {
+        doPublishBtn.disabled = true;
+        doPublishBtn.textContent = 'Publishing…';
+        publishProgress.style.display = 'block';
+
+        try {
+            const song  = JosuStore.getSong(songId);
+            const diffs = JosuStore.getDifficulties(songId);
+
+            if (!diffs.length) {
+                setPublishStatus('No difficulties found — create at least one difficulty first.', 'error');
+                doPublishBtn.disabled = false;
+                doPublishBtn.textContent = 'Publish';
+                return;
+            }
+
+            let audioUrl = song.audio || '';
+            const file   = publishAudioInput.files[0];
+
+            if (file) {
+                setPublishStatus('Uploading audio to Cloudflare R2…');
+                publishProgressBar.style.width = '20%';
+                audioUrl = await JosuR2.uploadAudio(file);
+                publishProgressBar.style.width = '60%';
+                // Store the new URL back in the project
+                JosuStore.updateSong(songId, { audio: audioUrl });
+                setPublishStatus('Audio uploaded! Saving map data to Firebase…');
+            } else {
+                setPublishStatus('Saving map data to Firebase…');
+            }
+
+            publishProgressBar.style.width = '75%';
+
+            const maxDuration = diffs.reduce((m, d) => Math.max(m, d.duration || 0), 0);
+
+            await JosuFirebase.publishSong({
+                storeId: songId,
+                title:            song.title,
+                artist:           song.artist      || '',
+                audioUrl,
+                coverImage:       song.coverImage  || '',
+                inGameGif:        song.inGameGif   || '',
+                audioCorrection:  song.audioCorrection || 0,
+                time:             maxDuration > 0 ? msToTimeStr(maxDuration) : '',
+                difficulties: diffs.map(d => ({
+                    name:     d.name,
+                    mapper:   'Unknown',
+                    stars:    d.stars  ?? 1.0,
+                    mode:     d.mode === 'arrow' ? 'updown' : (d.mode || 'taiko'),
+                    speed:    d.speed  ?? 1.0,
+                    songData: Array.isArray(d.songData) ? [...d.songData] : []
+                }))
+            });
+
+            // Mirror to localStorage so local browse also works offline
+            JosuStore.publishToBrowse(songId);
+
+            publishProgressBar.style.width = '100%';
+            setPublishStatus('✓ Published! Your beatmap is now live in the Browse listing.', 'success');
+            updatePublishBtn();
+
+            setTimeout(closePublishModal, 2200);
+        } catch (err) {
+            console.error('Publish error:', err);
+            setPublishStatus('Error: ' + err.message, 'error');
+            doPublishBtn.disabled = false;
+            doPublishBtn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+                </svg> Retry`;
+        }
+    });
+
+    publishBtn.addEventListener('click', async () => {
+        if (JosuStore.isPublished(songId)) {
+            if (!confirm('Unpublish this song? It will be removed from the Browse listing.')) return;
+            try {
+                await JosuFirebase.unpublishSong(songId);
+            } catch (e) {
+                console.warn('Firebase unpublish error (continuing):', e.message);
+            }
+            JosuStore.unpublishFromBrowse(songId);
+            updatePublishBtn();
+        } else {
+            openPublishModal();
+        }
     });
 
     updatePublishBtn();

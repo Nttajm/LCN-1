@@ -33,7 +33,7 @@
 
         songs.forEach(song => {
             const diffs = JosuStore.getDifficulties(song.id);
-            const totalNotes = diffs.reduce((sum, d) => sum + (d.notes ? d.notes.length : 0), 0);
+            const totalNotes = diffs.reduce((sum, d) => sum + ((d.songData || d.notes) ? (d.songData || d.notes).length : 0), 0);
             const updated = new Date(song.updatedAt).toLocaleDateString();
             const bgImage = song.coverImage ? `style="background-image: url('${escapeHtml(song.coverImage)}');"` : '';
 

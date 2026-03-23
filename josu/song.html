@@ -172,6 +172,70 @@
         </div>
     </div>
 
+    <!-- Publish Modal -->
+    <div class="modal-overlay" id="publishModal">
+        <div class="modal">
+            <h2>Publish to Browse</h2>
+            <p style="color:#888;font-size:13px;margin-bottom:16px;">
+                Your beatmap will be publicly listed in the Browse screen.
+                Audio is uploaded to Cloudflare R2; notes are saved to Firebase.
+            </p>
+
+            <!-- Audio upload section -->
+            <div class="form-group">
+                <label>Audio File <span style="color:#888;font-weight:400">(upload to Cloudflare R2)</span></label>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+                    <button class="btn" id="chooseAudioBtn" type="button" style="white-space:nowrap;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Choose File
+                    </button>
+                    <span id="publishAudioName" style="color:#888;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">No file chosen</span>
+                </div>
+                <input type="file" id="publishAudioInput" accept="audio/*" style="display:none;">
+                <small style="color:#555;margin-top:6px;display:block;">
+                    Supported: MP3, OGG, WAV, FLAC. Leave empty to keep the existing audio URL.
+                </small>
+            </div>
+
+            <!-- Existing URL display (if already has audio) -->
+            <div class="form-group" id="existingAudioGroup" style="display:none;">
+                <label style="color:#4ecdc4;">Current Audio URL</label>
+                <div id="existingAudioUrl" style="font-size:12px;color:#888;word-break:break-all;padding:8px;background:#0a0a1a;border-radius:6px;border:1px solid #0f3460;margin-top:4px;"></div>
+            </div>
+
+            <!-- Status message -->
+            <div id="publishStatus" style="display:none;padding:12px 14px;border-radius:8px;margin-top:12px;font-size:13px;line-height:1.5;"></div>
+
+            <!-- Progress bar -->
+            <div id="publishProgress" style="display:none;margin-top:10px;">
+                <div style="height:4px;background:#0f3460;border-radius:4px;overflow:hidden;">
+                    <div id="publishProgressBar" style="height:100%;background:linear-gradient(90deg,#4ecdc4,#e94560);width:0%;transition:width 0.3s;"></div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn" id="cancelPublishBtn">Cancel</button>
+                <button class="btn primary" id="doPublishBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                        <polyline points="16 6 12 2 8 6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                    Publish
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-db.js"></script>
+    <script src="js/r2.js"></script>
     <script src="js/store.js"></script>
     <script src="js/song.js"></script>
 </body>

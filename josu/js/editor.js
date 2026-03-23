@@ -42,7 +42,7 @@
     // STATE MANAGEMENT
     // ══════════════════════════════════════════════════════════════
     const state = {
-        notes: [],
+        songData: [],
         selectedNotes: new Set(),
         isPlaying: false,
         isRecording: false,
@@ -297,7 +297,7 @@
         elements.trackUp.innerHTML = '';
         elements.trackRight.innerHTML = '';
         drawGridLines();
-        state.notes.forEach((note, index) => {
+        state.songData.forEach((note, index) => {
             const noteEl = document.createElement('div');
             noteEl.className = `note note-${note.key}${state.selectedNotes.has(index) ? ' selected' : ''}`;
             noteEl.style.left = `${timeToX(note.time) - TRACK_OFFSET - 18}px`;
@@ -315,7 +315,7 @@
             const track = trackMap[note.key];
             if (track) track.appendChild(noteEl);
         });
-        elements.noteCount.textContent = state.notes.length;
+        elements.noteCount.textContent = state.songData.length;
     }
 
     function drawGridLines() {
@@ -448,15 +448,15 @@
     // ══════════════════════════════════════════════════════════════
     function addNote(key, time) {
         const snappedTime = snapTime(time);
-        state.notes.push({ key, time: Math.round(snappedTime) });
-        state.notes.sort((a, b) => a.time - b.time);
+        state.songData.push({ key, time: Math.round(snappedTime) });
+        state.songData.sort((a, b) => a.time - b.time);
         renderNotes();
         updateStatus(`Added ${key.toUpperCase()} note at ${msToTimeString(snappedTime)}`);
     }
 
     function removeNote(index) {
-        if (index < 0 || index >= state.notes.length) return;
-        state.notes.splice(index, 1);
+        if (index < 0 || index >= state.songData.length) return;
+        state.songData.splice(index, 1);
         state.selectedNotes.delete(index);
         const newSelected = new Set();
         state.selectedNotes.forEach(i => {
@@ -471,31 +471,31 @@
     function removeSelectedNotes() {
         if (state.selectedNotes.size === 0) return;
         const indices = Array.from(state.selectedNotes).sort((a, b) => b - a);
-        indices.forEach(i => state.notes.splice(i, 1));
+        indices.forEach(i => state.songData.splice(i, 1));
         state.selectedNotes.clear();
         renderNotes();
         updateStatus(`Removed ${indices.length} note(s)`);
     }
 
     function clearAllNotes() {
-        if (state.notes.length === 0) return;
+        if (state.songData.length === 0) return;
         if (!confirm('Clear all notes?')) return;
-        state.notes = [];
+        state.songData = [];
         state.selectedNotes.clear();
         renderNotes();
         updateStatus('All notes cleared');
     }
 
     function duplicateNote(index) {
-        if (index < 0 || index >= state.notes.length) return;
-        const note = state.notes[index];
+        if (index < 0 || index >= state.songData.length) return;
+        const note = state.songData[index];
         const beatInterval = 60000 / state.bpm;
         addNote(note.key, note.time + beatInterval);
     }
 
     function toggleNoteType(index) {
-        if (index < 0 || index >= state.notes.length) return;
-        const note = state.notes[index];
+        if (index < 0 || index >= state.songData.length) return;
+        const note = state.songData[index];
         const taikoKeys = ['d', 'f'];
         const arrowKeys = ['left', 'down', 'up', 'right'];
         if (taikoKeys.includes(note.key)) {
@@ -641,7 +641,7 @@
             case 'a':
                 if (e.ctrlKey) {
                     e.preventDefault();
-                    state.notes.forEach((_, i) => state.selectedNotes.add(i));
+                    state.songData.forEach((_, i) => state.selectedNotes.add(i));
                     renderNotes();
                 }
                 break;
@@ -703,7 +703,7 @@
         draggedNote = note;
         dragStartX = e.clientX;
         const index = parseInt(note.dataset.index);
-        dragStartTime = state.notes[index].time;
+        dragStartTime = state.songData[index].time;
         note.classList.add('dragging');
         document.body.style.cursor = 'grabbing';
     });
@@ -715,7 +715,7 @@
         let newTime = Math.max(0, dragStartTime + deltaTime);
         if (state.snapToGrid) newTime = snapTime(newTime);
         const index = parseInt(draggedNote.dataset.index);
-        state.notes[index].time = Math.round(newTime);
+        state.songData[index].time = Math.round(newTime);
         draggedNote.style.left = `${timeToX(newTime) - TRACK_OFFSET - 18}px`;
     });
 
@@ -725,7 +725,7 @@
         if (draggedNote) draggedNote.classList.remove('dragging');
         draggedNote = null;
         document.body.style.cursor = '';
-        state.notes.sort((a, b) => a.time - b.time);
+        state.songData.sort((a, b) => a.time - b.time);
         renderNotes();
     });
 
@@ -806,10 +806,10 @@
         const artist = elements.songArtist.value || 'Unknown';
         const difficulty = elements.difficultyName.value || 'Normal';
         const modeLabel = state.mode === 'taiko' ? 'Taiko' : 'Arrow (updown)';
-        const notesStr = state.notes.map(n =>
+        const notesStr = state.songData.map(n =>
             `    { key: '${n.key}', time: ${n.time} }`
         ).join(',\n');
-        return `// ${title} - ${artist} [${difficulty}]\n// Mode: ${modeLabel}\n// Total notes: ${state.notes.length}\n// Duration: ${msToTimeString(state.duration)}\n\n[\n${notesStr}\n]`;
+        return `// ${title} - ${artist} [${difficulty}]\n// Mode: ${modeLabel}\n// Total notes: ${state.songData.length}\n// Duration: ${msToTimeString(state.duration)}\n\n[\n${notesStr}\n]`;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -834,9 +834,9 @@
                 if (match) parsed = eval(match[1]);
             }
             if (Array.isArray(parsed) && parsed.length > 0) {
-                state.notes = parsed.map(n => ({ key: n.key, time: n.time }));
-                state.notes.sort((a, b) => a.time - b.time);
-                const maxTime = Math.max(...state.notes.map(n => n.time));
+                state.songData = parsed.map(n => ({ key: n.key, time: n.time }));
+                state.songData.sort((a, b) => a.time - b.time);
+                const maxTime = Math.max(...state.songData.map(n => n.time));
                 if (maxTime > state.duration) {
                     state.duration = maxTime + 5000;
                     elements.durationInput.value = msToTimeString(state.duration);
@@ -845,7 +845,7 @@
                 renderNotes();
                 drawTimeRuler();
                 elements.importModal.classList.remove('active');
-                updateStatus(`Imported ${state.notes.length} notes`);
+                updateStatus(`Imported ${state.songData.length} notes`);
             } else { throw new Error('Invalid format'); }
         } catch (err) {
             alert('Could not parse the note data. Please check the format.');
@@ -879,7 +879,7 @@
         if (songId && diffId) {
             // Save back to the store
             JosuStore.updateDifficulty(songId, diffId, {
-                notes: state.notes,
+                songData: state.songData,
                 mode: state.mode,
                 bpm: state.bpm,
                 duration: state.duration,
@@ -890,11 +890,11 @@
                 title: elements.songTitle.value,
                 artist: elements.songArtist.value
             });
-            updateStatus(`Saved! (${state.notes.length} notes)`);
+            updateStatus(`Saved! (${state.songData.length} notes)`);
         } else {
             // Fallback: old-style single-project save
             const projectData = {
-                notes: state.notes,
+                songData: state.songData,
                 mode: state.mode,
                 bpm: state.bpm,
                 duration: state.duration,
@@ -905,7 +905,7 @@
             };
             try {
                 localStorage.setItem('josu_editor_project', JSON.stringify(projectData));
-                updateStatus(`Project saved! (${state.notes.length} notes)`);
+                updateStatus(`Project saved! (${state.songData.length} notes)`);
             } catch (err) {
                 console.error('Error saving project:', err);
                 updateStatus('Error saving project');
@@ -921,7 +921,7 @@
         elements.songArtist.value = projectSong.artist || '';
         elements.difficultyName.value = projectDiff.name || 'Normal';
 
-        state.notes = projectDiff.notes || [];
+        state.songData = projectDiff.songData || projectDiff.notes || [];
         state.mode = projectDiff.mode || 'taiko';
         state.bpm = projectDiff.bpm || 120;
         state.duration = projectDiff.duration || 60000;
@@ -942,7 +942,7 @@
             const saved = localStorage.getItem('josu_editor_project');
             if (!saved) return false;
             const projectData = JSON.parse(saved);
-            state.notes = projectData.notes || [];
+            state.songData = projectData.songData || projectData.notes || [];
             state.mode = projectData.mode || 'taiko';
             state.bpm = projectData.bpm || 120;
             state.duration = projectData.duration || 60000;
@@ -956,7 +956,7 @@
             renderNotes();
             drawTimeRuler();
             const savedDate = projectData.savedAt ? new Date(projectData.savedAt).toLocaleString() : 'unknown';
-            updateStatus(`Legacy project loaded (${state.notes.length} notes, saved ${savedDate})`);
+            updateStatus(`Legacy project loaded (${state.songData.length} notes, saved ${savedDate})`);
             return true;
         } catch (err) {
             console.error('Error loading project:', err);
@@ -999,7 +999,7 @@
                 bpm: state.bpm,
                 stars: 1.0,
                 speed: 1.0,
-                notes: state.notes
+                songData: state.songData
             };
             console.log('Upload: Using fallback song data');
         }
@@ -1009,7 +1009,7 @@
             songData.audio = '';
         }
 
-        if (!diffData.notes || diffData.notes.length === 0) {
+        if (!diffData.songData || diffData.songData.length === 0) {
             alert('No notes to upload! Add some notes first.');
             return;
         }
@@ -1047,7 +1047,7 @@
                 stars: diffData.stars || 1.0,
                 speed: diffData.speed || 1.0,
                 mode: diffData.mode === 'arrow' ? 'updown' : 'taiko',
-                songData: diffData.notes
+                songData: diffData.songData
             };
 
             if (existingDiffIdx >= 0) {
@@ -1075,7 +1075,7 @@
                     stars: diffData.stars || 1.0,
                     speed: diffData.speed || 1.0,
                     mode: diffData.mode === 'arrow' ? 'updown' : 'taiko',
-                    songData: diffData.notes
+                    songData: diffData.songData
                 }]
             };
             localSongs.push(newSong);

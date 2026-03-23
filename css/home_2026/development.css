@@ -1,0 +1,68 @@
+.dev-item {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+    padding: 36px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dev-item:hover {
+    opacity: 0.75;
+}
+
+.dev-item-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dev-item-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 0.17rem;
+}
+
+.dev-item-title {
+    font-size: 1.55rem;
+    font-weight: 400;
+    color: var(--bswhite);
+    margin: 0;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+}
+
+.pg-list.card-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.pg-list.card-view .dev-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border-bottom: none;
+    border-radius: 0.67rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.pg-list.card-view .dev-item:hover {
+    opacity: 1;
+    border-color: rgba(255,255,255,0.14);
+}
+
+.pg-list.card-view .dev-item-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+

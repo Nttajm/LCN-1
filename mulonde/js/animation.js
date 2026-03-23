@@ -113,6 +113,9 @@ function initSlideshows() {
     let current = 0;
     const interval = parseInt(container.dataset.interval) || 3500;
 
+    // Ensure the first slide is visible from the start
+    slides[0].classList.add('active');
+
     // Stagger start so tiles don't all flip at once
     const staggerDelay = idx * 3000;
 
@@ -122,7 +125,7 @@ function initSlideshows() {
         const next = (current + 1) % slides.length;
         const nextSlide = slides[next];
 
-        // Current slide exits (drops down)
+        // Current slide exits (drops down and out)
         currentSlide.classList.remove('active');
         currentSlide.classList.add('exit');
 
@@ -130,10 +133,15 @@ function initSlideshows() {
         nextSlide.classList.remove('exit');
         nextSlide.classList.add('active');
 
-        // Clean exit class after transition
+        // After the exit animation finishes, snap the slide back to the top
+        // WITHOUT animating — so the next cycle always comes from above, not below
         setTimeout(() => {
+          currentSlide.style.transition = 'none';
           currentSlide.classList.remove('exit');
-        }, 3010);
+          // Force reflow so the browser registers the class change before re-enabling transitions
+          void currentSlide.offsetHeight;
+          currentSlide.style.transition = '';
+        }, 700); // slightly longer than the 0.6s CSS transition
 
         current = next;
       }, interval);
@@ -146,4 +154,68 @@ window.addEventListener("load", () => {
   // Wait for loader (2s) + flip trigger delay (300ms) + flip anim (800ms) + buffer
   setTimeout(initSlideshows, 3600);
 });
+
+
+// Windows 10 Fluent Reveal border highlight
+function initRevealBorder() {
+  const grid = document.querySelector('.grid');
+  const items = grid.querySelectorAll('.grid-item');
+
+  grid.addEventListener('mousemove', (e) => {
+    items.forEach(item => {
+      const rect = item.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      item.style.setProperty('--mouse-x', x + 'px');
+      item.style.setProperty('--mouse-y', y + 'px');
+      item.classList.add('reveal-active');
+    });
+  });
+
+  grid.addEventListener('mouseleave', () => {
+    items.forEach(item => {
+      item.classList.remove('reveal-active');
+    });
+  });
+}
+
+window.addEventListener('load', () => {
+  setTimeout(initRevealBorder, 3600);
+});
+
+
+// Windows 8 tile press — 3D tilt toward click point
+function initTilePress() {
+  const MAX_TILT = 12;
+
+  document.querySelectorAll('.grid-item').forEach(item => {
+    item.addEventListener('pointerdown', (e) => {
+      const rect = item.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Normalize -1..1 from center
+      const nx = (x - rect.width  / 2) / (rect.width  / 2);
+      const ny = (y - rect.height / 2) / (rect.height / 2);
+
+      // Clicked edge sinks in: right → positive rotateY, top → negative rotateX
+      const rotY =  nx * MAX_TILT;
+      const rotX = -ny * MAX_TILT;
+
+      item.style.transition = 'transform 0.08s ease-out';
+      item.style.transform  = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(0.95)`;
+    });
+
+    const release = () => {
+      item.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      item.style.transform  = '';
+    };
+
+    item.addEventListener('pointerup',     release);
+    item.addEventListener('pointercancel', release);
+    item.addEventListener('pointerleave',  release);
+  });
+}
+
+window.addEventListener('load', initTilePress);
 

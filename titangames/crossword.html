@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Mini Crossword — Titan Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --cell-size: 72px;
+    --highlight: #D4E4FA;
+    --selected: #F7DA21;
+    --black-cell: #121212;
+    --grid-border: #121212;
+    --text-primary: #121212;
+    --text-secondary: #5A5A5A;
+    --clue-highlight: #D4E4FA;
+    --bg: #FFFFFF;
+}
+
+body {
+    font-family: 'Libre Franklin', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+.page-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 30px 40px 4px;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.page-header h1 {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+
+.page-header .puzzle-date {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+.page-header .puzzle-author {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding-left: 2px;
+    margin-top: -2px;
+}
+
+.timer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 0;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.timer-display {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    min-width: 40px;
+    text-align: right;
+}
+
+.timer-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #326891;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+}
+
+.active-clue-bar {
+    background: var(--highlight);
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    max-width: 420px;
+    border-radius: 4px;
+}
+
+.active-clue-bar span.clue-num {
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+.game-area {
+    display: flex;
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px 60px;
+    align-items: flex-start;
+}
+
+.grid-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.crossword-grid {
+    display: grid;
+    border: 2px solid var(--grid-border);
+    border-collapse: collapse;
+    user-select: none;
+}
+
+.crossword-grid .cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border: 1px solid #999;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--bg);
+    transition: background 0.08s ease;
+}
+
+.crossword-grid .cell.black {
+    background: var(--black-cell);
+    cursor: default;
+}
+
+.crossword-grid .cell.highlighted {
+    background: var(--highlight);
+}
+
+.crossword-grid .cell.selected {
+    background: var(--selected);
+}
+
+.crossword-grid .cell .cell-number {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-primary);
+    pointer-events: none;
+}
+
+.crossword-grid .cell .cell-letter {
+    font-size: 28px;
+    font-weight: 500;
+    font-family: 'Libre Franklin', sans-serif;
+    text-transform: uppercase;
+    pointer-events: none;
+    color: var(--text-primary);
+}
+
+.clues-panel {
+    display: flex;
+    gap: 28px;
+    flex: 1;
+    min-width: 0;
+}
+
+.clue-column {
+    flex: 1;
+    min-width: 180px;
+}
+
+.clue-column h2 {
+    font-family: 'Noto Serif', serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #ddd;
+}
+
+.clue-list {
+    list-style: none;
+}
+
+.clue-list li {
+    display: flex;
+    gap: 8px;
+    padding: 5px 6px;
+    font-size: 14px;
+    line-height: 1.45;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.08s ease;
+    border-left: 3px solid transparent;
+}
+
+.clue-list li:hover {
+    background: #f0f0f0;
+}
+
+.clue-list li.active {
+    background: var(--clue-highlight);
+    border-left-color: #6CA0D0;
+}
+
+.clue-list li .clue-num {
+    font-weight: 700;
+    min-width: 14px;
+    flex-shrink: 0;
+}
+
+.win-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+}
+
+.win-overlay.show {
+    display: flex;
+}
+
+.win-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.win-modal h2 {
+    font-family: 'Noto Serif', serif;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.win-modal p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.win-modal button {
+    background: var(--text-primary);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 28px;
+    cursor: pointer;
+    font-family: 'Libre Franklin', sans-serif;
+}
+
+@media (max-width: 860px) {
+    :root {
+        --cell-size: 56px;
+    }
+    .game-area {
+        flex-direction: column;
+        padding: 0 20px 40px;
+    }
+    .clues-panel {
+        width: 100%;
+    }
+    .page-header {
+        padding: 20px 20px 4px;
+    }
+    .page-header h1 {
+        font-size: 24px;
+    }
+    .page-header .puzzle-date {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 500px) {
+    :root {
+        --cell-size: calc((100vw - 56px) / 5);
+    }
+    .clues-panel {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>The Mini Crossword</h1>
+    <span class="puzzle-date" id="puzzleDate"></span>
+    <span class="puzzle-author" id="puzzleAuthor"></span>
+</div>
+
+<div class="timer-bar">
+    <span class="timer-display" id="timerDisplay">0:00</span>
+    <button class="timer-btn" id="timerBtn" aria-label="Pause timer">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+            <rect id="pauseIcon1" x="4" y="3" width="3.5" height="12" rx="1"/>
+            <rect id="pauseIcon2" x="10.5" y="3" width="3.5" height="12" rx="1"/>
+            <polygon id="playIcon" points="5,3 15,9 5,15" style="display:none"/>
+        </svg>
+    </button>
+</div>
+
+<div class="game-area">
+    <div class="grid-section">
+        <div class="active-clue-bar" id="activeClueBar">
+            <span class="clue-num" id="activeClueNum"></span>
+            <span id="activeClueText"></span>
+        </div>
+        <div class="crossword-grid" id="grid"></div>
+    </div>
+    <div class="clues-panel">
+        <div class="clue-column">
+            <h2>Across</h2>
+            <ul class="clue-list" id="acrossClues"></ul>
+        </div>
+        <div class="clue-column">
+            <h2>Down</h2>
+            <ul class="clue-list" id="downClues"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="win-overlay" id="winOverlay">
+    <div class="win-modal">
+        <h2>Congratulations!</h2>
+        <p id="winTime"></p>
+        <button onclick="document.getElementById('winOverlay').classList.remove('show')">Close</button>
+    </div>
+</div>
+
+<script>
+const PUZZLES = [
+    {
+        date: "Tuesday, October 5, 2021",
+        author: "Joel Fagliano",
+        size: 5,
+        grid: [
+            ['.','.','.','.','\u0023'],
+            ['.','.','.','.','\u0023'],
+            ['.','.','.','.','.'],
+            ['\u0023','.','.','.','.'],
+            ['\u0023','.','.','.','.']
+        ],
+        answers: [
+            ['R','I','S','K',''],
+            ['E','L','M','O',''],
+            ['C','L','A','R','K'],
+            ['','G','L','E','E'],
+            ['','O','L','A','Y']
+        ],
+        numbers: {
+            '0,0': 1, '0,1': 2, '0,2': 3, '0,3': 4,
+            '1,0': 5,
+            '2,0': 6, '2,4': 7,
+            '3,1': 8,
+            '4,1': 9
+        },
+        clues: {
+            across: [
+                { number: 1, row: 0, col: 0, length: 4, text: "Board game of global conquest" },
+                { number: 5, row: 1, col: 0, length: 4, text: "Muppet host of HBO Max\u2019s \u201CThe Not-Too-Late Show\u201D" },
+                { number: 6, row: 2, col: 0, length: 5, text: "Lewis\u2019s expedition partner" },
+                { number: 8, row: 3, col: 1, length: 4, text: "Great delight" },
+                { number: 9, row: 4, col: 1, length: 4, text: "Procter & Gamble skin care brand" }
+            ],
+            down: [
+                { number: 1, row: 0, col: 0, length: 3, text: "\u201CParks and ___\u201D (TV sitcom, familiarly)" },
+                { number: 2, row: 0, col: 1, length: 5, text: "Volunteer\u2019s offer" },
+                { number: 3, row: 0, col: 2, length: 5, text: "S, on a shirt tag" },
+                { number: 4, row: 0, col: 3, length: 5, text: "It follows \u201CNorth\u201D or \u201CSouth\u201D to make a country name" },
+                { number: 7, row: 2, col: 4, length: 3, text: "Door opener" }
+            ]
+        }
+    }
+];
+
+const CURRENT_PUZZLE_INDEX = 0;
+
+let puzzle = PUZZLES[CURRENT_PUZZLE_INDEX];
+let userGrid = [];
+let selectedRow = 0;
+let selectedCol = 0;
+let direction = 'across';
+let timerSeconds = 0;
+let timerInterval = null;
+let timerRunning = false;
+let solved = false;
+
+function init() {
+    puzzle = PUZZLES[CURRENT_PUZZLE_INDEX];
+    userGrid = [];
+    for (let r = 0; r < puzzle.size; r++) {
+        userGrid[r] = [];
+        for (let c = 0; c < puzzle.size; c++) {
+            userGrid[r][c] = '';
+        }
+    }
+    document.getElementById('puzzleDate').textContent = puzzle.date;
+    document.getElementById('puzzleAuthor').textContent = 'By ' + puzzle.author;
+    selectedRow = 0;
+    selectedCol = 0;
+    direction = 'across';
+    solved = false;
+    timerSeconds = 0;
+    buildGrid();
+    buildClues();
+    selectCell(0, 0);
+    startTimer();
+}
+
+function buildGrid() {
+    const gridEl = document.getElementById('grid');
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = 'repeat(' + puzzle.size + ', var(--cell-size))';
+    for (let r = 0; r < puzzle.size; r++) {
+        for (let c = 0; c < puzzle.size; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            if (puzzle.grid[r][c] === '#') {
+                cell.classList.add('black');
+            } else {
+                const numKey = r + ',' + c;
+                if (puzzle.numbers[numKey]) {
+                    const num = document.createElement('span');
+                    num.className = 'cell-number';
+                    num.textContent = puzzle.numbers[numKey];
+                    cell.appendChild(num);
+                }
+                const letter = document.createElement('span');
+                letter.className = 'cell-letter';
+                cell.appendChild(letter);
+                cell.addEventListener('click', function() {
+                    const cr = parseInt(this.dataset.row);
+                    const cc = parseInt(this.dataset.col);
+                    if (cr === selectedRow && cc === selectedCol) {
+                        direction = direction === 'across' ? 'down' : 'across';
+                    }
+                    selectCell(cr, cc);
+                });
+            }
+            gridEl.appendChild(cell);
+        }
+    }
+}
+
+function buildClues() {
+    const acrossEl = document.getElementById('acrossClues');
+    const downEl = document.getElementById('downClues');
+    acrossEl.innerHTML = '';
+    downEl.innerHTML = '';
+    puzzle.clues.across.forEach(function(clue) {
+        const li = document.createElement('li');
+        li.dataset.direction = 'across';
+        li.dataset.number = clue.number;
+        li.innerHTML = '<span class="clue-num">' + clue.number + '</span><span>' + clue.text + '</span>';
+        li.addEventListener('click', function() {
+            direction = 'across';
+            selectCell(clue.row, clue.col);
+        });
+        acrossEl.appendChild(li);
+    });
+    puzzle.clues.down.forEach(function(clue) {
+        const li = document.createElement('li');
+        li.dataset.direction = 'down';
+        li.dataset.number = clue.number;
+        li.innerHTML = '<span class="clue-num">' + clue.number + '</span><span>' + clue.text + '</span>';
+        li.addEventListener('click', function() {
+            direction = 'down';
+            selectCell(clue.row, clue.col);
+        });
+        downEl.appendChild(li);
+    });
+}
+
+function getActiveClue() {
+    const clues = puzzle.clues[direction];
+    for (let i = clues.length - 1; i >= 0; i--) {
+        const clue = clues[i];
+        if (direction === 'across') {
+            if (selectedRow === clue.row && selectedCol >= clue.col && selectedCol < clue.col + clue.length) {
+                return clue;
+            }
+        } else {
+            if (selectedCol === clue.col && selectedRow >= clue.row && selectedRow < clue.row + clue.length) {
+                return clue;
+            }
+        }
+    }
+    const alt = direction === 'across' ? 'down' : 'across';
+    const altClues = puzzle.clues[alt];
+    for (let i = altClues.length - 1; i >= 0; i--) {
+        const clue = altClues[i];
+        if (alt === 'across') {
+            if (selectedRow === clue.row && selectedCol >= clue.col && selectedCol < clue.col + clue.length) {
+                direction = alt;
+                return clue;
+            }
+        } else {
+            if (selectedCol === clue.col && selectedRow >= clue.row && selectedRow < clue.row + clue.length) {
+                direction = alt;
+                return clue;
+            }
+        }
+    }
+    return null;
+}
+
+function selectCell(r, c) {
+    if (r < 0 || r >= puzzle.size || c < 0 || c >= puzzle.size) return;
+    if (puzzle.grid[r][c] === '#') return;
+    selectedRow = r;
+    selectedCol = c;
+    const activeClue = getActiveClue();
+    highlightGrid(activeClue);
+    highlightClueList(activeClue);
+    updateActiveBar(activeClue);
+}
+
+function highlightGrid(activeClue) {
+    const cells = document.querySelectorAll('#grid .cell');
+    cells.forEach(function(cell) {
+        cell.classList.remove('selected', 'highlighted');
+    });
+    if (activeClue) {
+        for (let i = 0; i < activeClue.length; i++) {
+            let r, c;
+            if (direction === 'across') {
+                r = activeClue.row;
+                c = activeClue.col + i;
+            } else {
+                r = activeClue.row + i;
+                c = activeClue.col;
+            }
+            const el = document.querySelector('#grid .cell[data-row="' + r + '"][data-col="' + c + '"]');
+            if (el) el.classList.add('highlighted');
+        }
+    }
+    const sel = document.querySelector('#grid .cell[data-row="' + selectedRow + '"][data-col="' + selectedCol + '"]');
+    if (sel) {
+        sel.classList.add('selected');
+    }
+}
+
+function highlightClueList(activeClue) {
+    document.querySelectorAll('.clue-list li').forEach(function(li) {
+        li.classList.remove('active');
+    });
+    if (activeClue) {
+        const li = document.querySelector('.clue-list li[data-direction="' + direction + '"][data-number="' + activeClue.number + '"]');
+        if (li) li.classList.add('active');
+    }
+}
+
+function updateActiveBar(activeClue) {
+    const numEl = document.getElementById('activeClueNum');
+    const textEl = document.getElementById('activeClueText');
+    if (activeClue) {
+        numEl.textContent = activeClue.number + (direction === 'across' ? 'A' : 'D');
+        textEl.textContent = activeClue.text;
+    }
+}
+
+function setLetter(r, c, letter) {
+    userGrid[r][c] = letter;
+    const cell = document.querySelector('#grid .cell[data-row="' + r + '"][data-col="' + c + '"]');
+    if (cell) {
+        const letterEl = cell.querySelector('.cell-letter');
+        if (letterEl) letterEl.textContent = letter;
+    }
+}
+
+function moveToNext() {
+    const clue = getActiveClue();
+    if (!clue) return;
+    if (direction === 'across') {
+        let nc = selectedCol + 1;
+        if (nc < clue.col + clue.length) {
+            selectCell(selectedRow, nc);
+        }
+    } else {
+        let nr = selectedRow + 1;
+        if (nr < clue.row + clue.length) {
+            selectCell(nr, selectedCol);
+        }
+    }
+}
+
+function moveToPrev() {
+    const clue = getActiveClue();
+    if (!clue) return;
+    if (direction === 'across') {
+        let nc = selectedCol - 1;
+        if (nc >= clue.col) {
+            selectCell(selectedRow, nc);
+        }
+    } else {
+        let nr = selectedRow - 1;
+        if (nr >= clue.row) {
+            selectCell(nr, selectedCol);
+        }
+    }
+}
+
+function moveToNextClue() {
+    const clues = puzzle.clues[direction];
+    const activeClue = getActiveClue();
+    if (!activeClue) return;
+    let idx = clues.indexOf(activeClue);
+    idx++;
+    if (idx >= clues.length) {
+        if (direction === 'across') {
+            direction = 'down';
+            selectCell(puzzle.clues.down[0].row, puzzle.clues.down[0].col);
+        } else {
+            direction = 'across';
+            selectCell(puzzle.clues.across[0].row, puzzle.clues.across[0].col);
+        }
+    } else {
+        selectCell(clues[idx].row, clues[idx].col);
+    }
+}
+
+function checkWin() {
+    for (let r = 0; r < puzzle.size; r++) {
+        for (let c = 0; c < puzzle.size; c++) {
+            if (puzzle.grid[r][c] === '#') continue;
+            if (userGrid[r][c].toUpperCase() !== puzzle.answers[r][c].toUpperCase()) return false;
+        }
+    }
+    return true;
+}
+
+function handleWin() {
+    solved = true;
+    stopTimer();
+    document.getElementById('winTime').textContent = 'Your time: ' + formatTime(timerSeconds);
+    document.getElementById('winOverlay').classList.add('show');
+}
+
+function startTimer() {
+    stopTimer();
+    timerRunning = true;
+    timerInterval = setInterval(function() {
+        timerSeconds++;
+        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+    }, 1000);
+    showPauseIcon(true);
+}
+
+function stopTimer() {
+    timerRunning = false;
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    showPauseIcon(false);
+}
+
+function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function showPauseIcon(isPaused) {
+    document.getElementById('pauseIcon1').style.display = isPaused ? '' : 'none';
+    document.getElementById('pauseIcon2').style.display = isPaused ? '' : 'none';
+    document.getElementById('playIcon').style.display = isPaused ? 'none' : '';
+}
+
+document.getElementById('timerBtn').addEventListener('click', function() {
+    if (solved) return;
+    if (timerRunning) {
+        stopTimer();
+    } else {
+        startTimer();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (solved) return;
+    if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (direction !== 'across') {
+            direction = 'across';
+            selectCell(selectedRow, selectedCol);
+        } else {
+            let nc = selectedCol + 1;
+            while (nc < puzzle.size && puzzle.grid[selectedRow][nc] === '#') nc++;
+            if (nc < puzzle.size) selectCell(selectedRow, nc);
+        }
+    } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (direction !== 'across') {
+            direction = 'across';
+            selectCell(selectedRow, selectedCol);
+        } else {
+            let nc = selectedCol - 1;
+            while (nc >= 0 && puzzle.grid[selectedRow][nc] === '#') nc--;
+            if (nc >= 0) selectCell(selectedRow, nc);
+        }
+    } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (direction !== 'down') {
+            direction = 'down';
+            selectCell(selectedRow, selectedCol);
+        } else {
+            let nr = selectedRow + 1;
+            while (nr < puzzle.size && puzzle.grid[nr][selectedCol] === '#') nr++;
+            if (nr < puzzle.size) selectCell(nr, selectedCol);
+        }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (direction !== 'down') {
+            direction = 'down';
+            selectCell(selectedRow, selectedCol);
+        } else {
+            let nr = selectedRow - 1;
+            while (nr >= 0 && puzzle.grid[nr][selectedCol] === '#') nr--;
+            if (nr >= 0) selectCell(nr, selectedCol);
+        }
+    } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        if (userGrid[selectedRow][selectedCol] !== '') {
+            setLetter(selectedRow, selectedCol, '');
+        } else {
+            moveToPrev();
+            setLetter(selectedRow, selectedCol, '');
+        }
+    } else if (e.key === 'Tab') {
+        e.preventDefault();
+        if (e.shiftKey) {
+            const clues = puzzle.clues[direction];
+            const activeClue = getActiveClue();
+            if (activeClue) {
+                let idx = clues.indexOf(activeClue);
+                idx--;
+                if (idx < 0) {
+                    if (direction === 'across') {
+                        direction = 'down';
+                        const last = puzzle.clues.down[puzzle.clues.down.length - 1];
+                        selectCell(last.row, last.col);
+                    } else {
+                        direction = 'across';
+                        const last = puzzle.clues.across[puzzle.clues.across.length - 1];
+                        selectCell(last.row, last.col);
+                    }
+                } else {
+                    selectCell(clues[idx].row, clues[idx].col);
+                }
+            }
+        } else {
+            moveToNextClue();
+        }
+    } else if (/^[a-zA-Z]$/.test(e.key)) {
+        e.preventDefault();
+        setLetter(selectedRow, selectedCol, e.key.toUpperCase());
+        const clue = getActiveClue();
+        if (clue) {
+            let nextEmpty = null;
+            for (let i = 0; i < clue.length; i++) {
+                let r, c;
+                if (direction === 'across') {
+                    r = clue.row;
+                    c = clue.col + i;
+                } else {
+                    r = clue.row + i;
+                    c = clue.col;
+                }
+                if ((r !== selectedRow || c !== selectedCol) && userGrid[r][c] === '') {
+                    if (direction === 'across' ? c > selectedCol : r > selectedRow) {
+                        nextEmpty = { r: r, c: c };
+                        break;
+                    }
+                }
+            }
+            if (nextEmpty) {
+                selectCell(nextEmpty.r, nextEmpty.c);
+            } else {
+                moveToNext();
+            }
+        }
+        if (checkWin()) handleWin();
+    }
+});
+
+init();
+</script>
+</body>
+</html>

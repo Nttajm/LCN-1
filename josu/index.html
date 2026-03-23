@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="css/game.css">
     <link rel="stylesheet" href="css/arrows.css">
     <link rel="stylesheet" href="../css/standard.css">
+
+    <!-- Firebase compat SDK (needed to load downloaded songs from library) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-db.js"></script>
 </head>
 <body>
     <div class="sc_wrapper" id="startWrapper">
@@ -92,6 +97,10 @@
                 <img src="songs/ttto/main.png" alt="Background" id="img2">
 
             </div>
+            <button class="song-preview-launcher" id="songPreviewLauncher" aria-label="Start selected song">
+                <span class="song-preview-launcher-flash"></span>
+                <img src="assets/logo-josu.png" alt="Josu logo">
+            </button>
             <div class="explainer fade-left">
                 <!-- Header -->
                 <div class="explainer-header">
@@ -481,7 +490,7 @@
     import { getAllPlayableSongs } from './data/songs.js';
 
     // Get all songs the user can play (built-in + local library + their published songs)
-    const songs = getAllPlayableSongs();
+    const songs = await getAllPlayableSongs();
 
     // Developer mode - skip all menus and go straight to game
     const isdevForGame = false;
@@ -537,18 +546,45 @@
     }
 
     // Generate song HTML
+    function getDifficultyNoteData(diff) {
+        if (!diff) return [];
+        if (Array.isArray(diff.songData)) return diff.songData;
+        if (Array.isArray(diff.notes)) return diff.notes;
+        return [];
+    }
+
+    function getDefaultDifficultyIndex(song) {
+        const playableIdx = song.difficulties.findIndex(diff => getDifficultyNoteData(diff).length > 0);
+        return playableIdx >= 0 ? playableIdx : 0;
+    }
+
+    function getSongById(songId) {
+        if (songId == null) return null;
+        return songs.find(song => String(song.id || song.storeId) === String(songId)) || null;
+    }
+
+    function getSelectedSongItem() {
+        return document.querySelector('.song-item.selected');
+    }
+
     function generateSongHTML(song, isSelected = false) {
+        const defaultDiffIdx = getDefaultDifficultyIndex(song);
         const difficultiesHTML = song.difficulties.map((diff, idx) => {
             const mode = diff.mode || 'taiko';
+            const noteData = getDifficultyNoteData(diff);
+            const hasData = noteData.length > 0;
+            const noDataClass = hasData ? '' : ' no-data';
             const modeIcon = mode === 'updown'
                 ? `<span class="pill-mode-icon arrow-mode-icon" title="Arrow"><svg viewBox="0 0 24 24" fill="white"><polygon points="12,2 18,10 14,10 14,14 18,14 12,22 6,14 10,14 10,10 6,10"/></svg></span>`
                 : `<span class="pill-mode-icon taiko-mode-icon" title="Taiko"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="white"/></svg></span>`;
+            const noDataBadge = hasData ? '' : '<span class="no-data-badge">NO DATA</span>';
             return `
-            <div class="song-difficulty-pill diff-${getDiffLevel(diff.stars)}${idx === 0 ? ' selected' : ''}" data-diff-index="${idx}" data-mode="${mode}">
+            <div class="song-difficulty-pill diff-${getDiffLevel(diff.stars)}${idx === defaultDiffIdx ? ' selected' : ''}${noDataClass}" data-diff-index="${idx}" data-mode="${mode}" data-has-data="${hasData}">
                 ${modeIcon}
                 <div class="diff-header">
                     <span class="difficulty-name">${diff.name}</span>
                     <span class="difficulty-mapper">mapped by ${diff.mapper}</span>
+                    ${noDataBadge}
                 </div>
                 <div class="diff-stars">
                     <span class="difficulty-star">★ ${diff.stars.toFixed(2)}</span>
@@ -560,8 +596,8 @@
         }).join('');
 
         return `
-            <div class="song-item${isSelected ? ' selected' : ''}" data-song-id="${song.id}">
-                <div class="song-pill" style="background-image: url(${song.image});">
+            <div class="song-item${isSelected ? ' selected' : ''}" data-song-id="${song.id || song.storeId}">
+                <div class="song-pill" style="background-image: url(${song.image || song.coverImage});">
                     <div class="selected-item">
                         <span class="selected-icon">›</span>
                     </div>
@@ -599,6 +635,7 @@
 
     playBtn.forEach(btn => {
         btn.addEventListener('click', () => {
+            previewAudioUnlocked = true;
             // Add fade-out class to all menu bar items (staggered via CSS)
             const mbarItems = document.querySelectorAll('.mbar-item');
             mbarItems.forEach(item => item.classList.add('fade-out'));
@@ -632,6 +669,7 @@
                     // Animate back button in from left
                     const backBtn = document.getElementById('songSelectBackBtn');
                     if (backBtn) backBtn.classList.remove('fade-left');
+                    syncSongPreview();
                 }, 50);
             }, 550);
         });
@@ -647,10 +685,248 @@
         window.location.href = 'browse.html';
     });
 
+    // Exit button → navigate back (or close if opened directly)
+    document.querySelector('.mbar-item.exit').addEventListener('click', () => {
+        stopSongPreview();
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+    });
+
     // Background image handling
     const img1 = document.getElementById('img1');
     const img2 = document.getElementById('img2');
+    const songPreviewLauncher = document.getElementById('songPreviewLauncher');
     let currentActiveImg = 'img1'; // Track which image is currently visible
+
+    // Song-select preview audio
+    let previewAudio = null;
+    let previewAudioContext = null;
+    let previewAnalyser = null;
+    let previewSource = null;
+    let previewDataArray = null;
+    let previewAnimationId = null;
+    let previewCurrentSongId = null;
+    let previewScale = 1;
+    let previewAudioUnlocked = false;
+
+    // Spectral-flux beat detection state
+    let prevFluxData = null;
+    let fluxHistory = [];
+    let beatPulse = 0;
+    let lastBeatTime = 0;
+    const FLUX_HISTORY_SIZE = 30; // ~0.5 s rolling window at 60 fps
+
+    function isSongSelectVisible() {
+        return startWrapper.classList.contains('dn') && !document.getElementById('gameWrapper').classList.contains('in-game');
+    }
+
+    function cleanupPreviewAudioGraph() {
+        if (previewSource) {
+            try {
+                previewSource.disconnect();
+            } catch (e) {}
+            previewSource = null;
+        }
+        previewAnalyser = null;
+        previewDataArray = null;
+    }
+
+    function updatePreviewLauncherScale() {
+        let targetScale;
+
+        if (previewAnalyser && previewDataArray && previewAudio && !previewAudio.paused) {
+            previewAnalyser.getByteFrequencyData(previewDataArray);
+
+            // Spectral flux onset detection:
+            // Compare current frame to previous frame – a sudden energy increase
+            // in the bass/kick range (lower 30 % of bins) signals a beat onset.
+            const beatBins = Math.max(1, Math.floor(previewDataArray.length * 0.3));
+            let flux = 0;
+            if (prevFluxData && prevFluxData.length === previewDataArray.length) {
+                for (let i = 0; i < beatBins; i++) {
+                    const diff = previewDataArray[i] - prevFluxData[i];
+                    if (diff > 0) flux += diff; // only count rises, not falls
+                }
+            }
+            flux /= (beatBins * 255); // normalise 0–1
+
+            // Snapshot this frame for the next comparison
+            if (!prevFluxData || prevFluxData.length !== previewDataArray.length) {
+                prevFluxData = new Uint8Array(previewDataArray.length);
+            }
+            prevFluxData.set(previewDataArray);
+
+            // Rolling history for an adaptive threshold (mean + σ-based)
+            fluxHistory.push(flux);
+            if (fluxHistory.length > FLUX_HISTORY_SIZE) fluxHistory.shift();
+            const mean = fluxHistory.reduce((s, v) => s + v, 0) / fluxHistory.length;
+            const variance = fluxHistory.reduce((s, v) => s + (v - mean) ** 2, 0) / fluxHistory.length;
+            const threshold = mean + 1.3 * Math.sqrt(variance);
+
+            // Fire a beat pulse when flux crosses the adaptive threshold
+            // (minimum 170 ms between pulses to avoid double-triggers)
+            const now = performance.now();
+            if (flux > threshold && flux > 0.015 && now - lastBeatTime > 170) {
+                beatPulse = 1.0;
+                lastBeatTime = now;
+            }
+
+            // Smooth exponential decay – snappy attack, clean release
+            beatPulse *= 0.82;
+
+            targetScale = 0.92 + beatPulse * 0.38;
+        } else {
+            // Idle: gentle sine-wave breathe while paused / no audio
+            prevFluxData = null;
+            fluxHistory = [];
+            beatPulse = 0;
+            targetScale = 0.985 + Math.sin(performance.now() / 380) * 0.018;
+        }
+
+        targetScale = Math.max(0.5, Math.min(1.7, targetScale));
+        previewScale += (targetScale - previewScale) * 0.8;
+        songPreviewLauncher.style.setProperty('--preview-scale', previewScale.toFixed(4));
+        previewAnimationId = requestAnimationFrame(updatePreviewLauncherScale);
+    }
+
+    function ensurePreviewAnimation() {
+        if (previewAnimationId) return;
+        previewAnimationId = requestAnimationFrame(updatePreviewLauncherScale);
+    }
+
+    function stopSongPreview(resetScale = true) {
+        if (previewAnimationId) {
+            cancelAnimationFrame(previewAnimationId);
+            previewAnimationId = null;
+        }
+        if (previewAudio) {
+            previewAudio.pause();
+            previewAudio.currentTime = 0;
+            previewAudio.src = '';
+            previewAudio.load();
+            previewAudio = null;
+        }
+        cleanupPreviewAudioGraph();
+        previewCurrentSongId = null;
+        // Reset beat detection state
+        prevFluxData = null;
+        fluxHistory = [];
+        beatPulse = 0;
+        if (resetScale) {
+            previewScale = 1;
+            songPreviewLauncher.style.setProperty('--preview-scale', '1');
+        }
+    }
+
+    async function startSongPreview(songId) {
+        if (!previewAudioUnlocked || !isSongSelectVisible()) return;
+
+        const song = getSongById(songId);
+        const audioPath = song?.audio || song?.audioUrl;
+
+        if (!song || !audioPath) {
+            stopSongPreview(false);
+            ensurePreviewAnimation();
+            return;
+        }
+
+        if (previewCurrentSongId === songId && previewAudio && !previewAudio.paused) {
+            ensurePreviewAnimation();
+            return;
+        }
+
+        stopSongPreview(false);
+        previewCurrentSongId = songId;
+
+        previewAudio = new Audio();
+        previewAudio.crossOrigin = 'anonymous';
+        previewAudio.preload = 'auto';
+        previewAudio.loop = true;
+        previewAudio.volume = 0.32;
+        previewAudio.src = audioPath;
+
+        try {
+            if (!previewAudioContext) {
+                previewAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (previewAudioContext.state === 'suspended') {
+                await previewAudioContext.resume();
+            }
+
+            previewAnalyser = previewAudioContext.createAnalyser();
+            previewAnalyser.fftSize = 256; // more bins → better frequency resolution for flux
+            previewAnalyser.smoothingTimeConstant = 0.4; // lower smoothing → transients survive
+            previewDataArray = new Uint8Array(previewAnalyser.frequencyBinCount);
+            previewSource = previewAudioContext.createMediaElementSource(previewAudio);
+            previewSource.connect(previewAnalyser);
+            previewAnalyser.connect(previewAudioContext.destination);
+        } catch (e) {
+            cleanupPreviewAudioGraph();
+        }
+
+        try {
+            await previewAudio.play();
+        } catch (e) {
+            stopSongPreview(false);
+        }
+
+        ensurePreviewAnimation();
+    }
+
+    function syncSongPreview() {
+        if (!isSongSelectVisible()) {
+            stopSongPreview();
+            return;
+        }
+
+        if (!previewAudioUnlocked) {
+            ensurePreviewAnimation();
+            return;
+        }
+
+        if (currentSelectedSong.songId) {
+            startSongPreview(currentSelectedSong.songId);
+        } else {
+            stopSongPreview(false);
+            ensurePreviewAnimation();
+        }
+    }
+
+    function flashPreviewLauncherAndStart() {
+        const songItem = getSelectedSongItem();
+        if (!songItem || isLoading) return;
+
+        const selectedDiff = songItem.querySelector('.song-difficulty-pill.selected');
+        if (!selectedDiff || selectedDiff.dataset.hasData === 'false') {
+            showNoDataError();
+            return;
+        }
+
+        previewAudioUnlocked = true;
+        songPreviewLauncher.classList.remove('launching');
+        void songPreviewLauncher.offsetWidth;
+        songPreviewLauncher.classList.add('launching');
+
+        // Launch animation: scale down and move to top 30%
+        songPreviewLauncher.classList.remove('returning', 'reset-instant');
+        void songPreviewLauncher.offsetWidth;
+        songPreviewLauncher.classList.add('launched');
+
+        setTimeout(() => {
+            songPreviewLauncher.classList.remove('launching');
+        }, 1000);
+
+        setTimeout(() => {
+            if (!isLoading) {
+                startLoadingSequence(songItem);
+            }
+        }, 160);
+    }
+
+    songPreviewLauncher.addEventListener('click', flashPreviewLauncherAndStart);
 
     // ══════════════════════════════════════════════════════════════
     // PARALLAX MOUSE EFFECT
@@ -693,6 +969,7 @@
     
     // Start parallax animation loop
     updateParallax();
+    ensurePreviewAnimation();
 
     function changeBackground(imageSrc) {
         const activeImg = currentActiveImg === 'img1' ? img1 : img2;
@@ -725,14 +1002,25 @@
         const diffMapper = selectedDifficultyPill.querySelector('.difficulty-mapper')?.textContent || '';
 
         // Look up full song data
-        const songId = parseInt(songItem.dataset.songId);
+        const songId = songItem.dataset.songId;
         const diffIdx = parseInt(selectedDifficultyPill.dataset.diffIndex);
-        const songData = songs.find(s => s.id === songId);
+        const songData = getSongById(songId);
         const diffData = songData?.difficulties[diffIdx];
 
         const mode = diffData?.mode === 'updown' ? 'Arrow' : 'Taiko';
         const modeIcon = diffData?.mode === 'updown' ? '↕' : '🥁';
-        const length = songData?.time || '--:--';
+        let length = songData?.time || '';
+        if (!length && diffData) {
+            const noteData = getDifficultyNoteData(diffData);
+            if (noteData.length > 0) {
+                const maxMs = Math.max(...noteData.map(n => typeof n.time === 'number' ? n.time : 0));
+                if (maxMs > 0) {
+                    const s = Math.floor(maxMs / 1000);
+                    length = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+                }
+            }
+        }
+        if (!length) length = '--:--';
         const speed = diffData?.speed != null ? diffData.speed + '×' : '1.0×';
         const ranked = songData?.ranked ? 'Ranked' : 'Unranked';
 
@@ -789,9 +1077,12 @@
             // Store initial selected song info
             const titleEl = selectedSongItem.querySelector('.song-title');
             const artistEl = selectedSongItem.querySelector('.song-artist');
+            currentSelectedSong.songId = selectedSongItem.dataset.songId || null;
             if (titleEl) currentSelectedSong.title = titleEl.textContent;
             if (artistEl) currentSelectedSong.artist = artistEl.textContent;
         }
+
+        syncSongPreview();
     }
 
     // Scroll-based width animation for song items
@@ -865,11 +1156,12 @@
         if (artistEl) currentSelectedSong.artist = artistEl.textContent;
         
         // Store song ID for accessing full song data later
-        const songId = parseInt(songItem.dataset.songId);
-        if (!isNaN(songId)) currentSelectedSong.songId = songId;
+        currentSelectedSong.songId = songItem.dataset.songId || null;
         
         // Update explainer with new song info
         updateExplainer(songItem);
+        previewAudioUnlocked = true;
+        syncSongPreview();
         
         // Re-calculate widths after selection change
         setTimeout(updateSongWidths, 50);
@@ -994,6 +1286,12 @@
     let isLoading = false;
     let ingame = false;
     let isPaused = false;
+    let pauseStartTime = 0; // Track when pause began (for clock correction)
+    let countdownIntervalId = null;
+    let pendingAudioStartTimeout = null;
+    let audioFadeInterval = null;
+    let pendingRestartTimeout = null;
+    let gameSessionToken = 0;
     const pauseMenu = document.getElementById('pauseMenu');
     const pauseContinue = document.getElementById('pauseContinue');
     const pauseRetry = document.getElementById('pauseRetry');
@@ -1002,6 +1300,7 @@
     function startLoadingSequence(songItem) {
         if (isLoading) return;
         isLoading = true;
+        stopSongPreview();
 
         // Get song info
         const title = songItem.querySelector('.song-title')?.textContent || '';
@@ -1010,8 +1309,7 @@
         const bgImage = songPill?.style.backgroundImage?.replace(/url\(["']?([^"']*)["']?\)/, '$1') || '';
         
         // Store song ID for accessing full song data later
-        const songId = parseInt(songItem.dataset.songId);
-        if (!isNaN(songId)) currentSelectedSong.songId = songId;
+        currentSelectedSong.songId = songItem.dataset.songId || null;
         
         // Get selected difficulty info
         const selectedDiff = songItem.querySelector('.song-difficulty-pill.selected');
@@ -1068,8 +1366,8 @@
                     // Use GIF if available, otherwise use static image
                     const lefwrito = document.querySelector('.lefwrito');
                     if (lefwrito && currentSelectedSong.songId !== null) {
-                        const songData = songs.find(s => s.id === currentSelectedSong.songId);
-                        const bgToUse = songData?.inGameGif || currentSelectedSong.bgImage;
+                        const songData = getSongById(currentSelectedSong.songId);
+                        const bgToUse = songData?.inGameGif || songData?.coverImage || currentSelectedSong.bgImage;
                         lefwrito.style.backgroundImage = `url(${bgToUse})`;
                     } else if (lefwrito && currentSelectedSong.bgImage) {
                         lefwrito.style.backgroundImage = `url(${currentSelectedSong.bgImage})`;
@@ -1078,6 +1376,13 @@
                     // Show game wrapper
                     gameWrapper.classList.remove('dn');
                     gameWrapper.classList.add('in-game');
+                    
+                    // Instantly reset launcher and hide it during gameplay
+                    songPreviewLauncher.classList.add('reset-instant');
+                    songPreviewLauncher.classList.remove('launched', 'returning');
+                    void songPreviewLauncher.offsetWidth;
+                    songPreviewLauncher.classList.remove('reset-instant');
+                    songPreviewLauncher.style.display = 'none';
                     
                     // Set ingame to true
                     ingame = true;
@@ -1103,6 +1408,15 @@
             loadingTimeout = null;
         }
 
+        // Show and smoothly return the launcher to its corner position
+        songPreviewLauncher.style.display = '';
+        songPreviewLauncher.classList.remove('launched');
+        songPreviewLauncher.classList.add('returning');
+        songPreviewLauncher.addEventListener('transitionend', function onReturn() {
+            songPreviewLauncher.classList.remove('returning');
+            songPreviewLauncher.removeEventListener('transitionend', onReturn);
+        });
+
         // Hide game wrapper
         gameWrapper.classList.add('dn');
         gameWrapper.classList.remove('in-game');
@@ -1124,12 +1438,14 @@
 
         // Reset loading bar
         loadingBarFill.style.width = '0%';
+        syncSongPreview();
     }
 
     // Click on difficulty pill to start loading
     songsContainer.addEventListener('click', (e) => {
         const diffPill = e.target.closest('.song-difficulty-pill');
         if (!diffPill || isLoading) return;
+        previewAudioUnlocked = true;
 
         const songItem = diffPill.closest('.song-item');
         if (!songItem) return;
@@ -1140,12 +1456,55 @@
         songItem.querySelectorAll('.song-difficulty-pill').forEach(p => p.classList.remove('selected'));
         diffPill.classList.add('selected');
         updateExplainer(songItem);
+        syncSongPreview();
 
         // Only start loading if pill was already selected (second click)
         if (alreadySelected) {
-            startLoadingSequence(songItem);
+            // Check if this difficulty has data before loading
+            if (diffPill.dataset.hasData === 'false') {
+                showNoDataError();
+                return;
+            }
+            // Trigger the same launcher animation as clicking the logo
+            songPreviewLauncher.classList.remove('launching');
+            void songPreviewLauncher.offsetWidth;
+            songPreviewLauncher.classList.add('launching');
+            songPreviewLauncher.classList.remove('returning', 'reset-instant');
+            void songPreviewLauncher.offsetWidth;
+            songPreviewLauncher.classList.add('launched');
+            setTimeout(() => {
+                songPreviewLauncher.classList.remove('launching');
+            }, 1000);
+            setTimeout(() => {
+                if (!isLoading) startLoadingSequence(songItem);
+            }, 160);
         }
     });
+
+    // Show error when trying to play a song with no data
+    function showNoDataError() {
+        // Create a temporary error toast
+        const toast = document.createElement('div');
+        toast.className = 'no-data-toast';
+        toast.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>No beatmap data for this difficulty</span>
+        `;
+        document.body.appendChild(toast);
+        
+        // Animate in
+        requestAnimationFrame(() => toast.classList.add('show'));
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
     // Song select back button – cancels loading if active, otherwise returns to start screen
     const songSelectBackBtn = document.getElementById('songSelectBackBtn');
@@ -1154,6 +1513,8 @@
             cancelLoadingSequence();
             return;
         }
+
+        stopSongPreview();
 
         const songsEl = document.querySelector('.songs');
         const filterEl = document.querySelector('.filter-panel');
@@ -1202,29 +1563,70 @@
     function togglePauseMenu() {
         isPaused = !isPaused;
         if (isPaused) {
+            pauseStartTime = performance.now();
             pauseMenu.classList.add('active');
-            // Pause audio
             if (gameAudio) gameAudio.pause();
         } else {
+            // Shift game clocks forward by paused duration so elapsed time is accurate
+            const pausedDuration = performance.now() - pauseStartTime;
+            gameStartTime += pausedDuration;
+            arrowStartTime += pausedDuration;
             pauseMenu.classList.remove('active');
-            // Resume audio
             if (gameAudio) gameAudio.play();
         }
     }
 
     function resumeGame() {
+        const pausedDuration = performance.now() - pauseStartTime;
+        gameStartTime += pausedDuration;
+        arrowStartTime += pausedDuration;
         isPaused = false;
         pauseMenu.classList.remove('active');
-        // Resume audio
         if (gameAudio) gameAudio.play();
     }
 
+    function clearPendingGameTimers() {
+        if (countdownIntervalId) {
+            clearInterval(countdownIntervalId);
+            countdownIntervalId = null;
+        }
+        if (pendingAudioStartTimeout) {
+            clearTimeout(pendingAudioStartTimeout);
+            pendingAudioStartTimeout = null;
+        }
+        if (audioFadeInterval) {
+            clearInterval(audioFadeInterval);
+            audioFadeInterval = null;
+        }
+        if (pendingRestartTimeout) {
+            clearTimeout(pendingRestartTimeout);
+            pendingRestartTimeout = null;
+        }
+
+        countdownOverlay.classList.remove('active');
+        countdownNumber.classList.remove('animate');
+    }
+
     function quitGame() {
-        isPaused = false;
+        gameSessionToken++;
         ingame = false;
+        // Stop audio immediately before anything else to prevent it bleeding through
+        if (gameAudio) {
+            gameAudio.pause();
+            gameAudio.src = '';
+        }
+        isPaused = false;
+        clearPendingGameTimers();
+
+        // Stop the game and audio
+        stopTaikoGame();
+        currentGameMode = 'taiko';
+
         pauseMenu.classList.remove('active');
+        resultsScreen.classList.remove('active');
+        songProgressFill.style.width = '0%';
         
-        // Hide game wrapper
+        // Hide game wrapper and clear leftover DOM
         gameWrapper.classList.add('dn');
         gameWrapper.classList.remove('in-game');
         
@@ -1242,10 +1644,15 @@
         loadingBarFill.style.width = '0%';
         isLoading = false;
 
-        // Stop the game (both modes)
-        stopTaikoGame();
-        currentGameMode = 'taiko';
+        // Show launcher again and reset its state
+        songPreviewLauncher.style.display = '';
+        songPreviewLauncher.classList.remove('launched', 'launching', 'returning');
+
+        syncSongPreview();
     }
+
+    // Quiter overlay — click anywhere on it to quit immediately
+    document.querySelector('.quiter').addEventListener('click', quitGame);
 
     pauseContinue.addEventListener('click', resumeGame);
     pauseRetry.addEventListener('click', () => {
@@ -1254,7 +1661,8 @@
         pauseMenu.classList.remove('active');
         stopTaikoGame();
         // Small delay before restarting to ensure cleanup
-        setTimeout(() => {
+        pendingRestartTimeout = setTimeout(() => {
+            pendingRestartTimeout = null;
             startTaikoGame();
         }, 100);
     });
@@ -1328,15 +1736,30 @@
     function getCurrentSongInfo() {
         const selectedSongItem = document.querySelector('.song-item.selected');
         if (!selectedSongItem) return null;
-        const songId = parseInt(selectedSongItem.dataset.songId);
-        const selectedDiffPill = selectedSongItem.querySelector('.song-difficulty-pill.selected');
-        if (!selectedDiffPill) return null;
-        const diffIdx = parseInt(selectedDiffPill.dataset.diffIndex);
-        const song = songs.find(s => s.id === songId);
-        if (!song || !song.difficulties[diffIdx]) return null;
-        const diff = song.difficulties[diffIdx];
+        const songId = selectedSongItem.dataset.songId;
+        const song = getSongById(songId);
+        if (!song || !Array.isArray(song.difficulties) || song.difficulties.length === 0) return null;
+
+        let selectedDiffPill = selectedSongItem.querySelector('.song-difficulty-pill.selected');
+        let diffIdx = selectedDiffPill ? parseInt(selectedDiffPill.dataset.diffIndex) : -1;
+        let diff = Number.isInteger(diffIdx) ? song.difficulties[diffIdx] : null;
+
+        if (!diff || getDifficultyNoteData(diff).length === 0) {
+            diffIdx = getDefaultDifficultyIndex(song);
+            diff = song.difficulties[diffIdx] || null;
+
+            if (selectedDiffPill) selectedDiffPill.classList.remove('selected');
+
+            const fallbackPill = selectedSongItem.querySelector(`.song-difficulty-pill[data-diff-index="${diffIdx}"]`);
+            if (fallbackPill) {
+                fallbackPill.classList.add('selected');
+                selectedDiffPill = fallbackPill;
+            }
+        }
+
+        if (!diff) return null;
         return {
-            songData: diff.songData || null,
+            songData: getDifficultyNoteData(diff),
             speed: diff.speed || 1.0,
             time: song.time || '0:00',
             title: song.title,
@@ -1344,7 +1767,7 @@
             diffName: diff.name,
             stars: diff.stars,
             mapper: diff.mapper,
-            audio: song.audio || null,
+            audio: song.audio || song.audioUrl || null,
             audioCorrection: song.audioCorrection || 0,
             mode: diff.mode || 'taiko'
         };
@@ -1619,6 +2042,7 @@
     });
 
     function startArrowGame(sd, spd, sTime, audioPath, audioOffset) {
+        const sessionToken = ++gameSessionToken;
         arrowFallTime = ARROW_FALL_TIME / spd;
         arrowStats = {
             perfect: 0, great: 0, ok: 0, miss: 0,
@@ -1655,6 +2079,7 @@
 
         // Countdown then start
         startCountdown(() => {
+            if (sessionToken !== gameSessionToken) return;
             arrowStartTime = performance.now();
             arrowGameRunning = true;
             gameRunning = true; // For pause detection
@@ -1683,6 +2108,7 @@
         let audioPath = null;
         let audioOffset = 0; // Audio correction in ms (negative = audio starts earlier)
         let gameMode = 'taiko';
+        const sessionToken = ++gameSessionToken;
         
         // If no data passed, get from current selection
         if (!sd) {
@@ -1717,6 +2143,8 @@
         if (currentGameMode === 'updown') {
             if (!sd || sd.length === 0) {
                 console.warn('No song data for arrow mode');
+                showNoDataError();
+                quitGame();
                 return;
             }
             startArrowGame(sd, spd, sTime, audioPath, audioOffset);
@@ -1725,6 +2153,8 @@
         
         if (!sd || sd.length === 0) {
             console.warn('No song data available for this difficulty');
+            showNoDataError();
+            quitGame();
             return;
         }
         
@@ -1764,6 +2194,7 @@
         
         // Show countdown and start after delay
         startCountdown(() => {
+            if (sessionToken !== gameSessionToken) return;
             gameStartTime = performance.now();
             gameRunning = true;
             
@@ -1812,6 +2243,8 @@
             // Visualization won't work but audio will play
             analyser = null;
             audioSource = null;
+            // Re-trigger playback on the fallback audio
+            playAudioWithFadeIn(currentAudioOffset);
         }, { once: true });
         
         // Setup Web Audio API for visualization
@@ -1893,6 +2326,14 @@
     //              positive = audio starts later (notes come before audio)
     function playAudioWithFadeIn(audioOffset = 0) {
         if (!gameAudio) return;
+        if (audioFadeInterval) {
+            clearInterval(audioFadeInterval);
+            audioFadeInterval = null;
+        }
+        if (pendingAudioStartTimeout) {
+            clearTimeout(pendingAudioStartTimeout);
+            pendingAudioStartTimeout = null;
+        }
         
         // Resume audio context if suspended (required for some browsers)
         if (audioContext && audioContext.state === 'suspended') {
@@ -1906,6 +2347,8 @@
         const delayMs = Math.max(0, audioOffset); // Delay if positive offset
         
         const startAudio = () => {
+            pendingAudioStartTimeout = null;
+            if (!gameRunning && !arrowGameRunning) return;
             gameAudio.currentTime = startTimeMs / 1000; // Convert ms to seconds
             gameAudio.volume = 0;
             gameAudio.play().catch(e => console.warn('Audio playback failed:', e));
@@ -1917,11 +2360,17 @@
             const volumeStep = 1 / fadeInSteps;
             let currentStep = 0;
             
-            const fadeInterval = setInterval(() => {
+            audioFadeInterval = setInterval(() => {
+                if (!gameAudio || (!gameRunning && !arrowGameRunning)) {
+                    clearInterval(audioFadeInterval);
+                    audioFadeInterval = null;
+                    return;
+                }
                 currentStep++;
                 if (currentStep >= fadeInSteps) {
                     gameAudio.volume = 1;
-                    clearInterval(fadeInterval);
+                    clearInterval(audioFadeInterval);
+                    audioFadeInterval = null;
                 } else {
                     gameAudio.volume = Math.min(1, volumeStep * currentStep);
                 }
@@ -1933,7 +2382,7 @@
         
         // If positive offset, delay the audio start
         if (delayMs > 0) {
-            setTimeout(startAudio, delayMs);
+            pendingAudioStartTimeout = setTimeout(startAudio, delayMs);
         } else {
             startAudio();
         }
@@ -1941,6 +2390,15 @@
     
     // Stop audio
     function stopAudio() {
+        if (pendingAudioStartTimeout) {
+            clearTimeout(pendingAudioStartTimeout);
+            pendingAudioStartTimeout = null;
+        }
+        if (audioFadeInterval) {
+            clearInterval(audioFadeInterval);
+            audioFadeInterval = null;
+        }
+
         // Stop equalizer animation
         if (equalizerAnimationId) {
             cancelAnimationFrame(equalizerAnimationId);
@@ -1955,6 +2413,9 @@
         if (gameAudio) {
             gameAudio.pause();
             gameAudio.currentTime = 0;
+            gameAudio.src = '';
+            gameAudio.load();
+            gameAudio = null;
         }
         
         // Disconnect audio source for next song
@@ -1970,15 +2431,18 @@
     
     // Countdown before game starts
     function startCountdown(callback) {
+        clearPendingGameTimers();
         countdownOverlay.classList.add('active');
         let count = 3;
         countdownNumber.textContent = count;
         countdownNumber.classList.add('animate');
         
-        const countdownInterval = setInterval(() => {
+        countdownIntervalId = setInterval(() => {
+            if (isPaused) return; // Freeze countdown while paused
             count--;
             if (count <= 0) {
-                clearInterval(countdownInterval);
+                clearInterval(countdownIntervalId);
+                countdownIntervalId = null;
                 countdownOverlay.classList.remove('active');
                 countdownNumber.classList.remove('animate');
                 callback();
@@ -1993,14 +2457,18 @@
     }
 
     function stopTaikoGame() {
+        clearPendingGameTimers();
         gameRunning = false;
-        if (currentGameMode === 'updown') {
-            stopArrowGame();
-        }
+        arrowGameRunning = false;
+        // Always clean up both game modes
+        stopArrowGame();
         if (noteTrack) noteTrack.innerHTML = '';
         gameNotes = [];
         timingLines = [];
-        arrowGameRunning = false;
+        songNoteData = [];
+        arrowSongData = [];
+        nextNoteIdx = 0;
+        arrowNextIdx = 0;
         stopAudio();
     }
 
@@ -2383,7 +2851,8 @@
     document.getElementById('resultsRetry').addEventListener('click', () => {
         hideResults();
         // Small delay before restarting to ensure cleanup
-        setTimeout(() => {
+        pendingRestartTimeout = setTimeout(() => {
+            pendingRestartTimeout = null;
             startTaikoGame();
         }, 100);
     });
