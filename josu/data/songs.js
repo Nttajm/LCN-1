@@ -62,9 +62,10 @@ export const songs = [
         artist: "Kanye West",
         time: '3:58',
         image: 'songs/flashing_lights/main.png',
+        audio: 'songs/flashing_lights/audio.mp3',
         ranked: true,
         difficulties: [
-            { name: "medium", mapper: "joelM", stars: 2.67 },
+            { name: "medium", mapper: "joelM", stars: 4.67, songData: songKeys.flashingLights.medium, speed: 1.4 },
         ]
     },
     {
@@ -102,15 +103,4 @@ export const songs = [
             { name: "Easy", mapper: "joelM", stars: 1.03 },
         ]
     },
-    {
-        id: 5,
-        title: "Dreaming",
-        artist: "Artist Name",
-        time: '4:02',
-        image: 'songs/ttto/main.png',
-        ranked: true,
-        difficulties: [
-            { name: "Hard", mapper: "joelM", stars: 3.50 },
-        ]
-    }
 ]

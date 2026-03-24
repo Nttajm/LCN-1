@@ -621,6 +621,12 @@
         });
     });
 
+    // Edit button - navigate to editor
+    const editBtn = document.querySelector('.mbar-item.edit');
+    editBtn.addEventListener('click', () => {
+        window.location.href = 'editor.html';
+    });
+
     // Background image handling
     const img1 = document.getElementById('img1');
     const img2 = document.getElementById('img2');
