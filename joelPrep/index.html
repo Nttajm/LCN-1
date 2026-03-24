@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JoelPrep — SAT Practice</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3347;
+    --accent: #6c63ff;
+    --accent-hover: #5a52e0;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --orange: #f39c12;
+    --text: #e8e8f0;
+    --text-dim: #8b8da3;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  nav .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); cursor: pointer; }
+  nav .nav-links { display: flex; gap: 24px; }
+  nav .nav-links a {
+    color: var(--text-dim); text-decoration: none; font-size: .95rem;
+    transition: color .2s;
+  }
+  nav .nav-links a:hover, nav .nav-links a.active { color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── DASHBOARD ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-card .stat-value {
+    font-size: 2rem; font-weight: 700; color: var(--accent);
+  }
+  .stat-card .stat-label {
+    font-size: .85rem; color: var(--text-dim); margin-top: 4px;
+  }
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+  .history-table th, .history-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: .9rem;
+  }
+  .history-table th {
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  /* ── SETUP ── */
+  h2 { margin-bottom: 20px; font-size: 1.5rem; }
+  h3 { margin-bottom: 12px; font-size: 1.15rem; }
+  .section-label {
+    font-size: .8rem; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 12px; font-weight: 600;
+  }
+  .option-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+  .option-btn {
+    padding: 12px 24px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: .95rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .option-btn:hover { border-color: var(--accent); }
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: rgba(108, 99, 255, .15);
+    color: #fff;
+  }
+  .btn-primary {
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled {
+    opacity: .4; cursor: not-allowed;
+  }
+
+  /* ── QUIZ ── */
+  .quiz-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .timer {
+    font-size: 1.6rem; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    min-width: 110px; text-align: right;
+  }
+  .timer.warn { color: var(--orange); }
+  .timer.danger { color: var(--red); }
+  .progress-bar-wrap {
+    width: 100%; height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width .3s;
+  }
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+  .question-number {
+    font-size: .8rem; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .question-subject-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: rgba(108,99,255,.15);
+    color: var(--accent);
+    border-radius: 6px;
+    font-size: .75rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .question-text {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .passage-text {
+    font-size: .95rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--text-dim);
+  }
+  .choices { display: flex; flex-direction: column; gap: 12px; }
+  .choice-btn {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: .95rem;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: left;
+    line-height: 1.5;
+  }
+  .choice-btn:hover { border-color: var(--accent); }
+  .choice-btn.selected {
+    border-color: var(--accent);
+    background: rgba(108,99,255,.12);
+  }
+  .choice-btn.correct {
+    border-color: var(--green);
+    background: rgba(46,204,113,.12);
+  }
+  .choice-btn.incorrect {
+    border-color: var(--red);
+    background: rgba(231,76,60,.12);
+  }
+  .choice-letter {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--border);
+    font-weight: 700; font-size: .85rem;
+  }
+  .quiz-nav {
+    display: flex; justify-content: space-between; margin-top: 20px;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .btn-secondary {
+    padding: 12px 28px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: .95rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── RESULTS ── */
+  .results-hero {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .results-score {
+    font-size: 4rem; font-weight: 800; color: var(--accent);
+  }
+  .results-subtitle {
+    font-size: 1.1rem; color: var(--text-dim); margin-top: 8px;
+  }
+  .results-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .breakdown-item {
+    text-align: center;
+    padding: 16px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+  }
+  .breakdown-value { font-size: 1.5rem; font-weight: 700; }
+  .breakdown-label { font-size: .8rem; color: var(--text-dim); margin-top: 4px; }
+  .review-item {
+    padding: 20px;
+    margin-bottom: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .review-item.was-correct { border-left: 4px solid var(--green); }
+  .review-item.was-incorrect { border-left: 4px solid var(--red); }
+  .review-answer {
+    margin-top: 8px; font-size: .9rem;
+  }
+  .explanation {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 8px;
+    font-size: .88rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .tag-correct { color: var(--green); font-weight: 600; }
+  .tag-incorrect { color: var(--red); font-weight: 600; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+  .badge-math { background: rgba(108,99,255,.15); color: var(--accent); }
+  .badge-english { background: rgba(243,156,18,.15); color: var(--orange); }
+  .badge-easy { background: rgba(46,204,113,.15); color: var(--green); }
+  .badge-medium { background: rgba(243,156,18,.15); color: var(--orange); }
+  .badge-hard { background: rgba(231,76,60,.15); color: var(--red); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    nav { padding: 12px 16px; }
+    .container { padding: 20px 12px; }
+    .question-card { padding: 20px; }
+    .quiz-header { flex-direction: column; align-items: flex-start; }
+    .timer { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════ NAV ════════ -->
+<nav>
+  <div class="logo" onclick="showPage('dashboard')">JoelPrep</div>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('dashboard')" id="nav-dashboard" class="active">Dashboard</a>
+    <a href="#" onclick="showPage('setup')" id="nav-setup">Practice</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- ════════ DASHBOARD ════════ -->
+  <div id="page-dashboard" class="page active">
+    <h2>Dashboard</h2>
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>Recent Sessions</h3>
+      <div id="history-wrap">
+        <p style="color:var(--text-dim); margin-top:12px;">No sessions yet. Start practicing!</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h3>Performance by Subject</h3>
+      <div id="subject-breakdown" style="margin-top:16px">
+        <p style="color:var(--text-dim);">Complete a session to see breakdowns.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SETUP ════════ -->
+  <div id="page-setup" class="page">
+    <h2>Start a Practice Session</h2>
+
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-label">Subject</div>
+      <div class="option-group" id="subject-options">
+        <button class="option-btn selected" data-value="both">Math &amp; English</button>
+        <button class="option-btn" data-value="math">Math Only</button>
+        <button class="option-btn" data-value="english">English Only</button>
+      </div>
+
+      <div id="math-level-section">
+        <div class="section-label">Math Difficulty</div>
+        <div class="option-group" id="level-options">
+          <button class="option-btn selected" data-value="all">All Levels</button>
+          <button class="option-btn" data-value="easy">Easy</button>
+          <button class="option-btn" data-value="medium">Medium</button>
+          <button class="option-btn" data-value="hard">Hard</button>
+        </div>
+      </div>
+
+      <div class="section-label">Duration</div>
+      <div class="option-group" id="time-options">
+        <button class="option-btn" data-value="5">5 min (~3 Qs)</button>
+        <button class="option-btn selected" data-value="10">10 min (~6 Qs)</button>
+        <button class="option-btn" data-value="30">30 min (~18 Qs)</button>
+        <button class="option-btn" data-value="60">1 hour (~36 Qs)</button>
+      </div>
+
+      <button class="btn-primary" id="start-btn" onclick="startQuiz()">Start Practice</button>
+    </div>
+  </div>
+
+  <!-- ════════ QUIZ ════════ -->
+  <div id="page-quiz" class="page">
+    <div class="quiz-header">
+      <div>
+        <span id="quiz-question-counter" style="font-weight:600"></span>
+        <span id="quiz-subject-tag" class="question-subject-tag" style="margin-left:8px"></span>
+      </div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div id="question-area"></div>
+    <div class="quiz-nav">
+      <button class="btn-secondary" id="prev-btn" onclick="prevQuestion()">← Previous</button>
+      <button class="btn-secondary" id="skip-btn" onclick="nextQuestion()">Skip →</button>
+      <button class="btn-primary" id="submit-btn" onclick="submitAnswer()" style="display:none">Submit Answer</button>
+      <button class="btn-primary" id="next-btn" onclick="nextQuestion()" style="display:none">Next →</button>
+      <button class="btn-primary" id="finish-btn" onclick="finishQuiz()" style="display:none">Finish</button>
+    </div>
+  </div>
+
+  <!-- ════════ RESULTS ════════ -->
+  <div id="page-results" class="page">
+    <div class="results-hero">
+      <div class="results-score" id="results-score">0%</div>
+      <div class="results-subtitle" id="results-subtitle"></div>
+    </div>
+    <div class="results-breakdown" id="results-breakdown"></div>
+    <div class="card" style="margin-top:20px">
+      <h3>Question Review</h3>
+      <div id="review-list" style="margin-top:16px"></div>
+    </div>
+    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <button class="btn-primary" onclick="showPage('setup')">Practice Again</button>
+      <button class="btn-secondary" onclick="showPage('dashboard')">Dashboard</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// QUESTION BANK — SAT-Style Questions
+// ═══════════════════════════════════════════════════
+// Note: College Board does not offer a public Question Bank API.
+// These are SAT-style practice questions. Replace with an API
+// call if one becomes available in the future.
+
+const QUESTIONS = {
+  math: {
+    easy: [
+      {
+        text: "If 3x + 7 = 22, what is the value of x?",
+        choices: ["3", "5", "7", "15"],
+        answer: 1,
+        explanation: "3x + 7 = 22 → 3x = 15 → x = 5"
+      },
+      {
+        text: "What is 15% of 200?",
+        choices: ["15", "20", "30", "35"],
+        answer: 2,
+        explanation: "15% × 200 = 0.15 × 200 = 30"
+      },
+      {
+        text: "If a rectangle has a length of 8 and a width of 5, what is its area?",
+        choices: ["13", "26", "40", "45"],
+        answer: 2,
+        explanation: "Area = length × width = 8 × 5 = 40"
+      },
+      {
+        text: "Simplify: 2(3x − 4) + 5",
+        choices: ["6x − 3", "6x + 3", "6x − 8", "5x − 3"],
+        answer: 0,
+        explanation: "2(3x − 4) + 5 = 6x − 8 + 5 = 6x − 3"
+      },
+      {
+        text: "What is the slope of the line passing through (1, 3) and (4, 9)?",
+        choices: ["1", "2", "3", "6"],
+        answer: 1,
+        explanation: "Slope = (9 − 3)/(4 − 1) = 6/3 = 2"
+      },
+      {
+        text: "If f(x) = 2x + 1, what is f(4)?",
+        choices: ["7", "8", "9", "10"],
+        answer: 2,
+        explanation: "f(4) = 2(4) + 1 = 9"
+      },
+      {
+        text: "What is the value of |−7| + |3|?",
+        choices: ["4", "10", "−4", "−10"],
+        answer: 1,
+        explanation: "|−7| = 7 and |3| = 3, so 7 + 3 = 10"
+      },
+      {
+        text: "A shirt costs $40 and is on sale for 25% off. What is the sale price?",
+        choices: ["$10", "$15", "$25", "$30"],
+        answer: 3,
+        explanation: "25% of $40 = $10. Sale price = $40 − $10 = $30"
+      },
+      {
+        text: "What is the median of the set {3, 7, 9, 1, 5}?",
+        choices: ["3", "5", "7", "9"],
+        answer: 1,
+        explanation: "Ordered: {1, 3, 5, 7, 9}. The middle value is 5."
+      },
+      {
+        text: "If y = 3x and x = 4, what is y?",
+        choices: ["7", "12", "34", "43"],
+        answer: 1,
+        explanation: "y = 3(4) = 12"
+      }
+    ],
+    medium: [
+      {
+        text: "If x² − 5x + 6 = 0, what are the values of x?",
+        choices: ["1 and 6", "2 and 3", "−2 and −3", "−1 and 6"],
+        answer: 1,
+        explanation: "x² − 5x + 6 = (x − 2)(x − 3) = 0, so x = 2 or x = 3"
+      },
+      {
+        text: "A circle has a radius of 6. What is its area?",
+        choices: ["12π", "36π", "6π", "18π"],
+        answer: 1,
+        explanation: "Area = πr² = π(6²) = 36π"
+      },
+      {
+        text: "The system of equations y = 2x + 1 and y = −x + 7 intersect at what point?",
+        choices: ["(2, 5)", "(3, 4)", "(1, 3)", "(4, 3)"],
+        answer: 0,
+        explanation: "2x + 1 = −x + 7 → 3x = 6 → x = 2, y = 2(2) + 1 = 5. Point: (2, 5)"
+      },
+      {
+        text: "If the probability of event A is 0.3 and event B is 0.5, and they are independent, what is P(A and B)?",
+        choices: ["0.15", "0.2", "0.8", "0.35"],
+        answer: 0,
+        explanation: "For independent events, P(A and B) = P(A) × P(B) = 0.3 × 0.5 = 0.15"
+      },
+      {
+        text: "What is the value of (3²)³?",
+        choices: ["27", "729", "81", "243"],
+        answer: 1,
+        explanation: "(3²)³ = 3⁶ = 729"
+      },
+      {
+        text: "A right triangle has legs of length 5 and 12. What is the length of the hypotenuse?",
+        choices: ["13", "17", "7", "15"],
+        answer: 0,
+        explanation: "c² = 5² + 12² = 25 + 144 = 169, so c = 13"
+      },
+      {
+        text: "Solve for x: (x/3) + 4 = 10",
+        choices: ["2", "6", "14", "18"],
+        answer: 3,
+        explanation: "x/3 = 6, so x = 18"
+      },
+      {
+        text: "The average of five numbers is 20. If four of the numbers are 15, 18, 22, and 25, what is the fifth number?",
+        choices: ["10", "15", "20", "25"],
+        answer: 2,
+        explanation: "Sum = 5 × 20 = 100. Fifth = 100 − (15+18+22+25) = 100 − 80 = 20"
+      },
+      {
+        text: "If g(x) = x² − 4x + 3, what is g(5)?",
+        choices: ["3", "8", "18", "28"],
+        answer: 1,
+        explanation: "g(5) = 25 − 20 + 3 = 8"
+      },
+      {
+        text: "A car travels 180 miles in 3 hours. What is its average speed in mph?",
+        choices: ["45", "50", "55", "60"],
+        answer: 3,
+        explanation: "Speed = distance/time = 180/3 = 60 mph"
+      }
+    ],
+    hard: [
+      {
+        text: "If log₂(x) = 5, what is the value of x?",
+        choices: ["10", "25", "32", "64"],
+        answer: 2,
+        explanation: "log₂(x) = 5 means 2⁵ = x = 32"
+      },
+      {
+        text: "The function f(x) = x³ − 3x² + 2x has how many distinct real zeros?",
+        choices: ["1", "2", "3", "0"],
+        answer: 2,
+        explanation: "f(x) = x(x² − 3x + 2) = x(x−1)(x−2). Zeros at x = 0, 1, 2 → 3 zeros"
+      },
+      {
+        text: "In triangle ABC, angle A = 30°, angle B = 90°, and side BC = 5. What is the length of AC?",
+        choices: ["5", "5√3", "10", "10√3"],
+        answer: 2,
+        explanation: "BC is opposite 30° and AC is the hypotenuse. sin(30°) = BC/AC → 0.5 = 5/AC → AC = 10"
+      },
+      {
+        text: "What is the sum of the infinite geometric series 8 + 4 + 2 + 1 + …?",
+        choices: ["15", "16", "32", "∞"],
+        answer: 1,
+        explanation: "Sum = a/(1−r) = 8/(1−0.5) = 8/0.5 = 16"
+      },
+      {
+        text: "If i = √(−1), what is the value of i⁴⁷?",
+        choices: ["1", "−1", "i", "−i"],
+        answer: 3,
+        explanation: "i⁴⁷ = i⁴⁴ · i³ = (i⁴)¹¹ · i³ = 1 · (−i) = −i"
+      },
+      {
+        text: "A polynomial p(x) has roots at x = −2, x = 1, and x = 3. If p(0) = 12, which could be p(x)?",
+        choices: ["2(x+2)(x−1)(x−3)", "−2(x+2)(x−1)(x−3)", "(x+2)(x−1)(x−3)", "−(x+2)(x−1)(x−3)"],
+        answer: 1,
+        explanation: "p(0) = k(2)(−1)(−3) = 6k. We need 6k = 12, but check: −2(2)(−1)(−3) = −2(6) = −12 ≠ 12. Actually 2(2)(−1)(−3) = 2·6 = 12 ✓. Answer is 2(x+2)(x−1)(x−3)."
+      },
+      {
+        text: "The equation x² + y² − 6x + 4y = 12 represents a circle. What is its radius?",
+        choices: ["3", "4", "5", "25"],
+        answer: 2,
+        explanation: "(x−3)² + (y+2)² = 12 + 9 + 4 = 25. Radius = √25 = 5"
+      },
+      {
+        text: "How many ways can 5 different books be arranged on a shelf?",
+        choices: ["25", "60", "120", "720"],
+        answer: 2,
+        explanation: "5! = 5 × 4 × 3 × 2 × 1 = 120"
+      },
+      {
+        text: "If sin(θ) = 3/5 and θ is in Quadrant I, what is cos(θ)?",
+        choices: ["3/5", "4/5", "5/3", "5/4"],
+        answer: 1,
+        explanation: "sin²θ + cos²θ = 1 → cos²θ = 1 − 9/25 = 16/25 → cosθ = 4/5 (QI, positive)"
+      },
+      {
+        text: "What is the remainder when x³ + 2x² − 5x + 3 is divided by (x − 1)?",
+        choices: ["0", "1", "3", "−1"],
+        answer: 1,
+        explanation: "By the Remainder Theorem, plug in x=1: 1 + 2 − 5 + 3 = 1"
+      }
+    ]
+  },
+  english: [
+    {
+      passage: "The coral reefs of the Pacific Ocean are among the most biodiverse ecosystems on Earth. However, rising ocean temperatures have caused widespread coral bleaching, threatening the survival of countless marine species.",
+      text: "Which choice best describes the main idea of the passage?",
+      choices: [
+        "Coral reefs are the largest ecosystems on Earth.",
+        "Rising temperatures endanger biodiverse coral reef ecosystems.",
+        "Marine species are adapting to warmer oceans.",
+        "The Pacific Ocean contains the only coral reefs."
+      ],
+      answer: 1,
+      explanation: "The passage discusses coral reefs' biodiversity and the threat from rising temperatures."
+    },
+    {
+      passage: null,
+      text: "Select the option that correctly completes the sentence: 'Neither the teacher nor the students _____ aware of the schedule change.'",
+      choices: ["was", "were", "is", "has been"],
+      answer: 1,
+      explanation: "With 'neither...nor,' the verb agrees with the nearer subject ('students' → plural → 'were')."
+    },
+    {
+      passage: "The mayor announced a new initiative to reduce traffic congestion in the downtown area. The plan includes expanding public transit routes, adding bike lanes, and incentivizing carpooling. Critics argue the budget is insufficient, while supporters believe small changes can yield large results.",
+      text: "What is the primary purpose of the passage?",
+      choices: [
+        "To argue against public transit expansion",
+        "To describe a plan and its reception",
+        "To compare biking and driving",
+        "To explain how carpooling works"
+      ],
+      answer: 1,
+      explanation: "The passage presents the mayor's plan and mentions both critics and supporters, describing the plan and its reception."
+    },
+    {
+      passage: null,
+      text: "Which sentence is punctuated correctly?",
+      choices: [
+        "The dog, who was very old laid down on the porch.",
+        "The dog who was very old, laid down on the porch.",
+        "The dog, who was very old, lay down on the porch.",
+        "The dog who was very old lay down, on the porch."
+      ],
+      answer: 2,
+      explanation: "'Who was very old' is a nonrestrictive clause requiring commas on both sides. 'Lay' is the correct past tense of 'lie.'"
+    },
+    {
+      passage: null,
+      text: "Choose the word that best completes the sentence: 'The scientist's findings were _____, challenging long-held assumptions about climate patterns.'",
+      choices: ["mundane", "conventional", "groundbreaking", "predictable"],
+      answer: 2,
+      explanation: "'Groundbreaking' means innovative or pioneering, which aligns with 'challenging long-held assumptions.'"
+    },
+    {
+      passage: "In the early 20th century, many believed that machines would soon replace all manual labor. While automation has transformed industries, human workers remain essential for tasks requiring creativity, empathy, and complex decision-making.",
+      text: "Which choice best describes the relationship between the two sentences?",
+      choices: [
+        "The second sentence contradicts the first entirely.",
+        "The second sentence provides a nuanced qualification of the first.",
+        "The second sentence restates the first in different words.",
+        "The second sentence provides evidence for the first."
+      ],
+      answer: 1,
+      explanation: "The second sentence doesn't fully contradict the first but qualifies it — automation has changed things but hasn't fully replaced human workers."
+    },
+    {
+      passage: null,
+      text: "Which of the following uses a semicolon correctly?",
+      choices: [
+        "She went to the store; and bought milk.",
+        "She went to the store; she bought milk.",
+        "She went; to the store to buy milk.",
+        "She went to the; store to buy milk."
+      ],
+      answer: 1,
+      explanation: "A semicolon joins two independent clauses. 'She went to the store' and 'she bought milk' are both independent clauses."
+    },
+    {
+      passage: null,
+      text: "Select the sentence that uses parallel structure correctly.",
+      choices: [
+        "She likes swimming, to run, and biking.",
+        "She likes swimming, running, and biking.",
+        "She likes to swim, running, and to bike.",
+        "She likes to swim, to running, and biking."
+      ],
+      answer: 1,
+      explanation: "Parallel structure requires matching grammatical forms. 'Swimming, running, and biking' are all gerunds."
+    },
+    {
+      passage: "Studies show that students who eat breakfast perform better on standardized tests. Researchers attribute this to improved concentration and sustained energy levels throughout the morning. However, the type of breakfast matters — high-sugar cereals provide a quick spike followed by a crash, while protein-rich meals sustain focus longer.",
+      text: "Based on the passage, which breakfast would a researcher most likely recommend for test day?",
+      choices: [
+        "A bowl of sugary cereal",
+        "Skipping breakfast entirely",
+        "Eggs and whole-grain toast",
+        "A large candy bar"
+      ],
+      answer: 2,
+      explanation: "The passage states protein-rich meals sustain focus longer. Eggs and whole-grain toast are protein-rich."
+    },
+    {
+      passage: null,
+      text: "Choose the correct form: 'Each of the students _____ required to submit a final project.'",
+      choices: ["are", "is", "were", "have been"],
+      answer: 1,
+      explanation: "'Each' is singular and takes a singular verb: 'Each...is required.'"
+    },
+    {
+      passage: null,
+      text: "Which transition word best completes the sentence? 'The experiment failed to produce the expected results; _____, the researchers decided to revise their hypothesis.'",
+      choices: ["moreover", "consequently", "similarly", "meanwhile"],
+      answer: 1,
+      explanation: "'Consequently' shows cause and effect — the failure led to the revision."
+    },
+    {
+      passage: "The library, once a quiet refuge for book lovers, has evolved into a community hub. Modern libraries offer free internet access, 3D printing, job training workshops, and even recording studios. This transformation has made libraries more relevant than ever to communities across the country.",
+      text: "What is the author's tone toward modern libraries?",
+      choices: [
+        "Critical and dismissive",
+        "Nostalgic and regretful",
+        "Positive and appreciative",
+        "Neutral and indifferent"
+      ],
+      answer: 2,
+      explanation: "Words like 'more relevant than ever' and the list of offerings suggest a positive, appreciative tone."
+    },
+    {
+      passage: null,
+      text: "Identify the sentence with a dangling modifier.",
+      choices: [
+        "Running through the park, the dog chased the squirrel.",
+        "Running through the park, the fresh air felt wonderful.",
+        "The runner sprinted through the park quickly.",
+        "She ran through the park with her dog."
+      ],
+      answer: 1,
+      explanation: "'Running through the park' should modify a person, but 'fresh air' can't run — this is a dangling modifier."
+    },
+    {
+      passage: null,
+      text: "Which sentence correctly uses an apostrophe?",
+      choices: [
+        "The dog chased it's tail around the yard.",
+        "Its going to rain later this afternoon.",
+        "The children's toys were scattered everywhere.",
+        "The tree's are blooming in the garden."
+      ],
+      answer: 2,
+      explanation: "'Children's' correctly shows possession. 'It's' means 'it is' (A is wrong in context), 'Its' should be 'It's' in B, and 'tree's' is incorrect for plural."
+    },
+    {
+      passage: "Urbanization has accelerated rapidly over the past century. In 1900, only 13% of the world's population lived in cities. By 2050, that number is projected to reach 68%. This shift brings both opportunities — such as better access to healthcare and education — and challenges, including overcrowding and pollution.",
+      text: "What organizational pattern does the passage primarily use?",
+      choices: [
+        "Problem and solution",
+        "Chronological order with cause and effect",
+        "Compare and contrast",
+        "Spatial description"
+      ],
+      answer: 1,
+      explanation: "The passage moves through time (1900 → 2050) and discusses the effects of urbanization."
+    }
+  ]
+};
+
+// ═══════════════════════════
+// APP STATE
+// ═══════════════════════════
+let state = {
+  subject: 'both',
+  level: 'all',
+  duration: 10,
+  questions: [],
+  currentIndex: 0,
+  answers: [],       // user's selected choice index per question (-1 = unanswered)
+  submitted: [],     // whether each question has been submitted
+  timeLeft: 0,
+  timerInterval: null,
+  sessionStartTime: null,
+};
+
+// ═══════════════════════════
+// NAVIGATION
+// ═══════════════════════════
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const navLink = document.getElementById('nav-' + pageId);
+  if (navLink) navLink.classList.add('active');
+  if (pageId === 'dashboard') renderDashboard();
+}
+
+// ═══════════════════════════
+// OPTION GROUP HANDLING
+// ═══════════════════════════
+function initOptionGroups() {
+  ['subject-options', 'level-options', 'time-options'].forEach(groupId => {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+    group.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if (groupId === 'subject-options') {
+          state.subject = btn.dataset.value;
+          document.getElementById('math-level-section').style.display =
+            btn.dataset.value === 'english' ? 'none' : 'block';
+        } else if (groupId === 'level-options') {
+          state.level = btn.dataset.value;
+        } else if (groupId === 'time-options') {
+          state.duration = parseInt(btn.dataset.value);
+        }
+      });
+    });
+  });
+}
+
+// ═══════════════════════════
+// BUILD QUESTIONS
+// ═══════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQuestionPool() {
+  let pool = [];
+  const sub = state.subject;
+  const lvl = state.level;
+
+  if (sub === 'math' || sub === 'both') {
+    if (lvl === 'all') {
+      pool.push(...QUESTIONS.math.easy.map(q => ({...q, subject:'Math', difficulty:'Easy'})));
+      pool.push(...QUESTIONS.math.medium.map(q => ({...q, subject:'Math', difficulty:'Medium'})));
+      pool.push(...QUESTIONS.math.hard.map(q => ({...q, subject:'Math', difficulty:'Hard'})));
+    } else {
+      pool.push(...QUESTIONS.math[lvl].map(q => ({...q, subject:'Math', difficulty: lvl.charAt(0).toUpperCase()+lvl.slice(1)})));
+    }
+  }
+  if (sub === 'english' || sub === 'both') {
+    pool.push(...QUESTIONS.english.map(q => ({...q, subject:'English', difficulty:'Mixed'})));
+  }
+
+  pool = shuffle(pool);
+
+  // ~1.7 min per question
+  const count = Math.max(3, Math.round(state.duration / 1.7));
+  return pool.slice(0, count);
+}
+
+// ═══════════════════════════
+// START QUIZ
+// ═══════════════════════════
+function startQuiz() {
+  state.questions = buildQuestionPool();
+  if (state.questions.length === 0) return;
+  state.currentIndex = 0;
+  state.answers = new Array(state.questions.length).fill(-1);
+  state.submitted = new Array(state.questions.length).fill(false);
+  state.timeLeft = state.duration * 60;
+  state.sessionStartTime = Date.now();
+
+  showPage('quiz');
+  renderQuestion();
+  startTimer();
+}
+
+// ═══════════════════════════
+// TIMER
+// ═══════════════════════════
+function startTimer() {
+  clearInterval(state.timerInterval);
+  updateTimerDisplay();
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimerDisplay();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      finishQuiz();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const t = Math.max(0, state.timeLeft);
+  const m = Math.floor(t / 60);
+  const s = t % 60;
+  const el = document.getElementById('timer');
+  el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  el.className = 'timer';
+  if (t <= 30) el.classList.add('danger');
+  else if (t <= 60) el.classList.add('warn');
+}
+
+// ═══════════════════════════
+// RENDER QUESTION
+// ═══════════════════════════
+function renderQuestion() {
+  const q = state.questions[state.currentIndex];
+  const i = state.currentIndex;
+  const total = state.questions.length;
+
+  document.getElementById('quiz-question-counter').textContent = `Question ${i+1} of ${total}`;
+  const tag = document.getElementById('quiz-subject-tag');
+  tag.textContent = q.subject + (q.difficulty !== 'Mixed' ? ' · ' + q.difficulty : '');
+  tag.className = 'question-subject-tag';
+
+  document.getElementById('progress-bar').style.width = ((i+1)/total*100) + '%';
+
+  const area = document.getElementById('question-area');
+  let html = '<div class="question-card">';
+
+  if (q.passage) {
+    html += `<div class="passage-text">${escapeHTML(q.passage)}</div>`;
+  }
+
+  html += `<div class="question-text">${escapeHTML(q.text)}</div>`;
+  html += '<div class="choices">';
+
+  const letters = ['A', 'B', 'C', 'D'];
+  q.choices.forEach((c, ci) => {
+    let cls = 'choice-btn';
+    if (state.submitted[i]) {
+      if (ci === q.answer) cls += ' correct';
+      else if (ci === state.answers[i] && ci !== q.answer) cls += ' incorrect';
+    } else if (state.answers[i] === ci) {
+      cls += ' selected';
+    }
+    const disabled = state.submitted[i] ? 'style="pointer-events:none"' : '';
+    html += `<button class="${cls}" onclick="selectChoice(${ci})" ${disabled}>
+      <span class="choice-letter">${letters[ci]}</span>
+      <span>${escapeHTML(c)}</span>
+    </button>`;
+  });
+
+  html += '</div>';
+
+  if (state.submitted[i]) {
+    html += `<div class="explanation" style="margin-top:20px">
+      <strong>${state.answers[i] === q.answer ? '✓ Correct' : '✗ Incorrect'}</strong> — ${escapeHTML(q.explanation)}
+    </div>`;
+  }
+
+  html += '</div>';
+  area.innerHTML = html;
+
+  // Button visibility
+  document.getElementById('prev-btn').style.display = i > 0 ? 'inline-block' : 'none';
+
+  const isLast = i === total - 1;
+  const isSubmitted = state.submitted[i];
+  const hasAnswer = state.answers[i] >= 0;
+
+  document.getElementById('skip-btn').style.display = (!isSubmitted && !isLast) ? 'inline-block' : 'none';
+  document.getElementById('submit-btn').style.display = (!isSubmitted && hasAnswer) ? 'inline-block' : 'none';
+  document.getElementById('next-btn').style.display = (isSubmitted && !isLast) ? 'inline-block' : 'none';
+  document.getElementById('finish-btn').style.display = (isSubmitted && isLast) ? 'inline-block' : 'none';
+}
+
+function selectChoice(ci) {
+  if (state.submitted[state.currentIndex]) return;
+  state.answers[state.currentIndex] = ci;
+  renderQuestion();
+}
+
+function submitAnswer() {
+  if (state.answers[state.currentIndex] < 0) return;
+  state.submitted[state.currentIndex] = true;
+  renderQuestion();
+}
+
+function nextQuestion() {
+  if (state.currentIndex < state.questions.length - 1) {
+    state.currentIndex++;
+    renderQuestion();
+  }
+}
+
+function prevQuestion() {
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    renderQuestion();
+  }
+}
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ═══════════════════════════
+// FINISH QUIZ
+// ═══════════════════════════
+function finishQuiz() {
+  clearInterval(state.timerInterval);
+
+  const total = state.questions.length;
+  let correct = 0, attempted = 0;
+  let mathCorrect = 0, mathTotal = 0, engCorrect = 0, engTotal = 0;
+
+  state.questions.forEach((q, i) => {
+    const answered = state.answers[i] >= 0;
+    if (answered) attempted++;
+    const isCorrect = state.answers[i] === q.answer;
+    if (isCorrect) correct++;
+
+    if (q.subject === 'Math') {
+      mathTotal++;
+      if (isCorrect) mathCorrect++;
+    } else {
+      engTotal++;
+      if (isCorrect) engCorrect++;
+    }
+  });
+
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const elapsed = Math.round((Date.now() - state.sessionStartTime) / 1000);
+
+  // Save session
+  saveSession({
+    date: new Date().toISOString(),
+    subject: state.subject,
+    level: state.level,
+    duration: state.duration,
+    total, correct, attempted,
+    mathCorrect, mathTotal, engCorrect, engTotal,
+    pct, elapsed
+  });
+
+  // Render results
+  document.getElementById('results-score').textContent = pct + '%';
+  document.getElementById('results-subtitle').textContent =
+    `${correct} of ${total} correct · ${attempted} attempted · ${formatTime(elapsed)}`;
+
+  let breakdownHTML = `
+    <div class="breakdown-item"><div class="breakdown-value">${correct}</div><div class="breakdown-label">Correct</div></div>
+    <div class="breakdown-item"><div class="breakdown-value">${total - correct}</div><div class="breakdown-label">Incorrect</div></div>
+    <div class="breakdown-item"><div class="breakdown-value">${total - attempted}</div><div class="breakdown-label">Skipped</div></div>
+    <div class="breakdown-item"><div class="breakdown-value">${formatTime(elapsed)}</div><div class="breakdown-label">Time Taken</div></div>
+  `;
+  if (mathTotal > 0) {
+    breakdownHTML += `<div class="breakdown-item"><div class="breakdown-value" style="color:var(--accent)">${mathCorrect}/${mathTotal}</div><div class="breakdown-label">Math</div></div>`;
+  }
+  if (engTotal > 0) {
+    breakdownHTML += `<div class="breakdown-item"><div class="breakdown-value" style="color:var(--orange)">${engCorrect}/${engTotal}</div><div class="breakdown-label">English</div></div>`;
+  }
+  document.getElementById('results-breakdown').innerHTML = breakdownHTML;
+
+  // Review list
+  let reviewHTML = '';
+  state.questions.forEach((q, i) => {
+    const answered = state.answers[i] >= 0;
+    const isCorrect = answered && state.answers[i] === q.answer;
+    const letters = ['A','B','C','D'];
+    reviewHTML += `<div class="review-item ${isCorrect ? 'was-correct' : 'was-incorrect'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <strong>Q${i+1}: ${escapeHTML(q.text.substring(0, 80))}${q.text.length > 80 ? '…' : ''}</strong>
+        <span>
+          <span class="badge ${q.subject === 'Math' ? 'badge-math' : 'badge-english'}">${q.subject}</span>
+          ${q.difficulty !== 'Mixed' ? `<span class="badge badge-${q.difficulty.toLowerCase()}">${q.difficulty}</span>` : ''}
+        </span>
+      </div>
+      <div class="review-answer">
+        ${answered
+          ? `Your answer: <strong>${letters[state.answers[i]]}</strong> — <span class="${isCorrect ? 'tag-correct' : 'tag-incorrect'}">${isCorrect ? 'Correct' : 'Incorrect'}</span>`
+          : '<span style="color:var(--text-dim)">Skipped</span>'
+        }
+        ${!isCorrect ? ` · Correct: <strong>${letters[q.answer]}</strong>` : ''}
+      </div>
+      <div class="explanation">${escapeHTML(q.explanation)}</div>
+    </div>`;
+  });
+  document.getElementById('review-list').innerHTML = reviewHTML;
+
+  showPage('results');
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+// ═══════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem('joelprep_sessions') || '[]'); }
+  catch { return []; }
+}
+
+function saveSession(session) {
+  const sessions = getSessions();
+  sessions.unshift(session);
+  if (sessions.length > 100) sessions.length = 100;
+  localStorage.setItem('joelprep_sessions', JSON.stringify(sessions));
+}
+
+// ═══════════════════════════
+// DASHBOARD
+// ═══════════════════════════
+function renderDashboard() {
+  const sessions = getSessions();
+
+  // Stats row
+  const totalSessions = sessions.length;
+  const totalQuestions = sessions.reduce((s, x) => s + x.total, 0);
+  const totalCorrect = sessions.reduce((s, x) => s + x.correct, 0);
+  const avgPct = totalSessions > 0 ? Math.round(sessions.reduce((s, x) => s + x.pct, 0) / totalSessions) : 0;
+  const totalTime = sessions.reduce((s, x) => s + x.elapsed, 0);
+  const streak = calcStreak(sessions);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${totalSessions}</div><div class="stat-label">Sessions</div></div>
+    <div class="stat-card"><div class="stat-value">${totalQuestions}</div><div class="stat-label">Questions</div></div>
+    <div class="stat-card"><div class="stat-value">${avgPct}%</div><div class="stat-label">Avg Score</div></div>
+    <div class="stat-card"><div class="stat-value">${totalCorrect}</div><div class="stat-label">Total Correct</div></div>
+    <div class="stat-card"><div class="stat-value">${formatTime(totalTime)}</div><div class="stat-label">Time Practiced</div></div>
+    <div class="stat-card"><div class="stat-value">${streak}🔥</div><div class="stat-label">Day Streak</div></div>
+  `;
+
+  // History
+  const histWrap = document.getElementById('history-wrap');
+  if (sessions.length === 0) {
+    histWrap.innerHTML = '<p style="color:var(--text-dim); margin-top:12px;">No sessions yet. Start practicing!</p>';
+  } else {
+    let html = '<table class="history-table"><thead><tr><th>Date</th><th>Subject</th><th>Level</th><th>Score</th><th>Questions</th><th>Time</th></tr></thead><tbody>';
+    sessions.slice(0, 20).forEach(s => {
+      const d = new Date(s.date);
+      const dateStr = d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      html += `<tr>
+        <td>${dateStr}</td>
+        <td>${s.subject}</td>
+        <td>${s.level}</td>
+        <td><strong>${s.pct}%</strong></td>
+        <td>${s.correct}/${s.total}</td>
+        <td>${formatTime(s.elapsed)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    histWrap.innerHTML = html;
+  }
+
+  // Subject breakdown
+  const subBreak = document.getElementById('subject-breakdown');
+  if (sessions.length === 0) {
+    subBreak.innerHTML = '<p style="color:var(--text-dim);">Complete a session to see breakdowns.</p>';
+  } else {
+    const mathT = sessions.reduce((s, x) => s + x.mathTotal, 0);
+    const mathC = sessions.reduce((s, x) => s + x.mathCorrect, 0);
+    const engT = sessions.reduce((s, x) => s + x.engTotal, 0);
+    const engC = sessions.reduce((s, x) => s + x.engCorrect, 0);
+
+    let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+    if (mathT > 0) {
+      const pct = Math.round(mathC/mathT*100);
+      html += `<div class="card" style="text-align:center">
+        <div style="font-size:.85rem;color:var(--accent);font-weight:600;margin-bottom:8px">MATH</div>
+        <div style="font-size:2rem;font-weight:700">${pct}%</div>
+        <div style="font-size:.85rem;color:var(--text-dim)">${mathC} / ${mathT} correct</div>
+        <div style="margin-top:12px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:var(--accent);border-radius:3px"></div>
+        </div>
+      </div>`;
+    }
+    if (engT > 0) {
+      const pct = Math.round(engC/engT*100);
+      html += `<div class="card" style="text-align:center">
+        <div style="font-size:.85rem;color:var(--orange);font-weight:600;margin-bottom:8px">ENGLISH</div>
+        <div style="font-size:2rem;font-weight:700">${pct}%</div>
+        <div style="font-size:.85rem;color:var(--text-dim)">${engC} / ${engT} correct</div>
+        <div style="margin-top:12px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:var(--orange);border-radius:3px"></div>
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+    subBreak.innerHTML = html;
+  }
+}
+
+function calcStreak(sessions) {
+  if (sessions.length === 0) return 0;
+  const days = new Set();
+  sessions.forEach(s => {
+    days.add(new Date(s.date).toDateString());
+  });
+  let streak = 0;
+  let d = new Date();
+  while (days.has(d.toDateString())) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+// ═══════════════════════════
+// INIT
+// ═══════════════════════════
+initOptionGroups();
+renderDashboard();
+</script>
+</body>
+</html>

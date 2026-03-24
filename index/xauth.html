@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — LCN</title>
+    <link rel="stylesheet" href="../css/standard.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #0a0a0a; color: #e4e4e7; font-family: system-ui, sans-serif; }
+        .auth-box { text-align: center; }
+        .auth-box h2 { margin-bottom: 1rem; font-size: 1.25rem; }
+        #auth-btn { padding: .6rem 1.4rem; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-size: .95rem; cursor: pointer; }
+        #auth-btn:hover { background: #1d4ed8; }
+        #auth-status { margin-top: 1rem; font-size: .85rem; color: #a1a1aa; }
+        #auth-user { margin-top: 1rem; font-size: .9rem; }
+        #auth-signout { margin-top: .75rem; padding: .4rem 1rem; border: 1px solid #3f3f46; border-radius: 6px; background: transparent; color: #e4e4e7; cursor: pointer; font-size: .85rem; }
+        #auth-signout:hover { background: #27272a; }
+    </style>
+</head>
+<body>
+    <div class="auth-box">
+        <h2>LCN Projects</h2>
+        <button id="auth-btn">Sign in with Google</button>
+        <div id="auth-status"></div>
+        <div id="auth-user" style="display:none;"></div>
+        <button id="auth-signout" style="display:none;">Sign out</button>
+    </div>
+
+    <script>
+    (function () {
+        var firebaseConfig = {
+            apiKey: "AIzaSyBh8O0qR9FjRz30Si3-xxToRaPe2vsK9wg",
+            authDomain: "lcnfoundation-registry.firebaseapp.com",
+            projectId: "lcnfoundation-registry",
+            storageBucket: "lcnfoundation-registry.firebasestorage.app",
+            messagingSenderId: "472081807534",
+            appId: "1:472081807534:web:eed62912dd832743e4553f",
+            measurementId: "G-FJB125MV97"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        var auth = firebase.auth();
+        var db = firebase.firestore();
+        var provider = new firebase.auth.GoogleAuthProvider();
+
+        var btn = document.getElementById('auth-btn');
+        var status = document.getElementById('auth-status');
+        var userEl = document.getElementById('auth-user');
+        var signoutBtn = document.getElementById('auth-signout');
+
+        function showUser(user) {
+            btn.style.display = 'none';
+            userEl.style.display = 'block';
+            userEl.innerHTML = 'Signed in as ' + (user.displayName || user.email) + 
+                '<br><small>Email: ' + user.email + '</small>' +
+                '<br><button id="test-write" style="margin-top:8px;padding:4px 8px;font-size:12px;">Test Firestore Write</button>';
+            signoutBtn.style.display = 'inline-block';
+            status.textContent = '';
+            
+            // Add test write functionality
+            document.getElementById('test-write').addEventListener('click', testFirestore);
+        }
+
+        function showSignedOut() {
+            btn.style.display = 'inline-block';
+            userEl.style.display = 'none';
+            signoutBtn.style.display = 'none';
+            status.textContent = '';
+        }
+
+        auth.onAuthStateChanged(function (user) {
+            if (user) showUser(user);
+            else showSignedOut();
+        });
+
+        btn.addEventListener('click', function () {
+            status.textContent = 'Signing in...';
+            auth.signInWithPopup(provider).catch(function (err) {
+                status.textContent = err.message;
+            });
+        });
+
+        signoutBtn.addEventListener('click', function () {
+            auth.signOut();
+        });
+
+        function testFirestore() {
+            status.textContent = 'Testing Firestore write...';
+            var user = auth.currentUser;
+            
+            if (!user) {
+                status.textContent = 'Error: No user authenticated';
+                return;
+            }
+
+            console.log('Current user:', user.email);
+            console.log('Auth token will contain email:', user.email);
+            
+            db.collection('test').add({
+                message: 'Test write',
+                user: user.email,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(function() {
+                status.textContent = 'Write successful!';
+                status.style.color = '#10b981';
+            }).catch(function(error) {
+                status.textContent = 'Write failed: ' + error.message;
+                status.style.color = '#ef4444';
+                console.error('Firestore error:', error);
+            });
+        }
+    })();
+    </script>
+</body>
+</html>

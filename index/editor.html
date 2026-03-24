@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor — LCN</title>
+    <link rel="stylesheet" href="../css/editor.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body style="margin:0;background:#0a0a0a;color:#e4e4e7;">
+    <div class="ed-mobile-overlay" id="ed-mobile-overlay"></div>
+
+    <div class="ed-layout">
+        <aside class="ed-sidebar" id="ed-sidebar">
+            <div class="ed-sidebar-head">
+                <span class="ed-sidebar-title">Documents</span>
+                <div class="ed-sidebar-actions">
+                    <button class="ed-btn ed-btn--accent" id="ed-new-doc">+ New</button>
+                </div>
+            </div>
+            <div class="ed-filter">
+                <input type="text" class="ed-filter-input" id="ed-filter" placeholder="Filter docs...">
+            </div>
+            <div class="ed-doclist" id="ed-doclist"></div>
+            <div class="ed-sidebar-bottom">
+                <a href="../index.html">&larr; Home</a>
+            </div>
+        </aside>
+
+        <main class="ed-main">
+            <div class="ed-topbar">
+                <div class="ed-topbar-left">
+                    <button class="ed-btn ed-btn--icon ed-mobile-toggle" id="ed-mobile-toggle">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                    </button>
+                    <span class="ed-topbar-title" id="ed-topbar-title">Select a document</span>
+                    <span class="ed-topbar-status" id="ed-topbar-status"></span>
+                </div>
+                <div class="ed-topbar-right">
+                    <button class="ed-btn ed-btn--small" id="ed-save">Save</button>
+                    <button class="ed-btn ed-btn--small ed-btn--success" id="ed-publish">Publish</button>
+                    <button class="ed-btn ed-btn--small ed-btn--danger" id="ed-delete">Delete</button>
+                </div>
+            </div>
+
+            <div class="ed-empty" id="ed-empty-view" style="display:flex;">
+                <div class="ed-empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="18" x2="12" y2="12"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                </div>
+                <span class="ed-empty-text">No document selected</span>
+                <span class="ed-empty-sub">Create a new doc or select one from the sidebar</span>
+            </div>
+
+            <div class="ed-workspace" id="ed-editor-view" style="display:none;">
+                <div class="ed-meta">
+                    <div class="ed-meta-row">
+                        <span class="ed-meta-label">Title</span>
+                        <input type="text" class="ed-meta-input" id="ed-title" placeholder="Document title">
+                    </div>
+                    <div class="ed-meta-row">
+                        <span class="ed-meta-label">Sub Description</span>
+                        <input type="text" class="ed-meta-input" id="ed-subdesc" placeholder="Short description or subtitle">
+                    </div>
+                    <div class="ed-meta-row">
+                        <span class="ed-meta-label">Date</span>
+                        <input type="date" class="ed-meta-input" id="ed-date">
+                    </div>
+                    <div class="ed-meta-row">
+                        <span class="ed-meta-label">Category</span>
+                        <select class="ed-meta-select" id="ed-category">
+                            <option value="">None</option>
+                            <option value="__new__">+ New category</option>
+                        </select>
+                        <input type="text" class="ed-meta-input" id="ed-cat-custom" placeholder="New category name" style="display:none;max-width:10rem;">
+                    </div>
+                    <div class="ed-meta-row">
+                        <span class="ed-meta-label">Sub Category</span>
+                        <select class="ed-meta-select" id="ed-subcategory">
+                            <option value="">None</option>
+                            <option value="__new__">+ New sub category</option>
+                        </select>
+                        <input type="text" class="ed-meta-input" id="ed-subcat-custom" placeholder="New sub category name" style="display:none;max-width:10rem;">
+                    </div>
+                    <div class="ed-images">
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span class="ed-images-title">Images</span>
+                            <button class="ed-btn ed-btn--small" id="ed-add-image">+ Add URL</button>
+                        </div>
+                        <div class="ed-images-list" id="ed-images-list"></div>
+                    </div>
+                </div>
+
+                <div class="ed-toolbar">
+                    <button class="ed-toolbar-btn" data-cmd="bold" title="Bold (Ctrl+B)">
+                        <svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" data-cmd="italic" title="Italic (Ctrl+I)">
+                        <svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" data-cmd="underline" title="Underline (Ctrl+U)">
+                        <svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0 0 12 0V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" data-cmd="strikeThrough" title="Strikethrough">
+                        <svg viewBox="0 0 24 24"><path d="M16 4c-.5-1.5-2.5-3-5-3-3 0-5 2-5 4.5 0 2 1.5 3 3 3.5"/><line x1="4" y1="12" x2="20" y2="12"/><path d="M15 12.5c1 .5 2 1.5 2 3.5 0 2.5-2 4.5-5 4.5-2.5 0-4-1.5-4.5-3"/></svg>
+                    </button>
+
+                    <span class="ed-toolbar-sep"></span>
+
+                    <div class="ed-toolbar-dropdown">
+                        <button class="ed-toolbar-btn" id="ed-heading-toggle" title="Headings">
+                            H
+                        </button>
+                        <div class="ed-toolbar-dropdown-menu" id="ed-heading-dropdown">
+                            <button class="ed-toolbar-dropdown-item" data-tag="p">Paragraph</button>
+                            <button class="ed-toolbar-dropdown-item" data-tag="h1">Heading 1</button>
+                            <button class="ed-toolbar-dropdown-item" data-tag="h2">Heading 2</button>
+                            <button class="ed-toolbar-dropdown-item" data-tag="h3">Heading 3</button>
+                        </div>
+                    </div>
+
+                    <span class="ed-toolbar-sep"></span>
+
+                    <button class="ed-toolbar-btn" data-cmd="insertUnorderedList" title="Bullet List">
+                        <svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" data-cmd="insertOrderedList" title="Numbered List">
+                        <svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" fill="currentColor" stroke="none" font-size="7" font-family="sans-serif">1</text><text x="2" y="14" fill="currentColor" stroke="none" font-size="7" font-family="sans-serif">2</text><text x="2" y="20" fill="currentColor" stroke="none" font-size="7" font-family="sans-serif">3</text></svg>
+                    </button>
+
+                    <span class="ed-toolbar-sep"></span>
+
+                    <button class="ed-toolbar-btn" id="ed-quote-btn" title="Blockquote">
+                        <svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" id="ed-code-btn" title="Code">
+                        <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    </button>
+
+                    <span class="ed-toolbar-sep"></span>
+
+                    <button class="ed-toolbar-btn" id="ed-insert-link-btn" title="Insert Link (Ctrl+K)">
+                        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" id="ed-insert-image-btn" title="Insert Image">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" id="ed-insert-hr-btn" title="Horizontal Rule">
+                        <svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                    </button>
+
+                    <span class="ed-toolbar-sep"></span>
+
+                    <button class="ed-toolbar-btn" data-cmd="removeFormat" title="Clear Formatting">
+                        <svg viewBox="0 0 24 24"><path d="M17 10l-2-6H3l3.5 10"/><line x1="20" y1="4" x2="4" y2="20"/></svg>
+                    </button>
+                </div>
+
+                <div class="ed-editor" id="ed-editor" contenteditable="true" data-placeholder="Start writing..." spellcheck="true"></div>
+
+                <div class="ed-wordcount" id="ed-wordcount">0 words</div>
+            </div>
+        </main>
+    </div>
+
+    <div class="ed-modal-overlay" id="ed-link-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title">Insert Link</div>
+            <div class="ed-link-type-tabs">
+                <button class="ed-link-type-tab ed-link-type-tab--active" data-type="standard">Standard Link</button>
+                <button class="ed-link-type-tab" data-type="goto">Go To Link</button>
+            </div>
+            <div class="ed-modal-field">
+                <label>URL</label>
+                <input type="text" id="ed-link-url" placeholder="https://...">
+            </div>
+            <div class="ed-modal-field">
+                <label>Display Text</label>
+                <input type="text" id="ed-link-text" placeholder="Link text (optional)">
+            </div>
+            <div class="ed-modal-actions">
+                <button class="ed-btn" id="ed-link-cancel">Cancel</button>
+                <button class="ed-btn ed-btn--accent" id="ed-link-insert">Insert</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ed-modal-overlay" id="ed-delete-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title">Delete Document</div>
+            <p class="ed-confirm-text">This will permanently remove the document. This action cannot be undone.</p>
+            <div class="ed-modal-actions">
+                <button class="ed-btn" id="ed-delete-cancel">Cancel</button>
+                <button class="ed-btn ed-btn--danger" id="ed-delete-confirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ed-modal-overlay" id="ed-img-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title">Insert Image</div>
+            <div class="ed-link-type-tabs">
+                <button class="ed-link-type-tab ed-link-type-tab--active" data-img-type="url">URL</button>
+                <button class="ed-link-type-tab" data-img-type="local">Local (a_home_assets/)</button>
+            </div>
+            <div class="ed-modal-field">
+                <label id="ed-img-label">Image URL</label>
+                <input type="text" id="ed-img-url" placeholder="https://">
+            </div>
+            <div class="ed-modal-actions">
+                <button class="ed-btn" id="ed-img-cancel">Cancel</button>
+                <button class="ed-btn ed-btn--accent" id="ed-img-insert">Insert</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ed-toast" id="ed-toast"></div>
+
+    <script src="../js/editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Josu - Dashboard</title>
+    <link rel="stylesheet" href="../css/standard.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <h1>Josu <span>Beat Map Studio</span></h1>
+        <div class="top-bar-actions">
+            <a href="index.html" class="btn sm">Back to Game</a>
+        </div>
+    </div>
+
+    <!-- Page -->
+    <div class="page">
+        <div class="page-header">
+            <h2>My Song Projects</h2>
+        </div>
+
+        <div class="cards" id="songsGrid">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
+    <!-- New Song Modal -->
+    <div class="modal-overlay" id="newSongModal">
+        <div class="modal">
+            <h2>Create New Song Project</h2>
+            <div class="form-group">
+                <label for="newSongTitle">Song Title *</label>
+                <input type="text" id="newSongTitle" placeholder="e.g. Blinding Lights" autofocus>
+            </div>
+            <div class="form-group">
+                <label for="newSongArtist">Artist</label>
+                <input type="text" id="newSongArtist" placeholder="e.g. The Weeknd">
+            </div>
+            <div class="form-group">
+                <label for="newSongImage">Cover Image URL</label>
+                <input type="text" id="newSongImage" placeholder="https://example.com/cover.jpg">
+            </div>
+            <div class="form-group">
+                <label for="newSongGif">In-Game GIF URL</label>
+                <input type="text" id="newSongGif" placeholder="https://example.com/ingame.gif">
+            </div>
+            <div class="form-group">
+                <label for="newSongAudio">Audio File Path</label>
+                <input type="text" id="newSongAudio" placeholder="e.g. songs/nevada/audio.mp3">
+            </div>
+            <div class="form-group">
+                <label for="newSongAudioCorrection">Audio Correction (ms)</label>
+                <input type="number" id="newSongAudioCorrection" placeholder="0" value="0">
+                <small>Positive values delay audio, negative values advance it</small>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelSongBtn">Cancel</button>
+                <button class="btn primary" id="createSongBtn">Create Song</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/store.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

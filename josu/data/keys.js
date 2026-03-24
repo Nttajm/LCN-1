@@ -496,6 +496,7 @@ export const songKeys = {
     { key: 'd', time: 375500 }
 ]
     },
+    
     blindingLights: {
         easy:// Untitled - Unknown [Normal]
 // Total notes: 72

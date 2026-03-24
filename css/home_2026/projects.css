@@ -1,0 +1,107 @@
+.proj-item {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 2.5rem;
+    padding: 2.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    text-decoration: none;
+    color: inherit;
+}
+
+.proj-item:hover {
+    opacity: 0.72;
+}
+
+.proj-item:hover .proj-item-img img {
+    transform: scale(1.04);
+}
+
+.proj-item-img {
+    flex-shrink: 0;
+    width: 22rem;
+    aspect-ratio: 4 / 3;
+    border-radius: 0.58rem;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+}
+
+.proj-item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.proj-item-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.67rem;
+    padding-bottom: 0.17rem;
+    min-width: 0;
+}
+
+.proj-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.92rem;
+}
+
+.proj-item-title {
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: var(--bswhite);
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+}
+
+.pg-list.card-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.pg-list.card-view .proj-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    border-bottom: none;
+    border-radius: 0.67rem;
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.pg-list.card-view .proj-item:hover {
+    opacity: 1;
+    border-color: rgba(255,255,255,0.14);
+}
+
+.pg-list.card-view .proj-item-img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 0;
+}
+
+.pg-list.card-view .proj-item-body {
+    padding: 1.17rem 1.25rem 1.25rem;
+    justify-content: flex-start;
+    gap: 0.5rem;
+}
+
+.pg-list.card-view .pg-item-desc {
+    display: none;
+}
+
+.pg-list.card-view .proj-item-title {
+    font-size: 1.33rem;
+}

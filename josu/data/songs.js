@@ -1,6 +1,6 @@
 import { songKeys } from './keys.js';
 
-export const songs = [
+ const songsI = [
     {
         id: 1,
         title: "Blinding Lights",
@@ -50,9 +50,10 @@ export const songs = [
         time: '3:04',
         image: 'songs/dothatshit/main.png',
         audio: 'songs/dothatshit/audio.mp3',
+        inGameGif: 'songs/dothatshit/gif.gif',
         ranked: true,
         difficulties: [
-            { name: "Normal", mapper: "Jordan H.", stars: 2.10 },
+            { name: "Normal", mapper: "Jordan H.", stars: 2.10, mode: "taiko" },
             {name: "Hard", mapper: "Jordan H.", stars: 2.50, mode: "updown", speed: 1, songData: songKeys.dothatshit.hard },
         ]
     },
@@ -103,4 +104,139 @@ export const songs = [
             { name: "Easy", mapper: "joelM", stars: 1.03 },
         ]
     },
-]
+    {
+        id: 5,
+        title: "Dreaming",
+        artist: "Artist Name",
+        time: '4:02',
+        image: 'songs/ttto/main.png',
+        ranked: true,
+        difficulties: [
+            { name: "Hard", mapper: "joelM", stars: 3.50 },
+        ]
+    }
+];
+
+// ══════════════════════════════════════════════════════════════
+// STORAGE KEYS
+// ══════════════════════════════════════════════════════════════
+const PUBLISHED_SONGS_KEY = 'josu_published_songs';  // Public database (visible in browse)
+const LOCAL_SONGS_KEY = 'josu_local_songs';          // User's personal unpublished songs
+const DOWNLOADED_KEY = 'josu_downloaded_songs';      // IDs of songs downloaded from browse
+
+// ══════════════════════════════════════════════════════════════
+// PUBLISHED SONGS (for browse page - simulated public database)
+// ══════════════════════════════════════════════════════════════
+function getPublishedSongs() {
+    try {
+        const saved = localStorage.getItem(PUBLISHED_SONGS_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (e) {
+        console.error('Error loading published songs:', e);
+    }
+    return [];
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOCAL LIBRARY (user's personal unpublished songs)
+// ══════════════════════════════════════════════════════════════
+function getLocalSongs() {
+    try {
+        const saved = localStorage.getItem(LOCAL_SONGS_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (e) {
+        console.error('Error loading local songs:', e);
+    }
+    return [];
+}
+
+// ══════════════════════════════════════════════════════════════
+// DOWNLOADED SONGS (IDs referencing the published database)
+// ══════════════════════════════════════════════════════════════
+function getDownloadedSongIds() {
+    try {
+        const saved = localStorage.getItem(DOWNLOADED_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (e) {
+        console.error('Error loading downloaded song IDs:', e);
+    }
+    return [];
+}
+
+// Resolve downloaded IDs to actual song objects from Firebase
+async function getDownloadedSongs() {
+    const ids = getDownloadedSongIds();
+    if (ids.length === 0) return [];
+
+    // Try fetching from Firebase first
+    if (typeof JosuFirebase !== 'undefined') {
+        try {
+            const results = await Promise.all(
+                ids.map(id => JosuFirebase.getPublishedSongById(String(id)))
+            );
+            const songs = results.filter(Boolean);
+            if (songs.length > 0) return songs;
+        } catch (e) {
+            console.warn('Failed to load downloaded songs from Firebase:', e.message);
+        }
+    }
+
+    // Fallback to localStorage published songs
+    const published = getPublishedSongs();
+    return ids.map(id => published.find(s => (s.id || s.storeId) === id)).filter(Boolean);
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORTS
+// ══════════════════════════════════════════════════════════════
+
+// songs: Published songs only (for browse page)
+export const songs = getPublishedSongs();
+
+// builtInSongs: Hardcoded official songs (for reference/fallback)
+export const builtInSongs = songsI;
+
+// localLibrary: User's personal unpublished library
+export const localLibrary = getLocalSongs();
+
+// allPlayableSongs: Everything the user can actually play
+// (built-in + local unpublished + downloaded from browse)
+export async function getAllPlayableSongs() {
+    const local = getLocalSongs();
+    const downloaded = await getDownloadedSongs();
+    
+    // Track IDs to avoid duplicates (use id or storeId)
+    const seen = new Set();
+    const result = [];
+    
+    function songKey(song) { return String(song.id || song.storeId); }
+    
+    // Add built-in songs first
+    for (const song of songsI) {
+        const key = songKey(song);
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(song);
+        }
+    }
+    
+    // Add local unpublished songs
+    for (const song of local) {
+        const key = songKey(song);
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(song);
+        }
+    }
+    
+    // Add downloaded songs from browse
+    for (const song of downloaded) {
+        const key = songKey(song);
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(song);
+        }
+    }
+    
+    return result;
+}

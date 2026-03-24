@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titan Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700&family=Franklin+Gothic+Medium&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --spelling-bee: #F7DA21;
+    --wordle: #E3E0D8;
+    --crossplay: #C4D6F0;
+    --pips: #DDA8C7;
+    --strands: #B8D9CC;
+    --connections: #C5B4E3;
+    --border: #E0E0E0;
+    --text-primary: #121212;
+    --text-secondary: #5A5A5A;
+    --bg: #FFFFFF;
+}
+
+body {
+    font-family: 'Libre Franklin', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+}
+
+.hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text-primary);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.logo-icon {
+    width: 28px;
+    height: 28px;
+}
+
+.logo-text {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: -0.5px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-subscribe {
+    background: var(--text-primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Libre Franklin', sans-serif;
+}
+
+.btn-login {
+    background: none;
+    border: 1px solid var(--text-primary);
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Libre Franklin', sans-serif;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+}
+
+h1 {
+    text-align: center;
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.game-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s ease;
+}
+
+.game-card:hover {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.card-top {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    gap: 12px;
+    padding: 20px;
+}
+
+.card-top svg {
+    width: 64px;
+    height: 64px;
+}
+
+.card-top .game-name {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--text-primary);
+}
+
+.new-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--text-primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.card-bottom {
+    padding: 16px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+
+.card-bottom .description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.card-bottom .game-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    background: none;
+    font-size: 15px;
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s ease;
+}
+
+.card-bottom .game-btn:hover {
+    background: #f5f5f5;
+}
+
+.crossword-date {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #326891;
+    text-align: center;
+    margin-bottom: 2px;
+}
+
+.crossword-credits {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+}
+
+.lock-icon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+    .card-top {
+        height: 150px;
+    }
+}
+</style>
+</head>
+<body>
+<header>
+    <div class="header-left">
+        <button class="hamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <a href="#" class="logo">
+            <svg class="logo-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="28" height="28" rx="4" fill="#121212"/>
+                <text x="6" y="20.5" font-family="'Noto Serif', serif" font-weight="700" font-size="18" fill="white">T</text>
+            </svg>
+            <span class="logo-text">Games</span>
+        </a>
+    </div>
+    <div class="header-right">
+        <button class="btn-subscribe">Subscribe</button>
+        <button class="btn-login">Log In</button>
+    </div>
+</header>
+
+<main>
+    <h1>More Games</h1>
+    <div class="games-grid">
+
+        <div class="game-card">
+            <div class="card-top" style="background: var(--spelling-bee);">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="32" cy="34" rx="14" ry="16" fill="#121212"/>
+                    <ellipse cx="32" cy="34" rx="10" ry="12" fill="var(--spelling-bee)" stroke="#121212" stroke-width="1.5"/>
+                    <line x1="28" y1="30" x2="28" y2="38" stroke="#121212" stroke-width="1.5"/>
+                    <line x1="36" y1="30" x2="36" y2="38" stroke="#121212" stroke-width="1.5"/>
+                    <line x1="24" y1="34" x2="40" y2="34" stroke="#121212" stroke-width="1.5"/>
+                    <circle cx="24" cy="20" r="5" fill="none" stroke="#121212" stroke-width="2"/>
+                    <circle cx="40" cy="20" r="5" fill="none" stroke="#121212" stroke-width="2"/>
+                    <path d="M26 16 L24 10" stroke="#121212" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M22 16 L20 10" stroke="#121212" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M38 16 L40 10" stroke="#121212" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M42 16 L44 10" stroke="#121212" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span class="game-name">Spelling Bee</span>
+            </div>
+            <div class="card-bottom">
+                <button class="game-btn">Play</button>
+                <button class="game-btn">Past Puzzles</button>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div class="card-top" style="background: var(--wordle);">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="12" width="11" height="11" rx="1.5" fill="#6AAA64"/>
+                    <rect x="22" y="12" width="11" height="11" rx="1.5" fill="#C9B458"/>
+                    <rect x="36" y="12" width="11" height="11" rx="1.5" fill="#6AAA64"/>
+                    <rect x="8" y="26" width="11" height="11" rx="1.5" fill="#787C7E"/>
+                    <rect x="22" y="26" width="11" height="11" rx="1.5" fill="#6AAA64"/>
+                    <rect x="36" y="26" width="11" height="11" rx="1.5" fill="#787C7E"/>
+                    <rect x="8" y="40" width="11" height="11" rx="1.5" fill="#C9B458"/>
+                    <rect x="22" y="40" width="11" height="11" rx="1.5" fill="#787C7E"/>
+                    <rect x="36" y="40" width="11" height="11" rx="1.5" fill="#6AAA64"/>
+                </svg>
+                <span class="game-name">Wordle</span>
+            </div>
+            <div class="card-bottom">
+                <button class="game-btn">Play</button>
+                <button class="game-btn">Archive</button>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div class="card-top" style="background: #C2D0E8;">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="6" y="6" width="52" height="52" rx="7" fill="white"/>
+                    <rect x="6" y="6" width="52" height="52" rx="7" stroke="#ccc" stroke-width="1"/>
+                    <rect x="12" y="12" width="9" height="9" fill="#121212"/>
+                    <rect x="23" y="12" width="9" height="9" fill="#121212"/>
+                    <rect x="34" y="12" width="9" height="9" fill="white"/>
+                    <rect x="45" y="12" width="9" height="9" fill="#121212"/>
+                    <rect x="12" y="23" width="9" height="9" fill="white"/>
+                    <rect x="23" y="23" width="9" height="9" fill="#121212"/>
+                    <rect x="34" y="23" width="9" height="9" fill="#121212"/>
+                    <rect x="45" y="23" width="9" height="9" fill="white"/>
+                    <rect x="12" y="34" width="9" height="9" fill="#121212"/>
+                    <rect x="23" y="34" width="9" height="9" fill="white"/>
+                    <rect x="34" y="34" width="9" height="9" fill="white"/>
+                    <rect x="45" y="34" width="9" height="9" fill="#121212"/>
+                    <rect x="12" y="45" width="9" height="9" fill="white"/>
+                    <rect x="23" y="45" width="9" height="9" fill="#121212"/>
+                    <rect x="34" y="45" width="9" height="9" fill="#121212"/>
+                    <rect x="45" y="45" width="9" height="9" fill="white"/>
+                </svg>
+                <span class="game-name">The Crossword</span>
+            </div>
+            <div class="card-bottom">
+                <button class="game-btn" onclick="window.location.href='crossword.html'">Play</button>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div class="card-top" style="background: var(--crossplay);">
+                <span class="new-badge">New</span>
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="44" height="44" rx="8" fill="#4A8B3F" stroke="#2D5C27" stroke-width="1"/>
+                    <rect x="16" y="16" width="10" height="10" fill="#fff" rx="1"/>
+                    <rect x="28" y="16" width="10" height="10" fill="#fff" rx="1"/>
+                    <rect x="16" y="28" width="10" height="10" fill="#fff" rx="1"/>
+                    <rect x="28" y="28" width="10" height="10" fill="#fff" rx="1"/>
+                    <rect x="40" y="16" width="4" height="10" fill="#fff" rx="1"/>
+                    <rect x="16" y="40" width="10" height="4" fill="#fff" rx="1"/>
+                    <circle cx="44" cy="44" r="12" fill="#4A8B3F" stroke="#2D5C27" stroke-width="1.5"/>
+                    <rect x="36" y="36" width="16" height="16" rx="4" fill="white" stroke="#121212" stroke-width="1"/>
+                    <text x="39.5" y="49" font-family="'Noto Serif', serif" font-weight="700" font-size="12" fill="#4A8B3F">C</text>
+                </svg>
+                <span class="game-name">Crossplay</span>
+            </div>
+            <div class="card-bottom">
+                <p class="description">Challenge friends in this 2-player word game.</p>
+                <button class="game-btn">Download app</button>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div class="card-top" style="background: var(--pips);">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="18" width="22" height="28" rx="3" fill="white" stroke="#121212" stroke-width="2"/>
+                    <circle cx="15" cy="27" r="2.5" fill="#121212"/>
+                    <circle cx="23" cy="27" r="2.5" fill="#121212"/>
+                    <circle cx="15" cy="39" r="2.5" fill="#121212"/>
+                    <circle cx="23" cy="39" r="2.5" fill="#121212"/>
+                    <line x1="8" y1="33" x2="30" y2="33" stroke="#121212" stroke-width="1.5"/>
+                    <rect x="34" y="18" width="22" height="28" rx="3" fill="white" stroke="#121212" stroke-width="2"/>
+                    <circle cx="41" cy="27" r="2.5" fill="#121212"/>
+                    <circle cx="49" cy="27" r="2.5" fill="#121212"/>
+                    <circle cx="45" cy="33" r="2.5" fill="#121212"/>
+                    <circle cx="41" cy="39" r="2.5" fill="#121212"/>
+                    <circle cx="49" cy="39" r="2.5" fill="#121212"/>
+                    <line x1="34" y1="33" x2="56" y2="33" stroke="#121212" stroke-width="1.5"/>
+                </svg>
+                <span class="game-name">Pips</span>
+            </div>
+            <div class="card-bottom">
+                <p class="description">Place every domino into the right spot.</p>
+                <button class="game-btn">Play</button>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div class="card-top" style="background: var(--strands);">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 48 C16 38, 26 28, 26 18" stroke="#1A6B54" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <path d="M26 48 C26 38, 16 28, 16 18" stroke="#3B9B7A" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <path d="M32 48 C32 38, 42 28, 42 18" stroke="#1A6B54" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <path d="M42 48 C42 38, 32 28, 32 18" stroke="#3B9B7A" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <circle cx="16" cy="16" r="3.5" fill="#1A6B54"/>
+                    <circle cx="26" cy="16" r="3.5" fill="#3B9B7A"/>
+                    <circle cx="42" cy="16" r="3.5" fill="#1A6B54"/>
+                    <circle cx="48" cy="24" r="3.5" fill="#3B9B7A"/>
+                    <circle cx="16" cy="48" r="3.5" fill="#3B9B7A"/>
+                    <circle cx="26" cy="48" r="3.5" fill="#1A6B54"/>
+                    <circle cx="32" cy="48" r="3.5" fill="#1A6B54"/>
+                    <circle cx="42" cy="48" r="3.5" fill="#3B9B7A"/>
+                </svg>
+                <span class="game-name">Strands</span>
+            </div>
+            <div class="card-bottom">
+                <button class="game-btn">Play</button>
+                <button class="game-btn">Archive</button>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div class="card-top" style="background: var(--connections);">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="26" y="10" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="42" y="10" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <rect x="10" y="26" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <rect x="26" y="26" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="42" y="26" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="10" y="42" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="26" y="42" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <rect x="42" y="42" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <line x1="16" y1="16" x2="32" y2="16" stroke="white" stroke-width="1.5"/>
+                    <line x1="16" y1="16" x2="16" y2="32" stroke="white" stroke-width="1.5"/>
+                    <line x1="32" y1="32" x2="48" y2="32" stroke="white" stroke-width="1.5"/>
+                    <line x1="48" y1="16" x2="48" y2="32" stroke="white" stroke-width="1.5"/>
+                </svg>
+                <span class="game-name">Connections</span>
+            </div>
+            <div class="card-bottom">
+                <button class="game-btn">Play</button>
+                <button class="game-btn">Archive</button>
+            </div>
+        </div>
+
+    </div>
+</main>
+</body>
+</html>

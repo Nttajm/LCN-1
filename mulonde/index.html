@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="/css/standard.css">
 </head>
-<body>
+<body class="stand_er-scroll">
   <div class="cover dn">
     <div class="name-cont">
       <div class="name" id="first">
@@ -26,7 +26,7 @@
   </div>
 
 
-  <div class="hero cont">
+  <div class="hero cont stand_er-scroll">
     <div class="grid-context">
       <div class="left">
         <span>
@@ -53,7 +53,7 @@
             </svg>
             <span class="loader-text">0%</span>
           </div>
-          <div class="card card-back">
+          <div class="card card-back" data-showCat="demos">
             <div class="slides" data-slideshow="true" data-interval="3500">
               <div class="slide-item active">
                   <img src="data/work/lacosta/main-image.png" alt="imitadora-main-image">
@@ -123,7 +123,7 @@
         <div class="cards">
           <div class="card card-front">
           </div>
-          <div class="card card-back">
+          <div class="card card-back" data-showCat="games">
             <div class="slides" data-slideshow="true" data-interval="4000">
 
               <div class="slide-item slide-explainer wImg" style="--card-color: #38c219;">
@@ -265,12 +265,22 @@
             </div>
           </div>
         </div>
-
-      </di>
+    </div>
+  </div>
+  </div>
+  <div class="viewer">
+    <div class="v-holder">
+      <button class="viewer-close-btn" aria-label="Close viewer">✕</button>
+      <div class="v-title"></div>
+    </div>
+    <div class="content-section">
+      <div class="rel-content"></div>
+      <div class="about-sel-content"></div>
     </div>
   </div>
 
 </body>
 <script src="js/animation.js" type="module"></script>
 <script src="js/api.js"></script>
+<script src="js/render.js" type="module"></script>
 </html>

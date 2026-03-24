@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBNM 3.4.1 — Development Notes</title>
+    <link rel="stylesheet" href="../../css/standard.css">
+    <link rel="stylesheet" href="../../css/home_2026/home.css">
+    <link rel="stylesheet" href="../../css/article.css">
+</head>
+<body>
+    <script src="../../js/nav.js" data-root="../../"></script>
+
+    <main>
+        <div class="article-wrap">
+
+            <!-- Header -->
+            <header class="article-header">
+                <span class="article-cat">Development · Patch Notes</span>
+                <h1 class="article-title">DBNM 3.4.1: Scoring Pipeline Rework and Network Stability</h1>
+                <time class="article-date">June 2025</time>
+                <a href="#" class="article-cta">Read the full changelog</a>
+            </header>
+
+            <!-- Hero -->
+            <div class="article-hero">
+                <img src="/a_home_assets/gradients/g_blue.jpg" alt="DBNM network diagram">
+            </div>
+
+            <!-- Body -->
+            <article class="article-body">
+                <p>
+                    DBNM 3.4.1 is a focused maintenance release addressing a set of long-standing issues
+                    in the scoring pipeline, improving the accuracy of node weight calculations and
+                    resolving an edge case that caused incorrect propagation during high-traffic intervals.
+                    This document details the changes, the reasoning behind each decision, and what to expect during the transition.
+                </p>
+
+                <h2>What Changed</h2>
+                <p>
+                    The scoring pipeline previously relied on a two-pass evaluation model.
+                    In the first pass, raw connection counts were tallied per node.
+                    In the second pass, those counts were weighted against a static decay table.
+                    This approach worked well in low-volume simulations but introduced compounding errors
+                    as node counts scaled past roughly 1,400 active entries.
+                </p>
+                <p>
+                    In 3.4.1, the static decay table has been replaced with a <strong>dynamic weight resolver</strong>.
+                    Instead of referencing a fixed lookup, the resolver re-evaluates decay factors at each interval
+                    using a rolling window over the last 40 cycles. This eliminates the drift that accumulated
+                    in longer sessions and brings per-node scoring error from ~4.2% down to under 0.8% in internal testing.
+                </p>
+
+                <div class="article-divider"></div>
+
+                <h2>Network Stability Improvements</h2>
+                <p>
+                    Three separate stability bugs have been resolved in this release.
+                    The most impactful involved a race condition in the connection handshake logic
+                    that could cause duplicate session records when two nodes attempted to register simultaneously.
+                    The fix involved adding a short mutex lock at the registration step —
+                    a simple change, but one that required careful sequencing to avoid introducing latency.
+                </p>
+                <p>
+                    The second fix addressed an off-by-one error in the adjacency list indexing
+                    that surfaced only when the network was initialized with an even number of seed nodes.
+                    The third resolved an issue where the health-check daemon would silently skip
+                    nodes flagged as inactive but still present in the routing table, causing stale entries to persist.
+                </p>
+
+                <!-- Figure -->
+                <figure class="article-figure">
+                    <img src="../../images/g_blue.jpg" alt="Scoring pipeline comparison chart">
+                    <figcaption>
+                        <strong>Figure 1.</strong> Comparison of per-node scoring error across 2,000-node simulations —
+                        old static decay model (left) vs. new dynamic weight resolver (right).
+                        Error bars represent ±1 standard deviation across 12 test runs.
+                    </figcaption>
+                </figure>
+
+                <h2>Migration Notes</h2>
+                <p>
+                    Most users will not need to take any action.
+                    If you are running a custom scoring configuration exported from a version earlier than 3.2.0,
+                    review the release notes for that version and ensure your configuration file uses
+                    the updated <em>resolver_mode</em> key. The old <em>decay_table_path</em> key is still accepted
+                    but will log a deprecation warning and will be removed in 3.6.
+                </p>
+                <p>
+                    Sessions in progress at the time of upgrade will complete using the prior scoring model.
+                    The new resolver activates on the next full session initialization.
+                </p>
+
+                <div class="article-divider"></div>
+
+                <!-- FAQ -->
+                <section class="article-faq">
+                    <h2>Frequently Asked Questions</h2>
+                    <p class="faq-intro">
+                        Questions collected from issue reports and internal review during the 3.4.1 testing cycle.
+                    </p>
+
+                    <div class="faq-item">
+                        <p class="faq-q">Why wasn't the dynamic resolver introduced earlier?</p>
+                        <p class="faq-a">
+                            The static decay table was sufficient for the scale DBNM was originally designed for.
+                            As the test network grew beyond a few hundred nodes, the drift became measurable
+                            but was not a blocking issue. The rework became a priority once error rates started
+                            affecting leaderboard accuracy in competitive sessions.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <p class="faq-q">Will this change scoring results for existing data?</p>
+                        <p class="faq-a">
+                            Historical session records are not retroactively recalculated.
+                            Existing scores remain as-is. Only new sessions initiated after the upgrade
+                            will use the dynamic resolver.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <p class="faq-q">What does the rolling window size of 40 cycles mean in practice?</p>
+                        <p class="faq-a">
+                            The resolver looks at the last 40 evaluation cycles when computing each decay factor.
+                            At the default tick rate this is approximately 8 seconds of history.
+                            A smaller window would make scores more reactive but less stable;
+                            a larger window smooths out spikes but can lag behind rapid topology changes.
+                            40 was chosen as a balance point based on observed network behavior.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <p class="faq-q">Is there a performance cost to the new resolver?</p>
+                        <p class="faq-a">
+                            Yes, a small one. Benchmarks show roughly a 3–5% increase in CPU time
+                            during the scoring phase on large networks. This is within acceptable limits
+                            and is far outweighed by the accuracy gains. A future release may introduce
+                            an optional fast-path for networks below a configurable node threshold.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <p class="faq-q">Where can I report issues found in 3.4.1?</p>
+                        <p class="faq-a">
+                            Open an issue through the standard reporting channel.
+                            Include your configuration file (with sensitive fields redacted),
+                            the session log from the affected run, and the exact version string from the about page.
+                        </p>
+                    </div>
+                </section>
+
+            </article>
+        </div>
+    </main>
+
+</body>
+</html>

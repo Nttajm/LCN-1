@@ -1,0 +1,399 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Josu - Browse Beatmaps</title>
+    <link rel="stylesheet" href="css/browse.css">
+</head>
+<body>
+
+    <!-- Blurred background -->
+    <div class="browse-bg" id="browseBg"></div>
+
+    <!-- Header -->
+    <div class="browse-header">
+        <div class="header-top">
+            <!-- Back button -->
+            <button class="back-btn" onclick="window.location.href='index.html'" title="Back to menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </button>
+
+            <!-- Logo -->
+            <a class="header-logo" href="index.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                </svg>
+                <span>beatmap listing</span>
+            </a>
+
+            <!-- Search -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="type in keywords...">
+                <div class="search-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <circle cx="11" cy="11" r="7"/>
+                        <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter rows -->
+        <div class="filter-bar" id="filterBar">
+            <div class="filter-row">
+                <span class="filter-label">Mode</span>
+                <span class="filter-option active" data-filter="mode" data-value="all">Any</span>
+                <span class="filter-option" data-filter="mode" data-value="taiko">taiko</span>
+                <span class="filter-option" data-filter="mode" data-value="updown">arrows</span>
+            </div>
+            <div class="filter-row">
+                <span class="filter-label">Categories</span>
+                <span class="filter-option active" data-filter="cat" data-value="all">Any</span>
+                <span class="filter-option highlight" data-filter="cat" data-value="ranked">Ranked</span>
+                <span class="filter-option" data-filter="cat" data-value="unranked">Unranked</span>
+            </div>
+            <div class="filter-row">
+                <span class="filter-label">Played</span>
+                <span class="filter-option active" data-filter="played" data-value="all">Any</span>
+                <span class="filter-option" data-filter="played" data-value="played">Played</span>
+                <span class="filter-option" data-filter="played" data-value="unplayed">Unplayed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sort bar -->
+    <div class="sort-bar">
+        <span class="sort-option" data-sort="title">Title</span>
+        <span class="sort-option" data-sort="artist">Artist</span>
+        <span class="sort-option" data-sort="difficulty">Difficulty</span>
+        <span class="sort-option active" data-sort="ranked">Ranked</span>
+        <span class="sort-option" data-sort="plays">Plays</span>
+        <span class="sort-spacer"></span>
+        <div class="view-toggle">
+            <button class="view-btn active" title="Grid view">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <rect x="0" y="0" width="4" height="4" rx="1"/>
+                    <rect x="6" y="0" width="4" height="4" rx="1"/>
+                    <rect x="12" y="0" width="4" height="4" rx="1"/>
+                    <rect x="0" y="6" width="4" height="4" rx="1"/>
+                    <rect x="6" y="6" width="4" height="4" rx="1"/>
+                    <rect x="12" y="6" width="4" height="4" rx="1"/>
+                </svg>
+            </button>
+            <button class="view-btn" title="List view">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <rect x="0" y="0" width="16" height="3" rx="1"/>
+                    <rect x="0" y="5" width="16" height="3" rx="1"/>
+                    <rect x="0" y="10" width="16" height="3" rx="1"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Songs grid -->
+    <div class="songs-grid" id="songsGrid"></div>
+
+    <!-- Match info -->
+    <div class="match-info" id="matchInfo"></div>
+
+    <!-- Firebase compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-db.js"></script>
+
+<script>
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // BROWSE â€“ loads published songs from Firebase,
+    // falls back to localStorage if offline / error.
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+    let songs = [];   // filled async on load
+
+    // â”€â”€ Load songs (Firebase first, localStorage fallback) â”€â”€
+    async function loadSongs() {
+        try {
+            const fbSongs = await JosuFirebase.getPublishedSongs();
+            if (fbSongs.length > 0) return fbSongs;
+        } catch (e) {
+            console.warn('Firebase load failed, using localStorage:', e.message);
+        }
+        try {
+            const saved = localStorage.getItem('josu_published_songs');
+            if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return [];
+    }
+
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // DOWNLOADED IDs (user's library)
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    const DOWNLOADED_KEY = 'josu_downloaded_songs';
+
+    function loadDownloadedIds() {
+        try {
+            const raw = localStorage.getItem(DOWNLOADED_KEY);
+            if (raw) return new Set(JSON.parse(raw));
+        } catch (e) {}
+        return new Set();
+    }
+
+    function saveDownloadedIds(set) {
+        localStorage.setItem(DOWNLOADED_KEY, JSON.stringify([...set]));
+    }
+
+    const downloadedIds = loadDownloadedIds();
+
+    function isDownloaded(id)  { return downloadedIds.has(id); }
+    function downloadSong(id)  { downloadedIds.add(id);    saveDownloadedIds(downloadedIds); }
+    function removeDownload(id){ downloadedIds.delete(id); saveDownloadedIds(downloadedIds); }
+
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // HELPERS
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    function getDiffLevel(stars) {
+        if (stars < 1) return 1;
+        if (stars < 2) return 2;
+        if (stars < 3) return 3;
+        if (stars < 4) return 4;
+        if (stars < 5) return 5;
+        return 6;
+    }
+
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // BUILD CARDS
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    function buildSongCard(song) {
+        const card = document.createElement('div');
+        card.className = 'song-card';
+        card.dataset.songId = song.id || song.storeId;
+
+        // Use storeId as the stable download ID
+        const dlId = song.id || song.storeId;
+        const inLib = isDownloaded(dlId);
+        if (inLib) card.classList.add('in-library');
+
+        const coverImg = song.coverImage || song.image || 'songs/ttto/main.png';
+
+        const bg = document.createElement('div');
+        bg.className = 'song-card-bg';
+        bg.style.backgroundImage = `url(${coverImg})`;
+        card.appendChild(bg);
+
+        const cover = document.createElement('div');
+        cover.className = 'song-card-cover';
+        cover.innerHTML = `<img src="${coverImg}" alt="${song.title}" loading="lazy">`;
+        card.appendChild(cover);
+
+        const info = document.createElement('div');
+        info.className = 'song-card-info';
+
+        const titleRow = document.createElement('div');
+        titleRow.className = 'song-card-title';
+        titleRow.textContent = song.title;
+        info.appendChild(titleRow);
+
+        const artistRow = document.createElement('div');
+        artistRow.className = 'song-card-artist';
+        artistRow.innerHTML = `by ${song.artist || 'Unknown'}`;
+        if (song.ranked) {
+            artistRow.innerHTML += `<span class="badge-featured">FEATURED ARTIST</span>`;
+        }
+        info.appendChild(artistRow);
+
+        const mapperRow = document.createElement('div');
+        mapperRow.className = 'song-card-mapper';
+        const mapperName = (song.difficulties || [])[0]?.mapper || 'Unknown';
+        mapperRow.textContent = `mapped by ${mapperName}`;
+        info.appendChild(mapperRow);
+
+        const bottom = document.createElement('div');
+        bottom.className = 'song-card-bottom';
+
+        const badge = document.createElement('span');
+        badge.className = song.ranked ? 'badge badge-ranked' : 'badge badge-unranked';
+        badge.textContent   = song.ranked ? 'RANKED' : 'UNRANKED';
+        bottom.appendChild(badge);
+
+        const hasTaiko = (song.difficulties || []).some(d => !d.mode || d.mode === 'taiko');
+        const hasArrow = (song.difficulties || []).some(d => d.mode === 'updown');
+        if (hasTaiko) { const i = document.createElement('span'); i.className = 'mode-icon'; i.textContent = 'ðŸ¥'; bottom.appendChild(i); }
+        if (hasArrow) { const i = document.createElement('span'); i.className = 'mode-icon'; i.textContent = 'â†•';  bottom.appendChild(i); }
+
+        const dots = document.createElement('div');
+        dots.className = 'diff-dots';
+        (song.difficulties || []).forEach(d => {
+            const dot = document.createElement('span');
+            const lvl = getDiffLevel(d.stars);
+            dot.className = `diff-dot diff-${lvl}`;
+            dot.title = `${d.name} (â˜…${(+d.stars).toFixed(2)})`;
+            dots.appendChild(dot);
+        });
+        bottom.appendChild(dots);
+        info.appendChild(bottom);
+        card.appendChild(info);
+
+        // Remove from library button
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.title = 'Remove from library';
+        removeBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeDownload(dlId);
+            card.classList.remove('in-library');
+            const dlBtn = card.querySelector('.download-btn');
+            if (dlBtn) { dlBtn.classList.remove('downloaded'); dlBtn.title = 'Add to Library'; }
+        });
+        card.appendChild(removeBtn);
+
+        const actions = document.createElement('div');
+        actions.className = 'song-card-actions';
+        actions.innerHTML = `
+            <button class="action-btn download-btn${inLib ? ' downloaded' : ''}" title="${inLib ? 'In Library' : 'Add to Library'}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+            </button>
+            <button class="action-btn like-btn" title="Favourite">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+            </button>`;
+        card.appendChild(actions);
+
+        card.addEventListener('mouseenter', () => {
+            document.getElementById('browseBg').style.backgroundImage = `url(${coverImg})`;
+        });
+
+        const dlBtn = actions.querySelector('.download-btn');
+        dlBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!card.classList.contains('in-library')) {
+                downloadSong(dlId);
+                card.classList.add('in-library');
+                dlBtn.classList.add('downloaded');
+                dlBtn.title = 'In Library';
+            }
+        });
+
+        const likeBtn = actions.querySelector('.like-btn');
+        likeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            likeBtn.classList.toggle('liked');
+            likeBtn.querySelector('svg').setAttribute('fill', likeBtn.classList.contains('liked') ? 'currentColor' : 'none');
+        });
+
+        return card;
+    }
+
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // RENDER
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    const grid      = document.getElementById('songsGrid');
+    const matchInfo = document.getElementById('matchInfo');
+
+    function renderSongs(filteredSongs) {
+        grid.innerHTML = '';
+        if (songs.length === 0) {
+            grid.innerHTML = `
+                <div class="no-results">
+                    <div style="font-size:48px;margin-bottom:16px;">ðŸŽµ</div>
+                    <div>No beatmaps have been published yet</div>
+                    <div style="font-size:14px;color:#888;margin-top:8px;">
+                        Create and publish beatmaps from the <a href="dashboard.html" style="color:#ff66ab;">Dashboard</a>
+                    </div>
+                </div>`;
+        } else if (filteredSongs.length === 0) {
+            grid.innerHTML = '<div class="no-results">No beatmaps found â€” try different filters</div>';
+        } else {
+            filteredSongs.forEach(song => grid.appendChild(buildSongCard(song)));
+        }
+        matchInfo.textContent = `Showing ${filteredSongs.length} beatmap${filteredSongs.length !== 1 ? 's' : ''}`;
+    }
+
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // SEARCH & FILTERS
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    const searchInput = document.getElementById('searchInput');
+
+    function applyFilters() {
+        const query = searchInput.value.toLowerCase().trim();
+
+        let filtered = songs.filter(song => {
+            if (query) {
+                const hay = `${song.title} ${song.artist} ${(song.difficulties || []).map(d => d.mapper).join(' ')}`.toLowerCase();
+                if (!hay.includes(query)) return false;
+            }
+
+            const modeFilter = document.querySelector('.filter-option[data-filter="mode"].active');
+            if (modeFilter && modeFilter.dataset.value !== 'all') {
+                const want = modeFilter.dataset.value;
+                const has = (song.difficulties || []).some(d => {
+                    if (want === 'taiko') return !d.mode || d.mode === 'taiko';
+                    return d.mode === want;
+                });
+                if (!has) return false;
+            }
+
+            const catFilter = document.querySelector('.filter-option[data-filter="cat"].active');
+            if (catFilter && catFilter.dataset.value !== 'all') {
+                if (catFilter.dataset.value === 'ranked'   && !song.ranked) return false;
+                if (catFilter.dataset.value === 'unranked' &&  song.ranked) return false;
+            }
+
+            return true;
+        });
+
+        renderSongs(filtered);
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+
+    document.querySelectorAll('.filter-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            const filterType = opt.dataset.filter;
+            document.querySelectorAll(`.filter-option[data-filter="${filterType}"]`).forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            applyFilters();
+        });
+    });
+
+    document.querySelectorAll('.sort-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            document.querySelectorAll('.sort-option').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+        });
+    });
+
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // LOADING STATE
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    grid.innerHTML = `
+        <div class="no-results">
+            <div style="font-size:32px;margin-bottom:12px;">â³</div>
+            <div>Loading beatmapsâ€¦</div>
+        </div>`;
+
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // INIT
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    (async () => {
+        songs = await loadSongs();
+        applyFilters();
+        if (songs.length > 0) {
+            const first = songs[0];
+            document.getElementById('browseBg').style.backgroundImage =
+                `url(${first.coverImage || first.image || 'songs/ttto/main.png'})`;
+        }
+    })();
+
+</script>
+
+</body>
+</html>

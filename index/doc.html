@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document — LCN</title>
+    <link rel="stylesheet" href="../css/home_2026/home.css">
+    <link rel="stylesheet" href="../css/standard.css">
+    <link rel="stylesheet" href="../css/doc.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <script src="../js/nav.js" data-root="../"></script>
+
+    <div class="doc-page" id="doc-page">
+        <div class="doc-loading" id="doc-loading">
+            <span class="doc-loading-text">Loading...</span>
+        </div>
+        <div class="doc-error" id="doc-error" style="display:none;">
+            <span class="doc-error-text">Document not found.</span>
+            <a href="../index.html" class="doc-back">&larr; Back to home</a>
+        </div>
+        <article class="doc-article" id="doc-article" style="display:none;">
+            <header class="doc-header">
+                <a href="../index.html" class="doc-back">&larr; Back</a>
+                <div class="doc-meta">
+                    <span class="doc-cat" id="doc-cat"></span>
+                    <span class="doc-subcat" id="doc-subcat"></span>
+                    <span class="doc-read" id="doc-read"></span>
+                    <span class="doc-date" id="doc-date"></span>
+                </div>
+                <h1 class="doc-title" id="doc-title"></h1>
+                <p class="doc-subdesc" id="doc-subdesc" style="display:none;"></p>
+            </header>
+            <div class="doc-hero" id="doc-hero" style="display:none;">
+                <img id="doc-hero-img" src="" alt="">
+            </div>
+            <div class="doc-body" id="doc-body"></div>
+            <div class="doc-images" id="doc-images" style="display:none;"></div>
+        </article>
+    </div>
+
+    <script>
+    (function () {
+        var firebaseConfig = {
+            apiKey: "AIzaSyBh8O0qR9FjRz30Si3-xxToRaPe2vsK9wg",
+            authDomain: "lcnfoundation-registry.firebaseapp.com",
+            projectId: "lcnfoundation-registry",
+            storageBucket: "lcnfoundation-registry.firebasestorage.app",
+            messagingSenderId: "472081807534",
+            appId: "1:472081807534:web:eed62912dd832743e4553f",
+            measurementId: "G-FJB125MV97"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        var params = new URLSearchParams(window.location.search);
+        var docId = params.get('v');
+
+        var loadingEl = document.getElementById('doc-loading');
+        var errorEl = document.getElementById('doc-error');
+        var articleEl = document.getElementById('doc-article');
+
+        if (!docId) {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'flex';
+            return;
+        }
+
+        function resolveImg(src) {
+            if (src && src.startsWith('a_home_assets/')) return '../' + src;
+            return src;
+        }
+
+        function formatDate(ts) {
+            if (!ts) return '';
+            var d = ts.toDate ? ts.toDate() : new Date(ts);
+            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+        }
+
+        function getReadTime(content) {
+            if (!content) return '1 min read';
+            var tmp = document.createElement('div');
+            tmp.innerHTML = content;
+            var text = tmp.textContent || '';
+            var words = text.trim().split(/\s+/).filter(function (w) { return w.length > 0; });
+            return Math.max(1, Math.ceil(words.length / 200)) + ' min read';
+        }
+
+        db.collection('editor_docs').doc(docId).get().then(function (snap) {
+            loadingEl.style.display = 'none';
+
+            if (!snap.exists) {
+                errorEl.style.display = 'flex';
+                return;
+            }
+
+            var doc = snap.data();
+            document.title = (doc.title || 'Untitled') + ' — LCN';
+
+            document.getElementById('doc-title').textContent = doc.title || 'Untitled';
+
+            if (doc.subDesc) {
+                var subEl = document.getElementById('doc-subdesc');
+                subEl.textContent = doc.subDesc;
+                subEl.style.display = 'block';
+            }
+
+            document.getElementById('doc-cat').textContent = doc.category || '';
+            document.getElementById('doc-read').textContent = getReadTime(doc.content);
+            document.getElementById('doc-date').textContent = doc.date || formatDate(doc.updatedAt);
+
+            if (!doc.category) document.getElementById('doc-cat').style.display = 'none';
+
+            if (doc.subCategory) {
+                document.getElementById('doc-subcat').textContent = doc.subCategory;
+            } else {
+                document.getElementById('doc-subcat').style.display = 'none';
+            }
+
+            var images = doc.images || [];
+            if (images.length > 0) {
+                var heroWrap = document.getElementById('doc-hero');
+                heroWrap.style.display = 'block';
+                document.getElementById('doc-hero-img').src = resolveImg(images[0]);
+            }
+
+            var bodyHTML = doc.content || '';
+            var tmp = document.createElement('div');
+            tmp.innerHTML = bodyHTML;
+            var imgs = tmp.querySelectorAll('img');
+            imgs.forEach(function (img) {
+                img.src = resolveImg(img.getAttribute('src'));
+            });
+            document.getElementById('doc-body').innerHTML = tmp.innerHTML;
+
+            if (images.length > 1) {
+                var imagesEl = document.getElementById('doc-images');
+                imagesEl.style.display = 'grid';
+                for (var i = 1; i < images.length; i++) {
+                    var imgEl = document.createElement('img');
+                    imgEl.src = resolveImg(images[i]);
+                    imgEl.alt = '';
+                    imagesEl.appendChild(imgEl);
+                }
+            }
+
+            articleEl.style.display = 'block';
+        }).catch(function () {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'flex';
+        });
+    })();
+    </script>
+</body>
+</html>

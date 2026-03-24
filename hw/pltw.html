@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Day in My Life — Food Insecurity in Kenya</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;700&family=Vollkorn:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/pltw.css">
+</head>
+<body>
+    <div class="grain"></div>
+    <div class="health-filter" id="healthFilter"></div>
+
+    <section class="intro" id="intro">
+        <div class="intro-content">
+            <p class="intro-eyebrow">PLTW 3.1.1 — Food Insecurity Simulation</p>
+            <h1 class="intro-title">A Day in My Life</h1>
+            <p class="intro-subtitle">An interactive narrative exploring food insecurity in rural Kenya</p>
+            <p class="intro-country">Kitui County, Eastern Kenya &mdash; Semi-Arid Region</p>
+            <button class="intro-btn" id="btnStart">Begin My Story</button>
+        </div>
+    </section>
+
+    <div class="app" id="app">
+        <header class="timeline" id="timeline">
+            <div class="timeline-track">
+                <div class="timeline-fill" id="timelineFill"></div>
+            </div>
+            <div class="timeline-nodes" id="timelineNodes"></div>
+        </header>
+
+        <div class="layout">
+            <aside class="stats" id="stats">
+                <div class="stats-section">
+                    <h3 class="stats-heading">Calories Today</h3>
+                    <div class="stats-calorie-display">
+                        <span class="stats-calorie-value" id="calorieValue">0</span>
+                        <span class="stats-calorie-target">/ 2,200 kcal</span>
+                    </div>
+                    <div class="stats-bar">
+                        <div class="stats-bar-fill" id="calorieBar"></div>
+                    </div>
+                    <div class="stats-calorie-label" id="calorieLabel">No food yet</div>
+                </div>
+
+                <div class="stats-section">
+                    <h3 class="stats-heading">Energy Level</h3>
+                    <div class="stats-bar stats-bar-energy">
+                        <div class="stats-bar-fill stats-bar-fill-energy" id="energyBar"></div>
+                    </div>
+                    <span class="stats-energy-label" id="energyLabel">Low</span>
+                </div>
+
+                <div class="stats-section">
+                    <h3 class="stats-heading">Health Status</h3>
+                    <div class="stats-effects" id="healthEffects"></div>
+                </div>
+
+                <div class="stats-section stats-chart-section" id="chartSection" style="display: none;">
+                    <h3 class="stats-heading">Daily Intake vs Recommended</h3>
+                    <div class="stats-chart" id="calorieChart"></div>
+                </div>
+            </aside>
+
+            <main class="story" id="storyContainer">
+                <div class="story-time" id="storyTime"></div>
+                <h2 class="story-title" id="storyTitle"></h2>
+                <div class="story-body" id="storyBody"></div>
+                <div class="story-fact" id="storyFact"></div>
+                <div class="choices" id="choices"></div>
+                <button class="btn-next" id="btnNext">Continue</button>
+            </main>
+        </div>
+    </div>
+
+    <div class="edu-toast" id="eduToast">
+        <button class="edu-toast-close" id="eduClose">&times;</button>
+        <div class="edu-toast-badge" id="eduBadge"></div>
+        <div class="edu-toast-title" id="eduTitle"></div>
+        <div class="edu-toast-body" id="eduBody"></div>
+    </div>
+
+    <script src="js/pltw.js"></script>
+</body>
+</html>
