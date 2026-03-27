@@ -696,6 +696,12 @@
         });
     });
 
+    // Edit button - navigate to editor
+    const editBtn = document.querySelector('.mbar-item.edit');
+    editBtn.addEventListener('click', () => {
+        window.location.href = 'editor.html';
+    });
+
     // Edit button → go to dashboard page
     document.querySelector('.mbar-item.edit').addEventListener('click', () => {
         window.location.href = 'dashboard.html';

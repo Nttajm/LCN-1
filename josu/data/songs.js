@@ -63,9 +63,10 @@ import { songKeys } from './keys.js';
         artist: "Kanye West",
         time: '3:58',
         image: 'songs/flashing_lights/main.png',
+        audio: 'songs/flashing_lights/audio.mp3',
         ranked: true,
         difficulties: [
-            { name: "medium", mapper: "joelM", stars: 2.67 },
+            { name: "medium", mapper: "joelM", stars: 4.67, songData: songKeys.flashingLights.medium, speed: 1.4 },
         ]
     },
     {
