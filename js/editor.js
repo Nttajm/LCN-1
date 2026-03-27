@@ -63,6 +63,7 @@
         editor: document.getElementById('ed-editor'),
         titleInput: document.getElementById('ed-title'),
         subDescInput: document.getElementById('ed-subdesc'),
+        goToUrlInput: document.getElementById('ed-goto-url'),
         dateInput: document.getElementById('ed-date'),
         catSelect: document.getElementById('ed-category'),
         catCustom: document.getElementById('ed-cat-custom'),
@@ -226,6 +227,7 @@
 
         els.titleInput.value = doc.title || '';
         els.subDescInput.value = doc.subDesc || '';
+        els.goToUrlInput.value = doc.goToUrl || '';
         els.dateInput.value = doc.date || '';
         els.catSelect.value = doc.category || '';
         els.catCustom.style.display = 'none';
@@ -344,6 +346,7 @@
         return {
             title: els.titleInput.value.trim() || 'Untitled',
             subDesc: els.subDescInput.value.trim(),
+            goToUrl: els.goToUrlInput.value.trim(),
             date: els.dateInput.value,
             category: cat,
             subCategory: subCat,
@@ -401,6 +404,7 @@
         var data = {
             title: 'Untitled',
             subDesc: '',
+            goToUrl: '',
             date: '',
             category: '',
             subCategory: '',
@@ -594,6 +598,10 @@
     });
 
     els.subDescInput.addEventListener('input', function () {
+        scheduleAutoSave();
+    });
+
+    els.goToUrlInput.addEventListener('input', function () {
         scheduleAutoSave();
     });
 

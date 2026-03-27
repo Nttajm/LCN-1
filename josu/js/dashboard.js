@@ -10,10 +10,14 @@
     const artistInput = document.getElementById('newSongArtist');
     const imageInput  = document.getElementById('newSongImage');
     const gifInput    = document.getElementById('newSongGif');
-    const audioInput  = document.getElementById('newSongAudio');
+    const audioFileInput = document.getElementById('newSongAudioFile');
+    const chooseNewAudioBtn = document.getElementById('chooseNewAudioBtn');
+    const newAudioFileName = document.getElementById('newAudioFileName');
     const audioCorrectionInput = document.getElementById('newSongAudioCorrection');
     const createBtn   = document.getElementById('createSongBtn');
     const cancelBtn   = document.getElementById('cancelSongBtn');
+
+    let pendingAudioFile = null;
 
     // ── Run migration once ───────────────────────────────────
     JosuStore.migrateOldProject();
@@ -95,7 +99,9 @@
         artistInput.value = '';
         imageInput.value = '';
         gifInput.value = '';
-        audioInput.value = '';
+        audioFileInput.value = '';
+        newAudioFileName.textContent = 'No file chosen';
+        pendingAudioFile = null;
         audioCorrectionInput.value = '0';
         modal.classList.add('active');
         setTimeout(() => titleInput.focus(), 100);
@@ -105,7 +111,7 @@
         modal.classList.remove('active');
     }
 
-    createBtn.addEventListener('click', () => {
+    createBtn.addEventListener('click', async () => {
         const title = titleInput.value.trim();
         if (!title) {
             titleInput.style.borderColor = '#e94560';
@@ -117,9 +123,17 @@
             artist: artistInput.value.trim(),
             coverImage: imageInput.value.trim(),
             inGameGif: gifInput.value.trim(),
-            audio: audioInput.value.trim(),
+            audio: pendingAudioFile ? 'indexeddb' : '',
             audioCorrection: parseInt(audioCorrectionInput.value) || 0
         });
+        // Store audio blob in IndexedDB if a file was selected
+        if (pendingAudioFile) {
+            try {
+                await JosuAudioStore.saveAudio(song.id, pendingAudioFile);
+            } catch (e) {
+                console.error('Error saving audio to IndexedDB:', e);
+            }
+        }
         closeModal();
         // Navigate directly to the song page
         window.location.href = `song.html?id=${song.id}`;
@@ -144,11 +158,18 @@
     gifInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') createBtn.click();
     });
-    audioInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') createBtn.click();
-    });
     audioCorrectionInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') createBtn.click();
+    });
+
+    // Audio file chooser
+    chooseNewAudioBtn.addEventListener('click', () => audioFileInput.click());
+    audioFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            pendingAudioFile = file;
+            newAudioFileName.textContent = file.name;
+        }
     });
 
     // ── Utilities ────────────────────────────────────────────

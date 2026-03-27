@@ -50,6 +50,8 @@
 .doc-header {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 1rem;
     margin-bottom: 2rem;
 }
@@ -57,6 +59,7 @@
 .doc-meta {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 14px;
     flex-wrap: wrap;
 }
@@ -95,6 +98,33 @@
     color: rgba(255,255,255,0.4);
     margin: 0;
     line-height: 1.5;
+}
+
+/* Go To button */
+.doc-goto-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.25rem;
+}
+
+.doc-goto-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50rem;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.doc-goto-btn:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.22);
 }
 
 /* Hero image */

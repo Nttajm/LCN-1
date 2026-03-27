@@ -32,6 +32,9 @@
                 </div>
                 <h1 class="doc-title" id="doc-title"></h1>
                 <p class="doc-subdesc" id="doc-subdesc" style="display:none;"></p>
+                <div class="doc-goto-wrap" id="doc-goto-wrap" style="display:none;">
+                    <a class="doc-goto-btn" id="doc-goto-btn" href="#" target="_blank" rel="noopener">Visit Project</a>
+                </div>
             </header>
             <div class="doc-hero" id="doc-hero" style="display:none;">
                 <img id="doc-hero-img" src="" alt="">
@@ -107,6 +110,13 @@
                 var subEl = document.getElementById('doc-subdesc');
                 subEl.textContent = doc.subDesc;
                 subEl.style.display = 'block';
+            }
+
+            if (doc.goToUrl) {
+                var gotoWrap = document.getElementById('doc-goto-wrap');
+                var gotoBtn = document.getElementById('doc-goto-btn');
+                gotoBtn.href = doc.goToUrl;
+                gotoWrap.style.display = 'flex';
             }
 
             document.getElementById('doc-cat').textContent = doc.category || '';

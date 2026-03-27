@@ -52,10 +52,14 @@
     const editSongArtistInput = document.getElementById('editSongArtist');
     const editSongImageInput  = document.getElementById('editSongImage');
     const editSongGifInput    = document.getElementById('editSongGif');
-    const editSongAudioInput  = document.getElementById('editSongAudio');
+    const editSongAudioFile   = document.getElementById('editSongAudioFile');
+    const chooseEditAudioBtn  = document.getElementById('chooseEditAudioBtn');
+    const editAudioFileName   = document.getElementById('editAudioFileName');
     const editSongAudioCorrectionInput = document.getElementById('editSongAudioCorrection');
     const saveSongBtn         = document.getElementById('saveSongBtn');
     const cancelEditSongBtn   = document.getElementById('cancelEditSongBtn');
+    
+    let pendingEditAudioFile = null;
     
     const editTitleBtn  = document.getElementById('editSongBtn');
     const deleteSongBtn = document.getElementById('deleteSongBtn');
@@ -221,7 +225,9 @@
         editSongArtistInput.value = s.artist || '';
         editSongImageInput.value  = s.coverImage || '';
         editSongGifInput.value    = s.inGameGif || '';
-        editSongAudioInput.value  = s.audio || '';
+        editSongAudioFile.value   = '';
+        pendingEditAudioFile      = null;
+        editAudioFileName.textContent = s.audio ? (s.audio === 'indexeddb' ? 'Audio uploaded' : s.audio) : 'No file chosen';
         editSongAudioCorrectionInput.value = s.audioCorrection || 0;
         editSongModal.classList.add('active');
         setTimeout(() => editSongTitleInput.focus(), 100);
@@ -289,12 +295,25 @@
     });
     
     // ── Edit Song Modal Events ───────────────────────────────
-    saveSongBtn.addEventListener('click', () => {
+    saveSongBtn.addEventListener('click', async () => {
         const title = editSongTitleInput.value.trim();
         if (!title) {
             editSongTitleInput.style.borderColor = '#e94560';
             editSongTitleInput.focus();
             return;
+        }
+
+        const s = JosuStore.getSong(songId);
+        let audioValue = s.audio || '';
+        
+        // If new audio file was selected, store it in IndexedDB
+        if (pendingEditAudioFile) {
+            try {
+                await JosuAudioStore.saveAudio(songId, pendingEditAudioFile);
+                audioValue = 'indexeddb';
+            } catch (e) {
+                console.error('Error saving audio to IndexedDB:', e);
+            }
         }
         
         JosuStore.updateSong(songId, {
@@ -302,7 +321,7 @@
             artist: editSongArtistInput.value.trim(),
             coverImage: editSongImageInput.value.trim(),
             inGameGif: editSongGifInput.value.trim(),
-            audio: editSongAudioInput.value.trim(),
+            audio: audioValue,
             audioCorrection: parseInt(editSongAudioCorrectionInput.value) || 0
         });
         
@@ -314,6 +333,16 @@
     
     editSongModal.addEventListener('click', (e) => {
         if (e.target === editSongModal) closeEditSongModal();
+    });
+
+    // Audio file chooser for edit song modal
+    chooseEditAudioBtn.addEventListener('click', () => editSongAudioFile.click());
+    editSongAudioFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            pendingEditAudioFile = file;
+            editAudioFileName.textContent = file.name;
+        }
     });
 
     // ── Song actions ─────────────────────────────────────────
@@ -379,9 +408,6 @@
 
     // ── Publish Modal ────────────────────────────────────────
     const publishModal      = document.getElementById('publishModal');
-    const publishAudioInput = document.getElementById('publishAudioInput');
-    const publishAudioName  = document.getElementById('publishAudioName');
-    const chooseAudioBtn    = document.getElementById('chooseAudioBtn');
     const cancelPublishBtn  = document.getElementById('cancelPublishBtn');
     const doPublishBtn      = document.getElementById('doPublishBtn');
     const publishStatus     = document.getElementById('publishStatus');
@@ -389,10 +415,9 @@
     const publishProgressBar = document.getElementById('publishProgressBar');
     const existingAudioGroup = document.getElementById('existingAudioGroup');
     const existingAudioUrlEl = document.getElementById('existingAudioUrl');
+    const localAudioGroup    = document.getElementById('localAudioGroup');
 
     function openPublishModal() {
-        publishAudioInput.value = '';
-        publishAudioName.textContent = 'No file chosen';
         publishStatus.style.display = 'none';
         publishProgress.style.display = 'none';
         publishProgressBar.style.width = '0%';
@@ -402,13 +427,15 @@
                 <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
             </svg> Publish`;
 
-        // Show existing audio URL if present
+        // Show existing audio URL if present, otherwise show local audio note
         const s = JosuStore.getSong(songId);
         if (s.audio) {
             existingAudioGroup.style.display = '';
             existingAudioUrlEl.textContent = s.audio;
+            localAudioGroup.style.display = 'none';
         } else {
             existingAudioGroup.style.display = 'none';
+            localAudioGroup.style.display = '';
         }
 
         publishModal.classList.add('active');
@@ -431,13 +458,6 @@
         publishStatus.style.border = `1px solid ${c.color}33`;
         publishStatus.textContent = msg;
     }
-
-    chooseAudioBtn.addEventListener('click', () => publishAudioInput.click());
-
-    publishAudioInput.addEventListener('change', () => {
-        const file = publishAudioInput.files[0];
-        publishAudioName.textContent = file ? file.name : 'No file chosen';
-    });
 
     cancelPublishBtn.addEventListener('click', closePublishModal);
 
@@ -467,12 +487,24 @@
             }
 
             let audioUrl = song.audio || '';
-            const file   = publishAudioInput.files[0];
 
-            if (file) {
+            // If no existing R2 URL, upload the audio from IndexedDB
+            if (!audioUrl) {
+                setPublishStatus('Retrieving audio from project…');
+                publishProgressBar.style.width = '10%';
+
+                const audioBlob = await JosuAudioStore.getAudio(songId);
+                if (!audioBlob) {
+                    setPublishStatus('No audio found — add audio to the song first via Edit.', 'error');
+                    doPublishBtn.disabled = false;
+                    doPublishBtn.textContent = 'Publish';
+                    publishProgress.style.display = 'none';
+                    return;
+                }
+
                 setPublishStatus('Uploading audio to Cloudflare R2…');
                 publishProgressBar.style.width = '20%';
-                audioUrl = await JosuR2.uploadAudio(file);
+                audioUrl = await JosuR2.uploadAudio(audioBlob);
                 publishProgressBar.style.width = '60%';
                 // Store the new URL back in the project
                 JosuStore.updateSong(songId, { audio: audioUrl });

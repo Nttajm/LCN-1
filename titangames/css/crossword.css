@@ -1,0 +1,470 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --cell-size: 4.5rem;
+    --highlight: #D4E4FA;
+    --selected: #F7DA21;
+    --black-cell: #121212;
+    --grid-border: #121212;
+    --text-primary: #121212;
+    --text-secondary: #5A5A5A;
+    --clue-highlight: #D4E4FA;
+    --bg: #FFFFFF;
+    --toolbar-border: #E0E0E0;
+}
+
+body {
+    font-family: 'Libre Franklin', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+.page-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 1.875rem 2.5rem 0.25rem;
+    max-width: 68.75rem;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.page-header h1 {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 1.875rem;
+    letter-spacing: -0.03125rem;
+    white-space: nowrap;
+}
+
+.puzzle-date {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 1.375rem;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+.puzzle-author {
+    display: block;
+    width: 100%;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    padding-left: 0.125rem;
+    margin-top: -0.125rem;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 2.5rem;
+    max-width: 68.75rem;
+    margin: 0 auto;
+    border-bottom: 0.0625rem solid var(--toolbar-border);
+}
+
+.toolbar-left,
+.toolbar-right {
+    display: flex;
+    align-items: center;
+}
+
+.toolbar-left {
+    gap: 0.75rem;
+}
+
+.toolbar-right {
+    gap: 0.25rem;
+}
+
+.timer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.timer-display {
+    font-size: 1rem;
+    font-weight: 500;
+    min-width: 2.5rem;
+    text-align: right;
+}
+
+.timer-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    display: flex;
+    align-items: center;
+    padding: 0.125rem;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.toolbar-btn {
+    background: none;
+    border: 0.0625rem solid var(--toolbar-border);
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.625rem;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.3125rem;
+}
+
+.toolbar-btn:hover {
+    background: #f5f5f5;
+}
+
+.toolbar-btn svg {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.25rem;
+    background: white;
+    border: 0.0625rem solid #ddd;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.12);
+    min-width: 10.5rem;
+    z-index: 100;
+    padding: 0.25rem 0;
+}
+
+.dropdown-menu.open {
+    display: block;
+}
+
+.dropdown-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0.875rem;
+    border: none;
+    background: none;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text-primary);
+}
+
+.dropdown-menu button:hover {
+    background: #f0f0f0;
+}
+
+.dropdown-menu button.active {
+    font-weight: 600;
+}
+
+.dropdown-menu button.active::after {
+    content: '\2713';
+    margin-left: auto;
+    font-weight: 700;
+    font-size: 0.75rem;
+}
+
+.dropdown-menu hr {
+    border: none;
+    border-top: 0.0625rem solid #e0e0e0;
+    margin: 0.25rem 0;
+}
+
+.active-clue-bar {
+    background: var(--highlight);
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    max-width: calc(var(--cell-size) * var(--grid-cols, 5) + 0.625rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.active-clue-bar .clue-num {
+    font-weight: 700;
+    margin-right: 0.5rem;
+}
+
+.game-area {
+    display: flex;
+    gap: 2rem;
+    max-width: 68.75rem;
+    margin: 0 auto;
+    padding: 0.75rem 2.5rem 3.75rem;
+    align-items: flex-start;
+}
+
+.grid-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+}
+
+.crossword-grid {
+    display: grid;
+    user-select: none;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border: 0.0625rem solid #999;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--bg);
+}
+
+.cell--black {
+    background: var(--black-cell);
+    cursor: default;
+}
+
+.cell--highlighted {
+    background: var(--highlight);
+}
+
+.cell--selected {
+    background: var(--selected);
+}
+
+.cell-number {
+    position: absolute;
+    top: 0.125rem;
+    left: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-primary);
+    pointer-events: none;
+}
+
+.cell-letter {
+    font-size: 1.75rem;
+    font-weight: 500;
+    font-family: 'Libre Franklin', sans-serif;
+    text-transform: uppercase;
+    pointer-events: none;
+    color: var(--text-primary);
+}
+
+.cell--incorrect::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0.625rem 0.625rem 0;
+    border-color: transparent var(--text-primary) transparent transparent;
+    pointer-events: none;
+}
+
+.cell--revealed .cell-letter {
+    color: var(--text-primary);
+}
+
+.cell--revealed::after {
+    content: '';
+    position: absolute;
+    top: 0.1875rem;
+    right: 0.1875rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    background: var(--text-primary);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.clues-panel {
+    display: flex;
+    gap: 1.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.clue-column {
+    flex: 1;
+    min-width: 11.25rem;
+}
+
+.clue-column h2 {
+    font-family: 'Noto Serif', serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03125rem;
+    margin-bottom: 0.625rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 0.0625rem solid #ddd;
+}
+
+.clue-list {
+    list-style: none;
+}
+
+.clue-list li {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.3125rem 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    cursor: pointer;
+    border-radius: 0.1875rem;
+    border-left: 0.1875rem solid transparent;
+}
+
+.clue-list li:hover {
+    background: #f0f0f0;
+}
+
+.clue-list li.active {
+    background: var(--clue-highlight);
+    border-left-color: #6CA0D0;
+}
+
+.clue-list .clue-num {
+    font-weight: 700;
+    min-width: 0.875rem;
+    flex-shrink: 0;
+}
+
+.win-overlay,
+.pause-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+}
+
+.win-overlay {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.pause-overlay {
+    background: rgba(255, 255, 255, 0.96);
+    z-index: 998;
+}
+
+.win-overlay.show,
+.pause-overlay.show {
+    display: flex;
+}
+
+.win-modal,
+.pause-modal {
+    text-align: center;
+}
+
+.win-modal {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 3rem 2.5rem;
+    max-width: 23.75rem;
+    width: 90%;
+    box-shadow: 0 1.25rem 3.75rem rgba(0, 0, 0, 0.25);
+}
+
+.win-modal h2,
+.pause-modal h2 {
+    font-family: 'Noto Serif', serif;
+    font-size: 1.75rem;
+    margin-bottom: 0.625rem;
+}
+
+.win-modal p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.pause-modal h2 {
+    margin-bottom: 1.5rem;
+}
+
+.win-modal button,
+.pause-modal button {
+    background: var(--text-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: 1.75rem;
+    cursor: pointer;
+    font-family: 'Libre Franklin', sans-serif;
+}
+
+@media (max-width: 53.75rem) {
+    :root {
+        --cell-size: 3.5rem;
+    }
+
+    .game-area {
+        flex-direction: column;
+        padding: 0.75rem 1.25rem 2.5rem;
+    }
+
+    .clues-panel {
+        width: 100%;
+    }
+
+    .page-header {
+        padding: 1.25rem 1.25rem 0.25rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .puzzle-date {
+        font-size: 1.125rem;
+    }
+
+    .toolbar {
+        padding: 0.5rem 1.25rem;
+    }
+}
+
+@media (max-width: 31.25rem) {
+    :root {
+        --cell-size: calc((100vw - 3.5rem) / var(--grid-cols, 5));
+    }
+
+    .clues-panel {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .toolbar-btn {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}

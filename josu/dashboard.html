@@ -49,8 +49,12 @@
                 <input type="text" id="newSongGif" placeholder="https://example.com/ingame.gif">
             </div>
             <div class="form-group">
-                <label for="newSongAudio">Audio File Path</label>
-                <input type="text" id="newSongAudio" placeholder="e.g. songs/nevada/audio.mp3">
+                <label>Audio File</label>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+                    <button class="btn" id="chooseNewAudioBtn" type="button" style="white-space:nowrap;">Choose File</button>
+                    <span id="newAudioFileName" style="color:#888;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">No file chosen</span>
+                </div>
+                <input type="file" id="newSongAudioFile" accept="audio/*" style="display:none;">
             </div>
             <div class="form-group">
                 <label for="newSongAudioCorrection">Audio Correction (ms)</label>
@@ -64,6 +68,7 @@
         </div>
     </div>
 
+    <script src="js/audio-store.js"></script>
     <script src="js/store.js"></script>
     <script src="js/dashboard.js"></script>
 </body>

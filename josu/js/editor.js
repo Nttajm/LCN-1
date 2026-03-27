@@ -934,7 +934,55 @@
         renderNotes();
         drawTimeRuler();
         updateStatus(`Editing: ${projectSong.title} – ${projectDiff.name}`);
+
+        // Auto-load audio from IndexedDB or URL
+        autoLoadAudio();
+
         return true;
+    }
+
+    async function autoLoadAudio() {
+        if (!projectSong) return;
+        const audioRef = projectSong.audio;
+        if (!audioRef) return;
+
+        try {
+            let blob = null;
+            let audioUrl = null;
+
+            if (audioRef === 'indexeddb') {
+                blob = await JosuAudioStore.getAudio(songId);
+                if (!blob) {
+                    updateStatus('Audio file not found in storage');
+                    return;
+                }
+                audioUrl = URL.createObjectURL(blob);
+            } else {
+                // Treat as a URL (e.g. R2 published URL)
+                audioUrl = audioRef;
+            }
+
+            updateStatus('Loading audio...');
+            audioElement.src = audioUrl;
+            await new Promise((resolve, reject) => {
+                audioElement.onloadedmetadata = resolve;
+                audioElement.onerror = reject;
+            });
+            state.duration = audioElement.duration * 1000;
+            state.audioLoaded = true;
+            elements.durationInput.value = msToTimeString(state.duration);
+            elements.waveformPlaceholder.style.display = 'none';
+
+            // Draw waveform from blob if available, otherwise fetch the URL
+            const waveformBlob = blob || await fetch(audioUrl).then(r => r.blob());
+            await drawWaveform(waveformBlob);
+            updateTrackWidth();
+            drawTimeRuler();
+            updateStatus(`Editing: ${projectSong.title} – ${projectDiff.name} (audio loaded)`);
+        } catch (err) {
+            console.error('Error auto-loading audio:', err);
+            updateStatus(`Editing: ${projectSong.title} – ${projectDiff.name} (audio failed to load)`);
+        }
     }
 
     function loadLegacyProject() {

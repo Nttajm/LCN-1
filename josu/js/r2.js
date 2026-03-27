@@ -84,15 +84,17 @@ const JosuR2 = (() => {
     }
 
     // ── Main Upload ─────────────────────────────────────────
-    async function uploadAudio(file) {
+    // Accepts a File or a Blob. For Blobs, pass optional name/type.
+    async function uploadAudio(fileOrBlob, optName, optType) {
         if (!R2_ACCOUNT_ID || R2_ACCOUNT_ID === 'YOUR_ACCOUNT_ID_HERE') {
             throw new Error('R2_ACCOUNT_ID not set in r2.js — paste your Cloudflare Account ID there.');
         }
 
-        const ext  = (file.name.split('.').pop() || 'mp3').toLowerCase();
+        const name = fileOrBlob.name || optName || 'audio.mp3';
+        const ext  = (name.split('.').pop() || 'mp3').toLowerCase();
         const key  = `audio/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const mime = file.type || 'audio/mpeg';
-        const buf  = await file.arrayBuffer();
+        const mime = fileOrBlob.type || optType || 'audio/mpeg';
+        const buf  = await fileOrBlob.arrayBuffer();
 
         const req = await buildRequest(key, mime, buf);
         const res = await fetch(req.url, { method: 'PUT', headers: req.headers, body: buf });

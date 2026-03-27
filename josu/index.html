@@ -14,6 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="js/firebase-db.js"></script>
+    <script src="js/audio-store.js"></script>
 </head>
 <body>
     <div class="sc_wrapper" id="startWrapper">
@@ -492,6 +493,26 @@
     // Get all songs the user can play (built-in + local library + their published songs)
     const songs = await getAllPlayableSongs();
 
+    // Resolve 'indexeddb' audio references to blob URLs
+    // Cache resolved URLs so we don't re-create them
+    const resolvedAudioCache = {};
+
+    async function resolveAudioPath(song) {
+        const raw = song.audio || song.audioUrl || null;
+        if (!raw || raw !== 'indexeddb') return raw;
+        const projectId = song._storeId || song.localProjectId;
+        if (!projectId) return null;
+        if (resolvedAudioCache[projectId]) return resolvedAudioCache[projectId];
+        try {
+            const url = await JosuAudioStore.getAudioURL(projectId);
+            if (url) resolvedAudioCache[projectId] = url;
+            return url;
+        } catch (e) {
+            console.error('Failed to resolve audio from IndexedDB:', e);
+            return null;
+        }
+    }
+
     // Developer mode - skip all menus and go straight to game
     const isdevForGame = false;
 
@@ -825,9 +846,15 @@
         if (!previewAudioUnlocked || !isSongSelectVisible()) return;
 
         const song = getSongById(songId);
-        const audioPath = song?.audio || song?.audioUrl;
+        if (!song) {
+            stopSongPreview(false);
+            ensurePreviewAnimation();
+            return;
+        }
 
-        if (!song || !audioPath) {
+        const audioPath = await resolveAudioPath(song);
+
+        if (!audioPath) {
             stopSongPreview(false);
             ensurePreviewAnimation();
             return;
@@ -1733,7 +1760,7 @@
     const comboDisplay = document.getElementById('comboDisplay');
     const resultsScreen = document.getElementById('resultsScreen');
 
-    function getCurrentSongInfo() {
+    async function getCurrentSongInfo() {
         const selectedSongItem = document.querySelector('.song-item.selected');
         if (!selectedSongItem) return null;
         const songId = selectedSongItem.dataset.songId;
@@ -1758,6 +1785,7 @@
         }
 
         if (!diff) return null;
+        const resolvedAudio = await resolveAudioPath(song);
         return {
             songData: getDifficultyNoteData(diff),
             speed: diff.speed || 1.0,
@@ -1767,7 +1795,7 @@
             diffName: diff.name,
             stars: diff.stars,
             mapper: diff.mapper,
-            audio: song.audio || song.audioUrl || null,
+            audio: resolvedAudio,
             audioCorrection: song.audioCorrection || 0,
             mode: diff.mode || 'taiko'
         };
@@ -2101,7 +2129,7 @@
         stopAudio();
     }
 
-    function startTaikoGame(data, speed = 1.0, songTime = '0:30', songInfo = null) {
+    async function startTaikoGame(data, speed = 1.0, songTime = '0:30', songInfo = null) {
         let sd = data;
         let spd = speed;
         let sTime = songTime;
@@ -2112,7 +2140,7 @@
         
         // If no data passed, get from current selection
         if (!sd) {
-            const info = getCurrentSongInfo();
+            const info = await getCurrentSongInfo();
             if (info) {
                 sd = info.songData;
                 spd = info.speed;

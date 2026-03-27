@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crossword Editor — Titan Times</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/editor.css">
+<link rel="stylesheet" href="css/crossword-editor.css">
+</head>
+<body>
+
+<header class="editor-header">
+    <div class="editor-header-left">
+        <a href="index.html" class="editor-logo">
+            <svg class="editor-logo-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="28" height="28" rx="4" fill="#121212"/>
+                <text x="6" y="20.5" font-family="'Noto Serif', serif" font-weight="700" font-size="18" fill="white">T</text>
+            </svg>
+            <span class="editor-logo-text">Titan Times</span>
+        </a>
+        <span class="editor-badge">Editor</span>
+        <svg class="editor-breadcrumb-sep" viewBox="0 0 8 14" fill="none" stroke="#999" stroke-width="1.5"><path d="M1 1l6 6-6 6"/></svg>
+        <span class="editor-breadcrumb">Crossword</span>
+    </div>
+    <div class="editor-header-right">
+        <span class="editor-save-indicator" id="saveIndicator"></span>
+        <button class="editor-btn editor-btn--secondary editor-btn--sm" id="btnSaveDraft">Save Draft</button>
+        <button class="editor-btn editor-btn--accent editor-btn--sm" id="btnPublish">Publish</button>
+    </div>
+</header>
+
+<main class="cw-editor-main">
+    <div class="cw-editor-topbar">
+        <div class="cw-editor-meta">
+            <div class="cw-meta-field">
+                <label for="releaseDate">Release Date</label>
+                <input type="date" id="releaseDate">
+            </div>
+            <div class="cw-meta-field">
+                <label for="authorName">Author</label>
+                <input type="text" id="authorName" value="Joel Mulonde" placeholder="Author name">
+            </div>
+            <div class="cw-meta-field">
+                <label for="gridSize">Grid Size</label>
+                <select id="gridSize">
+                    <option value="5" selected>5 &times; 5</option>
+                    <option value="7">7 &times; 7</option>
+                    <option value="9">9 &times; 9</option>
+                    <option value="11">11 &times; 11</option>
+                    <option value="13">13 &times; 13</option>
+                    <option value="15">15 &times; 15</option>
+                </select>
+            </div>
+        </div>
+        <div class="cw-editor-releases">
+            <label>Existing Releases</label>
+            <div class="cw-releases-scroll" id="releasesList"></div>
+        </div>
+    </div>
+
+    <div class="cw-editor-tabs">
+        <button class="cw-tab cw-tab--active" data-tab="visual">Visual Editor</button>
+        <button class="cw-tab" data-tab="json">JSON / Paste</button>
+    </div>
+
+    <div class="cw-editor-body">
+        <div class="cw-tab-panel cw-tab-panel--active" data-panel="visual">
+            <div class="cw-visual-layout">
+                <div class="cw-grid-area">
+                    <div class="cw-grid-toolbar">
+                        <span class="cw-grid-instructions">Click cell to toggle black. Type to fill letters. Numbers auto-assign.</span>
+                        <button class="editor-btn editor-btn--secondary editor-btn--sm" id="btnClearGrid">Clear Grid</button>
+                        <button class="editor-btn editor-btn--secondary editor-btn--sm" id="btnMirror">Mirror Mode: Off</button>
+                    </div>
+                    <div class="cw-grid-container">
+                        <div class="cw-grid" id="editorGrid"></div>
+                    </div>
+                </div>
+                <div class="cw-clues-area">
+                    <div class="cw-clues-section">
+                        <h3>Across</h3>
+                        <div class="cw-clues-list" id="acrossClueInputs"></div>
+                    </div>
+                    <div class="cw-clues-section">
+                        <h3>Down</h3>
+                        <div class="cw-clues-list" id="downClueInputs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cw-tab-panel" data-panel="json">
+            <div class="cw-json-layout">
+                <div class="cw-json-section">
+                    <h3>Paste Answers Array</h3>
+                    <p class="cw-json-hint">Paste a 2D array of letters. Use empty string "" for black cells.</p>
+                    <textarea class="cw-json-input" id="answersJson" rows="12" placeholder='[
+  ["R","I","S","K",""],
+  ["E","L","M","O",""],
+  ["C","L","A","R","K"],
+  ["","G","L","E","E"],
+  ["","O","L","A","Y"]
+]'></textarea>
+                    <button class="editor-btn editor-btn--primary editor-btn--sm" id="btnApplyJson">Apply to Grid</button>
+                </div>
+                <div class="cw-json-section">
+                    <h3>Full Puzzle JSON</h3>
+                    <p class="cw-json-hint">Export or import the complete puzzle data.</p>
+                    <textarea class="cw-json-input" id="fullJson" rows="16" placeholder="Full puzzle JSON will appear here..."></textarea>
+                    <div class="cw-json-actions">
+                        <button class="editor-btn editor-btn--secondary editor-btn--sm" id="btnExportJson">Export</button>
+                        <button class="editor-btn editor-btn--primary editor-btn--sm" id="btnImportJson">Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="cw-toast" id="toast"></div>
+
+<script type="module" src="js/crossword-editor.js"></script>
+</body>
+</html>
