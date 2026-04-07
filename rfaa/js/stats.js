@@ -106,9 +106,42 @@ function getStatsForType(statType, season) {
             return getPlayerAppearances(seasonFilter);
         case 'goals_per_game_ratio':
             return goals_per_game_ratio(seasonFilter);
+        case 'free_kicks':
+            return getGoalsByType('free kick', seasonFilter);
+        case 'penalties':
+            return getGoalsByType('penalty', seasonFilter);
+        case 'finals_goals':
+            return getFinalsGoals(seasonFilter);
         default:
             return getTopGoalScorers(seasonFilter);
     }
+}
+
+function getGoalsByType(goalType, season) {
+    const playerCount = {};
+
+    seasons.forEach(seasonData => {
+        if (!seasonData || !seasonData.matchdays) return;
+        if (season && seasonData.year !== season) return;
+
+        seasonData.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
+
+            matchday.games.forEach(game => {
+                if (!game.goals) return;
+
+                game.goals.forEach(goal => {
+                    if (!goal.player || goal.type !== goalType) return;
+                    if (!playerCount[goal.player]) playerCount[goal.player] = 0;
+                    playerCount[goal.player]++;
+                });
+            });
+        });
+    });
+
+    return Object.entries(playerCount)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
 }
 
 function goals_per_game_ratio(season) {
@@ -160,31 +193,71 @@ function getCombinedGoalsAssists(season) {
 
 
 
-// Get player appearances
+// Get player appearances from game-level appearances arrays and goal/potm data
 function getPlayerAppearances(season) {
     const appearancesMap = new Map();
 
     seasons.forEach(seasonObj => {
-        if (season && season !== 'all' && seasonObj.year !== season) return;
-        if (!seasonObj.teams) return;
+        if (season && seasonObj.year !== season) return;
+        if (!seasonObj.matchdays) return;
 
-        seasonObj.teams.forEach(team => {
-            if (!team.players || !team.matches) return;
+        seasonObj.matchdays.forEach(matchday => {
+            if (!matchday.games) return;
 
-            // Count appearances for each player in this team
-            team.players.forEach(playerName => {
-                // Count how many matches this team played
-                const matchesPlayed = Array.isArray(team.matches) ? team.matches.length : 0;
-                if (!appearancesMap.has(playerName)) {
-                    appearancesMap.set(playerName, 0);
+            matchday.games.forEach(game => {
+                const playersInGame = new Set();
+
+                // Use appearances array if available
+                if (Array.isArray(game.appearances)) {
+                    game.appearances.forEach(p => {
+                        if (typeof p === 'string') playersInGame.add(p);
+                        else if (p && p.name) playersInGame.add(p.name);
+                    });
                 }
-                appearancesMap.set(playerName, appearancesMap.get(playerName) + matchesPlayed);
+
+                // Also count players from goals/assists/potm
+                if (game.goals && Array.isArray(game.goals)) {
+                    game.goals.forEach(goal => {
+                        if (goal.player) playersInGame.add(goal.player);
+                        if (goal.assist && goal.assist !== 'none' && goal.assist !== false) playersInGame.add(goal.assist);
+                    });
+                }
+                if (game.potm && game.potm !== 'none') playersInGame.add(game.potm);
+
+                playersInGame.forEach(name => {
+                    appearancesMap.set(name, (appearancesMap.get(name) || 0) + 1);
+                });
             });
         });
     });
 
-    // Convert to array and sort by appearances
     return Array.from(appearancesMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+}
+
+// Get goals scored in finals (last matchday of each season)
+function getFinalsGoals(season) {
+    const playerGoals = new Map();
+
+    seasons.forEach(seasonObj => {
+        if (season && seasonObj.year !== season) return;
+        if (!seasonObj.matchdays) return;
+
+        // Final = last matchday with games
+        const lastMatchday = [...seasonObj.matchdays].reverse().find(md => md.games && md.games.length > 0);
+        if (!lastMatchday) return;
+
+        lastMatchday.games.forEach(game => {
+            if (!game.goals) return;
+            game.goals.forEach(goal => {
+                if (!goal.player) return;
+                playerGoals.set(goal.player, (playerGoals.get(goal.player) || 0) + 1);
+            });
+        });
+    });
+
+    return Array.from(playerGoals.entries())
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 }
@@ -256,6 +329,7 @@ function getStatLabel(statType) {
         'finals_apps': 'Finals Apps',
         'goals_assists': 'Goals + Assists',
         'appearances': 'Appearances',
+        'goals_per_game_ratio': 'Goals/Match Ratio',
         'free_kicks': 'Free Kicks',
         'penalties': 'Penalties',
         'finals_goals': 'Finals Goals'

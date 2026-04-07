@@ -2,7 +2,7 @@ import { seasons } from './acl-index.js'
 import { goals } from './acl-index.js'
 import { teams } from './acl-index.js';
 import { getTeamById } from './acl-index.js';
-import { getCurrentSeason } from './acl-index.js';
+import { getCurrentSeason, getThisSeason } from './acl-index.js';
 import { reapplyTeamLinkListeners } from './ui.js';
 
 export function calculateStandings(seasonData) {
@@ -159,7 +159,7 @@ export function renderTable() {
     outputHTml.innerHTML = ''; // Clear previous content
 
     outputHTml.innerHTML += `
-    ${renderStandingsTable(calculateStandings(seasons[0]))}
+    ${renderStandingsTable(calculateStandings(getThisSeason()))}
     `;
 }
 

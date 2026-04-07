@@ -1,5 +1,5 @@
-import { getCurrentSeason, getTeamById, getTeamMacthes, getFinalsAndWins , getTeamByplayer, getPlayersByTeam, bindMatchClickEventsGlobal } from './acl-index.js';
-import { seasons } from './acl-index.js';
+import { getCurrentSeason, getThisSeason, getTeamById, getTeamMacthes, getFinalsAndWins , getTeamByplayer, getPlayersByTeam, bindMatchClickEventsGlobal } from './acl-index.js';
+const seasons = [getThisSeason()].filter(Boolean);
 
 const team = getTeambyLink();
 
@@ -57,14 +57,16 @@ function rendertopcontent() {
         teamName.textContent = team.name;
     }
 
-    // Update Champions League count
+    // Update Champions League count and win years
     const clCount = document.querySelector('.cl-count span');
     const clcountCont = document.querySelector('.cl-count-cont');
+    const finalsData = getFinalsAndWins(team.id);
+
     if (clCount) {
-        clCount.textContent = getFinalsAndWins(team.name).wins;
+        clCount.textContent = finalsData.wins;
     }
 
-    if ( getFinalsAndWins(team.name).wins === 0) {
+    if (finalsData.wins === 0) {
         clcountCont.style.display = 'none';
     }
 
@@ -72,8 +74,7 @@ function rendertopcontent() {
     const winYearsContainer = document.querySelector('.win-years');
     if (winYearsContainer) {
         winYearsContainer.innerHTML = '';
-        const wins = getFinalsAndWins(team.id)?.wins || [];
-        wins.forEach(year => {
+        finalsData.winYears.forEach(year => {
             const yearElement = document.createElement('span');
             yearElement.innerHTML = `<a href="/history?season=${year}">${year}</a>`;
             winYearsContainer.appendChild(yearElement);
@@ -117,7 +118,10 @@ renderTeamInfo();
 function renderMatches_1() {
     if (!team) return '';
 
-    const teamMatches = getTeamMacthes(team.id).reverse();
+    const thisSeason = getThisSeason();
+    const teamMatches = getTeamMacthes(team.id)
+        .filter(match => !thisSeason || String(match.season) === String(thisSeason.year))
+        .reverse();
     let matchesHTML = '';
 
     teamMatches.forEach(match => {
@@ -248,108 +252,108 @@ function renderTopPlayersOfTeam(team) {
 renderTopPlayersOfTeam(team);
 
 export function calculatePlayerRatings() {
+    // Key: "playerName::teamId" — track stats per player per team
     const playerStats = {};
 
-// Collect all player stats from all seasons
+    function getKey(name, teamId) { return name + '::' + teamId; }
+
+    // Helper: determine which team a player belonged to for a given game
+    function getPlayerTeamInGame(playerName, game) {
+        // Check goal data first (most reliable — each goal has a team field)
+        if (game.goals && Array.isArray(game.goals)) {
+            for (const goal of game.goals) {
+                if (goal.player === playerName || goal.assist === playerName) {
+                    return goal.team;
+                }
+            }
+        }
+        // Fall back to roster check
+        const t1 = getTeamById(game.team1);
+        const t2 = getTeamById(game.team2);
+        if (t1 && t1.player && t1.player.includes(playerName)) return game.team1;
+        if (t2 && t2.player && t2.player.includes(playerName)) return game.team2;
+        return null;
+    }
+
+    function ensure(key) {
+        if (!playerStats[key]) {
+            playerStats[key] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
+        }
+    }
+
+    // Collect all player stats from all seasons
     seasons.forEach(season => {
         if (!season.matchdays) return;
-        
+
         season.matchdays.forEach(matchday => {
             if (!matchday.games) return;
-            
+
             matchday.games.forEach(game => {
-                // Count POTM awards
-                if (game.potm && game.potm !== 'none') {
-                    if (!playerStats[game.potm]) {
-                        playerStats[game.potm] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
-                    }
-                    playerStats[game.potm].potm++;
-                    playerStats[game.potm].appearances = (playerStats[game.potm].appearances || 0) + 1;
-                }
-                
-                // Count goals and assists
+                // Count goals and assists (each goal has a team field)
                 if (game.goals && Array.isArray(game.goals)) {
                     game.goals.forEach(goal => {
-                        // Count goal
-                        if (!playerStats[goal.player]) {
-                            playerStats[goal.player] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
-                        }
-                        playerStats[goal.player].goals++;
-                        playerStats[goal.player].appearances = (playerStats[goal.player].appearances || 0) + 1;
-                        
-                        // Count assist
-                        if (goal.assist && goal.assist !== 'none') {
-                            if (!playerStats[goal.assist]) {
-                                playerStats[goal.assist] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
+                        if (goal.team) {
+                            const gKey = getKey(goal.player, goal.team);
+                            ensure(gKey);
+                            playerStats[gKey].goals++;
+
+                            if (goal.assist && goal.assist !== 'none') {
+                                const aKey = getKey(goal.assist, goal.team);
+                                ensure(aKey);
+                                playerStats[aKey].assists++;
                             }
-                            playerStats[goal.assist].assists++;
-                            playerStats[goal.assist].appearances = (playerStats[goal.assist].appearances || 0) + 1;
                         }
                     });
                 }
-                
-                // Add appearances for players from team1 and team2
-                const team1 = getTeamById(game.team1);
-                const team2 = getTeamById(game.team2);
-                
-                [team1, team2].forEach(team => {
-                    if (team && team.player) {
-                        team.player.forEach(playerName => {
-                            if (!playerStats[playerName]) {
-                                playerStats[playerName] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
-                            }
-                            playerStats[playerName].appearances = (playerStats[playerName].appearances || 0) + 1;
-                        });
+
+                // Count POTM awards
+                if (game.potm && game.potm !== 'none') {
+                    const potmTeam = getPlayerTeamInGame(game.potm, game);
+                    if (potmTeam) {
+                        const pKey = getKey(game.potm, potmTeam);
+                        ensure(pKey);
+                        playerStats[pKey].potm++;
                     }
-                });
+                }
             });
         });
     });
-    
+
+    // Compute max values across all entries for normalization
+    const allEntries = Object.values(playerStats);
+    const maxGoals = Math.max(...allEntries.map(p => p.goals), 1);
+    const maxAssists = Math.max(...allEntries.map(p => p.assists), 1);
+    const maxPOTM = Math.max(...allEntries.map(p => p.potm), 1);
+
     // Convert to array and calculate ratings
-    const players = Object.entries(playerStats).map(([name, stats]) => {
-        const maxGoals = Math.max(...Object.values(playerStats).map(p => p.goals), 1);
-        const maxAssists = Math.max(...Object.values(playerStats).map(p => p.assists), 1);
-        const maxPOTM = Math.max(...Object.values(playerStats).map(p => p.potm), 1);
-        
-        // Base rating starts at 5.0
+    const players = Object.entries(playerStats).map(([key, stats]) => {
+        const [name, teamId] = key.split('::');
+
         let rating = 5.0;
-        
-        // Add contributions with diminishing returns
+
         const goalsRatio = stats.goals / maxGoals;
         const assistsRatio = stats.assists / maxAssists;
         const potmRatio = stats.potm / maxPOTM;
-        
-        // Apply non-linear scaling (square root) to make it harder to reach higher values
-        const goalsScore = Math.sqrt(goalsRatio) * 1.8;  // Reduced from 2.0
-        const assistsScore = Math.sqrt(assistsRatio) * 1.3;  // Reduced from 1.5
-        const potmScore = Math.sqrt(potmRatio) * 2.0;  // Reduced from 2.5
-        
+
+        const goalsScore = Math.sqrt(goalsRatio) * 1.8;
+        const assistsScore = Math.sqrt(assistsRatio) * 1.3;
+        const potmScore = Math.sqrt(potmRatio) * 2.0;
+
         rating += goalsScore + assistsScore + potmScore;
-        
-        // Bonus for overall contribution with diminishing returns
+
         const totalContributions = stats.goals + stats.assists + stats.potm;
         if (totalContributions > 0) {
-            // Lower bonus and apply diminishing returns
             rating += Math.log10(1 + totalContributions / 8) * 0.8;
         }
-        
-        // Apply a sigmoid-like function to make 10 harder to reach
+
         if (rating > 8.5) {
-            // Compress ratings between 8.5 and 10
             const excess = rating - 8.5;
             rating = 8.5 + (excess * 0.6);
         }
-        
-        // Minimum rating is 1.0
-        rating = Math.max(1.0, rating);
-        
-        // Cap rating at 10
-        rating = Math.min(10, rating);
-        
-        // Round to one decimal place
+
+        rating = Math.max(1.0, Math.min(10, rating));
         rating = Math.round(rating * 10) / 10;
-        
+
         return {
             name,
             rating,
@@ -357,10 +361,10 @@ export function calculatePlayerRatings() {
             assists: stats.assists,
             potm: stats.potm,
             appearances: stats.appearances,
-            team: getTeamByplayer(name),
+            team: teamId,
         };
     }).sort((a, b) => b.rating - a.rating);
-    
+
     return players;
 }
 
