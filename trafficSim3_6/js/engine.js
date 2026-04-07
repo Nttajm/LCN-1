@@ -58,8 +58,6 @@ function drawSegmentRoad(x1, y1, x2, y2, style) {
     ctx.lineTo(x2, y2);
     ctx.stroke();
 
-    if (style === 'two_lane') {
-    }
 }
 
 function drawNode(x, y, color) {

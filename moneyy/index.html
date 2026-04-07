@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONEY CLICKER</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="status-panel">
+        <img class="status-avatar" src="assets/homelessguy.png" alt="avatar">
+        <div class="status-info">
+            <span class="status-label">STATUS: <span id="status-text">HOMELESS</span></span>
+            <div class="health-row">
+                <span class="health-label">HEALTH</span>
+                <div class="health-track">
+                    <div class="health-fill" id="health-fill"></div>
+                </div>
+                <span class="health-val" id="health-val">100</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="level-bar-wrap" id="level-bar-wrap">
+        <div class="level-bar-track">
+            <div class="level-bar-fill" id="level-bar-fill"></div>
+        </div>
+        <span class="level-label" id="level-label">LVL 1 — $0 / $50</span>
+    </div>
+
+    <div class="game">
+        <span class="money-display" id="money-display">$0.00</span>
+        <button class="click-btn" id="click-btn">WORK</button>
+        <span class="stats" id="mps-display">$0.00 / sec</span>
+    </div>
+
+    <div class="slots" id="slots">
+        <div class="slot" id="slot-0"></div>
+        <div class="slot" id="slot-1"></div>
+        <div class="slot" id="slot-2"></div>
+        <div class="slot" id="slot-3"></div>
+        <div class="slot" id="slot-4"></div>
+    </div>
+
+    <div class="ui-bottom" id="ui-bottom">
+        <div class="tab" id="tab-store" style="display:none">
+            <div class="tab-header">
+                <span class="tab-title">STORE</span>
+            </div>
+            <div class="tab-body" id="store-body"></div>
+            <div class="tab-lock-tip" id="store-lock-tip">you look too broke to even enter a store, get to level 2 first</div>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+</body>
+</html>
