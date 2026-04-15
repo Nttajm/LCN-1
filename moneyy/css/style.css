@@ -55,6 +55,26 @@ body {
     color: #3b82f6;
 }
 
+.bonus-btn {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 1.25rem;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 99px;
+    cursor: pointer;
+    margin-top: 0.25rem;
+    transition: opacity 0.15s;
+}
+
+.bonus-btn:active {
+    opacity: 0.75;
+}
+
 .game {
     display: flex;
     flex-direction: column;
@@ -98,6 +118,19 @@ body {
     display: flex;
     gap: 0.75rem;
     margin-top: 2rem;
+    min-height: 5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes slot-in {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slot-out {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.5); }
 }
 
 .slot {
@@ -107,6 +140,7 @@ body {
     background: transparent;
     border: none;
     position: relative;
+    flex-shrink: 0;
 }
 
 .slot.revealed {
@@ -114,11 +148,28 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 0.75rem;
+}
+
+.slot.revealed.type-money {
+    box-shadow: 0 0 0 2px #22c55e;
+}
+
+.slot.revealed.type-ui {
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.slot.revealed.type-life {
+    box-shadow: 0 0 0 2px #facc15;
 }
 
 .slot.grayed {
-    opacity: 0.25;
+    filter: saturate(0);
     cursor: default;
+}
+
+.slot.grayed:hover {
+    cursor: not-allowed;
 }
 
 .slot.buyable {
@@ -151,6 +202,15 @@ body {
     border-radius: 0.3rem;
     pointer-events: none;
     z-index: 10;
+    text-align: center;
+}
+
+.slot-tip-desc {
+    display: block;
+    color: #a3e635;
+    font-size: 0.6rem;
+    margin-top: 0.2rem;
+    letter-spacing: 0.03em;
 }
 
 .slot.revealed:hover .slot-tip {
@@ -162,8 +222,9 @@ body {
     top: 1.25rem;
     right: 1.5rem;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
+    z-index: 50;
 }
 
 .status-avatar {
@@ -337,7 +398,11 @@ body {
 }
 
 .store-slot.grayed {
-    opacity: 0.35;
+    filter: saturate(0);
+}
+
+.store-slot.grayed:hover {
+    cursor: not-allowed;
 }
 
 .store-slot.buyable {
@@ -355,5 +420,173 @@ body {
 .store-art {
     width: 2.5rem;
     height: 2.5rem;
+}
+
+.occ-dropdown {
+    margin-top: 0.35rem;
+    position: relative;
+}
+
+.occ-toggle {
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.4rem;
+    padding: 0.3rem 0.55rem;
+    cursor: pointer;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #888;
+    text-transform: uppercase;
+    transition: border-color 0.15s;
+}
+
+.occ-toggle:hover {
+    border-color: #bbb;
+}
+
+.occ-toggle-count {
+    color: #111;
+    font-weight: 900;
+}
+
+.occ-arrow {
+    font-size: 0.65rem;
+    color: #aaa;
+    transition: transform 0.2s;
+}
+
+.occ-panel {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    right: 0;
+    width: 16rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+    padding: 0.5rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.4rem;
+    z-index: 60;
+}
+
+.occ-panel.open {
+    display: flex;
+}
+
+.occ-card {
+    border-radius: 0.4rem;
+    padding: 0.55rem;
+    background: color-mix(in srgb, var(--occ-color, #888) 6%, #fff);
+    border: 1px solid color-mix(in srgb, var(--occ-color, #888) 20%, transparent);
+    transition: opacity 0.2s;
+}
+
+.occ-card.occ-active {
+    border-color: color-mix(in srgb, var(--occ-color, #888) 45%, transparent);
+    background: color-mix(in srgb, var(--occ-color, #888) 10%, #fff);
+}
+
+.occ-card.occ-locked {
+    opacity: 0.35;
+    filter: saturate(0.3);
+}
+
+.occ-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.occ-card-icon {
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+}
+
+.occ-icon {
+    width: 100%;
+    height: 100%;
+}
+
+.occ-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.occ-card-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #111;
+    text-transform: uppercase;
+}
+
+.occ-card-stats {
+    font-size: 0.58rem;
+    color: #666;
+    letter-spacing: 0.03em;
+}
+
+.occ-card-lock {
+    font-size: 0.55rem;
+    color: #999;
+    letter-spacing: 0.02em;
+}
+
+.occ-badge {
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #fff;
+    background: color-mix(in srgb, var(--occ-color, #888) 85%, #000);
+    padding: 0.15rem 0.4rem;
+    border-radius: 99px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.occ-badge-lock {
+    background: #d1d5db;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.3rem;
+}
+
+.occ-upgrades {
+    margin-top: 0.35rem;
+    padding-top: 0.3rem;
+    border-top: 1px solid color-mix(in srgb, var(--occ-color, #888) 12%, transparent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.occ-upgrade-chip {
+    background: color-mix(in srgb, var(--chip-color, #888) 15%, #fff);
+    color: color-mix(in srgb, var(--chip-color, #888) 80%, #000);
+    border: 1px solid color-mix(in srgb, var(--chip-color, #888) 35%, transparent);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.18rem 0.5rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+}
+
+.occ-upgrade-none {
+    font-size: 0.55rem;
+    color: #bbb;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 

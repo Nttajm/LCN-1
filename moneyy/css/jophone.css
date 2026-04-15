@@ -1,0 +1,597 @@
+/* ── JoPhone 1 — GTA Cheap Phone ── */
+.jophone-wrap {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9000;
+    display: none;
+}
+.jophone-wrap.visible { display: block; }
+
+.jophone {
+    width: 260px;
+    height: 480px;
+    background: #1a1a1a;
+    border: 4px solid #3a8c2e;
+    border-radius: 32px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(58,140,46,.35), inset 0 0 8px rgba(0,0,0,.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    user-select: none;
+}
+
+/* ── Top bezel ── */
+.jophone-top-bezel {
+    height: 28px;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.jophone-brand {
+    font-size: 9px;
+    color: #7ec87e;
+    font-style: italic;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    text-transform: lowercase;
+}
+
+/* ── Screen ── */
+.jophone-screen {
+    flex: 1;
+    background: linear-gradient(160deg, #1b3a12 0%, #0d1f0a 40%, #0a150a 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Status bar ── */
+.jophone-statusbar {
+    height: 22px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,.45);
+    font-size: 9px;
+    color: #c8e6c8;
+    flex-shrink: 0;
+}
+.jophone-carrier { font-weight: 700; letter-spacing: .5px; }
+.jophone-signal {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 10px;
+}
+.jophone-signal-bar {
+    width: 3px;
+    background: #7ec87e;
+    border-radius: 1px;
+}
+.jophone-battery {
+    width: 16px; height: 8px;
+    border: 1px solid #7ec87e;
+    border-radius: 2px;
+    position: relative;
+    margin-left: 4px;
+}
+.jophone-battery::after {
+    content: '';
+    position: absolute;
+    right: -3px; top: 2px;
+    width: 2px; height: 4px;
+    background: #7ec87e;
+    border-radius: 0 1px 1px 0;
+}
+.jophone-battery-fill {
+    height: 100%;
+    width: 75%;
+    background: #7ec87e;
+    border-radius: 1px;
+}
+.jophone-status-right {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+/* ── Notification badges row ── */
+.jophone-notif-badges {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 3px 0;
+    font-size: 10px;
+    color: #6aaa6a;
+    background: rgba(0,0,0,.2);
+    flex-shrink: 0;
+}
+.jophone-notif-badges span { display: flex; align-items: center; gap: 3px; }
+
+/* ── Screen body (app views swap here) ── */
+.jophone-body {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+.jophone-view {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 6px 10px;
+    overflow-y: auto;
+}
+.jophone-view.active { display: flex; }
+
+/* ── Notification toast ── */
+.jophone-toast {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: rgba(20,60,20,.92);
+    border-bottom: 2px solid #3a8c2e;
+    color: #d0f0d0;
+    padding: 8px 10px;
+    font-size: 10px;
+    z-index: 100;
+    animation: jo-toast-in .3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.jophone-toast-title { font-weight: 700; font-size: 11px; color: #7ef07e; }
+.jophone-toast-body { font-size: 10px; }
+.jophone-toast.hiding { animation: jo-toast-out .3s ease forwards; }
+@keyframes jo-toast-in { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes jo-toast-out { from { transform: translateY(0); } to { transform: translateY(-100%); opacity: 0; } }
+
+/* ── HOME SCREEN ── */
+.jophone-home-time {
+    text-align: center;
+    padding: 14px 0 4px;
+}
+.jophone-home-time .time {
+    font-size: 36px;
+    font-weight: 200;
+    color: #c8f0c8;
+    letter-spacing: 2px;
+}
+.jophone-home-time .date {
+    font-size: 10px;
+    color: #6aaa6a;
+    margin-top: 2px;
+}
+
+.jophone-app-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 12px 8px;
+}
+.jophone-app-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: transform .1s;
+}
+.jophone-app-icon:active { transform: scale(.9); }
+.jophone-app-icon .ico {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+}
+.jophone-app-icon .lbl {
+    font-size: 8px;
+    color: #a0d0a0;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+/* icon BGs */
+.ico-phone { background: linear-gradient(135deg,#2d7a2d,#1a4a1a); }
+.ico-contacts { background: linear-gradient(135deg,#3a6e8c,#1e3e4e); }
+.ico-settings { background: linear-gradient(135deg,#5a5a5a,#2a2a2a); }
+.ico-messages { background: linear-gradient(135deg,#2d8c2d,#1a5a1a); }
+.ico-camera { background: linear-gradient(135deg,#8a6a2a,#4a3a10); }
+.ico-inet { background: linear-gradient(135deg,#2a4a6a,#102a3a); }
+
+/* ── PHONE APP ── */
+.jophone-dialer-display {
+    background: #0a0f0a;
+    border: 1px solid #2a5a2a;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.jophone-dialer-number {
+    font-size: 20px;
+    color: #b0f0b0;
+    font-weight: 300;
+    letter-spacing: 2px;
+    word-break: break-all;
+}
+.jophone-dialpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 0 6px;
+}
+.jophone-dialpad-btn {
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(50,90,50,.5);
+    color: #c8f0c8;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: background .1s;
+}
+.jophone-dialpad-btn:active { background: rgba(80,140,80,.7); }
+.jophone-dialpad-btn .sub {
+    font-size: 7px;
+    color: #6a9a6a;
+    letter-spacing: 1px;
+    margin-top: -2px;
+}
+.jophone-dial-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 8px 0 4px;
+}
+.jophone-call-btn {
+    width: 50px; height: 34px;
+    border: none; border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.jophone-call-btn.green { background: #2d7a2d; color: #fff; }
+.jophone-call-btn.red { background: #7a2d2d; color: #fff; }
+.jophone-call-btn.del { background: rgba(80,80,80,.5); color: #ccc; font-size: 13px; }
+
+/* ── CONTACTS APP ── */
+.jophone-contacts-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #7ef07e;
+    text-align: center;
+    padding: 6px 0 8px;
+    border-bottom: 1px solid #2a4a2a;
+    margin-bottom: 6px;
+}
+.jophone-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 4px;
+    border-bottom: 1px solid rgba(60,100,60,.2);
+    cursor: pointer;
+    transition: background .1s;
+    border-radius: 4px;
+}
+.jophone-contact-item:active { background: rgba(50,100,50,.3); }
+.jophone-contact-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #2a5a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #b0f0b0;
+    flex-shrink: 0;
+}
+.jophone-contact-info { flex: 1; }
+.jophone-contact-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #c8e6c8;
+}
+.jophone-contact-num {
+    font-size: 9px;
+    color: #6a9a6a;
+}
+
+/* ── MESSAGES APP ── */
+.jophone-msg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0 8px;
+    border-bottom: 1px solid #2a4a2a;
+    margin-bottom: 4px;
+}
+.jophone-msg-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #7ef07e;
+}
+.jophone-msg-compose-btn {
+    background: rgba(50,100,50,.5);
+    border: none;
+    border-radius: 6px;
+    color: #b0f0b0;
+    font-size: 14px;
+    padding: 3px 8px;
+    cursor: pointer;
+}
+.jophone-msg-compose-btn:active { background: rgba(80,140,80,.7); }
+.jophone-msg-list { flex: 1; overflow-y: auto; }
+.jophone-msg-empty {
+    text-align: center;
+    color: #4a7a4a;
+    font-size: 11px;
+    padding: 30px 0;
+    font-style: italic;
+}
+.jophone-msg-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 4px;
+    border-bottom: 1px solid rgba(60,100,60,.15);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background .1s;
+    position: relative;
+}
+.jophone-msg-row:active { background: rgba(50,100,50,.25); }
+.jophone-msg-unread-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #3aff3a;
+    flex-shrink: 0;
+    box-shadow: 0 0 4px #3aff3a;
+}
+.jophone-msg-row-info { flex: 1; min-width: 0; }
+.jophone-msg-row-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #c8e6c8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.jophone-msg-row-preview {
+    font-size: 9px;
+    color: #6a9a6a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.jophone-msg-row-time {
+    font-size: 8px;
+    color: #4a7a4a;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* ── THREAD VIEW ── */
+.jophone-thread-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 6px;
+    border-bottom: 1px solid #2a4a2a;
+    margin-bottom: 4px;
+}
+.jophone-thread-back {
+    background: none; border: none;
+    color: #7ec87e; font-size: 16px;
+    cursor: pointer; padding: 2px 6px;
+}
+.jophone-thread-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #b0f0b0;
+}
+.jophone-thread-messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 0;
+}
+.jophone-bubble {
+    max-width: 80%;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+.jophone-bubble-them {
+    align-self: flex-start;
+    background: rgba(40,80,40,.6);
+    color: #c8e6c8;
+    border-bottom-left-radius: 2px;
+}
+.jophone-bubble-me {
+    align-self: flex-end;
+    background: rgba(30,100,30,.7);
+    color: #d0ffd0;
+    border-bottom-right-radius: 2px;
+}
+.jophone-bubble-body { margin-bottom: 2px; }
+.jophone-bubble-time {
+    font-size: 7px;
+    color: #4a8a4a;
+    text-align: right;
+}
+.jophone-thread-input-wrap {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+    border-top: 1px solid #2a4a2a;
+    flex-shrink: 0;
+}
+.jophone-thread-input {
+    flex: 1;
+    background: #0a0f0a;
+    border: 1px solid #2a5a2a;
+    border-radius: 6px;
+    color: #b0f0b0;
+    font-size: 10px;
+    padding: 6px 8px;
+    outline: none;
+    font-family: inherit;
+}
+.jophone-thread-input::placeholder { color: #3a6a3a; }
+.jophone-thread-send {
+    background: #2d7a2d;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 13px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+.jophone-thread-send:active { background: #3a9a3a; }
+
+/* ── COMPOSE VIEW ── */
+.jophone-compose-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 6px;
+    border-bottom: 1px solid #2a4a2a;
+    margin-bottom: 4px;
+}
+.jophone-compose-contacts { flex: 1; overflow-y: auto; }
+
+/* ── SETTINGS APP ── */
+.jophone-settings-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #7ef07e;
+    text-align: center;
+    padding: 6px 0 8px;
+    border-bottom: 1px solid #2a4a2a;
+    margin-bottom: 6px;
+}
+.jophone-setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(60,100,60,.15);
+}
+.jophone-setting-label {
+    font-size: 11px;
+    color: #a0d0a0;
+}
+.jophone-setting-val {
+    font-size: 10px;
+    color: #6a9a6a;
+    font-style: italic;
+}
+
+/* ── Bottom action row (green +, red hangup) ── */
+.jophone-action-row {
+    height: 36px;
+    background: rgba(40,40,40,.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-shrink: 0;
+    border-top: 1px solid #333;
+}
+.jophone-act-btn {
+    width: 36px; height: 26px;
+    border: none; border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: filter .1s;
+}
+.jophone-act-btn:active { filter: brightness(1.3); }
+.jophone-act-green { background: #2d8c2d; color: #fff; }
+.jophone-act-red { background: #8c2d2d; color: #fff; }
+
+/* ── Bottom bezel (hardware nav buttons) ── */
+.jophone-bottom-bezel {
+    height: 38px;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+    border-top: 2px solid #222;
+}
+.jophone-hw-btn {
+    color: #555;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 12px;
+    transition: color .15s;
+}
+.jophone-hw-btn:hover { color: #aaa; }
+
+/* ── Toggle button to open/close phone ── */
+.jophone-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 8999;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 2px solid #3a8c2e;
+    background: #1a2a1a;
+    color: #7ec87e;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(58,140,46,.3);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s;
+}
+.jophone-toggle.visible { display: flex; }
+.jophone-toggle:hover { transform: scale(1.1); }
+
+/* ── Halftone dot pattern overlay for GTA feel ── */
+.jophone-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(100,200,100,.06) 1px, transparent 1px);
+    background-size: 4px 4px;
+    pointer-events: none;
+    z-index: 1;
+}
+.jophone-body { z-index: 2; position: relative; }
+
+/* scrollbar for phone */
+.jophone-view::-webkit-scrollbar { width: 3px; }
+.jophone-view::-webkit-scrollbar-thumb { background: #2a5a2a; border-radius: 2px; }
+.jophone-view::-webkit-scrollbar-track { background: transparent; }

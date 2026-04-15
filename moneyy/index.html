@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MONEY CLICKER</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/jophone.css">
 </head>
 <body>
     <div class="status-panel">
@@ -18,6 +19,14 @@
                 </div>
                 <span class="health-val" id="health-val">100</span>
             </div>
+            <div class="occ-dropdown" id="occ-dropdown">
+                <button class="occ-toggle" id="occ-toggle">
+                    <span class="occ-toggle-label">OCCUPATIONS</span>
+                    <span class="occ-toggle-count" id="occ-count">1/2</span>
+                    <span class="occ-arrow" id="occ-arrow">▾</span>
+                </button>
+                <div class="occ-panel" id="occ-panel"></div>
+            </div>
         </div>
     </div>
 
@@ -25,8 +34,9 @@
         <div class="level-bar-track">
             <div class="level-bar-fill" id="level-bar-fill"></div>
         </div>
-        <span class="level-label" id="level-label">LVL 1 — $0 / $50</span>
-    </div>
+        <span class="level-label" id="level-label">LVL 1 — $0 / $50</span>        <div id="level-bonus-wrap" style="display:none">
+            <button id="level-bonus-btn" class="bonus-btn"></button>
+        </div>    </div>
 
     <div class="game">
         <span class="money-display" id="money-display">$0.00</span>
@@ -34,13 +44,7 @@
         <span class="stats" id="mps-display">$0.00 / sec</span>
     </div>
 
-    <div class="slots" id="slots">
-        <div class="slot" id="slot-0"></div>
-        <div class="slot" id="slot-1"></div>
-        <div class="slot" id="slot-2"></div>
-        <div class="slot" id="slot-3"></div>
-        <div class="slot" id="slot-4"></div>
-    </div>
+    <div class="slots" id="slots"></div>
 
     <div class="ui-bottom" id="ui-bottom">
         <div class="tab" id="tab-store" style="display:none">
@@ -52,6 +56,7 @@
         </div>
     </div>
 
+    <script src="js/jophone.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

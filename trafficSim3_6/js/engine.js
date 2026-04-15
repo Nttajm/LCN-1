@@ -60,6 +60,61 @@ function drawSegmentRoad(x1, y1, x2, y2, style) {
 
 }
 
+function parcelHasIntersection(p1, p2) {
+  const margin = gridSnap / 2;
+  const minX = Math.min(p1.x, p2.x) - margin;
+  const maxX = Math.max(p1.x, p2.x) + margin;
+  const minY = Math.min(p1.y, p2.y) - margin;
+  const maxY = Math.max(p1.y, p2.y) + margin;
+  for (let j = 0; j < intersections.length; j++) {
+    const ip = intersections[j];
+    if (ip.x >= minX && ip.x <= maxX && ip.y >= minY && ip.y <= maxY) return true;
+  }
+  return false;
+}
+
+function drawParcelPaths(segment) {
+  const linePoints_array = segment.linePoints;
+  const lineWidth = 6.25; // 25% of 25px gridSnap
+  
+  for (let i = 0; i < linePoints_array.length - 1; i++) {
+    const p1 = linePoints_array[i];
+    const p2 = linePoints_array[i + 1];
+
+    if (parcelHasIntersection(p1, p2)) continue;
+    
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    
+    const perpX = (length > 0) ? -dy / length : 0;
+    const perpY = (length > 0) ? dx / length : 0;
+    
+    // Right line (red)
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(p1.x + perpX * lineWidth, p1.y + perpY * lineWidth);
+    ctx.lineTo(p2.x + perpX * lineWidth, p2.y + perpY * lineWidth);
+    ctx.stroke();
+    
+    // Left line (black)
+    ctx.strokeStyle = 'black';
+    ctx.beginPath();
+    ctx.moveTo(p1.x - perpX * lineWidth, p1.y - perpY * lineWidth);
+    ctx.lineTo(p2.x - perpX * lineWidth, p2.y - perpY * lineWidth);
+    ctx.stroke();
+  }
+}
+
+function drawPossibleIntPaths(segment) {
+
+}
+
+function makeCurve(p1, p2) {
+  
+}
+
 function drawNode(x, y, color) {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -79,6 +134,7 @@ function redraw() {
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     drawSegmentRoad(seg.nodeA.x, seg.nodeA.y, seg.nodeB.x, seg.nodeB.y, 'two_lane');
+    drawParcelPaths(seg);
   }
 
   for (let i = 0; i < nodes.length; i++) {
