@@ -2,7 +2,7 @@
 export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
 
 import { players } from './players.js';
-import { seasonTopush } from './achive/1998-2.js';
+import { seasonTopush } from './achive/1998-4.js';
 import { reapplyTeamLinkListeners } from './ui.js';
 export let teams = [
     {
@@ -510,23 +510,13 @@ function addMatchDialog(startMatch, mdIndex) {
 
 
     notifEdText.innerHTML = `
-        <h1>Create Match</h1>
-            <select name="potm" id="potm">
-                <option value="none">Player of the Match</option>
-                ${
-                !startMatch ? 
-                    (teams[0]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
-                    (teams[1]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
-                : 
-                    (t1?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
-                    (t2?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
-                }
-            </select>
+        <div class="match-dialog-header">
+            <h1>Create Match</h1>
+            <div class="match-dialog-close" id="cancel-match-btn">&#x2715;</div>
+        </div>
 
-            
-        <div class="score-manager fl-r">
-            <div class="team-man" id="team1">
-                <div class="score-display" id="team1-score">0</div>
+        <div class="scoreboard-area">
+            <div class="scoreboard-team">
                 <select id="team1-select">
                 ${!startMatch ? seasons.find(season => season.year === currentSeason).teams
                     .filter(teamId => {
@@ -535,73 +525,21 @@ function addMatchDialog(startMatch, mdIndex) {
                     })
                     .map(teamId => {
                         const team = getTeamById(teamId);
-                        // Format each team option for the dropdown list
                         return `<option value="${teamId}" ${teamId === matchday.games[0]?.team1 ? 'selected' : ''}>${team.name}</option>`;
                     }).join('') 
                     : 
                     `<option value="${matchday.games[thisMatchIdex].team1}">${getTeamById(matchday.games[thisMatchIdex].team1).name}</option>`
-
                 }
                 </select>
-                <div class="add-goal">
-                    <div class="fl-r fl-ai add-options">
-                        <div class="fl-r fl-ai" id="team1-add-goal">
-                            <img src="icons/add.png" alt="add-goal"> Add Goal
-                        </div>
-                        <select id="team1-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
-                        </select>
-                    </div>
-                    <div class="fl-r fl-ai add-options">
-                        <span class="type">type * optional</span>
-                        <select id="team1-goal-type" label="Type">
-                            <option value="none">none</option>
-                            <option value="free kick">free kick</option>
-                            <option value="penalty">penalty</option>
-                        </select>
-                    </div>
-                    <div class="fl-r fl-ai add-options">
-                        <span class="assist">Assist * optional</span>
-                        <select id="team1-player-select-assist" label="Assist">
-                            <option value="none">none</option>
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
-                        </select>
-                    </div>
-                    <input type="number" id="team1-goal-minute" placeholder="Minute" min="1" max="120">
-                </div>
-                <ul class="goal-list" id="team1-goal-list"></ul>
-                <div class="add-card">
-                    <div class="fl-r fl-ai add-options">
-                        <div class="fl-r fl-ai" id="team1-add-yellow">
-                            <span style="background: yellow; padding: 2px 8px; border-radius: 2px;">🟨</span> Yellow Card
-                        </div>
-                        <select id="team1-yellow-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
-                        </select>
-                    </div>
-                    <div class="fl-r fl-ai add-options">
-                        <div class="fl-r fl-ai" id="team1-add-red">
-                            <span style="background: red; padding: 2px 8px; border-radius: 2px; color: white;">🟥</span> Red Card
-                        </div>
-                        <select id="team1-red-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
-                        </select>
-                    </div>
-                    <input type="number" id="team1-card-minute" placeholder="Minute" min="1" max="120">
-                </div>
-                <ul class="card-list" id="team1-card-list"></ul>
             </div>
 
-            <div class="team-man" id="team2">
+            <div class="scoreboard-vs">
+                <div class="score-display" id="team1-score">0</div>
+                <span class="score-divider">&ndash;</span>
                 <div class="score-display" id="team2-score">0</div>
+            </div>
+
+            <div class="scoreboard-team">
                 <select id="team2-select">
                 ${!startMatch ? seasons.find(season => season.year === currentSeason).teams
                     .filter(teamId => {
@@ -615,66 +553,141 @@ function addMatchDialog(startMatch, mdIndex) {
                     : 
                      `<option value="${matchday.games[thisMatchIdex].team2}">${getTeamById(matchday.games[thisMatchIdex].team2).name}</option>`
                 }
-                </select> 
+                </select>
+            </div>
+        </div>
+
+        <div class="potm-bar">
+            <label>POTM</label>
+            <select name="potm" id="potm">
+                <option value="none">Player of the Match</option>
+                ${
+                !startMatch ? 
+                    (teams[0]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
+                    (teams[1]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                : 
+                    (t1?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
+                    (t2?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                }
+            </select>
+        </div>
+
+        <div class="score-manager">
+            <div class="team-man" id="team1">
+                <div class="team-section-label">Goals</div>
                 <div class="add-goal">
-                    <div class="fl-r fl-ai add-options">
-                            <div class="fl-r fl-ai" id="team2-add-goal">
-                            <img src="icons/add.png" alt="add-goal"> Add Goal
-                        </div>
+                    <div class="add-options">
+                        <div class="add-goal-trigger" id="team1-add-goal">+ Goal</div>
+                        <select id="team1-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <div class="add-options">
+                        <span class="type">Type</span>
+                        <select id="team1-goal-type">
+                            <option value="none">none</option>
+                            <option value="free kick">free kick</option>
+                            <option value="penalty">penalty</option>
+                        </select>
+                    </div>
+                    <div class="add-options">
+                        <span class="assist">Assist</span>
+                        <select id="team1-player-select-assist">
+                            <option value="none">none</option>
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <input type="number" id="team1-goal-minute" placeholder="Min" min="1" max="120">
+                </div>
+                <ul class="goal-list" id="team1-goal-list"></ul>
+
+                <div class="team-section-label">Cards</div>
+                <div class="add-card">
+                    <div class="add-options">
+                        <div class="add-card-trigger yellow-trigger" id="team1-add-yellow">&#x1F7E8; Yellow</div>
+                        <select id="team1-yellow-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <div class="add-options">
+                        <div class="add-card-trigger red-trigger" id="team1-add-red">&#x1F7E5; Red</div>
+                        <select id="team1-red-player-select">
+                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        }
+                        </select>
+                    </div>
+                    <input type="number" id="team1-card-minute" placeholder="Min" min="1" max="120">
+                </div>
+                <ul class="card-list" id="team1-card-list"></ul>
+            </div>
+
+            <div class="team-man" id="team2">
+                <div class="team-section-label">Goals</div>
+                <div class="add-goal">
+                    <div class="add-options">
+                        <div class="add-goal-trigger" id="team2-add-goal">+ Goal</div>
                         <select id="team2-player-select">
                             ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
                                 : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
                             }
                         </select>
                     </div>
-                    <div class="fl-r fl-ai add-options">
-                        <span class="type">type * optional</span>
-                        <select id="team2-goal-type" label="Type">
+                    <div class="add-options">
+                        <span class="type">Type</span>
+                        <select id="team2-goal-type">
                             <option value="none">none</option>
                             <option value="free kick">free kick</option>
                             <option value="penalty">penalty</option>
                         </select>
                     </div>
-                    <div class="fl-r fl-ai add-options">
-                            <span class="assist">Assist * optional</span>
-                        <select id="team2-player-select-assist" label="Assist">
+                    <div class="add-options">
+                        <span class="assist">Assist</span>
+                        <select id="team2-player-select-assist">
                             <option value="none">none</option>
                             ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
                                 : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
                             }
                         </select>
                     </div>
-                    <input type="number" id="team2-goal-minute" placeholder="Minute" min="1" max="120">
+                    <input type="number" id="team2-goal-minute" placeholder="Min" min="1" max="120">
                 </div>
                 <ul class="goal-list" id="team2-goal-list"></ul>
+
+                <div class="team-section-label">Cards</div>
                 <div class="add-card">
-                    <div class="fl-r fl-ai add-options">
-                        <div class="fl-r fl-ai" id="team2-add-yellow">
-                            <span style="background: yellow; padding: 2px 8px; border-radius: 2px;">🟨</span> Yellow Card
-                        </div>
+                    <div class="add-options">
+                        <div class="add-card-trigger yellow-trigger" id="team2-add-yellow">&#x1F7E8; Yellow</div>
                         <select id="team2-yellow-player-select">
                         ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
                             : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
                         }
                         </select>
                     </div>
-                    <div class="fl-r fl-ai add-options">
-                        <div class="fl-r fl-ai" id="team2-add-red">
-                            <span style="background: red; padding: 2px 8px; border-radius: 2px; color: white;">🟥</span> Red Card
-                        </div>
+                    <div class="add-options">
+                        <div class="add-card-trigger red-trigger" id="team2-add-red">&#x1F7E5; Red</div>
                         <select id="team2-red-player-select">
                         ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
                             : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
                         }
                         </select>
                     </div>
-                    <input type="number" id="team2-card-minute" placeholder="Minute" min="1" max="120">
+                    <input type="number" id="team2-card-minute" placeholder="Min" min="1" max="120">
                 </div>
                 <ul class="card-list" id="team2-card-list"></ul>
             </div>
         </div>
-        <div class="full-btn btn" id="create-match-btn"><span>CREATE MATCH</span></div>
-        <div class="btn-secondary" id="cancel-match-btn"><span>CANCEL</span></div>
+
+        <div class="match-dialog-actions">
+            <div class="match-cancel-btn" id="cancel-match-btn-2">CANCEL</div>
+            <div class="match-create-btn" id="create-match-btn">CREATE MATCH</div>
+        </div>
     `;
 
     const team1Select = document.querySelector('#team1-select');
@@ -687,8 +700,8 @@ function addMatchDialog(startMatch, mdIndex) {
     const playerMinute2 = document.querySelector('#team2-goal-minute');
     const playerAssist1 = document.querySelector('#team1-player-select-assist');
     const playerAssist2 = document.querySelector('#team2-player-select-assist');
-    let type1 = document.querySelector('#team1-goal-type').value;
-    let type2 = document.querySelector('#team2-goal-type').value;
+    const type1El = document.querySelector('#team1-goal-type');
+    const type2El = document.querySelector('#team2-goal-type');
     const potm = document.querySelector('#potm');
 
     // On load, populate player selects and assists for both teams
@@ -709,7 +722,6 @@ function addMatchDialog(startMatch, mdIndex) {
     updateTeam1Inputs();
     updateTeam2Inputs();
 
-    // On load, populate POTM dropdown
     function updatePOTM() {
         const team1 = getTeamById(team1Select.value);
         const team2 = getTeamById(team2Select.value);
@@ -785,7 +797,6 @@ function addMatchDialog(startMatch, mdIndex) {
         
         potm.innerHTML = '<option value="none">Player of the Match</option>';
         
-        // Add players from both selected teams
         if (!startMatch) {
             if (team1 && team1.player) {
                 potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -805,19 +816,20 @@ function addMatchDialog(startMatch, mdIndex) {
 
 
     const cancelMatchBtn = document.querySelector('#cancel-match-btn');
-    if (cancelMatchBtn) {
-        cancelMatchBtn.addEventListener('click', () => {
-            notifEd.classList.toggle('dn');
-            notifEdText.innerHTML = '';
-        });
-    }
+    const cancelMatchBtn2 = document.querySelector('#cancel-match-btn-2');
+    const closeHandler = () => {
+        notifEd.classList.toggle('dn');
+        notifEdText.innerHTML = '';
+    };
+    if (cancelMatchBtn) cancelMatchBtn.addEventListener('click', closeHandler);
+    if (cancelMatchBtn2) cancelMatchBtn2.addEventListener('click', closeHandler);
 
     // Add goal for team 1
     document.querySelector('#team1-add-goal').addEventListener('click', () => {
         const player = team1PlayerSelect.value;
         let minute = parseInt(playerMinute1.value);
         let assit = playerAssist1.value === 'none' ? false : playerAssist1.value;
-        let gaolType = type1 === 'none' ? false : type1;
+        let gaolType = type1El.value === 'none' ? false : type1El.value;
 
         
 
@@ -862,7 +874,7 @@ function addMatchDialog(startMatch, mdIndex) {
         const player = team2PlayerSelect.value;
         let minute = parseInt(playerMinute2.value);
         let assit = playerAssist2.value === 'none' ? false : playerAssist2.value;
-        let gaolType = type2 === 'none' ? false : type2;
+        let gaolType = type2El.value === 'none' ? false : type2El.value;
 
         if (!player) return;
         if (isNaN(minute) || minute < 1 || minute > 120) {
@@ -941,8 +953,8 @@ function addMatchDialog(startMatch, mdIndex) {
             score2: team2Goals.length,
             appearances: appearances,
             seed: Math.floor(Math.random() * 10000),
-            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit }))
-                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit }))),
+            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit, type: g.type || false }))
+                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit, type: g.type || false }))),
             yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
                 .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
@@ -964,8 +976,8 @@ function addMatchDialog(startMatch, mdIndex) {
             score2: team2Goals.length,
             appearances: appearances,
             seed: Math.floor(Math.random() * 10000),
-            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit }))
-                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit }))),
+            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit, type: g.type || false }))
+                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit, type: g.type || false }))),
             yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
                 .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
@@ -980,8 +992,16 @@ function addMatchDialog(startMatch, mdIndex) {
     });
 
     function updateScores() {
-        document.getElementById('team1-score').textContent = team1Goals.length;
-        document.getElementById('team2-score').textContent = team2Goals.length;
+        const el1 = document.getElementById('team1-score');
+        const el2 = document.getElementById('team2-score');
+        el1.textContent = team1Goals.length;
+        el2.textContent = team2Goals.length;
+        el1.classList.remove('score-animate');
+        el2.classList.remove('score-animate');
+        void el1.offsetWidth;
+        void el2.offsetWidth;
+        el1.classList.add('score-animate');
+        el2.classList.add('score-animate');
     }
 
     function renderGoals(container, goals) {
@@ -1091,6 +1111,8 @@ function loadSeason(snum) {
         if (createSelectBtn) {
             actionElem('#create-select-btn', createSelectDay);
         }
+        // Scroll to bottom of pad-cont on initial load
+        content.scrollTop = content.scrollHeight;
     } else {
         initializeEmptyState();
     }
@@ -1139,34 +1161,35 @@ function createSeasonDialog() {
     notifEd.classList.remove('dn');
 
     notifEdText.innerHTML = `
-        <h1>Create Season</h1>
-        <span class="medtx">
-            teams selected: 0/20
-        </span>
-        <select name="years" id="year-select">
-            ${Array.from({ length: 103 }, (_, i) => {
-                const year = new Date().getFullYear() - i;
-                const currentSeason = getCurrentSeason();
-                return `<option value="${year}" ${year.toString() === currentSeason ? 'selected' : ''}>${year}</option>`;
-            }).join('')}
-        </select>
-
-        <div class="teams-select">
-            ${teams.map((team) => `
-                <div class="s-team">
-                    <input type="checkbox" id="team-${team.id}" class="team-checkbox">
-                    <img src="${team.img}" alt="${team.name}">
-                    <span>${team.name}</span>
-                </div>
-            `).join('')}
+        <div class="match-dialog-header">
+            <h1>Create Season</h1>
+            <div class="match-dialog-close" id="cancel-create-season-x">&#x2715;</div>
         </div>
-        <div class='fl-r'>
-            <div class="btn" id="create-season">
-                <span>CREATE SEASON</span>
+        <div style="padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.2rem; flex: 1; overflow-y: auto;">
+            <span class="medtx" style="color: rgba(255,255,255,0.5);">
+                teams selected: 0/20
+            </span>
+            <select name="years" id="year-select">
+                ${Array.from({ length: 103 }, (_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    const currentSeason = getCurrentSeason();
+                    return `<option value="${year}" ${year.toString() === currentSeason ? 'selected' : ''}>${year}</option>`;
+                }).join('')}
+            </select>
+
+            <div class="teams-select">
+                ${teams.map((team) => `
+                    <div class="s-team">
+                        <input type="checkbox" id="team-${team.id}" class="team-checkbox">
+                        <img src="${team.img}" alt="${team.name}">
+                        <span>${team.name}</span>
+                    </div>
+                `).join('')}
             </div>
-            <div class="btn-secondary" id="cancel-create-season">
-                <span>CANCEL</span>
-            </div>
+        </div>
+        <div class="match-dialog-actions">
+            <div class="match-cancel-btn" id="cancel-create-season">CANCEL</div>
+            <div class="match-create-btn" id="create-season">CREATE SEASON</div>
         </div>
     `;
 
@@ -1190,6 +1213,10 @@ function createSeasonDialog() {
     const cancelBtn = document.querySelector('#cancel-create-season');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', cancelCreateSeasonFunc);
+    }
+    const cancelXBtn = document.querySelector('#cancel-create-season-x');
+    if (cancelXBtn) {
+        cancelXBtn.addEventListener('click', cancelCreateSeasonFunc);
     }
 }
 
@@ -1250,6 +1277,17 @@ function closeDialog() {
 export function getCurrentSeason() {
     const params = new URLSearchParams(window.location.search);
     return params.get('season') || 2025 ;
+}
+
+export function getThisSeason() {
+    if (!seasons || seasons.length === 0) return null;
+    const seasonsWithGames = seasons.filter(season =>
+        season.matchdays && season.matchdays.some(md => md.games && md.games.length > 0)
+    );
+    if (seasonsWithGames.length === 0) return null;
+    return seasonsWithGames.reduce((latest, season) => {
+        return parseInt(season.year) > parseInt(latest.year) ? season : latest;
+    });
 }
 
 
@@ -1418,8 +1456,8 @@ function renderSeasonButtons() {
     if (!seasonDisplay) return;
 
     const currentSeason = getCurrentSeason();
-    // Get unique years from the seasons array
-    const seasonYears = [...new Set(seasons.map(season => season.year))];
+    // Get unique years from the seasons array, sorted ascending
+    const seasonYears = [...new Set(seasons.map(season => season.year))].sort((a, b) => Number(a) - Number(b));
     
     // Create buttons for each season
     const seasonButtons = seasonYears.map(year => {
@@ -1904,24 +1942,25 @@ export function getPlayerByName(pName) {
 export function getFinalsAndWins(teamId) {
     let finals = 0;
     let wins = 0;
+    const winYears = [];
     seasons.forEach(season => {
         if (!season.matchdays) return;
-        // Find the last matchday with games
-        const lastMatchday = [...season.matchdays].reverse().find(md => md.games && md.games.length > 0);
-        if (!lastMatchday) return;
-        const finalGame = lastMatchday.games[0];
+        const finalMatchday = season.matchdays.find(md => md.bracketType === 'finals' && md.games && md.games.length > 0);
+        if (!finalMatchday) return;
+        const finalGame = finalMatchday.games.find(g => !g.standby);
         if (!finalGame) return;
         if (finalGame.team1 === teamId || finalGame.team2 === teamId) {
             finals++;
             const isTeam1 = finalGame.team1 === teamId;
-            const teamScore = isTeam1 ? finalGame.score1 : finalGame.score2;
-            const opponentScore = isTeam1 ? finalGame.score2 : finalGame.score1;
+            const teamScore = parseInt(isTeam1 ? finalGame.score1 : finalGame.score2) || 0;
+            const opponentScore = parseInt(isTeam1 ? finalGame.score2 : finalGame.score1) || 0;
             if (teamScore > opponentScore) {
                 wins++;
+                if (season.year) winYears.push(season.year);
             }
         }
     });
-    return { finals, wins };
+    return { finals, wins, winYears };
 }
 
 export function getSeasonOfMatch(matchId) {
@@ -1960,15 +1999,44 @@ export function getPlayersByTeam(teamId, extraPlayers = []) {
 }
 
 export function getTeamByplayer(playerName) {
-    let lastTeam = null;
-    let lastMatchTime = -1;
+    // First try: check players.js data for team assignments
+    const playerData = players.find(p => p.name === playerName);
+    if (playerData && playerData.teams) {
+        let latestTeam = null;
+        let latestYear = -1;
+        for (const [teamId, info] of Object.entries(playerData.teams)) {
+            if (info.years && info.years.length > 0) {
+                const maxYear = Math.max(...info.years);
+                if (maxYear > latestYear) {
+                    latestYear = maxYear;
+                    latestTeam = teamId;
+                }
+            }
+        }
+        if (latestTeam) return latestTeam;
+    }
 
-    for (let season of seasons) {
-        for (let matchday of season.matchdays || []) {
-            for (let game of matchday.games || []) {
-                if (Array.isArray(game.appearances) && game.appearances.includes(playerName)) {
-                    // Check which team the player played for in this game
-                    lastMatchTime = game
+    // Fallback: check goal data in games for team assignment
+    let lastTeam = null;
+    for (const season of seasons) {
+        for (const matchday of season.matchdays || []) {
+            for (const game of matchday.games || []) {
+                if (game.goals && Array.isArray(game.goals)) {
+                    for (const goal of game.goals) {
+                        if (goal.player === playerName || goal.assist === playerName) {
+                            lastTeam = goal.team;
+                        }
+                    }
+                }
+                if (game.potm === playerName) {
+                    // Determine team from the player list on each team
+                    const t1 = getTeamById(game.team1);
+                    const t2 = getTeamById(game.team2);
+                    if (t1 && t1.player && t1.player.includes(playerName)) {
+                        lastTeam = game.team1;
+                    } else if (t2 && t2.player && t2.player.includes(playerName)) {
+                        lastTeam = game.team2;
+                    }
                 }
             }
         }

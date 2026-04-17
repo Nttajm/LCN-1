@@ -118,14 +118,12 @@ function renderStatList(stats, teamsFn, m) {
 }
 
 export function getTopGoalScorers(m) {
-    // Create a map to count goals per player across all seasons
     const playerGoals = {};
     
-    // Iterate through all seasons
     seasons.forEach(seasonData => {
         if (!seasonData || !seasonData.matchdays) return;
+        if (m && seasonData.year !== m) return;
         
-        // Count goals across all matches in each season
         seasonData.matchdays.forEach(matchday => {
             if (!matchday.games) return;
             
@@ -145,21 +143,18 @@ export function getTopGoalScorers(m) {
         });
     });
     
-    // Convert to array and sort by goal count
     return Object.entries(playerGoals)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 }
 
 export function getTopAssistProviders(m) {
-    // Create a map to count assists per player across all seasons
     const playerAssists = {};
     
-    // Iterate through all seasons
     seasons.forEach(seasonData => {
         if (!seasonData || !seasonData.matchdays) return;
+        if (m && seasonData.year !== m) return;
         
-        // Count assists across all matches in each season
         seasonData.matchdays.forEach(matchday => {
             if (!matchday.games) return;
             
@@ -179,21 +174,18 @@ export function getTopAssistProviders(m) {
         });
     });
     
-    // Convert to array and sort by assist count
     return Object.entries(playerAssists)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 }
 
 export function getTopPOTM(m) {
-    // Create a map to count POTM awards per player across all seasons
     const playerPOTM = {};
     
-    // Iterate through all seasons
     seasons.forEach(seasonData => {
         if (!seasonData || !seasonData.matchdays) return;
+        if (m && seasonData.year !== m) return;
         
-        // Count POTM across all matches in each season
         seasonData.matchdays.forEach(matchday => {
             if (!matchday.games) return;
             
@@ -209,7 +201,6 @@ export function getTopPOTM(m) {
         });
     });
     
-    // Convert to array and sort by POTM count
     return Object.entries(playerPOTM)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);

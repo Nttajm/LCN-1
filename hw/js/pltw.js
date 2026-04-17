@@ -8,8 +8,7 @@ var TIME_POINTS = [
     { label: "1:00 PM", name: "Afternoon" },
     { label: "3:00 PM", name: "+2 hrs" },
     { label: "7:00 PM", name: "Evening" },
-    { label: "Day 3", name: "+2 days" },
-    { label: "Day 10", name: "+1 week" }
+    { label: "10:00 PM", name: "End" }
 ];
 
 var state = {
@@ -225,41 +224,15 @@ function getSceneData(idx) {
             };
         case 7:
             var paras7 = [
-                "Two more days go by. It's the same thing every day — wake up hungry, walk, try to get through the day, eat a little if I'm lucky, sleep, do it again. My clothes are getting loose. My <span data-tip='Gluconeogenesis: when the body converts amino acids from muscle tissue into glucose for brain fuel. This is a survival mechanism that ultimately weakens the body further'>body is using itself for fuel</span>.",
-                "I caught a cold two days ago and I can't shake it. Without enough protein, my body can't fight off even a simple cold. Something that would be nothing for a healthy person is a real problem for me.",
-                "Yesterday I passed out at school. Three other kids were already sitting outside because the same thing happened to them."
+                "I lie on my mat staring at the metal roof. My whole body aches in ways that shouldn't be normal for someone my age. My stomach growls but there's nothing left to eat.",
+                "Tomorrow will be the same. Wake up hungry, walk, try to get through the day, eat a little if I'm lucky, sleep, do it again. My body is breaking down and I can feel it.",
+                "For millions of people, this isn't just one bad day — it's every day. Kids stop growing. Their brains don't develop right. But there are real solutions that actually work."
             ];
             return {
-                time: "Day 3 — Same Cycle",
-                title: "It's Getting Worse",
-                narrative: paras7,
-                fact: "<strong>Calorie Deficit:</strong> Over 3 days, I ate about " + state.totalCalories + " calories. My body needed around 6,600. That missing " + (6600 - state.totalCalories) + " calories came from my own body — first fat, then muscle, then it starts affecting my organs.",
-                choices: [
-                    { id: "help_seek", marker: "A", title: "Go see the health worker", desc: "There's a community health worker in the next village. Maybe they can help.", calories: 0, energy: 3 },
-                    { id: "help_endure", marker: "B", title: "Keep going on my own", desc: "We've gotten through this before. I don't want to ask for help.", calories: 0, energy: -5 }
-                ],
-                calorieChange: 0,
-                energyChange: -10,
-                newEffects: ["Frequent Illness", "Headaches", "Muscle Wasting"],
-                effectTypes: ["severe", "danger", "severe"],
-                eduTrigger: "systems"
-            };
-        case 8:
-            var soughtHelp = s.choices.help === "help_seek";
-            var paras8 = [];
-            if (soughtHelp) {
-                paras8.push("The health worker measured my arm — 12.1 cm around. Anything under 12.5 means you're malnourished. She gave me <span data-tip='Ready-to-Use Therapeutic Food: a peanut-based paste fortified with vitamins and minerals, used to treat severe acute malnutrition. Developed by Nutriset, widely distributed by UNICEF'>RUTF packets</span> (a special peanut paste with vitamins) and signed us up for a feeding program.");
-                paras8.push("She told me my body is in survival mode. Some of the damage can be fixed if we act now. Some of it can't be undone.");
-            } else {
-                paras8.push("After a week, it's obvious something is really wrong. My nails are breaking, my hair is falling out, and I can't stop coughing. Other kids have it worse — Kamau, who's only three, has a swollen belly from <span data-tip='A severe form of protein-energy malnutrition characterized by edema, skin lesions, and reddish discoloration of hair. Most common in children recently weaned onto a protein-deficient diet'>kwashiorkor</span> (severe protein deficiency).");
-                paras8.push("Everyone in the community looks sick. The adults are thin. The kids don't play anymore. The drought isn't stopping.");
-            }
-            paras8.push("For millions of people, this isn't just one bad week — it's their whole life. Kids stop growing. Their brains don't develop right. But there are real solutions that actually work.");
-            return {
-                time: "Day 10 — One Week Later",
+                time: "10:00 PM — End of the Day",
                 title: "What Happens Next",
-                narrative: paras8,
-                fact: null,
+                narrative: paras7,
+                fact: "<strong>Calorie Deficit:</strong> Today I ate about " + state.totalCalories + " calories. My body needed " + CALORIE_TARGET + ". That missing " + (CALORIE_TARGET - state.totalCalories) + " calories came from my own body — first fat, then muscle, then it starts affecting my organs.",
                 choices: null,
                 calorieChange: 0,
                 energyChange: -8,
