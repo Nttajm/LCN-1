@@ -2,7 +2,7 @@ import { select } from './util.js';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const work = {
+export const work = {
   demos: {
     label: 'Demos',
     items: [
@@ -67,6 +67,111 @@ const work = {
           { type: 'text', content: 'Mulon is a fast-paced strategy game built around resource management and real-time decision making.' },
           { type: 'text', content: 'Players compete to build and expand their network while managing limited resources under pressure.' },
           { type: 'text', content: 'The game features a leaderboard system and seasonal updates to keep gameplay fresh and competitive.' },
+        ],
+      },
+      {
+        id: 'square',
+        name: 'Square',
+        thumb: 'data/work/games/square.png',
+        chips: [
+          { label: 'Created 2025' },
+          { label: 'Multiplayer' },
+          { label: 'Game', tag: true },
+        ],
+        body: [
+          { type: 'text', content: 'Square is a collaborative pixel canvas game where players place colored squares on a shared grid.' },
+          { type: 'text', content: 'Inspired by r/place, users can claim coordinates and contribute to a growing digital artwork.' },
+          { type: 'text', content: 'Features real-time updates and a color palette for creative expression.' },
+        ],
+      },
+      {
+        id: 'josu',
+        name: 'Josu',
+        thumb: 'data/work/games/josu.png',
+        chips: [
+          { label: 'Created 2025' },
+          { label: 'Rhythm Game', tag: true },
+        ],
+        body: [
+          { type: 'text', content: 'Josu is a rhythm game inspired by osu! where players hit notes in sync with music.' },
+          { type: 'text', content: 'Features a song browser, custom beatmap editor, and integration with Firebase for community songs.' },
+          { type: 'text', content: 'Built with precision timing mechanics and arrow-based gameplay.' },
+        ],
+      },
+      {
+        id: 'imposter',
+        name: 'Imposter',
+        thumb: 'data/work/games/imposter.png',
+        chips: [
+          { label: 'Created 2025' },
+          { label: 'Multiplayer' },
+          { label: 'Game', tag: true },
+        ],
+        body: [
+          { type: 'text', content: 'Imposter is an online social deduction game where players identify the hidden imposter among them.' },
+          { type: 'text', content: 'Features lobby creation, singleplayer mode, and multiplayer sessions with friends.' },
+          { type: 'text', content: 'Inspired by games like Among Us with a browser-based experience.' },
+        ],
+      },
+      {
+        id: 'titangames',
+        name: 'Titan Games',
+        thumb: 'data/work/games/titangames.png',
+        chips: [
+          { label: 'Created 2025' },
+          { label: 'Game Hub', tag: true },
+        ],
+        body: [
+          { type: 'text', content: 'Titan Games is a collection of word and puzzle games in one hub.' },
+          { type: 'text', content: 'Includes crosswords, Nerdle, and other brain-teasing games inspired by popular daily puzzles.' },
+          { type: 'text', content: 'Features a clean NYT-inspired interface with multiple game modes.' },
+        ],
+      },
+    ],
+  },
+  projects: {
+    label: 'Projects',
+    items: [
+      {
+        id: 'rfaa',
+        name: 'RFAA',
+        thumb: 'data/work/projects/rfaa.png',
+        chips: [
+          { label: 'Created 2024' },
+          { label: 'Sports Platform', tag: true },
+        ],
+        body: [
+          { type: 'text', content: 'RFAA is a sports league management platform tracking matches, tables, and player statistics.' },
+          { type: 'text', content: 'Features multiple league support including ACL, with detailed team and player info pages.' },
+          { type: 'text', content: 'Built to follow real-time match data and historical records.' },
+        ],
+      },
+      {
+        id: 'manifest',
+        name: 'Manifest',
+        thumb: 'data/work/projects/manifest.png',
+        chips: [
+          { label: 'Created 2025' },
+          { label: 'Education', tag: true },
+        ],
+        body: [
+          { type: 'text', content: 'College Manifest is a university tracking and planning tool for students.' },
+          { type: 'text', content: 'Helps users organize college applications, track deadlines, and compare universities.' },
+          { type: 'text', content: 'Features profile setup with graduation year and personalized recommendations.' },
+        ],
+      },
+      {
+        id: 'cascade',
+        name: 'Cascade',
+        thumb: 'data/work/projects/cascade.png',
+        chips: [
+          { label: 'Created 2025' },
+          { label: 'Collaboration', tag: true },
+        ],
+        body: [
+          { type: 'text', content: 'Cascade is a collaborative workspace platform for teams and individuals.' },
+          { type: 'text', content: 'Features user profiles, shared workspaces, and a clean sidebar-based navigation.' },
+          { type: 'text', content: 'Built for seamless collaboration with authentication and real-time updates.' },
         ],
       },
     ],

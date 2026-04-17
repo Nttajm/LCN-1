@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Leaderboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green-dark: #0a3d2e;
+            --green-mid: #1a7a5c;
+            --green-light: #3dff9a;
+            --blue-dark: #0a2d4d;
+            --blue-mid: #1a5a8a;
+            --blue-light: #3ddfff;
+            --pixel-size: 4px;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--green-dark) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Pixel grid overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 150, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 150, 0.03) 1px, transparent 1px);
+            background-size: var(--pixel-size) var(--pixel-size);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Scanlines effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Floating pixels background */
+        .pixel-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .pixel {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            opacity: 0.4;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+            50% { transform: translateY(-30px) rotate(180deg); opacity: 0.6; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* CRT frame */
+        .crt-frame {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 
+                0 0 0 8px #2a2a4a,
+                0 0 0 12px #1a1a2e,
+                0 0 60px rgba(61, 255, 154, 0.3),
+                inset 0 0 100px rgba(0, 0, 0, 0.5);
+        }
+
+        .screen {
+            background: linear-gradient(180deg, var(--green-dark) 0%, var(--blue-dark) 100%);
+            border-radius: 8px;
+            padding: 24px;
+            border: 4px solid #0a0a15;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Screen glow */
+        .screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+            pointer-events: none;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--green-light);
+            font-size: 18px;
+            margin-bottom: 24px;
+            text-shadow: 
+                0 0 10px var(--green-light),
+                0 0 20px var(--green-mid),
+                4px 4px 0 var(--blue-dark);
+            letter-spacing: 2px;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px var(--green-light), 0 0 20px var(--green-mid), 4px 4px 0 var(--blue-dark); }
+            to { text-shadow: 0 0 20px var(--green-light), 0 0 40px var(--green-mid), 4px 4px 0 var(--blue-dark); }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--blue-light);
+            font-size: 8px;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        th {
+            color: var(--blue-light);
+            font-size: 8px;
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 2px dashed var(--blue-mid);
+            text-transform: uppercase;
+        }
+
+        th:last-child {
+            text-align: center;
+        }
+
+        tr.player-row {
+            background: linear-gradient(90deg, 
+                rgba(26, 122, 92, 0.3) 0%, 
+                rgba(26, 90, 138, 0.3) 100%);
+            transition: all 0.3s ease;
+        }
+
+        tr.player-row:hover {
+            background: linear-gradient(90deg, 
+                rgba(61, 255, 154, 0.2) 0%, 
+                rgba(61, 223, 255, 0.2) 100%);
+            transform: scale(1.02);
+        }
+
+        td {
+            padding: 12px;
+            color: #ddd;
+            font-size: 10px;
+            vertical-align: middle;
+        }
+
+        /* Rank styles */
+        .rank {
+            font-size: 14px;
+            font-weight: bold;
+            width: 40px;
+        }
+
+        .rank-1 { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+        .rank-2 { color: #c0c0c0; text-shadow: 0 0 8px #c0c0c0; }
+        .rank-3 { color: #cd7f32; text-shadow: 0 0 8px #cd7f32; }
+
+        .player-name {
+            color: var(--green-light);
+        }
+
+        .pts {
+            color: var(--blue-light);
+            font-size: 12px;
+        }
+
+        /* Game icons */
+        .games-played {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6px;
+            border-radius: 4px;
+            position: relative;
+            image-rendering: pixelated;
+        }
+
+        /* Nerdle icon - calculator style */
+        .nerdle {
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            box-shadow: 0 0 8px rgba(255, 107, 157, 0.5);
+        }
+
+        .nerdle::before {
+            content: '123';
+            color: white;
+            font-size: 6px;
+        }
+
+        /* Connections icon - grid style */
+        .connections {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            box-shadow: 0 0 8px rgba(162, 155, 254, 0.5);
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px;
+            padding: 4px;
+        }
+
+        .connections span {
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 1px;
+        }
+
+        /* Wordle icon */
+        .wordle {
+            background: linear-gradient(135deg, #6ab04c, #27ae60);
+            box-shadow: 0 0 8px rgba(106, 176, 76, 0.5);
+        }
+
+        .wordle::before {
+            content: 'W';
+            color: white;
+            font-size: 10px;
+        }
+
+        /* Crossword icon */
+        .crossword {
+            background: linear-gradient(135deg, #2d3436, #636e72);
+            box-shadow: 0 0 8px rgba(99, 110, 114, 0.5);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            padding: 3px;
+        }
+
+        .crossword span {
+            width: 4px;
+            height: 4px;
+            background: white;
+        }
+
+        .crossword span:nth-child(2),
+        .crossword span:nth-child(4),
+        .crossword span:nth-child(6),
+        .crossword span:nth-child(8) {
+            background: transparent;
+        }
+
+        /* Strands icon */
+        .strands {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            box-shadow: 0 0 8px rgba(116, 185, 255, 0.5);
+        }
+
+        .strands::before {
+            content: '~';
+            color: white;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 2px dashed var(--green-mid);
+        }
+
+        .footer p {
+            color: var(--green-light);
+            font-size: 6px;
+            opacity: 0.7;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Power LED */
+        .power-led {
+            position: absolute;
+            bottom: -20px;
+            right: 30px;
+            width: 8px;
+            height: 8px;
+            background: var(--green-light);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--green-light);
+            animation: led-pulse 2s infinite;
+        }
+
+        @keyframes led-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--green-light); }
+            50% { opacity: 0.7; box-shadow: 0 0 5px var(--green-light); }
+        }
+
+        /* Halftone pattern overlay */
+        .halftone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, var(--green-mid) 1px, transparent 1px);
+            background-size: 8px 8px;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="pixel-bg" id="pixelBg"></div>
+    <div class="halftone"></div>
+    
+    <div class="container">
+        <div class="crt-frame">
+            <div class="screen">
+                <h1>★ HIGH SCORES ★</h1>
+                <p class="subtitle">DAILY PUZZLE CHAMPIONS</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>PTS</th>
+                            <th>Games</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="player-row">
+                            <td class="rank rank-1">1</td>
+                            <td class="player-name">PIXEL_MASTER</td>
+                            <td class="pts">9,847</td>
+                            <td>
+                                <div class="games-played">
+                                    <div class="game-icon nerdle" title="Nerdle"></div>
+                                    <div class="game-icon connections" title="Connections">
+                                        <span></span><span></span><span></span><span></span>
+                                    </div>
+                                    <div class="game-icon wordle" title="Wordle"></div>
+                                    <div class="game-icon strands" title="Strands"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="player-row">
+                            <td class="rank rank-2">2</td>
+                            <td class="player-name">RETRO_QUEEN</td>
+                            <td class="pts">8,234</td>
+                            <td>
+                                <div class="games-played">
+                                    <div class="game-icon connections" title="Connections">
+                                        <span></span><span></span><span></span><span></span>
+                                    </div>
+                                    <div class="game-icon wordle" title="Wordle"></div>
+                                    <div class="game-icon crossword" title="Crossword">
+                                        <span></span><span></span><span></span>
+                                        <span></span><span></span><span></span>
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="player-row">
+                            <td class="rank rank-3">3</td>
+                            <td class="player-name">8BIT_WIZARD</td>
+                            <td class="pts">7,891</td>
+                            <td>
+                                <div class="games-played">
+                                    <div class="game-icon nerdle" title="Nerdle"></div>
+                                    <div class="game-icon wordle" title="Wordle"></div>
+                                    <div class="game-icon strands" title="Strands"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="player-row">
+                            <td class="rank">4</td>
+                            <td class="player-name">GLITCH_GAMER</td>
+                            <td class="pts">6,542</td>
+                            <td>
+                                <div class="games-played">
+                                    <div class="game-icon connections" title="Connections">
+                                        <span></span><span></span><span></span><span></span>
+                                    </div>
+                                    <div class="game-icon nerdle" title="Nerdle"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="player-row">
+                            <td class="rank">5</td>
+                            <td class="player-name">NEON_NINJA</td>
+                            <td class="pts">5,789</td>
+                            <td>
+                                <div class="games-played">
+                                    <div class="game-icon wordle" title="Wordle"></div>
+                                    <div class="game-icon crossword" title="Crossword">
+                                        <span></span><span></span><span></span>
+                                        <span></span><span></span><span></span>
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                    <div class="game-icon strands" title="Strands"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="player-row">
+                            <td class="rank">6</td>
+                            <td class="player-name">BYTE_BOSS</td>
+                            <td class="pts">4,321</td>
+                            <td>
+                                <div class="games-played">
+                                    <div class="game-icon nerdle" title="Nerdle"></div>
+                                    <div class="game-icon connections" title="Connections">
+                                        <span></span><span></span><span></span><span></span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="player-row">
+                            <td class="rank">7</td>
+                            <td class="player-name">CIRCUIT_KID</td>
+                            <td class="pts">3,456</td>
+                            <td>
+                                <div class="games-played">
+                                    <div class="game-icon wordle" title="Wordle"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="footer">
+                    <p>INSERT COIN TO CONTINUE <span class="blink">_</span></p>
+                </div>
+            </div>
+            <div class="power-led"></div>
+        </div>
+    </div>
+
+    <script>
+        // Generate floating pixels
+        const pixelBg = document.getElementById('pixelBg');
+        const colors = ['#3dff9a', '#3ddfff', '#1a7a5c', '#1a5a8a', '#0a3d2e', '#0a2d4d'];
+        
+        for (let i = 0; i < 50; i++) {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.style.left = Math.random() * 100 + '%';
+            pixel.style.top = Math.random() * 100 + '%';
+            pixel.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            pixel.style.animationDelay = Math.random() * 8 + 's';
+            pixel.style.animationDuration = (6 + Math.random() * 6) + 's';
+            pixelBg.appendChild(pixel);
+        }
+
+        // Add flicker effect occasionally
+        const screen = document.querySelector('.screen');
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                screen.style.opacity = '0.9';
+                setTimeout(() => {
+                    screen.style.opacity = '1';
+                }, 50);
+            }
+        }, 100);
+    </script>
+</body>
+</html>
