@@ -684,6 +684,64 @@ function addMatchDialog(startMatch, mdIndex) {
             </div>
         </div>
 
+        <div class="adv-settings-toggle" id="adv-toggle">
+            <span class="adv-toggle-icon">▸</span> Advanced Stats
+        </div>
+        <div class="adv-settings dn" id="adv-panel">
+            <div class="adv-section">
+                <div class="adv-section-label">Match Favor</div>
+                <div class="adv-favor-bar">
+                    <span class="adv-favor-team" id="adv-favor-t1">50%</span>
+                    <div class="adv-favor-track">
+                        <input type="range" min="0" max="100" value="50" id="adv-favor-slider">
+                        <div class="adv-favor-fill" id="adv-favor-fill"></div>
+                    </div>
+                    <span class="adv-favor-team" id="adv-favor-t2">50%</span>
+                </div>
+            </div>
+            <div class="adv-stats-grid">
+                <div class="adv-stat-row">
+                    <span class="adv-stat-val" id="adv-poss-t1">50</span>
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Possession %</span>
+                        <div class="adv-stat-track">
+                            <input type="range" min="20" max="80" value="50" id="adv-poss-slider">
+                            <div class="adv-stat-fill" id="adv-poss-fill"></div>
+                        </div>
+                    </div>
+                    <span class="adv-stat-val" id="adv-poss-t2">50</span>
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-sot-t1" value="0" min="0" max="50">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Shots on Target</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-sot-t2" value="0" min="0" max="50">
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-pass-t1" value="0" min="0" max="100">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Pass Accuracy %</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-pass-t2" value="0" min="0" max="100">
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-corners-t1" value="0" min="0" max="30">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Corners</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-corners-t2" value="0" min="0" max="30">
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-offsides-t1" value="0" min="0" max="20">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Offsides</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-offsides-t2" value="0" min="0" max="20">
+                </div>
+            </div>
+        </div>
+
         <div class="match-dialog-actions">
             <div class="match-cancel-btn" id="cancel-match-btn-2">CANCEL</div>
             <div class="match-create-btn" id="create-match-btn">CREATE MATCH</div>
@@ -703,6 +761,80 @@ function addMatchDialog(startMatch, mdIndex) {
     const type1El = document.querySelector('#team1-goal-type');
     const type2El = document.querySelector('#team2-goal-type');
     const potm = document.querySelector('#potm');
+
+    const advToggle = document.querySelector('#adv-toggle');
+    const advPanel = document.querySelector('#adv-panel');
+    const advFavorSlider = document.querySelector('#adv-favor-slider');
+    const advFavorFill = document.querySelector('#adv-favor-fill');
+    const advFavorT1 = document.querySelector('#adv-favor-t1');
+    const advFavorT2 = document.querySelector('#adv-favor-t2');
+    const advPossSlider = document.querySelector('#adv-poss-slider');
+    const advPossFill = document.querySelector('#adv-poss-fill');
+    const advPossT1 = document.querySelector('#adv-poss-t1');
+    const advPossT2 = document.querySelector('#adv-poss-t2');
+
+    advToggle.addEventListener('click', () => {
+        advPanel.classList.toggle('dn');
+        advToggle.querySelector('.adv-toggle-icon').textContent = advPanel.classList.contains('dn') ? '▸' : '▾';
+    });
+
+    function updatePossFill() {
+        const v = parseInt(advPossSlider.value);
+        advPossT1.textContent = v;
+        advPossT2.textContent = 100 - v;
+        advPossFill.style.width = v + '%';
+    }
+
+    function updateFavorFill() {
+        const v = parseInt(advFavorSlider.value);
+        advFavorT1.textContent = v + '%';
+        advFavorT2.textContent = (100 - v) + '%';
+        advFavorFill.style.width = v + '%';
+    }
+
+    function applyFavor() {
+        const f = parseInt(advFavorSlider.value);
+        const bias = (f - 50) / 50;
+        const poss = Math.round(50 + bias * 25);
+        advPossSlider.value = poss;
+        updatePossFill();
+        const sotBase = Math.round(3 + Math.abs(bias) * 7);
+        const sotLow = Math.max(0, Math.round(sotBase * (1 - Math.abs(bias) * 0.6)));
+        document.querySelector('#adv-sot-t1').value = bias >= 0 ? sotBase : sotLow;
+        document.querySelector('#adv-sot-t2').value = bias >= 0 ? sotLow : sotBase;
+        const passHigh = Math.round(75 + Math.abs(bias) * 15);
+        const passLow = Math.round(75 - Math.abs(bias) * 20);
+        document.querySelector('#adv-pass-t1').value = bias >= 0 ? passHigh : passLow;
+        document.querySelector('#adv-pass-t2').value = bias >= 0 ? passLow : passHigh;
+        const cornHigh = Math.round(4 + Math.abs(bias) * 6);
+        const cornLow = Math.round(4 - Math.abs(bias) * 3);
+        document.querySelector('#adv-corners-t1').value = bias >= 0 ? cornHigh : Math.max(0, cornLow);
+        document.querySelector('#adv-corners-t2').value = bias >= 0 ? Math.max(0, cornLow) : cornHigh;
+        const offHigh = Math.round(2 + Math.abs(bias) * 3);
+        const offLow = Math.round(2 - Math.abs(bias) * 1);
+        document.querySelector('#adv-offsides-t1').value = bias >= 0 ? offHigh : Math.max(0, offLow);
+        document.querySelector('#adv-offsides-t2').value = bias >= 0 ? Math.max(0, offLow) : offHigh;
+    }
+
+    advFavorSlider.addEventListener('input', () => {
+        updateFavorFill();
+        applyFavor();
+    });
+
+    advPossSlider.addEventListener('input', updatePossFill);
+
+    updateFavorFill();
+    updatePossFill();
+
+    function getAdvStats() {
+        return {
+            possession: { team1: parseInt(advPossT1.textContent), team2: parseInt(advPossT2.textContent) },
+            shotsOnTarget: { team1: parseInt(document.querySelector('#adv-sot-t1').value) || 0, team2: parseInt(document.querySelector('#adv-sot-t2').value) || 0 },
+            passAccuracy: { team1: parseInt(document.querySelector('#adv-pass-t1').value) || 0, team2: parseInt(document.querySelector('#adv-pass-t2').value) || 0 },
+            corners: { team1: parseInt(document.querySelector('#adv-corners-t1').value) || 0, team2: parseInt(document.querySelector('#adv-corners-t2').value) || 0 },
+            offsides: { team1: parseInt(document.querySelector('#adv-offsides-t1').value) || 0, team2: parseInt(document.querySelector('#adv-offsides-t2').value) || 0 }
+        };
+    }
 
     // On load, populate player selects and assists for both teams
     function updateTeam1Inputs() {
@@ -923,6 +1055,8 @@ function addMatchDialog(startMatch, mdIndex) {
             return;
         }
 
+        const capturedStats = getAdvStats();
+
         notifEd.classList.toggle('dn');
         notifEdText.innerHTML = '';
 
@@ -958,7 +1092,8 @@ function addMatchDialog(startMatch, mdIndex) {
             yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
                 .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
-                .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 })))
+                .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
+            stats: capturedStats
             });
         } else {
             const thisStandbyMatch = matchday.games[thisMatchIdex]
@@ -982,7 +1117,8 @@ function addMatchDialog(startMatch, mdIndex) {
                 .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
                 .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
-            standby: false
+            standby: false,
+            stats: capturedStats
             });
         }
 
@@ -1481,23 +1617,13 @@ renderSeasonButtons();
 function renderMatchesTable() {
     const maindiv = document.querySelector('.matches-table-select');
     if (!maindiv) return;
-
-    const currentSeason = getCurrentSeason();
-    const latestSeasonYear = seasons.reduce((latest, season) => {
-        const year = parseInt(season.year);
-        return year > latest ? year : latest;
-    }, 0);
-
-    if (currentSeason === latestSeasonYear.toString()) {
-        maindiv.style.display = 'none';
-    } else {
-        maindiv.style.display = 'flex';
-    }
+    maindiv.style.display = 'flex';
 }
 
 renderMatchesTable();
 
 import { calculateStandings, renderStandingsTable } from './table.js';
+import { renderBracketView } from './bracket.js';
 
 function showTable() {
     const content = document.querySelector('.pad-cont');
@@ -1533,6 +1659,8 @@ document.addEventListener('DOMContentLoaded', () => {
 const tableBtn = document.querySelector('#show-table-btn');
 if (tableBtn) {
     tableBtn.addEventListener('click', () => {
+        document.querySelectorAll('.matches-table-select .iit').forEach(el => el.classList.remove('selected'));
+        tableBtn.classList.add('selected');
         const currentSeason = getCurrentSeason();
         loadSeason(currentSeason);
     });
@@ -1541,6 +1669,8 @@ if (tableBtn) {
 const matchesBtn = document.querySelector('#show-matches-btn');
 if (matchesBtn) {
     matchesBtn.addEventListener('click', () => {
+        document.querySelectorAll('.matches-table-select .iit').forEach(el => el.classList.remove('selected'));
+        matchesBtn.classList.add('selected');
         const currentSeason = getCurrentSeason();
         const seasonData = seasons.find(season => season.year === currentSeason);
         
@@ -1550,6 +1680,15 @@ if (matchesBtn) {
         } else {
             content.innerHTML = '<p>No matches available for this season.</p>';
         }
+    });
+}
+
+const bracketBtn = document.querySelector('#show-bracket-btn');
+if (bracketBtn) {
+    bracketBtn.addEventListener('click', () => {
+        document.querySelectorAll('.matches-table-select .iit').forEach(el => el.classList.remove('selected'));
+        bracketBtn.classList.add('selected');
+        renderBracketView();
     });
 }
 

@@ -141,3 +141,79 @@
     background-size: 400% 400%;
     animation: gradientAnimation 8s ease infinite;
 }
+
+.cards-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    width: 60%;
+}
+
+.cards-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+}
+
+.cards-col--right {
+    align-items: flex-end;
+}
+
+.card-tile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 0.4rem;
+    font-family: var(--font-1);
+    font-size: 0.9rem;
+    transform: rotate(1deg);
+    max-width: 14rem;
+}
+
+.cards-col--right .card-tile {
+    flex-direction: row-reverse;
+    transform: rotate(-1deg);
+}
+
+.card-tile--yellow {
+    /* border: 1px solid rgba(250, 204, 21, 0.3); */
+}
+
+.card-tile--red {
+    /* border: 1px solid rgba(239, 68, 68, 0.3); */
+}
+
+.card-tile-icon {
+    width: 0.75rem;
+    height: 1rem;
+    border-radius: 0.15rem;
+    flex-shrink: 0;
+}
+
+.card-tile--yellow .card-tile-icon {
+    background: #fde047;
+    box-shadow: 0 0 0.4rem rgba(253, 224, 71, 0.5);
+}
+
+.card-tile--red .card-tile-icon {
+    background: #f87171;
+    box-shadow: 0 0 0.4rem rgba(248, 113, 113, 0.5);
+}
+
+.card-tile-name {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.card-tile-min {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+}

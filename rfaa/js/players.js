@@ -3855,5 +3855,28 @@ export let players = [
                 years: playerYears([[2008, 2025]]),
             }
         }
+    },
+    {
+        name: 'Braton peter',
+        type: 'retired',
+        dob: '1982-09-07',
+        teams: {
+            'teso': {
+                years: playerYears([[1998, 2003]]),
+            },
+            'BVB': {
+                years: playerYears([[2004, 2010]]),
+            }
+        }
+    },
+    {
+        name: 'Jaye Lock',
+        type: 'retired',
+        dob: '1981-02-17',
+        teams: {
+            'teso': {
+                years: playerYears([[1999, 2005]]),
+            }
+        }
     }
 ]

@@ -44,17 +44,51 @@ function displayMatchInfo() {
                 if (!playerGoals[goal.player]) {
                     playerGoals[goal.player] = [];
                 }
-                playerGoals[goal.player].push(goal.minute || 'N/A');
+                const label = goal.minute != null ? `${goal.minute}'${goal.type === 'penalty' ? ' (p)' : ''}` : 'N/A';
+                playerGoals[goal.player].push(label);
             });
         
         return Object.entries(playerGoals)
             .map(([player, minutes]) => {
-                const formattedMinutes = minutes.sort((a, b) => parseInt(a) - parseInt(b))
-                    .map(minute => `<span class="minute-item">${minute}'</span>`)
+                const formattedMinutes = minutes
+                    .map(m => `<span class="minute-item">${m}</span>`)
                     .join(' ');
                 return `<div class="score-group"><span class="player">${player}</span><span class="minute">${formattedMinutes}</span></div>`;
             })
             .join('');
+    };
+
+    const groupCardsByPlayer = (cards, teamId, type) => {
+        if (!cards || !cards.length) return '';
+        return cards
+            .filter(c => c.team === teamId)
+            .sort((a, b) => a.minute - b.minute)
+            .map(c => `<div class="card-tile card-tile--${type}">
+                <span class="card-tile-icon"></span>
+                <span class="card-tile-name">${c.player}</span>
+                <span class="card-tile-min">${c.minute}'</span>
+            </div>`)
+            .join('');
+    };
+
+    const renderCardsSection = (match) => {
+        const yellows1 = groupCardsByPlayer(match.yellowCards, match.team1, 'yellow');
+        const yellows2 = groupCardsByPlayer(match.yellowCards, match.team2, 'yellow');
+        const reds1 = groupCardsByPlayer(match.redCards, match.team1, 'red');
+        const reds2 = groupCardsByPlayer(match.redCards, match.team2, 'red');
+
+        const hasCards = yellows1 || yellows2 || reds1 || reds2;
+        if (!hasCards) return '';
+
+        return `
+            <div class="cards-section">
+                <div class="cards-col cards-col--left">
+                    ${yellows1}${reds1}
+                </div>
+                <div class="cards-col cards-col--right">
+                    ${yellows2}${reds2}
+                </div>
+            </div>`;
     };
 
     const matchInfoHtml = `
@@ -85,6 +119,7 @@ function displayMatchInfo() {
                         ${groupGoalsByPlayer(match.goals, match.team2)}
                     </div>
                 </div>
+                ${renderCardsSection(match)}
             </div>
         </div>
     `;
