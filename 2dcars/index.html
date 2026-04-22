@@ -474,15 +474,15 @@
                 this.id = id || Date.now() + Math.random();
                 this.x = x;
                 this.y = y;
-                this.connections = []; // Array of {roadId, nodeId, angle}
+                this.relations = []; // Array of {roadId, nodeId, angle}
             }
             
             addConnection(roadId, otherNodeId, angle) {
-                this.connections.push({ roadId, nodeId: otherNodeId, angle });
+                this.relations.push({ roadId, nodeId: otherNodeId, angle });
             }
             
             removeConnection(roadId) {
-                this.connections = this.connections.filter(c => c.roadId !== roadId);
+                this.relations = this.relations.filter(c => c.roadId !== roadId);
             }
             
             getPosition() {
@@ -938,7 +938,7 @@
                     endNodeId: endNode.id
                 };
 
-                // Update node connections
+                // Update node relations
                 const startAngle = Math.atan2(
                     roadPoints[1].y - roadPoints[0].y,
                     roadPoints[1].x - roadPoints[0].x
@@ -957,7 +957,7 @@
                 // Check for intersections with other roads
                 this.detectIntersections(newRoad);
                 
-                // Create intersection nodes at endpoints with multiple connections
+                // Create intersection nodes at endpoints with multiple relations
                 this.updateNodeIntersections();
                 
                 this.updateStats();
@@ -966,17 +966,17 @@
 
             // Generate a smooth path that curves nicely into connected roads
             generateConnectionPath(startNode, endNode, startPoint, endPoint) {
-                const startConnections = startNode ? startNode.connections.filter(c => c.nodeId !== endNode?.id) : [];
-                const endConnections = endNode ? endNode.connections.filter(c => c.nodeId !== startNode?.id) : [];
+                const startRelations = startNode ? startNode.relations.filter(c => c.nodeId !== endNode?.id) : [];
+                const endRelations = endNode ? endNode.relations.filter(c => c.nodeId !== startNode?.id) : [];
                 
                 const directAngle = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
                 const distance = this.distance(startPoint, endPoint);
                 
                 // Check if we need a curve at the start
                 let startTangentAngle = directAngle;
-                if (startConnections.length > 0) {
-                    // Average angle of existing connections, then pick tangent
-                    const avgAngle = startConnections.reduce((sum, c) => sum + c.angle, 0) / startConnections.length;
+                if (startRelations.length > 0) {
+                    // Average angle of existing relations, then pick tangent
+                    const avgAngle = startRelations.reduce((sum, c) => sum + c.angle, 0) / startRelations.length;
                     // The new road should curve away from existing roads
                     const angleDiff = this.normalizeAngle(directAngle - avgAngle);
                     if (Math.abs(angleDiff) < Math.PI * 0.7) {
@@ -987,8 +987,8 @@
                 
                 // Check if we need a curve at the end
                 let endTangentAngle = directAngle + Math.PI;
-                if (endConnections.length > 0) {
-                    const avgAngle = endConnections.reduce((sum, c) => sum + c.angle, 0) / endConnections.length;
+                if (endRelations.length > 0) {
+                    const avgAngle = endRelations.reduce((sum, c) => sum + c.angle, 0) / endRelations.length;
                     const angleDiff = this.normalizeAngle((directAngle + Math.PI) - avgAngle);
                     if (Math.abs(angleDiff) < Math.PI * 0.7) {
                         endTangentAngle = directAngle + Math.PI;
@@ -998,7 +998,7 @@
                 // If straight mode and angles are aligned, just return straight line
                 if (this.state.drawMode === 'straight') {
                     // Calculate if we need curves based on connection angles
-                    const needsCurve = startConnections.length > 0 || endConnections.length > 0;
+                    const needsCurve = startRelations.length > 0 || endRelations.length > 0;
                     
                     if (!needsCurve) {
                         return [startPoint, endPoint];
@@ -1166,7 +1166,7 @@
                     endNodeId: road.endNodeId
                 };
                 
-                // Update node connections
+                // Update node relations
                 startNode.removeConnection(road.id);
                 endNode.removeConnection(road.id);
                 
@@ -1186,22 +1186,22 @@
                 this.state.intersections = this.state.intersections.filter(i => !i.roads.includes(road.id));
             }
             
-            // Update intersections based on node connections
+            // Update intersections based on node relations
             updateNodeIntersections() {
-                // Create intersections for nodes with 3+ connections
+                // Create intersections for nodes with 3+ relations
                 for (const node of this.state.nodes) {
-                    if (node.connections.length >= 2) {
+                    if (node.relations.length >= 2) {
                         // Check if intersection already exists at this node
                         const existingInt = this.state.intersections.find(
                             i => this.distance(i.point, node.getPosition()) < 30
                         );
                         
-                        if (!existingInt && node.connections.length >= 2) {
+                        if (!existingInt && node.relations.length >= 2) {
                             // Get road data for intersection
                             const roadData = [];
                             const angles = [];
                             
-                            for (const conn of node.connections) {
+                            for (const conn of node.relations) {
                                 const road = this.state.roads.find(r => r.id === conn.roadId);
                                 if (road) {
                                     roadData.push({
@@ -1222,7 +1222,7 @@
                                         point: node.getPosition(),
                                         roads: roadData.map(r => r.id),
                                         roadData: roadData,
-                                        type: node.connections.length > 2 ? 'complex' : 'cross',
+                                        type: node.relations.length > 2 ? 'complex' : 'cross',
                                         nodeId: node.id
                                     });
                                 }
@@ -1437,13 +1437,13 @@
                 
                 for (const node of this.state.nodes) {
                     const pos = node.getPosition();
-                    const connections = node.connections.length;
+                    const relations = node.relations.length;
                     
                     // Only draw nodes that are endpoints (1 connection) or intersections (3+)
-                    // Nodes with exactly 2 connections are part of a straight road
-                    if (connections === 1 || connections >= 3) {
+                    // Nodes with exactly 2 relations are part of a straight road
+                    if (relations === 1 || relations >= 3) {
                         // Node base circle
-                        const isEndpoint = connections === 1;
+                        const isEndpoint = relations === 1;
                         const radius = isEndpoint ? 12 : 18;
                         
                         // Glow effect
@@ -1465,12 +1465,12 @@
                         ctx.fill();
                         
                         // Draw connection count for multi-way intersections
-                        if (connections >= 3 && this.state.zoom > 0.4) {
+                        if (relations >= 3 && this.state.zoom > 0.4) {
                             ctx.fillStyle = '#fff';
                             ctx.font = 'bold 14px Arial';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(connections.toString(), pos.x, pos.y);
+                            ctx.fillText(relations.toString(), pos.x, pos.y);
                         }
                     }
                 }
@@ -2543,15 +2543,15 @@
             deleteRoadAt(pos) {
                 const road = this.findRoadAt(pos);
                 if (road) {
-                    // Remove road connections from nodes
+                    // Remove road relations from nodes
                     const startNode = this.state.nodes.find(n => n.id === road.startNodeId);
                     const endNode = this.state.nodes.find(n => n.id === road.endNodeId);
                     
                     if (startNode) startNode.removeConnection(road.id);
                     if (endNode) endNode.removeConnection(road.id);
                     
-                    // Remove orphan nodes (nodes with no connections)
-                    this.state.nodes = this.state.nodes.filter(n => n.connections.length > 0);
+                    // Remove orphan nodes (nodes with no relations)
+                    this.state.nodes = this.state.nodes.filter(n => n.relations.length > 0);
                     
                     // Remove road
                     this.state.roads = this.state.roads.filter(r => r.id !== road.id);

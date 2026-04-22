@@ -234,18 +234,21 @@
 .bracket-trophy-icon {
     width: 5rem;
     height: 5rem;
-    background: var(--grad-nav);
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0.4rem 2rem rgba(70, 15, 223, 0.3);
 }
 
 .bracket-trophy-icon svg {
     width: 2.8rem;
     height: 2.8rem;
     fill: #fff;
+}
+
+.bracket-trophy-img {
+    width: 7rem;
+    height: 7rem;
+    object-fit: contain;
 }
 
 .bracket-winner-card {

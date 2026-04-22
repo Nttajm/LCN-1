@@ -38,16 +38,18 @@ function renderTeamRow(teamId, score, isWinner, isStandby) {
         </div>`;
 }
 
-function renderMatch(game) {
+function renderMatch(game, inferredTeam1, inferredTeam2) {
     if (!game) {
         return `
             <div class="bracket-match standby">
                 <div class="bracket-match-status"><span class="match-state">TBD</span></div>
-                ${renderTeamRow(null, 0, false, true)}
-                ${renderTeamRow(null, 0, false, true)}
+                ${renderTeamRow(inferredTeam1 || null, 0, false, true)}
+                ${renderTeamRow(inferredTeam2 || null, 0, false, true)}
             </div>`;
     }
 
+    const t1 = game.team1 || inferredTeam1 || null;
+    const t2 = game.team2 || inferredTeam2 || null;
     const winner = getWinner(game);
     const isStandby = !!game.standby;
     const statusText = isStandby ? 'Upcoming' : 'Full time';
@@ -58,8 +60,8 @@ function renderMatch(game) {
             <div class="bracket-match-status">
                 <span class="match-state">${statusText}</span>
             </div>
-            ${renderTeamRow(game.team1, game.score1, winner === game.team1, isStandby)}
-            ${renderTeamRow(game.team2, game.score2, winner === game.team2, isStandby)}
+            ${renderTeamRow(t1, game.score1, winner === game.team1, isStandby)}
+            ${renderTeamRow(t2, game.score2, winner === game.team2, isStandby)}
         </div>`;
 }
 
@@ -81,7 +83,7 @@ function renderConnectorSVG(matchCount) {
 }
 
 function renderTrophy(seasonData) {
-    const finalsMatchday = seasonData.matchdays.find(md => md.bracketType === 'finals');
+    const finalsMatchday = seasonData.matchdays ? seasonData.matchdays.find(md => md.bracketType === 'finals') : null;
     let winnerHTML = '';
     if (finalsMatchday && finalsMatchday.games && finalsMatchday.games.length > 0) {
         const finalGame = finalsMatchday.games[0];
@@ -102,11 +104,19 @@ function renderTrophy(seasonData) {
     return `
         <div class="bracket-trophy">
             <div class="bracket-trophy-icon">
-                <svg viewBox="0 0 24 24"><path d="M5 3h14c.6 0 1 .4 1 1v2c0 3.3-2.7 6-6 6h-.3c-.5 1.8-1.8 3.2-3.7 3.8V19h3v2H7v-2h3v-3.2c-1.9-.6-3.2-2-3.7-3.8H6c-3.3 0-6-2.7-6-6V4c0-.6.4-1 1-1h4zm1 3H2v1c0 2.2 1.8 4 4 4V6zm12 0v5c2.2 0 4-1.8 4-4V6h-4z"/></svg>
+                <img src="images/icons/cl-image.png" alt="Championship Trophy" class="bracket-trophy-img">
             </div>
             ${winnerHTML}
         </div>`;
 }
+
+// Expected number of matches per round for a full bracket
+const BRACKET_MATCH_COUNTS = {
+    round16: 8,
+    quarterFinals: 4,
+    semiFinals: 2,
+    finals: 1
+};
 
 export function renderBracketView() {
     const content = document.querySelector('.pad-cont');
@@ -122,34 +132,57 @@ export function renderBracketView() {
 
     const bracketMatchdays = getBracketMatchdays(seasonData);
 
-    if (bracketMatchdays.length === 0) {
-        content.innerHTML = `<div class="bracket-container"><div class="bracket-empty"><div class="bracket-empty-icon">⊘</div><p>No knockout rounds have been created yet</p></div></div>`;
-        return;
-    }
+    // Build a map of existing rounds
+    const roundsMap = {};
+    bracketMatchdays.forEach(md => {
+        roundsMap[md.bracketType] = md;
+    });
 
-    const sortedRounds = bracketMatchdays.sort((a, b) => BRACKET_ORDER.indexOf(a.bracketType) - BRACKET_ORDER.indexOf(b.bracketType));
     const roundElements = [];
+    // Track winners per round to propagate forward
+    let previousRoundWinners = [];
 
-    for (let i = 0; i < sortedRounds.length; i++) {
-        const round = sortedRounds[i];
-        const games = round.games || [];
-        const label = BRACKET_LABELS[round.bracketType] || round.details;
+    // Render ALL rounds in order, showing placeholders for missing ones
+    for (let i = 0; i < BRACKET_ORDER.length; i++) {
+        const roundType = BRACKET_ORDER[i];
+        const round = roundsMap[roundType];
+        const games = round ? (round.games || []) : [];
+        const label = BRACKET_LABELS[roundType];
+        const expectedMatches = BRACKET_MATCH_COUNTS[roundType];
 
-        let matchupsHTML = games.map(game => `<div class="bracket-matchup">${renderMatch(game)}</div>`).join('');
+        const currentRoundWinners = [];
+
+        // Build matchups - fill with actual games, pad with empty placeholders
+        let matchupsHTML = '';
+        for (let m = 0; m < expectedMatches; m++) {
+            const game = games[m] || null;
+            // Infer teams from previous round winners (pairs of winners feed into next match)
+            const inferredTeam1 = previousRoundWinners[m * 2] || null;
+            const inferredTeam2 = previousRoundWinners[m * 2 + 1] || null;
+            matchupsHTML += `<div class="bracket-matchup">${renderMatch(game, inferredTeam1, inferredTeam2)}</div>`;
+
+            // Track this round's winners for the next round
+            if (game) {
+                currentRoundWinners.push(getWinner(game));
+            } else {
+                currentRoundWinners.push(null);
+            }
+        }
+
+        previousRoundWinners = currentRoundWinners;
 
         roundElements.push(`
-            <div class="bracket-round" data-round="${round.bracketType}">
+            <div class="bracket-round" data-round="${roundType}">
                 <div class="bracket-round-label">${label}</div>
                 ${matchupsHTML}
             </div>`);
 
-        if (i < sortedRounds.length - 1) {
-            roundElements.push(renderConnectorSVG(games.length));
+        if (i < BRACKET_ORDER.length - 1) {
+            roundElements.push(renderConnectorSVG(expectedMatches));
         }
     }
 
-    const hasFinals = sortedRounds.some(r => r.bracketType === 'finals');
-    const trophyHTML = hasFinals ? renderTrophy(seasonData) : '';
+    const trophyHTML = renderTrophy(seasonData);
 
     content.innerHTML = `
         <div class="bracket-container">

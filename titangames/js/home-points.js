@@ -1,73 +1,139 @@
 /**
- * Home Page Points Display
- * Shows user's today's points and game completion status on the home page
+ * Home Page Points Display & Leaderboard
+ * Shows today's leaderboard and user's position
  */
 
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getTodayStats } from "./points.js";
+import { getTodayStats, getTodayLeaderboard, getCurrentUser } from "./points.js";
 
 let currentUser = null;
 
-/**
- * Update all points displays on the home page
- */
-async function updateHomePointsDisplay() {
+function getTodayDateFormatted() {
+    const today = new Date();
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    return today.toLocaleDateString('en-US', options).toUpperCase();
+}
+
+function createLeaderboardRow(entry, rank, isCurrentUser = false) {
+    const row = document.createElement('div');
+    row.className = `leaderboard-row leaderboard-row--data${isCurrentUser ? ' leaderboard-row--highlight' : ''}`;
+    
+    const rankClass = rank <= 3 ? ` rank-${rank}` : '';
+    
+    row.innerHTML = `
+        <span class="leaderboard-col leaderboard-col--rank${rankClass}">${rank}</span>
+        <span class="leaderboard-col leaderboard-col--name">${entry.displayName || 'Player'}</span>
+        <span class="leaderboard-col leaderboard-col--pts">${entry.points}</span>
+        <span class="leaderboard-col leaderboard-col--games">${entry.gamesPlayed}</span>
+    `;
+    
+    return row;
+}
+
+function createDivider() {
+    const divider = document.createElement('div');
+    divider.className = 'leaderboard-divider';
+    divider.innerHTML = '<span>• • •</span>';
+    return divider;
+}
+
+async function updateLeaderboardDisplay() {
+    const leaderboardBody = document.getElementById('leaderboardBody');
+    const leaderboardDate = document.getElementById('leaderboardDate');
+    const leaderboardUser = document.getElementById('leaderboardUser');
     const headerPoints = document.getElementById('headerPoints');
-    const pointsDashboard = document.getElementById('pointsDashboard');
-    const dashboardPoints = document.getElementById('dashboardPoints');
-    const dashboardGames = document.getElementById('dashboardGames');
+    
+    if (leaderboardDate) {
+        leaderboardDate.textContent = getTodayDateFormatted();
+    }
     
     if (!currentUser) {
-        // User not logged in - hide points displays
+        if (leaderboardBody) {
+            leaderboardBody.innerHTML = '<div class="leaderboard-empty">Sign in to see the leaderboard</div>';
+        }
+        if (leaderboardUser) {
+            leaderboardUser.classList.remove('visible');
+            leaderboardUser.innerHTML = '';
+        }
         if (headerPoints) headerPoints.classList.remove('visible');
-        if (pointsDashboard) pointsDashboard.classList.remove('visible');
         hideAllGameBadges();
         return;
     }
     
     try {
-        const stats = await getTodayStats();
-        const { totalPoints, gamesPlayed, games } = stats;
+        const [leaderboard, userStats] = await Promise.all([
+            getTodayLeaderboard(100),
+            getTodayStats()
+        ]);
         
-        // Update header points
         if (headerPoints) {
-            headerPoints.textContent = `${totalPoints} pts`;
+            headerPoints.textContent = `${userStats.totalPoints} pts`;
             headerPoints.classList.add('visible');
         }
         
-        // Update dashboard
-        if (pointsDashboard && dashboardPoints && dashboardGames) {
-            dashboardPoints.textContent = totalPoints;
-            dashboardGames.textContent = `${gamesPlayed} game${gamesPlayed !== 1 ? 's' : ''} played today`;
-            pointsDashboard.classList.add('visible');
+        updateGameBadges(userStats.games);
+        
+        if (!leaderboardBody) return;
+        
+        leaderboardBody.innerHTML = '';
+        
+        if (leaderboard.length === 0) {
+            leaderboardBody.innerHTML = '<div class="leaderboard-empty">No submissions yet today</div>';
+            if (leaderboardUser) {
+                leaderboardUser.classList.remove('visible');
+                leaderboardUser.innerHTML = '';
+            }
+            return;
         }
         
-        // Update individual game badges
-        updateGameBadges(games);
+        const userRank = leaderboard.findIndex(e => e.uid === currentUser.uid) + 1;
+        const top5 = leaderboard.slice(0, 5);
+        const userInTop5 = userRank > 0 && userRank <= 5;
+        
+        top5.forEach((entry, index) => {
+            const rank = index + 1;
+            const isCurrentUser = entry.uid === currentUser.uid;
+            leaderboardBody.appendChild(createLeaderboardRow(entry, rank, isCurrentUser));
+        });
+        
+        if (leaderboardUser) {
+            if (userRank > 5) {
+                leaderboardUser.classList.add('visible');
+                leaderboardUser.innerHTML = '';
+                leaderboardUser.appendChild(createDivider());
+                
+                const userEntry = leaderboard[userRank - 1];
+                leaderboardUser.appendChild(createLeaderboardRow(userEntry, userRank, true));
+            } else if (userRank === 0 && userStats.totalPoints > 0) {
+                leaderboardUser.classList.add('visible');
+                leaderboardUser.innerHTML = '';
+                leaderboardUser.appendChild(createDivider());
+                
+                const userEntry = {
+                    displayName: currentUser.displayName || 'You',
+                    points: userStats.totalPoints,
+                    gamesPlayed: userStats.gamesPlayed
+                };
+                leaderboardUser.appendChild(createLeaderboardRow(userEntry, '—', true));
+            } else {
+                leaderboardUser.classList.remove('visible');
+                leaderboardUser.innerHTML = '';
+            }
+        }
         
     } catch (err) {
-        console.error('Error updating points display:', err);
-        // Show 0 points on error
-        if (headerPoints) {
-            headerPoints.textContent = '0 pts';
-            headerPoints.classList.add('visible');
-        }
-        if (pointsDashboard && dashboardPoints && dashboardGames) {
-            dashboardPoints.textContent = '0';
-            dashboardGames.textContent = '0 games played today';
-            pointsDashboard.classList.add('visible');
+        console.error('Error updating leaderboard:', err);
+        if (leaderboardBody) {
+            leaderboardBody.innerHTML = '<div class="leaderboard-empty">Unable to load leaderboard</div>';
         }
     }
 }
 
-/**
- * Update game card badges to show completion status and points
- */
 function updateGameBadges(games) {
     const gameBadges = {
         nerdle: document.getElementById('nerdlePoints'),
-        connections: document.getElementById('connectionsPoints'),
+        relations: document.getElementById('relationsPoints'),
         crossword: document.getElementById('crosswordPoints')
     };
     
@@ -84,11 +150,8 @@ function updateGameBadges(games) {
     }
 }
 
-/**
- * Hide all game badges
- */
 function hideAllGameBadges() {
-    const badges = ['nerdlePoints', 'connectionsPoints', 'crosswordPoints'];
+    const badges = ['nerdlePoints', 'relationsPoints', 'crosswordPoints'];
     badges.forEach(id => {
         const badge = document.getElementById(id);
         if (badge) {
@@ -97,16 +160,13 @@ function hideAllGameBadges() {
     });
 }
 
-// Listen for auth state changes
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
-    await updateHomePointsDisplay();
+    await updateLeaderboardDisplay();
 });
 
-// Initial load
 document.addEventListener('DOMContentLoaded', () => {
-    // Will be updated when auth state changes
+    updateLeaderboardDisplay();
 });
 
-// Export for potential external use
-export { updateHomePointsDisplay };
+export { updateLeaderboardDisplay };

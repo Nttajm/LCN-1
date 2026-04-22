@@ -72,7 +72,7 @@ function getLineIntersection(p1, p2, p3, p4) {
 class Junction {
     constructor(position, isIntersection = false) {
         this.position = { ...position };
-        this.connections = [];
+        this.relations = [];
         this.isIntersection = isIntersection;
         this.trafficLightState = 'green'; // green, yellow, red
         this.trafficLightTimer = 0;
@@ -82,11 +82,11 @@ class Junction {
     
     addConnection(road, isStart) {
         const incomingDir = isStart ? 1 : -1;
-        this.connections.push({ road, isStart, incomingDir });
+        this.relations.push({ road, isStart, incomingDir });
     }
     
     updateTrafficLight(dt) {
-        if (!this.isIntersection || this.connections.length < 3) return;
+        if (!this.isIntersection || this.relations.length < 3) return;
         
         this.trafficLightTimer += dt * 1000;
         if (this.trafficLightTimer >= this.trafficLightCycle) {
@@ -103,9 +103,9 @@ class Junction {
     }
     
     canCarPass(fromRoad, carDirection) {
-        if (!this.isIntersection || this.connections.length < 3) return true;
+        if (!this.isIntersection || this.relations.length < 3) return true;
         
-        const roadIndex = this.connections.findIndex(conn => conn.road === fromRoad);
+        const roadIndex = this.relations.findIndex(conn => conn.road === fromRoad);
         if (roadIndex === -1) return true;
         
         const roadGroup = Math.floor(roadIndex / 2);
@@ -114,7 +114,7 @@ class Junction {
 
     getOutgoingRoads(fromRoad, carDirection, carLane) {
         const outgoing = [];
-        for (const conn of this.connections) {
+        for (const conn of this.relations) {
             if (conn.road === fromRoad) continue;
             
             // Determine if car should turn based on lane
@@ -154,7 +154,7 @@ class Junction {
         ctx.save();
         
         // Draw intersection base
-        if (this.isIntersection && this.connections.length >= 3) {
+        if (this.isIntersection && this.relations.length >= 3) {
             ctx.fillStyle = 'rgba(40, 40, 40, 0.9)';
             ctx.beginPath();
             ctx.arc(this.position.x, this.position.y, 25, 0, Math.PI * 2);
@@ -180,8 +180,8 @@ class Junction {
     }
     
     drawZebraCrosswalks(ctx) {
-        for (let i = 0; i < this.connections.length; i++) {
-            const conn = this.connections[i];
+        for (let i = 0; i < this.relations.length; i++) {
+            const conn = this.relations[i];
             const road = conn.road;
             let angle;
             
@@ -218,7 +218,7 @@ class Junction {
     }
     
     drawTrafficLight(ctx) {
-        if (this.connections.length < 3) return;
+        if (this.relations.length < 3) return;
         
         // Draw traffic light pole
         ctx.fillStyle = '#333';
@@ -1083,10 +1083,10 @@ function handleMouseUp(e) {
 
 function removeRoad(road) {
     if (road.startJunction) {
-        road.startJunction.connections = road.startJunction.connections.filter(c => c.road !== road);
-        if (road.startJunction.connections.length <= 1) {
-            if (road.startJunction.connections.length === 1) {
-                const rem = road.startJunction.connections[0];
+        road.startJunction.relations = road.startJunction.relations.filter(c => c.road !== road);
+        if (road.startJunction.relations.length <= 1) {
+            if (road.startJunction.relations.length === 1) {
+                const rem = road.startJunction.relations[0];
                 if (rem.isStart) rem.road.startJunction = null;
                 else rem.road.endJunction = null;
             }
@@ -1094,10 +1094,10 @@ function removeRoad(road) {
         }
     }
     if (road.endJunction) {
-        road.endJunction.connections = road.endJunction.connections.filter(c => c.road !== road);
-        if (road.endJunction.connections.length <= 1) {
-            if (road.endJunction.connections.length === 1) {
-                const rem = road.endJunction.connections[0];
+        road.endJunction.relations = road.endJunction.relations.filter(c => c.road !== road);
+        if (road.endJunction.relations.length <= 1) {
+            if (road.endJunction.relations.length === 1) {
+                const rem = road.endJunction.relations[0];
                 if (rem.isStart) rem.road.startJunction = null;
                 else rem.road.endJunction = null;
             }

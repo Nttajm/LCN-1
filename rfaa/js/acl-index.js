@@ -179,7 +179,7 @@ export let teams = [
 {
     id: 'ocio',
     name: 'Ocio',
-    sub: `N. Dijon`,
+    sub: `Oc'a`,
     originC: 'Texico',
     originL: 'TS',
     img: 'images/teams/ocio.png',
@@ -354,6 +354,13 @@ function renderCreateButton(matchdays) {
     }
 }
 
+function renderCardIndicators(cards, teamId) {
+    if (!cards || cards.length === 0) return '';
+    const teamCards = cards.filter(c => c.team === teamId);
+    if (teamCards.length === 0) return '';
+    return `<span class="card-count">${teamCards.length > 1 ? teamCards.length : ''}</span>`;
+}
+
 function renderMatches(matchdays, passdownIndex) {
     if (!matchdays || !Array.isArray(matchdays)) return '';
     
@@ -364,11 +371,22 @@ function renderMatches(matchdays, passdownIndex) {
             const team1 = getTeamById(game.team1);
             const team2 = getTeamById(game.team2);
 
-            // Set default images if team images aren't available or fail to load
             const team1Img = team1.img || 'images/teams/default.png';
             const team2Img = team2.img || 'images/teams/default.png';
             
-            // Replace img src in the HTML with error
+            const team1Yellows = game.yellowCards ? game.yellowCards.filter(c => c.team === game.team1).length : 0;
+            const team1Reds = game.redCards ? game.redCards.filter(c => c.team === game.team1).length : 0;
+            const team2Yellows = game.yellowCards ? game.yellowCards.filter(c => c.team === game.team2).length : 0;
+            const team2Reds = game.redCards ? game.redCards.filter(c => c.team === game.team2).length : 0;
+
+            const team1CardsHtml = `
+                ${team1Yellows > 0 ? `<span class="card-indicator card-indicator--yellow">${team1Yellows > 1 ? team1Yellows : ''}</span>` : ''}
+                ${team1Reds > 0 ? `<span class="card-indicator card-indicator--red">${team1Reds > 1 ? team1Reds : ''}</span>` : ''}
+            `;
+            const team2CardsHtml = `
+                ${team2Yellows > 0 ? `<span class="card-indicator card-indicator--yellow">${team2Yellows > 1 ? team2Yellows : ''}</span>` : ''}
+                ${team2Reds > 0 ? `<span class="card-indicator card-indicator--red">${team2Reds > 1 ? team2Reds : ''}</span>` : ''}
+            `;
 
             if (!game.standby) {
                 return `
@@ -377,6 +395,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team1.img}" alt="${team1.name}">
                             <span>${team1.name}</span>
+                            ${team1CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score1}
@@ -386,6 +405,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team2.img}" alt="${team2.name}">
                             <span>${team2.name}</span>
+                            ${team2CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score2}
@@ -400,6 +420,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team1.img}" alt="${team1.name}">
                             <span>${team1.name}</span>
+                            ${team1CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score1}
@@ -409,6 +430,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team2.img}" alt="${team2.name}">
                             <span>${team2.name}</span>
+                            ${team2CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score2}
@@ -1303,7 +1325,7 @@ function createSeasonDialog() {
         </div>
         <div style="padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.2rem; flex: 1; overflow-y: auto;">
             <span class="medtx" style="color: rgba(255,255,255,0.5);">
-                teams selected: 0/20
+                teams selected: 0/36
             </span>
             <select name="years" id="year-select">
                 ${Array.from({ length: 103 }, (_, i) => {
@@ -1336,7 +1358,7 @@ function createSeasonDialog() {
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
             const selectedCount = document.querySelectorAll('.team-checkbox:checked').length;
-            teamCountDisplay.textContent = `teams selected: ${selectedCount}/20`;
+            teamCountDisplay.textContent = `teams selected: ${selectedCount}/36`;
         });
     });
 
@@ -1370,6 +1392,16 @@ function createSeasonFunc() {
     
     if (selectedTeams.length === 0) {
         alert('Please select at least one team');
+        return;
+    }
+    
+    if (selectedTeams.length > 36) {
+        alert('Please select a maximum of 36 teams');
+        return;
+    }
+    
+    if (selectedTeams.length > 36) {
+        alert('Please select a maximum of 36 teams');
         return;
     }
     
@@ -2227,6 +2259,144 @@ export function getMatchArticleRelevence(match_id) {
     
 }
 
+// Seeded random number generator
+function seededRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+// Generate random value within range using seed
+function seededRandomInRange(seed, min, max) {
+    return Math.floor(seededRandom(seed) * (max - min + 1)) + min;
+}
+
+// Check if stats are missing or all zeros
+function statsNeedRegeneration(stats) {
+    if (!stats) return true;
+    
+    const allZero = 
+        (stats.possession?.team1 === 50 && stats.possession?.team2 === 50) &&
+        (stats.shotsOnTarget?.team1 === 0 && stats.shotsOnTarget?.team2 === 0) &&
+        (stats.passAccuracy?.team1 === 0 && stats.passAccuracy?.team2 === 0) &&
+        (stats.corners?.team1 === 0 && stats.corners?.team2 === 0) &&
+        (stats.offsides?.team1 === 0 && stats.offsides?.team2 === 0);
+    
+    return allZero;
+}
+
+// Generate advanced stats based on score and seed
+function generateStatsFromScore(score1, score2, seed) {
+    const totalGoals = score1 + score2;
+    const goalDiff = score1 - score2;
+    
+    // Calculate favor percentage (50% = draw, higher = team1 dominated)
+    let favorPercent;
+    if (totalGoals === 0) {
+        // 0-0 draw, fairly balanced
+        favorPercent = 50 + seededRandomInRange(seed, -10, 10);
+    } else {
+        // Base favor on goal difference
+        const baseFavor = 50 + (goalDiff / Math.max(totalGoals, 1)) * 30;
+        const variance = seededRandomInRange(seed + 1, -8, 8);
+        favorPercent = Math.max(20, Math.min(80, baseFavor + variance));
+    }
+    
+    const bias = (favorPercent - 50) / 50; // -1 to 1
+    
+    // Possession (more goals usually means more possession for winner)
+    const possession1 = Math.round(50 + bias * seededRandomInRange(seed + 2, 15, 25));
+    const possession2 = 100 - possession1;
+    
+    // Shots on target (correlate with goals scored + some randomness)
+    const baseShots1 = score1 + seededRandomInRange(seed + 3, 1, 4);
+    const baseShots2 = score2 + seededRandomInRange(seed + 4, 1, 4);
+    const shotsOnTarget1 = Math.max(score1, baseShots1 + Math.round(bias * seededRandomInRange(seed + 5, 0, 3)));
+    const shotsOnTarget2 = Math.max(score2, baseShots2 - Math.round(bias * seededRandomInRange(seed + 6, 0, 3)));
+    
+    // Pass accuracy (winner usually has better passing)
+    const passAccuracy1 = Math.round(70 + bias * seededRandomInRange(seed + 7, 8, 15) + seededRandomInRange(seed + 8, -5, 5));
+    const passAccuracy2 = Math.round(70 - bias * seededRandomInRange(seed + 9, 8, 15) + seededRandomInRange(seed + 10, -5, 5));
+    
+    // Corners (attacking team gets more)
+    const corners1 = Math.round(3 + bias * seededRandomInRange(seed + 11, 2, 5) + seededRandomInRange(seed + 12, 0, 3));
+    const corners2 = Math.round(3 - bias * seededRandomInRange(seed + 13, 2, 5) + seededRandomInRange(seed + 14, 0, 3));
+    
+    // Offsides (attacking team catches more offsides)
+    const offsides1 = Math.round(2 + Math.abs(bias) * seededRandomInRange(seed + 15, 1, 3));
+    const offsides2 = Math.round(2 + Math.abs(bias) * seededRandomInRange(seed + 16, 1, 3));
+    
+    return {
+        possession: { 
+            team1: Math.max(25, Math.min(75, possession1)), 
+            team2: Math.max(25, Math.min(75, possession2)) 
+        },
+        shotsOnTarget: { 
+            team1: Math.max(0, shotsOnTarget1), 
+            team2: Math.max(0, shotsOnTarget2) 
+        },
+        passAccuracy: { 
+            team1: Math.max(50, Math.min(95, passAccuracy1)), 
+            team2: Math.max(50, Math.min(95, passAccuracy2)) 
+        },
+        corners: { 
+            team1: Math.max(0, corners1), 
+            team2: Math.max(0, corners2) 
+        },
+        offsides: { 
+            team1: Math.max(0, offsides1), 
+            team2: Math.max(0, offsides2) 
+        }
+    };
+}
+
+// Reinitialize all games with missing/zero stats
+export function reinitial() {
+    let updatedCount = 0;
+    
+    for (let season of seasons) {
+        for (let matchday of season.matchdays || []) {
+            for (let game of matchday.games || []) {
+                // Skip standby games
+                if (game.standby) continue;
+                
+                // Check if stats need regeneration
+                if (statsNeedRegeneration(game.stats)) {
+                    const seed = game.seed || Math.floor(Math.random() * 10000);
+                    const score1 = game.score1 || 0;
+                    const score2 = game.score2 || 0;
+                    
+                    // Generate new stats
+                    game.stats = generateStatsFromScore(score1, score2, seed);
+                    
+                    // Ensure game has a seed for consistency
+                    if (!game.seed) {
+                        game.seed = seed;
+                    }
+                    
+                    updatedCount++;
+                }
+            }
+        }
+    }
+    
+    // Save the updated seasons
+    saveSeason();
+    
+    console.log(`Reinitial complete: Updated ${updatedCount} games with generated stats.`);
+    alert(`Stats regenerated for ${updatedCount} games.`);
+    
+    // Reload current season to reflect changes
+    const currentSeason = getCurrentSeason();
+    loadSeason(currentSeason);
+}
+
+// Keyboard shortcut listener for Cmd/Ctrl + B
+document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
+        event.preventDefault();
+        reinitial();
+    }
+});
 
 
 // document.addEventListener('DOMContentLoaded', () => {

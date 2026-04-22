@@ -620,6 +620,18 @@ body {
     fill: currentColor;
 }
 
+.stats-login-prompt {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.stats-login-message {
+    color: #b0b3b8;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
 .stats-games-row {
     display: flex;
     gap: 0.625rem;
@@ -664,4 +676,171 @@ body {
     font-family: 'Libre Franklin', sans-serif;
     font-size: 0.6875rem;
     font-weight: 600;
+}
+
+/* Game Board Preview in Stats Modal */
+.stats-game-preview {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #3a3a3c;
+}
+
+.stats-board-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stats-board-row {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.stats-board-tile {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    border: 1px solid #3a3a3c;
+    color: #ffffff;
+}
+
+.stats-board-tile[data-state="correct"] {
+    background: #3a7ec4;
+    border-color: #3a7ec4;
+}
+
+.stats-board-tile[data-state="present"] {
+    background: #b59f3b;
+    border-color: #b59f3b;
+}
+
+.stats-board-tile[data-state="absent"] {
+    background: #3a3a3c;
+    border-color: #3a3a3c;
+}
+
+.stats-row-score {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #818384;
+    margin-left: 0.5rem;
+    min-width: 2.5rem;
+    text-align: left;
+}
+
+.stats-score-summary {
+    text-align: center;
+}
+
+.stats-score-result {
+    font-size: 0.875rem;
+    color: #818384;
+    margin-bottom: 0.25rem;
+}
+
+.stats-score-total {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #538d4e;
+}
+
+.stats-leaderboard {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #3a3a3c;
+}
+
+.stats-leaderboard-body {
+    border: 1px solid #3a3a3c;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.stats-lb-row {
+    display: grid;
+    grid-template-columns: 2rem 1fr 3rem 2.5rem;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #3a3a3c;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.8125rem;
+}
+
+.stats-lb-row:last-child {
+    border-bottom: none;
+}
+
+.stats-lb-row--highlight {
+    background: rgba(83, 141, 78, 0.2);
+}
+
+.stats-lb-rank {
+    font-weight: 700;
+    font-family: 'Noto Serif', serif;
+    font-size: 0.875rem;
+}
+
+.stats-lb-rank--1 {
+    color: #D4A855;
+}
+
+.stats-lb-rank--2 {
+    color: #A8A8A8;
+}
+
+.stats-lb-rank--3 {
+    color: #CD7F32;
+}
+
+.stats-lb-name {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 0.5rem;
+}
+
+.stats-lb-pts {
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-lb-pts--animate {
+    color: #538d4e;
+}
+
+.stats-lb-pts--done {
+    animation: pts-flash 0.4s ease;
+}
+
+@keyframes pts-flash {
+    0%, 100% { color: #ffffff; }
+    50% { color: #538d4e; transform: scale(1.15); }
+}
+
+.stats-lb-games {
+    text-align: right;
+    color: #818384;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-lb-divider {
+    padding: 0.25rem 0.75rem;
+    text-align: center;
+    color: #818384;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    border-bottom: 1px solid #3a3a3c;
 }

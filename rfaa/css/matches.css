@@ -157,6 +157,28 @@
     font-size: 1.3rem;
 }
 
+.card-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.2rem;
+    height: 1.6rem;
+    padding: 0 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 0.3rem;
+}
+
+.card-indicator--yellow {
+    background-color: #ffd700;
+    color: #000;
+}
+
+.card-indicator--red {
+    background-color: #dc143c;
+    color: #fff;
+}
+
 .md-match .team img {
     width: 2.7rem;
     height: 2/7rem;

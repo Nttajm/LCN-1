@@ -5,7 +5,7 @@
  * - titangames_submissions (collection)
  *   - {date} (daily collection, e.g., "2026-04-16")
  *     - {userId} (document)
- *       - games: { nerdle: {...}, connections: {...} }
+ *       - games: { nerdle: {...}, relations: {...} }
  *       - totalPoints: number
  *       - gamesPlayed: number
  *       - completedAt: timestamp
@@ -64,7 +64,7 @@ export function getCurrentUser() {
 
 /**
  * Check if user has completed a specific game today
- * @param {string} gameName - Name of the game (e.g., 'nerdle', 'connections')
+ * @param {string} gameName - Name of the game (e.g., 'nerdle', 'relations')
  * @returns {Promise<{completed: boolean, data: object|null}>}
  */
 export async function checkGameCompletion(gameName) {

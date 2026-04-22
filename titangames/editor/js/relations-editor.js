@@ -215,7 +215,7 @@ async function savePuzzle(status) {
     }
     
     try {
-        await setDoc(doc(db, 'connections', docId), puzzleData);
+        await setDoc(doc(db, 'relations', docId), puzzleData);
         currentDocId = docId;
         updateSaveIndicator(status);
         showToast(status === 'published' ? 'Published!' : 'Draft saved');
@@ -234,7 +234,7 @@ function updateSaveIndicator(status) {
 async function loadExistingReleases() {
     var container = document.getElementById('releasesList');
     try {
-        var q = query(collection(db, 'connections'), orderBy('releaseDate', 'desc'));
+        var q = query(collection(db, 'relations'), orderBy('releaseDate', 'desc'));
         var snapshot = await getDocs(q);
         
         if (snapshot.empty) {
@@ -260,7 +260,7 @@ async function loadExistingReleases() {
 
 async function loadPuzzle(docId) {
     try {
-        var docSnap = await getDoc(doc(db, 'connections', docId));
+        var docSnap = await getDoc(doc(db, 'relations', docId));
         if (docSnap.exists()) {
             var data = docSnap.data();
             currentDocId = docId;

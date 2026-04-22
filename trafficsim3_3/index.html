@@ -383,7 +383,7 @@
                 this.id = Date.now() + Math.random();
                 this.x = x;
                 this.y = y;
-                this.connections = []; // segment IDs
+                this.relations = []; // segment IDs
             }
         }
 
@@ -432,13 +432,13 @@
             const curveAmount = (config.curveStrength / 100) * dist * 0.5;
 
             // Get connected segments for each node
-            const node1Segments = node1.connections.filter(id => id !== segmentId);
-            const node2Segments = node2.connections.filter(id => id !== segmentId);
+            const node1Segments = node1.relations.filter(id => id !== segmentId);
+            const node2Segments = node2.relations.filter(id => id !== segmentId);
 
             let cp1 = { x: node1.x + dx * 0.3, y: node1.y + dy * 0.3 };
             let cp2 = { x: node2.x - dx * 0.3, y: node2.y - dy * 0.3 };
 
-            // Adjust control point based on other connections
+            // Adjust control point based on other relations
             if (node1Segments.length > 0) {
                 const avgAngle = getAverageDirection(node1, node1Segments, node2);
                 cp1.x = node1.x + Math.cos(avgAngle) * curveAmount * 2;
@@ -474,7 +474,7 @@
 
             if (angles.length === 0) return toAngle;
 
-            // Return direction that flows smoothly between connections
+            // Return direction that flows smoothly between relations
             const avgOtherAngle = angles.reduce((a, b) => a + b, 0) / angles.length;
             // Blend between pointing to target and smooth transition
             return toAngle;
@@ -547,7 +547,7 @@
             // Fill based on state
             if (isHovered || isSelected) {
                 ctx.fillStyle = '#e94560';
-            } else if (node.connections.length > 1) {
+            } else if (node.relations.length > 1) {
                 // Junction node
                 ctx.fillStyle = '#f39c12';
             } else {
@@ -561,12 +561,12 @@
             ctx.stroke();
 
             // Connection count indicator
-            if (node.connections.length > 1) {
+            if (node.relations.length > 1) {
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 10px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(node.connections.length, node.x, node.y);
+                ctx.fillText(node.relations.length, node.x, node.y);
             }
         }
 
@@ -662,8 +662,8 @@
             const segment = new Segment(node1.id, node2.id, segmentType);
             segment.color = config.segmentColor;
             segments.push(segment);
-            node1.connections.push(segment.id);
-            node2.connections.push(segment.id);
+            node1.relations.push(segment.id);
+            node2.relations.push(segment.id);
             return segment;
         }
 
@@ -704,7 +704,7 @@
                 if (buildingFromNode) {
                     tooltip.textContent = 'Click to connect';
                 } else {
-                    tooltip.textContent = `Node (${hoveredNode.connections.length} connections)\nDrag to move`;
+                    tooltip.textContent = `Node (${hoveredNode.relations.length} relations)\nDrag to move`;
                 }
             } else {
                 tooltip.style.display = 'none';
@@ -781,8 +781,8 @@
 
         // Merge two nodes
         function mergeNodes(sourceNode, targetNode) {
-            // Transfer all connections from source to target
-            for (let segId of sourceNode.connections) {
+            // Transfer all relations from source to target
+            for (let segId of sourceNode.relations) {
                 const seg = segments.find(s => s.id === segId);
                 if (seg) {
                     if (seg.node1Id === sourceNode.id) {
@@ -790,8 +790,8 @@
                     } else {
                         seg.node2Id = targetNode.id;
                     }
-                    if (!targetNode.connections.includes(segId)) {
-                        targetNode.connections.push(segId);
+                    if (!targetNode.relations.includes(segId)) {
+                        targetNode.relations.push(segId);
                     }
                 }
             }
@@ -802,8 +802,8 @@
             // Remove any self-referencing segments
             segments = segments.filter(s => s.node1Id !== s.node2Id);
 
-            // Clean up target node connections
-            targetNode.connections = targetNode.connections.filter(segId => 
+            // Clean up target node relations
+            targetNode.relations = targetNode.relations.filter(segId => 
                 segments.some(s => s.id === segId)
             );
 
@@ -849,7 +849,7 @@
         function deleteSelected() {
             if (selectedNode) {
                 // Delete all segments connected to this node
-                const segmentsToRemove = selectedNode.connections.slice();
+                const segmentsToRemove = selectedNode.relations.slice();
                 for (let segId of segmentsToRemove) {
                     const seg = segments.find(s => s.id === segId);
                     if (seg) {
@@ -857,7 +857,7 @@
                         const otherNodeId = seg.node1Id === selectedNode.id ? seg.node2Id : seg.node1Id;
                         const otherNode = getNodeById(otherNodeId);
                         if (otherNode) {
-                            otherNode.connections = otherNode.connections.filter(id => id !== segId);
+                            otherNode.relations = otherNode.relations.filter(id => id !== segId);
                         }
                     }
                 }
