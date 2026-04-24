@@ -56,3 +56,7 @@ use rem values.
 use consistent class naming formats,
 
 avoid redundancy, if a file contains classes the exact same classes, dont replicate them; try to join together to aviod redundancy. 
+
+avoid using emojis for headers or describing items, only when neccarcy like a phone emoji for a cta button etc
+
+no floating animations.
