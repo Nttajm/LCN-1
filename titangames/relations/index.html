@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Relations — Titan Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/relations.css">
+</head>
+<body>
+
+<div class="splash-overlay" id="splashOverlay">
+    <div class="splash-content">
+        <svg class="splash-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="4" width="24" height="24" rx="4" fill="#F9DF6D"/>
+            <rect x="36" y="4" width="24" height="24" rx="4" fill="#A0C35A"/>
+            <rect x="4" y="36" width="24" height="24" rx="4" fill="#B0C4EF"/>
+            <rect x="36" y="36" width="24" height="24" rx="4" fill="#BA81C5"/>
+        </svg>
+        <h1 class="splash-title">Relations</h1>
+        <p class="splash-tagline">Group words that share a<br>common thread.</p>
+        <button class="splash-play-btn" id="playBtn">Play</button>
+        <div class="splash-meta">
+            <span class="splash-date" id="splashDate"></span>
+            <span class="splash-editor">By Joel M.</span>
+        </div>
+    </div>
+</div>
+
+<div class="game-container">
+    <header class="game-header">
+        <div class="header-left">
+            <button class="header-icon-btn nav-trigger" aria-label="Menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+                    <line x1="4" y1="6" x2="20" y2="6"/>
+                    <line x1="4" y1="12" x2="20" y2="12"/>
+                    <line x1="4" y1="18" x2="20" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <h1 class="game-title">Relations</h1>
+        <div class="header-right">
+            <div class="header-points" id="headerPoints" style="display:none">0 pts</div>
+            <button class="header-icon-btn" id="statsBtn" aria-label="Statistics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="14" width="4" height="6"/>
+                    <rect x="10" y="8" width="4" height="12"/>
+                    <rect x="16" y="4" width="4" height="16"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="puzzle-info">
+        <div class="puzzle-date" id="puzzleDate"></div>
+        <div class="puzzle-instruction">Create four groups of four!</div>
+    </div>
+
+    <div class="solved-container" id="solvedContainer"></div>
+
+    <div class="game-grid" id="gameGrid"></div>
+
+    <div class="mistakes-container">
+        <span class="mistakes-label">Mistakes remaining:</span>
+        <div class="mistake-dots">
+            <div class="mistake-dot"></div>
+            <div class="mistake-dot"></div>
+            <div class="mistake-dot"></div>
+            <div class="mistake-dot"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-outline" id="shuffleBtn">Shuffle</button>
+        <button class="btn btn-outline" id="deselectBtn" disabled>Deselect all</button>
+        <button class="btn btn-primary" id="submitBtn" disabled>Submit</button>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h2>Perfect!</h2>
+        <p>You solved today's puzzle!</p>
+        <div class="results-grid"></div>
+        <div class="modal-actions"></div>
+    </div>
+</div>
+
+<!-- Stats Modal -->
+<div class="stats-overlay" id="statsOverlay">
+    <div class="stats-modal">
+        <div class="stats-header">
+            <button class="stats-close" id="statsClose" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="stats-body">
+            <div class="stats-icon">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="4" width="24" height="24" rx="4" fill="#F9DF6D"/>
+                    <rect x="36" y="4" width="24" height="24" rx="4" fill="#A0C35A"/>
+                    <rect x="4" y="36" width="24" height="24" rx="4" fill="#B0C4EF"/>
+                    <rect x="36" y="36" width="24" height="24" rx="4" fill="#BA81C5"/>
+                </svg>
+            </div>
+            <h2 class="stats-title" id="statsTitle">Statistics</h2>
+            
+            <!-- Last Game Preview -->
+            <div class="stats-game-preview" id="statsGamePreview" style="display:none">
+                <p class="stats-section-title">Today's Game</p>
+                <div class="stats-relations-grid" id="statsRelationsGrid"></div>
+                <div class="stats-score-summary" id="statsScoreSummary"></div>
+            </div>
+            
+            <p class="stats-section-title">Your Stats</p>
+            <div class="stats-numbers">
+                <div class="stats-stat">
+                    <span class="stats-stat-value" id="statPlayed">0</span>
+                    <span class="stats-stat-label">Played</span>
+                </div>
+                <div class="stats-stat">
+                    <span class="stats-stat-value" id="statWinPct">0</span>
+                    <span class="stats-stat-label">Win %</span>
+                </div>
+                <div class="stats-stat">
+                    <span class="stats-stat-value" id="statCurrentStreak">0</span>
+                    <span class="stats-stat-label">Current<br>Streak</span>
+                </div>
+                <div class="stats-stat">
+                    <span class="stats-stat-value" id="statMaxStreak">0</span>
+                    <span class="stats-stat-label">Max<br>Streak</span>
+                </div>
+            </div>
+            
+            <div class="stats-login-prompt" id="statsLoginPrompt" style="display:none">
+                <p class="stats-login-message">Sign in to save your score and compete on the leaderboard!</p>
+                <button class="stats-share-btn" id="statsLoginBtn">
+                    Log In
+                    <svg viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+                </button>
+            </div>
+            
+            <div class="stats-games-row">
+                <a href="../nerdle/index.html" class="stats-game-card">
+                    <div class="stats-game-card-icon" style="background:#D6E4F5">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" fill="#3a7ec4"/><rect x="11" y="3" width="6" height="6" rx="1" fill="#C9B458"/><rect x="3" y="11" width="6" height="6" rx="1" fill="#787C7E"/></svg>
+                    </div>
+                    <span class="stats-game-card-name">Nerdle</span>
+                </a>
+                <a href="../crossword.html" class="stats-game-card">
+                    <div class="stats-game-card-icon" style="background:#C2D0E8">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="white" stroke="#ccc" stroke-width="1"/><rect x="5" y="5" width="5" height="5" fill="#121212"/><rect x="14" y="5" width="5" height="5" fill="#121212"/><rect x="5" y="14" width="5" height="5" fill="#121212"/></svg>
+                    </div>
+                    <span class="stats-game-card-name">The Mini</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/nav.js"></script>
+<script type="module" src="js/relations.js"></script>
+</body>
+</html>

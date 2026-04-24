@@ -3,7 +3,7 @@ import { db, collection, getDocs, query, orderBy } from './firebase-config.js';
 const GAME_COLLECTIONS = {
     crossword: { collection: 'crosswords', name: 'Crossword', statusId: 'crosswordStatus' },
     nerdle: { collection: 'nerdles', name: 'Nerdle', statusId: 'nerdleStatus' },
-    connections: { collection: 'connections', name: 'Connections', statusId: 'connectionsStatus' }
+    relations: { collection: 'relations', name: 'Relations', statusId: 'relationsStatus' }
 };
 
 async function loadGameStats(gameKey) {
@@ -47,17 +47,17 @@ async function loadAllGamesAndReleases() {
     
     try {
         // Load all games in parallel
-        var [crosswordStats, nerdleStats, connectionsStats] = await Promise.all([
+        var [crosswordStats, nerdleStats, relationsStats] = await Promise.all([
             loadGameStats('crossword'),
             loadGameStats('nerdle'),
-            loadGameStats('connections')
+            loadGameStats('relations')
         ]);
         
         // Combine all releases and sort by date
         var allReleases = [
             ...crosswordStats.releases,
             ...nerdleStats.releases,
-            ...connectionsStats.releases
+            ...relationsStats.releases
         ];
         
         allReleases.sort(function(a, b) {
@@ -84,7 +84,7 @@ async function loadAllGamesAndReleases() {
                 sizeInfo = ' &middot; ' + (release.size || 5) + '&times;' + (release.size || 5);
             } else if (release.gameType === 'nerdle') {
                 sizeInfo = ' &middot; 5 letters';
-            } else if (release.gameType === 'connections') {
+            } else if (release.gameType === 'relations') {
                 sizeInfo = ' &middot; 4 groups';
             }
             

@@ -8,350 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700&family=Franklin+Gothic+Medium&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/auth.css">
-<style>
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-:root {
-    --spelling-bee: #F7DA21;
-    --wordle: #E3E0D8;
-    --crossplay: #C4D6F0;
-    --pips: #DDA8C7;
-    --strands: #B8D9CC;
-    --connections: #C5B4E3;
-    --border: #E0E0E0;
-    --text-primary: #121212;
-    --text-secondary: #5A5A5A;
-    --bg: #FFFFFF;
-}
-
-body {
-    font-family: 'Libre Franklin', sans-serif;
-    background: var(--bg);
-    color: var(--text-primary);
-    -webkit-font-smoothing: antialiased;
-}
-
-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    z-index: 100;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.hamburger {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 4px;
-}
-
-.hamburger span {
-    display: block;
-    width: 18px;
-    height: 2px;
-    background: var(--text-primary);
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    color: var(--text-primary);
-}
-
-.logo-icon {
-    width: 28px;
-    height: 28px;
-}
-
-.logo-text {
-    font-family: 'Noto Serif', serif;
-    font-weight: 700;
-    font-size: 21px;
-    letter-spacing: -0.5px;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-subscribe {
-    background: var(--text-primary);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: 'Libre Franklin', sans-serif;
-}
-
-.btn-login {
-    background: none;
-    border: 1px solid var(--text-primary);
-    padding: 8px 16px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: 'Libre Franklin', sans-serif;
-    text-decoration: none;
-    color: var(--text-primary);
-}
-
-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 20px 80px;
-}
-
-h1 {
-    text-align: center;
-    font-family: 'Noto Serif', serif;
-    font-weight: 700;
-    font-size: 20px;
-    margin-bottom: 30px;
-}
-
-.games-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    max-width: 960px;
-    margin: 0 auto;
-}
-
-.game-card {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: box-shadow 0.2s ease;
-}
-
-.game-card:hover {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-
-.card-top {
-    height: 180px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    gap: 12px;
-    padding: 20px;
-}
-
-.card-top svg {
-    width: 64px;
-    height: 64px;
-}
-
-.card-top .game-name {
-    font-family: 'Noto Serif', serif;
-    font-weight: 700;
-    font-size: 22px;
-    color: var(--text-primary);
-}
-
-.new-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: var(--text-primary);
-    color: white;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 3px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.card-bottom {
-    padding: 16px 24px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
-}
-
-.card-bottom .description {
-    font-size: 14px;
-    color: var(--text-secondary);
-    text-align: center;
-    line-height: 1.4;
-    margin-bottom: 4px;
-}
-
-.card-bottom .game-btn {
-    display: block;
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--border);
-    border-radius: 28px;
-    background: none;
-    font-size: 15px;
-    font-family: 'Libre Franklin', sans-serif;
-    font-weight: 500;
-    color: var(--text-primary);
-    cursor: pointer;
-    text-align: center;
-    transition: background 0.15s ease;
-}
-
-.card-bottom .game-btn:hover {
-    background: #f5f5f5;
-}
-
-.crossword-date {
-    font-family: 'Libre Franklin', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: #326891;
-    text-align: center;
-    margin-bottom: 2px;
-}
-
-.crossword-credits {
-    font-size: 12px;
-    color: #999;
-    text-align: center;
-    line-height: 1.6;
-    letter-spacing: 0.3px;
-}
-
-.lock-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 14px;
-    opacity: 0.7;
-}
-
-/* Points Dashboard */
-.points-dashboard {
-    display: none;
-    max-width: 22rem;
-    margin: 0 auto 2.5rem;
-    border: 1px solid var(--border);
-    border-radius: 0.25rem;
-    padding: 1.5rem 2rem;
-    text-align: center;
-    background: var(--bg);
-}
-
-.points-dashboard.visible {
-    display: block;
-}
-
-.points-dashboard-title {
-    font-family: 'Libre Franklin', sans-serif;
-    font-size: 0.6875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-.points-dashboard-value {
-    font-family: 'Noto Serif', serif;
-    font-size: 2.75rem;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
-}
-
-.points-dashboard-games {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-}
-
-.header-points {
-    display: none;
-    align-items: center;
-    font-family: 'Libre Franklin', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--text-primary);
-    padding: 0.375rem 0.625rem;
-    border: 1px solid var(--text-primary);
-    border-radius: 0.125rem;
-}
-
-.header-points.visible {
-    display: flex;
-}
-
-.game-card-points {
-    display: none;
-    position: absolute;
-    bottom: 0.625rem;
-    right: 0.625rem;
-    font-family: 'Libre Franklin', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--text-secondary);
-    background: rgba(255,255,255,0.9);
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.125rem;
-}
-
-.game-card-points.visible {
-    display: block;
-}
-
-.game-card-points.completed {
-    color: var(--text-primary);
-    background: rgba(255,255,255,0.95);
-    border-bottom: 2px solid var(--text-primary);
-}
-
-@media (max-width: 768px) {
-    .games-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 500px) {
-    .games-grid {
-        grid-template-columns: 1fr;
-    }
-    .card-top {
-        height: 150px;
-    }
-}
-</style>
+<link rel="stylesheet" href="css/home.css">
 </head>
 <body>
 <header>
@@ -372,11 +29,24 @@ h1 {
 </header>
 
 <main>
-    <div class="points-dashboard" id="pointsDashboard">
-        <div class="points-dashboard-title">Today's Points</div>
-        <div class="points-dashboard-value" id="dashboardPoints">0</div>
-        <div class="points-dashboard-games" id="dashboardGames">0 games played</div>
-    </div>
+    <section class="leaderboard-section" id="leaderboardSection">
+        <div class="leaderboard-header">
+            <h2 class="leaderboard-title">Today's Leaderboard</h2>
+            <span class="leaderboard-date" id="leaderboardDate"></span>
+        </div>
+        <div class="leaderboard-table">
+            <div class="leaderboard-row leaderboard-row--header">
+                <span class="leaderboard-col leaderboard-col--rank">#</span>
+                <span class="leaderboard-col leaderboard-col--name">Player</span>
+                <span class="leaderboard-col leaderboard-col--pts">Pts</span>
+                <span class="leaderboard-col leaderboard-col--games">Games</span>
+            </div>
+            <div class="leaderboard-body" id="leaderboardBody">
+                <div class="leaderboard-empty">Sign in to see the leaderboard</div>
+            </div>
+        </div>
+        <div class="leaderboard-user" id="leaderboardUser"></div>
+    </section>
     
     <h1>More Games</h1>
     <div class="games-grid">
@@ -432,9 +102,9 @@ h1 {
             </div>
         </div>
 
-        <div class="game-card" data-game="connections">
-            <div class="card-top" style="background: var(--connections);">
-                <div class="game-card-points" id="connectionsPoints"></div>
+        <div class="game-card" data-game="relations">
+            <div class="card-top" style="background: var(--relations);">
+                <div class="game-card-points" id="relationsPoints"></div>
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="10" y="10" width="12" height="12" rx="2" fill="#6A4C93"/>
                     <rect x="26" y="10" width="12" height="12" rx="2" fill="#6A4C93"/>
@@ -450,10 +120,10 @@ h1 {
                     <line x1="32" y1="32" x2="48" y2="32" stroke="white" stroke-width="1.5"/>
                     <line x1="48" y1="16" x2="48" y2="32" stroke="white" stroke-width="1.5"/>
                 </svg>
-                <span class="game-name">Connections</span>
+                <span class="game-name">Relations</span>
             </div>
             <div class="card-bottom">
-                <button class="game-btn" onclick="window.location.href='connections/index.html'">Play</button>
+                <button class="game-btn" onclick="window.location.href='relations/index.html'">Play</button>
             </div>
         </div>
 

@@ -128,7 +128,20 @@ function renderMatches_1() {
         const team1 = getTeamById(match.game.team1);
         const team2 = getTeamById(match.game.team2);
 
-        // console.log(match);
+        const team1Yellows = match.game.yellowCards ? match.game.yellowCards.filter(c => c.team === match.game.team1).length : 0;
+        const team1Reds = match.game.redCards ? match.game.redCards.filter(c => c.team === match.game.team1).length : 0;
+        const team2Yellows = match.game.yellowCards ? match.game.yellowCards.filter(c => c.team === match.game.team2).length : 0;
+        const team2Reds = match.game.redCards ? match.game.redCards.filter(c => c.team === match.game.team2).length : 0;
+
+        const team1CardsHtml = `
+            ${team1Yellows > 0 ? `<span class="card-indicator card-indicator--yellow">${team1Yellows > 1 ? team1Yellows : ''}</span>` : ''}
+            ${team1Reds > 0 ? `<span class="card-indicator card-indicator--red">${team1Reds > 1 ? team1Reds : ''}</span>` : ''}
+        `;
+        const team2CardsHtml = `
+            ${team2Yellows > 0 ? `<span class="card-indicator card-indicator--yellow">${team2Yellows > 1 ? team2Yellows : ''}</span>` : ''}
+            ${team2Reds > 0 ? `<span class="card-indicator card-indicator--red">${team2Reds > 1 ? team2Reds : ''}</span>` : ''}
+        `;
+
         matchesHTML += `
             <div class="mini-match link-match" data-match-id="${match.game.id}">
                 <div class="match-info">
@@ -139,6 +152,7 @@ function renderMatches_1() {
                         <div class="team-info">
                             <img src="${team1.img}" alt="${team1.name}" />
                             <span>${team1.name}</span>
+                            ${team1CardsHtml}
                         </div>
                         <span class="score">${match.game.score1}</span>
                     </div>
@@ -146,6 +160,7 @@ function renderMatches_1() {
                         <div class="team-info">
                             <img src="${team2.img}" alt="${team2.name}" />
                             <span>${team2.name}</span>
+                            ${team2CardsHtml}
                         </div>
                         <span class="score">${match.game.score2}</span>
                     </div>

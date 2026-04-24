@@ -29,7 +29,7 @@
             icon: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="44" rx="5" fill="white"/><rect x="2" y="2" width="44" height="44" rx="5" stroke="#ccc" stroke-width="1"/><rect x="7" y="7" width="7" height="7" fill="#121212"/><rect x="17" y="7" width="7" height="7" fill="#121212"/><rect x="27" y="7" width="7" height="7" fill="white"/><rect x="34" y="7" width="7" height="7" fill="#121212"/><rect x="7" y="17" width="7" height="7" fill="white"/><rect x="17" y="17" width="7" height="7" fill="#121212"/><rect x="27" y="17" width="7" height="7" fill="#121212"/><rect x="34" y="17" width="7" height="7" fill="white"/><rect x="7" y="27" width="7" height="7" fill="#121212"/><rect x="17" y="27" width="7" height="7" fill="white"/><rect x="27" y="27" width="7" height="7" fill="white"/><rect x="34" y="27" width="7" height="7" fill="#121212"/><rect x="7" y="34" width="7" height="7" fill="white"/><rect x="17" y="34" width="7" height="7" fill="#121212"/><rect x="27" y="34" width="7" height="7" fill="#121212"/><rect x="34" y="34" width="7" height="7" fill="white"/></svg>'
         },
         {
-            name: 'Connections',
+            name: 'Relations',
             desc: 'Find four groups of items that share something.',
             href: '#',
             bg: '#C5B4E3',

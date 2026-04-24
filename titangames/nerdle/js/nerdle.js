@@ -8,6 +8,7 @@ import {
     submitGameCompletion, 
     checkGameCompletion, 
     getTodayStats,
+    getTodayLeaderboard,
     onAuthChange 
 } from "../../js/points.js";
 
@@ -160,13 +161,16 @@ const POINTS_PRESENT = 5;   // Points for letter present but wrong position
 /**
  * Update the points display in the header
  */
-async function updatePointsDisplay() {
+async function updatePointsDisplay(storePrevious = false) {
     const pointsEl = document.getElementById('headerPoints');
     if (!pointsEl) return;
     
     if (currentUser) {
         try {
             const stats = await getTodayStats();
+            if (storePrevious) {
+                previousTodayPoints = todayPoints;
+            }
             todayPoints = stats.totalPoints;
             pointsEl.textContent = `${todayPoints} pts`;
             pointsEl.style.display = 'flex';
@@ -316,6 +320,14 @@ function createStatsModal() {
                     <svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
                 </div>
                 <h2 class="stats-title" id="statsTitle">Congratulations!</h2>
+                
+                <!-- Game Board Preview - shows your guesses -->
+                <div class="stats-game-preview" id="statsGamePreview" style="display:none">
+                    <p class="stats-section-title">Your Game</p>
+                    <div class="stats-board-grid" id="statsBoardGrid"></div>
+                    <div class="stats-score-summary" id="statsScoreSummary"></div>
+                </div>
+                
                 <p class="stats-section-title">Statistics</p>
                 <div class="stats-numbers">
                     <div class="stats-stat">
@@ -337,16 +349,25 @@ function createStatsModal() {
                 </div>
                 <p class="stats-section-title">Guess Distribution</p>
                 <div class="stats-distribution" id="statsDistribution"></div>
-                <button class="stats-share-btn" id="statsShareBtn">
-                    Share
-                    <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-                </button>
+                
+                <div class="stats-login-prompt" id="statsLoginPrompt" style="display:none">
+                    <p class="stats-login-message">Sign in to save your score and compete on the leaderboard!</p>
+                    <button class="stats-share-btn" id="statsLoginBtn">
+                        Log In
+                        <svg viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+                    </button>
+                </div>
+
+                <div class="stats-leaderboard" id="statsLeaderboard" style="display:none">
+                    <p class="stats-section-title">Today's Leaderboard</p>
+                    <div class="stats-leaderboard-body" id="statsLeaderboardBody"></div>
+                </div>
                 <div class="stats-games-row">
-                    <a href="../connections/index.html" class="stats-game-card">
+                    <a href="../relations/index.html" class="stats-game-card">
                         <div class="stats-game-card-icon" style="background:#C5B4E3">
                             <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" fill="#6A4C93"/><rect x="14" y="3" width="7" height="7" rx="1" fill="#C77DBA"/><rect x="3" y="14" width="7" height="7" rx="1" fill="#C77DBA"/><rect x="14" y="14" width="7" height="7" rx="1" fill="#6A4C93"/></svg>
                         </div>
-                        <span class="stats-game-card-name">Connections</span>
+                        <span class="stats-game-card-name">Relations</span>
                     </a>
                     <a href="../crossword.html" class="stats-game-card">
                         <div class="stats-game-card-icon" style="background:#C2D0E8">
@@ -364,13 +385,94 @@ function createStatsModal() {
     overlay.addEventListener("click", function(e) {
         if (e.target === overlay) closeStatsModal();
     });
-    document.getElementById("statsShareBtn").addEventListener("click", shareResults);
+    document.getElementById("statsLoginBtn").addEventListener("click", function() {
+        window.location.href = '../signin.html';
+    });
     document.addEventListener("keydown", function(e) {
         if (e.key === "Escape" && overlay.classList.contains("open")) {
             closeStatsModal();
         }
     });
 }
+
+/**
+ * Get the state of each tile from the actual game board
+ */
+function getGameBoardStates(numRows) {
+    const boardStates = [];
+    for (let r = 0; r < numRows; r++) {
+        const rowStates = [];
+        for (let c = 0; c < WORD_LENGTH; c++) {
+            const tile = getTile(r, c);
+            if (tile) {
+                rowStates.push({
+                    letter: tile.textContent || '',
+                    state: tile.getAttribute("data-state") || 'empty'
+                });
+            }
+        }
+        if (rowStates.length === WORD_LENGTH && rowStates[0].letter) {
+            boardStates.push(rowStates);
+        }
+    }
+    return boardStates;
+}
+
+/**
+ * Render the game board preview in the stats modal
+ */
+function renderGameBoardPreview(won, guessNum) {
+    const previewContainer = document.getElementById("statsGamePreview");
+    const boardGrid = document.getElementById("statsBoardGrid");
+    const scoreSummary = document.getElementById("statsScoreSummary");
+    
+    // Only show if game was just played (not viewing stats from button)
+    if (won === null || !gameScore) {
+        previewContainer.style.display = "none";
+        return;
+    }
+    
+    previewContainer.style.display = "block";
+    boardGrid.innerHTML = "";
+    
+    // Get the board states from the actual game
+    const numRows = won ? guessNum : MAX_GUESSES;
+    const boardStates = getGameBoardStates(numRows);
+    
+    // Create mini board display
+    boardStates.forEach((row, rowIndex) => {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "stats-board-row";
+        
+        row.forEach((cell) => {
+            const tileDiv = document.createElement("div");
+            tileDiv.className = "stats-board-tile";
+            tileDiv.setAttribute("data-state", cell.state);
+            tileDiv.textContent = cell.letter;
+            rowDiv.appendChild(tileDiv);
+        });
+        
+        // Add score for this row
+        if (guessScores[rowIndex] !== undefined) {
+            const scoreSpan = document.createElement("span");
+            scoreSpan.className = "stats-row-score";
+            scoreSpan.textContent = `+${guessScores[rowIndex]}`;
+            rowDiv.appendChild(scoreSpan);
+        }
+        
+        boardGrid.appendChild(rowDiv);
+    });
+    
+    // Show score summary
+    const resultText = won ? "Solved" : "Not solved";
+    const answerText = won ? "" : ` — Answer: ${targetWord}`;
+    scoreSummary.innerHTML = `
+        <div class="stats-score-result">${resultText}${answerText}</div>
+        <div class="stats-score-total">${gameScore} pts total</div>
+    `;
+}
+
+let previousTodayPoints = 0;
 
 async function openStatsModal(won, guessNum) {
     const stats = await loadStatsFromDb();
@@ -388,10 +490,11 @@ async function openStatsModal(won, guessNum) {
     document.getElementById("statCurrentStreak").textContent = stats.currentStreak;
     document.getElementById("statMaxStreak").textContent = stats.maxStreak;
     
+    renderGameBoardPreview(won, guessNum);
+    
     const distContainer = document.getElementById("statsDistribution");
     distContainer.innerHTML = "";
     
-    // If game was just played, show points per guess in distribution
     if (won !== null && guessScores.length > 0) {
         const maxScore = Math.max(...guessScores, 1);
         
@@ -408,7 +511,6 @@ async function openStatsModal(won, guessNum) {
             distContainer.appendChild(row);
         }
         
-        // Add total row
         const totalRow = document.createElement("div");
         totalRow.className = "stats-bar-row stats-total-row";
         totalRow.innerHTML = `
@@ -417,7 +519,6 @@ async function openStatsModal(won, guessNum) {
         `;
         distContainer.appendChild(totalRow);
     } else {
-        // Show normal guess distribution when viewing stats without playing
         const maxGuesses = Math.max(...stats.guessDistribution, 1);
         
         stats.guessDistribution.forEach(function(count, i) {
@@ -434,10 +535,125 @@ async function openStatsModal(won, guessNum) {
     
     lastWinRow = won ? guessNum : -1;
     overlay.classList.add("open");
+    
+    // Show login prompt only if user is not logged in
+    const loginPrompt = document.getElementById("statsLoginPrompt");
+    if (loginPrompt) {
+        loginPrompt.style.display = currentUser ? "none" : "block";
+    }
+    
+    const shouldAnimate = won !== null && gameScore > 0;
+    await renderLeaderboard(shouldAnimate, previousTodayPoints);
 }
 
 function closeStatsModal() {
     document.getElementById("statsOverlay").classList.remove("open");
+}
+
+async function renderLeaderboard(animateUserPoints = false, previousPoints = 0) {
+    const leaderboardContainer = document.getElementById("statsLeaderboard");
+    const leaderboardBody = document.getElementById("statsLeaderboardBody");
+    
+    if (!currentUser || !leaderboardContainer || !leaderboardBody) {
+        if (leaderboardContainer) leaderboardContainer.style.display = "none";
+        return;
+    }
+    
+    try {
+        const leaderboard = await getTodayLeaderboard(100);
+        
+        if (leaderboard.length === 0) {
+            leaderboardContainer.style.display = "none";
+            return;
+        }
+        
+        leaderboardContainer.style.display = "block";
+        leaderboardBody.innerHTML = "";
+        
+        const userRank = leaderboard.findIndex(e => e.uid === currentUser.uid) + 1;
+        const top5 = leaderboard.slice(0, 5);
+        
+        top5.forEach((entry, index) => {
+            const rank = index + 1;
+            const isCurrentUser = entry.uid === currentUser.uid;
+            const row = createLeaderboardRow(entry, rank, isCurrentUser, animateUserPoints && isCurrentUser, previousPoints);
+            leaderboardBody.appendChild(row);
+        });
+        
+        if (userRank > 5) {
+            const divider = document.createElement("div");
+            divider.className = "stats-lb-divider";
+            divider.innerHTML = "<span>• • •</span>";
+            leaderboardBody.appendChild(divider);
+            
+            const userEntry = leaderboard[userRank - 1];
+            const row = createLeaderboardRow(userEntry, userRank, true, animateUserPoints, previousPoints);
+            leaderboardBody.appendChild(row);
+        }
+    } catch (err) {
+        console.error("Error loading leaderboard:", err);
+        leaderboardContainer.style.display = "none";
+    }
+}
+
+function createLeaderboardRow(entry, rank, isCurrentUser, animate = false, previousPoints = 0) {
+    const row = document.createElement("div");
+    row.className = `stats-lb-row${isCurrentUser ? " stats-lb-row--highlight" : ""}`;
+    
+    const rankClass = rank <= 3 ? ` stats-lb-rank--${rank}` : "";
+    
+    const ptsSpan = document.createElement("span");
+    ptsSpan.className = "stats-lb-pts";
+    
+    if (animate && isCurrentUser && previousPoints < entry.points) {
+        ptsSpan.className += " stats-lb-pts--animate";
+        ptsSpan.setAttribute("data-from", previousPoints);
+        ptsSpan.setAttribute("data-to", entry.points);
+        ptsSpan.textContent = previousPoints;
+        
+        setTimeout(() => {
+            animatePointsCount(ptsSpan, previousPoints, entry.points);
+        }, 300);
+    } else {
+        ptsSpan.textContent = entry.points;
+    }
+    
+    row.innerHTML = `
+        <span class="stats-lb-rank${rankClass}">${rank}</span>
+        <span class="stats-lb-name">${entry.displayName || "Player"}</span>
+    `;
+    row.appendChild(ptsSpan);
+    
+    const gamesSpan = document.createElement("span");
+    gamesSpan.className = "stats-lb-games";
+    gamesSpan.textContent = entry.gamesPlayed;
+    row.appendChild(gamesSpan);
+    
+    return row;
+}
+
+function animatePointsCount(element, from, to) {
+    const duration = 800;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(from + (to - from) * easeOut);
+        
+        element.textContent = currentValue;
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = to;
+            element.classList.add("stats-lb-pts--done");
+        }
+    }
+    
+    requestAnimationFrame(update);
 }
 
 function shareResults() {
@@ -745,6 +961,7 @@ async function submitGuess() {
             const stats = await recordWin(guessNum);
             
             if (currentUser && !alreadyCompleted) {
+                previousTodayPoints = todayPoints;
                 const boardState = getBoardState(guessNum);
                 const result = await submitGameCompletion('nerdle', gameScore, {
                     guesses: guessNum,
@@ -755,7 +972,7 @@ async function submitGuess() {
                 });
                 if (result.success) {
                     alreadyCompleted = true;
-                    await updatePointsDisplay();
+                    await updatePointsDisplay(true);
                 }
             }
             
@@ -777,6 +994,7 @@ async function submitGuess() {
             const stats = await recordLoss();
             
             if (currentUser && !alreadyCompleted) {
+                previousTodayPoints = todayPoints;
                 const boardState = getBoardState(MAX_GUESSES);
                 const result = await submitGameCompletion('nerdle', gameScore, {
                     guesses: MAX_GUESSES,
@@ -787,7 +1005,7 @@ async function submitGuess() {
                 });
                 if (result.success) {
                     alreadyCompleted = true;
-                    await updatePointsDisplay();
+                    await updatePointsDisplay(true);
                 }
             }
             

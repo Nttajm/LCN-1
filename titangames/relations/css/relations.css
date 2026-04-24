@@ -490,3 +490,301 @@ body {
         padding: 14px 60px;
     }
 }
+
+/* Results Grid Rows for Modal */
+.results-grid-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+.results-row {
+    display: flex;
+    gap: 4px;
+}
+
+.results-row .dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+/* Stats Modal Overlay */
+.stats-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.stats-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.stats-modal {
+    background: #ffffff;
+    color: var(--text);
+    width: min(28rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 4rem);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    overflow-y: auto;
+    transform: translateY(1rem);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stats-overlay.open .stats-modal {
+    transform: translateY(0);
+}
+
+.stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.75rem 0.75rem 0;
+}
+
+.stats-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+}
+
+.stats-close:hover {
+    color: var(--text);
+}
+
+.stats-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.stats-body {
+    padding: 0 2rem 2rem;
+    text-align: center;
+}
+
+.stats-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 0.75rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-icon svg {
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+.stats-title {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+}
+
+.stats-section-title {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    margin-bottom: 0.75rem;
+    text-align: left;
+}
+
+.stats-numbers {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+}
+
+.stats-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 3.5rem;
+}
+
+.stats-stat-value {
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 400;
+    font-size: 2.25rem;
+    line-height: 1;
+    color: var(--text);
+}
+
+.stats-stat-label {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.6875rem;
+    color: #888;
+    margin-top: 0.25rem;
+    text-align: center;
+}
+
+.stats-share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 1rem;
+    background: var(--text);
+    color: #ffffff;
+    border: none;
+    border-radius: 2rem;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.stats-share-btn:hover {
+    background: #333;
+}
+
+.stats-share-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: currentColor;
+}
+
+.stats-login-prompt {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.stats-login-message {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.stats-games-row {
+    display: flex;
+    gap: 0.625rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.stats-game-card {
+    flex-shrink: 0;
+    width: 5.5rem;
+    padding: 0.75rem 0.5rem;
+    background: #f5f5f5;
+    border-radius: 0.375rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    transition: background 0.15s;
+}
+
+.stats-game-card:hover {
+    background: #eaeaea;
+}
+
+.stats-game-card-icon {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 0.375rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-game-card-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.stats-game-card-name {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+}
+
+/* Game Preview in Stats Modal */
+.stats-game-preview {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.stats-relations-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stats-relations-row {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.stats-relations-tile {
+    width: 2.5rem;
+    height: 1.5rem;
+    border-radius: 0.25rem;
+}
+
+.stats-relations-tile.yellow { background: var(--yellow); }
+.stats-relations-tile.green { background: var(--green); }
+.stats-relations-tile.blue { background: var(--blue); }
+.stats-relations-tile.purple { background: var(--purple); }
+
+.stats-relations-name {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    margin-left: 0.75rem;
+    min-width: 6rem;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.stats-score-summary {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.stats-score-result {
+    font-size: 0.875rem;
+    color: #888;
+    margin-bottom: 0.25rem;
+}
+
+.stats-score-total {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #538d4e;
+}

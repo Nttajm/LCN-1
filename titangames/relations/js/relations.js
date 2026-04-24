@@ -38,7 +38,7 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     await updatePointsDisplay();
     if (user) {
-        const completion = await checkGameCompletion('connections');
+        const completion = await checkGameCompletion('relations');
         if (completion.completed) {
             alreadyCompleted = true;
             completedGameData = completion.data;
@@ -56,7 +56,7 @@ async function fetchTodaysPuzzle() {
             String(today.getMonth() + 1).padStart(2, '0') + '-' + 
             String(today.getDate()).padStart(2, '0');
         
-        const docSnap = await getDoc(doc(puzzleDb, 'connections', dateStr));
+        const docSnap = await getDoc(doc(puzzleDb, 'relations', dateStr));
         if (docSnap.exists()) {
             const data = docSnap.data();
             if (data.status === 'published' && data.categories) {
@@ -72,7 +72,7 @@ async function fetchTodaysPuzzle() {
     return null;
 }
 
-// Connections Game Logic
+// Relations Game Logic
 
 // Daily puzzles - fallback indexed by day of year
 const PUZZLES = [
@@ -123,7 +123,7 @@ const PUZZLES = [
     }
 ];
 
-class ConnectionsGame {
+class RelationsGame {
     constructor() {
         this.puzzle = null;
         this.selected = [];
@@ -402,7 +402,7 @@ class ConnectionsGame {
         this.updateLocalStats(true);
         
         if (currentUser && !alreadyCompleted) {
-            const result = await submitGameCompletion('connections', score, {
+            const result = await submitGameCompletion('relations', score, {
                 mistakes: this.mistakes,
                 won: true,
                 date: this.puzzle.date,
@@ -430,7 +430,7 @@ class ConnectionsGame {
         this.updateLocalStats(false);
         
         if (currentUser && !alreadyCompleted) {
-            const result = await submitGameCompletion('connections', 0, {
+            const result = await submitGameCompletion('relations', 0, {
                 mistakes: this.mistakes,
                 won: false,
                 date: this.puzzle.date,
@@ -482,7 +482,7 @@ class ConnectionsGame {
             message.innerHTML = `You ran out of guesses.<br><span class="score-display">0 pts</span>`;
         }
         
-        // Show solve order as colored rows (like NYT Connections)
+        // Show solve order as colored rows (like NYT Relations)
         resultsGrid.innerHTML = '';
         resultsGrid.className = 'results-grid results-grid-rows';
         
@@ -529,7 +529,7 @@ class ConnectionsGame {
     openStatsModal() {
         const overlay = document.getElementById('statsOverlay');
         const previewContainer = document.getElementById('statsGamePreview');
-        const grid = document.getElementById('statsConnectionsGrid');
+        const grid = document.getElementById('statsRelationsGrid');
         const scoreSummary = document.getElementById('statsScoreSummary');
         
         // Calculate stats from local storage or completedGameData
@@ -539,7 +539,7 @@ class ConnectionsGame {
         let maxStreak = 0;
         
         try {
-            const stored = localStorage.getItem('connections_stats');
+            const stored = localStorage.getItem('relations_stats');
             if (stored) {
                 const stats = JSON.parse(stored);
                 gamesPlayed = stats.gamesPlayed || 0;
@@ -569,18 +569,18 @@ class ConnectionsGame {
             
             solvedCats.forEach(cat => {
                 const rowDiv = document.createElement('div');
-                rowDiv.className = 'stats-connections-row';
+                rowDiv.className = 'stats-relations-row';
                 
                 // Create 4 colored squares for this category
                 for (let i = 0; i < 4; i++) {
                     const square = document.createElement('div');
-                    square.className = `stats-connections-tile ${cat.color}`;
+                    square.className = `stats-relations-tile ${cat.color}`;
                     rowDiv.appendChild(square);
                 }
                 
                 // Add category name
                 const nameSpan = document.createElement('span');
-                nameSpan.className = 'stats-connections-name';
+                nameSpan.className = 'stats-relations-name';
                 nameSpan.textContent = cat.name;
                 rowDiv.appendChild(nameSpan);
                 
@@ -599,6 +599,12 @@ class ConnectionsGame {
             previewContainer.style.display = 'none';
         }
         
+        // Show login prompt only if user is not logged in
+        const loginPrompt = document.getElementById('statsLoginPrompt');
+        if (loginPrompt) {
+            loginPrompt.style.display = currentUser ? 'none' : 'block';
+        }
+        
         overlay.classList.add('open');
     }
     
@@ -615,7 +621,7 @@ class ConnectionsGame {
         };
         
         const score = this.calculateScore();
-        let text = `Connections
+        let text = `Relations
 ${this.puzzle.date}
 Score: ${score} pts
 
@@ -635,7 +641,9 @@ Score: ${score} pts
     initStatsModal() {
         document.getElementById('statsBtn')?.addEventListener('click', () => this.openStatsModal());
         document.getElementById('statsClose')?.addEventListener('click', () => this.closeStatsModal());
-        document.getElementById('statsShareBtn')?.addEventListener('click', () => this.copyResults());
+        document.getElementById('statsLoginBtn')?.addEventListener('click', () => {
+            window.location.href = '../signin.html';
+        });
         
         const overlay = document.getElementById('statsOverlay');
         overlay?.addEventListener('click', (e) => {
@@ -645,7 +653,7 @@ Score: ${score} pts
     
     updateLocalStats(won) {
         try {
-            const stored = localStorage.getItem('connections_stats');
+            const stored = localStorage.getItem('relations_stats');
             let stats = stored ? JSON.parse(stored) : {
                 gamesPlayed: 0,
                 gamesWon: 0,
@@ -667,7 +675,7 @@ Score: ${score} pts
             }
             stats.lastPlayedDay = today;
             
-            localStorage.setItem('connections_stats', JSON.stringify(stats));
+            localStorage.setItem('relations_stats', JSON.stringify(stats));
         } catch(e) {}
     }
 }
@@ -675,5 +683,5 @@ Score: ${score} pts
 // Initialize game
 let game;
 document.addEventListener('DOMContentLoaded', () => {
-    game = new ConnectionsGame();
+    game = new RelationsGame();
 });

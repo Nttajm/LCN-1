@@ -179,7 +179,7 @@ export let teams = [
 {
     id: 'ocio',
     name: 'Ocio',
-    sub: `N. Dijon`,
+    sub: `Oc'a`,
     originC: 'Texico',
     originL: 'TS',
     img: 'images/teams/ocio.png',
@@ -354,6 +354,13 @@ function renderCreateButton(matchdays) {
     }
 }
 
+function renderCardIndicators(cards, teamId) {
+    if (!cards || cards.length === 0) return '';
+    const teamCards = cards.filter(c => c.team === teamId);
+    if (teamCards.length === 0) return '';
+    return `<span class="card-count">${teamCards.length > 1 ? teamCards.length : ''}</span>`;
+}
+
 function renderMatches(matchdays, passdownIndex) {
     if (!matchdays || !Array.isArray(matchdays)) return '';
     
@@ -364,11 +371,22 @@ function renderMatches(matchdays, passdownIndex) {
             const team1 = getTeamById(game.team1);
             const team2 = getTeamById(game.team2);
 
-            // Set default images if team images aren't available or fail to load
             const team1Img = team1.img || 'images/teams/default.png';
             const team2Img = team2.img || 'images/teams/default.png';
             
-            // Replace img src in the HTML with error
+            const team1Yellows = game.yellowCards ? game.yellowCards.filter(c => c.team === game.team1).length : 0;
+            const team1Reds = game.redCards ? game.redCards.filter(c => c.team === game.team1).length : 0;
+            const team2Yellows = game.yellowCards ? game.yellowCards.filter(c => c.team === game.team2).length : 0;
+            const team2Reds = game.redCards ? game.redCards.filter(c => c.team === game.team2).length : 0;
+
+            const team1CardsHtml = `
+                ${team1Yellows > 0 ? `<span class="card-indicator card-indicator--yellow">${team1Yellows > 1 ? team1Yellows : ''}</span>` : ''}
+                ${team1Reds > 0 ? `<span class="card-indicator card-indicator--red">${team1Reds > 1 ? team1Reds : ''}</span>` : ''}
+            `;
+            const team2CardsHtml = `
+                ${team2Yellows > 0 ? `<span class="card-indicator card-indicator--yellow">${team2Yellows > 1 ? team2Yellows : ''}</span>` : ''}
+                ${team2Reds > 0 ? `<span class="card-indicator card-indicator--red">${team2Reds > 1 ? team2Reds : ''}</span>` : ''}
+            `;
 
             if (!game.standby) {
                 return `
@@ -377,6 +395,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team1.img}" alt="${team1.name}">
                             <span>${team1.name}</span>
+                            ${team1CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score1}
@@ -386,6 +405,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team2.img}" alt="${team2.name}">
                             <span>${team2.name}</span>
+                            ${team2CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score2}
@@ -400,6 +420,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team1.img}" alt="${team1.name}">
                             <span>${team1.name}</span>
+                            ${team1CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score1}
@@ -409,6 +430,7 @@ function renderMatches(matchdays, passdownIndex) {
                         <div class="team-info">
                             <img src="${team2.img}" alt="${team2.name}">
                             <span>${team2.name}</span>
+                            ${team2CardsHtml}
                         </div>
                         <span class="score">
                             ${game.score2}
@@ -684,6 +706,64 @@ function addMatchDialog(startMatch, mdIndex) {
             </div>
         </div>
 
+        <div class="adv-settings-toggle" id="adv-toggle">
+            <span class="adv-toggle-icon">▸</span> Advanced Stats
+        </div>
+        <div class="adv-settings dn" id="adv-panel">
+            <div class="adv-section">
+                <div class="adv-section-label">Match Favor</div>
+                <div class="adv-favor-bar">
+                    <span class="adv-favor-team" id="adv-favor-t1">50%</span>
+                    <div class="adv-favor-track">
+                        <input type="range" min="0" max="100" value="50" id="adv-favor-slider">
+                        <div class="adv-favor-fill" id="adv-favor-fill"></div>
+                    </div>
+                    <span class="adv-favor-team" id="adv-favor-t2">50%</span>
+                </div>
+            </div>
+            <div class="adv-stats-grid">
+                <div class="adv-stat-row">
+                    <span class="adv-stat-val" id="adv-poss-t1">50</span>
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Possession %</span>
+                        <div class="adv-stat-track">
+                            <input type="range" min="20" max="80" value="50" id="adv-poss-slider">
+                            <div class="adv-stat-fill" id="adv-poss-fill"></div>
+                        </div>
+                    </div>
+                    <span class="adv-stat-val" id="adv-poss-t2">50</span>
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-sot-t1" value="0" min="0" max="50">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Shots on Target</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-sot-t2" value="0" min="0" max="50">
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-pass-t1" value="0" min="0" max="100">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Pass Accuracy %</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-pass-t2" value="0" min="0" max="100">
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-corners-t1" value="0" min="0" max="30">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Corners</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-corners-t2" value="0" min="0" max="30">
+                </div>
+                <div class="adv-stat-row">
+                    <input type="number" class="adv-stat-input" id="adv-offsides-t1" value="0" min="0" max="20">
+                    <div class="adv-stat-mid">
+                        <span class="adv-stat-label">Offsides</span>
+                    </div>
+                    <input type="number" class="adv-stat-input" id="adv-offsides-t2" value="0" min="0" max="20">
+                </div>
+            </div>
+        </div>
+
         <div class="match-dialog-actions">
             <div class="match-cancel-btn" id="cancel-match-btn-2">CANCEL</div>
             <div class="match-create-btn" id="create-match-btn">CREATE MATCH</div>
@@ -703,6 +783,80 @@ function addMatchDialog(startMatch, mdIndex) {
     const type1El = document.querySelector('#team1-goal-type');
     const type2El = document.querySelector('#team2-goal-type');
     const potm = document.querySelector('#potm');
+
+    const advToggle = document.querySelector('#adv-toggle');
+    const advPanel = document.querySelector('#adv-panel');
+    const advFavorSlider = document.querySelector('#adv-favor-slider');
+    const advFavorFill = document.querySelector('#adv-favor-fill');
+    const advFavorT1 = document.querySelector('#adv-favor-t1');
+    const advFavorT2 = document.querySelector('#adv-favor-t2');
+    const advPossSlider = document.querySelector('#adv-poss-slider');
+    const advPossFill = document.querySelector('#adv-poss-fill');
+    const advPossT1 = document.querySelector('#adv-poss-t1');
+    const advPossT2 = document.querySelector('#adv-poss-t2');
+
+    advToggle.addEventListener('click', () => {
+        advPanel.classList.toggle('dn');
+        advToggle.querySelector('.adv-toggle-icon').textContent = advPanel.classList.contains('dn') ? '▸' : '▾';
+    });
+
+    function updatePossFill() {
+        const v = parseInt(advPossSlider.value);
+        advPossT1.textContent = v;
+        advPossT2.textContent = 100 - v;
+        advPossFill.style.width = v + '%';
+    }
+
+    function updateFavorFill() {
+        const v = parseInt(advFavorSlider.value);
+        advFavorT1.textContent = v + '%';
+        advFavorT2.textContent = (100 - v) + '%';
+        advFavorFill.style.width = v + '%';
+    }
+
+    function applyFavor() {
+        const f = parseInt(advFavorSlider.value);
+        const bias = (f - 50) / 50;
+        const poss = Math.round(50 + bias * 25);
+        advPossSlider.value = poss;
+        updatePossFill();
+        const sotBase = Math.round(3 + Math.abs(bias) * 7);
+        const sotLow = Math.max(0, Math.round(sotBase * (1 - Math.abs(bias) * 0.6)));
+        document.querySelector('#adv-sot-t1').value = bias >= 0 ? sotBase : sotLow;
+        document.querySelector('#adv-sot-t2').value = bias >= 0 ? sotLow : sotBase;
+        const passHigh = Math.round(75 + Math.abs(bias) * 15);
+        const passLow = Math.round(75 - Math.abs(bias) * 20);
+        document.querySelector('#adv-pass-t1').value = bias >= 0 ? passHigh : passLow;
+        document.querySelector('#adv-pass-t2').value = bias >= 0 ? passLow : passHigh;
+        const cornHigh = Math.round(4 + Math.abs(bias) * 6);
+        const cornLow = Math.round(4 - Math.abs(bias) * 3);
+        document.querySelector('#adv-corners-t1').value = bias >= 0 ? cornHigh : Math.max(0, cornLow);
+        document.querySelector('#adv-corners-t2').value = bias >= 0 ? Math.max(0, cornLow) : cornHigh;
+        const offHigh = Math.round(2 + Math.abs(bias) * 3);
+        const offLow = Math.round(2 - Math.abs(bias) * 1);
+        document.querySelector('#adv-offsides-t1').value = bias >= 0 ? offHigh : Math.max(0, offLow);
+        document.querySelector('#adv-offsides-t2').value = bias >= 0 ? Math.max(0, offLow) : offHigh;
+    }
+
+    advFavorSlider.addEventListener('input', () => {
+        updateFavorFill();
+        applyFavor();
+    });
+
+    advPossSlider.addEventListener('input', updatePossFill);
+
+    updateFavorFill();
+    updatePossFill();
+
+    function getAdvStats() {
+        return {
+            possession: { team1: parseInt(advPossT1.textContent), team2: parseInt(advPossT2.textContent) },
+            shotsOnTarget: { team1: parseInt(document.querySelector('#adv-sot-t1').value) || 0, team2: parseInt(document.querySelector('#adv-sot-t2').value) || 0 },
+            passAccuracy: { team1: parseInt(document.querySelector('#adv-pass-t1').value) || 0, team2: parseInt(document.querySelector('#adv-pass-t2').value) || 0 },
+            corners: { team1: parseInt(document.querySelector('#adv-corners-t1').value) || 0, team2: parseInt(document.querySelector('#adv-corners-t2').value) || 0 },
+            offsides: { team1: parseInt(document.querySelector('#adv-offsides-t1').value) || 0, team2: parseInt(document.querySelector('#adv-offsides-t2').value) || 0 }
+        };
+    }
 
     // On load, populate player selects and assists for both teams
     function updateTeam1Inputs() {
@@ -923,6 +1077,8 @@ function addMatchDialog(startMatch, mdIndex) {
             return;
         }
 
+        const capturedStats = getAdvStats();
+
         notifEd.classList.toggle('dn');
         notifEdText.innerHTML = '';
 
@@ -958,7 +1114,8 @@ function addMatchDialog(startMatch, mdIndex) {
             yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
                 .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
-                .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 })))
+                .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
+            stats: capturedStats
             });
         } else {
             const thisStandbyMatch = matchday.games[thisMatchIdex]
@@ -982,7 +1139,8 @@ function addMatchDialog(startMatch, mdIndex) {
                 .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
                 .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
-            standby: false
+            standby: false,
+            stats: capturedStats
             });
         }
 
@@ -1167,7 +1325,7 @@ function createSeasonDialog() {
         </div>
         <div style="padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.2rem; flex: 1; overflow-y: auto;">
             <span class="medtx" style="color: rgba(255,255,255,0.5);">
-                teams selected: 0/20
+                teams selected: 0/36
             </span>
             <select name="years" id="year-select">
                 ${Array.from({ length: 103 }, (_, i) => {
@@ -1200,7 +1358,7 @@ function createSeasonDialog() {
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
             const selectedCount = document.querySelectorAll('.team-checkbox:checked').length;
-            teamCountDisplay.textContent = `teams selected: ${selectedCount}/20`;
+            teamCountDisplay.textContent = `teams selected: ${selectedCount}/36`;
         });
     });
 
@@ -1234,6 +1392,16 @@ function createSeasonFunc() {
     
     if (selectedTeams.length === 0) {
         alert('Please select at least one team');
+        return;
+    }
+    
+    if (selectedTeams.length > 36) {
+        alert('Please select a maximum of 36 teams');
+        return;
+    }
+    
+    if (selectedTeams.length > 36) {
+        alert('Please select a maximum of 36 teams');
         return;
     }
     
@@ -1481,23 +1649,13 @@ renderSeasonButtons();
 function renderMatchesTable() {
     const maindiv = document.querySelector('.matches-table-select');
     if (!maindiv) return;
-
-    const currentSeason = getCurrentSeason();
-    const latestSeasonYear = seasons.reduce((latest, season) => {
-        const year = parseInt(season.year);
-        return year > latest ? year : latest;
-    }, 0);
-
-    if (currentSeason === latestSeasonYear.toString()) {
-        maindiv.style.display = 'none';
-    } else {
-        maindiv.style.display = 'flex';
-    }
+    maindiv.style.display = 'flex';
 }
 
 renderMatchesTable();
 
 import { calculateStandings, renderStandingsTable } from './table.js';
+import { renderBracketView } from './bracket.js';
 
 function showTable() {
     const content = document.querySelector('.pad-cont');
@@ -1533,6 +1691,8 @@ document.addEventListener('DOMContentLoaded', () => {
 const tableBtn = document.querySelector('#show-table-btn');
 if (tableBtn) {
     tableBtn.addEventListener('click', () => {
+        document.querySelectorAll('.matches-table-select .iit').forEach(el => el.classList.remove('selected'));
+        tableBtn.classList.add('selected');
         const currentSeason = getCurrentSeason();
         loadSeason(currentSeason);
     });
@@ -1541,6 +1701,8 @@ if (tableBtn) {
 const matchesBtn = document.querySelector('#show-matches-btn');
 if (matchesBtn) {
     matchesBtn.addEventListener('click', () => {
+        document.querySelectorAll('.matches-table-select .iit').forEach(el => el.classList.remove('selected'));
+        matchesBtn.classList.add('selected');
         const currentSeason = getCurrentSeason();
         const seasonData = seasons.find(season => season.year === currentSeason);
         
@@ -1550,6 +1712,15 @@ if (matchesBtn) {
         } else {
             content.innerHTML = '<p>No matches available for this season.</p>';
         }
+    });
+}
+
+const bracketBtn = document.querySelector('#show-bracket-btn');
+if (bracketBtn) {
+    bracketBtn.addEventListener('click', () => {
+        document.querySelectorAll('.matches-table-select .iit').forEach(el => el.classList.remove('selected'));
+        bracketBtn.classList.add('selected');
+        renderBracketView();
     });
 }
 
@@ -2088,6 +2259,144 @@ export function getMatchArticleRelevence(match_id) {
     
 }
 
+// Seeded random number generator
+function seededRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+// Generate random value within range using seed
+function seededRandomInRange(seed, min, max) {
+    return Math.floor(seededRandom(seed) * (max - min + 1)) + min;
+}
+
+// Check if stats are missing or all zeros
+function statsNeedRegeneration(stats) {
+    if (!stats) return true;
+    
+    const allZero = 
+        (stats.possession?.team1 === 50 && stats.possession?.team2 === 50) &&
+        (stats.shotsOnTarget?.team1 === 0 && stats.shotsOnTarget?.team2 === 0) &&
+        (stats.passAccuracy?.team1 === 0 && stats.passAccuracy?.team2 === 0) &&
+        (stats.corners?.team1 === 0 && stats.corners?.team2 === 0) &&
+        (stats.offsides?.team1 === 0 && stats.offsides?.team2 === 0);
+    
+    return allZero;
+}
+
+// Generate advanced stats based on score and seed
+function generateStatsFromScore(score1, score2, seed) {
+    const totalGoals = score1 + score2;
+    const goalDiff = score1 - score2;
+    
+    // Calculate favor percentage (50% = draw, higher = team1 dominated)
+    let favorPercent;
+    if (totalGoals === 0) {
+        // 0-0 draw, fairly balanced
+        favorPercent = 50 + seededRandomInRange(seed, -10, 10);
+    } else {
+        // Base favor on goal difference
+        const baseFavor = 50 + (goalDiff / Math.max(totalGoals, 1)) * 30;
+        const variance = seededRandomInRange(seed + 1, -8, 8);
+        favorPercent = Math.max(20, Math.min(80, baseFavor + variance));
+    }
+    
+    const bias = (favorPercent - 50) / 50; // -1 to 1
+    
+    // Possession (more goals usually means more possession for winner)
+    const possession1 = Math.round(50 + bias * seededRandomInRange(seed + 2, 15, 25));
+    const possession2 = 100 - possession1;
+    
+    // Shots on target (correlate with goals scored + some randomness)
+    const baseShots1 = score1 + seededRandomInRange(seed + 3, 1, 4);
+    const baseShots2 = score2 + seededRandomInRange(seed + 4, 1, 4);
+    const shotsOnTarget1 = Math.max(score1, baseShots1 + Math.round(bias * seededRandomInRange(seed + 5, 0, 3)));
+    const shotsOnTarget2 = Math.max(score2, baseShots2 - Math.round(bias * seededRandomInRange(seed + 6, 0, 3)));
+    
+    // Pass accuracy (winner usually has better passing)
+    const passAccuracy1 = Math.round(70 + bias * seededRandomInRange(seed + 7, 8, 15) + seededRandomInRange(seed + 8, -5, 5));
+    const passAccuracy2 = Math.round(70 - bias * seededRandomInRange(seed + 9, 8, 15) + seededRandomInRange(seed + 10, -5, 5));
+    
+    // Corners (attacking team gets more)
+    const corners1 = Math.round(3 + bias * seededRandomInRange(seed + 11, 2, 5) + seededRandomInRange(seed + 12, 0, 3));
+    const corners2 = Math.round(3 - bias * seededRandomInRange(seed + 13, 2, 5) + seededRandomInRange(seed + 14, 0, 3));
+    
+    // Offsides (attacking team catches more offsides)
+    const offsides1 = Math.round(2 + Math.abs(bias) * seededRandomInRange(seed + 15, 1, 3));
+    const offsides2 = Math.round(2 + Math.abs(bias) * seededRandomInRange(seed + 16, 1, 3));
+    
+    return {
+        possession: { 
+            team1: Math.max(25, Math.min(75, possession1)), 
+            team2: Math.max(25, Math.min(75, possession2)) 
+        },
+        shotsOnTarget: { 
+            team1: Math.max(0, shotsOnTarget1), 
+            team2: Math.max(0, shotsOnTarget2) 
+        },
+        passAccuracy: { 
+            team1: Math.max(50, Math.min(95, passAccuracy1)), 
+            team2: Math.max(50, Math.min(95, passAccuracy2)) 
+        },
+        corners: { 
+            team1: Math.max(0, corners1), 
+            team2: Math.max(0, corners2) 
+        },
+        offsides: { 
+            team1: Math.max(0, offsides1), 
+            team2: Math.max(0, offsides2) 
+        }
+    };
+}
+
+// Reinitialize all games with missing/zero stats
+export function reinitial() {
+    let updatedCount = 0;
+    
+    for (let season of seasons) {
+        for (let matchday of season.matchdays || []) {
+            for (let game of matchday.games || []) {
+                // Skip standby games
+                if (game.standby) continue;
+                
+                // Check if stats need regeneration
+                if (statsNeedRegeneration(game.stats)) {
+                    const seed = game.seed || Math.floor(Math.random() * 10000);
+                    const score1 = game.score1 || 0;
+                    const score2 = game.score2 || 0;
+                    
+                    // Generate new stats
+                    game.stats = generateStatsFromScore(score1, score2, seed);
+                    
+                    // Ensure game has a seed for consistency
+                    if (!game.seed) {
+                        game.seed = seed;
+                    }
+                    
+                    updatedCount++;
+                }
+            }
+        }
+    }
+    
+    // Save the updated seasons
+    saveSeason();
+    
+    console.log(`Reinitial complete: Updated ${updatedCount} games with generated stats.`);
+    alert(`Stats regenerated for ${updatedCount} games.`);
+    
+    // Reload current season to reflect changes
+    const currentSeason = getCurrentSeason();
+    loadSeason(currentSeason);
+}
+
+// Keyboard shortcut listener for Cmd/Ctrl + B
+document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
+        event.preventDefault();
+        reinitial();
+    }
+});
 
 
 // document.addEventListener('DOMContentLoaded', () => {

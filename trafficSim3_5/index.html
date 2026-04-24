@@ -522,7 +522,7 @@
         const affectedSegments = new Set([...nodes.get(startKey).segments, ...nodes.get(endKey).segments]);
         affectedSegments.forEach(seg => redrawSegment(seg));
 
-        // Draw junction squares for nodes with multiple connections
+        // Draw junction squares for nodes with multiple relations
         if (nodes.get(startKey).count > 1) {
           // Remove old junction marker if exists
           svg.querySelectorAll(`rect[data-node="${startKey}"], circle[data-node="${startKey}"]`).forEach(el => el.remove());

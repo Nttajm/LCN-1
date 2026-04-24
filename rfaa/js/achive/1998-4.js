@@ -9574,43 +9574,4 @@ export const seasonTopush =
             }
         }
     },
-    {
-        "year": "2025",
-        "teams": [
-            "tex",
-            "DELU",
-            "DELM",
-            "Dom",
-            "fill",
-            "esg",
-            "hewi",
-            "lenico",
-            "nb",
-            "pali",
-            "Sprta",
-            "Uly",
-            "RS",
-            "BCCR",
-            "serpo",
-            "DelUnited",
-            "PSL",
-            "NDIJON",
-            "ocio",
-            "riofc",
-            "Sentago",
-            "pacer",
-            "gks",
-            "BVB",
-            "deg",
-            "astH",
-            "bsti",
-            "hogn",
-            "penn",
-            "dj",
-            "athmak",
-            "V"
-        ],
-        "id": "season-2025",
-        "matchdays": []
-    }
 ]
