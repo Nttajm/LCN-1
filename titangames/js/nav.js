@@ -20,20 +20,20 @@
             available: true,
             icon: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="9" height="9" rx="1" fill="#3a7ec4"/><rect x="16" y="8" width="9" height="9" rx="1" fill="#c9b458"/><rect x="28" y="8" width="9" height="9" rx="1" fill="#3a7ec4"/><rect x="4" y="20" width="9" height="9" rx="1" fill="#818384"/><rect x="16" y="20" width="9" height="9" rx="1" fill="#3a7ec4"/><rect x="28" y="20" width="9" height="9" rx="1" fill="#818384"/><rect x="4" y="32" width="9" height="9" rx="1" fill="#c9b458"/><rect x="16" y="32" width="9" height="9" rx="1" fill="#818384"/><rect x="28" y="32" width="9" height="9" rx="1" fill="#3a7ec4"/></svg>'
         },
-        {
-            name: 'The Crossword',
-            desc: 'A challenging daily crossword puzzle.',
-            href: BASE + 'crossword.html',
-            bg: '#C2D0E8',
-            available: true,
-            icon: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="44" rx="5" fill="white"/><rect x="2" y="2" width="44" height="44" rx="5" stroke="#ccc" stroke-width="1"/><rect x="7" y="7" width="7" height="7" fill="#121212"/><rect x="17" y="7" width="7" height="7" fill="#121212"/><rect x="27" y="7" width="7" height="7" fill="white"/><rect x="34" y="7" width="7" height="7" fill="#121212"/><rect x="7" y="17" width="7" height="7" fill="white"/><rect x="17" y="17" width="7" height="7" fill="#121212"/><rect x="27" y="17" width="7" height="7" fill="#121212"/><rect x="34" y="17" width="7" height="7" fill="white"/><rect x="7" y="27" width="7" height="7" fill="#121212"/><rect x="17" y="27" width="7" height="7" fill="white"/><rect x="27" y="27" width="7" height="7" fill="white"/><rect x="34" y="27" width="7" height="7" fill="#121212"/><rect x="7" y="34" width="7" height="7" fill="white"/><rect x="17" y="34" width="7" height="7" fill="#121212"/><rect x="27" y="34" width="7" height="7" fill="#121212"/><rect x="34" y="34" width="7" height="7" fill="white"/></svg>'
-        },
+        // {
+        //     name: 'The Crossword',
+        //     desc: 'A challenging daily crossword puzzle.',
+        //     href: BASE + 'crossword.html',
+        //     bg: '#C2D0E8',
+        //     available: true,
+        //     icon: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="44" rx="5" fill="white"/><rect x="2" y="2" width="44" height="44" rx="5" stroke="#ccc" stroke-width="1"/><rect x="7" y="7" width="7" height="7" fill="#121212"/><rect x="17" y="7" width="7" height="7" fill="#121212"/><rect x="27" y="7" width="7" height="7" fill="white"/><rect x="34" y="7" width="7" height="7" fill="#121212"/><rect x="7" y="17" width="7" height="7" fill="white"/><rect x="17" y="17" width="7" height="7" fill="#121212"/><rect x="27" y="17" width="7" height="7" fill="#121212"/><rect x="34" y="17" width="7" height="7" fill="white"/><rect x="7" y="27" width="7" height="7" fill="#121212"/><rect x="17" y="27" width="7" height="7" fill="white"/><rect x="27" y="27" width="7" height="7" fill="white"/><rect x="34" y="27" width="7" height="7" fill="#121212"/><rect x="7" y="34" width="7" height="7" fill="white"/><rect x="17" y="34" width="7" height="7" fill="#121212"/><rect x="27" y="34" width="7" height="7" fill="#121212"/><rect x="34" y="34" width="7" height="7" fill="white"/></svg>'
+        // },
         {
             name: 'Relations',
             desc: 'Find four groups of items that share something.',
             href: '#',
             bg: '#C5B4E3',
-            available: false,
+            available: true,
             icon: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="18" y="4" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="32" y="4" width="10" height="10" rx="1.5" fill="#C77DBA"/><rect x="4" y="18" width="10" height="10" rx="1.5" fill="#C77DBA"/><rect x="18" y="18" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="32" y="18" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="4" y="32" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="18" y="32" width="10" height="10" rx="1.5" fill="#C77DBA"/><rect x="32" y="32" width="10" height="10" rx="1.5" fill="#C77DBA"/></svg>'
         }
     ];

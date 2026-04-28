@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/nerdle.css">
+<link rel="stylesheet" href="../css/bonus-explainer.css">
 </head>
 <body>
 
@@ -106,6 +107,34 @@
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+
+<div class="bonus-overlay" id="bonusOverlay">
+    <div class="bonus-card">
+        <div class="bonus-card-bar"></div>
+        <div class="bonus-card-body">
+            <p class="bonus-eyebrow">Daily Bonus</p>
+            <h2 class="bonus-heading">First to finish<br>earns more.</h2>
+            <div class="bonus-tiers">
+                <div class="bonus-tier">
+                    <span class="bonus-tier-place">1st place</span>
+                    <span class="bonus-tier-mult">3&times; points</span>
+                </div>
+                <div class="bonus-tier">
+                    <span class="bonus-tier-place">2nd place</span>
+                    <span class="bonus-tier-mult">2&times; points</span>
+                </div>
+                <div class="bonus-tier">
+                    <span class="bonus-tier-place">3rd place</span>
+                    <span class="bonus-tier-mult">1.5&times; points</span>
+                </div>
+            </div>
+            <p class="bonus-caption">All other scores are applied as normal.</p>
+            <button class="bonus-dismiss" id="bonusDismiss">Got it</button>
+        </div>
+    </div>
+</div>
+
+<div class="offline-overlay" id="offlineOverlay">
 
 <script src="../js/nav.js"></script>
 <script type="module" src="js/nerdle.js"></script>

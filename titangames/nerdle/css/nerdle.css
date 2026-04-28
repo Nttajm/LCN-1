@@ -4,6 +4,55 @@
     padding: 0;
 }
 
+.offline-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.82);
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.offline-overlay.show {
+    display: flex;
+}
+.offline-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    text-align: center;
+    padding: 2rem;
+}
+.offline-content svg {
+    opacity: 0.7;
+}
+.offline-content h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.offline-content p {
+    font-size: 0.95rem;
+    opacity: 0.75;
+}
+.offline-content button {
+    margin-top: 8px;
+    padding: 0.55rem 1.4rem;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.offline-content button:hover {
+    background: rgba(255,255,255,0.12);
+}
+
 html, body {
     height: 100%;
     overflow: hidden;

@@ -398,10 +398,11 @@ class RelationsGame {
         this.gameOver = true;
         const score = this.calculateScore();
         
-        // Update local stats
         this.updateLocalStats(true);
         
-        if (currentUser && !alreadyCompleted) {
+        let finalScore = score;
+        let bonusPosition = null;
+        if (currentUser && !currentUser.isAnonymous && !alreadyCompleted) {
             const result = await submitGameCompletion('relations', score, {
                 mistakes: this.mistakes,
                 won: true,
@@ -411,12 +412,16 @@ class RelationsGame {
                 categoryColors: this.solved.map(cat => cat.color)
             });
             if (result.success) {
+                finalScore = result.finalPoints;
+                bonusPosition = result.bonusPosition;
                 alreadyCompleted = true;
                 await updatePointsDisplay();
             }
         }
         
-        this.showToast(`+${score} pts`);
+        const bonusLabels = ['', '1st — 3× bonus!', '2nd — 2× bonus!', '3rd — 1.5× bonus!'];
+        const bonusLabel = bonusPosition ? ` · ${bonusLabels[bonusPosition]}` : '';
+        this.showToast(`+${finalScore} pts${bonusLabel}`);
         
         setTimeout(() => {
             this.showModal(true);
@@ -685,3 +690,29 @@ let game;
 document.addEventListener('DOMContentLoaded', () => {
     game = new RelationsGame();
 });
+
+// Offline detection
+(function() {
+    const overlay = document.getElementById('offlineOverlay');
+    if (!overlay) return;
+    function handleOffline() { overlay.classList.add('show'); }
+    function handleOnline() { overlay.classList.remove('show'); }
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    if (!navigator.onLine) handleOffline();
+})();
+
+(function() {
+    if (localStorage.getItem('titan_bonus_seen')) return;
+    const overlay = document.getElementById('bonusOverlay');
+    if (!overlay) return;
+    function dismiss() {
+        overlay.classList.remove('show');
+        localStorage.setItem('titan_bonus_seen', '1');
+    }
+    overlay.classList.add('show');
+    document.getElementById('bonusDismiss').addEventListener('click', dismiss);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) dismiss();
+    });
+})();

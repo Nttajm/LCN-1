@@ -1,7 +1,7 @@
 // Firebase imports for database
 import { db, auth, puzzleDb } from "../../js/firebase.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 // Points system
 import { 
@@ -17,11 +17,17 @@ let todayPoints = 0;
 let alreadyCompleted = false;
 let completedGameData = null;
 let boardReady = false;
+let draftRestored = false;
 
 onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        // Sign in anonymously so guests can read Firestore (leaderboard)
+        try { await signInAnonymously(auth); } catch (e) { /* ignore */ }
+        return;
+    }
     currentUser = user;
     await updatePointsDisplay();
-    if (user) {
+    if (!user.isAnonymous) {
         const completion = await checkGameCompletion('nerdle');
         if (completion.completed) {
             alreadyCompleted = true;
@@ -29,7 +35,11 @@ onAuthStateChanged(auth, async (user) => {
             if (boardReady && targetWord) {
                 restoreCompletedGame();
             }
+        } else if (boardReady && targetWord && !draftRestored) {
+            await restoreSavedGameState();
         }
+    } else if (boardReady && targetWord && !draftRestored && !alreadyCompleted) {
+        await restoreSavedGameState();
     }
 });
 
@@ -39,7 +49,13 @@ async function restoreCompletedGame() {
     
     const boardState = completedGameData.boardState;
     gameOver = true;
+    gameWon = !!completedGameData.won;
     gameScore = completedGameData.points || 0;
+    guessScores = new Array(boardState.length).fill(0);
+    if (gameWon && completedGameData.guesses > 0 && completedGameData.guesses <= boardState.length) {
+        guessScores[completedGameData.guesses - 1] = gameScore;
+        lastWinRow = completedGameData.guesses;
+    }
     
     document.getElementById("splashOverlay").classList.add("hidden");
     
@@ -154,9 +170,10 @@ const WORD_LENGTH = 5;
 const STATS_KEY = "nerdle_stats";
 const GAME_STATE_KEY = "nerdle_game_state";
 
-// Scoring constants
-const POINTS_CORRECT = 15;  // Points for letter in correct position
-const POINTS_PRESENT = 5;   // Points for letter present but wrong position
+// NYT Wordle-style scoring translated to points.
+// Wordle itself is scored by attempt count (1-6), so we map fewer attempts to more points.
+const NYT_WORDLE_POINTS_BY_GUESS = [100, 80, 60, 40, 20, 10];
+const NYT_WORDLE_LOSS_POINTS = 0;
 
 /**
  * Update the points display in the header
@@ -165,7 +182,7 @@ async function updatePointsDisplay(storePrevious = false) {
     const pointsEl = document.getElementById('headerPoints');
     if (!pointsEl) return;
     
-    if (currentUser) {
+    if (currentUser && !currentUser.isAnonymous) {
         try {
             const stats = await getTodayStats();
             if (storePrevious) {
@@ -190,8 +207,10 @@ let validating = false;
 let targetWord = "";
 let wordList = [];
 let lastWinRow = -1;
+let gameWon = null;
 let gameScore = 0;          // Total score for current game
 let guessScores = [];       // Score for each guess
+let statsRefreshInterval = null;
 
 function getDefaultStats() {
     return {
@@ -222,7 +241,7 @@ function saveStats(stats) {
  * Load stats from Firebase for logged-in user
  */
 async function loadStatsFromDb() {
-    if (!currentUser) return loadStats();
+    if (!currentUser || currentUser.isAnonymous) return loadStats();
     
     try {
         const userDoc = await getDoc(doc(db, 'titan_users', currentUser.uid));
@@ -248,7 +267,7 @@ async function loadStatsFromDb() {
 async function saveStatsToDb(stats) {
     saveStats(stats);  // Always save locally too
     
-    if (!currentUser) return;
+    if (!currentUser || currentUser.isAnonymous) return;
     
     try {
         const userRef = doc(db, 'titan_users', currentUser.uid);
@@ -347,8 +366,10 @@ function createStatsModal() {
                         <span class="stats-stat-label">Max<br>Streak</span>
                     </div>
                 </div>
-                <p class="stats-section-title">Guess Distribution</p>
-                <div class="stats-distribution" id="statsDistribution"></div>
+                <div class="stats-leaderboard" id="statsLeaderboard" style="display:none">
+                    <p class="stats-section-title">Leaderboard</p>
+                    <div class="stats-leaderboard-body" id="statsLeaderboardBody"></div>
+                </div>
                 
                 <div class="stats-login-prompt" id="statsLoginPrompt" style="display:none">
                     <p class="stats-login-message">Sign in to save your score and compete on the leaderboard!</p>
@@ -358,10 +379,6 @@ function createStatsModal() {
                     </button>
                 </div>
 
-                <div class="stats-leaderboard" id="statsLeaderboard" style="display:none">
-                    <p class="stats-section-title">Today's Leaderboard</p>
-                    <div class="stats-leaderboard-body" id="statsLeaderboardBody"></div>
-                </div>
                 <div class="stats-games-row">
                     <a href="../relations/index.html" class="stats-game-card">
                         <div class="stats-game-card-icon" style="background:#C5B4E3">
@@ -395,6 +412,171 @@ function createStatsModal() {
     });
 }
 
+function stopStatsAutoRefresh() {
+    if (statsRefreshInterval) {
+        clearInterval(statsRefreshInterval);
+        statsRefreshInterval = null;
+    }
+}
+
+function startStatsAutoRefresh(isLiveView) {
+    stopStatsAutoRefresh();
+    if (!isLiveView) return;
+
+    statsRefreshInterval = setInterval(async function () {
+        const overlay = document.getElementById("statsOverlay");
+        if (!overlay || !overlay.classList.contains("open")) return;
+
+        await updatePointsDisplay();
+        await renderLeaderboard(false);
+    }, 10000);
+}
+
+function formatPointsLabel(points) {
+    if (!points || points <= 0) return "nada";
+    return `${points} pts`;
+}
+
+function getTodayDateKey() {
+    const today = new Date();
+    return today.getFullYear() + '-' +
+        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+        String(today.getDate()).padStart(2, '0');
+}
+
+function buildDraftState() {
+    const completeRows = getBoardState(Math.min(currentRow + 1, MAX_GUESSES));
+    return {
+        date: getTodayDateKey(),
+        word: targetWord,
+        boardState: completeRows,
+        currentRow,
+        guessScores,
+        gameScore,
+        gameOver,
+        gameWon,
+        lastWinRow
+    };
+}
+
+function loadSessionDraftState() {
+    try {
+        const raw = sessionStorage.getItem(GAME_STATE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function saveSessionDraftState(state) {
+    try {
+        sessionStorage.setItem(GAME_STATE_KEY, JSON.stringify(state));
+    } catch {}
+}
+
+function clearSessionDraftState() {
+    try {
+        sessionStorage.removeItem(GAME_STATE_KEY);
+    } catch {}
+}
+
+function clearLegacyLocalDraftState() {
+    try {
+        localStorage.removeItem(GAME_STATE_KEY);
+    } catch {}
+}
+
+async function saveDraftState() {
+    if (!targetWord || gameOver || alreadyCompleted) return;
+
+    const draft = buildDraftState();
+    saveSessionDraftState(draft);
+
+    if (!currentUser || currentUser.isAnonymous) return;
+    try {
+        const userRef = doc(db, 'titan_users', currentUser.uid);
+        await setDoc(userRef, {
+            gameStats: {
+                nerdle: {
+                    dailyState: draft,
+                    lastUpdated: serverTimestamp()
+                }
+            }
+        }, { merge: true });
+    } catch (e) {
+        console.error('Error saving draft state to DB:', e);
+    }
+}
+
+async function clearDraftState() {
+    clearSessionDraftState();
+    clearLegacyLocalDraftState();
+    if (!currentUser || currentUser.isAnonymous) return;
+    try {
+        const userRef = doc(db, 'titan_users', currentUser.uid);
+        await setDoc(userRef, {
+            gameStats: {
+                nerdle: {
+                    dailyState: null,
+                    lastUpdated: serverTimestamp()
+                }
+            }
+        }, { merge: true });
+    } catch (e) {
+        console.error('Error clearing draft state from DB:', e);
+    }
+}
+
+async function getDbDraftState() {
+    if (!currentUser || currentUser.isAnonymous) return null;
+    try {
+        const userDoc = await getDoc(doc(db, 'titan_users', currentUser.uid));
+        if (!userDoc.exists()) return null;
+        return userDoc.data()?.gameStats?.nerdle?.dailyState || null;
+    } catch (e) {
+        console.error('Error loading draft state from DB:', e);
+        return null;
+    }
+}
+
+async function restoreSavedGameState() {
+    if (draftRestored || alreadyCompleted || gameOver || !boardReady || !targetWord) return;
+
+    const todayKey = getTodayDateKey();
+    const sessionDraft = loadSessionDraftState();
+    const dbDraft = currentUser ? await getDbDraftState() : null;
+    const draft = dbDraft || sessionDraft;
+
+    if (!draft) return;
+    if (draft.date !== todayKey || draft.word !== targetWord) {
+        await clearDraftState();
+        return;
+    }
+    if (!Array.isArray(draft.boardState)) return;
+
+    draftRestored = true;
+    guessScores = Array.isArray(draft.guessScores) ? draft.guessScores.slice() : [];
+    gameScore = Number(draft.gameScore || 0);
+    gameWon = draft.gameWon === true ? true : (draft.gameWon === false ? false : null);
+    lastWinRow = Number(draft.lastWinRow || -1);
+
+    for (let r = 0; r < draft.boardState.length; r++) {
+        const guess = draft.boardState[r];
+        if (!guess || guess.length !== WORD_LENGTH) continue;
+        for (let c = 0; c < guess.length; c++) {
+            const tile = getTile(r, c);
+            if (tile) {
+                tile.textContent = guess[c];
+            }
+        }
+        currentRow = r;
+        await revealRowInstant(guess);
+    }
+
+    currentRow = Math.min(draft.boardState.length, MAX_GUESSES - 1);
+    currentTile = 0;
+}
+
 /**
  * Get the state of each tile from the actual game board
  */
@@ -425,9 +607,9 @@ function renderGameBoardPreview(won, guessNum) {
     const previewContainer = document.getElementById("statsGamePreview");
     const boardGrid = document.getElementById("statsBoardGrid");
     const scoreSummary = document.getElementById("statsScoreSummary");
+    const liveInProgress = won === null && !gameOver;
     
-    // Only show if game was just played (not viewing stats from button)
-    if (won === null || !gameScore) {
+    if (!liveInProgress && (won === null || !gameScore)) {
         previewContainer.style.display = "none";
         return;
     }
@@ -436,7 +618,9 @@ function renderGameBoardPreview(won, guessNum) {
     boardGrid.innerHTML = "";
     
     // Get the board states from the actual game
-    const numRows = won ? guessNum : MAX_GUESSES;
+    const numRows = liveInProgress
+        ? Math.max(guessNum || currentRow, guessScores.length)
+        : (won ? guessNum : MAX_GUESSES);
     const boardStates = getGameBoardStates(numRows);
     
     // Create mini board display
@@ -464,19 +648,24 @@ function renderGameBoardPreview(won, guessNum) {
     });
     
     // Show score summary
-    const resultText = won ? "Solved" : "Not solved";
-    const answerText = won ? "" : ` — Answer: ${targetWord}`;
+    const resultText = liveInProgress ? "In progress" : (won ? "Solved" : "Not solved");
+    const answerText = liveInProgress || won ? "" : ` — Answer: ${targetWord}`;
+    const liveHint = liveInProgress
+        ? `<div class="stats-score-live">If solved now: ${getNytStyleSolvePoints(currentRow + 1)} pts</div>`
+        : "";
     scoreSummary.innerHTML = `
         <div class="stats-score-result">${resultText}${answerText}</div>
-        <div class="stats-score-total">${gameScore} pts total</div>
+        <div class="stats-score-total">${formatPointsLabel(gameScore)} total</div>
+        ${liveHint}
     `;
 }
 
 let previousTodayPoints = 0;
 
-async function openStatsModal(won, guessNum) {
+async function openStatsModal(won, guessNum, options = {}) {
     const stats = await loadStatsFromDb();
     const overlay = document.getElementById("statsOverlay");
+    const liveView = !!options.liveView;
     
     let title = "Statistics";
     if (won === true) title = "Congratulations!";
@@ -492,47 +681,6 @@ async function openStatsModal(won, guessNum) {
     
     renderGameBoardPreview(won, guessNum);
     
-    const distContainer = document.getElementById("statsDistribution");
-    distContainer.innerHTML = "";
-    
-    if (won !== null && guessScores.length > 0) {
-        const maxScore = Math.max(...guessScores, 1);
-        
-        for (let i = 0; i < MAX_GUESSES; i++) {
-            const row = document.createElement("div");
-            row.className = "stats-bar-row";
-            const score = guessScores[i] || 0;
-            const width = score > 0 ? Math.max((score / maxScore) * 100, 12) : 8;
-            const isHighlight = i < guessScores.length;
-            row.innerHTML = `
-                <span class="stats-bar-num">${i + 1}</span>
-                <div class="stats-bar${isHighlight ? " highlight" : ""}" style="width:${width}%">${score > 0 ? score : 0}</div>
-            `;
-            distContainer.appendChild(row);
-        }
-        
-        const totalRow = document.createElement("div");
-        totalRow.className = "stats-bar-row stats-total-row";
-        totalRow.innerHTML = `
-            <span class="stats-bar-num" style="font-weight:700">Σ</span>
-            <div class="stats-bar highlight" style="width:100%;background:#3a7ec4">${gameScore} pts</div>
-        `;
-        distContainer.appendChild(totalRow);
-    } else {
-        const maxGuesses = Math.max(...stats.guessDistribution, 1);
-        
-        stats.guessDistribution.forEach(function(count, i) {
-            const row = document.createElement("div");
-            row.className = "stats-bar-row";
-            const width = count > 0 ? Math.max((count / maxGuesses) * 100, 8) : 8;
-            row.innerHTML = `
-                <span class="stats-bar-num">${i + 1}</span>
-                <div class="stats-bar" style="width:${width}%">${count}</div>
-            `;
-            distContainer.appendChild(row);
-        });
-    }
-    
     lastWinRow = won ? guessNum : -1;
     overlay.classList.add("open");
     
@@ -542,20 +690,21 @@ async function openStatsModal(won, guessNum) {
         loginPrompt.style.display = currentUser ? "none" : "block";
     }
     
-    const shouldAnimate = won !== null && gameScore > 0;
-    await renderLeaderboard(shouldAnimate, previousTodayPoints);
+    const shouldAnimate = true;
+    await renderLeaderboard(shouldAnimate);
+    startStatsAutoRefresh(liveView);
 }
 
 function closeStatsModal() {
     document.getElementById("statsOverlay").classList.remove("open");
+    stopStatsAutoRefresh();
 }
 
-async function renderLeaderboard(animateUserPoints = false, previousPoints = 0) {
+async function renderLeaderboard(animateUserPoints = false) {
     const leaderboardContainer = document.getElementById("statsLeaderboard");
     const leaderboardBody = document.getElementById("statsLeaderboardBody");
     
-    if (!currentUser || !leaderboardContainer || !leaderboardBody) {
-        if (leaderboardContainer) leaderboardContainer.style.display = "none";
+    if (!leaderboardContainer || !leaderboardBody) {
         return;
     }
     
@@ -570,13 +719,22 @@ async function renderLeaderboard(animateUserPoints = false, previousPoints = 0) 
         leaderboardContainer.style.display = "block";
         leaderboardBody.innerHTML = "";
         
-        const userRank = leaderboard.findIndex(e => e.uid === currentUser.uid) + 1;
+        const userRank = currentUser
+            ? leaderboard.findIndex(e => e.uid === currentUser.uid) + 1
+            : 0;
+        const userRowStartRank = userRank > 0 ? Math.max(userRank + 4, leaderboard.length + 1) : null;
         const top5 = leaderboard.slice(0, 5);
         
         top5.forEach((entry, index) => {
             const rank = index + 1;
-            const isCurrentUser = entry.uid === currentUser.uid;
-            const row = createLeaderboardRow(entry, rank, isCurrentUser, animateUserPoints && isCurrentUser, previousPoints);
+            const isCurrentUser = !!currentUser && entry.uid === currentUser.uid;
+            const row = createLeaderboardRow(
+                entry,
+                rank,
+                isCurrentUser,
+                animateUserPoints && isCurrentUser,
+                userRowStartRank
+            );
             leaderboardBody.appendChild(row);
         });
         
@@ -587,7 +745,13 @@ async function renderLeaderboard(animateUserPoints = false, previousPoints = 0) 
             leaderboardBody.appendChild(divider);
             
             const userEntry = leaderboard[userRank - 1];
-            const row = createLeaderboardRow(userEntry, userRank, true, animateUserPoints, previousPoints);
+            const row = createLeaderboardRow(
+                userEntry,
+                userRank,
+                true,
+                animateUserPoints,
+                userRowStartRank
+            );
             leaderboardBody.appendChild(row);
         }
     } catch (err) {
@@ -596,32 +760,45 @@ async function renderLeaderboard(animateUserPoints = false, previousPoints = 0) 
     }
 }
 
-function createLeaderboardRow(entry, rank, isCurrentUser, animate = false, previousPoints = 0) {
+function createLeaderboardRow(entry, rank, isCurrentUser, animate = false, rankFrom = null) {
     const row = document.createElement("div");
     row.className = `stats-lb-row${isCurrentUser ? " stats-lb-row--highlight" : ""}`;
     
     const rankClass = rank <= 3 ? ` stats-lb-rank--${rank}` : "";
+    const pointsValue = Number(entry.points || 0);
+    const hasPoints = pointsValue > 0;
+
+    const rankSpan = document.createElement("span");
+    rankSpan.className = `stats-lb-rank${rankClass}`;
+    rankSpan.textContent = rank;
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "stats-lb-name";
+    nameSpan.textContent = entry.displayName || "Player";
     
     const ptsSpan = document.createElement("span");
     ptsSpan.className = "stats-lb-pts";
     
-    if (animate && isCurrentUser && previousPoints < entry.points) {
+    if (animate && isCurrentUser && hasPoints) {
         ptsSpan.className += " stats-lb-pts--animate";
-        ptsSpan.setAttribute("data-from", previousPoints);
-        ptsSpan.setAttribute("data-to", entry.points);
-        ptsSpan.textContent = previousPoints;
+        const fromPoints = 0;
+        ptsSpan.setAttribute("data-from", fromPoints);
+        ptsSpan.setAttribute("data-to", pointsValue);
+        ptsSpan.textContent = fromPoints;
+
+        const startRank = rankFrom && rankFrom > rank ? rankFrom : Math.max(rank + 1, 2);
+        rankSpan.textContent = startRank;
         
         setTimeout(() => {
-            animatePointsCount(ptsSpan, previousPoints, entry.points);
+            animatePointsCount(ptsSpan, fromPoints, pointsValue);
+            animateRankCount(rankSpan, startRank, rank);
         }, 300);
     } else {
-        ptsSpan.textContent = entry.points;
+        ptsSpan.textContent = hasPoints ? pointsValue : "nada";
     }
-    
-    row.innerHTML = `
-        <span class="stats-lb-rank${rankClass}">${rank}</span>
-        <span class="stats-lb-name">${entry.displayName || "Player"}</span>
-    `;
+
+    row.appendChild(rankSpan);
+    row.appendChild(nameSpan);
     row.appendChild(ptsSpan);
     
     const gamesSpan = document.createElement("span");
@@ -653,6 +830,28 @@ function animatePointsCount(element, from, to) {
         }
     }
     
+    requestAnimationFrame(update);
+}
+
+function animateRankCount(element, from, to) {
+    const duration = 900;
+    const startTime = performance.now();
+
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(from + (to - from) * easeOut);
+
+        element.textContent = currentValue;
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = to;
+        }
+    }
+
     requestAnimationFrame(update);
 }
 
@@ -821,18 +1020,21 @@ function updateKeyboard(letter, state) {
     key.setAttribute("data-state", state);
 }
 
-function calculateGuessScore(guess) {
+function getNytStyleSolvePoints(guessNum) {
+    if (guessNum < 1 || guessNum > MAX_GUESSES) return NYT_WORDLE_LOSS_POINTS;
+    return NYT_WORDLE_POINTS_BY_GUESS[guessNum - 1] || NYT_WORDLE_LOSS_POINTS;
+}
+
+function calculateGuessFeedback(guess) {
     const target = targetWord.split("");
     const guessArr = guess.split("");
     const targetCopy = target.slice();
-    let score = 0;
     let correctCount = 0;
     let presentCount = 0;
 
     // First pass: check for correct positions
     for (let i = 0; i < WORD_LENGTH; i++) {
         if (guessArr[i] === target[i]) {
-            score += POINTS_CORRECT;
             correctCount++;
             targetCopy[i] = null;
         }
@@ -843,13 +1045,12 @@ function calculateGuessScore(guess) {
         if (guessArr[i] === target[i]) continue;
         const idx = targetCopy.indexOf(guessArr[i]);
         if (idx !== -1) {
-            score += POINTS_PRESENT;
             presentCount++;
             targetCopy[idx] = null;
         }
     }
 
-    return { score, correctCount, presentCount };
+    return { correctCount, presentCount };
 }
 
 function getBoardState(numRows) {
@@ -946,21 +1147,26 @@ async function submitGuess() {
 
     const row = currentRow;
 
-    // Calculate score for this guess
-    const scoreResult = calculateGuessScore(guess);
-    guessScores.push(scoreResult.score);
-    gameScore += scoreResult.score;
+    // Keep per-row points for preview; points are only awarded on the solving row.
+    const feedback = calculateGuessFeedback(guess);
+    guessScores.push(0);
 
     revealRow(guess).then(async function () {
-        const scoreMsg = `+${scoreResult.score} pts (${scoreResult.correctCount}🟦 ${scoreResult.presentCount}🟨)`;
-        showToast(scoreMsg, 2000);
+        const feedbackMsg = `${feedback.correctCount}🟦 ${feedback.presentCount}🟨`;
+        showToast(feedbackMsg, 1800);
 
         if (guess === targetWord) {
             gameOver = true;
+            gameWon = true;
             const guessNum = row + 1;
+            const solvePoints = getNytStyleSolvePoints(guessNum);
+            gameScore = solvePoints;
+            guessScores[row] = solvePoints;
             const stats = await recordWin(guessNum);
             
-            if (currentUser && !alreadyCompleted) {
+            let bonusPosition = null;
+            let bonusMultiplier = 1;
+            if (currentUser && !currentUser.isAnonymous && !alreadyCompleted) {
                 previousTodayPoints = todayPoints;
                 const boardState = getBoardState(guessNum);
                 const result = await submitGameCompletion('nerdle', gameScore, {
@@ -971,14 +1177,20 @@ async function submitGuess() {
                     stats: stats
                 });
                 if (result.success) {
+                    bonusPosition = result.bonusPosition;
+                    bonusMultiplier = result.bonusMultiplier;
+                    gameScore = result.finalPoints;
+                    guessScores[row] = gameScore;
                     alreadyCompleted = true;
                     await updatePointsDisplay(true);
                 }
             }
             
             const messages = ["Genius", "Magnificent", "Impressive", "Splendid", "Great", "Phew"];
+            const bonusLabels = ['', '1st — 3× bonus!', '2nd — 2× bonus!', '3rd — 1.5× bonus!'];
+            const bonusLabel = bonusPosition ? ' · ' + bonusLabels[bonusPosition] : '';
             setTimeout(function () {
-                showToast(messages[row] + " — Total: " + gameScore + " pts", 2500);
+                showToast(messages[row] + " — " + guessNum + "/" + MAX_GUESSES + " • " + formatPointsLabel(gameScore) + bonusLabel, 2500);
             }, 2200);
             setTimeout(function () {
                 bounceRow(row);
@@ -986,14 +1198,17 @@ async function submitGuess() {
             setTimeout(function () {
                 openStatsModal(true, guessNum);
             }, 4800);
+            await clearDraftState();
             return;
         }
 
         if (row === MAX_GUESSES - 1) {
             gameOver = true;
+            gameWon = false;
+            gameScore = NYT_WORDLE_LOSS_POINTS;
             const stats = await recordLoss();
             
-            if (currentUser && !alreadyCompleted) {
+            if (currentUser && !currentUser.isAnonymous && !alreadyCompleted) {
                 previousTodayPoints = todayPoints;
                 const boardState = getBoardState(MAX_GUESSES);
                 const result = await submitGameCompletion('nerdle', gameScore, {
@@ -1010,16 +1225,18 @@ async function submitGuess() {
             }
             
             setTimeout(function () {
-                showToast(targetWord + " — Total: " + gameScore + " pts", 3500);
+                showToast(targetWord + " — " + formatPointsLabel(gameScore), 3500);
             }, 2200);
             setTimeout(function () {
                 openStatsModal(false, 0);
             }, 5800);
+            await clearDraftState();
             return;
         }
 
         currentRow++;
         currentTile = 0;
+        await saveDraftState();
     });
 }
 
@@ -1078,13 +1295,20 @@ async function fetchTodaysPuzzle() {
 }
 
 async function init() {
+    clearLegacyLocalDraftState();
     initSplash();
     createBoard();
     initKeyboard();
     createStatsModal();
     
     document.getElementById("statsBtn").addEventListener("click", function() {
-        openStatsModal(null, 0);
+        if (gameOver && gameWon !== null) {
+            const finishedGuessNum = gameWon ? lastWinRow : 0;
+            openStatsModal(gameWon, finishedGuessNum, { liveView: false });
+            return;
+        }
+
+        openStatsModal(null, currentRow, { liveView: true });
     });
     
     // Try to get today's puzzle from database first
@@ -1103,7 +1327,35 @@ async function init() {
     boardReady = true;
     if (alreadyCompleted && completedGameData) {
         restoreCompletedGame();
+    } else {
+        await restoreSavedGameState();
     }
 }
 
 init();
+
+// Offline detection
+(function() {
+    const overlay = document.getElementById('offlineOverlay');
+    if (!overlay) return;
+    function handleOffline() { overlay.classList.add('show'); }
+    function handleOnline() { overlay.classList.remove('show'); }
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    if (!navigator.onLine) handleOffline();
+})();
+
+(function() {
+    if (localStorage.getItem('titan_bonus_seen')) return;
+    const overlay = document.getElementById('bonusOverlay');
+    if (!overlay) return;
+    function dismiss() {
+        overlay.classList.remove('show');
+        localStorage.setItem('titan_bonus_seen', '1');
+    }
+    overlay.classList.add('show');
+    document.getElementById('bonusDismiss').addEventListener('click', dismiss);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) dismiss();
+    });
+})();

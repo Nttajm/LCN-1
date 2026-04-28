@@ -34,7 +34,8 @@ import {
     limit,
     getDocs,
     increment,
-    arrayUnion
+    arrayUnion,
+    runTransaction
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
@@ -100,6 +101,36 @@ export async function checkGameCompletion(gameName) {
  * @param {object} metadata - Additional game data (attempts, won, etc.)
  * @returns {Promise<{success: boolean, totalPoints: number}>}
  */
+async function claimGameBonus(dateStr, gameName) {
+    const leaderboardRef = doc(db, 'titan_leaderboard', `daily_${dateStr}`);
+    let position = null;
+    let multiplier = 1;
+    try {
+        await runTransaction(db, async (tx) => {
+            const snap = await tx.get(leaderboardRef);
+            const counts = snap.exists() ? (snap.data().gameFinishCounts || {}) : {};
+            const n = counts[gameName] || 0;
+            if (n === 0) { position = 1; multiplier = 3; }
+            else if (n === 1) { position = 2; multiplier = 2; }
+            else if (n === 2) { position = 3; multiplier = 1.5; }
+            if (snap.exists()) {
+                tx.update(leaderboardRef, { [`gameFinishCounts.${gameName}`]: n + 1 });
+            } else {
+                tx.set(leaderboardRef, {
+                    date: dateStr,
+                    entries: [],
+                    gameFinishCounts: { [gameName]: 1 },
+                    createdAt: serverTimestamp(),
+                    lastUpdated: serverTimestamp()
+                });
+            }
+        });
+    } catch (err) {
+        console.error('Error claiming game bonus:', err);
+    }
+    return { position, multiplier };
+}
+
 export async function submitGameCompletion(gameName, points, metadata = {}) {
     if (!currentUser) {
         console.log('User not logged in - points not saved');
@@ -132,8 +163,14 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
             };
         }
 
+        const { position: bonusPosition, multiplier: bonusMultiplier } = await claimGameBonus(dateStr, gameName);
+        const finalPoints = points > 0 ? Math.round(points * bonusMultiplier) : 0;
+
         const gameSubmission = {
-            points: points,
+            points: finalPoints,
+            basePoints: points,
+            bonusMultiplier,
+            bonusPosition,
             isCompleted: true,
             completedAt: serverTimestamp(),
             ...metadata
@@ -142,7 +179,7 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
         // Calculate new totals
         const previousTotal = existingData?.totalPoints || 0;
         const previousGamesPlayed = existingData?.gamesPlayed || 0;
-        const newTotal = previousTotal + points;
+        const newTotal = previousTotal + finalPoints;
         const newGamesPlayed = previousGamesPlayed + 1;
 
         // Update daily submission
@@ -162,7 +199,7 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
                 games: {
                     [gameName]: gameSubmission
                 },
-                totalPoints: points,
+                totalPoints: finalPoints,
                 gamesPlayed: 1,
                 createdAt: serverTimestamp(),
                 lastUpdated: serverTimestamp()
@@ -175,8 +212,8 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
             totalPoints: newTotal,
             gamesPlayed: newGamesPlayed,
             games: existingData?.games 
-                ? { ...existingData.games, [gameName]: { points, isCompleted: true } }
-                : { [gameName]: { points, isCompleted: true } },
+                ? { ...existingData.games, [gameName]: { points: finalPoints, isCompleted: true } }
+                : { [gameName]: { points: finalPoints, isCompleted: true } },
             lastUpdated: serverTimestamp()
         }, { merge: true });
 
@@ -184,9 +221,9 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
         await updateLeaderboard(dateStr, userId, currentUser.displayName || 'Player', newTotal, newGamesPlayed);
 
         // Update user's all-time stats
-        await updateUserStats(userId, points, gameName);
+        await updateUserStats(userId, finalPoints, gameName);
 
-        return { success: true, totalPoints: newTotal };
+        return { success: true, totalPoints: newTotal, finalPoints, bonusMultiplier, bonusPosition };
     } catch (err) {
         console.error('Error submitting game completion:', err);
         return { success: false, totalPoints: 0, error: err.message };

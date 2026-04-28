@@ -4,7 +4,7 @@
  */
 
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { getTodayStats, getTodayLeaderboard, getCurrentUser } from "./points.js";
 
 let currentUser = null;
@@ -48,31 +48,25 @@ async function updateLeaderboardDisplay() {
         leaderboardDate.textContent = getTodayDateFormatted();
     }
     
-    if (!currentUser) {
-        if (leaderboardBody) {
-            leaderboardBody.innerHTML = '<div class="leaderboard-empty">Sign in to see the leaderboard</div>';
-        }
-        if (leaderboardUser) {
-            leaderboardUser.classList.remove('visible');
-            leaderboardUser.innerHTML = '';
-        }
+    const isGuest = !currentUser || currentUser.isAnonymous;
+
+    if (isGuest) {
         if (headerPoints) headerPoints.classList.remove('visible');
         hideAllGameBadges();
-        return;
     }
     
     try {
-        const [leaderboard, userStats] = await Promise.all([
-            getTodayLeaderboard(100),
-            getTodayStats()
-        ]);
+        const leaderboardPromise = getTodayLeaderboard(100);
+        const userStatsPromise = !isGuest ? getTodayStats() : Promise.resolve(null);
+        const [leaderboard, userStats] = await Promise.all([leaderboardPromise, userStatsPromise]);
         
-        if (headerPoints) {
-            headerPoints.textContent = `${userStats.totalPoints} pts`;
-            headerPoints.classList.add('visible');
+        if (!isGuest && userStats) {
+            if (headerPoints) {
+                headerPoints.textContent = `${userStats.totalPoints} pts`;
+                headerPoints.classList.add('visible');
+            }
+            updateGameBadges(userStats.games);
         }
-        
-        updateGameBadges(userStats.games);
         
         if (!leaderboardBody) return;
         
@@ -87,25 +81,24 @@ async function updateLeaderboardDisplay() {
             return;
         }
         
-        const userRank = leaderboard.findIndex(e => e.uid === currentUser.uid) + 1;
+        const userRank = !isGuest ? leaderboard.findIndex(e => e.uid === currentUser.uid) + 1 : 0;
         const top5 = leaderboard.slice(0, 5);
-        const userInTop5 = userRank > 0 && userRank <= 5;
         
         top5.forEach((entry, index) => {
             const rank = index + 1;
-            const isCurrentUser = entry.uid === currentUser.uid;
+            const isCurrentUser = !isGuest && entry.uid === currentUser.uid;
             leaderboardBody.appendChild(createLeaderboardRow(entry, rank, isCurrentUser));
         });
         
         if (leaderboardUser) {
-            if (userRank > 5) {
+            if (!isGuest && userRank > 5) {
                 leaderboardUser.classList.add('visible');
                 leaderboardUser.innerHTML = '';
                 leaderboardUser.appendChild(createDivider());
                 
                 const userEntry = leaderboard[userRank - 1];
                 leaderboardUser.appendChild(createLeaderboardRow(userEntry, userRank, true));
-            } else if (userRank === 0 && userStats.totalPoints > 0) {
+            } else if (!isGuest && userRank === 0 && userStats && userStats.totalPoints > 0) {
                 leaderboardUser.classList.add('visible');
                 leaderboardUser.innerHTML = '';
                 leaderboardUser.appendChild(createDivider());
@@ -161,6 +154,10 @@ function hideAllGameBadges() {
 }
 
 onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        try { await signInAnonymously(auth); } catch (e) { /* ignore */ }
+        return;
+    }
     currentUser = user;
     await updateLeaderboardDisplay();
 });
