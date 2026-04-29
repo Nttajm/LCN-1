@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Season Stats – RFAA</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/acl-styles.css">
+    <link rel="stylesheet" href="css/utils.css">
+    <link rel="stylesheet" href="css/screens.css">
+    <link rel="stylesheet" href="css/seasons.css">
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+</head>
+<body>
+    <!-- League top nav -->
+    <div class="league-nav">
+        <div class="rfaa-img">
+            <img src="images/rfaacom.png" alt="svg" class="logo_img">
+        </div>
+        <div class="leagues">
+            <div class="league">
+                <img src="images/leagues-small/tex-seria.png" alt="tx">
+            </div>
+            <div class="league">
+                <img src="images/leagues-small/quiser.png" alt="tx">
+            </div>
+            <div class="league">
+                <img src="images/leagues-small/acl-logo-small.png" alt="tx">
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav bar -->
+    <div class="nav">
+        <a href="index.html">
+            <div class="imgel">
+                <img src="images/leagues/acl.png" alt="tx">
+            </div>
+        </a>
+        <div class="options">
+            <div class="option-elem">
+                <span><a href="matches.html">Matches</a></span>
+            </div>
+            <div class="option-elem">
+                <span><a href="table.html">Table</a></span>
+            </div>
+            <div class="option-elem" id="histab-parent">
+                <span><a href="#history">History ▼</a></span>
+                <div class="more-info" id="histab">
+                    <ul>
+                        <li><a href="seasons.html">Seasons</a></li>
+                        <li><a href="aot-stats.html">AOT</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="option-elem">
+                <span><a href="#stats">Stats</a></span>
+            </div>
+            <div class="option-elem">
+                <span><a href="#compare">Compare</a></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Season Banner -->
+    <div class="season-banner" id="seasonBanner">
+        <div class="banner-noise"></div>
+        <!-- Winner logo ghost (only shown when season is complete) -->
+        <img class="banner-winner-logo" id="bannerWinnerLogo" src="" alt="" aria-hidden="true">
+        <div class="banner-content">
+            <button class="season-arrow" id="prevSeasonBtn" aria-label="Previous season">&#8592;</button>
+            <div class="banner-center">
+                <span class="banner-label">Season</span>
+                <h1 class="banner-year" id="bannerYear">—</h1>
+                <span class="banner-sub" id="bannerSub"></span>
+            </div>
+            <button class="season-arrow" id="nextSeasonBtn" aria-label="Next season">&#8594;</button>
+        </div>
+    </div>
+
+    <!-- Final match card (only shown when season is complete) -->
+    <div class="final-card-wrap" id="finalCardWrap" style="display:none">
+        <div class="final-card" id="finalCard">
+            <img class="final-trophy-bg" src="images/icons/cl-image.png" alt="" aria-hidden="true">
+            <div class="final-card-inner">
+                <div class="final-tag">&#127942; Champions</div>
+                <div class="final-teams" id="finalTeams"><!-- JS --></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Awards row -->
+    <div class="season-section awards-section">
+        <div class="awards-grid" id="awardsGrid">
+            <!-- Top Scorer -->
+            <div class="award-card" id="award-scorer">
+                <div class="award-label">Top Scorer</div>
+                <div class="award-main">
+                    <span class="award-value" id="scorerName">—</span>
+                    <div class="award-clubs" id="scorerClubs"></div>
+                </div>
+                <div class="award-stat"><span id="scorerCount">—</span> goals</div>
+            </div>
+
+            <!-- Top Assists -->
+            <div class="award-card" id="award-assists">
+                <div class="award-label">Top Assists</div>
+                <div class="award-main">
+                    <span class="award-value" id="assistName">—</span>
+                    <div class="award-clubs" id="assistClubs"></div>
+                </div>
+                <div class="award-stat"><span id="assistCount">—</span> assists</div>
+            </div>
+
+            <!-- Highest Rated -->
+            <div class="award-card award-card--rated" id="award-rated">
+                <div class="award-label">Highest Rated</div>
+                <div class="award-main">
+                    <span class="award-value" id="ratedName">—</span>
+                    <div class="award-clubs" id="ratedClubs"></div>
+                </div>
+                <div class="award-stat rating-badge" id="ratedScore">—</div>
+            </div>
+
+            <!-- Youngest Scorer -->
+            <div class="award-card" id="award-youngest">
+                <div class="award-label">Youngest Scorer</div>
+                <div class="award-main">
+                    <span class="award-value" id="youngestName">—</span>
+                    <div class="award-clubs" id="youngestClubs"></div>
+                </div>
+                <div class="award-stat"><span id="youngestAge">—</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOTM section -->
+    <div class="season-section motm-section">
+        <h2 class="section-title">Man of the Match</h2>
+        <div class="motm-list" id="motmList">
+            <!-- rendered by JS -->
+        </div>
+    </div>
+
+    <!-- Tournament stats section -->
+    <div class="season-section tourney-section">
+        <h2 class="section-title">Tournament Stats <span class="section-year" id="tourneySectionYear"></span></h2>
+        <div class="tourney-cards">
+            <div class="tourney-card">
+                <div class="tc-label">Goals</div>
+                <div class="tc-big" id="tcTotalGoals">—</div>
+                <div class="tc-sub">Total goals</div>
+                <div class="tc-divider"></div>
+                <div class="tc-row">
+                    <div>
+                        <div class="tc-mid" id="tcGPM">—</div>
+                        <div class="tc-sub">Goals per match</div>
+                    </div>
+                    <div>
+                        <div class="tc-mid" id="tcMPG">—</div>
+                        <div class="tc-sub">Minutes per goal</div>
+                    </div>
+                </div>
+                <img class="tc-icon" src="images/icons/cl-image.png" alt="">
+            </div>
+
+            <div class="tourney-card tourney-card--chart">
+                <div class="tc-label">When the goals were scored</div>
+                <div class="goals-chart" id="goalsChart">
+                    <!-- rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/seasons.js"></script>
+</body>
+</html>

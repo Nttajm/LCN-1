@@ -154,7 +154,7 @@ button {
 .league-cont {
     display: flex;
     flex-direction: column;
-    background-color: rgb(0, 1, 75);
+    background-color: #000820;
 
     align-items: stretch;
     width: 100%;
@@ -296,7 +296,7 @@ button {
     content: '';
     position: absolute;
     inset: 0;
-    padding: 2px; /* border width */
+    padding: 1px;
     border-radius: 1.4rem;
     background: var(--border-gradient-rbw);
     -webkit-mask: 
@@ -305,8 +305,8 @@ button {
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     z-index: -1;
-    transition: all 0.3s ease-in-out;
-    background-size: 100%;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0.5;
   }
 
   .games-article::before:hover {
@@ -475,4 +475,70 @@ select {
     flex-direction: column;
     gap: 1rem;
     cursor: pointer;
+}
+
+/* Transfers news section */
+.transfers-news {
+    display: flex;
+    flex-direction: column;
+}
+
+.transfers-news .headin {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.transfers-list {
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0 0 0.5rem 0.5rem;
+    overflow: hidden;
+}
+
+.transfer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.6rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    font-family: roboto;
+    transition: background 0.15s;
+}
+
+.transfer-item:last-child {
+    border-bottom: none;
+}
+
+.transfer-item:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.transfer-player {
+    font-size: 1.6rem;
+    font-weight: 500;
+    min-width: 14rem;
+}
+
+.transfer-move {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.transfer-badge {
+    width: 2.8rem;
+    height: 2.8rem;
+    object-fit: contain;
+}
+
+.transfer-arrow {
+    font-size: 1.8rem;
+    color: var(--mc-3);
+    font-weight: 700;
+}
+
+.transfer-team-name {
+    font-size: 1.5rem;
+    font-weight: 400;
+    opacity: 0.85;
+    min-width: 10rem;
 }

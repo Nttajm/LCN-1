@@ -1,4 +1,5 @@
 import { getCurrentSeason, getThisSeason, getTeamById, getTeamMacthes, getFinalsAndWins , getTeamByplayer, getPlayersByTeam, bindMatchClickEventsGlobal } from './acl-index.js';
+import { rankPlayers } from './ratings.js';
 const seasons = [getThisSeason()].filter(Boolean);
 
 const team = getTeambyLink();
@@ -267,124 +268,12 @@ function renderTopPlayersOfTeam(team) {
 renderTopPlayersOfTeam(team);
 
 export function calculatePlayerRatings() {
-    // Key: "playerName::teamId" — track stats per player per team
-    const playerStats = {};
-
-    function getKey(name, teamId) { return name + '::' + teamId; }
-
-    // Helper: determine which team a player belonged to for a given game
-    function getPlayerTeamInGame(playerName, game) {
-        // Check goal data first (most reliable — each goal has a team field)
-        if (game.goals && Array.isArray(game.goals)) {
-            for (const goal of game.goals) {
-                if (goal.player === playerName || goal.assist === playerName) {
-                    return goal.team;
-                }
-            }
-        }
-        // Fall back to roster check
-        const t1 = getTeamById(game.team1);
-        const t2 = getTeamById(game.team2);
-        if (t1 && t1.player && t1.player.includes(playerName)) return game.team1;
-        if (t2 && t2.player && t2.player.includes(playerName)) return game.team2;
-        return null;
-    }
-
-    function ensure(key) {
-        if (!playerStats[key]) {
-            playerStats[key] = { goals: 0, assists: 0, potm: 0, appearances: 0 };
-        }
-    }
-
-    // Collect all player stats from all seasons
-    seasons.forEach(season => {
-        if (!season.matchdays) return;
-
-        season.matchdays.forEach(matchday => {
-            if (!matchday.games) return;
-
-            matchday.games.forEach(game => {
-                // Count goals and assists (each goal has a team field)
-                if (game.goals && Array.isArray(game.goals)) {
-                    game.goals.forEach(goal => {
-                        if (goal.team) {
-                            const gKey = getKey(goal.player, goal.team);
-                            ensure(gKey);
-                            playerStats[gKey].goals++;
-
-                            if (goal.assist && goal.assist !== 'none') {
-                                const aKey = getKey(goal.assist, goal.team);
-                                ensure(aKey);
-                                playerStats[aKey].assists++;
-                            }
-                        }
-                    });
-                }
-
-                // Count POTM awards
-                if (game.potm && game.potm !== 'none') {
-                    const potmTeam = getPlayerTeamInGame(game.potm, game);
-                    if (potmTeam) {
-                        const pKey = getKey(game.potm, potmTeam);
-                        ensure(pKey);
-                        playerStats[pKey].potm++;
-                    }
-                }
-            });
-        });
-    });
-
-    // Compute max values across all entries for normalization
-    const allEntries = Object.values(playerStats);
-    const maxGoals = Math.max(...allEntries.map(p => p.goals), 1);
-    const maxAssists = Math.max(...allEntries.map(p => p.assists), 1);
-    const maxPOTM = Math.max(...allEntries.map(p => p.potm), 1);
-
-    // Convert to array and calculate ratings
-    const players = Object.entries(playerStats).map(([key, stats]) => {
-        const [name, teamId] = key.split('::');
-
-        let rating = 5.0;
-
-        const goalsRatio = stats.goals / maxGoals;
-        const assistsRatio = stats.assists / maxAssists;
-        const potmRatio = stats.potm / maxPOTM;
-
-        const goalsScore = Math.sqrt(goalsRatio) * 1.8;
-        const assistsScore = Math.sqrt(assistsRatio) * 1.3;
-        const potmScore = Math.sqrt(potmRatio) * 2.0;
-
-        rating += goalsScore + assistsScore + potmScore;
-
-        const totalContributions = stats.goals + stats.assists + stats.potm;
-        if (totalContributions > 0) {
-            rating += Math.log10(1 + totalContributions / 8) * 0.8;
-        }
-
-        if (rating > 8.5) {
-            const excess = rating - 8.5;
-            rating = 8.5 + (excess * 0.6);
-        }
-
-        rating = Math.max(1.0, Math.min(10, rating));
-        rating = Math.round(rating * 10) / 10;
-
-        return {
-            name,
-            rating,
-            goals: stats.goals,
-            assists: stats.assists,
-            potm: stats.potm,
-            appearances: stats.appearances,
-            team: teamId,
-        };
-    }).sort((a, b) => b.rating - a.rating);
-
-    return players;
+    const games = seasons.flatMap(season =>
+        (season.matchdays || []).flatMap(md => md.games || [])
+    );
+    // Expose `team` alias so existing callers using player.team continue to work
+    return rankPlayers(games).map(p => ({ ...p, team: p.teamId }));
 }
-
-// To test it, just call:
-console.log(calculatePlayerRatings());
 
 function getTeamWinRatio(team) {
     if (!team) return 0;

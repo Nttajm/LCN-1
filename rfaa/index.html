@@ -115,6 +115,53 @@
             </div>
         </div>
 
+        <!-- PLAYER OF THE WEEK -->
+        <div class="potw-section m2-group" id="potw-section">
+            <div class="potw-card">
+                <div class="potw-bg-glow"></div>
+                <div class="potw-overline">
+                    <span class="potw-tag">Player of the Week</span>
+                    <div class="potw-divider"></div>
+                    <span class="potw-matchday-label">Match Day <span id="potw-md-num">—</span></span>
+                </div>
+                <div class="potw-name-row">
+                    <span class="potw-name" id="potw-name">—</span>
+                    <span class="potw-potm-chip" id="potw-potm-chip">POTM</span>
+                </div>
+                <div class="potw-meta">
+                    <div class="potw-team-info">
+                        <img id="potw-badge" src="" alt="" class="potw-team-badge">
+                        <span class="potw-team-name" id="potw-team">—</span>
+                    </div>
+                </div>
+                <div class="potw-footer">
+                    <div class="potw-stats-row">
+                        <div class="potw-stat">
+                            <span class="potw-stat-val" id="potw-goals">0</span>
+                            <span class="potw-stat-label">Goals</span>
+                        </div>
+                        <div class="potw-stat">
+                            <span class="potw-stat-val" id="potw-assists">0</span>
+                            <span class="potw-stat-label">Assists</span>
+                        </div>
+                        <div class="potw-stat">
+                            <span class="potw-stat-val" id="potw-cs">—</span>
+                            <span class="potw-stat-label">Clean Sheet</span>
+                        </div>
+                        <div class="potw-stat">
+                            <span class="potw-stat-val" id="potw-yc">0</span>
+                            <span class="potw-stat-label">Yellow</span>
+                        </div>
+                    </div>
+                    <div class="potw-score-badge">
+                        <span class="potw-score-num" id="potw-score">0</span>
+                        <span class="potw-score-label">Score</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END PLAYER OF THE WEEK -->
+
         <div class="headlineGames m2-group">
             <h2>Recent</h2>
             <div class="hl-games">
@@ -147,6 +194,48 @@
                     <div class="info">
                         <span>What to expect this season </span>
                         <span>Articles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="transfers-news m2-group">
+            <h2 class="headin">Transfers</h2>
+            <div class="transfers-list">
+                <div class="transfer-item">
+                    <span class="transfer-player">Marcus Veld</span>
+                    <div class="transfer-move">
+                        <img src="images/teams/Borussia.png" alt="Borussia" class="transfer-badge">
+                        <span class="transfer-arrow">→</span>
+                        <img src="images/teams/VFoyern.png" alt="VFoyern" class="transfer-badge">
+                        <span class="transfer-team-name">VFoyern</span>
+                    </div>
+                </div>
+                <div class="transfer-item">
+                    <span class="transfer-player">Tiago Serrano</span>
+                    <div class="transfer-move">
+                        <img src="images/teams/Slavia.png" alt="Slavia" class="transfer-badge">
+                        <span class="transfer-arrow">→</span>
+                        <img src="images/teams/serpogol.png" alt="Serpogol" class="transfer-badge">
+                        <span class="transfer-team-name">Serpogol</span>
+                    </div>
+                </div>
+                <div class="transfer-item">
+                    <span class="transfer-player">Leo Castini</span>
+                    <div class="transfer-move">
+                        <img src="images/teams/degato.png" alt="Degato" class="transfer-badge">
+                        <span class="transfer-arrow">→</span>
+                        <img src="images/teams/Bistana.png" alt="Bistana" class="transfer-badge">
+                        <span class="transfer-team-name">Bistana</span>
+                    </div>
+                </div>
+                <div class="transfer-item">
+                    <span class="transfer-player">Karl Mendes</span>
+                    <div class="transfer-move">
+                        <img src="images/teams/CastelHogan.png" alt="CastelHogan" class="transfer-badge">
+                        <span class="transfer-arrow">→</span>
+                        <img src="images/teams/Sporting-Blekis.png" alt="Sporting Blekis" class="transfer-badge">
+                        <span class="transfer-team-name">Sporting Blekis</span>
                     </div>
                 </div>
             </div>
@@ -282,4 +371,5 @@
     </div>
 </body>
 <script src="js/ui.js" type="module"></script>
+<script src="js/potw.js" type="module"></script>
 </html>

@@ -2,7 +2,7 @@
 export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
 
 import { players } from './players.js';
-import { seasonTopush } from './achive/1998-4.js';
+import { seasonTopush } from './achive/1999-1.js';
 import { reapplyTeamLinkListeners } from './ui.js';
 export let teams = [
     {
@@ -318,7 +318,7 @@ export let teams = [
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
 // seasons = seasonTopush; 
 
-// saveSeason();
+// saveSeason(); 
 const content = document.querySelector('.pad-cont');
 
 function renderCreateButton(matchdays) {

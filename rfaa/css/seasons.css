@@ -1,0 +1,620 @@
+/* ===== SEASONS PAGE ===== */
+
+body {
+    background-color: var(--subtle-bkg);
+    font-family: var(--font-1);
+    margin: 0;
+    padding: 0;
+}
+
+/* ---- Season Banner ---- */
+.season-banner {
+    position: relative;
+    background: linear-gradient(135deg, #1a0533 0%, #2b1465 30%, #1e3ab8 65%, #0d6fd4 100%);
+    overflow: hidden;
+    padding: 2.8rem 0 2.4rem;
+}
+
+.banner-noise {
+    position: absolute;
+    inset: 0;
+    background-image: url('../images/icons/noise.png');
+    opacity: 0.06;
+    pointer-events: none;
+}
+
+.banner-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    z-index: 1;
+}
+
+.banner-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 14rem;
+    text-align: center;
+}
+
+.banner-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+}
+
+.banner-year {
+    font-size: 5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-family: var(--font-2), sans-serif;
+    text-shadow: 0 0 40px rgba(130,100,255,0.6);
+}
+
+.banner-sub {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 400;
+}
+
+.season-arrow {
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    color: #fff;
+    font-size: 1.6rem;
+    border-radius: 50%;
+    width: 4rem;
+    height: 4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, transform 0.12s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.season-arrow:hover {
+    background: rgba(255,255,255,0.22);
+    transform: scale(1.08);
+}
+
+.season-arrow:active {
+    transform: scale(0.96);
+}
+
+.season-arrow:disabled {
+    opacity: 0.28;
+    cursor: default;
+    transform: none;
+}
+
+/* ---- Banner winner ghost logo ---- */
+.banner-winner-logo {
+    display: none;
+    position: absolute;
+    right: 6%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(8rem, 14vw, 16rem);
+    height: auto;
+    opacity: 0.7;
+    pointer-events: none;
+    filter: drop-shadow(0 0 24px rgba(130,100,255,0.35));
+    z-index: 0;
+    object-fit: contain;
+}
+
+.season-banner.is-complete .banner-winner-logo {
+    display: block;
+}
+
+/* ---- Final match card ---- */
+.final-card-wrap {
+    max-width: 1100px;
+    margin: 1.8rem auto 0;
+    padding: 0 1.6rem;
+}
+
+.final-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.4rem;
+    background: linear-gradient(135deg, #1a0533 0%, #2b1465 35%, #1b3ab8 68%, #0d6fd4 100%);
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    padding: 2.2rem 2.4rem;
+    min-height: 14rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.final-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 36px rgba(20, 10, 80, 0.45);
+}
+
+.final-trophy-bg {
+    position: absolute;
+    right: -2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(12rem, 22vw, 22rem);
+    opacity: 0.12;
+    pointer-events: none;
+    object-fit: contain;
+    filter: brightness(2);
+}
+
+.final-card-inner {
+    position: relative;
+    z-index: 1;
+}
+
+.final-tag {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 1.2rem;
+}
+
+.final-teams {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.final-team-row {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+}
+
+.final-team-row img.final-team-logo {
+    width: 3.8rem;
+    height: 3.8rem;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.final-team-name {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #fff;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.final-team-name.is-winner {
+    font-size: 1.75rem;
+    text-shadow: 0 0 18px rgba(255,255,255,0.4);
+}
+
+.final-score-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.6rem;
+    margin-left: auto;
+    padding-left: 1.5rem;
+    flex-shrink: 0;
+}
+
+.final-score {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: #fff;
+    font-family: var(--font-2), sans-serif;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    width: 3.2rem;
+    text-align: right;
+}
+
+.final-score.is-winner-score {
+    color: #7df0ff;
+}
+
+.final-vs-sep {
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+    margin: 0.2rem 0;
+}
+
+.final-winner-crown {
+    font-size: 1.1rem;
+    color: #ffd700;
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+}
+
+@media (max-width: 500px) {
+    .final-team-name { font-size: 1.25rem; }
+    .final-team-name.is-winner { font-size: 1.4rem; }
+    .final-score { font-size: 2rem; }
+}
+
+/* ---- Generic Section ---- */
+.season-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.4rem 1.6rem 0;
+}
+
+.section-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 1.4rem;
+    font-family: var(--font-2), sans-serif;
+}
+
+.section-year {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--mc-1);
+    margin-left: 0.5rem;
+}
+
+/* ---- Awards Grid ---- */
+.awards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+}
+
+@media (max-width: 860px) {
+    .awards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .awards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.award-card {
+    background: #fff;
+    border: 1px solid var(--border-1);
+    border-radius: 1.1rem;
+    padding: 1.4rem 1.2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.18s;
+}
+
+.award-card:hover {
+    box-shadow: 0 4px 20px rgba(54,70,163,0.1);
+}
+
+.award-card--rated {
+    background: linear-gradient(135deg, #1e3ab8 0%, #0d6fd4 100%);
+    color: #fff;
+    border: none;
+}
+
+.award-label {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.38);
+}
+
+.award-card--rated .award-label {
+    color: rgba(255,255,255,0.55);
+}
+
+.award-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.award-value {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+}
+
+.award-card--rated .award-value {
+    color: #fff;
+}
+
+.award-clubs {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.award-clubs img {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+    border-radius: 0.3rem;
+}
+
+.award-stat {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--mc-1);
+    margin-top: 0.2rem;
+}
+
+.award-card--rated .award-stat {
+    color: rgba(255,255,255,0.8);
+}
+
+.rating-badge {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.03em;
+    font-family: var(--font-2), sans-serif;
+    line-height: 1;
+    margin-top: auto;
+}
+
+/* ---- MOTM Section ---- */
+.motm-section {
+    padding-top: 2.4rem;
+}
+
+.motm-list {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.motm-item {
+    background: #fff;
+    border: 1px solid var(--border-1);
+    border-radius: 1.1rem;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    min-width: 22rem;
+    flex-shrink: 0;
+    transition: box-shadow 0.18s;
+}
+
+.motm-item:hover {
+    box-shadow: 0 4px 20px rgba(54,70,163,0.1);
+}
+
+.motm-rank {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--mc-1);
+    font-family: var(--font-2), sans-serif;
+    width: 2.4rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.motm-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.motm-name {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #111;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.motm-clubs {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.motm-clubs img {
+    width: 1.8rem;
+    height: 1.8rem;
+    object-fit: contain;
+}
+
+.motm-trophies {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    flex-wrap: wrap;
+    max-width: 8rem;
+    justify-content: flex-end;
+}
+
+.motm-trophies img {
+    width: 2.2rem;
+    height: 2.2rem;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.15));
+}
+
+.motm-count {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--mc-4);
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* ---- Tournament Stats Section ---- */
+.tourney-section {
+    padding-top: 2.4rem;
+    padding-bottom: 3rem;
+}
+
+.tourney-cards {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.4rem;
+}
+
+@media (max-width: 780px) {
+    .tourney-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tourney-card {
+    background: linear-gradient(135deg, #12174a 0%, #1a3688 50%, #1553c0 100%);
+    border-radius: 1.3rem;
+    padding: 2rem 2rem 1.6rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    min-height: 18rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.tourney-card--chart {
+    background: linear-gradient(135deg, #0d0f2b 0%, #12174a 40%, #1a2a6c 100%);
+}
+
+.tc-label {
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 0.3rem;
+}
+
+.tc-big {
+    font-size: 5.5rem;
+    font-weight: 800;
+    line-height: 1;
+    font-family: var(--font-2), sans-serif;
+    letter-spacing: -0.03em;
+}
+
+.tc-sub {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 0.2rem;
+}
+
+.tc-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.12);
+    margin: 0.8rem 0;
+}
+
+.tc-row {
+    display: flex;
+    gap: 2rem;
+}
+
+.tc-mid {
+    font-size: 2.2rem;
+    font-weight: 700;
+    font-family: var(--font-2), sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.tc-icon {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 7rem;
+    opacity: 0.22;
+    pointer-events: none;
+}
+
+/* ---- Goals chart ---- */
+.goals-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.8rem;
+    flex: 1;
+    padding-top: 0.6rem;
+    overflow-x: auto;
+}
+
+.chart-bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 1;
+    min-width: 3.2rem;
+}
+
+.chart-bar-wrap {
+    display: flex;
+    align-items: flex-end;
+    height: 10rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.chart-bar {
+    background: linear-gradient(to top, #00d4ff 0%, #00aaff 60%, #4fd0ff 100%);
+    border-radius: 0.4rem 0.4rem 0.2rem 0.2rem;
+    width: 100%;
+    min-height: 0.4rem;
+    transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.chart-bar-label {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    height: 4.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.chart-bar-count {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    text-align: center;
+}
+
+/* ---- Empty state ---- */
+.no-data {
+    color: rgba(0,0,0,0.35);
+    font-size: 1.1rem;
+    padding: 1rem 0;
+}
