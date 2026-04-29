@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700&family=Franklin+Gothic+Medium&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/auth.css">
 <link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="../css/standard.css">
 </head>
 <body>
 <header>
@@ -42,7 +43,7 @@
                 <span class="leaderboard-col leaderboard-col--games">Games</span>
             </div>
             <div class="leaderboard-body" id="leaderboardBody">
-                <div class="leaderboard-empty">Sign in to see the leaderboard</div>
+                <div class="leaderboard-empty">Loading leaderboard...</div>
             </div>
         </div>
         <div class="leaderboard-user" id="leaderboardUser"></div>
@@ -72,7 +73,7 @@
             </div>
         </div>
 
-        <div class="game-card" data-game="crossword">
+        <div class="game-card dn" data-game="crossword">
             <div class="card-top" style="background: #C2D0E8;">
                 <div class="game-card-points" id="crosswordPoints"></div>
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">

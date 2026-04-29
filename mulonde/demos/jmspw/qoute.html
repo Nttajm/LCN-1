@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get a Free Quote &mdash; JmsPW</title>
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/quote.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="js/nav.js" defer></script>
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <div class="quote-wrap">
+        <div class="quote-inner">
+
+            <div class="quote-header">
+                <span class="quote-header__eyebrow">Free Estimate</span>
+                <h1 class="quote-header__title">Get Your Free Quote</h1>
+                <p class="quote-header__sub">Answer a few quick questions and we&rsquo;ll get back to you with a detailed estimate&mdash;usually within a few hours.</p>
+            </div>
+
+            <div class="quote-steps">
+                <div class="quote-step quote-step--active" id="step-dot-1">
+                    <div class="quote-step__num">1</div>
+                    <span class="quote-step__label">Service Type</span>
+                </div>
+                <div class="quote-step-connector" id="connector-1"></div>
+                <div class="quote-step" id="step-dot-2">
+                    <div class="quote-step__num">2</div>
+                    <span class="quote-step__label">Job Details</span>
+                </div>
+                <div class="quote-step-connector" id="connector-2"></div>
+                <div class="quote-step" id="step-dot-3">
+                    <div class="quote-step__num">3</div>
+                    <span class="quote-step__label">Your Info</span>
+                </div>
+            </div>
+
+            <div class="quote-card">
+
+                <div class="quote-panel quote-panel--active" id="panel-1">
+                    <p class="quote-panel__title">What type of property do you need serviced?</p>
+                    <p class="quote-panel__hint">Select all that apply.</p>
+
+                    <div class="quote-options">
+                        <div class="quote-option">
+                            <input type="radio" name="property_type" id="pt-residential" value="Residential">
+                            <label for="pt-residential" class="quote-option__label">
+                                <span class="quote-option__icon">&#127968;</span>
+                                <span class="quote-option__name">Residential</span>
+                                <span class="quote-option__desc">Home, driveway, patio, roof</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="property_type" id="pt-commercial" value="Commercial">
+                            <label for="pt-commercial" class="quote-option__label">
+                                <span class="quote-option__icon">&#127970;</span>
+                                <span class="quote-option__name">Commercial</span>
+                                <span class="quote-option__desc">Storefront, parking lot, warehouse</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="property_type" id="pt-hoa" value="HOA / Multi-Unit">
+                            <label for="pt-hoa" class="quote-option__label">
+                                <span class="quote-option__icon">&#127963;</span>
+                                <span class="quote-option__name">HOA / Multi-Unit</span>
+                                <span class="quote-option__desc">Complex, community, apartments</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="property_type" id="pt-fleet" value="Fleet / Industrial">
+                            <label for="pt-fleet" class="quote-option__label">
+                                <span class="quote-option__icon">&#128665;</span>
+                                <span class="quote-option__name">Fleet / Industrial</span>
+                                <span class="quote-option__desc">Vehicles, equipment, facilities</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <p class="quote-panel__title">How did you hear about us?</p>
+                    <p class="quote-panel__hint" style="margin-bottom:1.25rem">Optional &mdash; helps us understand where we&rsquo;re reaching people.</p>
+
+                    <div class="quote-options quote-options--3">
+                        <div class="quote-option">
+                            <input type="radio" name="referral" id="ref-google" value="Google">
+                            <label for="ref-google" class="quote-option__label">
+                                <span class="quote-option__name">Google</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="referral" id="ref-referral" value="Referral">
+                            <label for="ref-referral" class="quote-option__label">
+                                <span class="quote-option__name">Referral</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="referral" id="ref-yelp" value="Yelp">
+                            <label for="ref-yelp" class="quote-option__label">
+                                <span class="quote-option__name">Yelp</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="referral" id="ref-social" value="Social Media">
+                            <label for="ref-social" class="quote-option__label">
+                                <span class="quote-option__name">Social Media</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="referral" id="ref-repeat" value="Repeat Customer">
+                            <label for="ref-repeat" class="quote-option__label">
+                                <span class="quote-option__name">Repeat Customer</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="radio" name="referral" id="ref-other" value="Other">
+                            <label for="ref-other" class="quote-option__label">
+                                <span class="quote-option__name">Other</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="quote-actions">
+                        <button class="quote-btn quote-btn--next" onclick="goTo(2)">Next &rsaquo;</button>
+                    </div>
+                </div>
+
+                <div class="quote-panel" id="panel-2">
+                    <p class="quote-panel__title">What services do you need?</p>
+                    <p class="quote-panel__hint">Select everything that applies to your job.</p>
+
+                    <div class="quote-options quote-options--3">
+                        <div class="quote-option">
+                            <input type="checkbox" name="services" id="svc-driveway" value="Driveway">
+                            <label for="svc-driveway" class="quote-option__label">
+                                <span class="quote-option__icon">&#128739;</span>
+                                <span class="quote-option__name">Driveway</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="checkbox" name="services" id="svc-roof" value="Roof">
+                            <label for="svc-roof" class="quote-option__label">
+                                <span class="quote-option__icon">&#127968;</span>
+                                <span class="quote-option__name">Roof Cleaning</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="checkbox" name="services" id="svc-patio" value="Patio / Deck">
+                            <label for="svc-patio" class="quote-option__label">
+                                <span class="quote-option__icon">&#9749;</span>
+                                <span class="quote-option__name">Patio / Deck</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="checkbox" name="services" id="svc-sidewalk" value="Sidewalk">
+                            <label for="svc-sidewalk" class="quote-option__label">
+                                <span class="quote-option__icon">&#128694;</span>
+                                <span class="quote-option__name">Sidewalk</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="checkbox" name="services" id="svc-storefront" value="Storefront">
+                            <label for="svc-storefront" class="quote-option__label">
+                                <span class="quote-option__icon">&#127978;</span>
+                                <span class="quote-option__name">Storefront</span>
+                            </label>
+                        </div>
+                        <div class="quote-option">
+                            <input type="checkbox" name="services" id="svc-parking" value="Parking Lot">
+                            <label for="svc-parking" class="quote-option__label">
+                                <span class="quote-option__icon">&#127850;</span>
+                                <span class="quote-option__name">Parking Lot</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="quote-field">
+                        <label class="quote-field__label" for="prop-size">Approximate property or area size</label>
+                        <select class="quote-field__select" id="prop-size" name="prop_size">
+                            <option value="">Select a size range</option>
+                            <option>Under 1,000 sq ft</option>
+                            <option>1,000 &ndash; 2,500 sq ft</option>
+                            <option>2,500 &ndash; 5,000 sq ft</option>
+                            <option>5,000 &ndash; 10,000 sq ft</option>
+                            <option>Over 10,000 sq ft</option>
+                            <option>Not sure</option>
+                        </select>
+                    </div>
+
+                    <div class="quote-field">
+                        <label class="quote-field__label" for="timing">When do you need this done?</label>
+                        <select class="quote-field__select" id="timing" name="timing">
+                            <option value="">Select a timeframe</option>
+                            <option>As soon as possible</option>
+                            <option>Within 1 week</option>
+                            <option>Within 2 weeks</option>
+                            <option>Within a month</option>
+                            <option>Flexible / Just getting a price</option>
+                        </select>
+                    </div>
+
+                    <div class="quote-actions">
+                        <button class="quote-btn quote-btn--back" onclick="goTo(1)">&lsaquo; Back</button>
+                        <button class="quote-btn quote-btn--next" onclick="goTo(3)">Next &rsaquo;</button>
+                    </div>
+                </div>
+
+                <div class="quote-panel" id="panel-3">
+                    <p class="quote-panel__title">Your contact details</p>
+                    <p class="quote-panel__hint">We&rsquo;ll use this to send your quote and follow up with any questions.</p>
+
+                    <div class="quote-fields-row">
+                        <div class="quote-field">
+                            <label class="quote-field__label" for="fname">First Name <span>*</span></label>
+                            <input class="quote-field__input" type="text" id="fname" name="fname" placeholder="John" required>
+                        </div>
+                        <div class="quote-field">
+                            <label class="quote-field__label" for="lname">Last Name <span>*</span></label>
+                            <input class="quote-field__input" type="text" id="lname" name="lname" placeholder="Smith" required>
+                        </div>
+                    </div>
+
+                    <div class="quote-fields-row">
+                        <div class="quote-field">
+                            <label class="quote-field__label" for="email">Email Address <span>*</span></label>
+                            <input class="quote-field__input" type="email" id="email" name="email" placeholder="john@example.com" required>
+                        </div>
+                        <div class="quote-field">
+                            <label class="quote-field__label" for="phone">Phone Number <span>*</span></label>
+                            <input class="quote-field__input" type="tel" id="phone" name="phone" placeholder="(707) 000-0000" required>
+                        </div>
+                    </div>
+
+                    <div class="quote-field">
+                        <label class="quote-field__label" for="address">Property Address</label>
+                        <input class="quote-field__input" type="text" id="address" name="address" placeholder="Your property address">
+                    </div>
+
+                    <div class="quote-divider"></div>
+
+                    <p class="quote-contact-heading">Anything else we should know?</p>
+
+                    <div class="quote-field">
+                        <label class="quote-field__label" for="message">Message</label>
+                        <textarea class="quote-field__textarea" id="message" name="message" placeholder="Describe your project, access details, specific concerns, or any questions&hellip;"></textarea>
+                    </div>
+
+                    <div class="quote-field">
+                        <label class="quote-field__label" for="contact-pref">Preferred Contact Method</label>
+                        <select class="quote-field__select" id="contact-pref" name="contact_pref">
+                            <option value="">No preference</option>
+                            <option>Email</option>
+                            <option>Phone Call</option>
+                            <option>Text Message</option>
+                        </select>
+                    </div>
+
+                    <div class="quote-actions">
+                        <button class="quote-btn quote-btn--back" onclick="goTo(2)">&lsaquo; Back</button>
+                        <button class="quote-btn quote-btn--submit" onclick="submitQuote()">Submit Quote Request</button>
+                    </div>
+                </div>
+
+                <div class="quote-success" id="quote-success">
+                    <div class="quote-success__icon">&#10003;</div>
+                    <h2 class="quote-success__title">We&rsquo;ve received your request!</h2>
+                    <p class="quote-success__text">Thanks for reaching out. A member of our team will review your details and get back to you with a quote&mdash;usually within a few hours during business hours.</p>
+                    <a href="index.html" class="quote-success__back">&larr; Back to Home</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div id="footer-placeholder"></div>
+    <script src="js/quote.js"></script>
+</body>
+</html>
+
+
+
+
+

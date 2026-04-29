@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dail</title>
+    <style>
+        body {
+            background-color: #000000;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #ffffff;
+        }
+
+        .dail {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 65px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .elem-holder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            top: 90%;
+            transition: transform 0.3s ease;
+        }
+
+        .elem {
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .elem:has(~ .elem.current) {
+            transform: rotateX(-35deg);
+            opacity: 0.5;
+        }
+
+        .elem.current ~ .elem {
+            transform: rotateX(35deg);
+            opacity: 0.5;
+        }
+
+
+
+
+
+    </style>
+</head>
+<body>
+    <div class="dail">
+        <div class="elem-holder">
+            <div class="elem current">
+            <span class="text">
+                Tamadachi 
+            </span>
+        </div>
+        <div class="elem">
+            <span class="text">
+                Unimy 
+            </span>
+        </div>
+        <div class="elem">
+            <span class="text">
+                Cluade 
+            </span>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        const elems = document.querySelectorAll('.elem');
+        const elemHolder = document.querySelector('.elem-holder');
+        let currentIndex = Array.from(elems).findIndex(elem => elem.classList.contains('current'));
+
+        function updatePosition() {
+            const offset = -currentIndex * 25; // Each elem is 45px tall
+            elemHolder.style.transform = `translateY(calc(-50% + ${offset}px))`;
+        }
+
+        // Initialize position
+        updatePosition();
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (currentIndex > 0) {
+                    elems[currentIndex].classList.remove('current');
+                    currentIndex--;
+                    elems[currentIndex].classList.add('current');
+                    updatePosition();
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (currentIndex < elems.length - 1) {
+                    elems[currentIndex].classList.remove('current');
+                    currentIndex++;
+                    elems[currentIndex].classList.add('current');
+                    updatePosition();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

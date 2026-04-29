@@ -1,0 +1,444 @@
+.editor-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.editor-breadcrumb-sep {
+    width: 0.5rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+}
+
+.editor-breadcrumb {
+    font-size: 0.875rem;
+    color: var(--editor-text-secondary);
+    font-weight: 500;
+}
+
+.editor-save-indicator {
+    font-size: 0.75rem;
+    color: var(--editor-text-muted);
+    white-space: nowrap;
+}
+
+.cw-editor-main {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 5rem;
+}
+
+.cw-editor-topbar {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.cw-editor-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.cw-meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.cw-meta-field label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: var(--editor-text-secondary);
+}
+
+.cw-meta-field input,
+.cw-meta-field select {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius);
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    min-width: 10rem;
+}
+
+.cw-meta-field input:focus,
+.cw-meta-field select:focus {
+    outline: none;
+    border-color: var(--editor-accent);
+    box-shadow: 0 0 0 0.1875rem rgba(50, 104, 145, 0.12);
+}
+
+.cw-editor-releases {
+    flex: 1;
+    min-width: 14rem;
+}
+
+.cw-editor-releases > label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: var(--editor-text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.cw-releases-scroll {
+    display: flex;
+    gap: 0.375rem;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+    scrollbar-width: thin;
+}
+
+.cw-release-chip {
+    flex-shrink: 0;
+    padding: 0.375rem 0.75rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+
+.cw-release-chip:hover {
+    border-color: var(--editor-accent);
+    color: var(--editor-accent);
+}
+
+.cw-release-chip--active {
+    background: var(--editor-accent);
+    border-color: var(--editor-accent);
+    color: white;
+}
+
+.cw-release-chip--published::after {
+    content: '';
+    display: inline-block;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--editor-success);
+    margin-left: 0.375rem;
+    vertical-align: middle;
+}
+
+.cw-release-chip--active.cw-release-chip--published::after {
+    background: white;
+}
+
+.cw-editor-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.0625rem solid var(--editor-border);
+    margin-bottom: 1.5rem;
+}
+
+.cw-tab {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border: none;
+    background: none;
+    color: var(--editor-text-muted);
+    cursor: pointer;
+    border-bottom: 0.125rem solid transparent;
+    margin-bottom: -0.0625rem;
+    transition: color 0.15s ease;
+}
+
+.cw-tab:hover {
+    color: var(--editor-text);
+}
+
+.cw-tab--active {
+    color: var(--editor-text);
+    border-bottom-color: var(--editor-text);
+}
+
+.cw-tab-panel {
+    display: none;
+}
+
+.cw-tab-panel--active {
+    display: block;
+}
+
+.cw-visual-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.cw-grid-area {
+    flex-shrink: 0;
+}
+
+.cw-grid-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.cw-grid-instructions {
+    font-size: 0.75rem;
+    color: var(--editor-text-muted);
+    flex: 1;
+    min-width: 10rem;
+}
+
+.cw-grid-container {
+    background: var(--editor-surface);
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius-lg);
+    padding: 1rem;
+    display: inline-block;
+}
+
+.cw-grid {
+    display: grid;
+    user-select: none;
+}
+
+.cw-cell {
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 0.0625rem solid #BBB;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: white;
+    transition: background 0.1s ease;
+}
+
+.cw-cell--black {
+    background: var(--editor-black-cell);
+}
+
+.cw-cell--selected {
+    outline: 0.1875rem solid var(--editor-accent);
+    outline-offset: -0.1875rem;
+    z-index: 2;
+}
+
+.cw-cell-number {
+    position: absolute;
+    top: 0.125rem;
+    left: 0.1875rem;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--editor-text);
+    pointer-events: none;
+}
+
+.cw-cell--black .cw-cell-number {
+    color: white;
+}
+
+.cw-cell-letter {
+    font-size: 1.375rem;
+    font-weight: 600;
+    font-family: 'Libre Franklin', sans-serif;
+    text-transform: uppercase;
+    pointer-events: none;
+    color: var(--editor-text);
+}
+
+.cw-cell--black .cw-cell-letter {
+    color: white;
+}
+
+.cw-clues-area {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-height: calc(3.25rem * 15 + 4rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.cw-clues-section h3 {
+    font-family: 'Noto Serif', serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03125rem;
+    margin-bottom: 0.625rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 0.0625rem solid var(--editor-border);
+}
+
+.cw-clues-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.cw-clue-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cw-clue-num {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    min-width: 1.5rem;
+    text-align: right;
+    flex-shrink: 0;
+    color: var(--editor-text-secondary);
+}
+
+.cw-clue-input {
+    flex: 1;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.8125rem;
+    padding: 0.4375rem 0.625rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: 0.25rem;
+    background: var(--editor-surface);
+    color: var(--editor-text);
+}
+
+.cw-clue-input:focus {
+    outline: none;
+    border-color: var(--editor-accent);
+    box-shadow: 0 0 0 0.125rem rgba(50, 104, 145, 0.1);
+}
+
+.cw-clue-input::placeholder {
+    color: var(--editor-text-muted);
+}
+
+.cw-json-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.cw-json-section h3 {
+    font-family: 'Noto Serif', serif;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.cw-json-hint {
+    font-size: 0.75rem;
+    color: var(--editor-text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.cw-json-input {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8125rem;
+    padding: 0.75rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius);
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    resize: vertical;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.cw-json-input:focus {
+    outline: none;
+    border-color: var(--editor-accent);
+    box-shadow: 0 0 0 0.125rem rgba(50, 104, 145, 0.1);
+}
+
+.cw-json-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.cw-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(3rem);
+    background: var(--editor-text);
+    color: white;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 2rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 999;
+    white-space: nowrap;
+}
+
+.cw-toast--visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.cw-toast--success {
+    background: var(--editor-success);
+}
+
+.cw-toast--error {
+    background: var(--editor-danger);
+}
+
+@media (max-width: 56rem) {
+    .cw-visual-layout {
+        flex-direction: column;
+    }
+
+    .cw-clues-area {
+        max-height: none;
+    }
+
+    .cw-json-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 40rem) {
+    .cw-editor-main {
+        padding: 1rem 0.75rem 3rem;
+    }
+
+    .cw-editor-topbar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .cw-cell {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .cw-cell-letter {
+        font-size: 1.0625rem;
+    }
+
+    .editor-header-right {
+        gap: 0.375rem;
+    }
+}

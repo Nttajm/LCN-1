@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Derno — Post Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Barlow+Condensed:wght@600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/standard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&family=Cal+Sans&family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Pixelify+Sans:wght@400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Space+Grotesk:wght@300..700&family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <header class="app__header">
+            <img src="assets/logo.png" alt="Press Derno" class="app__logo">
+            <span class="app__title">Post Editor</span>
+        </header>
+        <main class="app__main">
+            <div class="editor">
+                <div class="canvas-wrap">
+                    <canvas id="canvas" class="canvas"></canvas>
+                    <div class="drop-zone" id="drop-zone">
+                        <span class="drop-zone__plus">+</span>
+                        <p class="drop-zone__label">Drop photo or click to upload</p>
+                        <p class="drop-zone__sub">JPG, PNG, WEBP</p>
+                    </div>
+                    <input type="file" id="file-input" accept="image/*" class="file-input">
+                </div>
+                <aside class="controls">
+                    <div class="controls__group">
+                        <span class="controls__heading">Style</span>
+                        <div class="style-picker">
+                            <button class="style-picker__btn style-picker__btn--active" data-style="overlay" id="style-overlay">Overlay</button>
+                            <button class="style-picker__btn" data-style="card" id="style-card">Card Below</button>
+                        </div>
+                    </div>
+                    <div class="controls__group">
+                        <span class="controls__heading">Photo</span>
+                        <button class="controls__btn-upload" id="upload-btn">Upload Photo</button>
+                    </div>
+                    <div class="controls__group">
+                        <label class="controls__heading" for="caption-input">Caption</label>
+                        <textarea id="caption-input" class="controls__caption" placeholder="Write your caption..."></textarea>
+                    </div>
+                    <div class="controls__group" id="gradient-group">
+                        <label class="controls__heading" for="gradient-strength">Gradient Strength</label>
+                        <div class="controls__range-wrap">
+                            <input type="range" id="gradient-strength" class="controls__range" min="0" max="100" value="85">
+                            <span class="controls__range-val" id="gradient-val">85%</span>
+                        </div>
+                    </div>
+                    <button class="controls__btn-download" id="download-btn">Download 1:1</button>
+                </aside>
+            </div>
+        </main>
+    </div>
+    <script src="js/editor.js"></script>
+</body>
+</html>

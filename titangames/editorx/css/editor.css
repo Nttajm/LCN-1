@@ -1,0 +1,323 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --editor-bg: #FAFAF8;
+    --editor-surface: #FFFFFF;
+    --editor-border: #E0E0E0;
+    --editor-border-light: #F0F0F0;
+    --editor-text: #121212;
+    --editor-text-secondary: #5A5A5A;
+    --editor-text-muted: #999999;
+    --editor-accent: #326891;
+    --editor-accent-hover: #254D6B;
+    --editor-success: #2D7A4F;
+    --editor-warning: #C17A1A;
+    --editor-danger: #B83232;
+    --editor-highlight: #D4E4FA;
+    --editor-black-cell: #121212;
+    --editor-selected: #F7DA21;
+    --editor-radius: 0.5rem;
+    --editor-radius-lg: 0.75rem;
+}
+
+body {
+    font-family: 'Libre Franklin', sans-serif;
+    background: var(--editor-bg);
+    color: var(--editor-text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+.editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background: var(--editor-surface);
+    border-bottom: 0.0625rem solid var(--editor-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.editor-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.editor-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    text-decoration: none;
+    color: var(--editor-text);
+}
+
+.editor-logo-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+.editor-logo-text {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.03125rem;
+}
+
+.editor-badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    background: var(--editor-accent);
+    color: white;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 0.1875rem;
+}
+
+.editor-main {
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+}
+
+.editor-hero {
+    margin-bottom: 2.5rem;
+}
+
+.editor-title {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: -0.03125rem;
+    margin-bottom: 0.375rem;
+}
+
+.editor-subtitle {
+    font-size: 0.9375rem;
+    color: var(--editor-text-secondary);
+}
+
+.editor-section-heading {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: var(--editor-text-secondary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 0.0625rem solid var(--editor-border);
+}
+
+.editor-games {
+    margin-bottom: 3rem;
+}
+
+.editor-games-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.editor-game-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--editor-surface);
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius-lg);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--editor-text);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.editor-game-card:hover {
+    box-shadow: 0 0.125rem 0.75rem rgba(0, 0, 0, 0.06);
+    border-color: #ccc;
+}
+
+.editor-game-icon svg {
+    width: 3rem;
+    height: 3rem;
+}
+
+.editor-game-info {
+    flex: 1;
+}
+
+.editor-game-info h3 {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin-bottom: 0.125rem;
+}
+
+.editor-game-status {
+    font-size: 0.8125rem;
+    color: var(--editor-text-muted);
+}
+
+.editor-game-arrow {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--editor-text-muted);
+    flex-shrink: 0;
+}
+
+.editor-releases-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.editor-release-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--editor-surface);
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius);
+    padding: 0.875rem 1.25rem;
+    text-decoration: none;
+    color: var(--editor-text);
+    transition: box-shadow 0.15s ease;
+}
+
+.editor-release-row:hover {
+    box-shadow: 0 0.0625rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+
+.editor-release-date {
+    font-family: 'Noto Serif', serif;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    min-width: 10rem;
+}
+
+.editor-release-game {
+    font-size: 0.8125rem;
+    color: var(--editor-text-secondary);
+    flex: 1;
+}
+
+.editor-release-status {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.03125rem;
+    text-transform: uppercase;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 0.1875rem;
+}
+
+.editor-release-status[data-status="published"] {
+    background: #E6F4EA;
+    color: var(--editor-success);
+}
+
+.editor-release-status[data-status="draft"] {
+    background: #FFF3E0;
+    color: var(--editor-warning);
+}
+
+.editor-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--editor-text-muted);
+    font-size: 0.875rem;
+}
+
+.editor-empty {
+    text-align: center;
+    padding: 2.5rem;
+    color: var(--editor-text-muted);
+    font-size: 0.875rem;
+    background: var(--editor-surface);
+    border: 0.0625rem dashed var(--editor-border);
+    border-radius: var(--editor-radius-lg);
+}
+
+.editor-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--editor-radius);
+    padding: 0.625rem 1.25rem;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+    text-decoration: none;
+}
+
+.editor-btn--primary {
+    background: var(--editor-text);
+    color: white;
+}
+
+.editor-btn--primary:hover {
+    opacity: 0.85;
+}
+
+.editor-btn--secondary {
+    background: none;
+    border: 0.0625rem solid var(--editor-border);
+    color: var(--editor-text);
+}
+
+.editor-btn--secondary:hover {
+    background: #f5f5f5;
+}
+
+.editor-btn--accent {
+    background: var(--editor-accent);
+    color: white;
+}
+
+.editor-btn--accent:hover {
+    background: var(--editor-accent-hover);
+}
+
+.editor-btn--danger {
+    background: none;
+    border: 0.0625rem solid var(--editor-danger);
+    color: var(--editor-danger);
+}
+
+.editor-btn--danger:hover {
+    background: #FFF0F0;
+}
+
+.editor-btn--sm {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+
+@media (max-width: 40rem) {
+    .editor-main {
+        padding: 1.5rem 1rem 3rem;
+    }
+
+    .editor-title {
+        font-size: 1.5rem;
+    }
+
+    .editor-release-row {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .editor-release-date {
+        min-width: auto;
+    }
+}
