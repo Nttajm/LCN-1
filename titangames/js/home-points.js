@@ -5,7 +5,8 @@
 
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getTodayStats, getTodayLeaderboard, getCurrentUser } from "./points.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { getTodayStats, getTodayLeaderboard, getCurrentUser, getTodayDateStr, syncPendingGames } from "./points.js";
 
 let currentUser = null;
 
@@ -15,20 +16,202 @@ function getTodayDateFormatted() {
     return today.toLocaleDateString('en-US', options).toUpperCase();
 }
 
+// ── Popup helpers ────────────────────────────────────────────────
+
+const COLOR_MAP = { correct: 'correct', present: 'present', absent: 'absent' };
+
+function computeNerdleColors(boardState, target) {
+    if (!Array.isArray(boardState) || !target) return [];
+    const rows = [];
+    for (const guess of boardState) {
+        if (typeof guess !== 'string') continue;
+        const len = target.length;
+        const colors = Array(len).fill('absent');
+        const targetArr = target.split('');
+        const guessArr = guess.split('');
+        for (let i = 0; i < len; i++) {
+            if (guessArr[i] === targetArr[i]) {
+                colors[i] = 'correct';
+                targetArr[i] = null;
+            }
+        }
+        for (let i = 0; i < len; i++) {
+            if (colors[i] === 'correct') continue;
+            const idx = targetArr.indexOf(guessArr[i]);
+            if (idx !== -1) { colors[i] = 'present'; targetArr[idx] = null; }
+        }
+        rows.push(colors);
+    }
+    return rows;
+}
+
+function buildNerdleMiniGrid(nerdleData) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'popup-game popup-nerdle';
+
+    const label = document.createElement('div');
+    label.className = 'popup-game-label';
+    label.textContent = 'nerdle';
+    wrapper.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'mini-grid';
+
+    const ROWS = 6, COLS = 5;
+    const colorRows = nerdleData
+        ? computeNerdleColors(nerdleData.boardState || [], nerdleData.word || '')
+        : [];
+
+    for (let r = 0; r < ROWS; r++) {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'mini-grid-row';
+        for (let c = 0; c < COLS; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'mini-cell';
+            if (colorRows[r] && colorRows[r][c]) {
+                cell.classList.add(colorRows[r][c]);
+            }
+            rowEl.appendChild(cell);
+        }
+        grid.appendChild(rowEl);
+    }
+    wrapper.appendChild(grid);
+    return wrapper;
+}
+
+function buildRelationsDots(relationsData) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'popup-game popup-relations';
+
+    const label = document.createElement('div');
+    label.className = 'popup-game-label';
+    label.textContent = 'relations';
+    wrapper.appendChild(label);
+
+    const dotsWrap = document.createElement('div');
+    dotsWrap.className = 'relations-dots';
+
+    if (!relationsData) {
+        const nd = document.createElement('span');
+        nd.className = 'popup-no-data';
+        nd.textContent = '—';
+        dotsWrap.appendChild(nd);
+        wrapper.appendChild(dotsWrap);
+        return wrapper;
+    }
+
+    const mistakes = relationsData.mistakes || 0;
+    const categoryColors = relationsData.categoryColors || [];
+    const solved = categoryColors.length > 0 ? categoryColors.length : (relationsData.won ? 4 : 0);
+
+    // Solved category row
+    if (solved > 0) {
+        const solvedRow = document.createElement('div');
+        solvedRow.className = 'relations-dot-row';
+        for (let i = 0; i < solved; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'rdot solved';
+            if (categoryColors[i]) dot.style.background = categoryColors[i];
+            solvedRow.appendChild(dot);
+        }
+        dotsWrap.appendChild(solvedRow);
+    }
+
+    // Mistake row
+    if (mistakes > 0) {
+        const mistakeRow = document.createElement('div');
+        mistakeRow.className = 'relations-dot-row';
+        for (let i = 0; i < mistakes; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'rdot mistake';
+            mistakeRow.appendChild(dot);
+        }
+        dotsWrap.appendChild(mistakeRow);
+    }
+
+    if (solved === 0 && mistakes === 0) {
+        const nd = document.createElement('span');
+        nd.className = 'popup-no-data';
+        nd.textContent = '—';
+        dotsWrap.appendChild(nd);
+    }
+
+    wrapper.appendChild(dotsWrap);
+    return wrapper;
+}
+
+function buildPlayerPopup() {
+    const popup = document.createElement('div');
+    popup.className = 'player-popup';
+    return popup;
+}
+
+async function fetchPlayerGames(uid) {
+    const dateStr = getTodayDateStr();
+    try {
+        const snap = await getDoc(doc(db, 'titangames_submissions', dateStr, 'users', uid));
+        if (snap.exists()) return snap.data().games || {};
+    } catch (e) { /* ignore */ }
+    return {};
+}
+
+let activePopup = null;
+
+async function togglePlayerPopup(wrapper, uid) {
+    // Close any open popup
+    if (activePopup && activePopup !== wrapper.querySelector('.player-popup')) {
+        activePopup.classList.remove('open');
+    }
+
+    const popup = wrapper.querySelector('.player-popup');
+    if (!popup) return;
+
+    if (popup.classList.contains('open')) {
+        popup.classList.remove('open');
+        activePopup = null;
+        return;
+    }
+
+    // Show loading state
+    popup.innerHTML = '';
+    popup.classList.add('open');
+    activePopup = popup;
+
+    const games = await fetchPlayerGames(uid);
+
+    popup.innerHTML = '';
+    popup.appendChild(buildNerdleMiniGrid(games.nerdle || null));
+    popup.appendChild(buildRelationsDots(games.relations || null));
+}
+
+// ── Row creation ─────────────────────────────────────────────────
+
 function createLeaderboardRow(entry, rank, isCurrentUser = false) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'leaderboard-row-wrapper';
+
     const row = document.createElement('div');
     row.className = `leaderboard-row leaderboard-row--data${isCurrentUser ? ' leaderboard-row--highlight' : ''}`;
-    
+    row.style.cursor = 'pointer';
+
     const rankClass = rank <= 3 ? ` rank-${rank}` : '';
-    
+
     row.innerHTML = `
         <span class="leaderboard-col leaderboard-col--rank${rankClass}">${rank}</span>
         <span class="leaderboard-col leaderboard-col--name">${entry.displayName || 'Player'}</span>
         <span class="leaderboard-col leaderboard-col--pts">${entry.points}</span>
         <span class="leaderboard-col leaderboard-col--games">${entry.gamesPlayed}</span>
     `;
-    
-    return row;
+
+    const popup = buildPlayerPopup();
+    wrapper.appendChild(row);
+    wrapper.appendChild(popup);
+
+    if (entry.uid) {
+        row.addEventListener('click', () => togglePlayerPopup(wrapper, entry.uid));
+    }
+
+    return wrapper;
 }
 
 function createDivider() {
@@ -159,6 +342,9 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
     currentUser = user;
+    if (!user.isAnonymous) {
+        await syncPendingGames();
+    }
     await updateLeaderboardDisplay();
 });
 

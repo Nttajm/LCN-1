@@ -41,6 +41,42 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/fi
 
 // Current user state
 let currentUser = null;
+let _prevUserId = null;
+
+// ── Pending game sync (guest → logged-in) ──────────────────────────────────
+const PENDING_GAMES_KEY = 'titan_pending_games';
+
+function savePendingGame(gameName, points, metadata, dateStr) {
+    try {
+        const raw = localStorage.getItem(PENDING_GAMES_KEY);
+        const pending = raw ? JSON.parse(raw) : [];
+        // One entry per game per date
+        const filtered = pending.filter(p => !(p.gameName === gameName && p.dateStr === dateStr));
+        filtered.push({ gameName, points, metadata, dateStr });
+        localStorage.setItem(PENDING_GAMES_KEY, JSON.stringify(filtered));
+    } catch (e) {
+        console.error('Error saving pending game:', e);
+    }
+}
+
+export async function syncPendingGames() {
+    if (!currentUser || currentUser.isAnonymous) return;
+    try {
+        const raw = localStorage.getItem(PENDING_GAMES_KEY);
+        if (!raw) return;
+        const pending = JSON.parse(raw);
+        if (!pending.length) return;
+        const todayStr = getTodayDateStr();
+        for (const entry of pending) {
+            if (entry.dateStr !== todayStr) continue;
+            await submitGameCompletion(entry.gameName, entry.points, entry.metadata || {});
+        }
+        localStorage.removeItem(PENDING_GAMES_KEY);
+    } catch (e) {
+        console.error('Error syncing pending games:', e);
+    }
+}
+// ────────────────────────────────────────────────────────────────────────────
 
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
@@ -132,9 +168,10 @@ async function claimGameBonus(dateStr, gameName) {
 }
 
 export async function submitGameCompletion(gameName, points, metadata = {}) {
-    if (!currentUser) {
-        console.log('User not logged in - points not saved');
-        return { success: false, totalPoints: 0, error: 'not_logged_in' };
+    if (!currentUser || currentUser.isAnonymous) {
+        const dateStr = getTodayDateStr();
+        savePendingGame(gameName, points, metadata, dateStr);
+        return { success: false, pendingSaved: true, error: 'not_logged_in' };
     }
 
     const dateStr = getTodayDateStr();

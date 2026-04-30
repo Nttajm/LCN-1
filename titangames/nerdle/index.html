@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/nerdle.css">
 <link rel="stylesheet" href="../css/bonus-explainer.css">
+<link rel="stylesheet" href="../css/login-nudge.css">
 </head>
 <body>
 
@@ -135,6 +136,24 @@
 </div>
 
 <div class="offline-overlay" id="offlineOverlay">
+
+<!-- Login nudge banner -->
+</div>
+<div class="login-nudge" id="loginNudge" role="status" aria-live="polite">
+    <div class="login-nudge-inner">
+        <div class="login-nudge-body">
+            <div class="login-nudge-title">Log in to earn points</div>
+            <div class="login-nudge-desc">Create a free account to track your streak and compete on the leaderboard.</div>
+            <a class="login-nudge-btn" href="../signin.html">Log in / Sign up</a>
+        </div>
+        <button class="login-nudge-close" id="loginNudgeClose" aria-label="Dismiss">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+</div>
 
 <script src="../js/nav.js"></script>
 <script type="module" src="js/nerdle.js"></script>

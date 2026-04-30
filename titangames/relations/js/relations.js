@@ -7,13 +7,26 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/fi
 import { 
     submitGameCompletion, 
     checkGameCompletion, 
-    getTodayStats 
+    getTodayStats,
+    syncPendingGames
 } from "../../js/points.js";
 
 let currentUser = null;
 let todayPoints = 0;
 let alreadyCompleted = false;
 let completedGameData = null;
+
+function showLoginNudge() {
+    const nudge = document.getElementById("loginNudge");
+    if (!nudge) return;
+    nudge.classList.add("visible");
+    const closeBtn = document.getElementById("loginNudgeClose");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => nudge.classList.remove("visible"), { once: true });
+    }
+    // Auto-dismiss after 6 seconds
+    setTimeout(() => nudge.classList.remove("visible"), 6000);
+}
 
 async function updatePointsDisplay() {
     const pointsEl = document.getElementById('headerPoints');
@@ -37,7 +50,8 @@ async function updatePointsDisplay() {
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     await updatePointsDisplay();
-    if (user) {
+    if (user && !user.isAnonymous) {
+        await syncPendingGames();
         const completion = await checkGameCompletion('relations');
         if (completion.completed) {
             alreadyCompleted = true;
@@ -215,6 +229,10 @@ class RelationsGame {
             return;
         }
         document.getElementById('splashOverlay').classList.add('hidden');
+        // Show login nudge for guests / anonymous users
+        if (!currentUser || currentUser.isAnonymous) {
+            showLoginNudge();
+        }
     }
     
     shuffle(array) {
@@ -402,7 +420,7 @@ class RelationsGame {
         
         let finalScore = score;
         let bonusPosition = null;
-        if (currentUser && !currentUser.isAnonymous && !alreadyCompleted) {
+        if (!alreadyCompleted) {
             const result = await submitGameCompletion('relations', score, {
                 mistakes: this.mistakes,
                 won: true,
@@ -434,7 +452,7 @@ class RelationsGame {
         // Update local stats
         this.updateLocalStats(false);
         
-        if (currentUser && !alreadyCompleted) {
+        if (!alreadyCompleted) {
             const result = await submitGameCompletion('relations', 0, {
                 mistakes: this.mistakes,
                 won: false,

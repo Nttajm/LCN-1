@@ -1,0 +1,109 @@
+/* Login nudge banner — bottom-anchored, gradient backdrop */
+.login-nudge {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50vh;
+    pointer-events: none;
+    z-index: 900;
+    display: flex;
+    align-items: flex-end;
+
+    /* gradient: opaque dark at bottom → fully transparent at top */
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(18, 18, 18, 0.72) 40%,
+        rgba(18, 18, 18, 0.96) 100%
+    );
+
+    /* hidden state */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.login-nudge.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.login-nudge-inner {
+    width: 100%;
+    padding: 0 20px 32px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.login-nudge-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.login-nudge-title {
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.login-nudge-desc {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.45;
+}
+
+.login-nudge-btn {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 10px 22px;
+    background: #ffffff;
+    color: #121212;
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    width: fit-content;
+}
+
+.login-nudge-btn:hover {
+    background: #e0e0e0;
+}
+
+.login-nudge-close {
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 2px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: rgba(255, 255, 255, 0.65);
+    transition: color 0.15s ease;
+    line-height: 0;
+}
+
+.login-nudge-close:hover {
+    color: #ffffff;
+}
+
+.login-nudge-close svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}

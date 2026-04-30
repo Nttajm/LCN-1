@@ -332,7 +332,8 @@ h1 {
     border-bottom: 1px solid var(--border);
 }
 
-.leaderboard-row:last-child {
+.leaderboard-row:last-child,
+.leaderboard-row-wrapper:last-child .leaderboard-row {
     border-bottom: none;
 }
 
@@ -433,6 +434,101 @@ h1 {
 .leaderboard-user.visible {
     display: block;
     border-top: 2px solid var(--text-primary);
+}
+
+/* ── Player popup ── */
+.leaderboard-row-wrapper {
+    position: relative;
+}
+
+.player-popup {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+    padding: 0.6rem 1rem;
+    flex-direction: row;
+    gap: 1.25rem;
+    align-items: flex-start;
+}
+
+.player-popup.open {
+    display: flex;
+}
+
+.popup-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.popup-game-label {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+}
+
+/* Nerdle mini grid */
+.mini-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.mini-grid-row {
+    display: flex;
+    gap: 1px;
+}
+
+.mini-cell {
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: #e0e0e0;
+}
+
+.mini-cell.correct  { background: #6AAA64; }
+.mini-cell.present  { background: #C9B458; }
+.mini-cell.absent   { background: #787C7E; }
+
+/* Relations dots */
+.relations-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: flex-start;
+}
+
+.relations-dot-row {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.rdot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #e0e0e0;
+}
+
+.rdot.solved   { background: #6AAA64; }
+.rdot.mistake  { background: #C25450; }
+
+.popup-no-data {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 @media (max-width: 768px) {

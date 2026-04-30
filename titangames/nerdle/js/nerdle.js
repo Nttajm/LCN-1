@@ -9,7 +9,8 @@ import {
     checkGameCompletion, 
     getTodayStats,
     getTodayLeaderboard,
-    onAuthChange 
+    onAuthChange,
+    syncPendingGames
 } from "../../js/points.js";
 
 let currentUser = null;
@@ -28,6 +29,7 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     await updatePointsDisplay();
     if (!user.isAnonymous) {
+        await syncPendingGames();
         const completion = await checkGameCompletion('nerdle');
         if (completion.completed) {
             alreadyCompleted = true;
@@ -922,6 +924,18 @@ function formatDate() {
     return now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
+function showLoginNudge() {
+    const nudge = document.getElementById("loginNudge");
+    if (!nudge) return;
+    nudge.classList.add("visible");
+    const closeBtn = document.getElementById("loginNudgeClose");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => nudge.classList.remove("visible"), { once: true });
+    }
+    // Auto-dismiss after 6 seconds
+    setTimeout(() => nudge.classList.remove("visible"), 6000);
+}
+
 function initSplash() {
     document.getElementById("splashDate").textContent = formatDate();
     document.getElementById("splashNumber").textContent = "No. " + getPuzzleNumber();
@@ -931,6 +945,10 @@ function initSplash() {
             restoreCompletedGame();
         } else {
             document.getElementById("splashOverlay").classList.add("hidden");
+        }
+        // Show login nudge for guests / anonymous users
+        if (!currentUser || currentUser.isAnonymous) {
+            showLoginNudge();
         }
     });
 }
@@ -1166,8 +1184,7 @@ async function submitGuess() {
             
             let bonusPosition = null;
             let bonusMultiplier = 1;
-            if (currentUser && !currentUser.isAnonymous && !alreadyCompleted) {
-                previousTodayPoints = todayPoints;
+            if (!alreadyCompleted) {
                 const boardState = getBoardState(guessNum);
                 const result = await submitGameCompletion('nerdle', gameScore, {
                     guesses: guessNum,
@@ -1177,6 +1194,7 @@ async function submitGuess() {
                     stats: stats
                 });
                 if (result.success) {
+                    previousTodayPoints = todayPoints;
                     bonusPosition = result.bonusPosition;
                     bonusMultiplier = result.bonusMultiplier;
                     gameScore = result.finalPoints;
@@ -1208,8 +1226,7 @@ async function submitGuess() {
             gameScore = NYT_WORDLE_LOSS_POINTS;
             const stats = await recordLoss();
             
-            if (currentUser && !currentUser.isAnonymous && !alreadyCompleted) {
-                previousTodayPoints = todayPoints;
+            if (!alreadyCompleted) {
                 const boardState = getBoardState(MAX_GUESSES);
                 const result = await submitGameCompletion('nerdle', gameScore, {
                     guesses: MAX_GUESSES,
@@ -1219,6 +1236,7 @@ async function submitGuess() {
                     stats: stats
                 });
                 if (result.success) {
+                    previousTodayPoints = todayPoints;
                     alreadyCompleted = true;
                     await updatePointsDisplay(true);
                 }
