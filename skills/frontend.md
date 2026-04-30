@@ -49,7 +49,7 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 no comments in the code whats so ever.
 
 
-place js and css into seprate folder calles js and css. 
+place js and css into seprate folders if and only if the project as big enough. 
 
 use rem values.
 

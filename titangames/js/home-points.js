@@ -6,7 +6,7 @@
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { getTodayStats, getTodayLeaderboard, getCurrentUser, getTodayDateStr, syncPendingGames } from "./points.js";
+import { getTodayStats, getTodayLeaderboard, getCurrentUser, getTodayDateStr, syncPendingGames, getWeekLeaderboard } from "./points.js";
 
 let currentUser = null;
 
@@ -45,6 +45,14 @@ function computeNerdleColors(boardState, target) {
     return rows;
 }
 
+function formatGameTime(ts) {
+    if (!ts) return null;
+    try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    } catch (e) { return null; }
+}
+
 function buildNerdleMiniGrid(nerdleData) {
     const wrapper = document.createElement('div');
     wrapper.className = 'popup-game popup-nerdle';
@@ -76,6 +84,15 @@ function buildNerdleMiniGrid(nerdleData) {
         grid.appendChild(rowEl);
     }
     wrapper.appendChild(grid);
+
+    const time = formatGameTime(nerdleData?.completedAt);
+    if (time) {
+        const timeEl = document.createElement('div');
+        timeEl.className = 'popup-game-time';
+        timeEl.textContent = time;
+        wrapper.appendChild(timeEl);
+    }
+
     return wrapper;
 }
 
@@ -137,12 +154,27 @@ function buildRelationsDots(relationsData) {
     }
 
     wrapper.appendChild(dotsWrap);
+
+    const time = formatGameTime(relationsData?.completedAt);
+    if (time) {
+        const timeEl = document.createElement('div');
+        timeEl.className = 'popup-game-time';
+        timeEl.textContent = time;
+        wrapper.appendChild(timeEl);
+    }
+
     return wrapper;
 }
 
-function buildPlayerPopup() {
+function buildPlayerPopup(displayName) {
     const popup = document.createElement('div');
     popup.className = 'player-popup';
+    if (displayName) {
+        const nameEl = document.createElement('div');
+        nameEl.className = 'popup-player-name';
+        nameEl.textContent = displayName;
+        popup.appendChild(nameEl);
+    }
     return popup;
 }
 
@@ -157,7 +189,7 @@ async function fetchPlayerGames(uid) {
 
 let activePopup = null;
 
-async function togglePlayerPopup(wrapper, uid) {
+async function togglePlayerPopup(wrapper, uid, displayName) {
     // Close any open popup
     if (activePopup && activePopup !== wrapper.querySelector('.player-popup')) {
         activePopup.classList.remove('open');
@@ -173,15 +205,24 @@ async function togglePlayerPopup(wrapper, uid) {
     }
 
     // Show loading state
-    popup.innerHTML = '';
+    popup.innerHTML = `<div class="popup-loading">Loading…</div>`;
     popup.classList.add('open');
     activePopup = popup;
 
     const games = await fetchPlayerGames(uid);
 
     popup.innerHTML = '';
-    popup.appendChild(buildNerdleMiniGrid(games.nerdle || null));
-    popup.appendChild(buildRelationsDots(games.relations || null));
+    if (displayName) {
+        const nameEl = document.createElement('div');
+        nameEl.className = 'popup-player-name';
+        nameEl.textContent = displayName;
+        popup.appendChild(nameEl);
+    }
+    const gamesRow = document.createElement('div');
+    gamesRow.className = 'popup-games-row';
+    gamesRow.appendChild(buildNerdleMiniGrid(games.nerdle || null));
+    gamesRow.appendChild(buildRelationsDots(games.relations || null));
+    popup.appendChild(gamesRow);
 }
 
 // ── Row creation ─────────────────────────────────────────────────
@@ -208,7 +249,7 @@ function createLeaderboardRow(entry, rank, isCurrentUser = false) {
     wrapper.appendChild(popup);
 
     if (entry.uid) {
-        row.addEventListener('click', () => togglePlayerPopup(wrapper, entry.uid));
+        row.addEventListener('click', () => togglePlayerPopup(wrapper, entry.uid, entry.displayName || 'Player'));
     }
 
     return wrapper;
@@ -348,8 +389,76 @@ onAuthStateChanged(auth, async (user) => {
     await updateLeaderboardDisplay();
 });
 
+// ── Week section ─────────────────────────────────────────────────
+
+function getWeekRangeLabel(days) {
+    if (!days || days.length === 0) return '';
+    const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${fmt(days[0])} – ${fmt(days[days.length - 1])}`;
+}
+
+function renderWeekTable(bodyEl, rows, valueKey, valueLabel, currentUid) {
+    bodyEl.innerHTML = '';
+    if (!rows || rows.length === 0) {
+        bodyEl.innerHTML = '<div class="leaderboard-empty">No data yet</div>';
+        return;
+    }
+    rows.forEach((entry, i) => {
+        const rank = i + 1;
+        const isMe = currentUid && entry.uid === currentUid;
+        const row = document.createElement('div');
+        row.className = `week-row${isMe ? ' week-row--highlight' : ''}`;
+        const rankClass = rank <= 3 ? ` rank-${rank}` : '';
+        const val = valueKey === 'wins'
+            ? `${entry.wins} day${entry.wins !== 1 ? 's' : ''}`
+            : `${entry.totalPoints} pts`;
+        row.innerHTML = `
+            <span class="week-col-cell week-col-cell--rank${rankClass}">${rank}</span>
+            <span class="week-col-cell week-col-cell--name">${entry.displayName}</span>
+            <span class="week-col-cell week-col-cell--val">${val}</span>
+        `;
+        bodyEl.appendChild(row);
+    });
+}
+
+let weekLoaded = false;
+
+async function loadWeekSection() {
+    const weekSection = document.getElementById('weekSection');
+    const weekRange = document.getElementById('weekRange');
+    const weekPointsBody = document.getElementById('weekPointsBody');
+    const weekWinsBody = document.getElementById('weekWinsBody');
+    if (!weekSection) return;
+
+    weekPointsBody.innerHTML = '<div class="leaderboard-empty">Loading…</div>';
+    weekWinsBody.innerHTML = '<div class="leaderboard-empty">Loading…</div>';
+
+    try {
+        const { pointsRanking, winsRanking, days } = await getWeekLeaderboard();
+        if (weekRange) weekRange.textContent = getWeekRangeLabel(days);
+        const uid = currentUser && !currentUser.isAnonymous ? currentUser.uid : null;
+        renderWeekTable(weekPointsBody, pointsRanking, 'totalPoints', 'Pts', uid);
+        renderWeekTable(weekWinsBody, winsRanking, 'wins', 'Days', uid);
+    } catch (e) {
+        weekPointsBody.innerHTML = '<div class="leaderboard-empty">Unable to load</div>';
+        weekWinsBody.innerHTML = '<div class="leaderboard-empty">Unable to load</div>';
+    }
+    weekLoaded = true;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     updateLeaderboardDisplay();
+
+    const btn = document.getElementById('weekToggleBtn');
+    const weekSection = document.getElementById('weekSection');
+    if (btn && weekSection) {
+        btn.addEventListener('click', () => {
+            const open = !weekSection.hidden;
+            weekSection.hidden = open;
+            btn.textContent = open ? 'See week winners' : 'Hide week winners';
+            if (!open && !weekLoaded) loadWeekSection();
+        });
+    }
 });
 
 export { updateLeaderboardDisplay };

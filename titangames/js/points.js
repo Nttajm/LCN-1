@@ -438,6 +438,58 @@ export async function getTodayLeaderboard(topN = 10) {
 }
 
 /**
+ * Get this week's leaderboard aggregated Mon–today (capped at Fri)
+ * Returns { pointsRanking: [{uid, displayName, points}], winsRanking: [{uid, displayName, wins}], days: string[] }
+ */
+export async function getWeekLeaderboard() {
+    const today = new Date();
+    const dow = today.getDay(); // 0=Sun … 6=Sat
+    // Monday of this week
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((dow === 0 ? 7 : dow) - 1));
+    monday.setHours(0, 0, 0, 0);
+
+    // Build list of Mon–today (max Fri)
+    const days = [];
+    for (let i = 0; i < 5; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        if (d > today) break;
+        const str = d.getFullYear() + '-' +
+            String(d.getMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getDate()).padStart(2, '0');
+        days.push(str);
+    }
+
+    // Fetch all available daily leaderboard docs in parallel
+    const snaps = await Promise.all(
+        days.map(d => getDoc(doc(db, 'titan_leaderboard', `daily_${d}`)))
+    );
+
+    // Aggregate: uid → { displayName, totalPoints, wins }
+    const agg = {};
+    snaps.forEach((snap, idx) => {
+        if (!snap.exists()) return;
+        const entries = snap.data().entries || [];
+        if (entries.length === 0) return;
+        // "win" = #1 on that day
+        const winner = entries[0]?.uid;
+        entries.forEach(e => {
+            if (!e.uid) return;
+            if (!agg[e.uid]) agg[e.uid] = { displayName: e.displayName || 'Player', totalPoints: 0, wins: 0 };
+            agg[e.uid].totalPoints += (e.points || 0);
+            if (e.uid === winner) agg[e.uid].wins += 1;
+        });
+    });
+
+    const all = Object.entries(agg).map(([uid, v]) => ({ uid, ...v }));
+    const pointsRanking = [...all].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5);
+    const winsRanking = [...all].sort((a, b) => b.wins - a.wins || b.totalPoints - a.totalPoints).slice(0, 5);
+
+    return { pointsRanking, winsRanking, days };
+}
+
+/**
  * Listen for auth state changes to update UI
  * @param {Function} callback - Called with user object or null
  */
