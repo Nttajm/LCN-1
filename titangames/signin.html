@@ -314,7 +314,7 @@ main {
                 <span class="signin-logo-name">Titan Games</span>
             </div>
             <h1 class="signin-heading" id="formHeading">Welcome back.</h1>
-            <p class="signin-sub">Sign in to save streaks and track your scores.</p>
+            <p class="signin-sub">Sign in with your @crpusd.org Google account.</p>
         </div>
         <div class="signin-body">
             <button class="google-btn" id="googleBtn">
@@ -326,26 +326,7 @@ main {
                 </svg>
                 Continue with Google
             </button>
-            <div class="divider"><span>or</span></div>
             <div class="error-msg" id="errorMsg"></div>
-            <form class="signin-form" id="signinForm" novalidate>
-                <div class="field" id="nameField" style="display:none">
-                    <label for="nameInput">Full Name</label>
-                    <input type="text" id="nameInput" placeholder="Your name" autocomplete="name"/>
-                </div>
-                <div class="field">
-                    <label for="emailInput">Email</label>
-                    <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" required/>
-                </div>
-                <div class="field">
-                    <label for="passwordInput">Password</label>
-                    <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password" required/>
-                </div>
-                <button class="submit-btn" type="submit" id="submitBtn">Sign In</button>
-            </form>
-            <div class="toggle" id="toggleSection">
-                No account? <button type="button" id="modeSwitch">Create one</button>
-            </div>
             <div class="back-link">
                 <a href="index.html">← Back to Games</a>
             </div>
@@ -358,25 +339,23 @@ import { auth, db, googleProvider } from "./js/firebase.js";
 import {
     onAuthStateChanged,
     signInWithPopup,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    updateProfile
+    signOut
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-let isSignUp = false;
+const ALLOWED_DOMAIN = "crpusd.org";
 
-const form = document.getElementById("signinForm");
-const emailInput = document.getElementById("emailInput");
-const passwordInput = document.getElementById("passwordInput");
-const nameInput = document.getElementById("nameInput");
-const nameField = document.getElementById("nameField");
-const submitBtn = document.getElementById("submitBtn");
 const googleBtn = document.getElementById("googleBtn");
-const modeSwitch = document.getElementById("modeSwitch");
-const toggleSection = document.getElementById("toggleSection");
-const formHeading = document.getElementById("formHeading");
 const errorMsg = document.getElementById("errorMsg");
+
+function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.add("show");
+}
+
+function hideError() {
+    errorMsg.classList.remove("show");
+}
 
 async function saveNewUser(user) {
     const ref = doc(db, "titan_users", user.uid);
@@ -391,95 +370,32 @@ async function saveNewUser(user) {
     });
 }
 
-function showError(msg) {
-    errorMsg.textContent = msg;
-    errorMsg.classList.add("show");
-}
-
-function hideError() {
-    errorMsg.classList.remove("show");
-}
-
-function setMode(signUp) {
-    isSignUp = signUp;
-    hideError();
-    if (signUp) {
-        formHeading.textContent = "Create your account.";
-        submitBtn.textContent = "Create Account";
-        nameField.style.display = "";
-        toggleSection.innerHTML = 'Have an account? <button type="button" id="modeSwitch">Sign in</button>';
-        passwordInput.autocomplete = "new-password";
-    } else {
-        formHeading.textContent = "Welcome back.";
-        submitBtn.textContent = "Sign In";
-        nameField.style.display = "none";
-        toggleSection.innerHTML = 'No account? <button type="button" id="modeSwitch">Create one</button>';
-        passwordInput.autocomplete = "current-password";
-    }
-    document.getElementById("modeSwitch").addEventListener("click", () => setMode(!isSignUp));
-}
-
-modeSwitch.addEventListener("click", () => setMode(true));
-
 // Handle Google sign in
 googleBtn.addEventListener("click", async () => {
     hideError();
+    googleBtn.disabled = true;
     try {
         const result = await signInWithPopup(auth, googleProvider);
+        const email = result.user.email || "";
+        if (!email.toLowerCase().endsWith("@" + ALLOWED_DOMAIN)) {
+            await signOut(auth);
+            showError("Only @" + ALLOWED_DOMAIN + " accounts are allowed.");
+            googleBtn.disabled = false;
+            return;
+        }
         await saveNewUser(result.user);
         window.location.href = "index.html";
     } catch (err) {
         if (err.code !== "auth/popup-closed-by-user") {
             showError(err.message);
         }
+        googleBtn.disabled = false;
     }
 });
 
-// Handle form submission
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    hideError();
-
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    if (!email || !password) {
-        showError("Please enter both email and password.");
-        return;
-    }
-
-    submitBtn.disabled = true;
-
-    try {
-        if (isSignUp) {
-            const name = nameInput.value.trim();
-            const cred = await createUserWithEmailAndPassword(auth, email, password);
-            if (name) {
-                await updateProfile(cred.user, { displayName: name });
-            }
-            await saveNewUser(cred.user);
-        } else {
-            await signInWithEmailAndPassword(auth, email, password);
-        }
-        window.location.href = "index.html";
-    } catch (err) {
-        let msg = err.message;
-        if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-            msg = "Invalid email or password.";
-        } else if (err.code === "auth/email-already-in-use") {
-            msg = "An account with this email already exists.";
-        } else if (err.code === "auth/weak-password") {
-            msg = "Password should be at least 6 characters.";
-        }
-        showError(msg);
-    } finally {
-        submitBtn.disabled = false;
-    }
-});
-
-// Redirect if already logged in
+// Redirect if already logged in with an allowed account
 onAuthStateChanged(auth, (user) => {
-    if (user) {
+    if (user && user.email && user.email.toLowerCase().endsWith("@" + ALLOWED_DOMAIN)) {
         window.location.href = "index.html";
     }
 });

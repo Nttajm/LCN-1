@@ -163,6 +163,40 @@ body {
 .editor-game-status {
     font-size: 0.8125rem;
     color: var(--editor-text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.125rem;
+}
+
+/* Today’s puzzle status badge inside the game card */
+.eds-today {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.eds-today--published {
+    background: #E6F4EA;
+    color: var(--editor-success);
+}
+.eds-today--draft {
+    background: #FFF3E0;
+    color: var(--editor-warning);
+}
+.eds-today--missing {
+    background: #F5F5F5;
+    color: var(--editor-text-muted);
+}
+
+/* Aggregate totals line below the today badge */
+.eds-totals {
+    font-size: 0.75rem;
+    color: var(--editor-text-muted);
 }
 
 .editor-game-arrow {

@@ -10,8 +10,16 @@ import {
     getTodayStats,
     getTodayLeaderboard,
     onAuthChange,
-    syncPendingGames
+    syncPendingGames,
+    checkIfGameSolvedToday
 } from "../../js/points.js";
+
+// ── Gate check ── Must be loaded by ch.js after the daily window opens.
+// If the gate flag is missing, not open, or marked as tampered (overlay was
+// removed before unlock), abort the entire module so the game never starts.
+if (!window.__nerdleGate_v1 || !window.__nerdleGate_v1.open || window.__nerdleGate_v1.tampered) {
+    throw new Error('Nerdle is not yet available. Come back later.');
+}
 
 let currentUser = null;
 let todayPoints = 0;
@@ -57,6 +65,13 @@ async function restoreCompletedGame() {
     if (gameWon && completedGameData.guesses > 0 && completedGameData.guesses <= boardState.length) {
         guessScores[completedGameData.guesses - 1] = gameScore;
         lastWinRow = completedGameData.guesses;
+    }
+    
+    // If the player lost, only reveal the word if someone else has already solved it today
+    if (!gameWon) {
+        wordRevealAllowed = await checkIfGameSolvedToday('nerdle');
+    } else {
+        wordRevealAllowed = true;
     }
     
     document.getElementById("splashOverlay").classList.add("hidden");
@@ -213,6 +228,7 @@ let gameWon = null;
 let gameScore = 0;          // Total score for current game
 let guessScores = [];       // Score for each guess
 let statsRefreshInterval = null;
+let wordRevealAllowed = false; // Only true once someone has solved today's nerdle
 
 function getDefaultStats() {
     return {
@@ -651,7 +667,7 @@ function renderGameBoardPreview(won, guessNum) {
     
     // Show score summary
     const resultText = liveInProgress ? "In progress" : (won ? "Solved" : "Not solved");
-    const answerText = liveInProgress || won ? "" : ` — Answer: ${targetWord}`;
+    const answerText = liveInProgress || won || !wordRevealAllowed ? "" : ` — Answer: ${targetWord}`;
     const liveHint = liveInProgress
         ? `<div class="stats-score-live">If solved now: ${getNytStyleSolvePoints(currentRow + 1)} pts</div>`
         : "";
@@ -1242,8 +1258,14 @@ async function submitGuess() {
                 }
             }
             
+            // Only reveal the word if someone has already solved today's puzzle
+            wordRevealAllowed = await checkIfGameSolvedToday('nerdle');
+            
             setTimeout(function () {
-                showToast(targetWord + " — " + formatPointsLabel(gameScore), 3500);
+                const lossMsg = wordRevealAllowed
+                    ? targetWord + " — " + formatPointsLabel(gameScore)
+                    : "Better luck next time — " + formatPointsLabel(gameScore);
+                showToast(lossMsg, 3500);
             }, 2200);
             setTimeout(function () {
                 openStatsModal(false, 0);

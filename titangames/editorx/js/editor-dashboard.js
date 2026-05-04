@@ -1,41 +1,65 @@
-import { db, collection, getDocs, query, orderBy } from './firebase-config.js';
+import { db, collection, doc, getDocs, getDoc, query, orderBy } from './firebase-config.js';
 
 const GAME_COLLECTIONS = {
     crossword: { collection: 'crosswords', name: 'Crossword', statusId: 'crosswordStatus' },
-    nerdle: { collection: 'nerdles', name: 'Nerdle', statusId: 'nerdleStatus' },
-    relations: { collection: 'relations', name: 'Relations', statusId: 'relationsStatus' }
+    nerdle:    { collection: 'nerdles',    name: 'Nerdle',    statusId: 'nerdleStatus' },
+    relations: { collection: 'relations',  name: 'Relations', statusId: 'relationsStatus' }
 };
+
+function getTodayDateStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+}
 
 async function loadGameStats(gameKey) {
     var game = GAME_COLLECTIONS[gameKey];
     var statusEl = document.getElementById(game.statusId);
     if (!statusEl) return { published: 0, drafts: 0, releases: [] };
-    
+
+    var todayStr = getTodayDateStr();
+
     try {
-        var q = query(collection(db, game.collection), orderBy('releaseDate', 'desc'));
-        var snapshot = await getDocs(q);
-        
+        // Fetch today's specific doc AND the full collection list in parallel
+        var results = await Promise.all([
+            getDoc(doc(db, game.collection, todayStr)),
+            getDocs(query(collection(db, game.collection), orderBy('releaseDate', 'desc')))
+        ]);
+        var todaySnap   = results[0];
+        var allSnapshot = results[1];
+
+        // Today’s puzzle status
+        var todayStatus = todaySnap.exists() ? (todaySnap.data().status || 'draft') : null;
+
+        // Aggregate counts across all docs
         var publishedCount = 0;
         var releases = [];
-        
-        snapshot.forEach(function(docSnap) {
+        allSnapshot.forEach(function (docSnap) {
             var data = docSnap.data();
             if (data.status === 'published') publishedCount++;
-            releases.push({
-                id: docSnap.id,
-                gameType: gameKey,
-                gameName: game.name,
-                ...data
-            });
+            releases.push(Object.assign({ id: docSnap.id, gameType: gameKey, gameName: game.name }, data));
         });
-        
-        if (snapshot.empty) {
-            statusEl.textContent = 'No releases';
+
+        // Today badge
+        var todayBadge;
+        if (todayStatus === 'published') {
+            todayBadge = '<span class="eds-today eds-today--published">Today: Published</span>';
+        } else if (todayStatus === 'draft') {
+            todayBadge = '<span class="eds-today eds-today--draft">Today: Draft</span>';
         } else {
-            statusEl.textContent = publishedCount + ' published, ' + (snapshot.size - publishedCount) + ' drafts';
+            todayBadge = '<span class="eds-today eds-today--missing">No puzzle today</span>';
         }
-        
-        return { published: publishedCount, drafts: snapshot.size - publishedCount, releases: releases };
+
+        // Totals line
+        var totalsLine = allSnapshot.empty
+            ? ''
+            : '<span class="eds-totals">' + publishedCount + ' published &middot; ' +
+              (allSnapshot.size - publishedCount) + ' drafts</span>';
+
+        statusEl.innerHTML = todayBadge + totalsLine;
+
+        return { published: publishedCount, drafts: allSnapshot.size - publishedCount, releases: releases };
     } catch (err) {
         statusEl.textContent = 'Error loading';
         return { published: 0, drafts: 0, releases: [] };

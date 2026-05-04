@@ -137,7 +137,7 @@ export async function checkGameCompletion(gameName) {
  * @param {object} metadata - Additional game data (attempts, won, etc.)
  * @returns {Promise<{success: boolean, totalPoints: number}>}
  */
-async function claimGameBonus(dateStr, gameName) {
+async function claimGameBonus(dateStr, gameName, isWin = false) {
     const leaderboardRef = doc(db, 'titan_leaderboard', `daily_${dateStr}`);
     let position = null;
     let multiplier = 1;
@@ -149,22 +149,48 @@ async function claimGameBonus(dateStr, gameName) {
             if (n === 0) { position = 1; multiplier = 3; }
             else if (n === 1) { position = 2; multiplier = 2; }
             else if (n === 2) { position = 3; multiplier = 1.5; }
+            const updateData = { [`gameFinishCounts.${gameName}`]: n + 1 };
+            if (isWin) {
+                const solvedCounts = snap.exists() ? (snap.data().gameSolvedCounts || {}) : {};
+                updateData[`gameSolvedCounts.${gameName}`] = (solvedCounts[gameName] || 0) + 1;
+            }
             if (snap.exists()) {
-                tx.update(leaderboardRef, { [`gameFinishCounts.${gameName}`]: n + 1 });
+                tx.update(leaderboardRef, updateData);
             } else {
-                tx.set(leaderboardRef, {
+                const newDoc = {
                     date: dateStr,
                     entries: [],
                     gameFinishCounts: { [gameName]: 1 },
                     createdAt: serverTimestamp(),
                     lastUpdated: serverTimestamp()
-                });
+                };
+                if (isWin) newDoc.gameSolvedCounts = { [gameName]: 1 };
+                tx.set(leaderboardRef, newDoc);
             }
         });
     } catch (err) {
         console.error('Error claiming game bonus:', err);
     }
     return { position, multiplier };
+}
+
+/**
+ * Check if at least one player has solved (won) a specific game today
+ * @param {string} gameName - Name of the game (e.g., 'nerdle', 'relations')
+ * @returns {Promise<boolean>}
+ */
+export async function checkIfGameSolvedToday(gameName) {
+    const dateStr = getTodayDateStr();
+    const leaderboardRef = doc(db, 'titan_leaderboard', `daily_${dateStr}`);
+    try {
+        const snap = await getDoc(leaderboardRef);
+        if (!snap.exists()) return false;
+        const solvedCounts = snap.data().gameSolvedCounts || {};
+        return (solvedCounts[gameName] || 0) > 0;
+    } catch (err) {
+        console.error('Error checking if game solved today:', err);
+        return false;
+    }
 }
 
 export async function submitGameCompletion(gameName, points, metadata = {}) {
@@ -200,7 +226,7 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
             };
         }
 
-        const { position: bonusPosition, multiplier: bonusMultiplier } = await claimGameBonus(dateStr, gameName);
+        const { position: bonusPosition, multiplier: bonusMultiplier } = await claimGameBonus(dateStr, gameName, points > 0);
         const finalPoints = points > 0 ? Math.round(points * bonusMultiplier) : 0;
 
         const gameSubmission = {

@@ -45,3 +45,37 @@ function renderPOTW() {
 
 document.addEventListener('DOMContentLoaded', renderPOTW);
 
+function renderTransfers() {
+    const list = document.getElementById('transfers-list');
+    if (!list) return;
+
+    const season = getThisSeason();
+    const transfers = season && season.transfers;
+
+    if (!transfers || transfers.length === 0) {
+        list.innerHTML = '<span class="no-transfers">No transfers this season.</span>';
+        return;
+    }
+
+    list.innerHTML = transfers.map(t => {
+        const fromTeam = getTeamById(t.from);
+        const toTeam   = getTeamById(t.to);
+        const fromImg  = fromTeam ? fromTeam.img  : '';
+        const fromName = fromTeam ? fromTeam.name : t.from;
+        const toImg    = toTeam   ? toTeam.img    : '';
+        const toName   = toTeam   ? toTeam.name   : t.to;
+        return `
+        <div class="transfer-item">
+            <span class="transfer-player">${t.player}</span>
+            <div class="transfer-move">
+                <img src="${fromImg}" alt="${fromName}" class="transfer-badge">
+                <span class="transfer-arrow">→</span>
+                <img src="${toImg}" alt="${toName}" class="transfer-badge">
+                <span class="transfer-team-name">${toName}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', renderTransfers);
+

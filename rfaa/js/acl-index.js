@@ -989,7 +989,7 @@ function addMatchDialog(startMatch, mdIndex) {
 
         if (!player) return;
         if (isNaN(minute) || minute < 1 || minute > 120) {
-            minute = Math.floor(Math.random() * 91); // Generate a random number between 0 and 90
+            minute = Math.floor(Math.random() * 95); // Generate a random number between 0 and 90
         }
 
         if (!minute) {
@@ -1409,7 +1409,8 @@ function createSeasonFunc() {
         year: selectedYear,
         teams: selectedTeams,
         id: `season-${selectedYear}`,
-        matchdays: []
+        matchdays: [],
+        transfers: []
     };
     
     // Check if the season already exists

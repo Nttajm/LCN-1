@@ -11,6 +11,13 @@ import {
     syncPendingGames
 } from "../../js/points.js";
 
+// ── Gate check ── Must be loaded by ch.js after the daily window opens.
+// If the gate flag is missing, not open, or marked as tampered (overlay was
+// removed before unlock), abort the entire module so the game never starts.
+if (!window.__relationsGate_v1 || !window.__relationsGate_v1.open || window.__relationsGate_v1.tampered) {
+    throw new Error('Relations is not yet available. Come back later.');
+}
+
 let currentUser = null;
 let todayPoints = 0;
 let alreadyCompleted = false;
@@ -209,9 +216,20 @@ class RelationsGame {
         this.mistakes = completedGameData.mistakes || 0;
         this.guessHistory = completedGameData.guessHistory || [];
         
-        this.puzzle.categories.forEach(cat => {
-            this.solved.push(cat);
-        });
+        if (completedGameData.won) {
+            // Won: show all categories
+            this.puzzle.categories.forEach(cat => {
+                this.solved.push(cat);
+            });
+        } else {
+            // Lost: only show categories the player actually solved
+            const solvedNames = completedGameData.solvedOrder || [];
+            this.puzzle.categories.forEach(cat => {
+                if (solvedNames.includes(cat.name)) {
+                    this.solved.push(cat);
+                }
+            });
+        }
         
         this.remainingWords = [];
         this.renderSolved();
@@ -469,22 +487,11 @@ class RelationsGame {
         
         this.showToast("Better luck next time!");
         
-        // Reveal remaining categories
+        // Clear grid and show modal without revealing unsolved category answers
         setTimeout(() => {
-            const remaining = this.puzzle.categories.filter(cat => !this.solved.includes(cat));
-            remaining.forEach((cat, i) => {
-                setTimeout(() => {
-                    this.solved.push(cat);
-                    this.renderSolved();
-                }, i * 500);
-            });
-            
-            // Clear grid
-            setTimeout(() => {
-                document.getElementById('gameGrid').innerHTML = '';
-                this.showModal(false);
-            }, remaining.length * 500 + 500);
-        }, 500);
+            document.getElementById('gameGrid').innerHTML = '';
+            this.showModal(false);
+        }, 800);
     }
     
     showModal(won) {
@@ -584,11 +591,14 @@ class RelationsGame {
             previewContainer.style.display = 'block';
             grid.innerHTML = '';
             
-            // Render the solved categories as rows
+            // Render only actually solved categories (never reveal unsolved ones)
+            const won = this.gameOver ? (this.mistakes < this.maxMistakes && this.solved.length === 4) : completedGameData?.won;
             const solvedCats = this.gameOver ? this.solved : 
-                              (completedGameData?.categoryColors ? 
-                               this.puzzle.categories.filter(c => completedGameData.categoryColors.includes(c.color)) :
-                               this.puzzle.categories);
+                              (completedGameData?.categoryColors?.length
+                               ? this.puzzle.categories.filter(c => completedGameData.categoryColors.includes(c.color))
+                               : (completedGameData?.solvedOrder?.length
+                                  ? this.puzzle.categories.filter(c => completedGameData.solvedOrder.includes(c.name))
+                                  : (won ? this.puzzle.categories : [])));
             
             solvedCats.forEach(cat => {
                 const rowDiv = document.createElement('div');
@@ -611,7 +621,6 @@ class RelationsGame {
             });
             
             const score = this.calculateScore();
-            const won = this.gameOver ? (this.mistakes < this.maxMistakes && this.solved.length === 4) : completedGameData?.won;
             const mistakes = this.gameOver ? this.mistakes : (completedGameData?.mistakes || 0);
             
             scoreSummary.innerHTML = `
