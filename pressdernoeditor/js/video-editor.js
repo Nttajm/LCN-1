@@ -488,14 +488,19 @@ let exportTimers    = [];
 let chosenMime      = '';
 
 // Pick the best container the current browser supports.
-// Priority: MP4 (plays everywhere incl. iOS) → WebM VP9 → WebM
+// Priority: MP4 → WebM VP9 → WebM VP8 → WebM
 function pickMimeType() {
     const candidates = [
-        'video/mp4;codecs=avc1',   // Safari/iOS — H.264 in MP4
-        'video/mp4',               // Safari generic
-        'video/webm;codecs=vp9',   // Chrome / Android
-        'video/webm;codecs=vp8',   // Firefox fallback
-        'video/webm',              // last resort
+        'video/mp4;codecs=avc1,mp4a.40.2', // Chrome 130+ / Safari — H.264+AAC in MP4
+        'video/mp4;codecs=avc1',            // Safari/iOS — H.264 in MP4
+        'video/mp4;codecs=h264,aac',        // Chrome 130+ alternate
+        'video/mp4;codecs=h264',            // some Chromium builds
+        'video/mp4',                        // Safari generic
+        'video/webm;codecs=vp9,opus',       // Chrome — VP9+Opus
+        'video/webm;codecs=vp9',            // Chrome / Android
+        'video/webm;codecs=vp8,opus',       // Firefox
+        'video/webm;codecs=vp8',            // Firefox fallback
+        'video/webm',                       // last resort
     ];
     if (typeof MediaRecorder === 'undefined') return '';
     for (const t of candidates) {
