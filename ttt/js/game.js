@@ -4,7 +4,7 @@
 // ];
 
 const WORDS = [
-    "JAVAS",
+    "TORRE",
 ];
 let target = "";
 let guesses = [];
