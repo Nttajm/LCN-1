@@ -20,12 +20,16 @@ const state = {
     videoEl: null,           // HTMLVideoElement | null
     videoName: '',
     videoDuration: 0,
-    caption: '',
-    lines: [],               // wrapped lines of text
-    lineWidths: [],          // canvas-measured pixel widths per line
+    audioEl: null,           // HTMLAudioElement | null
+    audioName: '',
+    audioVolume: 1,
+    // captions: array of { text, title, lines, lineWidths, titleWidth, cycleDuration }
+    captions: [{ text: '', title: '', lines: [], lineWidths: [], titleWidth: 0, cycleDuration: 0 }],
+    totalCycleDuration: 0,   // sum of all caption cycle durations
     fontSize: 52,
     lineH: 0,                // total row height (box + gap)
     boxH: 0,                 // highlight rectangle height
+    titleBoxH: 0,            // height of the title tag box
     captionPos: 45,          // top of block as % of CANVAS_H
     photoDuration: 2000,     // ms each photo is shown
     loopDuration: 15000,     // ms total reel loop (photos mode)
@@ -33,7 +37,6 @@ const state = {
     isPlaying: false,
     isRecording: false,
     playStartTime: null,     // performance.now() when preview started
-    captionCycleDuration: 0, // computed total ms for one caption cycle
     animFrameId: null,
 };
 
@@ -56,7 +59,15 @@ const videoUploadBtn = document.getElementById('video-upload-btn');
 const videoInput     = document.getElementById('video-input');
 const videoInfo      = document.getElementById('video-info');
 
-const captionInput = document.getElementById('caption-input');
+const audioUploadBtn  = document.getElementById('audio-upload-btn');
+const audioInput      = document.getElementById('audio-input');
+const audioInfo       = document.getElementById('audio-info');
+const audioVolumeRow  = document.getElementById('audio-volume-row');
+const audioVolumeRange= document.getElementById('audio-volume');
+const audioVolumeVal  = document.getElementById('audio-volume-val');
+
+const captionList   = document.getElementById('caption-list');
+const addCaptionBtn = document.getElementById('add-caption-btn');
 
 const fontSizeRange = document.getElementById('font-size');
 const fontSizeVal   = document.getElementById('font-size-val');
@@ -126,36 +137,52 @@ function wrapText(context, text, maxWidth) {
 }
 
 // ── Caption processing ────────────────────────────────────────────────────────
-function computeLineMetrics() {
-    state.boxH  = state.fontSize + CAPTION_PAD_Y * 2;
-    state.lineH = state.boxH + LINE_GAP;
+const TITLE_FONT_SIZE = 36;
+const TITLE_PAD_X     = 18;
+const TITLE_PAD_Y     = 10;
+const TITLE_GAP       = 6;
+
+function makeCaption() {
+    return { text: '', title: '', holdMs: 3000, lines: [], lineWidths: [], titleWidth: 0, cycleDuration: 0 };
 }
 
-function processCaption() {
-    computeLineMetrics();
-    if (!state.caption.trim()) {
-        state.lines = [];
-        state.lineWidths = [];
-        state.captionCycleDuration = 0;
+function computeLineMetrics() {
+    state.boxH      = state.fontSize + CAPTION_PAD_Y * 2;
+    state.lineH     = state.boxH + LINE_GAP;
+    state.titleBoxH = TITLE_FONT_SIZE + TITLE_PAD_Y * 2;
+}
+
+function processOneCaptionData(cap) {
+    if (!cap.text.trim()) {
+        cap.lines = []; cap.lineWidths = []; cap.titleWidth = 0; cap.cycleDuration = 0;
         return;
     }
     ctx.font = `700 ${state.fontSize}px 'Lato', sans-serif`;
     const maxTW = CANVAS_W - CAPTION_LEFT * 2 - CAPTION_PAD_X * 2;
-    state.lines = wrapText(ctx, state.caption, maxTW);
-    state.lineWidths = state.lines.map(l => ctx.measureText(l).width);
+    cap.lines      = wrapText(ctx, cap.text, maxTW);
+    cap.lineWidths = cap.lines.map(l => ctx.measureText(l).width);
 
-    const n = state.lines.length;
-    const words = state.caption.trim().split(/\s+/).length;
-    // Time to read caption twice at ~200 wpm, minimum 2.5 s
-    const readHold = Math.max((words / 200) * 60000 * 2, 2500);
+    if (cap.title.trim()) {
+        ctx.font = `700 ${TITLE_FONT_SIZE}px 'Lato', sans-serif`;
+        cap.titleWidth = ctx.measureText(cap.title).width;
+    } else {
+        cap.titleWidth = 0;
+    }
+
+    const n = cap.lines.length;
     const expandEnd   = (n - 1) * state.stagger + EXPAND_DUR;
-    // Collapse is staggered bottom-to-top, same window length
-    const collapseEnd = expandEnd + readHold + (n - 1) * state.stagger + COLLAPSE_DUR;
-    state.captionCycleDuration = collapseEnd + 600; // 600 ms gap before repeat
+    const collapseEnd = expandEnd + cap.holdMs + (n - 1) * state.stagger + COLLAPSE_DUR;
+    cap.cycleDuration = collapseEnd + 400;
 }
 
-function getCaptionTopY() {
-    const blockH  = state.lines.length * state.lineH - LINE_GAP;
+function processCaptions() {
+    computeLineMetrics();
+    state.captions.forEach(cap => processOneCaptionData(cap));
+    state.totalCycleDuration = state.captions.reduce((s, c) => s + c.cycleDuration, 0);
+}
+
+function getCaptionTopY(cap) {
+    const blockH  = cap.lines.length * state.lineH - LINE_GAP;
     const centerY = CANVAS_H * (state.captionPos / 100);
     return Math.max(0, Math.min(centerY - blockH / 2, CANVAS_H - blockH));
 }
@@ -189,74 +216,119 @@ function drawVideoToCanvas() {
     ctx.drawImage(v, sx, sy, sw, sh, 0, 0, CANVAS_W, CANVAS_H);
 }
 
-// Caption: fully revealed (static preview)
-function renderCaptionStatic() {
-    const n = state.lines.length;
-    if (n === 0) return;
-    const topY = getCaptionTopY();
-    ctx.font = `700 ${state.fontSize}px 'Lato', sans-serif`;
+// Title tag: fully revealed (static)
+function renderTitleStatic(cap, topY) {
+    if (!cap.title.trim() || cap.titleWidth === 0) return;
+    const baseY = topY + cap.lines.length * state.lineH - LINE_GAP + TITLE_GAP;
+    const boxW  = cap.titleWidth + TITLE_PAD_X * 2;
+    ctx.font = `700 ${TITLE_FONT_SIZE}px 'Lato', sans-serif`;
     ctx.textBaseline = 'middle';
-    for (let i = 0; i < n; i++) {
-        const line = state.lines[i];
-        if (!line) continue;
-        const boxW = state.lineWidths[i] + CAPTION_PAD_X * 2;
-        const x = CAPTION_LEFT;
-        const y = topY + i * state.lineH;
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(x, y, boxW, state.boxH);
-        ctx.fillStyle = '#000';
-        ctx.fillText(line, x + CAPTION_PAD_X, y + state.boxH / 2);
-    }
+    ctx.fillStyle = '#000';
+    ctx.fillRect(CAPTION_LEFT, baseY, boxW, state.titleBoxH);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(cap.title, CAPTION_LEFT + TITLE_PAD_X, baseY + state.titleBoxH / 2);
 }
 
-// Caption: animated (expand → hold → collapse per line, staggered)
-function renderCaptionAnimated(elapsed) {
-    const n = state.lines.length;
-    if (n === 0) return;
+// Title tag: animated
+function renderTitleAnimated(cap, elapsed, collapseStart, topY) {
+    if (!cap.title.trim() || cap.titleWidth === 0) return;
+    const baseY    = topY + cap.lines.length * state.lineH - LINE_GAP + TITLE_GAP;
+    const fullBoxW = cap.titleWidth + TITLE_PAD_X * 2;
+    const x        = CAPTION_LEFT;
 
-    const topY = getCaptionTopY();
+    const titleExpandStart   = cap.lines.length * state.stagger + EXPAND_DUR * 0.5;
+    const expandSc  = easeOutCubic(clamp01((elapsed - titleExpandStart) / EXPAND_DUR));
+    const collapseSc = easeInCubic(clamp01((elapsed - (collapseStart - state.stagger)) / COLLAPSE_DUR));
+
+    const currentW = fullBoxW * expandSc * (1 - collapseSc);
+    if (currentW < 0.5) return;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, baseY, currentW, state.titleBoxH);
+    ctx.clip();
+    ctx.font = `700 ${TITLE_FONT_SIZE}px 'Lato', sans-serif`;
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x, baseY, fullBoxW, state.titleBoxH);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(cap.title, x + TITLE_PAD_X, baseY + state.titleBoxH / 2);
+    ctx.restore();
+}
+
+// One caption: fully revealed (static)
+function renderOneCaptionStatic(cap) {
+    const n = cap.lines.length;
+    if (n === 0) return;
+    const topY = getCaptionTopY(cap);
+    ctx.font = `700 ${state.fontSize}px 'Lato', sans-serif`;
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < n; i++) {
+        const line = cap.lines[i];
+        if (!line) continue;
+        const boxW = cap.lineWidths[i] + CAPTION_PAD_X * 2;
+        const y    = topY + i * state.lineH;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(CAPTION_LEFT, y, boxW, state.boxH);
+        ctx.fillStyle = '#000';
+        ctx.fillText(line, CAPTION_LEFT + CAPTION_PAD_X, y + state.boxH / 2);
+    }
+    renderTitleStatic(cap, topY);
+}
+
+// Show the first non-empty caption as a static preview
+function renderCaptionStaticFirst() {
+    const cap = state.captions.find(c => c.lines.length > 0);
+    if (cap) renderOneCaptionStatic(cap);
+}
+
+// One caption: animated (expand → hold → collapse)
+function renderOneCaptionAnimated(localElapsed, cap) {
+    const n = cap.lines.length;
+    if (n === 0) return;
+    const topY = getCaptionTopY(cap);
     ctx.font = `700 ${state.fontSize}px 'Lato', sans-serif`;
     ctx.textBaseline = 'middle';
 
-    // When does collapse phase begin?
-    const words = state.caption.trim().split(/\s+/).length;
-    const readHold  = Math.max((words / 200) * 60000 * 2, 2500);
-    const expandEnd = (n - 1) * state.stagger + EXPAND_DUR;
-    const collapseStart = expandEnd + readHold;
+    const expandEnd    = (n - 1) * state.stagger + EXPAND_DUR;
+    const collapseStart = expandEnd + cap.holdMs;
 
     for (let i = 0; i < n; i++) {
-        const line = state.lines[i];
+        const line = cap.lines[i];
         if (!line) continue;
+        const fullBoxW = cap.lineWidths[i] + CAPTION_PAD_X * 2;
+        const y        = topY + i * state.lineH;
 
-        const fullBoxW = state.lineWidths[i] + CAPTION_PAD_X * 2;
-        const x = CAPTION_LEFT;
-        const y = topY + i * state.lineH;
-
-        // Expand: top-to-bottom stagger
-        const expandT = clamp01((elapsed - i * state.stagger) / EXPAND_DUR);
-        const expandScale = easeOutCubic(expandT);
-
-        // Collapse: bottom-to-top stagger (last line collapses first)
-        const collapseOffset = (n - 1 - i) * state.stagger;
-        const collapseT = clamp01((elapsed - collapseStart - collapseOffset) / COLLAPSE_DUR);
-        const collapseScale = easeInCubic(collapseT);
-
+        const expandScale  = easeOutCubic(clamp01((localElapsed - i * state.stagger) / EXPAND_DUR));
+        const collapseScale = easeInCubic(clamp01((localElapsed - collapseStart - (n - 1 - i) * state.stagger) / COLLAPSE_DUR));
         const currentW = fullBoxW * expandScale * (1 - collapseScale);
         if (currentW < 0.5) continue;
 
         ctx.save();
-        // Clip to the growing/shrinking rectangle — box grows from left edge
         ctx.beginPath();
-        ctx.rect(x, y, currentW, state.boxH);
+        ctx.rect(CAPTION_LEFT, y, currentW, state.boxH);
         ctx.clip();
-
         ctx.fillStyle = '#fff';
-        ctx.fillRect(x, y, fullBoxW, state.boxH);
-
+        ctx.fillRect(CAPTION_LEFT, y, fullBoxW, state.boxH);
         ctx.fillStyle = '#000';
-        ctx.fillText(line, x + CAPTION_PAD_X, y + state.boxH / 2);
-
+        ctx.fillText(line, CAPTION_LEFT + CAPTION_PAD_X, y + state.boxH / 2);
         ctx.restore();
+    }
+    renderTitleAnimated(cap, localElapsed, collapseStart, topY);
+}
+
+// Cycle through all captions sequentially
+function renderCaptionAnimated(elapsed) {
+    if (state.totalCycleDuration === 0) return;
+    const cycleElapsed = elapsed % state.totalCycleDuration;
+    let offset = 0;
+    for (const cap of state.captions) {
+        if (cap.cycleDuration === 0) continue;
+        if (cycleElapsed < offset + cap.cycleDuration) {
+            renderOneCaptionAnimated(cycleElapsed - offset, cap);
+            return;
+        }
+        offset += cap.cycleDuration;
     }
 }
 
@@ -312,7 +384,7 @@ function drawStaticFrame() {
         drawVideoToCanvas();
     }
 
-    if (state.lines.length > 0) renderCaptionStatic();
+    renderCaptionStaticFirst();
     drawLogo();
 }
 
@@ -333,9 +405,8 @@ function renderFrame(ts) {
     }
 
     // Caption cycles on its own timer (loops independently)
-    if (state.lines.length > 0 && state.captionCycleDuration > 0) {
-        const cycleElapsed = elapsed % state.captionCycleDuration;
-        renderCaptionAnimated(cycleElapsed);
+    if (state.totalCycleDuration > 0) {
+        renderCaptionAnimated(elapsed);
     }
 
     drawLogo();
@@ -360,7 +431,7 @@ function renderFrame(ts) {
 function getPlayDuration() {
     if (state.mode === 'photos') return state.loopDuration;
     if (state.mode === 'video' && state.videoEl) return state.videoDuration * 1000;
-    return state.captionCycleDuration || 8000;
+    return state.totalCycleDuration || 8000;
 }
 
 // ── Playback control ──────────────────────────────────────────────────────────
@@ -372,6 +443,10 @@ function startPlayback() {
     if (state.mode === 'video' && state.videoEl) {
         state.videoEl.currentTime = 0;
         state.videoEl.play().catch(() => {});
+    }
+    if (state.audioEl) {
+        state.audioEl.currentTime = 0;
+        state.audioEl.play().catch(() => {});
     }
 
     previewBtn.textContent = '■ Stop';
@@ -390,6 +465,10 @@ function stopPlayback() {
         state.videoEl.pause();
         state.videoEl.currentTime = 0;
     }
+    if (state.audioEl) {
+        state.audioEl.pause();
+        state.audioEl.currentTime = 0;
+    }
     previewBtn.textContent = '▶ Preview';
     previewBtn.classList.remove('playback-bar__btn--playing');
     previewFill.style.width = '0%';
@@ -406,13 +485,48 @@ previewBtn.addEventListener('click', () => {
 let mediaRecorder   = null;
 let recordedChunks  = [];
 let exportTimers    = [];
+let chosenMime      = '';
+
+// Pick the best container the current browser supports.
+// Priority: MP4 (plays everywhere incl. iOS) → WebM VP9 → WebM
+function pickMimeType() {
+    const candidates = [
+        'video/mp4;codecs=avc1',   // Safari/iOS — H.264 in MP4
+        'video/mp4',               // Safari generic
+        'video/webm;codecs=vp9',   // Chrome / Android
+        'video/webm;codecs=vp8',   // Firefox fallback
+        'video/webm',              // last resort
+    ];
+    if (typeof MediaRecorder === 'undefined') return '';
+    for (const t of candidates) {
+        if (MediaRecorder.isTypeSupported(t)) return t;
+    }
+    return '';
+}
+
+function mimeToExt(mime) {
+    if (mime.startsWith('video/mp4')) return 'mp4';
+    return 'webm';
+}
 
 function startExport() {
     if (state.isRecording) return;
 
+    // Guard: MediaRecorder / captureStream availability
+    if (typeof MediaRecorder === 'undefined' || typeof canvas.captureStream !== 'function') {
+        alert('Your browser doesn\'t support video export. Try Chrome or Safari on a desktop or Android device.');
+        return;
+    }
+
     const duration = getPlayDuration();
     if (duration <= 0 || (state.mode === 'photos' && state.photos.length === 0)) {
         alert('Add some photos or a video first.');
+        return;
+    }
+
+    chosenMime = pickMimeType();
+    if (!chosenMime) {
+        alert('Your browser doesn\'t support any known video recording format. Please try Chrome.');
         return;
     }
 
@@ -422,77 +536,126 @@ function startExport() {
     // Build stream: canvas video track
     const stream = canvas.captureStream(30);
 
-    // For video mode, attempt to capture audio
-    if (state.mode === 'video' && state.videoEl) {
-        try {
-            const audioCtx = new AudioContext();
-            const src  = audioCtx.createMediaElementSource(state.videoEl);
-            const dest = audioCtx.createMediaStreamDestination();
+    // Capture audio: video element audio + optional uploaded audio track
+    try {
+        const audioCtx = new AudioContext();
+        const dest = audioCtx.createMediaStreamDestination();
+        let hasAudioSource = false;
+
+        if (state.mode === 'video' && state.videoEl) {
+            const src = audioCtx.createMediaElementSource(state.videoEl);
             src.connect(dest);
-            src.connect(audioCtx.destination); // also play through speakers
-            dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
-        } catch (e) {
-            console.warn('Audio capture skipped:', e);
+            src.connect(audioCtx.destination);
+            hasAudioSource = true;
         }
+
+        if (state.audioEl) {
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = state.audioVolume;
+            const src = audioCtx.createMediaElementSource(state.audioEl);
+            src.connect(gainNode);
+            gainNode.connect(dest);
+            gainNode.connect(audioCtx.destination);
+            hasAudioSource = true;
+        }
+
+        if (hasAudioSource) {
+            dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+        }
+    } catch (e) {
+        console.warn('Audio capture skipped:', e);
     }
 
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9' : 'video/webm';
-
-    mediaRecorder = new MediaRecorder(stream, {
-        mimeType,
-        videoBitsPerSecond: 10_000_000, // 10 Mbps
-    });
+    try {
+        mediaRecorder = new MediaRecorder(stream, {
+            mimeType: chosenMime,
+            videoBitsPerSecond: 8_000_000,
+        });
+    } catch (e) {
+        // Some browsers accept the type check but fail on construction — retry without codec hint
+        const baseMime = chosenMime.split(';')[0];
+        mediaRecorder = new MediaRecorder(stream, {
+            mimeType: baseMime,
+            videoBitsPerSecond: 8_000_000,
+        });
+        chosenMime = baseMime;
+    }
 
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
     mediaRecorder.onstop = finaliseExport;
     mediaRecorder.start(100);
 
-    // Start playback (which drives the render loop that the recorder captures)
+    // Start playback (drives the render loop the recorder captures)
     stopPlayback();
     startPlayback();
 
-    // UI feedback
+    const ext = mimeToExt(chosenMime).toUpperCase();
     exportBtn.disabled = true;
-    exportBtn.textContent = 'Recording…';
+    exportBtn.textContent = `Recording…`;
     exportProgress.classList.add('visible');
     exportBar.style.width = '0%';
-    exportStatus.textContent = 'Recording…';
+    exportStatus.textContent = `Recording ${ext}…`;
 
     const started = performance.now();
     const tick = setInterval(() => {
         const pct = Math.min((performance.now() - started) / duration, 1);
         exportBar.style.width = `${pct * 100}%`;
-        exportStatus.textContent = `${Math.round(pct * 100)}%`;
+        exportStatus.textContent = `${Math.round(pct * 100)}% — ${ext}`;
     }, 100);
 
     const stopTimer = setTimeout(() => {
         clearInterval(tick);
         if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    }, duration + 200); // small buffer
+    }, duration + 300);
 
     exportTimers.push(tick, stopTimer);
 }
 
 function finaliseExport() {
     stopPlayback();
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = 'press-derno-reel.webm';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    const baseMime = chosenMime.split(';')[0];  // strip codec params for Blob
+    const ext      = mimeToExt(chosenMime);
+    const blob     = new Blob(recordedChunks, { type: baseMime });
+    const url      = URL.createObjectURL(blob);
+
+    // On iOS Safari, programmatic <a download> is blocked — open in new tab so
+    // the user can long-press → Save to Files / Photos
+    const isMobileSafari = /iP(hone|ad|od)/i.test(navigator.userAgent) &&
+                           /Safari/i.test(navigator.userAgent) &&
+                           !/CriOS|FxiOS/i.test(navigator.userAgent);
+
+    if (isMobileSafari) {
+        // Open the video in a new tab — iOS will let the user save it from there
+        window.open(url, '_blank');
+        exportStatus.textContent = 'Tap & hold the video → Save to Photos';
+    } else {
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `press-derno-reel.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        exportStatus.textContent = `Done — saved as .${ext}`;
+    }
+
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
 
     // Reset UI
     state.isRecording = false;
     exportBtn.disabled = false;
-    exportBtn.textContent = 'Export Reel (.webm)';
+    const displayExt = mimeToExt(chosenMime).toUpperCase();
+    exportBtn.textContent = `Export Reel (.${mimeToExt(chosenMime)})`;
     exportProgress.classList.remove('visible');
     exportBar.style.width = '0%';
-    exportStatus.textContent = 'Done — check your downloads!';
-    setTimeout(() => { exportStatus.textContent = ''; }, 4000);
+    setTimeout(() => { exportStatus.textContent = ''; }, 6000);
 }
+
+// Update export button label on load to reflect what this browser will produce
+(function updateExportLabel() {
+    const mime = pickMimeType();
+    const ext  = mime ? mimeToExt(mime) : 'video';
+    exportBtn.textContent = `Export Reel (.${ext})`;
+})();
 
 exportBtn.addEventListener('click', startExport);
 
@@ -601,6 +764,49 @@ function renderVideoInfo() {
     document.getElementById('video-remove-btn').addEventListener('click', removeVideo);
 }
 
+// ── Audio loading ─────────────────────────────────────────────────────────────
+function loadAudio(file) {
+    if (state.audioEl) {
+        state.audioEl.pause();
+        URL.revokeObjectURL(state.audioEl.src);
+    }
+    const url = URL.createObjectURL(file);
+    const a   = new Audio(url);
+    a.preload = 'auto';
+    a.loop    = true;
+    a.volume  = state.audioVolume;
+    a.onloadedmetadata = () => {
+        state.audioEl   = a;
+        state.audioName = file.name;
+        renderAudioInfo();
+    };
+    a.load();
+}
+
+function removeAudio() {
+    if (!state.audioEl) return;
+    state.audioEl.pause();
+    URL.revokeObjectURL(state.audioEl.src);
+    state.audioEl   = null;
+    state.audioName = '';
+    renderAudioInfo();
+}
+
+function renderAudioInfo() {
+    if (!state.audioEl) {
+        audioInfo.innerHTML = '<p class="audio-info__empty">No audio added</p>';
+        audioVolumeRow.style.display = 'none';
+        return;
+    }
+    audioInfo.innerHTML = `
+        <div class="audio-info__row">
+            <span class="audio-info__name" title="${state.audioName}">${state.audioName}</span>
+            <button class="audio-info__remove" id="audio-remove-btn">Remove</button>
+        </div>`;
+    document.getElementById('audio-remove-btn').addEventListener('click', removeAudio);
+    audioVolumeRow.style.display = '';
+}
+
 // ── Drop zone helpers ─────────────────────────────────────────────────────────
 function showDropZone() { dropZone.classList.remove('drop-zone--hidden'); }
 function hideDropZone() { dropZone.classList.add('drop-zone--hidden'); }
@@ -635,6 +841,15 @@ photoInput.addEventListener('change', e => { addPhotos(e.target.files); e.target
 videoUploadBtn.addEventListener('click', () => videoInput.click());
 videoInput.addEventListener('change', e => { if (e.target.files[0]) loadVideo(e.target.files[0]); e.target.value = ''; });
 
+audioUploadBtn.addEventListener('click', () => audioInput.click());
+audioInput.addEventListener('change', e => { if (e.target.files[0]) loadAudio(e.target.files[0]); e.target.value = ''; });
+
+audioVolumeRange.addEventListener('input', () => {
+    state.audioVolume = parseFloat(audioVolumeRange.value);
+    audioVolumeVal.textContent = Math.round(state.audioVolume * 100) + '%';
+    if (state.audioEl) state.audioEl.volume = state.audioVolume;
+});
+
 // ── Global drag-and-drop on canvas area ──────────────────────────────────────
 canvasWrap.addEventListener('click', () => {
     if (state.mode === 'photos') photoInput.click();
@@ -658,17 +873,113 @@ canvasWrap.addEventListener('drop', e => {
     }
 });
 
-// ── Caption controls ──────────────────────────────────────────────────────────
-captionInput.addEventListener('input', () => {
-    state.caption = captionInput.value;
-    processCaption();
+
+// ── Caption list management ───────────────────────────────────────────────────
+function renderCaptionList() {
+    captionList.innerHTML = '';
+    state.captions.forEach((cap, idx) => {
+        const entry = document.createElement('div');
+        entry.className = 'caption-entry';
+
+        const header = document.createElement('div');
+        header.className = 'caption-entry__header';
+
+        const num = document.createElement('span');
+        num.className = 'caption-entry__num';
+        num.textContent = `Caption ${idx + 1}`;
+        header.appendChild(num);
+
+        if (state.captions.length > 1) {
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'caption-entry__remove';
+            removeBtn.title = 'Remove';
+            removeBtn.textContent = '×';
+            removeBtn.addEventListener('click', () => removeCaptionEntry(idx));
+            header.appendChild(removeBtn);
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'controls__caption caption-entry__text';
+        textarea.placeholder = 'Write caption…';
+        textarea.rows = 3;
+        textarea.value = cap.text;
+        textarea.addEventListener('input', () => {
+            state.captions[idx].text = textarea.value;
+            processCaptions();
+            if (!state.isPlaying) drawStaticFrame();
+        });
+
+        const titleInp = document.createElement('input');
+        titleInp.type = 'text';
+        titleInp.className = 'controls__title-input caption-entry__title';
+        titleInp.placeholder = 'Title tag (location, name…)';
+        titleInp.value = cap.title;
+        titleInp.addEventListener('input', () => {
+            state.captions[idx].title = titleInp.value;
+            processCaptions();
+            if (!state.isPlaying) drawStaticFrame();
+        });
+
+        // Hold duration row
+        const holdRow = document.createElement('div');
+        holdRow.className = 'caption-entry__hold-row';
+
+        const holdLabel = document.createElement('label');
+        holdLabel.className = 'caption-entry__hold-label';
+        holdLabel.textContent = 'Hold';
+
+        const holdRange = document.createElement('input');
+        holdRange.type = 'range';
+        holdRange.className = 'controls__range';
+        holdRange.min = 500;
+        holdRange.max = 12000;
+        holdRange.step = 250;
+        holdRange.value = cap.holdMs;
+
+        const holdVal = document.createElement('span');
+        holdVal.className = 'controls__range-val';
+        holdVal.textContent = `${(cap.holdMs / 1000).toFixed(1)}s`;
+
+        holdRange.addEventListener('input', () => {
+            state.captions[idx].holdMs = parseInt(holdRange.value);
+            holdVal.textContent = `${(state.captions[idx].holdMs / 1000).toFixed(1)}s`;
+            processCaptions();
+        });
+
+        holdRow.appendChild(holdLabel);
+        holdRow.appendChild(holdRange);
+        holdRow.appendChild(holdVal);
+
+        entry.appendChild(header);
+        entry.appendChild(textarea);
+        entry.appendChild(titleInp);
+        entry.appendChild(holdRow);
+        captionList.appendChild(entry);
+    });
+}
+
+function addCaptionEntry() {
+    state.captions.push(makeCaption());
+    renderCaptionList();
+    processCaptions();
+    const entries = captionList.querySelectorAll('.caption-entry');
+    if (entries.length) entries[entries.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removeCaptionEntry(idx) {
+    state.captions.splice(idx, 1);
+    if (state.captions.length === 0) state.captions.push(makeCaption());
+    renderCaptionList();
+    processCaptions();
     if (!state.isPlaying) drawStaticFrame();
-});
+}
+
+addCaptionBtn.addEventListener('click', addCaptionEntry);
 
 fontSizeRange.addEventListener('input', () => {
     state.fontSize = parseInt(fontSizeRange.value);
     fontSizeVal.textContent = `${state.fontSize}px`;
-    processCaption();
+    processCaptions();
     if (!state.isPlaying) drawStaticFrame();
 });
 
@@ -681,7 +992,7 @@ captionPosRange.addEventListener('input', () => {
 staggerRange.addEventListener('input', () => {
     state.stagger = parseInt(staggerRange.value);
     staggerVal.textContent = `${state.stagger}ms`;
-    processCaption();
+    processCaptions();
 });
 
 // ── Photo timing controls ─────────────────────────────────────────────────────
@@ -705,6 +1016,7 @@ document.addEventListener('keydown', e => {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.fonts.ready.then(() => {
-    processCaption();
+    renderCaptionList();
+    processCaptions();
     drawStaticFrame();
 });

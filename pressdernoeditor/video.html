@@ -92,10 +92,30 @@
                         </div>
                     </div>
 
-                    <!-- Caption -->
-                    <div class="controls__group">
-                        <label class="controls__heading" for="caption-input">Caption</label>
-                        <textarea id="caption-input" class="controls__caption" placeholder="Write your caption…" rows="4"></textarea>
+                    <!-- Audio (shown in both modes) -->
+                    <div class="controls__group controls__group--audio">
+                        <span class="controls__heading">Audio <span class="controls__optional">(optional)</span></span>
+                        <button class="controls__btn-upload" id="audio-upload-btn">+ Add Audio</button>
+                        <input type="file" id="audio-input" accept="audio/*" class="file-input">
+                        <div class="audio-info" id="audio-info">
+                            <p class="audio-info__empty">No audio added</p>
+                        </div>
+                        <div class="audio-volume-row" id="audio-volume-row" style="display:none">
+                            <label class="controls__heading" for="audio-volume">Volume</label>
+                            <div class="controls__range-wrap">
+                                <input type="range" id="audio-volume" class="controls__range" min="0" max="1" step="0.05" value="1">
+                                <span class="controls__range-val" id="audio-volume-val">100%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Caption list -->
+                    <div class="controls__group controls__group--captions">
+                        <div class="captions-header">
+                            <span class="controls__heading">Captions</span>
+                            <button class="captions-add-btn" id="add-caption-btn">+ Add</button>
+                        </div>
+                        <div class="caption-list" id="caption-list"></div>
                     </div>
 
                     <!-- Font size -->
