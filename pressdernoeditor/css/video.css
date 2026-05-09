@@ -1,0 +1,634 @@
+/* ── Press Derno · Reel Editor styles ── */
+
+/* Override app__main for the taller layout */
+.app__main {
+    padding: 1.5rem 1.75rem;
+}
+
+/* Header nav */
+.app__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+}
+
+.app__nav-link {
+    font-size: 0.78rem;
+    color: var(--c-muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.15s;
+}
+
+.app__nav-link:hover {
+    color: var(--c-text);
+}
+
+.app__nav-link--active {
+    color: var(--c-accent);
+}
+
+.app__nav-sep {
+    color: var(--c-border);
+    font-size: 0.9rem;
+}
+
+/* Editor layout */
+.editor {
+    display: flex;
+    gap: 2.25rem;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 80rem;
+    margin: 0 auto;
+}
+
+/* Canvas area (left) */
+.canvas-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.canvas-wrap {
+    position: relative;
+    /* 9:16 aspect */
+    aspect-ratio: 9 / 16;
+    max-height: calc(100vh - 160px);
+    width: auto;
+    background: #000;
+    overflow: hidden;
+    border: 1px solid var(--c-border);
+}
+
+.canvas-wrap canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Drop zone over canvas */
+.drop-zone {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.7);
+    border: 1.5px dashed var(--c-border);
+    cursor: pointer;
+    transition: border-color 0.18s, background 0.18s;
+    pointer-events: none;
+}
+
+.drop-zone.active {
+    border-color: var(--c-accent);
+    background: rgba(191,151,80,0.07);
+}
+
+.drop-zone--hidden {
+    display: none;
+}
+
+.drop-zone__plus {
+    font-size: 2.5rem;
+    color: var(--c-muted);
+    line-height: 1;
+}
+
+.drop-zone__label {
+    font-size: 0.85rem;
+    color: var(--c-muted);
+    letter-spacing: 0.04em;
+}
+
+.drop-zone__sub {
+    font-size: 0.7rem;
+    color: var(--c-muted);
+    opacity: 0.6;
+}
+
+/* Playback bar */
+.playback-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 340px;
+}
+
+.playback-bar__btn {
+    background: none;
+    border: 1px solid var(--c-border);
+    color: var(--c-text);
+    padding: 0.35rem 0.85rem;
+    font-family: var(--ff-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.playback-bar__btn:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+}
+
+.playback-bar__btn--playing {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+}
+
+.playback-bar__track {
+    flex: 1;
+    height: 2px;
+    background: var(--c-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.playback-bar__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--c-accent);
+    transition: width 0.1s linear;
+}
+
+.playback-bar__time {
+    font-size: 0.7rem;
+    color: var(--c-muted);
+    font-family: var(--ff-mono);
+    min-width: 2.5rem;
+    text-align: right;
+}
+
+/* Controls sidebar */
+.controls {
+    width: 288px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Mode tabs */
+.controls__tabs {
+    display: flex;
+    border-bottom: 1px solid var(--c-border);
+    margin-bottom: 1.1rem;
+}
+
+.controls__tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--c-muted);
+    font-family: var(--ff-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.5rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    margin-bottom: -1px;
+}
+
+.controls__tab:hover {
+    color: var(--c-text);
+}
+
+.controls__tab--active {
+    color: var(--c-accent);
+    border-bottom-color: var(--c-accent);
+}
+
+/* Mode panels */
+.mode-panel--hidden {
+    display: none;
+}
+
+/* Control groups */
+.controls__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 1px solid var(--c-border);
+    margin-bottom: 1.1rem;
+}
+
+.controls__group--export {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.controls__heading {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+}
+
+/* Upload button */
+.controls__btn-upload {
+    background: none;
+    border: 1px solid var(--c-border);
+    color: var(--c-text);
+    padding: 0.5rem 0.9rem;
+    font-family: var(--ff-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.controls__btn-upload:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+}
+
+/* Photo strip */
+.photo-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    min-height: 2rem;
+}
+
+.photo-strip__empty {
+    font-size: 0.72rem;
+    color: var(--c-muted);
+    opacity: 0.6;
+    align-self: center;
+}
+
+.photo-thumb {
+    position: relative;
+    width: 52px;
+    height: 72px;
+    overflow: hidden;
+    background: var(--c-surface);
+    flex-shrink: 0;
+    cursor: grab;
+    border: 1px solid var(--c-border);
+}
+
+.photo-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+}
+
+.photo-thumb__remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    background: rgba(0,0,0,0.75);
+    border: none;
+    color: #fff;
+    font-size: 10px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+    padding: 0;
+}
+
+.photo-thumb:hover .photo-thumb__remove {
+    opacity: 1;
+}
+
+/* Video info */
+.video-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.video-info__empty {
+    font-size: 0.72rem;
+    color: var(--c-muted);
+    opacity: 0.6;
+}
+
+.video-info__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.video-info__name {
+    font-size: 0.75rem;
+    color: var(--c-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.video-info__dur {
+    font-size: 0.72rem;
+    color: var(--c-muted);
+    white-space: nowrap;
+}
+
+.video-info__remove {
+    background: none;
+    border: none;
+    color: var(--c-muted);
+    font-size: 0.7rem;
+    cursor: pointer;
+    padding: 0;
+    letter-spacing: 0.03em;
+    text-decoration: underline;
+    transition: color 0.15s;
+}
+
+.video-info__remove:hover {
+    color: #e05;
+}
+
+/* Caption textarea */
+.controls__caption {
+    width: 100%;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    color: var(--c-text);
+    font-family: var(--ff-mono);
+    font-size: 0.85rem;
+    padding: 0.65rem 0.75rem;
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+}
+
+.controls__caption:focus {
+    outline: none;
+    border-color: var(--c-muted);
+}
+
+/* Range inputs */
+.controls__range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.controls__range {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 2px;
+    background: var(--c-border);
+    outline: none;
+    cursor: pointer;
+}
+
+.controls__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--c-accent);
+    cursor: pointer;
+}
+
+.controls__range::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--c-accent);
+    border: none;
+    cursor: pointer;
+}
+
+.controls__range-val {
+    font-size: 0.72rem;
+    color: var(--c-muted);
+    min-width: 3rem;
+    text-align: right;
+    font-family: var(--ff-mono);
+}
+
+/* Download / export button */
+.controls__btn-download {
+    width: 100%;
+    background: var(--c-accent);
+    border: none;
+    color: #000;
+    font-family: var(--ff-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.controls__btn-download:hover:not(:disabled) {
+    background: var(--c-accent-hi);
+}
+
+.controls__btn-download:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Export progress */
+.export-progress {
+    height: 2px;
+    background: var(--c-border);
+    overflow: hidden;
+    display: none;
+}
+
+.export-progress.visible {
+    display: block;
+}
+
+.export-progress__bar {
+    height: 100%;
+    width: 0%;
+    background: var(--c-accent);
+    transition: width 0.15s linear;
+}
+
+.export-status {
+    font-size: 0.7rem;
+    color: var(--c-muted);
+    letter-spacing: 0.05em;
+    min-height: 1rem;
+}
+
+/* Hidden file input */
+.file-input {
+    display: none;
+}
+
+/* ── Mobile / responsive ─────────────────────────────────────────────────────
+   Breakpoints:
+   ≤ 860px  → stack canvas above controls (single column)
+   ≤ 480px  → compact header, full-width canvas, tighter spacing
+──────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 860px) {
+    .app__main {
+        padding: 1rem;
+    }
+
+    /* Stack editor vertically */
+    .editor {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    /* Canvas area: centred, constrained height so controls stay visible */
+    .canvas-area {
+        width: 100%;
+        align-items: center;
+    }
+
+    .canvas-wrap {
+        /* Let the 9:16 ratio govern width; cap height to ~55 vh */
+        width: auto;
+        max-height: 55vh;
+        /* derive width from the capped height */
+        aspect-ratio: 9 / 16;
+    }
+
+    .playback-bar {
+        max-width: 100%;
+    }
+
+    /* Controls go full-width below canvas */
+    .controls {
+        width: 100%;
+        /* Two-column grid for the control groups to save vertical space */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        column-gap: 1.5rem;
+    }
+
+    /* Tabs span both columns */
+    .controls__tabs {
+        grid-column: 1 / -1;
+    }
+
+    /* Mode panels also span both columns */
+    .mode-panel {
+        grid-column: 1 / -1;
+        /* Inside each mode panel, lay out the groups in two columns */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 1.5rem;
+    }
+
+    .mode-panel--hidden {
+        display: none;
+    }
+
+    /* Export group always full-width */
+    .controls__group--export {
+        grid-column: 1 / -1;
+    }
+
+    /* Photo strip — larger touch targets */
+    .photo-thumb {
+        width: 58px;
+        height: 80px;
+    }
+
+    /* Always show remove button on touch */
+    .photo-thumb__remove {
+        opacity: 1;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        line-height: 20px;
+    }
+
+    /* Range thumbs — bigger touch targets */
+    .controls__range::-webkit-slider-thumb {
+        width: 18px;
+        height: 18px;
+    }
+
+    .controls__range::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .app__header {
+        padding: 0.65rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .app__nav {
+        margin-left: 0;
+        order: 3;         /* push below logo row */
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .app__main {
+        padding: 0.75rem;
+    }
+
+    /* On very small screens drop back to a single column inside controls */
+    .controls {
+        grid-template-columns: 1fr;
+    }
+
+    .mode-panel {
+        grid-template-columns: 1fr;
+    }
+
+    /* Canvas: taller on portrait phones — give it more breathing room */
+    .canvas-wrap {
+        max-height: 52vh;
+    }
+
+    /* Upload button full-width */
+    .controls__btn-upload {
+        width: 100%;
+        text-align: center;
+        padding: 0.65rem 0.9rem;
+    }
+
+    /* Export button full-width (already is, just ensure font stays readable) */
+    .controls__btn-download {
+        font-size: 0.9rem;
+        padding: 0.85rem 1rem;
+    }
+
+    /* Caption textarea — taller on mobile so typing is comfortable */
+    .controls__caption {
+        min-height: 100px;
+        font-size: 1rem;
+    }
+}

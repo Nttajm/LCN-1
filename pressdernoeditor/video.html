@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Derno — Reel Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Barlow+Condensed:wght@600;700&family=Lato:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/video.css">
+    <link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+    <div class="app">
+        <header class="app__header">
+            <img src="assets/logo.png" alt="Press Derno" class="app__logo">
+            <span class="app__title">Reel Editor</span>
+            <nav class="app__nav">
+                <a href="index.html" class="app__nav-link">Photo Post</a>
+                <span class="app__nav-sep">·</span>
+                <a href="video.html" class="app__nav-link app__nav-link--active">Reel</a>
+            </nav>
+        </header>
+
+        <main class="app__main">
+            <div class="editor">
+
+                <!-- Canvas preview area -->
+                <div class="canvas-area">
+                    <div class="canvas-wrap" id="canvas-wrap">
+                        <canvas id="canvas"></canvas>
+                        <div class="drop-zone" id="drop-zone">
+                            <span class="drop-zone__plus">+</span>
+                            <p class="drop-zone__label">Drop photos or video here</p>
+                            <p class="drop-zone__sub">JPG · PNG · WEBP · MP4 · MOV</p>
+                        </div>
+                    </div>
+                    <div class="playback-bar">
+                        <button class="playback-bar__btn" id="preview-btn">&#9654; Preview</button>
+                        <div class="playback-bar__track">
+                            <div class="playback-bar__fill" id="preview-fill"></div>
+                        </div>
+                        <span class="playback-bar__time" id="preview-time">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Controls sidebar -->
+                <aside class="controls">
+
+                    <!-- Mode tabs -->
+                    <div class="controls__tabs">
+                        <button class="controls__tab controls__tab--active" data-mode="photos" id="tab-photos">Photos Reel</button>
+                        <button class="controls__tab" data-mode="video" id="tab-video">Video</button>
+                    </div>
+
+                    <!-- Photos panel -->
+                    <div class="mode-panel" id="panel-photos">
+                        <div class="controls__group">
+                            <span class="controls__heading">Photos</span>
+                            <button class="controls__btn-upload" id="photo-upload-btn">+ Add Photos</button>
+                            <input type="file" id="photo-input" accept="image/*" multiple class="file-input">
+                            <div class="photo-strip" id="photo-strip">
+                                <p class="photo-strip__empty">No photos added yet</p>
+                            </div>
+                        </div>
+                        <div class="controls__group">
+                            <label class="controls__heading" for="photo-duration">Photo Duration</label>
+                            <div class="controls__range-wrap">
+                                <input type="range" id="photo-duration" class="controls__range" min="1" max="4" step="0.5" value="2">
+                                <span class="controls__range-val" id="photo-dur-val">2.0s</span>
+                            </div>
+                        </div>
+                        <div class="controls__group">
+                            <label class="controls__heading" for="loop-duration">Total Duration</label>
+                            <div class="controls__range-wrap">
+                                <input type="range" id="loop-duration" class="controls__range" min="5" max="60" step="5" value="15">
+                                <span class="controls__range-val" id="loop-dur-val">15s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video panel -->
+                    <div class="mode-panel mode-panel--hidden" id="panel-video">
+                        <div class="controls__group">
+                            <span class="controls__heading">Video</span>
+                            <button class="controls__btn-upload" id="video-upload-btn">+ Upload Video</button>
+                            <input type="file" id="video-input" accept="video/*" class="file-input">
+                            <div class="video-info" id="video-info">
+                                <p class="video-info__empty">No video uploaded</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Caption -->
+                    <div class="controls__group">
+                        <label class="controls__heading" for="caption-input">Caption</label>
+                        <textarea id="caption-input" class="controls__caption" placeholder="Write your caption…" rows="4"></textarea>
+                    </div>
+
+                    <!-- Font size -->
+                    <div class="controls__group">
+                        <label class="controls__heading" for="font-size">Font Size</label>
+                        <div class="controls__range-wrap">
+                            <input type="range" id="font-size" class="controls__range" min="28" max="80" value="52">
+                            <span class="controls__range-val" id="font-size-val">52px</span>
+                        </div>
+                    </div>
+
+                    <!-- Caption position -->
+                    <div class="controls__group">
+                        <label class="controls__heading" for="caption-pos">Caption Position</label>
+                        <div class="controls__range-wrap">
+                            <input type="range" id="caption-pos" class="controls__range" min="5" max="88" value="45">
+                            <span class="controls__range-val" id="caption-pos-val">45%</span>
+                        </div>
+                    </div>
+
+                    <!-- Stagger speed -->
+                    <div class="controls__group">
+                        <label class="controls__heading" for="stagger-speed">Line Stagger Speed</label>
+                        <div class="controls__range-wrap">
+                            <input type="range" id="stagger-speed" class="controls__range" min="60" max="400" value="170">
+                            <span class="controls__range-val" id="stagger-val">170ms</span>
+                        </div>
+                    </div>
+
+                    <!-- Export -->
+                    <div class="controls__group controls__group--export">
+                        <button class="controls__btn-download" id="export-btn">Export Reel (.webm)</button>
+                        <div class="export-progress" id="export-progress">
+                            <div class="export-progress__bar" id="export-bar"></div>
+                        </div>
+                        <span class="export-status" id="export-status"></span>
+                    </div>
+
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/video-editor.js"></script>
+</body>
+</html>
