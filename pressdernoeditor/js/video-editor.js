@@ -23,8 +23,8 @@ const state = {
     audioEl: null,           // HTMLAudioElement | null
     audioName: '',
     audioVolume: 1,
-    // captions: array of { text, title, lines, lineWidths, titleWidth, cycleDuration }
-    captions: [{ text: '', title: '', lines: [], lineWidths: [], titleWidth: 0, cycleDuration: 0 }],
+    // captions: array of { text, title, holdMs, lines, lineWidths, titleWidth, cycleDuration }
+    captions: [{ text: '', title: '', holdMs: 3000, lines: [], lineWidths: [], titleWidth: 0, cycleDuration: 0 }],
     totalCycleDuration: 0,   // sum of all caption cycle durations
     fontSize: 52,
     lineH: 0,                // total row height (box + gap)
@@ -453,7 +453,13 @@ function startPlayback() {
     previewBtn.classList.add('playback-bar__btn--playing');
 
     requestAnimationFrame(ts => {
-        state.playStartTime = ts;
+        // Offset start time so the first caption is already in its hold (fully visible) phase.
+        // Without this, elapsed starts at 0 and all lines have expandScale=0 (invisible).
+        const firstCap = state.captions.find(c => c.lines.length > 0);
+        const skipMs = firstCap
+            ? (firstCap.lines.length - 1) * state.stagger + EXPAND_DUR
+            : 0;
+        state.playStartTime = ts - skipMs;
         state.animFrameId = requestAnimationFrame(renderFrame);
     });
 }
