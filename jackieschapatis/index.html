@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jackie's Chapatis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #d4930c;
+            --text: #1a0f00;
+            --text-soft: rgba(26,15,0,0.55);
+            --white: #fff9f0;
+        }
+
+        body {
+            min-height: 100dvh;
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url('texture.jpg');
+            background-size: 320px 320px;
+            background-repeat: repeat;
+            opacity: 0.06;
+            pointer-events: none;
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-wrap {
+            animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .logo {
+            width: min(18rem, 72vw);
+            display: block;
+            animation: wobble 1.2s steps(1, end) infinite;
+            filter: drop-shadow(0 0.2rem 0.6rem rgba(0,0,0,0.18));
+        }
+
+        .desc {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(0.75rem);
+            animation: fade-up 0.5s 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .desc p {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .desc .tagline {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-soft);
+            margin-top: 0.25rem;
+        }
+
+        @keyframes wobble {
+            0%   { transform: rotate(-10deg); }
+            50%  { transform: rotate(10deg); }
+            100% { transform: rotate(-10deg); }
+        }
+
+        @keyframes rise {
+            from { transform: translateY(2.5rem); opacity: 0; }
+            to   { transform: translateY(-0.75rem); opacity: 1; }
+        }
+
+        @keyframes fade-up {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .order-btn {
+            display: none;
+        }
+
+        .sheet-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .sheet {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 90dvh;
+            background: var(--white);
+            border-radius: 1.25rem 1.25rem 0 0;
+            transform: translateY(100%);
+            transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            padding: 2rem 1.5rem 1.5rem;
+            pointer-events: all;
+        }
+
+        .sheet-overlay.open {
+            pointer-events: all;
+        }
+
+        .sheet-overlay.open .sheet {
+            transform: translateY(0);
+        }
+
+        .sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .sheet-close {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            border: none;
+            background: rgba(26,15,0,0.08);
+            color: var(--text);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sheet-price {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.04em;
+            text-align: center;
+        }
+
+        .chapatis-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .chapati-img {
+            width: 9rem;
+            height: 9rem;
+            object-fit: contain;
+            margin-left: -6.5rem;
+            opacity: 0;
+            transform: translateX(8rem);
+        }
+
+        .chapati-img:first-child {
+            margin-left: 0;
+        }
+
+        .chapati-img.roll {
+            animation: chapati-roll 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes chapati-roll {
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .categories {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .cat-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 1.1rem;
+            border-radius: 0.875rem;
+            border: 2px solid rgba(26,15,0,0.08);
+            background: transparent;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.15s, background 0.15s;
+            text-align: left;
+        }
+
+        .cat-card.selected {
+            border-color: var(--text);
+            background: rgba(26,15,0,0.05);
+        }
+
+        .cat-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .cat-sub {
+            font-size: 0.78rem;
+            font-weight: 400;
+            color: var(--text-soft);
+            margin-top: 0.1rem;
+        }
+
+        .cat-price {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .sheet-step {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 5rem;
+        }
+
+        .sheet-step.active {
+            display: block;
+        }
+
+        .step-back {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            border: none;
+            background: rgba(26,15,0,0.08);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .addr-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.1rem;
+            border-radius: 0.875rem;
+            border: 2px solid rgba(26,15,0,0.08);
+            background: transparent;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.15s, background 0.15s;
+            text-align: left;
+            width: 100%;
+            margin-top: 1.25rem;
+        }
+
+        .addr-card.selected {
+            border-color: var(--text);
+            background: rgba(26,15,0,0.05);
+        }
+
+        .addr-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .addr-sub {
+            font-size: 0.78rem;
+            color: var(--text-soft);
+            margin-top: 0.15rem;
+        }
+
+        .addr-radio {
+            width: 1.1rem;
+            height: 1.1rem;
+            border-radius: 50%;
+            border: 2px solid var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .addr-radio-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: var(--text);
+            display: none;
+        }
+
+        .addr-card.selected .addr-radio-dot {
+            display: block;
+        }
+
+        .checkout-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(26,15,0,0.07);
+            gap: 0.9rem;
+            cursor: pointer;
+        }
+
+        .checkout-row:last-child {
+            border-bottom: none;
+        }
+
+        .checkout-icon {
+            font-size: 1.1rem;
+            color: var(--text-soft);
+            width: 1.4rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .checkout-row-body {
+            flex: 1;
+        }
+
+        .checkout-row-label {
+            font-size: 0.82rem;
+            color: var(--text-soft);
+            font-weight: 400;
+        }
+
+        .checkout-row-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-top: 0.1rem;
+        }
+
+        .checkout-chevron {
+            font-size: 0.85rem;
+            color: var(--text-soft);
+        }
+
+        .delivery-opts {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 1.1rem;
+        }
+
+        .delivery-opt {
+            flex: 1;
+            padding: 0.7rem 0.8rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(26,15,0,0.1);
+            background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.15s;
+        }
+
+        .delivery-opt.selected {
+            border-color: var(--text);
+        }
+
+        .delivery-opt-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .delivery-opt-sub {
+            font-size: 0.75rem;
+            color: var(--text-soft);
+            margin-top: 0.15rem;
+        }
+
+        .tick {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: var(--text);
+            color: var(--white);
+            font-size: 0.6rem;
+            text-align: center;
+            line-height: 1rem;
+        }
+
+        .checkout-summary-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.03em;
+        }
+
+        .next-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 5%;
+            width: 90%;
+            display: none;
+            padding: 1rem 0;
+            background: var(--text);
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            z-index: 30;
+        }
+
+        .next-btn.visible {
+            display: block;
+        }
+
+        @media (max-width: 640px) {
+            .order-btn {
+                display: block;
+                position: fixed;
+                bottom: 1.5rem;
+                left: 5%;
+                width: 90%;
+                padding: 1rem 0;
+                background: var(--text);
+                color: var(--white);
+                font-family: 'DM Sans', sans-serif;
+                font-size: 1rem;
+                font-weight: 600;
+                letter-spacing: 0.02em;
+                border: none;
+                border-radius: 999px;
+                cursor: pointer;
+                opacity: 0;
+                animation: fade-up 0.5s 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                z-index: 10;
+            }
+
+            .sheet-overlay {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="logo-wrap">
+            <img class="logo" src="logo.png" alt="Jackie's Chapatis">
+        </div>
+        <div class="desc">
+            <p>Handmade chapatis, baked with love.</p>
+            <p class="tagline">Fresh daily &mdash; order yours today.</p>
+        </div>
+    </div>
+
+    <button class="order-btn" id="orderBtn">Order Now</button>
+
+    <div class="sheet-overlay" id="sheetOverlay">
+        <div class="sheet" style="overflow:hidden; display:flex; flex-direction:column;">
+
+            <div class="sheet-header">
+                <button class="step-back" id="backBtn" style="display:none;">&#8592;</button>
+                <p class="step-title" id="stepTitle">Choose your order</p>
+                <button class="sheet-close" id="closeBtn">&#x2715;</button>
+            </div>
+
+            <div class="sheet-step active" id="step1">
+                <p class="sheet-price" id="sheetPrice">$15</p>
+                <div class="chapatis-row" id="chapatiRow">
+                    <img class="chapati-img" src="chapati.png" alt="chapati">
+                    <img class="chapati-img" src="chapati.png" alt="chapati">
+                    <img class="chapati-img" src="chapati.png" alt="chapati">
+                    <img class="chapati-img" src="chapati.png" alt="chapati">
+                    <img class="chapati-img" src="chapati.png" alt="chapati">
+                </div>
+                <div class="categories">
+                    <button class="cat-card selected" data-qty="5" data-price="15">
+                        <div><div class="cat-name">Regular</div><div class="cat-sub">5 chapatis</div></div>
+                        <span class="cat-price">$15</span>
+                    </button>
+                    <button class="cat-card" data-qty="10" data-price="30">
+                        <div><div class="cat-name">Family</div><div class="cat-sub">10 chapatis</div></div>
+                        <span class="cat-price">$30</span>
+                    </button>
+                    <button class="cat-card" data-qty="20" data-price="60">
+                        <div><div class="cat-name">Party</div><div class="cat-sub">20 chapatis</div></div>
+                        <span class="cat-price">$60</span>
+                    </button>
+                    <button class="cat-card" data-qty="35" data-price="105">
+                        <div><div class="cat-name">Bulk</div><div class="cat-sub">35 chapatis</div></div>
+                        <span class="cat-price">$105</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sheet-step" id="step2">
+                <button class="addr-card selected" id="defaultAddr">
+                    <div>
+                        <div class="addr-label">Home</div>
+                        <div class="addr-sub">1234 Mendocino Ave, Santa Rosa, CA 95401</div>
+                    </div>
+                    <div class="addr-radio"><div class="addr-radio-dot"></div></div>
+                </button>
+            </div>
+
+            <div class="sheet-step" id="step3">
+                <div class="delivery-opts">
+                    <button class="delivery-opt selected" id="optStandard">
+                        <div class="delivery-opt-name">Standard <span class="tick">&#10003;</span></div>
+                        <div class="delivery-opt-sub">25&ndash;40 min</div>
+                    </button>
+                    <button class="delivery-opt" id="optLater">
+                        <div class="delivery-opt-name">Schedule later</div>
+                        <div class="delivery-opt-sub">Choose a time</div>
+                    </button>
+                </div>
+                <div style="margin-top:1.25rem;">
+                    <div class="checkout-row">
+                        <span class="checkout-icon">&#128205;</span>
+                        <div class="checkout-row-body">
+                            <div class="checkout-row-label">Deliver to</div>
+                            <div class="checkout-row-value">1234 Mendocino Ave, Santa Rosa</div>
+                        </div>
+                        <span class="checkout-chevron">&#8250;</span>
+                    </div>
+                    <div class="checkout-row">
+                        <span class="checkout-icon">&#128666;</span>
+                        <div class="checkout-row-body">
+                            <div class="checkout-row-label">Delivery instructions</div>
+                            <div class="checkout-row-value">Leave at my door</div>
+                        </div>
+                        <span class="checkout-chevron">&#8250;</span>
+                    </div>
+                    <div class="checkout-row">
+                        <span class="checkout-icon">&#128179;</span>
+                        <div class="checkout-row-body">
+                            <div class="checkout-row-label">Payment</div>
+                            <div class="checkout-row-value" id="checkoutPayment">Cash on delivery</div>
+                        </div>
+                        <span class="checkout-chevron">&#8250;</span>
+                    </div>
+                    <div class="checkout-row">
+                        <span class="checkout-icon">&#127873;</span>
+                        <div class="checkout-row-body">
+                            <div class="checkout-row-label">Order total</div>
+                            <div class="checkout-row-value checkout-summary-price" id="checkoutTotal">$15</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <button class="next-btn" id="nextBtn">Next</button>
+
+    <script>
+        const orderBtn = document.getElementById('orderBtn');
+        const overlay = document.getElementById('sheetOverlay');
+        const nextBtn = document.getElementById('nextBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const backBtn = document.getElementById('backBtn');
+        const chapatiImgs = document.querySelectorAll('.chapati-img');
+        const catCards = document.querySelectorAll('.cat-card');
+        const priceEl = document.getElementById('sheetPrice');
+        const stepTitle = document.getElementById('stepTitle');
+        const steps = [document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3')];
+        const titles = ['Choose your order', 'Delivery address', 'Checkout'];
+        const nextLabels = ['Next', 'Next', 'Place order'];
+        let currentStep = 0;
+        let selectedPrice = 15;
+
+        function goToStep(n) {
+            steps[currentStep].classList.remove('active');
+            currentStep = n;
+            steps[currentStep].classList.add('active');
+            stepTitle.textContent = titles[currentStep];
+            nextBtn.textContent = nextLabels[currentStep];
+            backBtn.style.display = currentStep > 0 ? 'flex' : 'none';
+            if (currentStep === 2) {
+                document.getElementById('checkoutTotal').textContent = '$' + selectedPrice;
+            }
+        }
+
+        function rollChapatis() {
+            chapatiImgs.forEach((img, i) => {
+                img.classList.remove('roll');
+                void img.offsetWidth;
+                setTimeout(() => img.classList.add('roll'), i * 80);
+            });
+        }
+
+        catCards.forEach(card => {
+            card.addEventListener('click', () => {
+                catCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedPrice = parseInt(card.dataset.price);
+                priceEl.textContent = '$' + selectedPrice;
+            });
+        });
+
+        document.getElementById('optStandard').addEventListener('click', () => {
+            document.getElementById('optStandard').classList.add('selected');
+            document.getElementById('optLater').classList.remove('selected');
+        });
+        document.getElementById('optLater').addEventListener('click', () => {
+            document.getElementById('optLater').classList.add('selected');
+            document.getElementById('optStandard').classList.remove('selected');
+        });
+
+        orderBtn.addEventListener('click', () => {
+            overlay.classList.add('open');
+            orderBtn.style.display = 'none';
+            nextBtn.classList.add('visible');
+            rollChapatis();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                goToStep(currentStep + 1);
+            }
+        });
+
+        backBtn.addEventListener('click', () => {
+            if (currentStep > 0) goToStep(currentStep - 1);
+        });
+
+        closeBtn.addEventListener('click', () => {
+            overlay.classList.remove('open');
+            nextBtn.classList.remove('visible');
+            orderBtn.style.display = '';
+            chapatiImgs.forEach(img => img.classList.remove('roll'));
+            goToStep(0);
+            backBtn.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
