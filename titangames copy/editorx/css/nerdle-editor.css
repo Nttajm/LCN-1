@@ -1,0 +1,331 @@
+.editor-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.editor-breadcrumb-sep {
+    width: 0.5rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+}
+
+.editor-breadcrumb {
+    font-size: 0.875rem;
+    color: var(--editor-text-secondary);
+    font-weight: 500;
+}
+
+.editor-save-indicator {
+    font-size: 0.75rem;
+    color: var(--editor-text-muted);
+    white-space: nowrap;
+}
+
+.nerdle-editor-main {
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 5rem;
+}
+
+.nerdle-editor-topbar {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.nerdle-editor-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.nerdle-meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nerdle-meta-field label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: var(--editor-text-secondary);
+}
+
+.nerdle-meta-field input,
+.nerdle-meta-field select {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius);
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    min-width: 8rem;
+}
+
+.nerdle-meta-field input:focus,
+.nerdle-meta-field select:focus {
+    outline: none;
+    border-color: var(--editor-accent);
+    box-shadow: 0 0 0 0.1875rem rgba(50, 104, 145, 0.12);
+}
+
+.nerdle-editor-releases {
+    flex: 1;
+    min-width: 14rem;
+}
+
+.nerdle-editor-releases > label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: var(--editor-text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.nerdle-releases-scroll {
+    display: flex;
+    gap: 0.375rem;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+    scrollbar-width: thin;
+}
+
+.nerdle-release-chip {
+    flex-shrink: 0;
+    padding: 0.375rem 0.75rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+
+.nerdle-release-chip:hover {
+    border-color: var(--editor-accent);
+    color: var(--editor-accent);
+}
+
+.nerdle-release-chip--active {
+    background: var(--editor-accent);
+    border-color: var(--editor-accent);
+    color: white;
+}
+
+.nerdle-release-chip--published::after {
+    content: '';
+    display: inline-block;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--editor-success);
+    margin-left: 0.375rem;
+    vertical-align: middle;
+}
+
+.nerdle-editor-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.nerdle-word-section h2,
+.nerdle-preview-section h2,
+.nerdle-hints-section h2,
+.nerdle-json-section h2 {
+    font-family: 'Noto Serif', serif;
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.375rem;
+}
+
+.nerdle-hint {
+    font-size: 0.8125rem;
+    color: var(--editor-text-muted);
+    margin-bottom: 1rem;
+}
+
+.nerdle-word-input-container {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.nerdle-word-input {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 0.125rem solid var(--editor-border);
+    border-radius: var(--editor-radius);
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    text-transform: uppercase;
+    width: 14rem;
+    text-align: center;
+}
+
+.nerdle-word-input:focus {
+    outline: none;
+    border-color: var(--editor-accent);
+    box-shadow: 0 0 0 0.1875rem rgba(50, 104, 145, 0.12);
+}
+
+.nerdle-word-input::placeholder {
+    color: var(--editor-border);
+    letter-spacing: 0.25rem;
+}
+
+.nerdle-validation-status {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    min-height: 1.25rem;
+}
+
+.nerdle-validation-status--success {
+    color: var(--editor-success);
+}
+
+.nerdle-validation-status--error {
+    color: var(--editor-danger);
+}
+
+/* Preview */
+.nerdle-preview-board {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 1rem;
+    background: var(--editor-surface);
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius-lg);
+    width: fit-content;
+}
+
+.nerdle-preview-row {
+    display: flex;
+    gap: 0.375rem;
+}
+
+.nerdle-preview-tile {
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 0.125rem solid var(--editor-border);
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--editor-surface);
+    transition: all 0.2s ease;
+}
+
+.nerdle-preview-tile--filled {
+    border-color: #878a8c;
+    animation: pop 0.1s ease;
+}
+
+@keyframes pop {
+    50% { transform: scale(1.1); }
+}
+
+/* Hints */
+.nerdle-hints-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.nerdle-hint-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nerdle-hint-field label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: var(--editor-text-secondary);
+}
+
+.nerdle-hint-field input {
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius);
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    max-width: 24rem;
+}
+
+.nerdle-hint-field input:focus {
+    outline: none;
+    border-color: var(--editor-accent);
+    box-shadow: 0 0 0 0.1875rem rgba(50, 104, 145, 0.12);
+}
+
+/* JSON */
+.nerdle-json-input {
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 0.8125rem;
+    padding: 1rem;
+    border: 0.0625rem solid var(--editor-border);
+    border-radius: var(--editor-radius);
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    width: 100%;
+    max-width: 32rem;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.nerdle-json-input:focus {
+    outline: none;
+    border-color: var(--editor-accent);
+    box-shadow: 0 0 0 0.1875rem rgba(50, 104, 145, 0.12);
+}
+
+.nerdle-json-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+/* Toast */
+.nerdle-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    background: var(--editor-text);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--editor-radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.25s ease;
+    z-index: 1000;
+}
+
+.nerdle-toast--visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}

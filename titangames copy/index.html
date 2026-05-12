@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titan Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700&family=Franklin+Gothic+Medium&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="../css/standard.css">
+</head>
+<body>
+<header>
+    <div class="header-left">
+        <button class="hamburger nav-trigger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <a href="#" class="logo">
+            <img class="logo-icon" src="assets/ttt.png" alt="Titan Games Logo">
+            <span class="logo-text">Games</span>
+        </a>
+    </div>
+    <div class="header-right">
+        <div class="header-points" id="headerPoints">0 pts</div>
+        <!-- <button class="btn-subscribe">Subscribe</button> -->
+        <a href="signin.html" class="btn-login" id="authLoginBtn">Log In</a>
+    </div>
+</header>
+
+<main>
+    <div class="main-content">
+        <div class="main-games">
+            <h1>More Games</h1>
+    <div class="games-grid">
+
+        <div class="game-card" data-game="nerdle">
+            <div class="card-top" style="background: #D6E4F5;">
+                <div class="game-card-points" id="nerdlePoints"></div>
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="12" width="11" height="11" rx="1.5" fill="#3a7ec4"/>
+                    <rect x="22" y="12" width="11" height="11" rx="1.5" fill="#C9B458"/>
+                    <rect x="36" y="12" width="11" height="11" rx="1.5" fill="#3a7ec4"/>
+                    <rect x="8" y="26" width="11" height="11" rx="1.5" fill="#787C7E"/>
+                    <rect x="22" y="26" width="11" height="11" rx="1.5" fill="#3a7ec4"/>
+                    <rect x="36" y="26" width="11" height="11" rx="1.5" fill="#787C7E"/>
+                    <rect x="8" y="40" width="11" height="11" rx="1.5" fill="#C9B458"/>
+                    <rect x="22" y="40" width="11" height="11" rx="1.5" fill="#787C7E"/>
+                    <rect x="36" y="40" width="11" height="11" rx="1.5" fill="#3a7ec4"/>
+                </svg>
+                <span class="game-name">Nerdle</span>
+            </div>
+            <div class="card-bottom">
+                <button class="game-btn" onclick="window.location.href='nerdle/index.html'">Play</button>
+            </div>
+        </div>
+
+
+        <div class="game-card" data-game="relations">
+            <div class="card-top" style="background: var(--relations);">
+                <div class="game-card-points" id="relationsPoints"></div>
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="26" y="10" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="42" y="10" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <rect x="10" y="26" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <rect x="26" y="26" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="42" y="26" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="10" y="42" width="12" height="12" rx="2" fill="#6A4C93"/>
+                    <rect x="26" y="42" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <rect x="42" y="42" width="12" height="12" rx="2" fill="#C77DBA"/>
+                    <line x1="16" y1="16" x2="32" y2="16" stroke="white" stroke-width="1.5"/>
+                    <line x1="16" y1="16" x2="16" y2="32" stroke="white" stroke-width="1.5"/>
+                    <line x1="32" y1="32" x2="48" y2="32" stroke="white" stroke-width="1.5"/>
+                    <line x1="48" y1="16" x2="48" y2="32" stroke="white" stroke-width="1.5"/>
+                </svg>
+                <span class="game-name">Relations</span>
+            </div>
+            <div class="card-bottom">
+                <button class="game-btn" onclick="window.location.href='relations/index.html'">Play</button>
+            </div>
+        </div>
+
+    </div><!-- /.games-grid -->
+        </div><!-- /.main-games -->
+    </div><!-- /.main-content -->
+
+    <aside class="sidebar">
+        <div class="armoury-promo">
+            <div class="armoury-promo-tiles">
+                <div class="ap-tile ap-tile--blue">W</div>
+                <div class="ap-tile ap-tile--white">I</div>
+                <div class="ap-tile ap-tile--grey">N</div>
+                <div class="ap-tile ap-tile--blue">!</div>
+            </div>
+            <div class="armoury-promo-body">
+                <p class="armoury-promo-eyebrow">Weekly Prize</p>
+                <h3 class="armoury-promo-heading">Top scorer wins<br>ASB Armoury gear.</h3>
+                <div class="armoury-promo-items">
+                    <span class="ap-item">🧥 Jacket</span>
+                    <span class="ap-item">👖 Pants</span>
+                    <span class="ap-item">🍶 Bottle</span>
+                </div>
+                <p class="armoury-promo-caption">Most points Mon–Fri takes the prize.</p>
+            </div>
+        </div>
+        <section class="leaderboard-section" id="leaderboardSection">
+            <div class="leaderboard-header">
+                <h2 class="leaderboard-title">Today's Leaderboard</h2>
+                <span class="leaderboard-date" id="leaderboardDate"></span>
+            </div>
+            <div class="leaderboard-table">
+                <div class="leaderboard-row leaderboard-row--header">
+                    <span class="leaderboard-col leaderboard-col--rank">#</span>
+                    <span class="leaderboard-col leaderboard-col--name">Player</span>
+                    <span class="leaderboard-col leaderboard-col--pts">Pts</span>
+                    <span class="leaderboard-col leaderboard-col--games">Games</span>
+                </div>
+                <div class="leaderboard-body" id="leaderboardBody">
+                    <div class="leaderboard-empty">Loading leaderboard...</div>
+                </div>
+            </div>
+            <div class="leaderboard-user" id="leaderboardUser"></div>
+            <div class="leaderboard-week-btn-row">
+                <button class="leaderboard-week-btn" id="weekToggleBtn">See week winners</button>
+            </div>
+        </section>
+
+        <section class="week-section" id="weekSection" hidden>
+            <div class="week-header">
+                <h2 class="week-title">This Week</h2>
+                <span class="week-range" id="weekRange"></span>
+            </div>
+            <div class="week-cols">
+                <div class="week-col">
+                    <div class="week-col-heading">
+                        <span class="week-col-icon">🏆</span> Most Points
+                    </div>
+                    <div class="week-table">
+                        <div class="week-row week-row--header">
+                            <span class="week-col-cell week-col-cell--rank">#</span>
+                            <span class="week-col-cell week-col-cell--name">Player</span>
+                            <span class="week-col-cell week-col-cell--val">Pts</span>
+                        </div>
+                        <div id="weekPointsBody"><div class="leaderboard-empty">Loading…</div></div>
+                    </div>
+                </div>
+                <div class="week-col">
+                    <div class="week-col-heading">
+                        <span class="week-col-icon">🥇</span> Most Wins
+                    </div>
+                    <div class="week-table">
+                        <div class="week-row week-row--header">
+                            <span class="week-col-cell week-col-cell--rank">#</span>
+                            <span class="week-col-cell week-col-cell--name">Player</span>
+                            <span class="week-col-cell week-col-cell--val">Days</span>
+                        </div>
+                        <div id="weekWinsBody"><div class="leaderboard-empty">Loading…</div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </aside>
+</main>
+<script src="js/nav.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module" src="js/home-points.js"></script>
+</body>
+</html>

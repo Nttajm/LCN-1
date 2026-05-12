@@ -1,0 +1,156 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Titan Games – Firestore Security Rules
+//
+//  Collections:
+//   titan_users/{userId}                              – profile + game stats
+//   titan_users/{userId}/submissions/{date}           – per-day submission ref
+//   titangames_submissions/{date}/users/{userId}      – actual daily score doc
+//   titan_leaderboard/{docId}                         – daily leaderboard docs
+//   nerdles/{date}                                    – published Nerdle words
+//   relations/{date}                                  – published Relations puzzles
+//
+//  Goals:
+//   ✓ Only the owner can read/write their own user doc
+//   ✓ Only the owner can read/write their own submission
+//   ✓ Points can only go UP on updates (can't lower your own score after submission)
+//   ✓ uid/email fields are immutable once set (prevents impersonation)
+//   ✓ Leaderboard is readable by all signed-in users; writable only by
+//     authenticated @crpusd.org accounts (array-level per-entry validation
+//     requires Cloud Functions – add them for full protection)
+//   ✓ Puzzle documents are read-only from clients (write via Admin SDK only)
+//   ✗ Everything else is denied by default
+// ═══════════════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
+
+    // Must be signed in (anonymous or real)
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Must be signed in with a real (non-anonymous) account
+    function isRealUser() {
+      return isSignedIn()
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // Must be signed in AND the email domain must be @crpusd.org
+    function isCrpusd() {
+      return isRealUser()
+          && request.auth.token.email != null
+          && request.auth.token.email.matches('.*@crpusd\\.org$');
+    }
+
+    // Must be the owner of the document being accessed
+    function isOwner(uid) {
+      return isCrpusd() && request.auth.uid == uid;
+    }
+
+
+    // ── User profiles ────────────────────────────────────────────────────────
+    // Each user may only access their own document.
+    // uid and email are write-once (immutable after creation).
+
+    match /titan_users/{userId} {
+
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId)
+          // The stored uid must match the authenticated uid
+          && request.resource.data.uid == request.auth.uid;
+
+      allow update: if isOwner(userId)
+          // Prevent changing uid or email after creation
+          && request.resource.data.uid   == resource.data.uid
+          && (
+               !('email' in resource.data)
+               || request.resource.data.email == resource.data.email
+             );
+
+      // Never allow clients to delete user documents
+      allow delete: if false;
+
+      // ── Per-user daily submission index ────────────────────────────────
+      match /submissions/{date} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+
+    // ── Daily game submissions ────────────────────────────────────────────
+    // Path: titangames_submissions/{date}/users/{userId}
+    //
+    // The app creates the document on the first game of the day, then
+    // updates it as additional games are completed.
+    //
+    // Invariants enforced:
+    //  • Only the owner can read or write their submission
+    //  • uid is immutable once set
+    //  • totalPoints can only increase (prevents score reversal)
+
+    match /titangames_submissions/{date}/users/{userId} {
+
+      allow read: if isOwner(userId);
+
+      // First game of the day – document doesn't exist yet
+      allow create: if isOwner(userId)
+          && request.resource.data.uid == request.auth.uid;
+
+      // Subsequent games – document already exists
+      allow update: if isOwner(userId)
+          // uid must not change
+          && request.resource.data.uid == resource.data.uid
+          // Total points can only stay the same or go up (not down)
+          && request.resource.data.totalPoints >= resource.data.totalPoints;
+
+      allow delete: if false;
+    }
+
+
+    // ── Daily leaderboard ─────────────────────────────────────────────────
+    // Documents: titan_leaderboard/daily_{date}
+    //
+    // The leaderboard stores an `entries` array and counter fields
+    // (gameFinishCounts, gameSolvedCounts) that the app updates with
+    // transactions.
+    //
+    // Reads: any signed-in user (guests can see the board).
+    // Writes: only real @crpusd.org users.
+    //
+    // ⚠ LIMITATION: Because entries is an array, Firestore rules cannot
+    //   cheaply verify that a write only modifies the caller's own entry.
+    //   For full protection move leaderboard writes to a Cloud Function
+    //   (callable) that validates and writes server-side.
+
+    match /titan_leaderboard/{docId} {
+      allow read:  if isSignedIn();
+      allow write: if isCrpusd();
+    }
+
+
+    // ── Published puzzles (read-only from clients) ────────────────────────
+    // Puzzle documents are written by the admin via the Firebase Admin SDK.
+    // Clients must never be able to modify them.
+
+    match /nerdles/{date} {
+      allow read:  if isSignedIn();
+      allow write: if false;
+    }
+
+    match /relations/{date} {
+      allow read:  if isSignedIn();
+      allow write: if false;
+    }
+
+
+    // ── Catch-all: deny everything not explicitly covered ─────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

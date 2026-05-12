@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Mini Crossword — Titan Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/crossword.css">
+</head>
+<body>
+
+<div class="page-header">
+    <h1>The Mini Crossword</h1>
+    <span class="puzzle-date" id="puzzleDate"></span>
+    <span class="puzzle-author" id="puzzleAuthor"></span>
+</div>
+
+<div class="toolbar">
+    <div class="toolbar-left">
+        <div class="timer">
+            <span class="timer-display" id="timerDisplay">0:00</span>
+            <button class="timer-btn" id="timerBtn" aria-label="Pause timer">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                    <rect id="pauseIcon1" x="4" y="3" width="3.5" height="12" rx="1"/>
+                    <rect id="pauseIcon2" x="10.5" y="3" width="3.5" height="12" rx="1"/>
+                    <polygon id="playIcon" points="5,3 15,9 5,15" style="display:none"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="toolbar-right">
+        <div class="dropdown">
+            <button class="toolbar-btn">Check <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></button>
+            <div class="dropdown-menu">
+                <button data-action="check-square">Check Square</button>
+                <button data-action="check-word">Check Word</button>
+                <button data-action="check-puzzle">Check Puzzle</button>
+                <hr>
+                <button data-action="autocheck" id="autocheckBtn">Autocheck</button>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="toolbar-btn">Reveal <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></button>
+            <div class="dropdown-menu">
+                <button data-action="reveal-square">Reveal Square</button>
+                <button data-action="reveal-word">Reveal Word</button>
+                <button data-action="reveal-puzzle">Reveal Puzzle</button>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="toolbar-btn">Clear <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></button>
+            <div class="dropdown-menu">
+                <button data-action="clear-square">Clear Square</button>
+                <button data-action="clear-word">Clear Word</button>
+                <button data-action="clear-puzzle">Clear Puzzle</button>
+                <hr>
+                <button data-action="reset">Reset Puzzle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="game-area">
+    <div class="grid-section">
+        <div class="active-clue-bar" id="activeClueBar">
+            <span class="clue-num" id="activeClueNum"></span>
+            <span id="activeClueText"></span>
+        </div>
+        <div class="crossword-grid" id="grid"></div>
+    </div>
+    <div class="clues-panel">
+        <div class="clue-column">
+            <h2>Across</h2>
+            <ul class="clue-list" id="acrossClues"></ul>
+        </div>
+        <div class="clue-column">
+            <h2>Down</h2>
+            <ul class="clue-list" id="downClues"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="win-overlay" id="winOverlay">
+    <div class="win-modal">
+        <h2>Congratulations!</h2>
+        <p id="winTime"></p>
+        <button onclick="document.getElementById('winOverlay').classList.remove('show')">Close</button>
+    </div>
+</div>
+
+<div class="pause-overlay" id="pauseOverlay">
+    <div class="pause-modal">
+        <h2>Paused</h2>
+        <button id="resumeBtn">Resume</button>
+    </div>
+</div>
+
+<script type="module" src="js/crossword.js"></script>
+</body>
+</html>
