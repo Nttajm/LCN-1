@@ -1,6 +1,6 @@
 // Firebase imports for database
 import { db, auth, puzzleDb } from "../../js/firebase.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 // Points system
@@ -21,12 +21,37 @@ if (!window.__nerdleGate_v1 || !window.__nerdleGate_v1.open || window.__nerdleGa
     throw new Error('Nerdle is not yet available. Come back later.');
 }
 
+// ── Per-tab identifier for cross-device sync / anti-cheat ───────────────────
+const TAB_ID = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    ? crypto.randomUUID()
+    : (Math.random().toString(36).slice(2) + Date.now().toString(36));
+const ACTIVE_TAB_LEASE_MS = 15000;
+const ACTIVE_TAB_HEARTBEAT_MS = 4000;
+
 let currentUser = null;
 let todayPoints = 0;
 let alreadyCompleted = false;
 let completedGameData = null;
 let boardReady = false;
 let draftRestored = false;
+let isActiveTab = true;
+let tabConflictShown = false;
+let tabLeaseHeartbeatInterval = null;
+
+function getCurrentUserProfile() {
+    if (!currentUser || currentUser.isAnonymous) return null;
+
+    const rawDisplayName = typeof currentUser.displayName === 'string' ? currentUser.displayName.trim() : '';
+    const email = typeof currentUser.email === 'string' ? currentUser.email.trim() : null;
+    const displayName = rawDisplayName || (email ? email.split('@')[0] : 'Player');
+
+    return {
+        uid: currentUser.uid,
+        displayName,
+        name: displayName,
+        email
+    };
+}
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -289,7 +314,9 @@ async function saveStatsToDb(stats) {
     
     try {
         const userRef = doc(db, 'titan_users', currentUser.uid);
+        const userProfile = getCurrentUserProfile();
         await setDoc(userRef, {
+            ...(userProfile || {}),
             gameStats: {
                 nerdle: {
                     stats: stats,
@@ -462,11 +489,98 @@ function getTodayDateKey() {
         String(today.getDate()).padStart(2, '0');
 }
 
+async function claimActiveTabLease() {
+    if (!currentUser || currentUser.isAnonymous) return true;
+
+    const todayKey = getTodayDateKey();
+    const now = Date.now();
+    const userRef = doc(db, 'titan_users', currentUser.uid);
+    const userProfile = getCurrentUserProfile();
+
+    try {
+        const claimed = await runTransaction(db, async (tx) => {
+            const snap = await tx.get(userRef);
+            const root = snap.exists() ? snap.data() : {};
+            const nerdleStats = root?.gameStats?.nerdle || {};
+            const lock = nerdleStats.activeTabLock || {};
+            const lockTabId = lock.tabId || null;
+            const lockDate = lock.date || null;
+            const lockExpiresAt = Number(lock.expiresAt || 0);
+
+            const lockAvailable =
+                !lockTabId ||
+                lockDate !== todayKey ||
+                lockExpiresAt <= now ||
+                lockTabId === TAB_ID;
+
+            if (!lockAvailable) {
+                return false;
+            }
+
+            const nextDailyState = {
+                ...(nerdleStats.dailyState || {}),
+                date: todayKey,
+                tabId: TAB_ID,
+                activeTabId: TAB_ID,
+                lastActiveTimestamp: now,
+                word: targetWord || (nerdleStats.dailyState?.word || '')
+            };
+
+            tx.set(userRef, {
+                ...(userProfile || {}),
+                gameStats: {
+                    nerdle: {
+                        activeTabLock: {
+                            tabId: TAB_ID,
+                            date: todayKey,
+                            expiresAt: now + ACTIVE_TAB_LEASE_MS,
+                            lastSeenAt: serverTimestamp()
+                        },
+                        dailyState: nextDailyState,
+                        lastUpdated: serverTimestamp()
+                    }
+                }
+            }, { merge: true });
+
+            return true;
+        });
+
+        if (!claimed) {
+            showTabConflictWarning();
+            return false;
+        }
+
+        if (!isActiveTab || tabConflictShown) {
+            hideTabConflictWarning();
+        }
+        return true;
+    } catch (e) {
+        console.error('Error claiming nerdle tab lease:', e);
+        return false;
+    }
+}
+
+function startTabLeaseHeartbeat() {
+    stopTabLeaseHeartbeat();
+    tabLeaseHeartbeatInterval = setInterval(async () => {
+        if (gameOver || alreadyCompleted || !isActiveTab || document.hidden) return;
+        await claimActiveTabLease();
+    }, ACTIVE_TAB_HEARTBEAT_MS);
+}
+
+function stopTabLeaseHeartbeat() {
+    if (tabLeaseHeartbeatInterval) {
+        clearInterval(tabLeaseHeartbeatInterval);
+        tabLeaseHeartbeatInterval = null;
+    }
+}
+
 function buildDraftState() {
     const completeRows = getBoardState(Math.min(currentRow + 1, MAX_GUESSES));
     return {
         date: getTodayDateKey(),
         word: targetWord,
+        tabId: TAB_ID,
         boardState: completeRows,
         currentRow,
         guessScores,
@@ -506,16 +620,29 @@ function clearLegacyLocalDraftState() {
 
 async function saveDraftState() {
     if (!targetWord || gameOver || alreadyCompleted) return;
+    if (!isActiveTab) return; // Don't save if this tab lost control
 
+    const now = Date.now();
     const draft = buildDraftState();
+    // Add tab tracking to draft
+    draft.activeTabId = TAB_ID;
+    draft.lastActiveTimestamp = now;
     saveSessionDraftState(draft);
 
     if (!currentUser || currentUser.isAnonymous) return;
     try {
         const userRef = doc(db, 'titan_users', currentUser.uid);
+        const userProfile = getCurrentUserProfile();
         await setDoc(userRef, {
+            ...(userProfile || {}),
             gameStats: {
                 nerdle: {
+                    activeTabLock: {
+                        tabId: TAB_ID,
+                        date: draft.date,
+                        expiresAt: now + ACTIVE_TAB_LEASE_MS,
+                        lastSeenAt: serverTimestamp()
+                    },
                     dailyState: draft,
                     lastUpdated: serverTimestamp()
                 }
@@ -532,7 +659,9 @@ async function clearDraftState() {
     if (!currentUser || currentUser.isAnonymous) return;
     try {
         const userRef = doc(db, 'titan_users', currentUser.uid);
+        const userProfile = getCurrentUserProfile();
         await setDoc(userRef, {
+            ...(userProfile || {}),
             gameStats: {
                 nerdle: {
                     dailyState: null,
@@ -952,19 +1081,76 @@ function showLoginNudge() {
     setTimeout(() => nudge.classList.remove("visible"), 6000);
 }
 
+function showTabConflictWarning() {
+    if (tabConflictShown) return;
+    tabConflictShown = true;
+    isActiveTab = false;
+    
+    const overlay = document.getElementById('tabConflictOverlay');
+    if (!overlay) return;
+    
+    overlay.style.display = 'flex';
+    
+    const reloadBtn = document.getElementById('tabConflictReload');
+    if (reloadBtn) {
+        reloadBtn.onclick = () => window.location.reload();
+    }
+    
+    // Disable all game interactions
+    gameOver = true;
+    validating = true;
+}
+
+function hideTabConflictWarning() {
+    const overlay = document.getElementById('tabConflictOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    
+    isActiveTab = true;
+    tabConflictShown = false;
+    if (!alreadyCompleted && !gameWon && currentRow < MAX_GUESSES) {
+        gameOver = false;
+        validating = false;
+    }
+}
+
 function initSplash() {
     document.getElementById("splashDate").textContent = formatDate();
     document.getElementById("splashNumber").textContent = "No. " + getPuzzleNumber();
 
-    document.getElementById("playBtn").addEventListener("click", function () {
+    const playBtn = document.getElementById("playBtn");
+    
+    // Check authentication and update button
+    function updatePlayButton() {
+        if (!currentUser || currentUser.isAnonymous) {
+            playBtn.textContent = "Sign in to play";
+            playBtn.classList.add("auth-required");
+        } else {
+            playBtn.textContent = "Play";
+            playBtn.classList.remove("auth-required");
+        }
+    }
+    
+    updatePlayButton();
+    
+    // Update button when auth state changes
+    onAuthStateChanged(auth, function() {
+        updatePlayButton();
+    });
+
+    playBtn.addEventListener("click", function () {
+        // If not authenticated, redirect to sign in page
+        if (!currentUser || currentUser.isAnonymous) {
+            window.location.href = "../signin.html";
+            return;
+        }
+        
+        // If authenticated, proceed with game
         if (alreadyCompleted && completedGameData) {
             restoreCompletedGame();
         } else {
             document.getElementById("splashOverlay").classList.add("hidden");
-        }
-        // Show login nudge for guests / anonymous users
-        if (!currentUser || currentUser.isAnonymous) {
-            showLoginNudge();
         }
     });
 }
@@ -998,7 +1184,7 @@ function getCurrentRowTiles() {
 }
 
 function addLetter(letter) {
-    if (currentTile >= WORD_LENGTH || gameOver || validating) return;
+    if (currentTile >= WORD_LENGTH || gameOver || validating || !isActiveTab) return;
     const tile = getTile(currentRow, currentTile);
     tile.textContent = letter;
     tile.setAttribute("data-state", "tbd");
@@ -1007,10 +1193,14 @@ function addLetter(letter) {
         tile.classList.remove("pop");
     }, { once: true });
     currentTile++;
+    // Update active tab timestamp on interaction
+    if (currentUser && !currentUser.isAnonymous) {
+        saveDraftState();
+    }
 }
 
 function removeLetter() {
-    if (currentTile <= 0 || gameOver || validating) return;
+    if (currentTile <= 0 || gameOver || validating || !isActiveTab) return;
     currentTile--;
     const tile = getTile(currentRow, currentTile);
     tile.textContent = "";
@@ -1155,7 +1345,8 @@ function bounceRow(row) {
 }
 
 async function submitGuess() {
-    if (gameOver || validating) return;
+    if (gameOver || validating || !isActiveTab) return;
+    if (!(await claimActiveTabLease())) return;
     if (currentTile < WORD_LENGTH) {
         shakeRow();
         showToast("Not enough letters");
@@ -1191,6 +1382,7 @@ async function submitGuess() {
 
         if (guess === targetWord) {
             gameOver = true;
+            stopTabLeaseHeartbeat();
             gameWon = true;
             const guessNum = row + 1;
             const solvePoints = getNytStyleSolvePoints(guessNum);
@@ -1238,6 +1430,7 @@ async function submitGuess() {
 
         if (row === MAX_GUESSES - 1) {
             gameOver = true;
+            stopTabLeaseHeartbeat();
             gameWon = false;
             gameScore = NYT_WORDLE_LOSS_POINTS;
             const stats = await recordLoss();
@@ -1334,6 +1527,96 @@ async function fetchTodaysPuzzle() {
     return null;
 }
 
+// ── Remote update polling (cross-device sync / anti-cheat) ──────────────────
+let remoteUpdatePollInterval = null;
+
+function startRemoteUpdatePoller() {
+    stopRemoteUpdatePoller();
+    remoteUpdatePollInterval = setInterval(async () => {
+        if (gameOver || alreadyCompleted || !currentUser || currentUser.isAnonymous || !targetWord) return;
+        try {
+            const remoteState = await getDbDraftState();
+            if (!remoteState || !remoteState.tabId || remoteState.tabId === TAB_ID) return;
+            if (remoteState.date !== getTodayDateKey() || remoteState.word !== targetWord) return;
+            if (!Array.isArray(remoteState.boardState)) return;
+            
+            // Check for tab conflict - if another tab is active
+            if (remoteState.activeTabId && remoteState.activeTabId !== TAB_ID) {
+                const timeSinceLastActive = Date.now() - (remoteState.lastActiveTimestamp || 0);
+                // If another tab was active within last 5 seconds, show warning
+                if (timeSinceLastActive < 5000) {
+                    showTabConflictWarning();
+                    stopRemoteUpdatePoller();
+                    return;
+                }
+            }
+            
+            // Only sync if remote has more guesses OR remote finished the game
+            if (remoteState.boardState.length <= currentRow && !remoteState.gameOver) return;
+            await applyRemoteNerdleState(remoteState);
+        } catch (e) { /* silently ignore poll errors */ }
+    }, 500); // More frequent polling for real-time sync
+}
+
+function stopRemoteUpdatePoller() {
+    if (remoteUpdatePollInterval) {
+        clearInterval(remoteUpdatePollInterval);
+        remoteUpdatePollInterval = null;
+    }
+}
+
+async function applyRemoteNerdleState(remoteState) {
+    stopRemoteUpdatePoller();
+
+    // Hide tab conflict warning if it was shown
+    hideTabConflictWarning();
+
+    // Reset board tiles and keyboard visually
+    for (let r = 0; r < MAX_GUESSES; r++) {
+        for (let c = 0; c < WORD_LENGTH; c++) {
+            const tile = getTile(r, c);
+            if (tile) { tile.textContent = ''; tile.removeAttribute('data-state'); }
+        }
+    }
+    document.querySelectorAll('.key').forEach(k => k.removeAttribute('data-state'));
+
+    guessScores = Array.isArray(remoteState.guessScores) ? remoteState.guessScores.slice() : [];
+    gameScore   = Number(remoteState.gameScore || 0);
+    gameWon     = remoteState.gameWon === true ? true : (remoteState.gameWon === false ? false : null);
+    lastWinRow  = Number(remoteState.lastWinRow || -1);
+    currentRow  = 0;
+    currentTile = 0;
+
+    for (let r = 0; r < remoteState.boardState.length; r++) {
+        const guess = remoteState.boardState[r];
+        if (!guess || guess.length !== WORD_LENGTH) continue;
+        for (let c = 0; c < guess.length; c++) {
+            const tile = getTile(r, c);
+            if (tile) tile.textContent = guess[c];
+        }
+        currentRow = r;
+        await revealRowInstant(guess);
+        currentRow++;
+    }
+
+    currentRow = Math.min(remoteState.boardState.length, MAX_GUESSES - 1);
+    currentTile = 0;
+    draftRestored = true;
+
+    if (remoteState.gameOver) {
+        gameOver = true;
+        stopTabLeaseHeartbeat();
+        showToast("Game synced from another tab", 2500);
+        setTimeout(() => openStatsModal(gameWon, gameWon ? lastWinRow : 0), 1200);
+    } else {
+        showToast("Guess synced from another tab", 2500);
+        // After syncing, claim this tab as active and resume polling
+        await saveDraftState();
+        startTabLeaseHeartbeat();
+        startRemoteUpdatePoller();
+    }
+}
+
 async function init() {
     clearLegacyLocalDraftState();
     initSplash();
@@ -1370,6 +1653,10 @@ async function init() {
     } else {
         await restoreSavedGameState();
     }
+
+    // Start polling for updates from other devices/tabs
+    startTabLeaseHeartbeat();
+    startRemoteUpdatePoller();
 }
 
 init();

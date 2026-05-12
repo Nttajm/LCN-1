@@ -18,7 +18,7 @@
  * 
  * - titan_leaderboard (collection)
  *   - daily_{date} (document)
- *     - entries: [{ uid, displayName, name, email, points, gamesPlayed }]
+ *     - entries: [{ uid, displayName, points, gamesPlayed }]
  */
 
 import { db, auth } from "./firebase.js";
@@ -97,20 +97,6 @@ function getTodayDateStr() {
  */
 export function getCurrentUser() {
     return currentUser;
-}
-
-function getUserIdentity(user = currentUser) {
-    const rawDisplayName = typeof user?.displayName === 'string' ? user.displayName.trim() : '';
-    const email = typeof user?.email === 'string' ? user.email.trim() : null;
-    const fallbackName = email ? email.split('@')[0] : 'Player';
-    const displayName = rawDisplayName || fallbackName;
-
-    return {
-        uid: user?.uid || null,
-        displayName,
-        name: displayName,
-        email
-    };
 }
 
 /**
@@ -216,7 +202,6 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
 
     const dateStr = getTodayDateStr();
     const userId = currentUser.uid;
-    const userIdentity = getUserIdentity(currentUser);
 
     // Daily submission document path
     const dailySubmissionRef = doc(db, 'titangames_submissions', dateStr, 'users', userId);
@@ -263,9 +248,6 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
         // Update daily submission
         if (existingData) {
             await updateDoc(dailySubmissionRef, {
-                displayName: userIdentity.displayName,
-                name: userIdentity.name,
-                email: userIdentity.email,
                 [`games.${gameName}`]: gameSubmission,
                 totalPoints: newTotal,
                 gamesPlayed: newGamesPlayed,
@@ -274,9 +256,8 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
         } else {
             await setDoc(dailySubmissionRef, {
                 uid: userId,
-                displayName: userIdentity.displayName,
-                name: userIdentity.name,
-                email: userIdentity.email,
+                displayName: currentUser.displayName || 'Player',
+                email: currentUser.email,
                 date: dateStr,
                 games: {
                     [gameName]: gameSubmission
@@ -290,10 +271,6 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
 
         // Update user's submission reference
         await setDoc(userSubmissionRef, {
-            uid: userId,
-            displayName: userIdentity.displayName,
-            name: userIdentity.name,
-            email: userIdentity.email,
             date: dateStr,
             totalPoints: newTotal,
             gamesPlayed: newGamesPlayed,
@@ -304,10 +281,10 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
         }, { merge: true });
 
         // Update global leaderboard
-        await updateLeaderboard(dateStr, userId, userIdentity, newTotal, newGamesPlayed);
+        await updateLeaderboard(dateStr, userId, currentUser.displayName || 'Player', newTotal, newGamesPlayed);
 
         // Update user's all-time stats
-        await updateUserStats(userId, finalPoints, gameName, userIdentity);
+        await updateUserStats(userId, finalPoints, gameName);
 
         return { success: true, totalPoints: newTotal, finalPoints, bonusMultiplier, bonusPosition };
     } catch (err) {
@@ -321,13 +298,6 @@ export async function submitGameCompletion(gameName, points, metadata = {}) {
  */
 async function updateLeaderboard(dateStr, userId, displayName, totalPoints, gamesPlayed) {
     const leaderboardRef = doc(db, 'titan_leaderboard', `daily_${dateStr}`);
-    const identity = typeof displayName === 'object'
-        ? displayName
-        : {
-            displayName: displayName || 'Player',
-            name: displayName || 'Player',
-            email: null
-        };
 
     try {
         const snap = await getDoc(leaderboardRef);
@@ -341,9 +311,7 @@ async function updateLeaderboard(dateStr, userId, displayName, totalPoints, game
             // Add updated entry
             entries.push({
                 uid: userId,
-                displayName: identity.displayName,
-                name: identity.name,
-                email: identity.email,
+                displayName,
                 points: totalPoints,
                 gamesPlayed,
                 lastUpdated: new Date().toISOString()
@@ -364,9 +332,7 @@ async function updateLeaderboard(dateStr, userId, displayName, totalPoints, game
                 date: dateStr,
                 entries: [{
                     uid: userId,
-                    displayName: identity.displayName,
-                    name: identity.name,
-                    email: identity.email,
+                    displayName,
                     points: totalPoints,
                     gamesPlayed,
                     lastUpdated: new Date().toISOString()
@@ -383,18 +349,14 @@ async function updateLeaderboard(dateStr, userId, displayName, totalPoints, game
 /**
  * Update user's all-time stats
  */
-async function updateUserStats(userId, pointsEarned, gameName, userIdentity = null) {
+async function updateUserStats(userId, pointsEarned, gameName) {
     const userRef = doc(db, 'titan_users', userId);
-    const identity = userIdentity || getUserIdentity();
 
     try {
         const snap = await getDoc(userRef);
 
         if (snap.exists()) {
             const updateData = {
-                displayName: identity.displayName,
-                name: identity.name,
-                email: identity.email,
                 totalPointsAllTime: increment(pointsEarned),
                 totalGamesPlayedAllTime: increment(1),
                 [`gameStats.${gameName}.played`]: increment(1),
@@ -406,9 +368,6 @@ async function updateUserStats(userId, pointsEarned, gameName, userIdentity = nu
         } else {
             await setDoc(userRef, {
                 uid: userId,
-                displayName: identity.displayName,
-                name: identity.name,
-                email: identity.email,
                 totalPointsAllTime: pointsEarned,
                 totalGamesPlayedAllTime: 1,
                 gameStats: {

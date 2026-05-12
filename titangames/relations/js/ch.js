@@ -1,19 +1,6 @@
-/**
- * ch.js — Relations gate controller
- * Determines the daily random opening window (10:00–11:30 AM),
- * shows a lock overlay before then, and dynamically loads relations.js
- * only once the gate opens. Tamper-detection prevents the game from
- * loading if the overlay is removed or hidden early.
- *
- * Windows across all Titan Games (same seeded-random design, non-overlapping):
- *   Nerdle      →  8:00 – 9:30 AM
- *   Relations   → 10:00 – 11:30 AM   ← this file
- *   Connections → 12:00 –  1:30 PM
- */
 (function () {
     'use strict';
 
-    // ── Seeded random (FNV-1a 32-bit) ──────────────────────────────────────
     function seededRand(str) {
         let h = 2166136261 >>> 0;
         for (let i = 0; i < str.length; i++) {
@@ -23,10 +10,9 @@
         return h / 0xFFFFFFFF;
     }
 
-    // ── Clock baseline for post-load drift detection ────────────────────────
     const _perfBase = performance.now();
     const _dateBase = Date.now();
-    const CLOCK_DRIFT_MS = 5000;   // tolerated skew in ms
+    const CLOCK_DRIFT_MS = 5000;
     let _serverOffset = 0;
 
     function isSuspiciousClockDrift() {
@@ -34,16 +20,10 @@
         return Math.abs(Date.now() - (_dateBase + elapsed)) > CLOCK_DRIFT_MS;
     }
 
-    /** Current time in ms, corrected by the server-time offset. */
     function trustedNowMs() {
         return Date.now() + _serverOffset;
     }
 
-    /**
-     * HEAD-request the current page to read the server's Date header.
-     * Sets _serverOffset so trustedNowMs() corrects client-clock skew
-     * (covers the case where the system clock is changed before page load).
-     */
     function fetchServerTime() {
         return fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
             .then(function (r) {
@@ -53,17 +33,14 @@
                     if (!isNaN(st)) { _serverOffset = st - Date.now(); }
                 }
             })
-            .catch(function () { /* silent – fall back to local clock */ });
+            .catch(function () {  });
     }
 
-    // ── Daily open time (consistent for everyone on the same calendar day) ─
     function getTodayKey() {
         const d = new Date(trustedNowMs());
         return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
     }
 
-    // Returns the opening time as total minutes since midnight.
-    // 10:00 AM = 600 min, 11:30 AM = 690 min → 91 possible values (0–90 offset).
     function getOpenMinutes() {
         return 600 + Math.floor(seededRand(getTodayKey() + ':relations:gate') * 91);
     }
@@ -84,13 +61,6 @@
         return nowMinutes() >= getOpenMinutes();
     }
 
-    // ── Gate state (read by relations.js as a second layer of protection) ──
-    // The property is sealed with Object.defineProperty so that
-    //   window.__relationsGate_v1 = { open: true, ... }   (console write)
-    // and
-    //   Object.defineProperty(window, '__relationsGate_v1', ...)  (redefinition)
-    // are both silently rejected or throw — the getter always reads the
-    // private closure variables _gateOpen / _tampered.
     const GATE_KEY = '__relationsGate_v1';
     let _gateOpen  = false;
     let _tampered  = false;
@@ -99,15 +69,14 @@
     try {
         Object.defineProperty(window, GATE_KEY, {
             get: function () { return { open: _gateOpen, tampered: _tampered, noPuzzle: _noPuzzle }; },
-            set: function () { /* silently reject console writes */ },
+            set: function () {  },
             configurable: false,
             enumerable: false
         });
-    } catch (e) { /* already defined (e.g. double-load) – ignore */ }
+    } catch (e) {  }
 
     function setGate(open) {
         _gateOpen = !!open;
-        // _tampered is always reflected live through the getter above.
     }
 
     function markTampered() {
@@ -128,17 +97,10 @@
         }
     }
 
-    // ── Post-load clock tamper check ───────────────────────────────────────
     function checkAndMarkClockTamper() {
         if (!_tampered && isSuspiciousClockDrift()) { markTampered(); }
     }
 
-    // ── Puzzle existence check (Firestore REST API, no SDK required) ────────
-    // Checks whether today has a published puzzle BEFORE loading game JS.
-    // Returns Promise<true|false|null>:
-    //   true  → published puzzle found
-    //   false → document missing or not published  (show no-puzzle overlay)
-    //   null  → network/parse error               (fail open; game handles fallback)
     function fetchPuzzleExists() {
         var d = new Date(trustedNowMs());
         var dateStr = d.getFullYear() + '-' +
@@ -149,18 +111,23 @@
             '?key=AIzaSyDNXZ1Xnm3FrE4Ofo8ClzJ8sph7NoVSgnk';
         return fetch(url, { cache: 'no-store' })
             .then(function (r) {
-                if (!r.ok) return false;
+                if (r.status === 404) return false;
+                if (!r.ok) return null;
                 return r.json().then(function (data) {
+                    if (data && data.error) {
+                        return null;
+                    }
                     var fields = data && data.fields;
                     if (!fields) return false;
                     var status = fields.status && fields.status.stringValue;
                     return status === 'published' && !!fields.categories;
+                }).catch(function () {
+                    return null;
                 });
             })
             .catch(function () { return null; });
     }
 
-    // ── No-puzzle overlay ───────────────────────────────────────────────────
     function showNoPuzzleOverlay() {
         _noPuzzle = true;
         injectStyles();
@@ -173,7 +140,6 @@
             '<p class="_ng-sub">Check back tomorrow for a new puzzle.</p>';
         document.body.appendChild(overlay);
 
-        // Keep the overlay from being removed or hidden
         var obs = new MutationObserver(function (mutations) {
             for (var mi = 0; mi < mutations.length; mi++) {
                 var mut = mutations[mi];
@@ -215,7 +181,6 @@
         });
     }
 
-    // ── Load relations.js (module) ──────────────────────────────────────────
     function loadRelations() {
         setGate(true);
         var script = document.createElement('script');
@@ -224,7 +189,6 @@
         document.head.appendChild(script);
     }
 
-    // ── Overlay styles ─────────────────────────────────────────────────────
     function injectStyles() {
         var style = document.createElement('style');
         style.id = '_ngStyles';
@@ -267,7 +231,6 @@
         return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
 
-    // ── Create and mount the lock overlay ──────────────────────────────────
     function createOverlay(openTimeStr, openMin) {
         injectStyles();
 
@@ -281,7 +244,6 @@
             '<p class="_ng-sub">Come back then to play today\'s puzzle.</p>';
         document.body.appendChild(overlay);
 
-        // Countdown ticker
         function tick() {
             if (_tampered || isUnlocked()) return;
             var now = new Date(trustedNowMs());
@@ -302,14 +264,12 @@
             tick();
         }, 1000);
 
-        // ── MutationObserver: detect removal, display/visibility changes ───
         var observer = new MutationObserver(function (mutations) {
             if (_tampered || isUnlocked()) return;
 
             for (var mi = 0; mi < mutations.length; mi++) {
                 var mut = mutations[mi];
 
-                // Detect node removal
                 if (mut.type === 'childList') {
                     for (var ri = 0; ri < mut.removedNodes.length; ri++) {
                         var node = mut.removedNodes[ri];
@@ -337,7 +297,6 @@
                     }
                 }
 
-                // Detect attribute changes on the overlay
                 if (mut.type === 'attributes' && mut.target.id === '_ngOverlay') {
                     var t = mut.target;
                     var hidden =
@@ -364,18 +323,11 @@
         return observer;
     }
 
-    // ── Main entry ─────────────────────────────────────────────────────────
     setGate(false);
 
-    // 1. Fetch authoritative server time.
-    // 2. Check Firestore for today's published puzzle.
-    // 3a. No puzzle  → show "no puzzle today" overlay; never load game JS.
-    // 3b. Puzzle exists but time not yet reached → show countdown overlay.
-    // 3c. Puzzle exists and time reached → load relations.js.
     fetchServerTime()
         .then(function () { return fetchPuzzleExists(); })
         .then(function (puzzleExists) {
-            // null = network error: fail open so the game can use its own fallback
             if (puzzleExists === false) {
                 showNoPuzzleOverlay();
                 return;
@@ -385,7 +337,7 @@
             } else {
                 var openMin     = getOpenMinutes();
                 var openTimeStr = formatMinutes(openMin);
-                var _observer   = createOverlay(openTimeStr, openMin); // eslint-disable-line
+                var _observer   = createOverlay(openTimeStr, openMin);
 
                 var unlockInterval = setInterval(function () {
                     checkAndMarkClockTamper();

@@ -9,8 +9,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-const AUTH_EMAIL_KEY = "titan_auth_email";
-
 const MODAL_HTML = `
 <div class="auth-overlay" id="authOverlay">
     <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authHeading">
@@ -68,22 +66,14 @@ const MODAL_HTML = `
 async function saveNewUser(user) {
     const ref = doc(db, "titan_users", user.uid);
     const snap = await getDoc(ref);
-    const email = user.email || null;
-    const normalizedName = user.displayName || (email ? email.split("@")[0] : null);
-    const payload = {
+    if (snap.exists()) return;
+    await setDoc(ref, {
         uid: user.uid,
-        displayName: normalizedName,
-        name: normalizedName,
-        email,
+        displayName: user.displayName || null,
+        email: user.email,
         photoURL: user.photoURL || null,
-        lastSeenAt: serverTimestamp()
-    };
-
-    if (!snap.exists()) {
-        payload.createdAt = serverTimestamp();
-    }
-
-    await setDoc(ref, payload, { merge: true });
+        createdAt: serverTimestamp()
+    });
 }
 
 function getInitials(name) {
@@ -306,12 +296,8 @@ function initAuth() {
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            if (user.email) {
-                localStorage.setItem(AUTH_EMAIL_KEY, String(user.email).trim().toLowerCase());
-            }
             buildHeaderUser(user);
         } else {
-            localStorage.removeItem(AUTH_EMAIL_KEY);
             restoreLoginBtn();
         }
     });

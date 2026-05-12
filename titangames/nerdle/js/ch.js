@@ -75,7 +75,47 @@
         return d.getHours() * 60 + d.getMinutes();
     }
 
+    const PRIVILEGED_EARLY_ACCESS_EMAILS = {
+        'joelmulonde81@gmail.com': true,
+        'joel.mulonde@crpusd.org': true
+    };
+    const AUTH_EMAIL_KEY = 'titan_auth_email';
+
+    function getPersistedAuthEmail() {
+        // Primary source: app-managed auth email marker.
+        try {
+            var marker = localStorage.getItem(AUTH_EMAIL_KEY);
+            if (marker && marker.trim()) return marker.trim().toLowerCase();
+        } catch (e) {
+            // Ignore storage access errors and keep falling back.
+        }
+
+        // Fallback source: Firebase Auth serialized entries under firebase:authUser:* keys.
+        try {
+            for (var i = 0; i < localStorage.length; i++) {
+                var key = localStorage.key(i);
+                if (!key || key.indexOf('firebase:authUser:') !== 0) continue;
+                var raw = localStorage.getItem(key);
+                if (!raw) continue;
+                var parsed = JSON.parse(raw);
+                var email = parsed && parsed.email;
+                if (typeof email === 'string' && email.trim()) {
+                    return email.trim().toLowerCase();
+                }
+            }
+        } catch (e) {
+            // Ignore parse/storage errors and fall back to normal gate behavior.
+        }
+        return '';
+    }
+
+    function hasEarlyAccessOverride() {
+        var email = getPersistedAuthEmail();
+        return !!email && !!PRIVILEGED_EARLY_ACCESS_EMAILS[email];
+    }
+
     function isUnlocked() {
+        if (hasEarlyAccessOverride()) return true;
         return nowMinutes() >= getOpenMinutes();
     }
 

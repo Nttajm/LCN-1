@@ -344,16 +344,6 @@ import {
 import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 const ALLOWED_DOMAIN = "crpusd.org";
-const AUTH_EMAIL_KEY = "titan_auth_email";
-const ALLOWED_EMAILS = new Set([
-    "joelmulonde81@gmail.com",
-    "joel.mulonde@crpusd.org"
-]);
-
-function isAllowedEmail(email) {
-    const normalized = String(email || "").trim().toLowerCase();
-    return normalized.endsWith("@" + ALLOWED_DOMAIN) || ALLOWED_EMAILS.has(normalized);
-}
 
 const googleBtn = document.getElementById("googleBtn");
 const errorMsg = document.getElementById("errorMsg");
@@ -370,22 +360,14 @@ function hideError() {
 async function saveNewUser(user) {
     const ref = doc(db, "titan_users", user.uid);
     const snap = await getDoc(ref);
-    const email = user.email || null;
-    const normalizedName = user.displayName || (email ? email.split("@")[0] : null);
-    const payload = {
+    if (snap.exists()) return;
+    await setDoc(ref, {
         uid: user.uid,
-        displayName: normalizedName,
-        name: normalizedName,
-        email,
+        displayName: user.displayName || null,
+        email: user.email,
         photoURL: user.photoURL || null,
-        lastSeenAt: serverTimestamp()
-    };
-
-    if (!snap.exists()) {
-        payload.createdAt = serverTimestamp();
-    }
-
-    await setDoc(ref, payload, { merge: true });
+        createdAt: serverTimestamp()
+    });
 }
 
 // Handle Google sign in
@@ -395,13 +377,12 @@ googleBtn.addEventListener("click", async () => {
     try {
         const result = await signInWithPopup(auth, googleProvider);
         const email = result.user.email || "";
-        if (!isAllowedEmail(email)) {
+        if (!email.toLowerCase().endsWith("@" + ALLOWED_DOMAIN)) {
             await signOut(auth);
             showError("Only @" + ALLOWED_DOMAIN + " accounts are allowed.");
             googleBtn.disabled = false;
             return;
         }
-        localStorage.setItem(AUTH_EMAIL_KEY, email.trim().toLowerCase());
         await saveNewUser(result.user);
         window.location.href = "index.html";
     } catch (err) {
@@ -414,11 +395,8 @@ googleBtn.addEventListener("click", async () => {
 
 // Redirect if already logged in with an allowed account
 onAuthStateChanged(auth, (user) => {
-    if (user && user.email && isAllowedEmail(user.email)) {
-        localStorage.setItem(AUTH_EMAIL_KEY, user.email.trim().toLowerCase());
+    if (user && user.email && user.email.toLowerCase().endsWith("@" + ALLOWED_DOMAIN)) {
         window.location.href = "index.html";
-    } else if (!user) {
-        localStorage.removeItem(AUTH_EMAIL_KEY);
     }
 });
 </script>
