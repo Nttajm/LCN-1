@@ -208,7 +208,7 @@ const FALLBACK_WORDS = [
 ];
 
 const MAX_GUESSES = 6;
-const WORD_LENGTH = 5;
+let WORD_LENGTH = 5;
 const STATS_KEY = "nerdle_stats";
 const GAME_STATE_KEY = "nerdle_game_state";
 
@@ -1046,6 +1046,8 @@ async function fetchWordList() {
 }
 
 async function isValidWord(word) {
+    // Always accept the target word itself (handles acronyms, proper nouns, etc.)
+    if (word.toUpperCase() === targetWord) return true;
     try {
         const res = await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + word.toLowerCase());
         return res.ok;
@@ -1157,9 +1159,12 @@ function initSplash() {
 
 function createBoard() {
     const board = document.getElementById("board");
+    board.innerHTML = '';
+    board.setAttribute('data-word-length', WORD_LENGTH);
     for (let r = 0; r < MAX_GUESSES; r++) {
         const row = document.createElement("div");
         row.classList.add("board-row");
+        row.style.gridTemplateColumns = `repeat(${WORD_LENGTH}, 1fr)`;
         for (let c = 0; c < WORD_LENGTH; c++) {
             const tile = document.createElement("div");
             tile.classList.add("tile");
@@ -1518,7 +1523,11 @@ async function fetchTodaysPuzzle() {
         if (docSnap.exists()) {
             const data = docSnap.data();
             if (data.status === 'published' && data.word) {
-                return { word: data.word.toUpperCase(), hints: data.hints || [] };
+                return {
+                    word: data.word.toUpperCase(),
+                    wordLength: data.wordLength || 5,
+                    hints: data.hints || []
+                };
             }
         }
     } catch (err) {
@@ -1620,10 +1629,9 @@ async function applyRemoteNerdleState(remoteState) {
 async function init() {
     clearLegacyLocalDraftState();
     initSplash();
-    createBoard();
     initKeyboard();
     createStatsModal();
-    
+
     document.getElementById("statsBtn").addEventListener("click", function() {
         if (gameOver && gameWon !== null) {
             const finishedGuessNum = gameWon ? lastWinRow : 0;
@@ -1633,10 +1641,11 @@ async function init() {
 
         openStatsModal(null, currentRow, { liveView: true });
     });
-    
-    // Try to get today's puzzle from database first
+
+    // Fetch puzzle first so we know the word length before building the board
     const dbPuzzle = await fetchTodaysPuzzle();
     if (dbPuzzle) {
+        WORD_LENGTH = dbPuzzle.wordLength || 5;
         targetWord = dbPuzzle.word;
         // Store hints for later use if needed
         window.puzzleHints = dbPuzzle.hints;
@@ -1645,6 +1654,8 @@ async function init() {
         wordList = await fetchWordList();
         targetWord = wordList[getDayOffset() % wordList.length].toUpperCase();
     }
+
+    createBoard();
     
     // Mark board as ready and restore if already completed
     boardReady = true;

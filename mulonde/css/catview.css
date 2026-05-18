@@ -1,0 +1,332 @@
+@keyframes cv-in {
+  from { opacity: 0; transform: translateY(1.5rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cv-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(1.5rem); }
+}
+
+.cat-view {
+  --cat-color: #E8590C;
+  position: fixed;
+  inset: 0;
+  background: var(--cat-color);
+  z-index: 50;
+  overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 0;
+  pointer-events: none;
+  scrollbar-width: none;
+}
+
+.cat-view::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-view.open {
+  opacity: 1;
+  pointer-events: all;
+  animation: cv-in 0.4s cubic-bezier(0.05, 0.65, 0.4, 1) both;
+}
+
+.cat-view.closing {
+  animation: cv-out 0.3s ease-in both;
+  pointer-events: none;
+}
+
+.hero.cv-open {
+  transform: scale(0.92);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cv-back-btn {
+  position: fixed;
+  top: 1.1rem;
+  left: 1.5rem;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s, opacity 0.25s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cv-back-btn.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.cv-back-btn:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cv-explainer {
+  padding: 5rem 2rem 3rem;
+  max-width: 75rem;
+  margin: 0 auto;
+  position: relative;
+}
+
+.cv-explainer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--cat-color) 20%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cv-explainer h1 {
+  font-size: 5.5rem;
+  font-weight: 200;
+  letter-spacing: -0.04em;
+  color: #fff;
+  margin-bottom: 1rem;
+  background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.65) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  animation: cv-in 0.8s ease 0.05s both;
+}
+
+.cv-explainer p {
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.5);
+  max-width: 32rem;
+  line-height: 1.65;
+  opacity: 0;
+  animation: cv-in 0.8s ease 0.15s both;
+}
+
+.cv-dail {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--cat-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 65px;
+  overflow: hidden;
+  width: 100%;
+  padding: 0.5rem 0;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  box-shadow: 0 12px 32px 16px var(--cat-color);
+}
+
+.cv-dail.dragging {
+  cursor: grabbing;
+}
+
+.cv-dail::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2.5rem;
+  pointer-events: none;
+  z-index: 200;
+  background: linear-gradient(to bottom, transparent, var(--cat-color));
+}
+
+.cv-elem-holder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  top: 90%;
+  transition: transform 0.3s ease;
+}
+
+.cv-elem {
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.cv-elem:has(~ .cv-elem.current) {
+  transform: rotateX(-35deg);
+  opacity: 0.5;
+}
+
+.cv-elem.current {
+  color: #fff;
+  opacity: 1;
+}
+
+.cv-elem.current ~ .cv-elem {
+  transform: rotateX(35deg);
+  opacity: 0.5;
+}
+
+.cv-sections {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.cv-section {
+  padding: 5rem 0;
+  min-height: 100vh;
+  scroll-margin-top: 65px;
+  opacity: 0;
+  transform: translateY(1.5rem);
+  animation: cv-in 0.7s ease forwards;
+}
+
+.cv-section:nth-child(1) { animation-delay: 0s; }
+.cv-section:nth-child(2) { animation-delay: 0.08s; }
+.cv-section:nth-child(3) { animation-delay: 0.16s; }
+
+.cv-section:first-child {
+  padding-top: 2.5rem;
+}
+
+.cv-site-card {
+  margin-bottom: 4.5rem;
+}
+
+.cv-card-title {
+  font-size: 2rem;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-bottom: 0.4rem;
+}
+
+.cv-card-desc {
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.5);
+  max-width: 34rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.cv-grid-mobile,
+.cv-grid-desktop {
+  display: none;
+  gap: 0.375rem;
+}
+
+.cv-grid-mobile {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(5, 10rem);
+}
+
+.cv-grid-desktop {
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 10rem);
+}
+
+.cv-grid-item {
+  overflow: hidden;
+  transition: transform 0.35s ease;
+}
+
+.cv-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.cv-grid-item:hover img {
+  transform: scale(1.05);
+}
+
+.cv-info-block {
+  margin-top: 2rem;
+  max-width: 10rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.75rem;
+}
+
+.cv-info-header {
+  padding: 0.5rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cv-info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.cv-info-label {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.cv-info-value {
+  font-weight: 500;
+  color: #fff;
+}
+
+@media (min-width: 769px) {
+  .cv-grid-desktop {
+    display: grid !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .cv-grid-mobile {
+    display: grid !important;
+  }
+
+  .cv-explainer h1 {
+    font-size: 3rem;
+  }
+
+  .cv-sections {
+    padding: 0 1.25rem;
+  }
+
+  .cv-explainer {
+    padding: 3.5rem 1.25rem 2rem;
+  }
+
+  .cv-back-btn {
+    top: 0.75rem;
+    left: 1rem;
+  }
+
+  .cv-card-title {
+    font-size: 1.5rem;
+  }
+}

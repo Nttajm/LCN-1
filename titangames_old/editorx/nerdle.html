@@ -54,8 +54,15 @@
     <div class="nerdle-editor-body">
         <div class="nerdle-word-section">
             <h2>Target Word</h2>
-            <p class="nerdle-hint">Enter the 5-letter word players will guess</p>
+            <p class="nerdle-hint">Enter the word players will guess</p>
             <div class="nerdle-word-input-container">
+                <div class="nerdle-meta-field" style="flex-shrink:0">
+                    <label for="wordLength">Letters</label>
+                    <select id="wordLength">
+                        <option value="5" selected>5</option>
+                        <option value="6">6</option>
+                    </select>
+                </div>
                 <input type="text" id="targetWord" class="nerdle-word-input" maxlength="5" placeholder="WORD" autocomplete="off" spellcheck="false">
                 <button class="editor-btn editor-btn--secondary editor-btn--sm" id="btnValidateWord">Validate</button>
             </div>
@@ -65,13 +72,7 @@
         <div class="nerdle-preview-section">
             <h2>Preview</h2>
             <div class="nerdle-preview-board" id="previewBoard">
-                <div class="nerdle-preview-row" id="previewRow">
-                    <div class="nerdle-preview-tile"></div>
-                    <div class="nerdle-preview-tile"></div>
-                    <div class="nerdle-preview-tile"></div>
-                    <div class="nerdle-preview-tile"></div>
-                    <div class="nerdle-preview-tile"></div>
-                </div>
+                <div class="nerdle-preview-row" id="previewRow"></div>
             </div>
         </div>
 
