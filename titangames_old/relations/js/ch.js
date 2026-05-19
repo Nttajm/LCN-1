@@ -1,9 +1,14 @@
 /**
- * ch.js — Nerdle gate controller
- * Determines the daily random opening window (8:00–9:30 AM),
- * shows a lock overlay before then, and dynamically loads nerdle.js
+ * ch.js — Relations gate controller
+ * Determines the daily random opening window (10:00–11:30 AM),
+ * shows a lock overlay before then, and dynamically loads relations.js
  * only once the gate opens. Tamper-detection prevents the game from
  * loading if the overlay is removed or hidden early.
+ *
+ * Windows across all Titan Games (same seeded-random design, non-overlapping):
+ *   Nerdle      →  8:00 – 9:30 AM
+ *   Relations   → 10:00 – 11:30 AM   ← this file
+ *   Connections → 12:00 –  1:30 PM
  */
 (function () {
     'use strict';
@@ -58,9 +63,9 @@
     }
 
     // Returns the opening time as total minutes since midnight.
-    // 8:00 AM = 480 min, 9:30 AM = 570 min → 91 possible values (0–90 offset).
+    // 10:00 AM = 600 min, 11:30 AM = 690 min → 91 possible values (0–90 offset).
     function getOpenMinutes() {
-        return 480 + Math.floor(seededRand(getTodayKey() + ':nerdle:gate') * 91);
+        return 600 + Math.floor(seededRand(getTodayKey() + ':relations:gate') * 91);
     }
 
     function formatMinutes(totalMin) {
@@ -75,58 +80,18 @@
         return d.getHours() * 60 + d.getMinutes();
     }
 
-    const PRIVILEGED_EARLY_ACCESS_EMAILS = {
-        'joelmulonde81@gmail.com': true,
-        'joel.mulonde@crpusd.org': true
-    };
-    const AUTH_EMAIL_KEY = 'titan_auth_email';
-
-    function getPersistedAuthEmail() {
-        // Primary source: app-managed auth email marker.
-        try {
-            var marker = localStorage.getItem(AUTH_EMAIL_KEY);
-            if (marker && marker.trim()) return marker.trim().toLowerCase();
-        } catch (e) {
-            // Ignore storage access errors and keep falling back.
-        }
-
-        // Fallback source: Firebase Auth serialized entries under firebase:authUser:* keys.
-        try {
-            for (var i = 0; i < localStorage.length; i++) {
-                var key = localStorage.key(i);
-                if (!key || key.indexOf('firebase:authUser:') !== 0) continue;
-                var raw = localStorage.getItem(key);
-                if (!raw) continue;
-                var parsed = JSON.parse(raw);
-                var email = parsed && parsed.email;
-                if (typeof email === 'string' && email.trim()) {
-                    return email.trim().toLowerCase();
-                }
-            }
-        } catch (e) {
-            // Ignore parse/storage errors and fall back to normal gate behavior.
-        }
-        return '';
-    }
-
-    function hasEarlyAccessOverride() {
-        var email = getPersistedAuthEmail();
-        return !!email && !!PRIVILEGED_EARLY_ACCESS_EMAILS[email];
-    }
-
     function isUnlocked() {
-        if (hasEarlyAccessOverride()) return true;
         return nowMinutes() >= getOpenMinutes();
     }
 
-    // ── Gate state (read by nerdle.js as a second layer of protection) ─────
+    // ── Gate state (read by relations.js as a second layer of protection) ──
     // The property is sealed with Object.defineProperty so that
-    //   window.__nerdleGate_v1 = { open: true, ... }   (console write)
+    //   window.__relationsGate_v1 = { open: true, ... }   (console write)
     // and
-    //   Object.defineProperty(window, '__nerdleGate_v1', ...)  (redefinition)
+    //   Object.defineProperty(window, '__relationsGate_v1', ...)  (redefinition)
     // are both silently rejected or throw — the getter always reads the
     // private closure variables _gateOpen / _tampered.
-    const GATE_KEY = '__nerdleGate_v1';
+    const GATE_KEY = '__relationsGate_v1';
     let _gateOpen  = false;
     let _tampered  = false;
     let _noPuzzle  = false;
@@ -149,25 +114,21 @@
         if (_tampered) return;
         _tampered = true;
         setGate(false);
-        // Update overlay messaging
         var ov = document.getElementById('_ngOverlay');
         if (ov) {
-            var msg = ov.querySelector('._ng-msg');
-            var sub = ov.querySelector('._ng-sub');
-            var cd  = ov.querySelector('._ng-countdown');
+            var msg  = ov.querySelector('._ng-msg');
+            var sub  = ov.querySelector('._ng-sub');
+            var cd   = ov.querySelector('._ng-countdown');
             var icon = ov.querySelector('._ng-icon');
             if (icon) icon.textContent = '⚠️';
             if (msg)  msg.textContent  = 'Game unavailable.';
             if (sub)  sub.textContent  = 'Reload the page to try again.';
             if (cd)   cd.textContent   = '';
-            // Re-show overlay in case it was hidden
             ov.style.cssText = 'display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:all!important;';
         }
     }
 
     // ── Post-load clock tamper check ───────────────────────────────────────
-    // Called every tick so that changes to the system clock AFTER page load
-    // are detected and treated as tampering.
     function checkAndMarkClockTamper() {
         if (!_tampered && isSuspiciousClockDrift()) { markTampered(); }
     }
@@ -184,7 +145,7 @@
             String(d.getMonth() + 1).padStart(2, '0') + '-' +
             String(d.getDate()).padStart(2, '0');
         var url = 'https://firestore.googleapis.com/v1/projects/square-lcn' +
-            '/databases/(default)/documents/nerdles/' + dateStr +
+            '/databases/(default)/documents/relations/' + dateStr +
             '?key=AIzaSyDNXZ1Xnm3FrE4Ofo8ClzJ8sph7NoVSgnk';
         return fetch(url, { cache: 'no-store' })
             .then(function (r) {
@@ -193,7 +154,7 @@
                     var fields = data && data.fields;
                     if (!fields) return false;
                     var status = fields.status && fields.status.stringValue;
-                    return status === 'published' && !!fields.word;
+                    return status === 'published' && !!fields.categories;
                 });
             })
             .catch(function () { return null; });
@@ -207,7 +168,7 @@
         overlay.id = '_ngOverlay';
         overlay.innerHTML =
             '<div class="_ng-icon">📅</div>' +
-            '<p class="_ng-title">Nerdle</p>' +
+            '<p class="_ng-title">Relations</p>' +
             '<p class="_ng-msg">No puzzle today.</p>' +
             '<p class="_ng-sub">Check back tomorrow for a new puzzle.</p>';
         document.body.appendChild(overlay);
@@ -254,12 +215,12 @@
         });
     }
 
-    // ── Load nerdle.js (module) ─────────────────────────────────────────────
-    function loadNerdle() {
+    // ── Load relations.js (module) ──────────────────────────────────────────
+    function loadRelations() {
         setGate(true);
         var script = document.createElement('script');
         script.type = 'module';
-        script.src = 'js/nerdle.js';
+        script.src = 'js/relations.js';
         document.head.appendChild(script);
     }
 
@@ -314,7 +275,7 @@
         overlay.id = '_ngOverlay';
         overlay.innerHTML =
             '<div class="_ng-icon">🔒</div>' +
-            '<p class="_ng-title">Nerdle</p>' +
+            '<p class="_ng-title">Relations</p>' +
             '<p class="_ng-msg">Opens today at ' + openTimeStr + '</p>' +
             '<div class="_ng-countdown"></div>' +
             '<p class="_ng-sub">Come back then to play today\'s puzzle.</p>';
@@ -360,8 +321,6 @@
                         ) {
                             markTampered();
                             clearInterval(tickInterval);
-                            // Re-attach a bare placeholder so the observer
-                            // keeps working and the page stays blocked
                             var bare = document.createElement('div');
                             bare.id = '_ngOverlay';
                             bare.style.cssText = [
@@ -378,7 +337,7 @@
                     }
                 }
 
-                // Detect attribute changes on the overlay (display/visibility/opacity)
+                // Detect attribute changes on the overlay
                 if (mut.type === 'attributes' && mut.target.id === '_ngOverlay') {
                     var t = mut.target;
                     var hidden =
@@ -412,7 +371,7 @@
     // 2. Check Firestore for today's published puzzle.
     // 3a. No puzzle  → show "no puzzle today" overlay; never load game JS.
     // 3b. Puzzle exists but time not yet reached → show countdown overlay.
-    // 3c. Puzzle exists and time reached → load nerdle.js.
+    // 3c. Puzzle exists and time reached → load relations.js.
     fetchServerTime()
         .then(function () { return fetchPuzzleExists(); })
         .then(function (puzzleExists) {
@@ -422,7 +381,7 @@
                 return;
             }
             if (isUnlocked()) {
-                loadNerdle();
+                loadRelations();
             } else {
                 var openMin     = getOpenMinutes();
                 var openTimeStr = formatMinutes(openMin);
@@ -435,7 +394,7 @@
                         clearInterval(unlockInterval);
                         var ov = document.getElementById('_ngOverlay');
                         if (ov) ov.remove();
-                        loadNerdle();
+                        loadRelations();
                     }
                 }, 1000);
             }

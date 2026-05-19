@@ -24,7 +24,7 @@
         </svg>
         <h1 class="splash-title">Nerdle</h1>
         <p class="splash-tagline">Get 6 chances to guess<br>a 5-letter word.</p>
-        <button class="splash-play-btn" id="playBtn">Play</button>
+        <button class="splash-play-btn" id="playBtn" data-auth-required="true">Play</button>
         <div class="splash-meta">
             <span class="splash-date" id="splashDate"></span>
             <span class="splash-number" id="splashNumber"></span>
@@ -132,6 +132,23 @@
             <p class="bonus-caption">All other scores are applied as normal.</p>
             <button class="bonus-dismiss" id="bonusDismiss">Got it</button>
         </div>
+    </div>
+</div>
+
+<!-- Tab Conflict Warning -->
+<div class="tab-conflict-overlay" id="tabConflictOverlay" style="display:none">
+    <div class="tab-conflict-modal">
+        <div class="tab-conflict-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+        </div>
+        <h2>Multiple Tabs Detected</h2>
+        <p>You're playing Nerdle in another tab. Please close this tab or the other one to continue.</p>
+        <p class="tab-conflict-note">Your progress is synced across tabs.</p>
+        <button class="btn btn-primary" id="tabConflictReload">Reload This Tab</button>
     </div>
 </div>
 

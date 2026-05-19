@@ -1,6 +1,6 @@
 // Firebase imports for database and auth
 import { db, auth, puzzleDb } from "../../js/firebase.js";
-import { doc, getDoc, setDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 // Points system
@@ -18,34 +18,10 @@ if (!window.__relationsGate_v1 || !window.__relationsGate_v1.open || window.__re
     throw new Error('Relations is not yet available. Come back later.');
 }
 
-// ── Per-tab identifier for cross-device sync / anti-cheat ───────────────────
-const TAB_ID = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
-    ? crypto.randomUUID()
-    : (Math.random().toString(36).slice(2) + Date.now().toString(36));
-const ACTIVE_TAB_LEASE_MS = 15000;
-const ACTIVE_TAB_HEARTBEAT_MS = 4000;
-
 let currentUser = null;
 let todayPoints = 0;
 let alreadyCompleted = false;
 let completedGameData = null;
-let isActiveTab = true;
-let tabConflictShown = false;
-
-function getCurrentUserProfile() {
-    if (!currentUser || currentUser.isAnonymous) return null;
-
-    const rawDisplayName = typeof currentUser.displayName === 'string' ? currentUser.displayName.trim() : '';
-    const email = typeof currentUser.email === 'string' ? currentUser.email.trim() : null;
-    const displayName = rawDisplayName || (email ? email.split('@')[0] : 'Player');
-
-    return {
-        uid: currentUser.uid,
-        displayName,
-        name: displayName,
-        email
-    };
-}
 
 function showLoginNudge() {
     const nudge = document.getElementById("loginNudge");
@@ -57,48 +33,6 @@ function showLoginNudge() {
     }
     // Auto-dismiss after 6 seconds
     setTimeout(() => nudge.classList.remove("visible"), 6000);
-}
-
-function showTabConflictWarning() {
-    if (tabConflictShown) return;
-    tabConflictShown = true;
-    isActiveTab = false;
-    
-    const overlay = document.getElementById('tabConflictOverlay');
-    if (!overlay) return;
-    
-    overlay.style.display = 'flex';
-    
-    const reloadBtn = document.getElementById('tabConflictReload');
-    if (reloadBtn) {
-        reloadBtn.onclick = () => window.location.reload();
-    }
-    
-    // Disable all game interactions
-    const grid = document.getElementById('gameGrid');
-    if (grid) {
-        grid.style.pointerEvents = 'none';
-        grid.style.opacity = '0.5';
-    }
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('shuffleBtn').disabled = true;
-    document.getElementById('deselectBtn').disabled = true;
-}
-
-function hideTabConflictWarning() {
-    const overlay = document.getElementById('tabConflictOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-    
-    const grid = document.getElementById('gameGrid');
-    if (grid) {
-        grid.style.pointerEvents = '';
-        grid.style.opacity = '';
-    }
-    
-    isActiveTab = true;
-    tabConflictShown = false;
 }
 
 async function updatePointsDisplay() {
@@ -220,7 +154,6 @@ class RelationsGame {
         this.guessHistory = [];
         this.gameOver = false;
         this.remainingWords = [];
-        this._leaseHeartbeatInterval = null;
         
         // Scoring: 30 points per remaining try (120 max with 0 mistakes)
         this.pointsPerTry = 30;
@@ -254,37 +187,7 @@ class RelationsGame {
         this.shuffle(this.remainingWords);
         
         // Set up event listeners
-        const playBtn = document.getElementById('playBtn');
-        
-        // Update play button based on authentication
-        const updatePlayButton = () => {
-            if (!currentUser || currentUser.isAnonymous) {
-                playBtn.textContent = "Sign in to play";
-                playBtn.classList.add("auth-required");
-            } else {
-                playBtn.textContent = "Play";
-                playBtn.classList.remove("auth-required");
-            }
-        };
-        
-        updatePlayButton();
-        
-        // Update button when auth state changes
-        onAuthStateChanged(auth, function() {
-            updatePlayButton();
-        });
-        
-        playBtn.addEventListener('click', () => {
-            // If not authenticated, redirect to sign in page
-            if (!currentUser || currentUser.isAnonymous) {
-                window.location.href = "../signin.html";
-                return;
-            }
-            
-            // If authenticated, start the game
-            this.startGame();
-        });
-        
+        document.getElementById('playBtn').addEventListener('click', () => this.startGame());
         document.getElementById('shuffleBtn').addEventListener('click', () => this.shuffleGrid());
         document.getElementById('deselectBtn').addEventListener('click', () => this.deselectAll());
         document.getElementById('submitBtn').addEventListener('click', () => this.submitGuess());
@@ -303,12 +206,6 @@ class RelationsGame {
         if (alreadyCompleted && completedGameData) {
             this.restoreCompletedGame();
         }
-
-        // Keep an active-tab lease in Firestore so only one tab can submit guesses.
-        this.startTabLeaseHeartbeat();
-
-        // Start polling for updates from other devices/tabs
-        this.startRemoteUpdatePoller();
     }
     
     restoreCompletedGame() {
@@ -379,7 +276,7 @@ class RelationsGame {
     }
     
     toggleTile(index) {
-        if (this.gameOver || !isActiveTab) return;
+        if (this.gameOver) return;
         
         const tile = document.querySelector(`.tile[data-index="${index}"]`);
         
@@ -394,11 +291,6 @@ class RelationsGame {
         }
         
         this.updateButtons();
-        
-        // Update active tab timestamp on interaction
-        if (currentUser && !currentUser.isAnonymous) {
-            this.saveRelationsDraftToDb();
-        }
     }
     
     updateButtons() {
@@ -407,7 +299,6 @@ class RelationsGame {
     }
     
     deselectAll() {
-        if (!isActiveTab) return;
         this.selected.forEach(index => {
             const tile = document.querySelector(`.tile[data-index="${index}"]`);
             if (tile) tile.classList.remove('selected');
@@ -417,15 +308,13 @@ class RelationsGame {
     }
     
     shuffleGrid() {
-        if (!isActiveTab) return;
         this.shuffle(this.remainingWords);
         this.deselectAll();
         this.renderGrid();
     }
     
     async submitGuess() {
-        if (this.selected.length !== 4 || this.gameOver || !isActiveTab) return;
-        if (!(await this.claimActiveTabLease())) return;
+        if (this.selected.length !== 4 || this.gameOver) return;
         
         const selectedWords = this.selected.map(i => this.remainingWords[i]);
         const categories = selectedWords.map(item => item.category);
@@ -455,9 +344,6 @@ class RelationsGame {
         this.renderGrid();
         this.updateButtons();
         
-        // Save progress to DB so other devices can sync
-        await this.saveRelationsDraftToDb();
-
         // Check win
         if (this.solved.length === 4) {
             await this.handleWin();
@@ -491,9 +377,6 @@ class RelationsGame {
         this.mistakes++;
         this.renderMistakes();
         
-        // Save progress to DB so other devices can sync
-        this.saveRelationsDraftToDb();
-
         // Deselect after animation
         setTimeout(() => this.deselectAll(), 600);
         
@@ -549,8 +432,6 @@ class RelationsGame {
     
     async handleWin() {
         this.gameOver = true;
-        this.stopRemoteUpdatePoller();
-        this.stopTabLeaseHeartbeat();
         const score = this.calculateScore();
         
         this.updateLocalStats(true);
@@ -585,8 +466,6 @@ class RelationsGame {
     
     async handleLose() {
         this.gameOver = true;
-        this.stopRemoteUpdatePoller();
-        this.stopTabLeaseHeartbeat();
         
         // Update local stats
         this.updateLocalStats(false);
@@ -790,232 +669,9 @@ Score: ${score} pts
             this.showToast("Copied to clipboard!");
         });
     }
-        // ── Remote sync / anti-cheat helpers ──────────────────────────────────────
-
-    getTodayDateKey() {
-        const today = new Date();
-        return today.getFullYear() + '-' +
-            String(today.getMonth() + 1).padStart(2, '0') + '-' +
-            String(today.getDate()).padStart(2, '0');
-    }
-
-    getUserRef() {
-        if (!currentUser || currentUser.isAnonymous) return null;
-        return doc(db, 'titan_users', currentUser.uid);
-    }
-
-    async claimActiveTabLease() {
-        const userRef = this.getUserRef();
-        if (!userRef) return true;
-
-        const todayKey = this.getTodayDateKey();
-        const now = Date.now();
-        const userProfile = getCurrentUserProfile();
-
-        try {
-            const claimed = await runTransaction(db, async (tx) => {
-                const snap = await tx.get(userRef);
-                const root = snap.exists() ? snap.data() : {};
-                const relationsStats = root?.gameStats?.relations || {};
-                const lock = relationsStats.activeTabLock || {};
-                const lockTabId = lock.tabId || null;
-                const lockDate = lock.date || null;
-                const lockExpiresAt = Number(lock.expiresAt || 0);
-
-                const lockAvailable =
-                    !lockTabId ||
-                    lockDate !== todayKey ||
-                    lockExpiresAt <= now ||
-                    lockTabId === TAB_ID;
-
-                if (!lockAvailable) {
-                    return false;
-                }
-
-                const nextDailyState = {
-                    ...(relationsStats.dailyState || {}),
-                    date: todayKey,
-                    tabId: TAB_ID,
-                    activeTabId: TAB_ID,
-                    lastActiveTimestamp: now
-                };
-
-                tx.set(userRef, {
-                    ...(userProfile || {}),
-                    gameStats: {
-                        relations: {
-                            activeTabLock: {
-                                tabId: TAB_ID,
-                                date: todayKey,
-                                expiresAt: now + ACTIVE_TAB_LEASE_MS,
-                                lastSeenAt: serverTimestamp()
-                            },
-                            dailyState: nextDailyState,
-                            lastUpdated: serverTimestamp()
-                        }
-                    }
-                }, { merge: true });
-
-                return true;
-            });
-
-            if (!claimed) {
-                showTabConflictWarning();
-                return false;
-            }
-
-            if (!isActiveTab || tabConflictShown) {
-                hideTabConflictWarning();
-            }
-            return true;
-        } catch (e) {
-            console.error('Error claiming relations tab lease:', e);
-            return false;
-        }
-    }
-
-    startTabLeaseHeartbeat() {
-        this.stopTabLeaseHeartbeat();
-        this._leaseHeartbeatInterval = setInterval(async () => {
-            if (this.gameOver || alreadyCompleted || !isActiveTab || document.hidden) return;
-            await this.claimActiveTabLease();
-        }, ACTIVE_TAB_HEARTBEAT_MS);
-    }
-
-    stopTabLeaseHeartbeat() {
-        if (this._leaseHeartbeatInterval) {
-            clearInterval(this._leaseHeartbeatInterval);
-            this._leaseHeartbeatInterval = null;
-        }
-    }
-
-    async saveRelationsDraftToDb() {
-        if (!currentUser || currentUser.isAnonymous || !this.puzzle) return;
-        if (!isActiveTab) return; // Don't save if this tab lost control
-        
-        try {
-            const now = Date.now();
-            const state = {
-                date: this.getTodayDateKey(),
-                tabId: TAB_ID,
-                activeTabId: TAB_ID,
-                lastActiveTimestamp: now,
-                mistakes: this.mistakes,
-                solvedNames: this.solved.map(cat => cat.name),
-                gameOver: this.gameOver,
-                won: this.gameOver ? (this.mistakes < this.maxMistakes && this.solved.length === 4) : null
-            };
-            const userRef = doc(db, 'titan_users', currentUser.uid);
-            const userProfile = getCurrentUserProfile();
-            await setDoc(userRef, {
-                ...(userProfile || {}),
-                gameStats: {
-                    relations: {
-                        activeTabLock: {
-                            tabId: TAB_ID,
-                            date: state.date,
-                            expiresAt: now + ACTIVE_TAB_LEASE_MS,
-                            lastSeenAt: serverTimestamp()
-                        },
-                        dailyState: state,
-                        lastUpdated: serverTimestamp()
-                    }
-                }
-            }, { merge: true });
-        } catch (e) {
-            console.error('Error saving relations draft:', e);
-        }
-    }
-
-    async getRelationsDbDraft() {
-        if (!currentUser || currentUser.isAnonymous) return null;
-        try {
-            const userDoc = await getDoc(doc(db, 'titan_users', currentUser.uid));
-            if (!userDoc.exists()) return null;
-            return userDoc.data()?.gameStats?.relations?.dailyState || null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    startRemoteUpdatePoller() {
-        this.stopRemoteUpdatePoller();
-        this._remotePollInterval = setInterval(async () => {
-            if (this.gameOver || alreadyCompleted || !currentUser || currentUser.isAnonymous) return;
-            try {
-                const remoteState = await this.getRelationsDbDraft();
-                if (!remoteState || !remoteState.tabId || remoteState.tabId === TAB_ID) return;
-                if (remoteState.date !== this.getTodayDateKey()) return;
-                if (!Array.isArray(remoteState.solvedNames)) return;
-                
-                // Check for tab conflict - if another tab is active
-                if (remoteState.activeTabId && remoteState.activeTabId !== TAB_ID) {
-                    const timeSinceLastActive = Date.now() - (remoteState.lastActiveTimestamp || 0);
-                    // If another tab was active within last 5 seconds, show warning
-                    if (timeSinceLastActive < 5000) {
-                        showTabConflictWarning();
-                        this.stopRemoteUpdatePoller();
-                        return;
-                    }
-                }
-                
-                // Only sync if remote has more total progress (solves + mistakes)
-                const localProgress = this.solved.length + this.mistakes;
-                const remoteProgress = remoteState.solvedNames.length + (remoteState.mistakes || 0);
-                if (remoteProgress <= localProgress && !remoteState.gameOver) return;
-                await this.applyRemoteRelationsState(remoteState);
-            } catch (e) { /* silently ignore poll errors */ }
-        }, 500); // More frequent polling for real-time sync
-    }
-
-    stopRemoteUpdatePoller() {
-        if (this._remotePollInterval) {
-            clearInterval(this._remotePollInterval);
-            this._remotePollInterval = null;
-        }
-    }
-
-    async applyRemoteRelationsState(remoteState) {
-        this.stopRemoteUpdatePoller();
-
-        // Hide tab conflict warning if it was shown
-        hideTabConflictWarning();
-
-        this.mistakes = remoteState.mistakes || 0;
-
-        // Rebuild solved list from category names
-        this.solved = [];
-        remoteState.solvedNames.forEach(name => {
-            const cat = this.puzzle.categories.find(c => c.name === name);
-            if (cat) this.solved.push(cat);
-        });
-
-        // Rebuild remaining words (exclude solved)
-        const solvedWords = new Set(this.solved.flatMap(cat => cat.words));
-        this.remainingWords = this.puzzle.categories
-            .flatMap(cat => cat.words.map(word => ({ word, category: cat })))
-            .filter(item => !solvedWords.has(item.word));
-        this.shuffle(this.remainingWords);
-
-        this.selected = [];
-        this.renderSolved();
-        this.renderGrid();
-        this.renderMistakes();
-        this.updateButtons();
-
-        if (remoteState.gameOver) {
-            this.gameOver = true;
-            this.showToast("Game synced from another tab", 2500);
-            const won = remoteState.won === true;
-            setTimeout(() => this.showModal(won), 1200);
-        } else {
-            this.showToast("Guess synced from another tab", 2500);
-            // After syncing, claim this tab as active and resume polling
-            await this.saveRelationsDraftToDb();
-            this.startRemoteUpdatePoller();
-        }
-    }
+    
     initStatsModal() {
+        document.getElementById('statsBtn')?.addEventListener('click', () => this.openStatsModal());
         document.getElementById('statsClose')?.addEventListener('click', () => this.closeStatsModal());
         document.getElementById('statsLoginBtn')?.addEventListener('click', () => {
             window.location.href = '../signin.html';

@@ -2,14 +2,17 @@ import { db, collection, doc, setDoc, getDocs, getDoc, deleteDoc, query, orderBy
 
 var currentDocId = null;
 var targetWord = '';
+var wordLength = 5;
 var hints = ['', '', ''];
 
 function init() {
     setupDate();
     setupButtons();
     setupWordInput();
+    setupWordLength();
     loadExistingReleases();
     checkUrlParams();
+    updatePreview();
 }
 
 function setupDate() {
@@ -35,13 +38,13 @@ function formatDateDisplay(dateStr) {
 
 function setupWordInput() {
     var wordInput = document.getElementById('targetWord');
-    
+
     wordInput.addEventListener('input', function() {
         this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
         targetWord = this.value;
         updatePreview();
     });
-    
+
     wordInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             validateWord();
@@ -49,9 +52,45 @@ function setupWordInput() {
     });
 }
 
+function setupWordLength() {
+    var select = document.getElementById('wordLength');
+    var wordInput = document.getElementById('targetWord');
+    var hintEl = document.querySelector('.nerdle-hint');
+
+    select.addEventListener('change', function() {
+        wordLength = parseInt(this.value);
+        wordInput.setAttribute('maxlength', wordLength);
+        if (targetWord.length > wordLength) {
+            targetWord = targetWord.slice(0, wordLength);
+            wordInput.value = targetWord;
+        }
+        if (hintEl) hintEl.textContent = 'Enter the ' + wordLength + '-letter word players will guess';
+        document.getElementById('validationStatus').textContent = '';
+        document.getElementById('validationStatus').className = 'nerdle-validation-status';
+        updatePreview();
+    });
+
+    // Set initial hint text
+    if (hintEl) hintEl.textContent = 'Enter the 5-letter word players will guess';
+}
+
 function updatePreview() {
-    var tiles = document.querySelectorAll('.nerdle-preview-tile');
-    for (var i = 0; i < 5; i++) {
+    var row = document.getElementById('previewRow');
+    if (!row) return;
+
+    // Rebuild tiles if count changed
+    var tiles = row.querySelectorAll('.nerdle-preview-tile');
+    if (tiles.length !== wordLength) {
+        row.innerHTML = '';
+        for (var j = 0; j < wordLength; j++) {
+            var t = document.createElement('div');
+            t.className = 'nerdle-preview-tile';
+            row.appendChild(t);
+        }
+        tiles = row.querySelectorAll('.nerdle-preview-tile');
+    }
+
+    for (var i = 0; i < wordLength; i++) {
         var letter = targetWord[i] || '';
         tiles[i].textContent = letter;
         tiles[i].className = 'nerdle-preview-tile';
@@ -63,13 +102,12 @@ function updatePreview() {
 
 function validateWord() {
     var statusEl = document.getElementById('validationStatus');
-    if (targetWord.length !== 5) {
-        statusEl.textContent = 'Word must be exactly 5 letters';
+    if (targetWord.length !== wordLength) {
+        statusEl.textContent = 'Word must be exactly ' + wordLength + ' letters';
         statusEl.className = 'nerdle-validation-status nerdle-validation-status--error';
         return false;
     }
-    
-    // Basic validation - in production, you'd check against a word list
+
     statusEl.textContent = '✓ Valid word';
     statusEl.className = 'nerdle-validation-status nerdle-validation-status--success';
     return true;
@@ -93,6 +131,7 @@ function collectHints() {
 function buildPuzzleData() {
     return {
         word: targetWord,
+        wordLength: wordLength,
         hints: collectHints(),
         author: document.getElementById('authorName').value,
         puzzleNumber: parseInt(document.getElementById('puzzleNumber').value) || null,
@@ -110,8 +149,14 @@ function exportFullJson() {
 function importFullJson() {
     try {
         var data = JSON.parse(document.getElementById('fullJson').value);
+        if (data.wordLength && (data.wordLength === 5 || data.wordLength === 6)) {
+            wordLength = data.wordLength;
+            var select = document.getElementById('wordLength');
+            select.value = String(wordLength);
+            document.getElementById('targetWord').setAttribute('maxlength', wordLength);
+        }
         if (data.word) {
-            targetWord = data.word.toUpperCase();
+            targetWord = data.word.toUpperCase().slice(0, wordLength);
             document.getElementById('targetWord').value = targetWord;
         }
         if (data.hints && Array.isArray(data.hints)) {
@@ -138,7 +183,7 @@ function importFullJson() {
 
 async function savePuzzle(status) {
     if (!validateWord()) {
-        showToast('Please enter a valid 5-letter word');
+        showToast('Please enter a valid ' + wordLength + '-letter word');
         return;
     }
     
@@ -203,8 +248,18 @@ async function loadPuzzle(docId) {
         if (docSnap.exists()) {
             var data = docSnap.data();
             currentDocId = docId;
-            
-            targetWord = data.word || '';
+
+            if (data.wordLength && (data.wordLength === 5 || data.wordLength === 6)) {
+                wordLength = data.wordLength;
+                document.getElementById('wordLength').value = String(wordLength);
+                document.getElementById('targetWord').setAttribute('maxlength', wordLength);
+            } else {
+                wordLength = 5;
+                document.getElementById('wordLength').value = '5';
+                document.getElementById('targetWord').setAttribute('maxlength', 5);
+            }
+
+            targetWord = (data.word || '').toUpperCase();
             document.getElementById('targetWord').value = targetWord;
             
             if (data.hints && Array.isArray(data.hints)) {

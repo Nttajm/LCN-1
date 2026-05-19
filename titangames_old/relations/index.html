@@ -23,7 +23,7 @@
         </svg>
         <h1 class="splash-title">Relations</h1>
         <p class="splash-tagline">Group words that share a<br>common thread.</p>
-        <button class="splash-play-btn" id="playBtn" data-auth-required="true">Play</button>
+        <button class="splash-play-btn" id="playBtn">Play</button>
         <div class="splash-meta">
             <span class="splash-date" id="splashDate"></span>
             <span class="splash-editor">By Joel M.</span>
@@ -155,6 +155,12 @@
                     </div>
                     <span class="stats-game-card-name">Nerdle</span>
                 </a>
+                <a href="../crossword.html" class="stats-game-card">
+                    <div class="stats-game-card-icon" style="background:#C2D0E8">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="white" stroke="#ccc" stroke-width="1"/><rect x="5" y="5" width="5" height="5" fill="#121212"/><rect x="14" y="5" width="5" height="5" fill="#121212"/><rect x="5" y="14" width="5" height="5" fill="#121212"/></svg>
+                    </div>
+                    <span class="stats-game-card-name">The Mini</span>
+                </a>
             </div>
         </div>
     </div>
@@ -183,23 +189,6 @@
             <p class="bonus-caption">All other scores are applied as normal.</p>
             <button class="bonus-dismiss" id="bonusDismiss">Got it</button>
         </div>
-    </div>
-</div>
-
-<!-- Tab Conflict Warning -->
-<div class="tab-conflict-overlay" id="tabConflictOverlay" style="display:none">
-    <div class="tab-conflict-modal">
-        <div class="tab-conflict-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-        </div>
-        <h2>Multiple Tabs Detected</h2>
-        <p>You're playing Relations in another tab. Please close this tab or the other one to continue.</p>
-        <p class="tab-conflict-note">Your progress is synced across tabs.</p>
-        <button class="btn btn-primary" id="tabConflictReload">Reload This Tab</button>
     </div>
 </div>
 

@@ -31,7 +31,7 @@
         {
             name: 'Relations',
             desc: 'Find four groups of items that share something.',
-            href: '#',
+            href: BASE + 'relations/index.html',
             bg: '#C5B4E3',
             available: true,
             icon: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="18" y="4" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="32" y="4" width="10" height="10" rx="1.5" fill="#C77DBA"/><rect x="4" y="18" width="10" height="10" rx="1.5" fill="#C77DBA"/><rect x="18" y="18" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="32" y="18" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="4" y="32" width="10" height="10" rx="1.5" fill="#6A4C93"/><rect x="18" y="32" width="10" height="10" rx="1.5" fill="#C77DBA"/><rect x="32" y="32" width="10" height="10" rx="1.5" fill="#C77DBA"/></svg>'
