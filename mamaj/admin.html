@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Mama J's Pizzeria</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #c41e3a;
+            --red-dark: #8b0000;
+            --green: #1e7b34;
+            --green-dark: #0d4a1c;
+            --cream: #f5f0e6;
+            --cream-dark: #e8e0d0;
+            --brown: #3e2723;
+            --brown-light: #5d4037;
+            --gold: #d4a017;
+            --text-dark: #2c1810;
+            --text-light: #f5f0e6;
+            --white: #ffffff;
+            --surface: #faf9f7;
+            --border: #e2ddd5;
+            --muted: #8c7e73;
+            --warning: #d4760a;
+            --info: #2d6a9f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--surface);
+            color: var(--text-dark);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: var(--brown);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-header-logo {
+            height: 2.5rem;
+        }
+
+        .admin-header-title {
+            font-family: 'Alfa Slab One', serif;
+            font-size: 1rem;
+            color: var(--gold);
+            letter-spacing: 0.02em;
+        }
+
+        .admin-header-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--cream);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .admin-header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .admin-header-store {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--cream);
+            font-size: 0.8125rem;
+            font-weight: 700;
+        }
+
+        .store-indicator {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: #4caf50;
+        }
+
+        .admin-header-time {
+            color: rgba(245, 240, 230, 0.7);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .admin-nav {
+            background: var(--white);
+            border-bottom: 0.0625rem solid var(--border);
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .admin-nav-btn {
+            padding: 0.875rem 1.25rem;
+            background: none;
+            border: none;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 0.1875rem solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+        }
+
+        .admin-nav-btn:hover {
+            color: var(--text-dark);
+        }
+
+        .admin-nav-btn.active {
+            color: var(--red);
+            border-bottom-color: var(--red);
+        }
+
+        .admin-nav-btn .nav-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.25rem;
+            height: 1.25rem;
+            padding: 0 0.375rem;
+            border-radius: 0.625rem;
+            background: var(--red);
+            color: var(--white);
+            font-size: 0.6875rem;
+            font-weight: 900;
+            margin-left: 0.5rem;
+        }
+
+        .admin-body {
+            padding: 1.5rem;
+            max-width: 90rem;
+            margin: 0 auto;
+        }
+
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-title {
+            font-family: 'Alfa Slab One', serif;
+            font-size: 1.375rem;
+            color: var(--brown);
+        }
+
+        .panel-subtitle {
+            font-size: 0.8125rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 0.0625rem solid var(--border);
+            background: var(--white);
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+
+        .btn-sm:hover {
+            border-color: var(--brown-light);
+        }
+
+        .btn-sm--red {
+            background: var(--red);
+            color: var(--white);
+            border-color: var(--red);
+        }
+
+        .btn-sm--red:hover {
+            background: var(--red-dark);
+            border-color: var(--red-dark);
+        }
+
+        .btn-sm--green {
+            background: var(--green);
+            color: var(--white);
+            border-color: var(--green);
+        }
+
+        .btn-sm--green:hover {
+            background: var(--green-dark);
+            border-color: var(--green-dark);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.375rem;
+            padding: 1.25rem;
+        }
+
+        .stat-card-label {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 0.375rem;
+        }
+
+        .stat-card-value {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-card-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+
+        .stat-card--highlight {
+            border-left: 0.25rem solid var(--green);
+        }
+
+        .stat-card--warning {
+            border-left: 0.25rem solid var(--warning);
+        }
+
+        .stat-card--urgent {
+            border-left: 0.25rem solid var(--red);
+        }
+
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+            gap: 1rem;
+        }
+
+        .order-card {
+            background: var(--white);
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.375rem;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.06);
+        }
+
+        .order-card-header {
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 0.0625rem solid var(--border);
+            background: var(--surface);
+        }
+
+        .order-card-id {
+            font-weight: 900;
+            font-size: 0.9375rem;
+            color: var(--brown);
+        }
+
+        .order-card-time {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .order-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.25rem;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .order-status--new {
+            background: #fce4ec;
+            color: var(--red);
+        }
+
+        .order-status--preparing {
+            background: #fff3e0;
+            color: var(--warning);
+        }
+
+        .order-status--ready {
+            background: #e8f5e9;
+            color: var(--green);
+        }
+
+        .order-status--delivering {
+            background: #e3f2fd;
+            color: var(--info);
+        }
+
+        .order-status-dot {
+            width: 0.375rem;
+            height: 0.375rem;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .order-card-body {
+            padding: 1.25rem;
+        }
+
+        .order-card-customer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.875rem;
+            padding-bottom: 0.875rem;
+            border-bottom: 0.0625rem solid var(--border);
+        }
+
+        .order-customer-name {
+            font-weight: 900;
+            font-size: 0.9375rem;
+        }
+
+        .order-customer-phone {
+            font-size: 0.8125rem;
+            color: var(--muted);
+            margin-top: 0.125rem;
+        }
+
+        .order-customer-type {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.1875rem 0.5rem;
+            border-radius: 0.1875rem;
+        }
+
+        .type-delivery {
+            background: #e3f2fd;
+            color: var(--info);
+        }
+
+        .type-pickup {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .order-card-items {
+            list-style: none;
+            margin-bottom: 0.875rem;
+        }
+
+        .order-card-items li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3125rem 0;
+            font-size: 0.875rem;
+            border-bottom: 0.0625rem dashed var(--border);
+        }
+
+        .order-card-items li:last-child {
+            border-bottom: none;
+        }
+
+        .order-item-qty {
+            color: var(--muted);
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .order-item-price {
+            font-weight: 700;
+            color: var(--brown);
+        }
+
+        .order-card-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 0.75rem;
+            border-top: 0.125rem solid var(--border);
+            font-weight: 900;
+            font-size: 1rem;
+        }
+
+        .order-card-total span:last-child {
+            color: var(--green);
+        }
+
+        .order-card-footer {
+            padding: 0.75rem 1.25rem;
+            background: var(--surface);
+            border-top: 0.0625rem solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .order-card-address {
+            font-size: 0.8125rem;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+            padding-left: 1rem;
+            border-left: 0.125rem solid var(--border);
+        }
+
+        .order-card-eta {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--info);
+            margin-top: 0.25rem;
+        }
+
+        .sms-banner {
+            background: var(--brown);
+            border-radius: 0.375rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .sms-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sms-banner-icon {
+            width: 2rem;
+            height: 2rem;
+            fill: var(--gold);
+            flex-shrink: 0;
+        }
+
+        .sms-banner-text {
+            color: var(--cream);
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .sms-banner-numbers {
+            color: var(--gold);
+            font-size: 0.8125rem;
+            margin-top: 0.125rem;
+        }
+
+        .sms-banner-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #4caf50;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .sms-banner-status-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: #4caf50;
+        }
+
+        .customers-table-wrap {
+            background: var(--white);
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+
+        .customers-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .customers-table thead {
+            background: var(--surface);
+        }
+
+        .customers-table th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            border-bottom: 0.0625rem solid var(--border);
+        }
+
+        .customers-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 0.0625rem solid var(--border);
+            vertical-align: middle;
+        }
+
+        .customers-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .customers-table tr:hover td {
+            background: var(--surface);
+        }
+
+        .customer-name-cell {
+            font-weight: 700;
+        }
+
+        .customer-phone-cell {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .customer-distance {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .distance-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .distance-dot--near {
+            background: var(--green);
+        }
+
+        .distance-dot--mid {
+            background: var(--warning);
+        }
+
+        .distance-dot--far {
+            background: var(--red);
+        }
+
+        .customer-orders-count {
+            font-weight: 700;
+            color: var(--brown);
+        }
+
+        .sms-log {
+            background: var(--white);
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.375rem;
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+
+        .sms-log-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 0.0625rem solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sms-log-title {
+            font-weight: 900;
+            font-size: 0.875rem;
+            color: var(--brown);
+        }
+
+        .sms-log-list {
+            list-style: none;
+            max-height: 24rem;
+            overflow-y: auto;
+        }
+
+        .sms-log-item {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 0.0625rem solid var(--border);
+            display: grid;
+            grid-template-columns: 5.5rem 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            font-size: 0.8125rem;
+        }
+
+        .sms-log-item:last-child {
+            border-bottom: none;
+        }
+
+        .sms-log-time {
+            font-weight: 700;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+            font-size: 0.75rem;
+        }
+
+        .sms-log-msg {
+            color: var(--text-dark);
+        }
+
+        .sms-log-recipient {
+            font-weight: 700;
+            color: var(--brown);
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .sms-log-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .sms-config {
+            background: var(--white);
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.375rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sms-config-title {
+            font-weight: 900;
+            font-size: 0.875rem;
+            color: var(--brown);
+            margin-bottom: 1rem;
+        }
+
+        .sms-config-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.625rem 0;
+            border-bottom: 0.0625rem solid var(--border);
+        }
+
+        .sms-config-row:last-child {
+            border-bottom: none;
+        }
+
+        .sms-config-label {
+            font-size: 0.8125rem;
+            color: var(--text-dark);
+            font-weight: 700;
+        }
+
+        .sms-config-desc {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.125rem;
+        }
+
+        .sms-config-number {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--brown);
+            font-variant-numeric: tabular-nums;
+            background: var(--surface);
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            border: 0.0625rem solid var(--border);
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            padding: 0.5rem 0.875rem;
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 0.8125rem;
+            font-family: 'Lato', sans-serif;
+            min-width: 14rem;
+            background: var(--white);
+            color: var(--text-dark);
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--brown-light);
+        }
+
+        .filter-select {
+            padding: 0.5rem 0.875rem;
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 0.8125rem;
+            font-family: 'Lato', sans-serif;
+            background: var(--white);
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--brown-light);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--muted);
+        }
+
+        .empty-state-title {
+            font-weight: 900;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .order-notes {
+            font-size: 0.75rem;
+            color: var(--warning);
+            font-weight: 700;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .recent-activity {
+            background: var(--white);
+            border: 0.0625rem solid var(--border);
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+
+        .recent-activity-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 0.0625rem solid var(--border);
+            font-weight: 900;
+            font-size: 0.875rem;
+            color: var(--brown);
+        }
+
+        .recent-activity-list {
+            list-style: none;
+            max-height: 20rem;
+            overflow-y: auto;
+        }
+
+        .recent-activity-item {
+            padding: 0.625rem 1.25rem;
+            border-bottom: 0.0625rem solid var(--border);
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .recent-activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-time {
+            font-size: 0.6875rem;
+            color: var(--muted);
+            font-weight: 700;
+            white-space: nowrap;
+            min-width: 4.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .activity-dot {
+            width: 0.375rem;
+            height: 0.375rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .activity-dot--order {
+            background: var(--red);
+        }
+
+        .activity-dot--sms {
+            background: var(--info);
+        }
+
+        .activity-dot--status {
+            background: var(--green);
+        }
+
+        @media (max-width: 64rem) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+
+            .orders-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sms-log-item {
+                grid-template-columns: 1fr;
+                gap: 0.25rem;
+            }
+        }
+
+        @media (max-width: 48rem) {
+            .admin-header {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .admin-body {
+                padding: 1rem;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .panel-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .customers-table {
+                font-size: 0.75rem;
+            }
+
+            .customers-table th,
+            .customers-table td {
+                padding: 0.5rem 0.625rem;
+            }
+
+            .sms-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <div class="admin-header-left">
+            <img src="assets/logo_chr1.png" alt="Mama J's" class="admin-header-logo">
+            <span class="admin-header-title">Admin Panel</span>
+            <span class="admin-header-badge">Demo</span>
+        </div>
+        <div class="admin-header-right">
+            <div class="admin-header-store">
+                <span class="store-indicator"></span>
+                <span>Store Open</span>
+            </div>
+            <span class="admin-header-time" id="headerTime"></span>
+        </div>
+    </header>
+
+    <nav class="admin-nav">
+        <button class="admin-nav-btn active" data-panel="orders">Orders<span class="nav-count" id="orderCount">6</span></button>
+        <button class="admin-nav-btn" data-panel="customers">Customers</button>
+        <button class="admin-nav-btn" data-panel="sms">SMS Notifications</button>
+        <button class="admin-nav-btn" data-panel="activity">Activity Log</button>
+    </nav>
+
+    <main class="admin-body">
+
+        <div class="admin-panel active" id="panel-orders">
+            <div class="sms-banner">
+                <div class="sms-banner-left">
+                    <svg class="sms-banner-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/><path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>
+                    <div>
+                        <div class="sms-banner-text">New orders are being sent via SMS to staff</div>
+                        <div class="sms-banner-numbers">(707) 664-1515 &bull; (707) 664-1520 &bull; (707) 555-0142</div>
+                    </div>
+                </div>
+                <div class="sms-banner-status">
+                    <span class="sms-banner-status-dot"></span>
+                    Active
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card stat-card--highlight">
+                    <div class="stat-card-label">Active Orders</div>
+                    <div class="stat-card-value">6</div>
+                    <div class="stat-card-sub">2 preparing, 2 ready, 2 delivering</div>
+                </div>
+                <div class="stat-card stat-card--warning">
+                    <div class="stat-card-label">Avg Wait Time</div>
+                    <div class="stat-card-value">22 min</div>
+                    <div class="stat-card-sub">Target: under 30 min</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Today's Revenue</div>
+                    <div class="stat-card-value">$847.50</div>
+                    <div class="stat-card-sub">23 orders completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Delivery Queue</div>
+                    <div class="stat-card-value">4</div>
+                    <div class="stat-card-sub">2 drivers on route</div>
+                </div>
+            </div>
+
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Live Orders</h2>
+                    <p class="panel-subtitle">Manage incoming and active orders</p>
+                </div>
+                <div class="panel-actions">
+                    <select class="filter-select" id="orderFilter">
+                        <option value="all">All Orders</option>
+                        <option value="new">New</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="ready">Ready</option>
+                        <option value="delivering">Out for Delivery</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="orders-grid" id="ordersGrid"></div>
+        </div>
+
+        <div class="admin-panel" id="panel-customers">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Customer Database</h2>
+                    <p class="panel-subtitle">Phone numbers, addresses, and delivery estimates</p>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <input type="text" class="filter-input" id="customerSearch" placeholder="Search by name, phone, or address...">
+                <select class="filter-select" id="distanceFilter">
+                    <option value="all">All Distances</option>
+                    <option value="near">Under 2 mi</option>
+                    <option value="mid">2-5 mi</option>
+                    <option value="far">Over 5 mi</option>
+                </select>
+            </div>
+
+            <div class="customers-table-wrap">
+                <table class="customers-table" id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Distance</th>
+                            <th>Est. Delivery</th>
+                            <th>Total Orders</th>
+                            <th>Last Order</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-panel" id="panel-sms">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">SMS Notifications</h2>
+                    <p class="panel-subtitle">Order alerts sent to staff and delivery team</p>
+                </div>
+            </div>
+
+            <div class="sms-config">
+                <div class="sms-config-title">Active SMS Recipients</div>
+                <div class="sms-config-row">
+                    <div>
+                        <div class="sms-config-label">Main Kitchen Line</div>
+                        <div class="sms-config-desc">Receives all new order alerts</div>
+                    </div>
+                    <span class="sms-config-number">(707) 664-1515</span>
+                </div>
+                <div class="sms-config-row">
+                    <div>
+                        <div class="sms-config-label">Manager (Julie C.)</div>
+                        <div class="sms-config-desc">Receives orders over $50 and delivery issues</div>
+                    </div>
+                    <span class="sms-config-number">(707) 664-1520</span>
+                </div>
+                <div class="sms-config-row">
+                    <div>
+                        <div class="sms-config-label">Delivery Driver (Marco)</div>
+                        <div class="sms-config-desc">Receives delivery-only order alerts</div>
+                    </div>
+                    <span class="sms-config-number">(707) 555-0142</span>
+                </div>
+                <div class="sms-config-row">
+                    <div>
+                        <div class="sms-config-label">Delivery Driver (Sam)</div>
+                        <div class="sms-config-desc">Receives delivery-only order alerts</div>
+                    </div>
+                    <span class="sms-config-number">(707) 555-0198</span>
+                </div>
+            </div>
+
+            <div class="sms-log">
+                <div class="sms-log-header">
+                    <span class="sms-log-title">Recent SMS Activity</span>
+                    <span class="btn-sm">View All</span>
+                </div>
+                <ul class="sms-log-list" id="smsLogList"></ul>
+            </div>
+        </div>
+
+        <div class="admin-panel" id="panel-activity">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Activity Log</h2>
+                    <p class="panel-subtitle">All system events and order updates</p>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="recent-activity">
+                    <div class="recent-activity-header">Today's Activity</div>
+                    <ul class="recent-activity-list" id="activityList"></ul>
+                </div>
+                <div>
+                    <div class="stats-row" style="grid-template-columns: 1fr 1fr;">
+                        <div class="stat-card">
+                            <div class="stat-card-label">Orders Today</div>
+                            <div class="stat-card-value">29</div>
+                            <div class="stat-card-sub">6 active, 23 completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">SMS Sent Today</div>
+                            <div class="stat-card-value">84</div>
+                            <div class="stat-card-sub">All delivered</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Avg Order Value</div>
+                            <div class="stat-card-value">$36.85</div>
+                            <div class="stat-card-sub">Up from $33.20 last week</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Delivery vs Pickup</div>
+                            <div class="stat-card-value">68 / 32%</div>
+                            <div class="stat-card-sub">Delivery dominant today</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        var demoOrders = [
+            {
+                id: "MJ-294817",
+                customer: "Rachel Torres",
+                phone: "(707) 555-0134",
+                type: "delivery",
+                address: "452 Petaluma Hill Rd, Penngrove",
+                distance: "1.2 mi",
+                eta: "8 min",
+                status: "new",
+                time: "2 min ago",
+                items: [
+                    { name: "Penngrove Special (LRG)", qty: 1, price: 31 },
+                    { name: "Garlic Bread Sticks", qty: 1, price: 10 },
+                    { name: "Caesar Salad", qty: 1, price: 13.50 }
+                ],
+                notes: "Ring doorbell, baby sleeping"
+            },
+            {
+                id: "MJ-294816",
+                customer: "David Nakamura",
+                phone: "(707) 555-0187",
+                type: "delivery",
+                address: "1890 Adobe Rd, Petaluma",
+                distance: "3.4 mi",
+                eta: "18 min",
+                status: "preparing",
+                time: "8 min ago",
+                items: [
+                    { name: "I \u2665 Meat (XL)", qty: 1, price: 36 },
+                    { name: "Kiko's Wings x16", qty: 1, price: 20 },
+                    { name: "Shoestring Fries", qty: 2, price: 8 }
+                ],
+                notes: null
+            },
+            {
+                id: "MJ-294815",
+                customer: "Maria Santos",
+                phone: "(707) 555-0221",
+                type: "pickup",
+                address: null,
+                distance: null,
+                eta: "5 min",
+                status: "ready",
+                time: "14 min ago",
+                items: [
+                    { name: "The Moana (MED)", qty: 2, price: 23 },
+                    { name: "Fabulous Frickles", qty: 1, price: 12 }
+                ],
+                notes: null
+            },
+            {
+                id: "MJ-294814",
+                customer: "Tom & Linda Whitfield",
+                phone: "(707) 555-0093",
+                type: "delivery",
+                address: "7234 Ely Blvd S, Petaluma",
+                distance: "4.8 mi",
+                eta: "22 min",
+                status: "delivering",
+                time: "22 min ago",
+                items: [
+                    { name: "Joe's Combo (LRG)", qty: 1, price: 31 },
+                    { name: "Nonna Maria (MED)", qty: 1, price: 28 },
+                    { name: "Bread Sticks", qty: 1, price: 8 },
+                    { name: "Blueberry Soda", qty: 2, price: 3.50 }
+                ],
+                notes: "Gate code: 4521"
+            },
+            {
+                id: "MJ-294813",
+                customer: "Jake Hernandez",
+                phone: "(707) 555-0318",
+                type: "delivery",
+                address: "228 Main St, Penngrove",
+                distance: "0.3 mi",
+                eta: "4 min",
+                status: "ready",
+                time: "18 min ago",
+                items: [
+                    { name: "Smokin Hot Chick (SM)", qty: 1, price: 23 },
+                    { name: "Garlic Fries", qty: 1, price: 10 }
+                ],
+                notes: "Leave on porch table"
+            },
+            {
+                id: "MJ-294812",
+                customer: "Priya Sharma",
+                phone: "(707) 555-0267",
+                type: "delivery",
+                address: "1105 Skillman Ln, Petaluma",
+                distance: "2.7 mi",
+                eta: "15 min",
+                status: "preparing",
+                time: "12 min ago",
+                items: [
+                    { name: "The Grove (LRG)", qty: 1, price: 29 },
+                    { name: "O.G.V. (MED)", qty: 1, price: 26 },
+                    { name: "Mixed Green Salad", qty: 1, price: 11 }
+                ],
+                notes: "Extra napkins please"
+            }
+        ];
+
+        var demoCustomers = [
+            { name: "Rachel Torres", phone: "(707) 555-0134", address: "452 Petaluma Hill Rd, Penngrove 94951", distance: 1.2, eta: "8 min", orders: 12, lastOrder: "Today" },
+            { name: "David Nakamura", phone: "(707) 555-0187", address: "1890 Adobe Rd, Petaluma 94954", distance: 3.4, eta: "18 min", orders: 7, lastOrder: "Today" },
+            { name: "Maria Santos", phone: "(707) 555-0221", address: "10220 Main St, Penngrove 94951", distance: 0.1, eta: "2 min", orders: 34, lastOrder: "Today" },
+            { name: "Tom Whitfield", phone: "(707) 555-0093", address: "7234 Ely Blvd S, Petaluma 94954", distance: 4.8, eta: "22 min", orders: 5, lastOrder: "Today" },
+            { name: "Jake Hernandez", phone: "(707) 555-0318", address: "228 Main St, Penngrove 94951", distance: 0.3, eta: "4 min", orders: 21, lastOrder: "Today" },
+            { name: "Priya Sharma", phone: "(707) 555-0267", address: "1105 Skillman Ln, Petaluma 94952", distance: 2.7, eta: "15 min", orders: 9, lastOrder: "Today" },
+            { name: "Carl Johansson", phone: "(707) 555-0445", address: "398 Rainsville Rd, Penngrove 94951", distance: 1.8, eta: "10 min", orders: 15, lastOrder: "Yesterday" },
+            { name: "Angela Kim", phone: "(707) 555-0392", address: "6001 Commerce Blvd, Rohnert Park 94928", distance: 5.2, eta: "25 min", orders: 3, lastOrder: "May 15" },
+            { name: "Mike O'Brien", phone: "(707) 555-0158", address: "10450 Old Redwood Hwy, Penngrove 94951", distance: 0.8, eta: "6 min", orders: 28, lastOrder: "Yesterday" },
+            { name: "Sofia Reyes", phone: "(707) 555-0503", address: "3321 Petaluma Blvd N, Petaluma 94952", distance: 3.1, eta: "16 min", orders: 11, lastOrder: "May 17" },
+            { name: "Greg & Diane Foster", phone: "(707) 555-0619", address: "789 Ely Rd, Petaluma 94954", distance: 4.1, eta: "20 min", orders: 6, lastOrder: "May 16" },
+            { name: "Tammy Nguyen", phone: "(707) 555-0741", address: "155 Liberty Rd, Petaluma 94952", distance: 2.3, eta: "12 min", orders: 19, lastOrder: "Yesterday" }
+        ];
+
+        var smsLog = [
+            { time: "6:42 PM", msg: "NEW ORDER MJ-294817: Penngrove Special LRG + 2 items. Delivery to 452 Petaluma Hill Rd. Total: $58.33", recipient: "Kitchen", status: "Delivered" },
+            { time: "6:42 PM", msg: "DELIVERY: MJ-294817 to 452 Petaluma Hill Rd (1.2 mi, ~8 min). Customer: Rachel Torres", recipient: "Marco", status: "Delivered" },
+            { time: "6:38 PM", msg: "ORDER READY: MJ-294815 for pickup. Customer: Maria Santos", recipient: "Kitchen", status: "Delivered" },
+            { time: "6:35 PM", msg: "NEW ORDER MJ-294816: I Heart Meat XL + 2 items. Delivery to 1890 Adobe Rd. Total: $76.84", recipient: "Kitchen", status: "Delivered" },
+            { time: "6:35 PM", msg: "DELIVERY: MJ-294816 to 1890 Adobe Rd (3.4 mi, ~18 min). Customer: David Nakamura", recipient: "Sam", status: "Delivered" },
+            { time: "6:35 PM", msg: "HIGH VALUE ORDER: MJ-294816 total $76.84", recipient: "Manager", status: "Delivered" },
+            { time: "6:30 PM", msg: "OUT FOR DELIVERY: MJ-294814. Driver: Marco. ETA 22 min to 7234 Ely Blvd S", recipient: "Kitchen", status: "Delivered" },
+            { time: "6:28 PM", msg: "ORDER READY: MJ-294813 for delivery. 228 Main St (0.3 mi)", recipient: "Marco", status: "Delivered" },
+            { time: "6:25 PM", msg: "NEW ORDER MJ-294812: The Grove LRG + 2 items. Delivery to 1105 Skillman Ln. Total: $70.39", recipient: "Kitchen", status: "Delivered" },
+            { time: "6:25 PM", msg: "DELIVERY: MJ-294812 to 1105 Skillman Ln (2.7 mi, ~15 min). Customer: Priya Sharma", recipient: "Sam", status: "Delivered" },
+            { time: "6:20 PM", msg: "NEW ORDER MJ-294814: Joe's Combo LRG + 3 items. Delivery to 7234 Ely Blvd S. Total: $78.98", recipient: "Kitchen", status: "Delivered" },
+            { time: "6:20 PM", msg: "HIGH VALUE ORDER: MJ-294814 total $78.98", recipient: "Manager", status: "Delivered" }
+        ];
+
+        var activityLog = [
+            { time: "6:42 PM", type: "order", msg: "New order MJ-294817 received from Rachel Torres" },
+            { time: "6:42 PM", type: "sms", msg: "SMS sent to Kitchen + Marco for MJ-294817" },
+            { time: "6:38 PM", type: "status", msg: "MJ-294815 marked as Ready for Pickup" },
+            { time: "6:35 PM", type: "order", msg: "New order MJ-294816 received from David Nakamura" },
+            { time: "6:35 PM", type: "sms", msg: "SMS sent to Kitchen + Sam + Manager for MJ-294816" },
+            { time: "6:30 PM", type: "status", msg: "MJ-294814 marked as Out for Delivery (Marco)" },
+            { time: "6:30 PM", type: "sms", msg: "SMS sent to Kitchen confirming dispatch MJ-294814" },
+            { time: "6:28 PM", type: "status", msg: "MJ-294813 marked as Ready" },
+            { time: "6:28 PM", type: "sms", msg: "SMS sent to Marco for pickup MJ-294813" },
+            { time: "6:25 PM", type: "order", msg: "New order MJ-294812 received from Priya Sharma" },
+            { time: "6:25 PM", type: "sms", msg: "SMS sent to Kitchen + Sam for MJ-294812" },
+            { time: "6:20 PM", type: "order", msg: "New order MJ-294814 received from Tom & Linda Whitfield" },
+            { time: "6:20 PM", type: "sms", msg: "SMS sent to Kitchen + Manager for MJ-294814 (high value)" },
+            { time: "6:14 PM", type: "status", msg: "MJ-294810 delivered successfully" },
+            { time: "6:08 PM", type: "status", msg: "MJ-294809 delivered successfully" },
+            { time: "5:55 PM", type: "order", msg: "New order MJ-294811 received from Carl Johansson" },
+            { time: "5:55 PM", type: "sms", msg: "SMS sent to Kitchen + Marco for MJ-294811" }
+        ];
+
+        function renderOrders(filter) {
+            var grid = document.getElementById('ordersGrid');
+            grid.innerHTML = '';
+
+            var filtered = demoOrders;
+            if (filter && filter !== 'all') {
+                filtered = demoOrders.filter(function(o) { return o.status === filter; });
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><div class="empty-state-title">No orders in this category</div><p>Orders will appear here as they come in</p></div>';
+                return;
+            }
+
+            filtered.forEach(function(order) {
+                var card = document.createElement('div');
+                card.className = 'order-card';
+
+                var itemsHtml = order.items.map(function(item) {
+                    return '<li><span><span class="order-item-qty">' + item.qty + 'x</span>' + item.name + '</span><span class="order-item-price">$' + (item.price * item.qty).toFixed(2) + '</span></li>';
+                }).join('');
+
+                var subtotal = order.items.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
+                var tax = subtotal * 0.085;
+                var delivFee = order.type === 'delivery' ? 3.99 : 0;
+                var total = subtotal + tax + delivFee;
+
+                var addressHtml = '';
+                if (order.address) {
+                    addressHtml = '<div class="order-card-address">' + order.address + '<div class="order-card-eta">' + order.distance + ' away &bull; Est. ' + order.eta + ' drive</div></div>';
+                }
+
+                var notesHtml = order.notes ? '<div class="order-notes">"' + order.notes + '"</div>' : '';
+
+                var statusLabel = { new: 'New Order', preparing: 'Preparing', ready: 'Ready', delivering: 'Out for Delivery' };
+                var nextAction = { new: 'Start Preparing', preparing: 'Mark Ready', ready: 'Send Out', delivering: 'Mark Delivered' };
+
+                card.innerHTML =
+                    '<div class="order-card-header">' +
+                        '<div><span class="order-card-id">' + order.id + '</span><br><span class="order-card-time">' + order.time + '</span></div>' +
+                        '<span class="order-status order-status--' + order.status + '"><span class="order-status-dot"></span>' + statusLabel[order.status] + '</span>' +
+                    '</div>' +
+                    '<div class="order-card-body">' +
+                        '<div class="order-card-customer">' +
+                            '<div><div class="order-customer-name">' + order.customer + '</div><div class="order-customer-phone">' + order.phone + '</div></div>' +
+                            '<span class="order-customer-type type-' + order.type + '">' + order.type + '</span>' +
+                        '</div>' +
+                        addressHtml +
+                        '<ul class="order-card-items">' + itemsHtml + '</ul>' +
+                        '<div class="order-card-total"><span>Total</span><span>$' + total.toFixed(2) + '</span></div>' +
+                        notesHtml +
+                    '</div>' +
+                    '<div class="order-card-footer">' +
+                        '<button class="btn-sm btn-sm--green" onclick="advanceOrder(this, \'' + order.id + '\')">' + nextAction[order.status] + '</button>' +
+                    '</div>';
+
+                grid.appendChild(card);
+            });
+        }
+
+        function advanceOrder(btn, orderId) {
+            var order = demoOrders.find(function(o) { return o.id === orderId; });
+            if (!order) return;
+
+            var flow = ['new', 'preparing', 'ready', 'delivering', 'completed'];
+            var idx = flow.indexOf(order.status);
+            if (idx < flow.length - 1) {
+                order.status = flow[idx + 1];
+            }
+
+            if (order.status === 'completed') {
+                demoOrders = demoOrders.filter(function(o) { return o.id !== orderId; });
+                document.getElementById('orderCount').textContent = demoOrders.length;
+            }
+
+            renderOrders(document.getElementById('orderFilter').value);
+        }
+
+        function renderCustomers() {
+            var tbody = document.getElementById('customersBody');
+            tbody.innerHTML = '';
+
+            var search = document.getElementById('customerSearch').value.toLowerCase();
+            var distFilter = document.getElementById('distanceFilter').value;
+
+            var filtered = demoCustomers.filter(function(c) {
+                var matchSearch = !search ||
+                    c.name.toLowerCase().indexOf(search) > -1 ||
+                    c.phone.indexOf(search) > -1 ||
+                    c.address.toLowerCase().indexOf(search) > -1;
+
+                var matchDist = distFilter === 'all' ||
+                    (distFilter === 'near' && c.distance < 2) ||
+                    (distFilter === 'mid' && c.distance >= 2 && c.distance <= 5) ||
+                    (distFilter === 'far' && c.distance > 5);
+
+                return matchSearch && matchDist;
+            });
+
+            filtered.forEach(function(c) {
+                var distClass = c.distance < 2 ? 'near' : c.distance <= 5 ? 'mid' : 'far';
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td class="customer-name-cell">' + c.name + '</td>' +
+                    '<td class="customer-phone-cell">' + c.phone + '</td>' +
+                    '<td>' + c.address + '</td>' +
+                    '<td><div class="customer-distance"><span class="distance-dot distance-dot--' + distClass + '"></span>' + c.distance + ' mi</div></td>' +
+                    '<td>' + c.eta + '</td>' +
+                    '<td class="customer-orders-count">' + c.orders + '</td>' +
+                    '<td>' + c.lastOrder + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderSmsLog() {
+            var list = document.getElementById('smsLogList');
+            list.innerHTML = '';
+
+            smsLog.forEach(function(entry) {
+                var li = document.createElement('li');
+                li.className = 'sms-log-item';
+                li.innerHTML =
+                    '<span class="sms-log-time">' + entry.time + '</span>' +
+                    '<span class="sms-log-msg">' + entry.msg + '</span>' +
+                    '<span><span class="sms-log-recipient">' + entry.recipient + '</span><br><span class="sms-log-status">' + entry.status + '</span></span>';
+                list.appendChild(li);
+            });
+        }
+
+        function renderActivity() {
+            var list = document.getElementById('activityList');
+            list.innerHTML = '';
+
+            activityLog.forEach(function(entry) {
+                var li = document.createElement('li');
+                li.className = 'recent-activity-item';
+                li.innerHTML =
+                    '<span class="activity-time">' + entry.time + '</span>' +
+                    '<span class="activity-dot activity-dot--' + entry.type + '"></span>' +
+                    '<span>' + entry.msg + '</span>';
+                list.appendChild(li);
+            });
+        }
+
+        function updateClock() {
+            var now = new Date();
+            var h = now.getHours();
+            var m = now.getMinutes();
+            var s = now.getSeconds();
+            var ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            document.getElementById('headerTime').textContent =
+                h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s + ' ' + ampm;
+        }
+
+        document.querySelectorAll('.admin-nav-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.admin-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+
+                document.querySelectorAll('.admin-panel').forEach(function(p) { p.classList.remove('active'); });
+                var panel = document.getElementById('panel-' + btn.getAttribute('data-panel'));
+                if (panel) panel.classList.add('active');
+            });
+        });
+
+        document.getElementById('orderFilter').addEventListener('change', function() {
+            renderOrders(this.value);
+        });
+
+        document.getElementById('customerSearch').addEventListener('input', renderCustomers);
+        document.getElementById('distanceFilter').addEventListener('change', renderCustomers);
+
+        renderOrders('all');
+        renderCustomers();
+        renderSmsLog();
+        renderActivity();
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

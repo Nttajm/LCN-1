@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mama J's Pizzeria | West Coast Pizza | Penngrove, CA</title>
+    <meta name="description" content="Small Town Pizzeria With Big Flavor! All Fresh & Housemade Ingredients! Located in downtown Penngrove, CA since 2021.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Lato:wght@400;700;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #c41e3a;
+            --red-dark: #8b0000;
+            --green: #1e7b34;
+            --green-dark: #0d4a1c;
+            --cream: #f5f0e6;
+            --cream-dark: #e8e0d0;
+            --brown: #3e2723;
+            --brown-light: #5d4037;
+            --gold: #d4a017;
+            --text-dark: #2c1810;
+            --text-light: #f5f0e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding-left: 3.5rem;
+            padding-right: 3.5rem;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 3.5rem;
+            background: url('assets/sidebars.png') repeat-y;
+            background-size: 100% auto;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .sidebar--left {
+            left: 0;
+        }
+
+        .sidebar--right {
+            right: 0;
+            transform: scaleX(-1);
+        }
+
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #d4b871;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.7s ease, visibility 0.7s ease;
+        }
+
+        .splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-logo {
+            width: clamp(11rem, 36vw, 17rem);
+            opacity: 0;
+            transform: translateY(-3.5rem);
+            animation: splashDrop 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) 0.25s forwards;
+        }
+
+        .splash-letters {
+            width: clamp(15rem, 52vw, 26rem);
+            margin-top: 0.75rem;
+            opacity: 0;
+            transform: translateY(1.25rem);
+        }
+
+        .splash-letters.show {
+            animation: splashRise 0.55s ease-out forwards;
+        }
+
+        @keyframes splashDrop {
+            0%   { opacity: 0; transform: translateY(-3.5rem); }
+            65%  { opacity: 1; transform: translateY(0.4rem); }
+            82%  { transform: translateY(-0.2rem); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes splashRise {
+            from { opacity: 0; transform: translateY(1.25rem); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(0.625rem); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .main-content.visible {
+            opacity: 1;
+        }
+
+        .flag-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            height: 0.25rem;
+        }
+
+        .flag-bar span:nth-child(1) { background: var(--green); }
+        .flag-bar span:nth-child(2) { background: var(--cream); }
+        .flag-bar span:nth-child(3) { background: var(--red); }
+
+        header {
+            background: var(--brown);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.3);
+        }
+
+        .header-container {
+            max-width: 75rem;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-logo {
+            height: 4.5rem;
+            filter: drop-shadow(0.125rem 0.125rem 0.25rem rgba(0,0,0,0.3));
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge.open {
+            background: var(--green);
+            color: var(--text-light);
+        }
+
+        .status-badge.closed {
+            background: var(--red);
+            color: var(--text-light);
+        }
+
+        .status-dot {
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 0.3125rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .hamburger span {
+            width: 1.75rem;
+            height: 0.1875rem;
+            background: var(--cream);
+            border-radius: 0.125rem;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(0.3125rem, 0.375rem);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(0.375rem, -0.4375rem);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--cream);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0.125rem;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        nav a:hover {
+            color: var(--gold);
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--brown);
+            z-index: 99;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .mobile-nav.active {
+            display: flex;
+        }
+
+        .mobile-nav a {
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .hero {
+            background: var(--brown);
+            padding: 4rem 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-logo {
+            width: clamp(11.25rem, 30vw, 17.5rem);
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0.25rem 0.25rem 0.5rem rgba(0,0,0,0.4));
+        }
+
+        .hero h1 {
+            font-family: 'Alfa Slab One', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: var(--text-light);
+            text-shadow: 0.1875rem 0.1875rem 0.375rem rgba(0,0,0,0.4);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-tagline {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(1.5rem, 3vw, 2.25rem);
+            color: var(--gold);
+            text-shadow: 0.125rem 0.125rem 0.25rem rgba(0,0,0,0.3);
+            margin-bottom: 1rem;
+        }
+
+        .hero-info {
+            color: var(--cream);
+            font-size: 1.125rem;
+            max-width: 37.5rem;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 0.375rem;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: var(--text-light);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+            transform: translateY(-0.125rem);
+            box-shadow: 0 0.375rem 0.75rem rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--cream);
+            color: var(--text-dark);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gold);
+            transform: translateY(-0.125rem);
+        }
+
+        .storefront-section {
+            background: var(--brown);
+            padding: 0;
+        }
+
+        .storefront-img {
+            width: 100%;
+            max-height: 28rem;
+            object-fit: cover;
+            display: block;
+        }
+
+        section {
+            padding: 4rem 1rem;
+        }
+
+        .section-title {
+            font-family: 'Alfa Slab One', serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: var(--brown);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--brown-light);
+            font-size: 1.125rem;
+            margin-bottom: 3rem;
+        }
+
+        .section-title--light,
+        .section-subtitle--light {
+            color: var(--cream);
+        }
+
+        .container {
+            max-width: 75rem;
+            margin: 0 auto;
+        }
+
+        .featured-items {
+            background: var(--cream-dark);
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+            gap: 2rem;
+        }
+
+        .featured-card {
+            background: var(--cream);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.1);
+            border: 0.1875rem solid var(--gold);
+            transition: transform 0.3s ease;
+        }
+
+        .featured-card:hover {
+            transform: translateY(-0.3125rem);
+        }
+
+        .featured-card h3 {
+            font-family: 'Alfa Slab One', serif;
+            font-size: 1.5rem;
+            color: var(--red);
+            margin-bottom: 0.5rem;
+        }
+
+        .featured-card .price {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--green);
+        }
+
+        .featured-card p {
+            color: var(--brown-light);
+            margin-top: 0.5rem;
+        }
+
+        .menu-section {
+            background: var(--cream);
+        }
+
+        .menu-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+        }
+
+        .menu-nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--brown);
+            color: var(--cream);
+            border: none;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .menu-nav-btn:hover,
+        .menu-nav-btn.active {
+            background: var(--red);
+        }
+
+        .menu-category {
+            display: none;
+        }
+
+        .menu-category.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .menu-category-title {
+            font-family: 'Alfa Slab One', serif;
+            font-size: 1.75rem;
+            color: var(--green-dark);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 0.1875rem solid var(--gold);
+            display: inline-block;
+        }
+
+        .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+            gap: 1.25rem;
+        }
+
+        .menu-item {
+            background: var(--cream);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+            border-left: 0.25rem solid var(--green);
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover {
+            box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.12);
+            border-left-color: var(--red);
+        }
+
+        .menu-item.out-of-stock {
+            opacity: 0.6;
+            border-left-color: #999;
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item h4 {
+            font-size: 1.1rem;
+            color: var(--brown);
+            font-weight: 700;
+        }
+
+        .menu-item .price {
+            font-weight: 900;
+            color: var(--red);
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+
+        .menu-item p {
+            font-size: 0.9rem;
+            color: var(--brown-light);
+        }
+
+        .menu-item .out-of-stock-badge {
+            display: inline-block;
+            background: #999;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+        .pizza-sizes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .pizza-size {
+            background: var(--cream-dark);
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .pizza-size.out-of-stock {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .delivery-section {
+            background: var(--brown);
+            color: var(--cream);
+        }
+
+        .delivery-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .delivery-card {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2rem;
+            border-radius: 0.5rem;
+        }
+
+        .delivery-card h3 {
+            font-family: 'Alfa Slab One', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .delivery-card p {
+            margin-bottom: 0.5rem;
+        }
+
+        .delivery-card .phone {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--gold);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        .delivery-card .phone:hover {
+            text-decoration: underline;
+        }
+
+        .delivery-own-drivers {
+            margin-top: 1rem;
+            color: var(--gold);
+        }
+
+        .location-section {
+            background: var(--cream-dark);
+        }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .map-container {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+            aspect-ratio: 4/3;
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .location-info {
+            padding: 2rem;
+            background: var(--cream);
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .location-info h3 {
+            font-family: 'Alfa Slab One', serif;
+            font-size: 1.5rem;
+            color: var(--brown);
+            margin-bottom: 1.5rem;
+        }
+
+        .address {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            color: var(--brown-light);
+        }
+
+        .hours-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .hours-table tr {
+            border-bottom: 0.0625rem solid var(--cream-dark);
+        }
+
+        .hours-table td {
+            padding: 0.75rem 0;
+        }
+
+        .hours-table td:first-child {
+            font-weight: 700;
+            color: var(--brown);
+        }
+
+        .hours-table td:last-child {
+            text-align: right;
+            color: var(--brown-light);
+        }
+
+        .hours-table tr.today {
+            background: rgba(30, 123, 52, 0.1);
+        }
+
+        .hours-table tr.today td {
+            color: var(--green);
+        }
+
+        .hours-table .closed {
+            color: var(--red);
+        }
+
+        .contact-phone {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .contact-phone a {
+            color: var(--red);
+            text-decoration: none;
+        }
+
+        .contact-phone a:hover {
+            text-decoration: underline;
+        }
+
+        .phone-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            fill: var(--red);
+        }
+
+        footer {
+            background: var(--brown);
+            color: var(--cream);
+            padding: 3rem 1rem 1.5rem;
+            text-align: center;
+        }
+
+        .footer-logo {
+            height: 5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-tagline {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .footer-info {
+            margin-bottom: 2rem;
+        }
+
+        .footer-info p {
+            margin: 0.25rem 0;
+            color: rgba(245, 240, 230, 0.8);
+        }
+
+        .footer-info a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .footer-info a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-bottom {
+            padding-top: 1.5rem;
+            border-top: 0.0625rem solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            color: rgba(245, 240, 230, 0.6);
+        }
+
+        @media (max-width: 56.25rem) {
+            .location-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 48rem) {
+            body {
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            nav {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .header-logo {
+                height: 3.5rem;
+            }
+
+            .hero {
+                padding: 3rem 1rem;
+            }
+
+            section {
+                padding: 3rem 1rem;
+            }
+
+            .menu-items {
+                grid-template-columns: 1fr;
+            }
+
+            .storefront-img {
+                max-height: 15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar sidebar--left"></div>
+    <div class="sidebar sidebar--right"></div>
+
+    <div class="splash-screen" id="splashScreen">
+        <img src="assets/logo_chr1.png" alt="Mama J" class="splash-logo" id="splashLogo">
+        <img src="assets/letters_only.png" alt="Mama J's Pizzeria" class="splash-letters" id="splashLetters">
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <header>
+            <div class="header-container">
+                <img src="assets/logo_chr1.png" alt="Mama J's Pizzeria" class="header-logo">
+                <div class="status-badge" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Checking...</span>
+                </div>
+                <nav>
+                    <a href="#menu">Menu</a>
+                    <a href="delivery.html">Delivery</a>
+                    <a href="#location">Location</a>
+                    <a href="tel:+17076641515">Call Us</a>
+                </nav>
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </header>
+        <div class="flag-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+
+        <div class="mobile-nav" id="mobileNav">
+            <a href="#menu" onclick="closeMobileNav()">Menu</a>
+            <a href="delivery.html" onclick="closeMobileNav()">Delivery</a>
+            <a href="#location" onclick="closeMobileNav()">Location</a>
+            <a href="tel:+17076641515">Call Us</a>
+        </div>
+
+        <section class="hero">
+            <div class="hero-content">
+                <img src="assets/logo_chr1.png" alt="Mama J's Pizzeria" class="hero-logo">
+                <h1>Mama J's Pizzeria</h1>
+                <p class="hero-tagline">West Coast Pizza</p>
+                <p class="hero-info">Small Town Pizzeria With Big Flavor! All Fresh & Housemade Ingredients! Est. 2021 in Downtown Penngrove, CA</p>
+                <h1>707-664-1515</h1>
+
+                <div class="cta-buttons">
+                    <a href="#menu" class="btn btn-primary">View Menu</a>
+                    <a href="delivery.html" class="btn btn-primary">Delivery</a>
+                    <a href="tel:+17076641515" class="btn btn-secondary">Order Now</a>
+                </div>
+            </div>
+        </section>
+
+        <div class="flag-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+
+        <div class="storefront-section">
+            <img src="assets/store_front.png" alt="Mama J's Pizzeria storefront at The Grove Plaza, Penngrove CA" class="storefront-img">
+        </div>
+
+        <div class="flag-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+
+        <section class="featured-items">
+            <div class="container">
+                <h2 class="section-title">Featured Items</h2>
+                <p class="section-subtitle">Our most popular Build Your Own pizzas</p>
+                <div class="featured-grid">
+                    <div class="featured-card">
+                        <h3>Small BYO</h3>
+                        <p class="price">$17.00</p>
+                        <p>Build your own masterpiece</p>
+                    </div>
+                    <div class="featured-card">
+                        <h3>Medium BYO</h3>
+                        <p class="price">$20.00</p>
+                        <p>Perfect for sharing</p>
+                    </div>
+                    <div class="featured-card">
+                        <h3>Large BYO</h3>
+                        <p class="price">$23.00</p>
+                        <p>Family favorite size</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="menu-section" id="menu">
+            <div class="container">
+                <h2 class="section-title">Our Menu</h2>
+                <p class="section-subtitle">Fresh ingredients, made with love</p>
+
+                <div class="menu-nav">
+                    <button class="menu-nav-btn active" data-category="appetizers">Appetizers</button>
+                    <button class="menu-nav-btn" data-category="salads">Salads</button>
+                    <button class="menu-nav-btn" data-category="pizza">Pizza</button>
+                    <button class="menu-nav-btn" data-category="subs">Subs</button>
+                    <button class="menu-nav-btn" data-category="ribs">Ribs</button>
+                    <button class="menu-nav-btn" data-category="sides">Sides</button>
+                    <button class="menu-nav-btn" data-category="drinks">Drinks</button>
+                    <button class="menu-nav-btn" data-category="lunch">Lunch</button>
+                    <button class="menu-nav-btn" data-category="grab">Grab & Go</button>
+                </div>
+
+                <div class="menu-category active" id="appetizers">
+                    <h3 class="menu-category-title">Appetizers</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Bread Sticks</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                            <p>6 piping hot bread sticks made from house made pizza dough</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Garlic Bread Sticks</h4>
+                                <span class="price">$10.00</span>
+                            </div>
+                            <p>6 piping hot bread sticks made from house made pizza dough</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Garlic Bread</h4>
+                                <span class="price">$6.00</span>
+                            </div>
+                            <p>Organic Sourdough from Full Circle Baking smeared with our award winning garlic butter spread</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Cheesy Garlic Bread</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                            <p>Organic Sourdough from Full Circle Baking smeared with our award winning garlic butter spread and topped with Mozzarella</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Fabulous Frickles</h4>
+                                <span class="price">$12.00</span>
+                            </div>
+                            <p>Famously Fabulous deep fried dill pickles</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Kiko's Wings x 8</h4>
+                                <span class="price">$13.00</span>
+                            </div>
+                            <p>Marinated in a Garlicy Teriyaki Sauce with a tiny kick. Sweet, Salty and a little Spice</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Kiko's Wings x 16</h4>
+                                <span class="price">$20.00</span>
+                            </div>
+                            <p>Marinated in a Garlicy Teriyaki Sauce with a tiny kick. Sweet, Salty and a little Spice</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Shoestring Fries</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                            <p>Thin cut and Crispy!</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Garlic Fries</h4>
+                                <span class="price">$10.00</span>
+                            </div>
+                            <p>Crispy Shoestring Fries tossed in fresh Garlic, Parmesan and fresh Parsley</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Mozzarella Sticks</h4>
+                                <span class="price">$11.50</span>
+                            </div>
+                            <p>Breaded Mozzarella Cheese Fried to Perfection</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Zucchini Sticks</h4>
+                                <span class="price">$11.50</span>
+                            </div>
+                            <p>Like the Mozzarella Sticks but Zucchini</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Fried Ravioli</h4>
+                                <span class="price">$11.50</span>
+                            </div>
+                            <p>Breaded Cheese Ravioli Fried to a Golden Brown</p>
+                        </div>
+                        <div class="menu-item out-of-stock">
+                            <div class="menu-item-header">
+                                <h4>Jalape&ntilde;o Poppers</h4>
+                                <span class="price">$11.00</span>
+                            </div>
+                            <span class="out-of-stock-badge">Out of Stock</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Onion Rings</h4>
+                                <span class="price">$9.00</span>
+                            </div>
+                            <p>Beer Battered.. Say no more...</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Sweet Potato Fries</h4>
+                                <span class="price">$9.00</span>
+                            </div>
+                            <p>They're sweet and they're fried potatoes</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Meatball w/ Sauce &amp; Cheese</h4>
+                                <span class="price">$5.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item out-of-stock">
+                            <div class="menu-item-header">
+                                <h4>In Pesto We Crust Mini Batons</h4>
+                                <span class="price">$16.00</span>
+                            </div>
+                            <p>Mini Rolled Batons filled with Housemade Pesto, Garlic, Shredded Parmesan and brushed with EVOO. Baked to a golden brown.</p>
+                            <span class="out-of-stock-badge">Out of Stock</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="salads">
+                    <h3 class="menu-category-title">Salads</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Mixed Green Salad</h4>
+                                <span class="price">$11.00 / $7.00</span>
+                            </div>
+                            <p>Spring Mix, Tomatoes, Carrots, House made Croutons, Parmesan Cheese</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Caesar Salad</h4>
+                                <span class="price">$13.50 / $8.50</span>
+                            </div>
+                            <p>Crispy Romaine, Shredded Parmesan, House made Croutons, Julie C's Famous Caesar Dressing</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Big Al</h4>
+                                <span class="price">$13.50 / $8.50</span>
+                            </div>
+                            <p>Baby Spinach, Red Onions, Dried Cranberries, Walnuts, Point Reyes Blue Cheese &amp; Mama J's Homemade Raspberry Vinaigrette</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Greek</h4>
+                                <span class="price">$13.50 / $8.50</span>
+                            </div>
+                            <p>Spring Mix, Kalamata Olives, Pepperoncini, Red Onion, Feta Cheese, Mama J's Award winning Balsamic Vinaigrette</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Garden Delight</h4>
+                                <span class="price">$13.50 / $8.50</span>
+                            </div>
+                            <p>Spring Mix, Tomatoes, Black Olives, Yellow Onion, Mozzarella, Mushrooms, Carrots, House Made Croutons, Salami and Parmesan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="pizza">
+                    <h3 class="menu-category-title">Pizza</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Build Your Own (BYO)</h4>
+                            </div>
+                            <p>Start with our house made dough and red sauce, then add your favorite toppings</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $17</span>
+                                <span class="pizza-size">MED $20</span>
+                                <span class="pizza-size">LRG $23</span>
+                                <span class="pizza-size">XL $25</span>
+                            </div>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">Cauliflower SM $20</span>
+                                <span class="pizza-size">Gluten Free M $22</span>
+                                <span class="pizza-size out-of-stock">Sourdough LRG $24</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Penngrove Special</h4>
+                            </div>
+                            <p>Alfredo Sauce, Chicken, Yellow Onion, Roma Tomato, Fresh Garlic</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $22</span>
+                                <span class="pizza-size">MED $27</span>
+                                <span class="pizza-size">LRG $31</span>
+                                <span class="pizza-size">XL $35</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Joe's Combo</h4>
+                            </div>
+                            <p>Pepperoni, Italian Sausage, Yellow Onion, Black Olives, Crimini Mushrooms, Fresh Garlic</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $22</span>
+                                <span class="pizza-size">MED $27</span>
+                                <span class="pizza-size">LRG $31</span>
+                                <span class="pizza-size">XL $35</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Papa Mimo's Supremo</h4>
+                            </div>
+                            <p>Pepperoni, Italian Sausage, Yellow Onion, Black Olives, Crimini Mushrooms, Fresh Garlic</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $22</span>
+                                <span class="pizza-size">MED $27</span>
+                                <span class="pizza-size">LRG $31</span>
+                                <span class="pizza-size">XL $35</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Olivia</h4>
+                            </div>
+                            <p>Salami and Black Olives</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $20</span>
+                                <span class="pizza-size">MED $23</span>
+                                <span class="pizza-size">LRG $28</span>
+                                <span class="pizza-size">XL $31</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Nonna Maria</h4>
+                            </div>
+                            <p>Pesto Sauce, Sun-Dried Tomato, Kalamata Olives, Spinach, Red Onion, Mushrooms, Feta Cheese</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $24</span>
+                                <span class="pizza-size">MED $28</span>
+                                <span class="pizza-size">LRG $32</span>
+                                <span class="pizza-size">XL $36</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Josephine</h4>
+                            </div>
+                            <p>Baby Clam, Fresh Garlic, Fresh Parsley</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $24</span>
+                                <span class="pizza-size">MED $28</span>
+                                <span class="pizza-size">LRG $32</span>
+                                <span class="pizza-size">XL $36</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Gammy</h4>
+                            </div>
+                            <p>Spinach, Mushrooms, Caramelized Onions</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $20</span>
+                                <span class="pizza-size">MED $25</span>
+                                <span class="pizza-size">LRG $27</span>
+                                <span class="pizza-size">XL $33</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>I &hearts; Meat</h4>
+                            </div>
+                            <p>All the Meat! Salami, Canadian Bacon, Pepperoni, Italian Sausage, Linguica, Applewood Smoked Bacon</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $24</span>
+                                <span class="pizza-size">MED $28</span>
+                                <span class="pizza-size">LRG $32</span>
+                                <span class="pizza-size">XL $36</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Grove</h4>
+                            </div>
+                            <p>Crimini Mushrooms, Yellow Onion, Bell Pepper, Black Olives, Roma Tomatoes</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $20</span>
+                                <span class="pizza-size">MED $25</span>
+                                <span class="pizza-size">LRG $29</span>
+                                <span class="pizza-size">XL $33</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Quack Quack Oink</h4>
+                            </div>
+                            <p>Creamy Tomato Sauce, Caggiano Duck Sausage, Crimini Mushrooms, Caramelized Onions, Fresh Garlic</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $24</span>
+                                <span class="pizza-size">MED $28</span>
+                                <span class="pizza-size">LRG $32</span>
+                                <span class="pizza-size">XL $36</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Devil Went Down to Penngrove</h4>
+                            </div>
+                            <p>Spicy and Sweet! Jalapeno Pesto, Pepperoni, Pineapple, Jalapenos</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $22</span>
+                                <span class="pizza-size">MED $27</span>
+                                <span class="pizza-size">LRG $31</span>
+                                <span class="pizza-size">XL $35</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>O.G.V. (O.G. Veggie Combo)</h4>
+                            </div>
+                            <p>Eggplant, Crimini Mushrooms, Yellow Onion, Bell Pepper, Artichoke Hearts</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $21</span>
+                                <span class="pizza-size">MED $26</span>
+                                <span class="pizza-size">LRG $30</span>
+                                <span class="pizza-size">XL $34</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Primo Pesto</h4>
+                            </div>
+                            <p>Pesto Sauce, Eggplant, Mushrooms, Artichoke Hearts</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $22</span>
+                                <span class="pizza-size">MED $27</span>
+                                <span class="pizza-size">LRG $31</span>
+                                <span class="pizza-size">XL $35</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Buddy's Special</h4>
+                            </div>
+                            <p>Fresh Garlic, Anchovies, More Fresh Garlic</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $20</span>
+                                <span class="pizza-size">MED $23</span>
+                                <span class="pizza-size">LRG $27</span>
+                                <span class="pizza-size">XL $31</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Moana</h4>
+                            </div>
+                            <p>Canadian Bacon &amp; Pineapple</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $20</span>
+                                <span class="pizza-size">MED $23</span>
+                                <span class="pizza-size">LRG $27</span>
+                                <span class="pizza-size">XL $31</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>What The Cluck?</h4>
+                            </div>
+                            <p>BBQ Sauce, Red Onion, Chicken</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $21</span>
+                                <span class="pizza-size">MED $26</span>
+                                <span class="pizza-size">LRG $30</span>
+                                <span class="pizza-size">XL $34</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Hoaloha</h4>
+                            </div>
+                            <p>BBQ Sauce, Mozzarella, Bacon, Chicken, Pineapple</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $23</span>
+                                <span class="pizza-size">MED $27</span>
+                                <span class="pizza-size">LRG $31</span>
+                                <span class="pizza-size">XL $35</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Smokin Hot Chick</h4>
+                            </div>
+                            <p>Spicy BBQ Sauce, Mozzarella, Chicken, Bacon, Jalapenos, Hot Honey</p>
+                            <div class="pizza-sizes">
+                                <span class="pizza-size">SM $23</span>
+                                <span class="pizza-size">MED $26</span>
+                                <span class="pizza-size">LRG $31</span>
+                                <span class="pizza-size">XL $35</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="subs">
+                    <h3 class="menu-category-title">Subs</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Meatball Sub</h4>
+                                <span class="price">$17.50</span>
+                            </div>
+                            <p>Red Sauce or Pesto and Mozzarella Cheese on an Organic Sourdough Roll</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Sausage Sub</h4>
+                                <span class="price">$16.50</span>
+                            </div>
+                            <p>Red Sauce or Pesto and Mozzarella Cheese on an Organic Sourdough Roll</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Salami Sub</h4>
+                                <span class="price">$16.50</span>
+                            </div>
+                            <p>Balsamic Vinaigrette, Mozzarella, Pepperoncini and Salami on an Organic Sourdough Roll</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Chicken Sub</h4>
+                                <span class="price">$16.50</span>
+                            </div>
+                            <p>Red Sauce or Pesto and Mozzarella Cheese on an Organic Sourdough Roll</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="ribs">
+                    <h3 class="menu-category-title">Ribs</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Half Rack</h4>
+                                <span class="price">$20.00</span>
+                            </div>
+                            <p>1/2 rack of pork backribs first rubbed then slathered in sap and baked to perfection. Served with your choice of Garlic Bread, Fries, or Mixed Green Salad</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Full Rack</h4>
+                                <span class="price">$36.00</span>
+                            </div>
+                            <p>Full rack of pork backribs first rubbed then slathered in sap and baked to perfection. Served with your choice of Garlic Bread, Fries, or Mixed Green Salad</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="sides">
+                    <h3 class="menu-category-title">Sides</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Ranch Dressing</h4>
+                                <span class="price">$0.50</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Blue Cheese Dressing</h4>
+                                <span class="price">$0.50</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Balsamic Vinaigrette</h4>
+                                <span class="price">$0.50</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Caesar Dressing</h4>
+                                <span class="price">$0.50</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>1000 Island Dressing</h4>
+                                <span class="price">$0.50</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Red Sauce</h4>
+                                <span class="price">$0.50</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Pesto</h4>
+                                <span class="price">$2.00</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Anchovies</h4>
+                                <span class="price">$2.50</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Jalape&ntilde;os</h4>
+                                <span class="price">$2.00</span>
+                            </div>
+                            <p>2oz.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="drinks">
+                    <h3 class="menu-category-title">Drinks</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Alvarado Street (CAN)</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Cellarmaker (CAN)</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Seismic (CAN)</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Noca Hard Lemonade</h4>
+                                <span class="price">$5.50</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Noca Hard Tea</h4>
+                                <span class="price">$5.50</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Corkage Fee</h4>
+                                <span class="price">$10.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Tastes like Grape</h4>
+                                <span class="price">$3.50</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Blueberry Soda</h4>
+                                <span class="price">$3.50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="lunch">
+                    <h3 class="menu-category-title">Lunch Specials</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>#1 Slice &amp; Soda</h4>
+                                <span class="price">$9.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>#2 Slice &amp; Salad</h4>
+                                <span class="price">$13.75</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>#3 SSS (Slice, Salad, Soda)</h4>
+                                <span class="price">$16.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Cheese Slice</h4>
+                                <span class="price">$6.25</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Pepperoni Slice</h4>
+                                <span class="price">$6.75</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-category" id="grab">
+                    <h3 class="menu-category-title">Grab &amp; Go</h3>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Tutti I Propositi Spice Mix</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Fajita Mix</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Chimichurri Mix</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Soffritto</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Crazy Greek</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>The Spicy Bavarian</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Croutons</h4>
+                                <span class="price">$5.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Balsamic Dressing</h4>
+                                <span class="price">$8.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Balsamic Refill</h4>
+                                <span class="price">$7.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Vote for Pizza T-Shirt</h4>
+                                <span class="price">$25.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Long Pizza Sleeve Shirt</h4>
+                                <span class="price">$35.00</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>Hoodie</h4>
+                                <span class="price">$42.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="flag-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+
+        <section class="delivery-section" id="delivery">
+            <div class="container">
+                <h2 class="section-title section-title--light">Delivery &amp; Takeout</h2>
+                <p class="section-subtitle section-subtitle--light">We deliver right to your door!</p>
+                <div class="delivery-content">
+                    <div class="delivery-card">
+                        <h3>Order Online</h3>
+                        <p>Build your order and we'll deliver it right to your door</p>
+                        <a href="delivery.html" class="phone">Order Delivery</a>
+                    </div>
+                    <div class="delivery-card">
+                        <h3>Order by Phone</h3>
+                        <p>Call us to place your order for pickup or delivery</p>
+                        <a href="tel:+17076641515" class="phone">(707) 664-1515</a>
+                    </div>
+                    <div class="delivery-card">
+                        <h3>Delivery Area</h3>
+                        <p>We deliver to Penngrove and surrounding areas</p>
+                        <p>Delivery times may vary based on distance</p>
+                        <p class="delivery-own-drivers">Our own drivers, not third party!</p>
+                    </div>
+                    <div class="delivery-card">
+                        <h3>Pickup</h3>
+                        <p>Skip the wait! Call ahead and we'll have your order ready</p>
+                        <p>10101 Main St, Penngrove, CA</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="flag-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+
+        <section class="location-section" id="location">
+            <div class="container">
+                <h2 class="section-title">Find Us</h2>
+                <p class="section-subtitle">Downtown Penngrove, CA</p>
+                <div class="location-grid">
+                    <div class="map-container">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3122.8!2d-122.6677!3d38.4097!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808437d8b4dd9c5b%3A0x5e1b8f3!2s10101+Main+St%2C+Penngrove%2C+CA+94951!5e0!3m2!1sen!2sus!4v1" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                    <div class="location-info">
+                        <h3>Hours &amp; Location</h3>
+                        <p class="address">10101 Main St<br>Penngrove, CA 94951</p>
+                        <table class="hours-table" id="hoursTable">
+                            <tr data-day="1">
+                                <td>Monday</td>
+                                <td class="closed">Closed</td>
+                            </tr>
+                            <tr data-day="2">
+                                <td>Tuesday</td>
+                                <td>11:30 AM – 8 PM</td>
+                            </tr>
+                            <tr data-day="3">
+                                <td>Wednesday</td>
+                                <td>11:30 AM – 8 PM</td>
+                            </tr>
+                            <tr data-day="4">
+                                <td>Thursday</td>
+                                <td>11:30 AM – 8 PM</td>
+                            </tr>
+                            <tr data-day="5">
+                                <td>Friday</td>
+                                <td>11:30 AM – 8:30 PM</td>
+                            </tr>
+                            <tr data-day="6">
+                                <td>Saturday</td>
+                                <td>11:30 AM – 8:30 PM</td>
+                            </tr>
+                            <tr data-day="0">
+                                <td>Sunday</td>
+                                <td>11:30 AM – 8 PM</td>
+                            </tr>
+                        </table>
+                        <div class="contact-phone">
+                            <svg class="phone-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>
+                            <a href="tel:+17076641515">(707) 664-1515</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="flag-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+
+        <footer>
+            <img src="assets/letters_only.png" alt="Mama J's Pizzeria" class="footer-logo">
+            <p class="footer-tagline">Small Town Pizzeria With Big Flavor!</p>
+            <div class="footer-info">
+                <p>10101 Main St, Penngrove, CA 94951</p>
+                <p><a href="tel:+17076641515">(707) 664-1515</a></p>
+            </div>
+            <div class="footer-bottom">
+                <p>Est. 2021 in Downtown Penngrove, CA</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        var splashScreen  = document.getElementById('splashScreen');
+        var splashLogo    = document.getElementById('splashLogo');
+        var splashLetters = document.getElementById('splashLetters');
+        var mainContent   = document.getElementById('mainContent');
+
+        // logo_chr1 drops in via CSS animation (~250ms delay + 750ms = lands ~1000ms)
+        // swap to wink
+        setTimeout(function() {
+            splashLogo.src = 'assets/logo_chr1_wink.png';
+        }, 1100);
+
+        // swap back & reveal letters_only below
+        setTimeout(function() {
+            splashLogo.src = 'assets/logo_chr1.png';
+            splashLetters.classList.add('show');
+        }, 1550);
+
+        // fade out splash, show site
+        setTimeout(function() {
+            splashScreen.classList.add('hidden');
+            mainContent.classList.add('visible');
+        }, 2900);
+
+        function checkOpenStatus() {
+            var now = new Date();
+            var day = now.getDay();
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var currentTime = hours + minutes / 60;
+
+            var schedule = {
+                0: { open: 11.5, close: 20 },
+                1: null,
+                2: { open: 11.5, close: 20 },
+                3: { open: 11.5, close: 20 },
+                4: { open: 11.5, close: 20 },
+                5: { open: 11.5, close: 20.5 },
+                6: { open: 11.5, close: 20.5 }
+            };
+
+            var statusBadge = document.getElementById('statusBadge');
+            var statusText = document.getElementById('statusText');
+            var todaySchedule = schedule[day];
+
+            if (!todaySchedule) {
+                statusBadge.className = 'status-badge closed';
+                statusText.textContent = 'Closed Today';
+                return;
+            }
+
+            if (currentTime >= todaySchedule.open && currentTime < todaySchedule.close) {
+                statusBadge.className = 'status-badge open';
+                statusText.textContent = 'Open Now';
+            } else {
+                statusBadge.className = 'status-badge closed';
+                statusText.textContent = 'Closed';
+            }
+        }
+
+        function highlightToday() {
+            var day = new Date().getDay();
+            var rows = document.querySelectorAll('#hoursTable tr');
+            rows.forEach(function(row) {
+                if (parseInt(row.dataset.day) === day) {
+                    row.classList.add('today');
+                }
+            });
+        }
+
+        checkOpenStatus();
+        highlightToday();
+        setInterval(checkOpenStatus, 60000);
+
+        var hamburger = document.getElementById('hamburger');
+        var mobileNav = document.getElementById('mobileNav');
+
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+        });
+
+        function closeMobileNav() {
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+        }
+
+        var menuNavBtns = document.querySelectorAll('.menu-nav-btn');
+        var menuCategories = document.querySelectorAll('.menu-category');
+
+        menuNavBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                menuNavBtns.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+
+                var category = btn.dataset.category;
+                menuCategories.forEach(function(cat) {
+                    cat.classList.remove('active');
+                    if (cat.id === category) {
+                        cat.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

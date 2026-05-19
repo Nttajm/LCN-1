@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Press Derno</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #fff;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Top Header */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e5e5e5;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .hamburger span {
+            width: 18px;
+            height: 2px;
+            background: #333;
+        }
+
+        .weather-date {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .weather {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .weather svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 400;
+            letter-spacing: -1px;
+            color: #333;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-subscribe {
+            background: #8b1a1a;
+            color: white;
+        }
+
+        .btn-subscribe:hover {
+            background: #6d1515;
+        }
+
+        .btn-login {
+            background: #444;
+            color: white;
+        }
+
+        .btn-login:hover {
+            background: #333;
+        }
+
+        .search-icon {
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .search-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Main Navigation */
+        .main-nav {
+            background: #8b1a1a;
+            padding: 0;
+        }
+
+        .main-nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .main-nav li a {
+            display: block;
+            padding: 12px 16px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .main-nav li a:hover {
+            background: rgba(0,0,0,0.2);
+            text-decoration: none;
+        }
+
+        /* Trending Bar */
+        .trending-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e5e5e5;
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .trending-label {
+            color: #8b1a1a;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .trending-bar a {
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .trending-bar a:hover {
+            color: #8b1a1a;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 40px;
+        }
+
+        /* Featured Article */
+        .featured-section {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+        }
+
+        .featured-text {
+            padding-right: 20px;
+        }
+
+        .subscriber-badge {
+            background: #8b1a1a;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .featured-headline {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            color: #222;
+        }
+
+        .featured-headline a:hover {
+            color: #8b1a1a;
+            text-decoration: none;
+        }
+
+        .featured-summary {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .featured-image img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            border-left: 1px solid #e5e5e5;
+            padding-left: 30px;
+        }
+
+        .sidebar-header {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #333;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #8b1a1a;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-article {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .sidebar-article:last-child {
+            border-bottom: none;
+        }
+
+        .sidebar-headline {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-headline a:hover {
+            color: #8b1a1a;
+            text-decoration: none;
+        }
+
+        .sidebar-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* Election Guide Banner */
+        .election-banner {
+            background: linear-gradient(135deg, #8b1a1a 0%, #5a1010 100%);
+            color: white;
+            padding: 30px 40px;
+            margin: 30px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .election-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .election-content p {
+            font-size: 13px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .election-image {
+            width: 120px;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .election-image svg {
+            width: 50px;
+            height: 50px;
+            opacity: 0.8;
+        }
+
+        /* Article Grid */
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .article-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .article-card-headline {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .article-card-headline a:hover {
+            color: #8b1a1a;
+            text-decoration: none;
+        }
+
+        /* News Section Page Header */
+        .section-header {
+            text-align: center;
+            padding: 10px 0;
+            background: white;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            color: #8b1a1a;
+            font-weight: 400;
+        }
+
+        /* Secondary Nav */
+        .secondary-nav {
+            background: #f5f5f5;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .secondary-nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 5px;
+        }
+
+        .secondary-nav li a {
+            display: block;
+            padding: 10px 16px;
+            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .secondary-nav li a:hover {
+            color: #8b1a1a;
+            text-decoration: none;
+        }
+
+        /* News Page Layout */
+        .news-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        .main-story {
+            position: relative;
+        }
+
+        .main-story img {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+        }
+
+        .main-story-text {
+            padding: 20px 0;
+        }
+
+        .main-story-headline {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 12px;
+        }
+
+        .main-story-headline a:hover {
+            color: #8b1a1a;
+            text-decoration: none;
+        }
+
+        .main-story-summary {
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Side Stories */
+        .side-stories {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .side-story {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .side-story:last-child {
+            border-bottom: none;
+        }
+
+        .side-story img {
+            width: 100px;
+            height: 70px;
+            object-fit: cover;
+        }
+
+        .side-story-headline {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .side-story-headline a:hover {
+            color: #8b1a1a;
+            text-decoration: none;
+        }
+
+        /* Latest Headlines Section */
+        .latest-section {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .latest-header {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #333;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #8b1a1a;
+            margin-bottom: 20px;
+        }
+
+        .latest-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .latest-item {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 12px;
+        }
+
+        .latest-item img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+        }
+
+        .latest-item-headline {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .latest-item-headline a:hover {
+            color: #8b1a1a;
+            text-decoration: none;
+        }
+
+        /* Instagram Feed Section */
+        .instagram-section {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .instagram-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #8b1a1a;
+            margin-bottom: 25px;
+        }
+
+        .instagram-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instagram-header h2 svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .instagram-header a {
+            font-size: 13px;
+            color: #8b1a1a;
+            font-weight: 600;
+        }
+
+        .instagram-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .instagram-embed {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 450px;
+        }
+
+        .instagram-embed iframe {
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+
+        .instagram-embed blockquote {
+            margin: 0 !important;
+            border: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-content,
+            .news-content {
+                grid-template-columns: 1fr;
+            }
+
+            .featured-section {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-left: none;
+                padding-left: 0;
+                border-top: 1px solid #e5e5e5;
+                padding-top: 20px;
+            }
+
+            .article-grid,
+            .latest-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .logo {
+                font-size: 24px;
+            }
+
+            .main-nav ul {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+
+            .article-grid,
+            .latest-grid,
+            .instagram-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .latest-item {
+                grid-template-columns: 1fr;
+            }
+
+            .latest-item img {
+                width: 100%;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="header-left">
+            <div class="menu-btn">
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span>All Sections</span>
+            </div>
+            <div class="weather-date">
+                <div class="weather">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    88°F
+                </div>
+                <span>Monday, May 18th 2026</span>
+                <span style="font-size: 11px; color: #8b1a1a;">eEdition</span>
+            </div>
+        </div>
+        <div class="logo">The Press Derno</div>
+        <div class="header-right">
+            <button class="btn btn-subscribe">Subscribe</button>
+            <button class="btn btn-login">Log in</button>
+            <div class="search-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+        <ul>
+            <li><a href="#">News</a></li>
+            <li><a href="#">Sports</a></li>
+            <li><a href="#">Obituaries</a></li>
+            <li><a href="#">Opinion</a></li>
+            <li><a href="#">Business</a></li>
+            <li><a href="#">Napa</a></li>
+            <li><a href="#">Dining, Wine & Food</a></li>
+            <li><a href="#">Entertainment</a></li>
+            <li><a href="#">Events</a></li>
+            <li><a href="#">Sonoma Magazine</a></li>
+        </ul>
+    </nav>
+
+    <!-- Trending Bar -->
+    <div class="trending-bar">
+        <span class="trending-label">Trending:</span>
+        <a href="#">PD Editorial: PD election recommendations</a>
+        <a href="#">North Bay media company folds</a>
+        <a href="#">See Sonoma County's new $275 doughnut</a>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="left-content">
+            <!-- Featured Article -->
+            <div class="featured-section">
+                <div class="featured-text">
+                    <span class="subscriber-badge">Subscriber Only</span>
+                    <h1 class="featured-headline">
+                        <a href="#">Snapshot of local students' test scores shows pandemic-era losses have not been offset. In some places, they've deepened</a>
+                    </h1>
+                    <p class="featured-summary">
+                        Long-term setbacks from the pandemic-era upheaval in learning continue to show up in gauges of students' academic progress and overall wellness. A new study offers the latest, concerning snapshot.
+                    </p>
+                </div>
+                <div class="featured-image">
+                    <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=500&h=350&fit=crop" alt="Students in classroom">
+                </div>
+            </div>
+
+            <!-- Election Guide Banner -->
+            <div class="election-banner">
+                <div class="election-content">
+                    <p style="font-size: 14px; margin-bottom: 4px; opacity: 0.9;">The Press Derno</p>
+                    <h2>Election Guide</h2>
+                    <p>How to vote • Candidates Q&A • And more</p>
+                </div>
+                <div class="election-image" style="width: 180px; height: 100px; overflow: hidden; border-radius: 4px;">
+                    <img src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=360&h=200&fit=crop" alt="American flag voting" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </div>
+
+            <!-- Article Grid -->
+            <div class="article-grid">
+                <div class="article-card">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=280&fit=crop" alt="Vineyard">
+                    <h3 class="article-card-headline">
+                        <a href="#">Local vineyard introduces new sustainable farming practices ahead of harvest season</a>
+                    </h3>
+                </div>
+                <div class="article-card">
+                    <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=280&fit=crop" alt="Downtown city">
+                    <h3 class="article-card-headline">
+                        <a href="#">City council approves new downtown revitalization project</a>
+                    </h3>
+                </div>
+                <div class="article-card">
+                    <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=280&fit=crop" alt="Athletes">
+                    <h3 class="article-card-headline">
+                        <a href="#">High school athletes break regional records at spring championships</a>
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2 class="sidebar-header">Latest Headlines</h2>
+            
+            <article class="sidebar-article">
+                <h3 class="sidebar-headline">
+                    <a href="#">Crypto billionaires have spent $500,000 targeting Rohnert Park's Elward in Assembly race</a>
+                </h3>
+                <span class="sidebar-time">7 hours ago</span>
+            </article>
+
+            <article class="sidebar-article">
+                <h3 class="sidebar-headline">
+                    <a href="#">11,000 residents in Sonoma and Napa counties impacted by wind-related power outages, PG&E says. Here's when the outages will end</a>
+                </h3>
+                <span class="sidebar-time">2 hours ago</span>
+            </article>
+
+            <article class="sidebar-article">
+                <h3 class="sidebar-headline">
+                    <a href="#">Five dead, including two suspects, at San Diego mosque shooting</a>
+                </h3>
+                <span class="sidebar-time">2 hours ago</span>
+            </article>
+
+            <article class="sidebar-article">
+                <h3 class="sidebar-headline">
+                    <a href="#">Here's who is coming to this year's BottleRock Napa Valley Culinary Stage</a>
+                </h3>
+                <span class="sidebar-time">6 hours ago</span>
+            </article>
+
+            <article class="sidebar-article">
+                <h3 class="sidebar-headline">
+                    <a href="#">Map: California's biggest wildfire of the year was started by rescue flares in national park</a>
+                </h3>
+                <span class="sidebar-time">34 minutes ago</span>
+            </article>
+
+            <article class="sidebar-article">
+                <h3 class="sidebar-headline">
+                    <a href="#">Photos: Napa Valley College celebrates Class of 2026</a>
+                </h3>
+                <span class="sidebar-time">3 hours ago</span>
+            </article>
+        </aside>
+    </main>
+
+    <!-- Instagram Feed Section -->
+    <section class="instagram-section">
+        <div class="instagram-header">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                </svg>
+                Follow @pressderno
+            </h2>
+            <a href="https://www.instagram.com/pressderno/" target="_blank">View on Instagram →</a>
+        </div>
+        <div class="instagram-grid">
+            <!-- 
+                TO ADD REAL INSTAGRAM POSTS:
+                1. Go to https://www.instagram.com/pressderno/
+                2. Click on a post
+                3. Click the three dots (...) menu
+                4. Select "Embed"
+                5. Copy the blockquote code
+                6. Replace the placeholder divs below with the embed code
+            -->
+            <div class="instagram-embed">
+                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/pressderno/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);">
+                    <div style="padding:16px;">
+                        <a href="https://www.instagram.com/pressderno/" style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank">
+                            <div style="display: flex; flex-direction: row; align-items: center;">
+                                <div style="background-color: #F4F4F4; border-radius: 50%; height: 40px; margin-right: 14px; width: 40px;"></div>
+                                <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: center;">
+                                    <div style="background-color: #F4F4F4; border-radius: 4px; height: 14px; margin-bottom: 6px; width: 100px;"></div>
+                                    <div style="background-color: #F4F4F4; border-radius: 4px; height: 14px; width: 60px;"></div>
+                                </div>
+                            </div>
+                            <div style="padding: 19% 0;"></div>
+                            <div style="display:block; height:50px; margin:0 auto 12px; width:50px;">
+                                <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1" xmlns="https://www.w3.org/2000/svg"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-511.000000, -20.000000)" fill="#000000"><g><path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C googletag.cmd.push(function() { googletag.display('div-gpt-ad-1721405699462-0'); });532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path></g></g></g></svg>
+                            </div>
+                            <div style="padding-top: 8px;">
+                                <div style="color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550;">View this post on Instagram</div>
+                            </div>
+                        </a>
+                        <p style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; white-space:nowrap;">
+                            <a href="https://www.instagram.com/pressderno/" style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; text-decoration:none;" target="_blank">@pressderno</a>
+                        </p>
+                    </div>
+                </blockquote>
+            </div>
+            <div class="instagram-embed">
+                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/pressderno/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);">
+                    <div style="padding:16px;">
+                        <a href="https://www.instagram.com/pressderno/" style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank">
+                            <div style="display: flex; flex-direction: row; align-items: center;">
+                                <div style="background-color: #F4F4F4; border-radius: 50%; height: 40px; margin-right: 14px; width: 40px;"></div>
+                                <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: center;">
+                                    <div style="background-color: #F4F4F4; border-radius: 4px; height: 14px; margin-bottom: 6px; width: 100px;"></div>
+                                    <div style="background-color: #F4F4F4; border-radius: 4px; height: 14px; width: 60px;"></div>
+                                </div>
+                            </div>
+                            <div style="padding: 19% 0;"></div>
+                            <div style="display:block; height:50px; margin:0 auto 12px; width:50px;">
+                                <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1" xmlns="https://www.w3.org/2000/svg"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-511.000000, -20.000000)" fill="#000000"><g><path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path></g></g></g></svg>
+                            </div>
+                            <div style="padding-top: 8px;">
+                                <div style="color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550;">View this post on Instagram</div>
+                            </div>
+                        </a>
+                        <p style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; white-space:nowrap;">
+                            <a href="https://www.instagram.com/pressderno/" style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; text-decoration:none;" target="_blank">@pressderno</a>
+                        </p>
+                    </div>
+                </blockquote>
+            </div>
+            <div class="instagram-embed">
+                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/pressderno/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);">
+                    <div style="padding:16px;">
+                        <a href="https://www.instagram.com/pressderno/" style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank">
+                            <div style="display: flex; flex-direction: row; align-items: center;">
+                                <div style="background-color: #F4F4F4; border-radius: 50%; height: 40px; margin-right: 14px; width: 40px;"></div>
+                                <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: center;">
+                                    <div style="background-color: #F4F4F4; border-radius: 4px; height: 14px; margin-bottom: 6px; width: 100px;"></div>
+                                    <div style="background-color: #F4F4F4; border-radius: 4px; height: 14px; width: 60px;"></div>
+                                </div>
+                            </div>
+                            <div style="padding: 19% 0;"></div>
+                            <div style="display:block; height:50px; margin:0 auto 12px; width:50px;">
+                                <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1" xmlns="https://www.w3.org/2000/svg"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-511.000000, -20.000000)" fill="#000000"><g><path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path></g></g></g></svg>
+                            </div>
+                            <div style="padding-top: 8px;">
+                                <div style="color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550;">View this post on Instagram</div>
+                            </div>
+                        </a>
+                        <p style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; white-space:nowrap;">
+                            <a href="https://www.instagram.com/pressderno/" style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; text-decoration:none;" target="_blank">@pressderno</a>
+                        </p>
+                    </div>
+                </blockquote>
+            </div>
+        </div>
+    </section>
+    <script async src="//www.instagram.com/embed.js"></script>
+
+    <!-- Latest Headlines Section -->
+    <section class="latest-section">
+        <h2 class="latest-header">Latest Headlines</h2>
+        <div class="latest-grid">
+            <div class="latest-item">
+                <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=160&h=120&fit=crop" alt="Courthouse">
+                <h3 class="latest-item-headline">
+                    <a href="#">Former Hartford police officer charged in fatal shooting of a Black man in mental distress</a>
+                </h3>
+            </div>
+            <div class="latest-item">
+                <img src="https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=160&h=120&fit=crop" alt="Healthy food">
+                <h3 class="latest-item-headline">
+                    <a href="#">RFK Jr swaps vaccine talk for healthy foods and reading to tots in push to woo voters</a>
+                </h3>
+            </div>
+            <div class="latest-item">
+                <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=160&h=120&fit=crop" alt="Social media apps">
+                <h3 class="latest-item-headline">
+                    <a href="#">Snap, YouTube settle school-social media suit ahead of trial</a>
+                </h3>
+            </div>
+            <div class="latest-item">
+                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=160&h=120&fit=crop" alt="Storm damage">
+                <h3 class="latest-item-headline">
+                    <a href="#">Wind pushes tree into powerline causing brief power outage in Healdsburg</a>
+                </h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="background: #f5f5f5; padding: 40px 20px; margin-top: 40px; border-top: 3px solid #8b1a1a;">
+        <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+            <div class="logo" style="margin-bottom: 20px;">The Press Derno</div>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Your trusted source for local news, sports, and community events.</p>
+            <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; font-size: 13px; margin-bottom: 20px;">
+                <a href="#" style="color: #333;">About Us</a>
+                <a href="#" style="color: #333;">Contact</a>
+                <a href="#" style="color: #333;">Advertise</a>
+                <a href="#" style="color: #333;">Subscriber Services</a>
+                <a href="#" style="color: #333;">Privacy Policy</a>
+                <a href="#" style="color: #333;">Terms of Service</a>
+            </div>
+            <p style="font-size: 12px; color: #999;">&copy; 2026 The Press Derno. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
