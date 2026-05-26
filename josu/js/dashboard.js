@@ -93,8 +93,72 @@
         });
     }
 
+    // ── Auth guard ───────────────────────────────────────────
+    function _showSignInPrompt(action) {
+        let overlay = document.getElementById('dashboardAuthPrompt');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'dashboardAuthPrompt';
+            overlay.style.cssText = `
+                position:fixed;inset:0;background:rgba(0,0,0,.72);
+                display:flex;align-items:center;justify-content:center;
+                z-index:99999;font-family:'Segoe UI',system-ui,sans-serif;
+            `;
+            overlay.innerHTML = `
+                <div style="background:#1a1a2e;border:1px solid #0f3460;border-radius:12px;
+                            padding:32px 36px;max-width:380px;width:90%;text-align:center;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                         stroke="#e94560" stroke-width="2" style="margin-bottom:12px">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <h2 style="color:#fff;margin:0 0 8px;font-size:18px">Sign in required</h2>
+                    <p id="dashboardAuthMsg" style="color:#aaa;font-size:14px;margin:0 0 24px"></p>
+                    <div style="display:flex;gap:10px;justify-content:center">
+                        <button id="dashboardAuthCancel"
+                            style="background:#2d2d35;border:1px solid #3a3a44;color:#ccc;
+                                   padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px">
+                            Cancel
+                        </button>
+                        <button id="dashboardAuthSignIn"
+                            style="background:#e94560;border:none;color:#fff;
+                                   padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">
+                            Sign in with Google
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+
+            document.getElementById('dashboardAuthCancel').addEventListener('click', () => {
+                overlay.style.display = 'none';
+            });
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) overlay.style.display = 'none';
+            });
+            document.getElementById('dashboardAuthSignIn').addEventListener('click', async () => {
+                const btn = document.getElementById('dashboardAuthSignIn');
+                btn.textContent = 'Signing in…';
+                btn.disabled = true;
+                try {
+                    await JosuAuth.signInWithGoogle();
+                    overlay.style.display = 'none';
+                } catch (e) {
+                    btn.textContent = 'Sign in with Google';
+                    btn.disabled = false;
+                }
+            });
+        }
+        document.getElementById('dashboardAuthMsg').textContent =
+            `You need to be signed in to ${action}. Sign in to save your projects to the cloud.`;
+        overlay.style.display = 'flex';
+    }
+
     // ── Modal ────────────────────────────────────────────────
     function openModal() {
+        if (typeof JosuAuth !== 'undefined' && !JosuAuth.isSignedIn()) {
+            _showSignInPrompt('create a new song project');
+            return;
+        }
         titleInput.value = '';
         artistInput.value = '';
         imageInput.value = '';

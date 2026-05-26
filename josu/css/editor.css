@@ -2,6 +2,11 @@
    JOSU – Beat Map Editor styles
    ══════════════════════════════════════════════════════════════ */
 
+#josu-auth-bar,
+#josu-auth-spacer {
+    display: none !important;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -309,6 +314,127 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   RANGE SELECTOR
+   ══════════════════════════════════════════════════════════════ */
+.range-selector {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    background: rgba(15, 52, 96, 0.7);
+    border: 1px solid #0f3460;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.range-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.range-time-input {
+    width: 44px;
+    background: #0a0a1a;
+    border: 1px solid #0f3460;
+    color: #4ecdc4;
+    padding: 4px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Consolas', monospace;
+    text-align: center;
+    cursor: text;
+}
+
+.range-time-input:focus {
+    outline: none;
+    border-color: #4ecdc4;
+    color: #fff;
+}
+
+.range-bar-wrap {
+    position: relative;
+    width: 110px;
+    height: 22px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.range-bar-bg {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #1a4a7a;
+    border-radius: 2px;
+    transform: translateY(-50%);
+}
+
+.range-bar-fill {
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    background: linear-gradient(90deg, #4ecdc4, #45b7aa);
+    border-radius: 2px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.range-handle {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    background: #4ecdc4;
+    border: 2px solid #16213e;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: grab;
+    transition: background 0.15s, transform 0.1s;
+    z-index: 2;
+    box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.3);
+}
+
+.range-handle:hover {
+    background: #6eeee6;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+.range-handle:active {
+    cursor: grabbing;
+    background: #fff;
+}
+
+.range-preview-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #4ecdc4;
+    border: none;
+    color: #0a0a1a;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.range-preview-btn:hover {
+    background: #6eeee6;
+    transform: scale(1.1);
+}
+
+.range-preview-btn.previewing {
+    background: #e94560;
+    color: #fff;
+    animation: pulse 1s infinite;
+}
+
+/* ══════════════════════════════════════════════════════════════
    TIMELINE AREA
    ══════════════════════════════════════════════════════════════ */
 .timeline-container {
@@ -518,25 +644,30 @@ body {
 
 .key-hints {
     display: flex;
-    gap: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .key-hint {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: 4px;
+    font-size: 12px;
     color: #888;
 }
 
 .key-hint kbd {
     background: #0f3460;
-    padding: 4px 10px;
-    border-radius: 4px;
+    padding: 3px 6px;
+    border-radius: 3px;
     font-family: 'Consolas', monospace;
-    font-size: 14px;
+    font-size: 11px;
     color: #fff;
     border: 1px solid #1a4a7a;
+}
+
+.key-hint kbd + kbd {
+    margin-left: 2px;
 }
 
 .status-info {
@@ -704,10 +835,11 @@ body {
     background: #16213e;
     border: 1px solid #0f3460;
     border-radius: 8px;
-    padding: 8px 0;
-    min-width: 150px;
+    padding: 6px 0;
+    min-width: 200px;
     z-index: 1000;
     display: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .context-menu.active {
@@ -719,6 +851,9 @@ body {
     cursor: pointer;
     font-size: 14px;
     transition: background 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .context-menu-item:hover {
@@ -727,6 +862,27 @@ body {
 
 .context-menu-item.danger {
     color: #e94560;
+}
+
+.context-menu-item .shortcut {
+    font-size: 11px;
+    color: #666;
+    margin-left: 20px;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: #0f3460;
+    margin: 6px 0;
+}
+
+/* Box Selection Rectangle */
+#boxSelectRect {
+    position: absolute;
+    border: 2px dashed #4ecdc4;
+    background: rgba(78, 205, 196, 0.15);
+    pointer-events: none;
+    z-index: 100;
 }
 
 /* Mode Selector */

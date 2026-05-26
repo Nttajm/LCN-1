@@ -103,7 +103,9 @@
     <!-- Firebase compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="js/firebase-db.js"></script>
+    <script src="js/josu-auth.js"></script>
 
 <script>
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -143,9 +145,28 @@
 
     function saveDownloadedIds(set) {
         localStorage.setItem(DOWNLOADED_KEY, JSON.stringify([...set]));
+        if (typeof JosuAuth !== 'undefined' && JosuAuth.isSignedIn()) {
+            JosuAuth.saveDownloadedToCloud([...set]).catch(() => {});
+        }
     }
 
-    const downloadedIds = loadDownloadedIds();
+    let downloadedIds = loadDownloadedIds();
+
+    // When user signs in, merge cloud downloaded IDs
+    if (typeof JosuAuth !== 'undefined') {
+        JosuAuth.onAuthChange(async (user) => {
+            if (user) {
+                try {
+                    const cloudIds = await JosuAuth.loadDownloadedFromCloud();
+                    if (cloudIds && cloudIds.length > 0) {
+                        cloudIds.forEach(id => downloadedIds.add(id));
+                        saveDownloadedIds(downloadedIds);
+                        applyFilters();
+                    }
+                } catch (e) {}
+            }
+        });
+    }
 
     function isDownloaded(id)  { return downloadedIds.has(id); }
     function downloadSong(id)  { downloadedIds.add(id);    saveDownloadedIds(downloadedIds); }
@@ -206,7 +227,7 @@
 
         const mapperRow = document.createElement('div');
         mapperRow.className = 'song-card-mapper';
-        const mapperName = (song.difficulties || [])[0]?.mapper || 'Unknown';
+        const mapperName = song.publisherName || (song.difficulties || [])[0]?.mapper || 'Unknown';
         mapperRow.textContent = `mapped by ${mapperName}`;
         info.appendChild(mapperRow);
 
@@ -371,18 +392,13 @@
         });
     });
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // LOADING STATE
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  
     grid.innerHTML = `
         <div class="no-results">
             <div style="font-size:32px;margin-bottom:12px;">â³</div>
             <div>Loading beatmapsâ€¦</div>
         </div>`;
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // INIT
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     (async () => {
         songs = await loadSongs();
         applyFilters();

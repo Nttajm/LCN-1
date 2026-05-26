@@ -152,6 +152,28 @@
                 <span>Snap to Grid</span>
             </label>
 
+            <!-- Range Preview Selector -->
+            <div class="range-selector" id="rangeSelector">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" style="flex-shrink:0">
+                    <rect x="2" y="7" width="20" height="10" rx="2"/>
+                    <line x1="6" y1="7" x2="6" y2="17"/><line x1="18" y1="7" x2="18" y2="17"/>
+                </svg>
+                <span class="range-label">Range</span>
+                <input type="text" class="range-time-input" id="rangeStartInput" value="0:00" title="Range start (mm:ss)">
+                <div class="range-bar-wrap" id="rangeBarWrap">
+                    <div class="range-bar-bg"></div>
+                    <div class="range-bar-fill" id="rangeBarFill"></div>
+                    <div class="range-handle" id="rangeHandleStart" title="Drag start point"></div>
+                    <div class="range-handle" id="rangeHandleEnd" title="Drag end point"></div>
+                </div>
+                <input type="text" class="range-time-input" id="rangeEndInput" value="1:30" title="Range end (mm:ss)">
+                <button class="range-preview-btn" id="rangePreviewBtn" title="Preview selected range">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" id="rangePreviewIcon">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                </button>
+            </div>
+
             <div class="zoom-control">
                 <label>Zoom:</label>
                 <input type="range" class="zoom-slider" id="zoomSlider" min="10" max="200" value="50">
@@ -222,15 +244,14 @@
                 Click D or F to Start
             </button>
             <div class="key-hints" id="keyHints">
-                <div class="key-hint"><kbd>Space</kbd> Play/Pause</div>
-                <div class="key-hint taiko-hint"><kbd>D</kbd> Place Red Note</div>
-                <div class="key-hint taiko-hint"><kbd>F</kbd> Place Blue Note</div>
-                <div class="key-hint arrow-hint" style="display:none"><kbd>D</kbd> Left</div>
-                <div class="key-hint arrow-hint" style="display:none"><kbd>F</kbd> Down</div>
-                <div class="key-hint arrow-hint" style="display:none"><kbd>J</kbd> Up</div>
-                <div class="key-hint arrow-hint" style="display:none"><kbd>K</kbd> Right</div>
-                <div class="key-hint"><kbd>Delete</kbd> Remove Selected</div>
-                <div class="key-hint"><kbd>R</kbd> Toggle Record Mode</div>
+                <div class="key-hint"><kbd>Space</kbd> Play</div>
+                <div class="key-hint taiko-hint"><kbd>D</kbd><kbd>F</kbd> Notes</div>
+                <div class="key-hint arrow-hint" style="display:none"><kbd>D</kbd><kbd>F</kbd><kbd>J</kbd><kbd>K</kbd> Arrows</div>
+                <div class="key-hint"><kbd>Ctrl+Z</kbd> Undo</div>
+                <div class="key-hint"><kbd>Ctrl+C/V</kbd> Copy/Paste</div>
+                <div class="key-hint"><kbd>Shift+Drag</kbd> Box Select</div>
+                <div class="key-hint"><kbd>←→</kbd> Nudge</div>
+                <div class="key-hint"><kbd>Q</kbd> Quantize</div>
             </div>
             <div class="status-info">
                 <span id="statusText">Ready</span>
@@ -276,14 +297,27 @@
 
     <!-- Context Menu -->
     <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item" id="contextDelete">Delete Note</div>
-        <div class="context-menu-item" id="contextDuplicate">Duplicate Note</div>
+        <div class="context-menu-item" id="contextCopy">Copy <span class="shortcut">Ctrl+C</span></div>
+        <div class="context-menu-item" id="contextCut">Cut <span class="shortcut">Ctrl+X</span></div>
+        <div class="context-menu-item" id="contextDuplicate">Duplicate Note <span class="shortcut">Ctrl+D</span></div>
+        <div class="context-menu-divider"></div>
         <div class="context-menu-item" id="contextToggleType">Toggle Type (D/F)</div>
+        <div class="context-menu-item" id="contextMirror">Mirror Note <span class="shortcut">Ctrl+M</span></div>
+        <div class="context-menu-item" id="contextQuantize">Quantize Note <span class="shortcut">Q</span></div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" id="contextSelectAll">Select All <span class="shortcut">Ctrl+A</span></div>
+        <div class="context-menu-item danger" id="contextDelete">Delete Note <span class="shortcut">Del</span></div>
     </div>
 
     <!-- Hidden Audio Input -->
     <input type="file" id="audioFileInput" accept="audio/*">
 
+    <!-- Firebase compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="js/firebase-db.js"></script>
+    <script src="js/josu-auth.js"></script>
     <script src="js/audio-store.js"></script>
     <script src="js/store.js"></script>
     <script src="js/editor.js"></script>

@@ -1,4 +1,4 @@
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════auth════════════════════════════════════════
 // JOSU – Beat Map Editor logic
 // Requires: store.js loaded first
 // URL params: ?songId=xxx&diffId=yyy
@@ -9,6 +9,9 @@
     const params = new URLSearchParams(window.location.search);
     const songId = params.get('songId');
     const diffId = params.get('diffId');
+
+    const _authHideStyle = document.createElement('style');
+    document.head.appendChild(_authHideStyle);
 
     let projectSong = null;
     let projectDiff = null;
@@ -53,8 +56,129 @@
         bpm: 120,
         snapToGrid: true,
         audioLoaded: false,
-        mode: 'taiko'
+        mode: 'taiko',
+        rangeStart: 0,
+        rangeEnd: 90000,
+        isPreviewing: false
     };
+
+    // ══════════════════════════════════════════════════════════════
+    // HISTORY SYSTEM (Undo/Redo)
+    // ══════════════════════════════════════════════════════════════
+    const MAX_HISTORY = 100;
+    const history = {
+        undoStack: [],
+        redoStack: []
+    };
+
+    function pushHistory(actionName = 'edit') {
+        history.undoStack.push({
+            action: actionName,
+            songData: JSON.parse(JSON.stringify(state.songData)),
+            selectedNotes: new Set(state.selectedNotes)
+        });
+        if (history.undoStack.length > MAX_HISTORY) {
+            history.undoStack.shift();
+        }
+        history.redoStack = [];
+    }
+
+    function undo() {
+        if (history.undoStack.length === 0) {
+            updateStatus('Nothing to undo');
+            return;
+        }
+        const current = {
+            action: 'current',
+            songData: JSON.parse(JSON.stringify(state.songData)),
+            selectedNotes: new Set(state.selectedNotes)
+        };
+        history.redoStack.push(current);
+        const prev = history.undoStack.pop();
+        state.songData = prev.songData;
+        state.selectedNotes = prev.selectedNotes;
+        renderNotes();
+        updateStatus(`Undo: ${prev.action}`);
+    }
+
+    function redo() {
+        if (history.redoStack.length === 0) {
+            updateStatus('Nothing to redo');
+            return;
+        }
+        const current = {
+            action: 'current',
+            songData: JSON.parse(JSON.stringify(state.songData)),
+            selectedNotes: new Set(state.selectedNotes)
+        };
+        history.undoStack.push(current);
+        const next = history.redoStack.pop();
+        state.songData = next.songData;
+        state.selectedNotes = next.selectedNotes;
+        renderNotes();
+        updateStatus('Redo');
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // CLIPBOARD SYSTEM
+    // ══════════════════════════════════════════════════════════════
+    let clipboard = [];
+    let clipboardBaseTime = 0;
+
+    function copySelectedNotes() {
+        if (state.selectedNotes.size === 0) {
+            updateStatus('No notes selected to copy');
+            return;
+        }
+        const selectedIndices = Array.from(state.selectedNotes).sort((a, b) => a - b);
+        clipboard = selectedIndices.map(i => ({ ...state.songData[i] }));
+        clipboardBaseTime = Math.min(...clipboard.map(n => n.time));
+        updateStatus(`Copied ${clipboard.length} note(s)`);
+    }
+
+    function cutSelectedNotes() {
+        if (state.selectedNotes.size === 0) {
+            updateStatus('No notes selected to cut');
+            return;
+        }
+        pushHistory('cut');
+        copySelectedNotes();
+        const indices = Array.from(state.selectedNotes).sort((a, b) => b - a);
+        indices.forEach(i => state.songData.splice(i, 1));
+        state.selectedNotes.clear();
+        renderNotes();
+        updateStatus(`Cut ${clipboard.length} note(s)`);
+    }
+
+    function pasteNotes() {
+        if (clipboard.length === 0) {
+            updateStatus('Clipboard is empty');
+            return;
+        }
+        pushHistory('paste');
+        const pasteTime = state.currentTime;
+        const newNotes = clipboard.map(n => ({
+            key: n.key,
+            time: Math.round(pasteTime + (n.time - clipboardBaseTime))
+        }));
+        state.songData.push(...newNotes);
+        state.songData.sort((a, b) => a.time - b.time);
+        state.selectedNotes.clear();
+        const startIdx = state.songData.findIndex(n => n.time === newNotes[0].time && n.key === newNotes[0].key);
+        newNotes.forEach((_, i) => {
+            const idx = state.songData.findIndex((n, j) => j >= startIdx && n.time === newNotes[i].time && n.key === newNotes[i].key);
+            if (idx !== -1) state.selectedNotes.add(idx);
+        });
+        renderNotes();
+        updateStatus(`Pasted ${newNotes.length} note(s) at ${msToTimeString(pasteTime)}`);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // BOX SELECTION STATE
+    // ══════════════════════════════════════════════════════════════
+    let isBoxSelecting = false;
+    let boxSelectStart = { x: 0, y: 0 };
+    let boxSelectElement = null;
 
     // ══════════════════════════════════════════════════════════════
     // DOM ELEMENTS
@@ -113,7 +237,15 @@
         contextMenu: document.getElementById('contextMenu'),
         contextDelete: document.getElementById('contextDelete'),
         contextDuplicate: document.getElementById('contextDuplicate'),
-        contextToggleType: document.getElementById('contextToggleType')
+        contextToggleType: document.getElementById('contextToggleType'),
+        rangeStartInput: document.getElementById('rangeStartInput'),
+        rangeEndInput: document.getElementById('rangeEndInput'),
+        rangeBarWrap: document.getElementById('rangeBarWrap'),
+        rangeBarFill: document.getElementById('rangeBarFill'),
+        rangeHandleStart: document.getElementById('rangeHandleStart'),
+        rangeHandleEnd: document.getElementById('rangeHandleEnd'),
+        rangePreviewBtn: document.getElementById('rangePreviewBtn'),
+        rangePreviewIcon: document.getElementById('rangePreviewIcon')
     };
 
     // Audio
@@ -130,9 +262,27 @@
     let draggedNote = null;
     let dragStartX = 0;
     let dragStartTime = 0;
+    let isDraggingMultiple = false;
+    let multiDragStartTimes = new Map();
 
     // Context menu
     let contextNoteIndex = null;
+
+    // Create box selection element
+    function createBoxSelectElement() {
+        const el = document.createElement('div');
+        el.id = 'boxSelectRect';
+        el.style.cssText = `
+            position: absolute;
+            border: 2px dashed #4ecdc4;
+            background: rgba(78, 205, 196, 0.15);
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        `;
+        elements.tracksScroll.appendChild(el);
+        return el;
+    }
 
     const TRACK_OFFSET = 60;
 
@@ -155,11 +305,11 @@
     }
 
     function timeToX(time) {
-        return TRACK_OFFSET + (time / 1000) * state.zoom;
+        return TRACK_OFFSET + ((time - state.rangeStart) / 1000) * state.zoom;
     }
 
     function xToTime(x) {
-        return Math.max(0, ((x - TRACK_OFFSET) / state.zoom) * 1000);
+        return Math.max(state.rangeStart, ((x - TRACK_OFFSET) / state.zoom) * 1000 + state.rangeStart);
     }
 
     function snapTime(time) {
@@ -192,11 +342,18 @@
             });
             state.duration = audioElement.duration * 1000;
             state.audioLoaded = true;
+            if (state.rangeEnd > state.duration || state.rangeEnd <= 0) {
+                state.rangeEnd = state.duration;
+            }
+            if (state.rangeStart >= state.rangeEnd) {
+                state.rangeStart = 0;
+            }
             elements.durationInput.value = msToTimeString(state.duration);
             elements.waveformPlaceholder.style.display = 'none';
             await drawWaveform(file);
             updateTrackWidth();
             drawTimeRuler();
+            updateRangeUI();
             updateStatus(`Loaded: ${file.name}`);
         } catch (err) {
             console.error('Error loading audio:', err);
@@ -205,40 +362,54 @@
     });
 
     async function drawWaveform(file) {
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+            audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            renderWaveformRange();
+        } catch (err) {
+            console.error('Error drawing waveform:', err);
+        }
+    }
+
+    function renderWaveformRange() {
+        if (!audioBuffer) return;
         const canvas = elements.waveformCanvas;
         const ctx = canvas.getContext('2d');
         canvas.width = canvas.offsetWidth * 2;
         canvas.height = canvas.offsetHeight * 2;
         ctx.scale(2, 2);
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-            audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            const data = audioBuffer.getChannelData(0);
-            const step = Math.ceil(data.length / (canvas.offsetWidth * 2));
-            const amp = canvas.offsetHeight / 4;
-            const centerY = canvas.offsetHeight / 2;
-            ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
-            ctx.beginPath();
-            ctx.moveTo(0, centerY);
-            for (let i = 0; i < canvas.offsetWidth; i++) {
-                let min = 1.0, max = -1.0;
-                for (let j = 0; j < step; j++) {
-                    const datum = data[(i * step) + j];
-                    if (datum < min) min = datum;
-                    if (datum > max) max = datum;
-                }
-                ctx.lineTo(i, centerY + min * amp);
-                ctx.lineTo(i, centerY + max * amp);
+        const w = canvas.offsetWidth;
+        const h = canvas.offsetHeight;
+        const data = audioBuffer.getChannelData(0);
+        const sampleRate = audioBuffer.sampleRate;
+        const startSample = Math.floor((state.rangeStart / 1000) * sampleRate);
+        const endSample = Math.min(data.length, Math.floor((state.rangeEnd / 1000) * sampleRate));
+        const rangeSamples = Math.max(1, endSample - startSample);
+        const step = Math.max(1, Math.ceil(rangeSamples / (w * 2)));
+        const amp = h / 4;
+        const centerY = h / 2;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, w, h);
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        for (let i = 0; i < w; i++) {
+            let min = 1.0, max = -1.0;
+            const base = startSample + Math.floor((i / w) * rangeSamples);
+            for (let j = 0; j < step; j++) {
+                const idx = base + j;
+                if (idx >= data.length) break;
+                const datum = data[idx];
+                if (datum < min) min = datum;
+                if (datum > max) max = datum;
             }
-            ctx.strokeStyle = '#4ecdc4';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-        } catch (err) {
-            console.error('Error drawing waveform:', err);
+            ctx.lineTo(i, centerY + min * amp);
+            ctx.lineTo(i, centerY + max * amp);
         }
+        ctx.strokeStyle = '#4ecdc4';
+        ctx.lineWidth = 1;
+        ctx.stroke();
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -285,7 +456,8 @@
     // TRACK RENDERING
     // ══════════════════════════════════════════════════════════════
     function updateTrackWidth() {
-        const width = timeToX(Math.max(state.duration, 60000)) + 200;
+        const rangeDur = state.rangeEnd - state.rangeStart;
+        const width = timeToX(state.rangeStart + Math.max(rangeDur, 10000)) + 200;
         elements.tracksScroll.style.width = `${width}px`;
     }
 
@@ -298,6 +470,7 @@
         elements.trackRight.innerHTML = '';
         drawGridLines();
         state.songData.forEach((note, index) => {
+            if (note.time < state.rangeStart || note.time > state.rangeEnd) return;
             const noteEl = document.createElement('div');
             noteEl.className = `note note-${note.key}${state.selectedNotes.has(index) ? ' selected' : ''}`;
             noteEl.style.left = `${timeToX(note.time) - TRACK_OFFSET - 18}px`;
@@ -319,12 +492,12 @@
     }
 
     function drawGridLines() {
-        const duration = Math.max(state.duration, 60000);
         const beatInterval = 60000 / state.bpm;
         const measureInterval = beatInterval * 4;
         let gridHTML = '';
-        for (let t = 0; t <= duration; t += beatInterval / 4) {
-            const x = (t / 1000) * state.zoom;
+        const gridStart = Math.floor(state.rangeStart / (beatInterval / 4)) * (beatInterval / 4);
+        for (let t = gridStart; t <= state.rangeEnd; t += beatInterval / 4) {
+            const x = ((t - state.rangeStart) / 1000) * state.zoom;
             let cls = 'grid-line';
             if (t % measureInterval < 1) cls += ' measure';
             else if (t % beatInterval < 1) cls += ' beat';
@@ -371,6 +544,9 @@
     // PLAYBACK
     // ══════════════════════════════════════════════════════════════
     function play() {
+        if (state.currentTime < state.rangeStart || state.currentTime >= state.rangeEnd) {
+            state.currentTime = state.rangeStart;
+        }
         if (!state.audioLoaded) {
             state.isPlaying = true;
             playStartTime = performance.now();
@@ -391,6 +567,11 @@
 
     function pause() {
         state.isPlaying = false;
+        if (state.isPreviewing) {
+            state.isPreviewing = false;
+            elements.rangePreviewBtn.classList.remove('previewing');
+            elements.rangePreviewIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        }
         audioElement.pause();
         if (animationFrame) {
             cancelAnimationFrame(animationFrame);
@@ -401,7 +582,7 @@
 
     function stop() {
         pause();
-        state.currentTime = 0;
+        state.currentTime = state.rangeStart;
         updatePlayheadPosition();
         updateTimeDisplay();
     }
@@ -413,7 +594,11 @@
         } else {
             state.currentTime = playStartOffset + (performance.now() - playStartTime);
         }
-        if (state.currentTime >= state.duration) { stop(); return; }
+        if (state.currentTime >= state.rangeEnd) {
+            if (state.isPreviewing) stopPreview();
+            else stop();
+            return;
+        }
         updatePlayheadPosition();
         updateTimeDisplay();
         const playheadX = timeToX(state.currentTime);
@@ -428,7 +613,14 @@
     function updatePlayheadPosition() {
         const x = timeToX(state.currentTime);
         elements.tracksPlayhead.style.left = `${x}px`;
-        elements.waveformPlayhead.style.left = `${x}px`;
+        const rangeDuration = state.rangeEnd - state.rangeStart;
+        if (rangeDuration > 0) {
+            const waveformW = elements.waveformArea.offsetWidth;
+            const waveformX = ((state.currentTime - state.rangeStart) / rangeDuration) * waveformW;
+            elements.waveformPlayhead.style.left = `${waveformX}px`;
+        } else {
+            elements.waveformPlayhead.style.left = '0px';
+        }
     }
 
     function updateTimeDisplay() {
@@ -444,9 +636,141 @@
     }
 
     // ══════════════════════════════════════════════════════════════
+    // RANGE SELECTOR
+    // ══════════════════════════════════════════════════════════════
+    function updateRangeUI() {
+        const dur = state.duration || 90000;
+        const startPct = Math.min(state.rangeStart / dur, 1);
+        const endPct = Math.min(state.rangeEnd / dur, 1);
+        const barW = elements.rangeBarWrap.offsetWidth || 110;
+
+        elements.rangeHandleStart.style.left = `${startPct * barW}px`;
+        elements.rangeHandleEnd.style.left = `${endPct * barW}px`;
+        elements.rangeBarFill.style.left = `${startPct * barW}px`;
+        elements.rangeBarFill.style.width = `${(endPct - startPct) * barW}px`;
+        elements.rangeStartInput.value = msToTimeString(state.rangeStart);
+        elements.rangeEndInput.value = msToTimeString(state.rangeEnd);
+    }
+
+    function applyRange() {
+        if (state.currentTime < state.rangeStart || state.currentTime > state.rangeEnd) {
+            state.currentTime = state.rangeStart;
+            if (state.audioLoaded) audioElement.currentTime = state.currentTime / 1000;
+            updateTimeDisplay();
+        }
+        renderWaveformRange();
+        updateTrackWidth();
+        renderNotes();
+        drawTimeRuler();
+        updatePlayheadPosition();
+    }
+
+    // Range drag
+    let rangeDragTarget = null;
+
+    function onRangeMouseDown(e, target) {
+        e.preventDefault();
+        e.stopPropagation();
+        rangeDragTarget = target;
+        document.addEventListener('mousemove', onRangeMouseMove);
+        document.addEventListener('mouseup', onRangeMouseUp);
+    }
+
+    function onRangeMouseMove(e) {
+        if (!rangeDragTarget) return;
+        const rect = elements.rangeBarWrap.getBoundingClientRect();
+        const barW = rect.width || 110;
+        let pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / barW));
+        const dur = state.duration || 90000;
+        const newTime = Math.round(pct * dur);
+
+        if (rangeDragTarget === 'start') {
+            state.rangeStart = Math.min(newTime, state.rangeEnd - 500);
+        } else {
+            state.rangeEnd = Math.max(newTime, state.rangeStart + 500);
+        }
+        updateRangeUI();
+    }
+
+    function onRangeMouseUp() {
+        rangeDragTarget = null;
+        document.removeEventListener('mousemove', onRangeMouseMove);
+        document.removeEventListener('mouseup', onRangeMouseUp);
+        applyRange();
+    }
+
+    elements.rangeHandleStart.addEventListener('mousedown', (e) => onRangeMouseDown(e, 'start'));
+    elements.rangeHandleEnd.addEventListener('mousedown', (e) => onRangeMouseDown(e, 'end'));
+
+    // Click on bar background to move nearest handle
+    elements.rangeBarWrap.addEventListener('mousedown', (e) => {
+        if (e.target === elements.rangeHandleStart || e.target === elements.rangeHandleEnd) return;
+        const rect = elements.rangeBarWrap.getBoundingClientRect();
+        const barW = rect.width || 110;
+        const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / barW));
+        const dur = state.duration || 90000;
+        const clickTime = pct * dur;
+        const distToStart = Math.abs(clickTime - state.rangeStart);
+        const distToEnd = Math.abs(clickTime - state.rangeEnd);
+        rangeDragTarget = distToStart < distToEnd ? 'start' : 'end';
+        onRangeMouseMove(e);
+        document.addEventListener('mousemove', onRangeMouseMove);
+        document.addEventListener('mouseup', onRangeMouseUp);
+    });
+
+    // Time input editing
+    function parseRangeInput(inputEl, which) {
+        const val = inputEl.value.trim();
+        const ms = timeStringToMs(val);
+        if (isNaN(ms)) { updateRangeUI(); return; }
+        const dur = state.duration || 90000;
+        const clamped = Math.max(0, Math.min(ms, dur));
+        if (which === 'start') {
+            state.rangeStart = Math.min(clamped, state.rangeEnd - 500);
+        } else {
+            state.rangeEnd = Math.max(clamped, state.rangeStart + 500);
+        }
+        updateRangeUI();
+        applyRange();
+    }
+
+    elements.rangeStartInput.addEventListener('blur', () => parseRangeInput(elements.rangeStartInput, 'start'));
+    elements.rangeStartInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') parseRangeInput(elements.rangeStartInput, 'start'); });
+    elements.rangeEndInput.addEventListener('blur', () => parseRangeInput(elements.rangeEndInput, 'end'));
+    elements.rangeEndInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') parseRangeInput(elements.rangeEndInput, 'end'); });
+
+    // Preview playback
+    function stopPreview() {
+        if (!state.isPreviewing) return;
+        state.isPreviewing = false;
+        pause();
+        elements.rangePreviewBtn.classList.remove('previewing');
+        elements.rangePreviewIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        updateStatus('Preview stopped');
+    }
+
+    function startPreview() {
+        if (state.isPreviewing) { stopPreview(); return; }
+        state.isPreviewing = true;
+        elements.rangePreviewBtn.classList.add('previewing');
+        elements.rangePreviewIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        state.currentTime = state.rangeStart;
+        updatePlayheadPosition();
+        updateTimeDisplay();
+        play();
+        updateStatus(`Previewing ${msToTimeString(state.rangeStart)} → ${msToTimeString(state.rangeEnd)}`);
+    }
+
+    elements.rangePreviewBtn.addEventListener('click', () => {
+        if (state.isPreviewing) stopPreview();
+        else startPreview();
+    });
+
+    // ══════════════════════════════════════════════════════════════
     // NOTE MANIPULATION
     // ══════════════════════════════════════════════════════════════
-    function addNote(key, time) {
+    function addNote(key, time, skipHistory = false) {
+        if (!skipHistory) pushHistory('add note');
         const snappedTime = snapTime(time);
         state.songData.push({ key, time: Math.round(snappedTime) });
         state.songData.sort((a, b) => a.time - b.time);
@@ -454,8 +778,9 @@
         updateStatus(`Added ${key.toUpperCase()} note at ${msToTimeString(snappedTime)}`);
     }
 
-    function removeNote(index) {
+    function removeNote(index, skipHistory = false) {
         if (index < 0 || index >= state.songData.length) return;
+        if (!skipHistory) pushHistory('delete note');
         state.songData.splice(index, 1);
         state.selectedNotes.delete(index);
         const newSelected = new Set();
@@ -470,6 +795,7 @@
 
     function removeSelectedNotes() {
         if (state.selectedNotes.size === 0) return;
+        pushHistory('delete notes');
         const indices = Array.from(state.selectedNotes).sort((a, b) => b - a);
         indices.forEach(i => state.songData.splice(i, 1));
         state.selectedNotes.clear();
@@ -480,21 +806,47 @@
     function clearAllNotes() {
         if (state.songData.length === 0) return;
         if (!confirm('Clear all notes?')) return;
+        pushHistory('clear all');
         state.songData = [];
         state.selectedNotes.clear();
         renderNotes();
         updateStatus('All notes cleared');
     }
 
-    function duplicateNote(index) {
+    function duplicateNote(index, skipHistory = false) {
         if (index < 0 || index >= state.songData.length) return;
+        if (!skipHistory) pushHistory('duplicate note');
         const note = state.songData[index];
         const beatInterval = 60000 / state.bpm;
-        addNote(note.key, note.time + beatInterval);
+        addNote(note.key, note.time + beatInterval, true);
     }
 
-    function toggleNoteType(index) {
+    function duplicateSelectedNotes() {
+        if (state.selectedNotes.size === 0) {
+            updateStatus('No notes selected to duplicate');
+            return;
+        }
+        pushHistory('duplicate notes');
+        const beatInterval = 60000 / state.bpm;
+        const selectedIndices = Array.from(state.selectedNotes).sort((a, b) => a - b);
+        const newNotes = selectedIndices.map(i => ({
+            key: state.songData[i].key,
+            time: Math.round(state.songData[i].time + beatInterval)
+        }));
+        state.songData.push(...newNotes);
+        state.songData.sort((a, b) => a.time - b.time);
+        state.selectedNotes.clear();
+        newNotes.forEach(newNote => {
+            const idx = state.songData.findIndex(n => n.time === newNote.time && n.key === newNote.key);
+            if (idx !== -1) state.selectedNotes.add(idx);
+        });
+        renderNotes();
+        updateStatus(`Duplicated ${newNotes.length} note(s)`);
+    }
+
+    function toggleNoteType(index, skipHistory = false) {
         if (index < 0 || index >= state.songData.length) return;
+        if (!skipHistory) pushHistory('toggle type');
         const note = state.songData[index];
         const taikoKeys = ['d', 'f'];
         const arrowKeys = ['left', 'down', 'up', 'right'];
@@ -507,6 +859,80 @@
         }
         renderNotes();
         updateStatus('Note type toggled');
+    }
+
+    function mirrorSelectedNotes() {
+        if (state.selectedNotes.size === 0) {
+            updateStatus('No notes selected to mirror');
+            return;
+        }
+        pushHistory('mirror notes');
+        const taikoKeys = ['d', 'f'];
+        const arrowKeys = ['left', 'down', 'up', 'right'];
+        const arrowMirror = { 'left': 'right', 'right': 'left', 'down': 'up', 'up': 'down' };
+        state.selectedNotes.forEach(i => {
+            const note = state.songData[i];
+            if (taikoKeys.includes(note.key)) {
+                note.key = note.key === 'd' ? 'f' : 'd';
+            } else if (arrowKeys.includes(note.key)) {
+                note.key = arrowMirror[note.key];
+            }
+        });
+        renderNotes();
+        updateStatus(`Mirrored ${state.selectedNotes.size} note(s)`);
+    }
+
+    function quantizeSelectedNotes() {
+        if (state.selectedNotes.size === 0) {
+            updateStatus('No notes selected to quantize');
+            return;
+        }
+        pushHistory('quantize notes');
+        state.selectedNotes.forEach(i => {
+            state.songData[i].time = Math.round(snapTime(state.songData[i].time));
+        });
+        state.songData.sort((a, b) => a.time - b.time);
+        renderNotes();
+        updateStatus(`Quantized ${state.selectedNotes.size} note(s) to grid`);
+    }
+
+    function nudgeSelectedNotes(deltaMs) {
+        if (state.selectedNotes.size === 0) return;
+        pushHistory('nudge notes');
+        state.selectedNotes.forEach(i => {
+            state.songData[i].time = Math.max(0, state.songData[i].time + deltaMs);
+        });
+        state.songData.sort((a, b) => a.time - b.time);
+        renderNotes();
+        const direction = deltaMs > 0 ? 'forward' : 'backward';
+        updateStatus(`Nudged ${state.selectedNotes.size} note(s) ${direction}`);
+    }
+
+    function selectNotesInTimeRange(startTime, endTime) {
+        state.selectedNotes.clear();
+        state.songData.forEach((note, i) => {
+            if (note.time >= startTime && note.time <= endTime) {
+                state.selectedNotes.add(i);
+            }
+        });
+        renderNotes();
+        updateStatus(`Selected ${state.selectedNotes.size} note(s) in range`);
+    }
+
+    function selectAllNotesInVisibleRange() {
+        selectNotesInTimeRange(state.rangeStart, state.rangeEnd);
+    }
+
+    function invertSelection() {
+        const newSelected = new Set();
+        state.songData.forEach((_, i) => {
+            if (!state.selectedNotes.has(i)) {
+                newSelected.add(i);
+            }
+        });
+        state.selectedNotes = newSelected;
+        renderNotes();
+        updateStatus(`Inverted selection: ${state.selectedNotes.size} note(s)`);
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -541,9 +967,10 @@
         const newDuration = timeStringToMs(elements.durationInput.value);
         if (newDuration > 0) {
             state.duration = newDuration;
-            updateTrackWidth();
-            renderNotes();
-            drawTimeRuler();
+            if (state.rangeEnd > state.duration) state.rangeEnd = state.duration;
+            if (state.rangeStart >= state.rangeEnd) state.rangeStart = 0;
+            updateRangeUI();
+            applyRange();
             updateStatus(`Duration set to ${msToTimeString(state.duration)}`);
         } else {
             elements.durationInput.value = msToTimeString(state.duration);
@@ -586,6 +1013,60 @@
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         const key = e.key.toLowerCase();
+
+        // Ctrl/Cmd shortcuts
+        if (e.ctrlKey || e.metaKey) {
+            switch (key) {
+                case 'z':
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        redo();
+                    } else {
+                        undo();
+                    }
+                    return;
+                case 'y':
+                    e.preventDefault();
+                    redo();
+                    return;
+                case 'c':
+                    e.preventDefault();
+                    copySelectedNotes();
+                    return;
+                case 'x':
+                    e.preventDefault();
+                    cutSelectedNotes();
+                    return;
+                case 'v':
+                    e.preventDefault();
+                    pasteNotes();
+                    return;
+                case 'd':
+                    e.preventDefault();
+                    duplicateSelectedNotes();
+                    return;
+                case 'm':
+                    e.preventDefault();
+                    mirrorSelectedNotes();
+                    return;
+                case 'a':
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        selectAllNotesInVisibleRange();
+                    } else {
+                        state.songData.forEach((_, i) => state.selectedNotes.add(i));
+                        renderNotes();
+                        updateStatus(`Selected all ${state.songData.length} note(s)`);
+                    }
+                    return;
+                case 'i':
+                    e.preventDefault();
+                    invertSelection();
+                    return;
+            }
+        }
+
+        // Non-modifier shortcuts
         switch (key) {
             case ' ':
                 e.preventDefault();
@@ -625,6 +1106,9 @@
             case 'r':
                 elements.recordBtn.click();
                 break;
+            case 'q':
+                quantizeSelectedNotes();
+                break;
             case 'delete':
             case 'backspace':
                 e.preventDefault();
@@ -637,12 +1121,30 @@
                 state.selectedNotes.clear();
                 renderNotes();
                 hideContextMenu();
+                if (isBoxSelecting) {
+                    isBoxSelecting = false;
+                    if (boxSelectElement) boxSelectElement.style.display = 'none';
+                }
                 break;
-            case 'a':
-                if (e.ctrlKey) {
+            case 'arrowleft':
+                if (state.selectedNotes.size > 0) {
                     e.preventDefault();
-                    state.songData.forEach((_, i) => state.selectedNotes.add(i));
-                    renderNotes();
+                    const nudgeAmount = e.shiftKey ? -100 : -(60000 / state.bpm / 4);
+                    nudgeSelectedNotes(nudgeAmount);
+                }
+                break;
+            case 'arrowright':
+                if (state.selectedNotes.size > 0) {
+                    e.preventDefault();
+                    const nudgeAmount = e.shiftKey ? 100 : (60000 / state.bpm / 4);
+                    nudgeSelectedNotes(nudgeAmount);
+                }
+                break;
+            case 'arrowup':
+            case 'arrowdown':
+                if (state.selectedNotes.size > 0) {
+                    e.preventDefault();
+                    mirrorSelectedNotes();
                 }
                 break;
         }
@@ -650,7 +1152,7 @@
 
     // Track click
     elements.tracksArea.addEventListener('click', (e) => {
-        if (isDragging) return;
+        if (isDragging || isBoxSelecting) return;
         const note = e.target.closest('.note');
         if (note) {
             const index = parseInt(note.dataset.index);
@@ -669,15 +1171,17 @@
             renderNotes();
         } else {
             const trackContent = e.target.closest('.track-content');
-            if (trackContent) {
+            if (trackContent && !e.shiftKey) {
                 const rect = trackContent.getBoundingClientRect();
                 const x = e.clientX - rect.left + elements.tracksArea.scrollLeft;
                 state.currentTime = Math.max(0, xToTime(x + TRACK_OFFSET));
                 if (state.snapToGrid) state.currentTime = snapTime(state.currentTime);
                 updatePlayheadPosition();
                 updateTimeDisplay();
-                state.selectedNotes.clear();
-                renderNotes();
+                if (!e.ctrlKey && !e.metaKey) {
+                    state.selectedNotes.clear();
+                    renderNotes();
+                }
             }
         }
     });
@@ -694,38 +1198,166 @@
         addNote(key, time);
     });
 
-    // Note dragging
+    // Note dragging and box selection
     elements.tracksArea.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        
         const note = e.target.closest('.note');
-        if (!note || e.button !== 0) return;
-        e.preventDefault();
-        isDragging = true;
-        draggedNote = note;
-        dragStartX = e.clientX;
-        const index = parseInt(note.dataset.index);
-        dragStartTime = state.songData[index].time;
-        note.classList.add('dragging');
-        document.body.style.cursor = 'grabbing';
+        
+        if (note) {
+            // Note dragging
+            e.preventDefault();
+            const index = parseInt(note.dataset.index);
+            
+            // If clicking on an unselected note without modifier, select only this note
+            if (!state.selectedNotes.has(index) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                state.selectedNotes.clear();
+                state.selectedNotes.add(index);
+                renderNotes();
+            }
+            
+            // Multi-note dragging if multiple notes are selected
+            if (state.selectedNotes.size > 1 && state.selectedNotes.has(index)) {
+                isDraggingMultiple = true;
+                multiDragStartTimes.clear();
+                state.selectedNotes.forEach(i => {
+                    multiDragStartTimes.set(i, state.songData[i].time);
+                });
+                pushHistory('move notes');
+            } else {
+                isDraggingMultiple = false;
+                pushHistory('move note');
+            }
+            
+            isDragging = true;
+            draggedNote = note;
+            dragStartX = e.clientX;
+            dragStartTime = state.songData[index].time;
+            note.classList.add('dragging');
+            document.body.style.cursor = 'grabbing';
+        } else {
+            // Box selection - start on empty track area
+            const trackContent = e.target.closest('.track-content');
+            if (trackContent && e.shiftKey) {
+                e.preventDefault();
+                isBoxSelecting = true;
+                if (!boxSelectElement) {
+                    boxSelectElement = createBoxSelectElement();
+                }
+                const scrollRect = elements.tracksScroll.getBoundingClientRect();
+                boxSelectStart = {
+                    x: e.clientX - scrollRect.left + elements.tracksArea.scrollLeft,
+                    y: e.clientY - scrollRect.top
+                };
+                boxSelectElement.style.left = `${boxSelectStart.x}px`;
+                boxSelectElement.style.top = `${boxSelectStart.y}px`;
+                boxSelectElement.style.width = '0px';
+                boxSelectElement.style.height = '0px';
+                boxSelectElement.style.display = 'block';
+            }
+        }
     });
 
     document.addEventListener('mousemove', (e) => {
+        // Box selection
+        if (isBoxSelecting && boxSelectElement) {
+            const scrollRect = elements.tracksScroll.getBoundingClientRect();
+            const currentX = e.clientX - scrollRect.left + elements.tracksArea.scrollLeft;
+            const currentY = e.clientY - scrollRect.top;
+            
+            const left = Math.min(boxSelectStart.x, currentX);
+            const top = Math.min(boxSelectStart.y, currentY);
+            const width = Math.abs(currentX - boxSelectStart.x);
+            const height = Math.abs(currentY - boxSelectStart.y);
+            
+            boxSelectElement.style.left = `${left}px`;
+            boxSelectElement.style.top = `${top}px`;
+            boxSelectElement.style.width = `${width}px`;
+            boxSelectElement.style.height = `${height}px`;
+            
+            // Live preview selection
+            const boxLeft = left;
+            const boxRight = left + width;
+            const boxTop = top;
+            const boxBottom = top + height;
+            
+            if (!e.ctrlKey && !e.metaKey) {
+                state.selectedNotes.clear();
+            }
+            
+            document.querySelectorAll('.note').forEach(noteEl => {
+                const noteRect = noteEl.getBoundingClientRect();
+                const noteScrollRect = elements.tracksScroll.getBoundingClientRect();
+                const noteX = noteRect.left - noteScrollRect.left + elements.tracksArea.scrollLeft + noteRect.width / 2;
+                const noteY = noteRect.top - noteScrollRect.top + noteRect.height / 2;
+                
+                if (noteX >= boxLeft && noteX <= boxRight && noteY >= boxTop && noteY <= boxBottom) {
+                    state.selectedNotes.add(parseInt(noteEl.dataset.index));
+                }
+            });
+            renderNotes();
+            return;
+        }
+        
+        // Note dragging
         if (!isDragging || !draggedNote) return;
+        
         const deltaX = e.clientX - dragStartX;
         const deltaTime = (deltaX / state.zoom) * 1000;
-        let newTime = Math.max(0, dragStartTime + deltaTime);
-        if (state.snapToGrid) newTime = snapTime(newTime);
-        const index = parseInt(draggedNote.dataset.index);
-        state.songData[index].time = Math.round(newTime);
-        draggedNote.style.left = `${timeToX(newTime) - TRACK_OFFSET - 18}px`;
+        
+        if (isDraggingMultiple) {
+            // Move all selected notes
+            multiDragStartTimes.forEach((startTime, index) => {
+                let newTime = Math.max(0, startTime + deltaTime);
+                if (state.snapToGrid) newTime = snapTime(newTime);
+                state.songData[index].time = Math.round(newTime);
+            });
+            renderNotes();
+        } else {
+            // Move single note
+            let newTime = Math.max(0, dragStartTime + deltaTime);
+            if (state.snapToGrid) newTime = snapTime(newTime);
+            const index = parseInt(draggedNote.dataset.index);
+            state.songData[index].time = Math.round(newTime);
+            draggedNote.style.left = `${timeToX(newTime) - TRACK_OFFSET - 18}px`;
+        }
     });
 
-    document.addEventListener('mouseup', () => {
+    document.addEventListener('mouseup', (e) => {
+        // Box selection end
+        if (isBoxSelecting) {
+            isBoxSelecting = false;
+            if (boxSelectElement) {
+                boxSelectElement.style.display = 'none';
+            }
+            updateStatus(`Selected ${state.selectedNotes.size} note(s)`);
+            return;
+        }
+        
+        // Note dragging end
         if (!isDragging) return;
         isDragging = false;
+        isDraggingMultiple = false;
+        multiDragStartTimes.clear();
         if (draggedNote) draggedNote.classList.remove('dragging');
         draggedNote = null;
         document.body.style.cursor = '';
         state.songData.sort((a, b) => a.time - b.time);
+        
+        // Recalculate selected indices after sort
+        const selectedTimes = new Set();
+        state.selectedNotes.forEach(i => {
+            if (state.songData[i]) {
+                selectedTimes.add(`${state.songData[i].key}_${state.songData[i].time}`);
+            }
+        });
+        state.selectedNotes.clear();
+        state.songData.forEach((note, i) => {
+            if (selectedTimes.has(`${note.key}_${note.time}`)) {
+                state.selectedNotes.add(i);
+            }
+        });
+        
         renderNotes();
     });
 
@@ -735,8 +1367,24 @@
         const note = e.target.closest('.note');
         if (note) {
             contextNoteIndex = parseInt(note.dataset.index);
+            // If right-clicking on unselected note, select it
+            if (!state.selectedNotes.has(contextNoteIndex)) {
+                state.selectedNotes.clear();
+                state.selectedNotes.add(contextNoteIndex);
+                renderNotes();
+            }
             elements.contextMenu.style.left = `${e.clientX}px`;
             elements.contextMenu.style.top = `${e.clientY}px`;
+            // Update context menu text based on selection
+            const count = state.selectedNotes.size;
+            const deleteEl = document.getElementById('contextDelete');
+            const dupEl = document.getElementById('contextDuplicate');
+            const mirrorEl = document.getElementById('contextMirror');
+            const quantizeEl = document.getElementById('contextQuantize');
+            if (deleteEl) deleteEl.textContent = count > 1 ? `Delete ${count} Notes` : 'Delete Note';
+            if (dupEl) dupEl.textContent = count > 1 ? `Duplicate ${count} Notes` : 'Duplicate Note';
+            if (mirrorEl) mirrorEl.textContent = count > 1 ? `Mirror ${count} Notes` : 'Mirror Note';
+            if (quantizeEl) quantizeEl.textContent = count > 1 ? `Quantize ${count} Notes` : 'Quantize Note';
             elements.contextMenu.classList.add('active');
         }
     });
@@ -751,26 +1399,82 @@
     });
 
     elements.contextDelete.addEventListener('click', () => {
-        if (contextNoteIndex !== null) removeNote(contextNoteIndex);
+        if (state.selectedNotes.size > 0) {
+            removeSelectedNotes();
+        } else if (contextNoteIndex !== null) {
+            removeNote(contextNoteIndex);
+        }
         hideContextMenu();
     });
 
     elements.contextDuplicate.addEventListener('click', () => {
-        if (contextNoteIndex !== null) duplicateNote(contextNoteIndex);
+        if (state.selectedNotes.size > 1) {
+            duplicateSelectedNotes();
+        } else if (contextNoteIndex !== null) {
+            duplicateNote(contextNoteIndex);
+        }
         hideContextMenu();
     });
 
     elements.contextToggleType.addEventListener('click', () => {
-        if (contextNoteIndex !== null) toggleNoteType(contextNoteIndex);
+        if (state.selectedNotes.size > 1) {
+            mirrorSelectedNotes();
+        } else if (contextNoteIndex !== null) {
+            toggleNoteType(contextNoteIndex);
+        }
         hideContextMenu();
     });
 
-    // Waveform click – seek
+    // Additional context menu handlers
+    const contextMirror = document.getElementById('contextMirror');
+    const contextQuantize = document.getElementById('contextQuantize');
+    const contextCopy = document.getElementById('contextCopy');
+    const contextCut = document.getElementById('contextCut');
+    const contextSelectAll = document.getElementById('contextSelectAll');
+
+    if (contextMirror) {
+        contextMirror.addEventListener('click', () => {
+            mirrorSelectedNotes();
+            hideContextMenu();
+        });
+    }
+
+    if (contextQuantize) {
+        contextQuantize.addEventListener('click', () => {
+            quantizeSelectedNotes();
+            hideContextMenu();
+        });
+    }
+
+    if (contextCopy) {
+        contextCopy.addEventListener('click', () => {
+            copySelectedNotes();
+            hideContextMenu();
+        });
+    }
+
+    if (contextCut) {
+        contextCut.addEventListener('click', () => {
+            cutSelectedNotes();
+            hideContextMenu();
+        });
+    }
+
+    if (contextSelectAll) {
+        contextSelectAll.addEventListener('click', () => {
+            state.songData.forEach((_, i) => state.selectedNotes.add(i));
+            renderNotes();
+            hideContextMenu();
+        });
+    }
+
+    // Waveform click – seek (proportional to range since waveform shows only the range)
     elements.waveformArea.addEventListener('click', (e) => {
         const rect = elements.waveformArea.getBoundingClientRect();
         const x = e.clientX - rect.left;
-        const time = xToTime(x + elements.tracksArea.scrollLeft);
-        state.currentTime = Math.max(0, Math.min(time, state.duration));
+        const pct = x / rect.width;
+        const rangeDuration = state.rangeEnd - state.rangeStart;
+        state.currentTime = Math.max(state.rangeStart, Math.min(state.rangeStart + pct * rangeDuration, state.rangeEnd));
         if (state.audioLoaded) audioElement.currentTime = state.currentTime / 1000;
         updatePlayheadPosition();
         updateTimeDisplay();
@@ -858,9 +1562,7 @@
     window.addEventListener('resize', () => {
         drawTimeRuler();
         if (state.audioLoaded && audioBuffer) {
-            const canvas = elements.waveformCanvas;
-            canvas.width = canvas.offsetWidth * 2;
-            canvas.height = canvas.offsetHeight * 2;
+            renderWaveformRange();
         }
     });
 
@@ -875,7 +1577,76 @@
     // ══════════════════════════════════════════════════════════════
     // PROJECT SAVE / LOAD  (uses JosuStore when songId+diffId present)
     // ══════════════════════════════════════════════════════════════
+    function _requireAuth(action) {
+        if (typeof JosuAuth !== 'undefined' && !JosuAuth.isSignedIn()) {
+            _showSignInPrompt(action);
+            return false;
+        }
+        return true;
+    }
+
+    function _showSignInPrompt(action) {
+        // Reuse existing modal overlay if present, else build one inline
+        let overlay = document.getElementById('editorAuthPrompt');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'editorAuthPrompt';
+            overlay.style.cssText = `
+                position:fixed;inset:0;background:rgba(0,0,0,.72);
+                display:flex;align-items:center;justify-content:center;
+                z-index:99999;font-family:'Segoe UI',system-ui,sans-serif;
+            `;
+            overlay.innerHTML = `
+                <div style="background:#1a1a2e;border:1px solid #0f3460;border-radius:12px;
+                            padding:32px 36px;max-width:380px;width:90%;text-align:center;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                         stroke="#e94560" stroke-width="2" style="margin-bottom:12px">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <h2 style="color:#fff;margin:0 0 8px;font-size:18px">Sign in required</h2>
+                    <p id="editorAuthMsg" style="color:#aaa;font-size:14px;margin:0 0 24px"></p>
+                    <div style="display:flex;gap:10px;justify-content:center">
+                        <button id="editorAuthCancel"
+                            style="background:#2d2d35;border:1px solid #3a3a44;color:#ccc;
+                                   padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px">
+                            Cancel
+                        </button>
+                        <button id="editorAuthSignIn"
+                            style="background:#e94560;border:none;color:#fff;
+                                   padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">
+                            Sign in with Google
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+
+            document.getElementById('editorAuthCancel').addEventListener('click', () => {
+                overlay.style.display = 'none';
+            });
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) overlay.style.display = 'none';
+            });
+            document.getElementById('editorAuthSignIn').addEventListener('click', async () => {
+                const btn = document.getElementById('editorAuthSignIn');
+                btn.textContent = 'Signing in…';
+                btn.disabled = true;
+                try {
+                    await JosuAuth.signInWithGoogle();
+                    overlay.style.display = 'none';
+                } catch (e) {
+                    btn.textContent = 'Sign in with Google';
+                    btn.disabled = false;
+                }
+            });
+        }
+        document.getElementById('editorAuthMsg').textContent =
+            `You need to be signed in to ${action}. Sign in to save your work to the cloud.`;
+        overlay.style.display = 'flex';
+    }
+
     function saveProject() {
+        if (!_requireAuth('save your project')) return;
         if (songId && diffId) {
             // Save back to the store
             JosuStore.updateDifficulty(songId, diffId, {
@@ -883,7 +1654,9 @@
                 mode: state.mode,
                 bpm: state.bpm,
                 duration: state.duration,
-                name: elements.difficultyName.value
+                name: elements.difficultyName.value,
+                rangeStart: state.rangeStart,
+                rangeEnd: state.rangeEnd
             });
             // Also update song-level meta
             JosuStore.updateSong(songId, {
@@ -901,6 +1674,8 @@
                 songTitle: elements.songTitle.value,
                 songArtist: elements.songArtist.value,
                 difficultyName: elements.difficultyName.value,
+                rangeStart: state.rangeStart,
+                rangeEnd: state.rangeEnd,
                 savedAt: new Date().toISOString()
             };
             try {
@@ -925,6 +1700,8 @@
         state.mode = projectDiff.mode || 'taiko';
         state.bpm = projectDiff.bpm || 120;
         state.duration = projectDiff.duration || 60000;
+        state.rangeStart = projectDiff.rangeStart || 0;
+        state.rangeEnd = projectDiff.rangeEnd || state.duration;
 
         elements.bpmInput.value = state.bpm;
         elements.durationInput.value = msToTimeString(state.duration);
@@ -933,6 +1710,7 @@
         updateTrackWidth();
         renderNotes();
         drawTimeRuler();
+        updateRangeUI();
         updateStatus(`Editing: ${projectSong.title} – ${projectDiff.name}`);
 
         // Auto-load audio from IndexedDB or URL
@@ -970,6 +1748,12 @@
             });
             state.duration = audioElement.duration * 1000;
             state.audioLoaded = true;
+            if (state.rangeEnd > state.duration || state.rangeEnd <= 0) {
+                state.rangeEnd = state.duration;
+            }
+            if (state.rangeStart >= state.rangeEnd) {
+                state.rangeStart = 0;
+            }
             elements.durationInput.value = msToTimeString(state.duration);
             elements.waveformPlaceholder.style.display = 'none';
 
@@ -978,6 +1762,7 @@
             await drawWaveform(waveformBlob);
             updateTrackWidth();
             drawTimeRuler();
+            updateRangeUI();
             updateStatus(`Editing: ${projectSong.title} – ${projectDiff.name} (audio loaded)`);
         } catch (err) {
             console.error('Error auto-loading audio:', err);
@@ -994,6 +1779,8 @@
             state.mode = projectData.mode || 'taiko';
             state.bpm = projectData.bpm || 120;
             state.duration = projectData.duration || 60000;
+            state.rangeStart = projectData.rangeStart || 0;
+            state.rangeEnd = projectData.rangeEnd || state.duration;
             if (projectData.songTitle) elements.songTitle.value = projectData.songTitle;
             if (projectData.songArtist) elements.songArtist.value = projectData.songArtist;
             if (projectData.difficultyName) elements.difficultyName.value = projectData.difficultyName;
@@ -1003,6 +1790,7 @@
             updateTrackWidth();
             renderNotes();
             drawTimeRuler();
+            updateRangeUI();
             const savedDate = projectData.savedAt ? new Date(projectData.savedAt).toLocaleString() : 'unknown';
             updateStatus(`Legacy project loaded (${state.songData.length} notes, saved ${savedDate})`);
             return true;
@@ -1021,6 +1809,7 @@
     const LOCAL_SONGS_KEY = 'josu_local_songs';
 
     function uploadToLocal() {
+        if (!_requireAuth('upload to game')) return;
         // First save the project
         saveProject();
 
@@ -1057,8 +1846,13 @@
             songData.audio = '';
         }
 
-        if (!diffData.songData || diffData.songData.length === 0) {
-            alert('No notes to upload! Add some notes first.');
+        // Filter and offset notes to the selected range for game playback
+        const rangedNotes = (diffData.songData || [])
+            .filter(n => n.time >= state.rangeStart && n.time <= state.rangeEnd)
+            .map(n => ({ ...n, time: n.time - state.rangeStart }));
+
+        if (rangedNotes.length === 0) {
+            alert('No notes in the selected range! Add some notes or adjust the range.');
             return;
         }
 
@@ -1078,15 +1872,18 @@
         // Find if this song already exists in local songs
         let existingSong = localSongs.find(s => s.localProjectId === songId);
 
+        const rangeDuration = state.rangeEnd - state.rangeStart;
+        const audioCorr = state.rangeStart > 0 ? -state.rangeStart : 0;
+
         if (existingSong) {
-            // Update existing song
             existingSong.title = songData.title;
             existingSong.artist = songData.artist;
             existingSong.image = songData.coverImage || '';
             existingSong.inGameGif = songData.inGameGif || '';
             existingSong.audio = songData.audio || '';
+            existingSong.time = msToTimeString(rangeDuration);
+            existingSong.audioCorrection = audioCorr;
 
-            // Find or add difficulty
             const existingDiffIdx = existingSong.difficulties.findIndex(d => d.localDiffId === diffId);
             const diffEntry = {
                 localDiffId: diffId,
@@ -1095,7 +1892,7 @@
                 stars: diffData.stars || 1.0,
                 speed: diffData.speed || 1.0,
                 mode: diffData.mode === 'arrow' ? 'updown' : 'taiko',
-                songData: diffData.songData
+                songData: rangedNotes
             };
 
             if (existingDiffIdx >= 0) {
@@ -1104,16 +1901,16 @@
                 existingSong.difficulties.push(diffEntry);
             }
         } else {
-            // Create new local song entry
             const newSong = {
                 id: Date.now() + Math.floor(Math.random() * 10000),
                 localProjectId: songId,
                 title: songData.title,
                 artist: songData.artist,
-                time: msToTimeString(state.duration),
+                time: msToTimeString(rangeDuration),
                 image: songData.coverImage || '',
                 audio: songData.audio || '',
                 inGameGif: songData.inGameGif || '',
+                audioCorrection: audioCorr,
                 ranked: false,
                 isLocal: true,
                 difficulties: [{
@@ -1123,7 +1920,7 @@
                     stars: diffData.stars || 1.0,
                     speed: diffData.speed || 1.0,
                     mode: diffData.mode === 'arrow' ? 'updown' : 'taiko',
-                    songData: diffData.songData
+                    songData: rangedNotes
                 }]
             };
             localSongs.push(newSong);
@@ -1153,16 +1950,23 @@
     // INITIALIZATION
     // ══════════════════════════════════════════════════════════════
     function init() {
-        // Try store-based load first, then legacy
         const loaded = loadFromStore() || loadLegacyProject();
         if (!loaded) {
             state.duration = 60000;
+            state.rangeStart = 0;
+            state.rangeEnd = state.duration;
             elements.durationInput.value = msToTimeString(state.duration);
             updateTrackWidth();
             drawTimeRuler();
             renderNotes();
             updateStatus('Ready – Load audio or start placing notes');
         }
+        if (!state.rangeEnd || state.rangeEnd <= 0) state.rangeEnd = state.duration;
+        if (state.rangeStart >= state.rangeEnd) state.rangeStart = 0;
+        state.currentTime = state.rangeStart;
+        updateRangeUI();
+        updatePlayheadPosition();
+        updateTimeDisplay();
     }
 
     init();

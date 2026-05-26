@@ -59,12 +59,30 @@ body {
   opacity: 0;
 }
 
-/* Solid grey triangles */
+.start-bg {
+  position: absolute;
+  inset: -6%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.middlebar-wrap {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  will-change: transform;
+}
+
+/* Dark overlay on wallpaper */
 .screen.start::before {
   content: '';
   position: absolute;
   inset: -40px;
-  background: radial-gradient(circle at center, #a8c8e8 0%, #5a8ab8 100%);      
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.45) 100%);
   /* background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cpolygon points='0,50 120,280 -120,280' fill='%23aeaeae'/%3E%3Cpolygon points='100,0 260,300 -60,300' fill='%23a8a8a8'/%3E%3Cpolygon points='280,80 440,370 120,370' fill='%23a4a4a4'/%3E%3Cpolygon points='60,200 180,420 -60,420' fill='%23b0b0b0'/%3E%3Cpolygon points='380,30 520,280 240,280' fill='%23a6a6a6'/%3E%3Cpolygon points='460,200 580,410 340,410' fill='%23ababab'/%3E%3Cpolygon points='500,60 600,240 400,240' fill='%23a9a9a9'/%3E%3Cpolygon points='820,20 980,280 660,280' fill='%23a5a5a5'/%3E%3Cpolygon points='920,100 1060,340 780,340' fill='%23ababab'/%3E%3Cpolygon points='1050,40 1180,280 920,280' fill='%23a8a8a8'/%3E%3Cpolygon points='1200,100 1380,400 1020,400' fill='%23a4a4a4'/%3E%3Cpolygon points='1350,30 1500,280 1200,280' fill='%23aeaeae'/%3E%3Cpolygon points='1500,80 1620,320 1380,320' fill='%23a6a6a6'/%3E%3Cpolygon points='80,500 220,740 -60,740' fill='%23ababab'/%3E%3Cpolygon points='200,580 360,850 40,850' fill='%23a8a8a8'/%3E%3Cpolygon points='1300,520 1460,800 1140,800' fill='%23a5a5a5'/%3E%3Cpolygon points='1420,600 1580,880 1260,880' fill='%23ababab'/%3E%3C/svg%3E"); */
   background-size: cover;
@@ -101,8 +119,8 @@ body {
               opacity 0.4s ease;
 }
 
-.screen.start.exiting .middlebar {
-  transform: translateX(-500px);
+.screen.start.exiting .middlebar-wrap {
+  transform: translateX(-500px) !important;
   opacity: 0;
 }
 

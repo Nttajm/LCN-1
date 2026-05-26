@@ -18,17 +18,6 @@ import { songKeys } from './keys.js';
             { name: "Hard", mapper: "joelM", stars: 1.54 },
         ]
     },
-    { 
-        id: 6,
-        title: "Disparate Youth",
-        artist: "Santigold",
-        time: '3:44',
-        image: 'songs/disparate_youth/main.png',
-        ranked: true,
-        difficulties: [
-            { name: "Normal", mapper: "joelM", stars: 1.75 },
-        ]
-    },
     {
         id: 2,
         title: "iloveyou",
@@ -53,7 +42,6 @@ import { songKeys } from './keys.js';
         inGameGif: 'songs/dothatshit/gif.gif',
         ranked: true,
         difficulties: [
-            { name: "Normal", mapper: "Jordan H.", stars: 2.10, mode: "taiko" },
             {name: "Hard", mapper: "Jordan H.", stars: 2.50, mode: "updown", speed: 1, songData: songKeys.dothatshit.hard },
         ]
     },
@@ -93,28 +81,6 @@ import { songKeys } from './keys.js';
             { name: "nooby", mapper: "joelM", stars: 4.10, songData: songKeys.school_rooftop.medium },
         ]
     },
-    {
-        id: 4,
-        title: "Moment",
-        artist: "MIMI",
-        time: '3:20',
-        image: 'songs/ttto/main.png',
-        ranked: true,
-        difficulties: [
-            { name: "Easy", mapper: "joelM", stars: 1.03 },
-        ]
-    },
-    {
-        id: 5,
-        title: "Dreaming",
-        artist: "Artist Name",
-        time: '4:02',
-        image: 'songs/ttto/main.png',
-        ranked: true,
-        difficulties: [
-            { name: "Hard", mapper: "joelM", stars: 3.50 },
-        ]
-    }
 ];
 
 // ══════════════════════════════════════════════════════════════

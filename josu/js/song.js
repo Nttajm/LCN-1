@@ -488,8 +488,9 @@
 
             let audioUrl = song.audio || '';
 
-            // If no existing R2 URL, upload the audio from IndexedDB
-            if (!audioUrl) {
+            // If audio is stored in IndexedDB or no audio URL exists, upload to R2
+            // 'indexeddb' means the audio is only stored locally and needs to be uploaded
+            if (!audioUrl || audioUrl === 'indexeddb') {
                 setPublishStatus('Retrieving audio from project…');
                 publishProgressBar.style.width = '10%';
 
@@ -517,6 +518,9 @@
 
             const maxDuration = diffs.reduce((m, d) => Math.max(m, d.duration || 0), 0);
 
+            const user = typeof JosuAuth !== 'undefined' ? JosuAuth.getUser() : null;
+            const mapperName = user ? (user.displayName || user.email.split('@')[0]) : 'Unknown';
+
             await JosuFirebase.publishSong({
                 storeId: songId,
                 title:            song.title,
@@ -526,14 +530,32 @@
                 inGameGif:        song.inGameGif   || '',
                 audioCorrection:  song.audioCorrection || 0,
                 time:             maxDuration > 0 ? msToTimeStr(maxDuration) : '',
-                difficulties: diffs.map(d => ({
-                    name:     d.name,
-                    mapper:   'Unknown',
-                    stars:    d.stars  ?? 1.0,
-                    mode:     d.mode === 'arrow' ? 'updown' : (d.mode || 'taiko'),
-                    speed:    d.speed  ?? 1.0,
-                    songData: Array.isArray(d.songData) ? [...d.songData] : []
-                }))
+                publisherUid:     user ? user.uid : null,
+                publisherName:    mapperName,
+                difficulties: diffs.map(d => {
+                    const data = Array.isArray(d.songData) ? [...d.songData] : [];
+                    
+                    // Apply range filtering - only include notes within the selected range
+                    // and offset their times so the range starts at 0
+                    const rangeStart = d.rangeStart || 0;
+                    const rangeEnd = d.rangeEnd || d.duration || Infinity;
+                    const rangedNotes = data
+                        .filter(n => n.time >= rangeStart && n.time <= rangeEnd)
+                        .map(n => ({ ...n, time: n.time - rangeStart }));
+                    
+                    // Calculate audio correction for this difficulty's range
+                    const diffAudioCorrection = rangeStart > 0 ? -rangeStart : 0;
+                    
+                    return {
+                        name:     d.name,
+                        mapper:   mapperName,
+                        stars:    d.stars  ?? 1.0,
+                        mode:     d.mode === 'arrow' ? 'updown' : (d.mode || 'taiko'),
+                        speed:    d.speed  ?? 1.0,
+                        songData: rangedNotes,
+                        audioCorrection: diffAudioCorrection
+                    };
+                })
             });
 
             // Mirror to localStorage so local browse also works offline

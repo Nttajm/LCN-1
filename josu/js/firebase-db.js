@@ -30,7 +30,7 @@ const JosuFirebase = (() => {
             ? existing.data().publishedAt
             : new Date().toISOString();
 
-        await ref.set({
+        const doc = {
             storeId,
             title: data.title || 'Untitled',
             artist: data.artist || '',
@@ -48,9 +48,15 @@ const JosuFirebase = (() => {
                 stars: d.stars || 1.0,
                 mode: d.mode || 'taiko',
                 speed: d.speed || 1.0,
-                songData: Array.isArray(d.songData) ? d.songData : []
+                songData: Array.isArray(d.songData) ? d.songData : [],
+                audioCorrection: d.audioCorrection || 0
             }))
-        });
+        };
+
+        if (data.publisherUid)  doc.publisherUid  = data.publisherUid;
+        if (data.publisherName) doc.publisherName = data.publisherName;
+
+        await ref.set(doc);
 
         return storeId;
     }

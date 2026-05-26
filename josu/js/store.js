@@ -29,6 +29,18 @@ const JosuStore = (() => {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
         } catch (e) { console.error('JosuStore: save error', e); }
+        _syncToCloud(store);
+    }
+
+    let _cloudSyncTimeout = null;
+    function _syncToCloud(store) {
+        if (typeof JosuAuth === 'undefined' || !JosuAuth.isSignedIn()) return;
+        clearTimeout(_cloudSyncTimeout);
+        _cloudSyncTimeout = setTimeout(() => {
+            JosuAuth.saveProjectsToCloud(store.songs).catch(e =>
+                console.warn('JosuStore: cloud sync error', e)
+            );
+        }, 2000);
     }
 
     // ── Song CRUD ───────────────────────────────────────────
@@ -198,13 +210,26 @@ const JosuStore = (() => {
                 // Get songData - ensure we get the actual array (with fallback for old 'notes' property)
                 const data = Array.isArray(d.songData) ? [...d.songData] : 
                              Array.isArray(d.notes) ? [...d.notes] : [];
+                
+                // Apply range filtering - only include notes within the selected range
+                // and offset their times so the range starts at 0
+                const rangeStart = d.rangeStart || 0;
+                const rangeEnd = d.rangeEnd || d.duration || Infinity;
+                const rangedNotes = data
+                    .filter(n => n.time >= rangeStart && n.time <= rangeEnd)
+                    .map(n => ({ ...n, time: n.time - rangeStart }));
+                
+                // Calculate audio correction for this difficulty's range
+                const diffAudioCorrection = rangeStart > 0 ? -rangeStart : 0;
+                
                 return {
                     name: d.name,
                     mapper: 'You',
                     stars: d.stars || 1.0,
                     mode: convertMode(d.mode),
                     speed: d.speed || 1.0,
-                    songData: data
+                    songData: rangedNotes,
+                    audioCorrection: diffAudioCorrection
                 };
             })
         };
@@ -256,20 +281,19 @@ const JosuStore = (() => {
         if (!song) return false;
         const diffs = getDifficulties(songId);
 
-        // Convert mode for game compatibility ('arrow' -> 'updown')
         function convertMode(mode) {
             if (mode === 'arrow') return 'updown';
             return mode || 'taiko';
         }
 
-        // Generate a stable database ID for this published song
         const dbId = 'pub_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        
-        // Check if already published (update instead of creating new)
         const existing = _loadPublishedSongs().find(s => s._storeId === songId);
         const finalId = existing ? existing.id : dbId;
 
         const maxDuration = diffs.length > 0 ? Math.max(...diffs.map(d => d.duration || 0)) : 0;
+
+        const user = typeof JosuAuth !== 'undefined' ? JosuAuth.getUser() : null;
+        const mapperName = user ? (user.displayName || user.email.split('@')[0]) : 'You';
 
         const publishedEntry = {
             _storeId: songId,
@@ -283,19 +307,33 @@ const JosuStore = (() => {
             time: maxDuration > 0 ? _msToTimeStr(maxDuration) : '',
             ranked: false,
             isPublished: true,
+            publisherUid: user ? user.uid : null,
+            publisherName: mapperName,
             publishedAt: existing ? existing.publishedAt : now(),
             updatedAt: now(),
             difficulties: diffs.map(d => {
-                // Get songData - ensure we get the actual array (with fallback for old 'notes' property)
                 const data = Array.isArray(d.songData) ? [...d.songData] : 
                              Array.isArray(d.notes) ? [...d.notes] : [];
+                
+                // Apply range filtering - only include notes within the selected range
+                // and offset their times so the range starts at 0
+                const rangeStart = d.rangeStart || 0;
+                const rangeEnd = d.rangeEnd || d.duration || Infinity;
+                const rangedNotes = data
+                    .filter(n => n.time >= rangeStart && n.time <= rangeEnd)
+                    .map(n => ({ ...n, time: n.time - rangeStart }));
+                
+                // Calculate audio correction for this difficulty's range
+                const diffAudioCorrection = rangeStart > 0 ? -rangeStart : 0;
+                
                 return {
                     name: d.name,
-                    mapper: 'You',
+                    mapper: mapperName,
                     stars: d.stars || 1.0,
                     mode: convertMode(d.mode),
                     speed: d.speed || 1.0,
-                    songData: data
+                    songData: rangedNotes,
+                    audioCorrection: diffAudioCorrection
                 };
             })
         };
@@ -334,6 +372,7 @@ const JosuStore = (() => {
         try {
             localStorage.setItem(DOWNLOADED_KEY, JSON.stringify(arr));
         } catch (e) { console.error('JosuStore: save downloaded ids error', e); }
+        _syncDownloadedToCloud();
     }
 
     function getDownloadedSongIds() {
@@ -403,6 +442,41 @@ const JosuStore = (() => {
             console.error('JosuStore: migration error', e);
             return false;
         }
+    }
+
+    // ── Cloud sync on auth change ─────────────────────────
+    function _initAuthSync() {
+        if (typeof JosuAuth === 'undefined') return;
+        JosuAuth.onAuthChange(async (user) => {
+            if (!user) return;
+            try {
+                const cloudProjects = await JosuAuth.loadProjectsFromCloud();
+                if (!cloudProjects || Object.keys(cloudProjects).length === 0) return;
+                const local = _load();
+                let changed = false;
+                for (const [id, song] of Object.entries(cloudProjects)) {
+                    if (!local.songs[id]) {
+                        local.songs[id] = song;
+                        changed = true;
+                    } else {
+                        const lt = new Date(local.songs[id].updatedAt || 0).getTime();
+                        const rt = new Date(song.updatedAt || 0).getTime();
+                        if (rt > lt) { local.songs[id] = song; changed = true; }
+                    }
+                }
+                if (changed) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(local));
+                }
+            } catch (e) { console.warn('JosuStore: auth sync error', e); }
+        });
+    }
+    _initAuthSync();
+
+    // ── Downloaded songs cloud sync ─────────────────────────
+    function _syncDownloadedToCloud() {
+        if (typeof JosuAuth === 'undefined' || !JosuAuth.isSignedIn()) return;
+        const ids = _loadDownloadedIds();
+        JosuAuth.saveDownloadedToCloud(ids).catch(() => {});
     }
 
     // ── public API ──────────────────────────────────────────
