@@ -286,6 +286,158 @@
         }
     });
 
+    // ══════════════════════════════════════════════════════════════
+    // SETTINGS SIDEBAR
+    // ══════════════════════════════════════════════════════════════
+    const settingsSidebar = document.getElementById('settingsSidebar');
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+    const settingsSignBtn = document.getElementById('settingsSignBtn');
+    const settingsSignText = document.getElementById('settingsSignText');
+    const settingsResetCache = document.getElementById('settingsResetCache');
+    const taikoKeybindToggle = document.getElementById('taikoKeybindToggle');
+    const arrowKeybindToggle = document.getElementById('arrowKeybindToggle');
+
+    // Keybind settings with defaults
+    let josuSettings = {
+        taikoKeys: localStorage.getItem('josu_taiko_keys') || 'df',
+        arrowKeys: localStorage.getItem('josu_arrow_keys') || 'dfjk'
+    };
+
+    function saveSettings() {
+        localStorage.setItem('josu_taiko_keys', josuSettings.taikoKeys);
+        localStorage.setItem('josu_arrow_keys', josuSettings.arrowKeys);
+    }
+
+    function openSettings() {
+        settingsSidebar.classList.add('open');
+        settingsOverlay.classList.add('open');
+        updateSettingsUI();
+    }
+
+    function closeSettings() {
+        settingsSidebar.classList.remove('open');
+        settingsOverlay.classList.remove('open');
+    }
+
+    function updateSettingsUI() {
+        // Update sign in/out button
+        if (typeof JosuAuth !== 'undefined' && JosuAuth.isSignedIn()) {
+            settingsSignText.textContent = 'Sign Out';
+        } else {
+            settingsSignText.textContent = 'Sign In';
+        }
+
+        // Update keybind selections
+        taikoKeybindToggle.querySelectorAll('.keybind-option').forEach(btn => {
+            btn.classList.toggle('selected', btn.dataset.keys === josuSettings.taikoKeys);
+        });
+        arrowKeybindToggle.querySelectorAll('.keybind-option').forEach(btn => {
+            btn.classList.toggle('selected', btn.dataset.keys === josuSettings.arrowKeys);
+        });
+    }
+
+    // Settings button in middlebar
+    document.querySelector('.mbar-item.settings-btn').addEventListener('click', openSettings);
+
+    // Settings button in auth bar (added after auth bar renders)
+    function attachAuthBarSettingsHandler() {
+        const authSettingsBtn = document.getElementById('josuSettingsBtn');
+        if (authSettingsBtn) {
+            authSettingsBtn.addEventListener('click', openSettings);
+        }
+    }
+
+    // Listen for auth state to re-attach handler when auth bar re-renders
+    if (typeof JosuAuth !== 'undefined') {
+        JosuAuth.onAuthChange(() => {
+            setTimeout(attachAuthBarSettingsHandler, 50);
+            updateSettingsUI();
+        });
+    }
+    setTimeout(attachAuthBarSettingsHandler, 100);
+
+    // Close sidebar
+    settingsCloseBtn.addEventListener('click', closeSettings);
+    settingsOverlay.addEventListener('click', closeSettings);
+
+    // Sign in/out
+    settingsSignBtn.addEventListener('click', async () => {
+        if (typeof JosuAuth === 'undefined') return;
+        if (JosuAuth.isSignedIn()) {
+            await JosuAuth.signOut();
+        } else {
+            try {
+                await JosuAuth.signInWithGoogle();
+            } catch (e) {
+                if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                    console.error('Sign in error:', e);
+                }
+            }
+        }
+        updateSettingsUI();
+    });
+
+    // Taiko keybind toggle
+    taikoKeybindToggle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.keybind-option');
+        if (!btn) return;
+        josuSettings.taikoKeys = btn.dataset.keys;
+        saveSettings();
+        updateSettingsUI();
+        updateKeyLabels();
+    });
+
+    // Arrow keybind toggle
+    arrowKeybindToggle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.keybind-option');
+        if (!btn) return;
+        josuSettings.arrowKeys = btn.dataset.keys;
+        saveSettings();
+        updateSettingsUI();
+        updateKeyLabels();
+    });
+
+    // Reset cache
+    settingsResetCache.addEventListener('click', () => {
+        if (confirm('Are you sure you want to reset all cache data? This will clear your records, preferences, and downloaded songs.')) {
+            localStorage.clear();
+            josuSettings = { taikoKeys: 'df', arrowKeys: 'dfjk' };
+            updateSettingsUI();
+            updateKeyLabels();
+            alert('Cache cleared. The page will reload.');
+            location.reload();
+        }
+    });
+
+    // Update key labels in the game UI
+    function updateKeyLabels() {
+        const keyLabels = document.querySelectorAll('.key-labels .key-label');
+        if (keyLabels.length === 4) {
+            if (josuSettings.arrowKeys === 'arrows') {
+                keyLabels[0].textContent = '←';
+                keyLabels[1].textContent = '↓';
+                keyLabels[2].textContent = '↑';
+                keyLabels[3].textContent = '→';
+            } else {
+                keyLabels[0].textContent = 'D';
+                keyLabels[1].textContent = 'F';
+                keyLabels[2].textContent = 'J';
+                keyLabels[3].textContent = 'K';
+            }
+        }
+
+        // Update tip bar text based on keybinds
+        const tipText = document.querySelector('.tip-text');
+        if (tipText) {
+            const taikoKeyText = josuSettings.taikoKeys === 'jk' ? 'J and K' : 'D and F';
+            tipText.textContent = `Use ${taikoKeyText} keys for outer and inner drum hits. Press ESC to pause during gameplay!`;
+        }
+    }
+
+    // Initialize key labels on load
+    updateKeyLabels();
+
     // Background image handling
     const img1 = document.getElementById('img1');
     const img2 = document.getElementById('img2');
@@ -1519,12 +1671,22 @@
     const ARROW_GREAT_WINDOW = 80; // ms for GREAT
     // OK is anything within HIT_WINDOW but outside GREAT_WINDOW
 
-    const ARROW_KEY_MAP = {
-        'd': 'left',
-        'f': 'down',
-        'j': 'up',
-        'k': 'right'
-    };
+    function getArrowKeyMap() {
+        if (josuSettings.arrowKeys === 'arrows') {
+            return {
+                'arrowleft': 'left',
+                'arrowdown': 'down',
+                'arrowup': 'up',
+                'arrowright': 'right'
+            };
+        }
+        return {
+            'd': 'left',
+            'f': 'down',
+            'j': 'up',
+            'k': 'right'
+        };
+    }
 
     const ARROW_DIR_INDEX = { 'left': 0, 'down': 1, 'up': 2, 'right': 3 };
 
@@ -1735,7 +1897,8 @@
     // Arrow key handler
     document.addEventListener('keydown', (e) => {
         if (!arrowGameRunning || isPaused) return;
-        const dir = ARROW_KEY_MAP[e.key.toLowerCase()];
+        const keyMap = getArrowKeyMap();
+        const dir = keyMap[e.key.toLowerCase()];
         if (!dir) return;
         e.preventDefault();
 
@@ -2572,15 +2735,28 @@
     }
 
     // Key press handler for taiko hits
+    function getTaikoKeyMapping(key) {
+        const k = key.toLowerCase();
+        if (josuSettings.taikoKeys === 'jk') {
+            if (k === 'j') return { drum: 'outer', noteKey: 'd' };
+            if (k === 'k') return { drum: 'inner', noteKey: 'f' };
+        } else {
+            if (k === 'd') return { drum: 'outer', noteKey: 'd' };
+            if (k === 'f') return { drum: 'inner', noteKey: 'f' };
+        }
+        return null;
+    }
+
     document.addEventListener('keydown', (e) => {
         if (!gameRunning || isPaused || currentGameMode === 'updown') return;
-        if (e.key !== 'd' && e.key !== 'f') return;
+        const mapping = getTaikoKeyMapping(e.key);
+        if (!mapping) return;
         e.preventDefault();
 
         const elapsed = performance.now() - gameStartTime;
 
         // Animate drum press
-        const drum = e.key === 'd' ? drumOuter : drumInner;
+        const drum = mapping.drum === 'outer' ? drumOuter : drumInner;
         drum.classList.add('drum-press');
         setTimeout(() => drum.classList.remove('drum-press'), 100);
 
@@ -2589,7 +2765,7 @@
         let bestDiff = Infinity;
         let bestSigned = 0;
         for (const note of gameNotes) {
-            if (note.state !== 'active' || note.key !== e.key) continue;
+            if (note.state !== 'active' || note.key !== mapping.noteKey) continue;
             const diff = Math.abs(note.time - elapsed);
             if (diff < bestDiff && diff <= HIT_WINDOW) {
                 bestDiff = diff;
