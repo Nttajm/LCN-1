@@ -97,9 +97,15 @@ function initCircularLoader() {
   }, interval);
 }
 
+// Wait for the dynamic home grid (home.js) before touching grid DOM. Resolves
+// immediately when the page is using the static markup.
+function whenHomeReady() {
+  return Promise.resolve(window.__homeReady).catch(() => {});
+}
+
 // Initialize loader when page loads
 window.addEventListener("load", () => {
-  setTimeout(initCircularLoader, 500);
+  whenHomeReady().then(() => setTimeout(initCircularLoader, 500));
 });
 
 
@@ -152,7 +158,7 @@ function initSlideshows() {
 // Start slideshows after the card flip finishes
 window.addEventListener("load", () => {
   // Wait for loader (2s) + flip trigger delay (300ms) + flip anim (800ms) + buffer
-  setTimeout(initSlideshows, 3600);
+  whenHomeReady().then(() => setTimeout(initSlideshows, 3600));
 });
 
 
@@ -180,7 +186,7 @@ function initRevealBorder() {
 }
 
 window.addEventListener('load', () => {
-  setTimeout(initRevealBorder, 3600);
+  whenHomeReady().then(() => setTimeout(initRevealBorder, 3600));
 });
 
 
@@ -217,5 +223,7 @@ function initTilePress() {
   });
 }
 
-window.addEventListener('load', initTilePress);
+window.addEventListener('load', () => {
+  whenHomeReady().then(initTilePress);
+});
 

@@ -34,6 +34,7 @@ export const work = {
   },
   games: {
     label: 'Games',
+    cover: 'icons/games.png',
     items: [
       {
         id: 'overunderths',
@@ -448,22 +449,62 @@ const catViews = {
 
 // ─── Cat-View Renderers ────────────────────────────────────────────────────
 
+function buildTextItemClasses(item) {
+  const cls = ['cv-grid-item', 'text-item'];
+  if (item.textSize && item.textSize !== 'md')     cls.push(`cv-ts-${item.textSize}`);
+  if (item.textStyle && item.textStyle !== 'body') cls.push(`cv-tw-${item.textStyle}`);
+  if (item.textAlign && item.textAlign !== 'center') cls.push(`cv-ta-${item.textAlign}`);
+  if (item.verticalAlign && item.verticalAlign !== 'mid') cls.push(`cv-va-${item.verticalAlign}`);
+  return cls.join(' ');
+}
+
 function renderGridItems(items) {
-  return items.map(item =>
-    `<div class="cv-grid-item" style="grid-column:${item.col};grid-row:${item.row}">
-      <img src="${item.src}" alt="">
-    </div>`
-  ).join('');
+  return items.map(item => {
+    const sty = `grid-column:${item.col};grid-row:${item.row}`;
+    if (item.type === 'text') {
+      const bg = item.bg ? `;background:${item.bg}` : '';
+      const cls = buildTextItemClasses(item);
+      return `<div class="${cls}" style="${sty}${bg}">${item.content || ''}</div>`;
+    }
+    return `<div class="cv-grid-item" style="${sty}"><img src="${item.src}" alt=""></div>`;
+  }).join('');
+}
+
+function getGridRows(items = [], configuredRows, fallback) {
+  const fromItems = items.reduce((max, item) => {
+    const [, end = 2] = String(item.row ?? '1/2').split('/').map(Number);
+    return Math.max(max, end - 1);
+  }, 1);
+  const configured = Number.isFinite(configuredRows) ? configuredRows : fallback;
+  return Math.max(configured, fromItems);
+}
+
+function getCoverStyleAttr(cover) {
+  return cover ? ` style="background-image: url('${cover}')"` : '';
+}
+
+function getDataAttr(name, value) {
+  return value ? ` data-${name}="${String(value).replace(/"/g, '&quot;')}"` : '';
+}
+
+function getLcnHref(path) {
+  if (!path) return '#';
+  if (/^(https?:)?\/\//.test(path) || path.startsWith('/')) return path;
+  return `../${path.replace(/^\.?\//, '')}`;
 }
 
 function renderCard(card) {
+  const mobileItems = card.gridImages.mobile || [];
+  const desktopItems = card.gridImages.desktop || [];
+  const mobileRows = getGridRows(mobileItems, card.gridRows?.mobile, 5);
+  const desktopRows = getGridRows(desktopItems, card.gridRows?.desktop, 4);
   return `
-    <div class="cv-site-card">
+    <div class="cv-site-card"${getDataAttr('lcn', card.isInLcn)}>
       <h2 class="cv-card-title">${card.title}</h2>
       <p class="cv-card-desc">${card.description}</p>
       <div class="cv-screenshot-grid">
-        <div class="cv-grid-mobile">${renderGridItems(card.gridImages.mobile)}</div>
-        <div class="cv-grid-desktop">${renderGridItems(card.gridImages.desktop)}</div>
+        <div class="cv-grid-mobile" style="--grid-rows:${mobileRows}">${renderGridItems(mobileItems)}</div>
+        <div class="cv-grid-desktop" style="--grid-rows:${desktopRows}">${renderGridItems(desktopItems)}</div>
       </div>
     </div>`;
 }
@@ -490,21 +531,39 @@ function renderSection(tier) {
     </section>`;
 }
 
-function buildCatView(categoryKey) {
-  const data = catViews[categoryKey];
-  if (!data) return;
+// Cached views data loaded from single JSON file
+let cachedViews = null;
+
+async function loadViewsData() {
+  if (cachedViews) return cachedViews;
+  try {
+    const res = await fetch('data/views.json');
+    if (res.ok) cachedViews = await res.json();
+  } catch {}
+  return cachedViews || {};
+}
+
+async function buildCatView(categoryKey) {
+  const allViews = await loadViewsData();
+  let data = allViews[categoryKey] || catViews[categoryKey];
+
+  if (!data) return false;
 
   const catView = document.querySelector('.cat-view');
   catView.style.setProperty('--cat-color', data.color);
+
+  const cover = data.cover || null;
 
   const dailElems = data.tiers.map((tier, i) =>
     `<div class="cv-elem${i === 0 ? ' current' : ''}" data-target="cv-${tier.id}">${tier.label}</div>`
   ).join('');
 
   catView.innerHTML = `
-    <div class="cv-explainer">
-      <h1>${data.title}</h1>
-      <p>${data.description}</p>
+    <div class="cv-explainer${cover ? ' has-cover' : ''}"${getCoverStyleAttr(cover)}>
+      <div class="cv-explainer-inner">
+        <h1>${data.title}</h1>
+        <p>${data.description}</p>
+      </div>
     </div>
     <div class="cv-dail">
       <div class="cv-elem-holder">${dailElems}</div>
@@ -514,6 +573,7 @@ function buildCatView(categoryKey) {
     </div>`;
 
   initCatDail(catView);
+  return true;
 }
 
 // ─── Cat-View Dail ─────────────────────────────────────────────────────────
@@ -641,18 +701,241 @@ function initCatDail(catView) {
   }, { passive: true });
 }
 
-// ─── Cat-View Open / Close ─────────────────────────────────────────────────
+// ─── App-specific View Builder ─────────────────────────────────────────────
 
-function openCatView(categoryKey) {
-  if (!catViews[categoryKey]) return;
+async function buildAppView(app) {
+  const foundInKey = app.foundIn?.[0];
+  if (!foundInKey) return false;
+
+  // Load the category data from cached views or built-in catViews
+  const allViews = await loadViewsData();
+  let catData = allViews[foundInKey] || catViews[foundInKey];
+
+  if (!catData) return false;
 
   const catView = document.querySelector('.cat-view');
-  const hero = document.querySelector('.hero');
+  catView.style.setProperty('--cat-color', catData.color);
+  
+  // Set the app's logo/cover as background
+  const appBackground = app.cover || app.logo;
+
+  // Find the specific card that matches this app
+  const allCards = catData.tiers.flatMap(t => t.cards);
+  const appCard = allCards.find(card => 
+    card.title.toLowerCase() === app.name.toLowerCase() ||
+    card.title.toLowerCase().replace(/\s/g, '') === app.name.toLowerCase().replace(/\s/g, '')
+  );
+
+  // If we found a matching card, show only that one. Otherwise, show all cards as fallback.
+  const cardsToShow = appCard ? [appCard] : allCards;
+  const cardsHTML = cardsToShow.map(card => {
+    const mobileItems = card.gridImages?.mobile || [];
+    const desktopItems = card.gridImages?.desktop || [];
+    const mobileRows = getGridRows(mobileItems, card.gridRows?.mobile, 5);
+    const desktopRows = getGridRows(desktopItems, card.gridRows?.desktop, 4);
+    return `
+      <div class="cv-site-card"${getDataAttr('lcn', card.isInLcn)}>
+        <div class="cv-screenshot-grid">
+          <div class="cv-grid-mobile" style="--grid-rows:${mobileRows}">${renderGridItems(mobileItems)}</div>
+          <div class="cv-grid-desktop" style="--grid-rows:${desktopRows}">${renderGridItems(desktopItems)}</div>
+        </div>
+      </div>`;
+  }).join('');
+  const lcnPath = app.isInLcn || appCard?.isInLcn || null;
+
+  catView.innerHTML = `
+    <div class="cv-explainer${appBackground ? ' has-cover' : ''}"${getCoverStyleAttr(appBackground)}>
+      <div class="cv-explainer-inner">
+        <h1>${app.name}</h1>
+        <p>${app.description || ''}</p>
+      </div>
+    </div>
+    <div class="cv-sections">
+      <section class="cv-section" style="padding-top:2.5rem">
+        ${cardsHTML}
+      </section>
+    </div>`;
+
+  return { catData, foundInKey, lcnPath };
+}
+
+// ─── Cat-View Open / Close ─────────────────────────────────────────────────
+
+let stopCategoryLcnTracking = null;
+let lcnHideToken = 0;
+let tagHideToken = 0;
+
+function showBackBtn(color, tagText, tagCatKey) {
+  const group = document.querySelector('.cv-back-group');
   const backBtn = document.querySelector('.cv-back-btn');
+  const tag = document.querySelector('.cv-back-tag');
 
-  buildCatView(categoryKey);
-
+  group.style.setProperty('--cat-color', color);
+  backBtn.classList.remove('hiding');
   backBtn.classList.add('visible');
+
+  if (tagText && tag) {
+    tagHideToken++;
+    const label = tag.querySelector('.cv-back-tag-label');
+    if (label) label.textContent = `Found in "${tagText}"`;
+    tag.dataset.catKey = tagCatKey || '';
+    tag.classList.remove('hiding');
+    tag.classList.add('visible');
+  } else if (tag) {
+    tagHideToken++;
+    const label = tag.querySelector('.cv-back-tag-label');
+    if (label) label.textContent = '';
+    tag.dataset.catKey = '';
+    tag.classList.remove('visible', 'hiding');
+  }
+}
+
+function showLcnLink(path, { above = false } = {}) {
+  const group = document.querySelector('.cv-back-group');
+  const link = document.querySelector('.cv-lcn-link');
+  if (!group || !link || !path) return;
+
+  lcnHideToken++;
+  link.href = getLcnHref(path);
+  group.classList.toggle('lcn-above', above);
+  link.classList.remove('hiding');
+  link.classList.add('visible');
+}
+
+function hideLcnLink({ clearAbove = true } = {}) {
+  const group = document.querySelector('.cv-back-group');
+  const link = document.querySelector('.cv-lcn-link');
+  if (!group || !link) return;
+
+  if (!link.classList.contains('visible')) {
+    if (!link.classList.contains('hiding')) {
+      link.removeAttribute('href');
+      if (clearAbove) group.classList.remove('lcn-above');
+    }
+    return;
+  }
+
+  const token = ++lcnHideToken;
+  link.classList.remove('visible');
+  link.classList.add('hiding');
+  link.addEventListener('animationend', () => {
+    if (token !== lcnHideToken) return;
+    link.classList.remove('hiding');
+    link.removeAttribute('href');
+    if (clearAbove) group.classList.remove('lcn-above');
+  }, { once: true });
+}
+
+function clearCategoryLcnTracking() {
+  if (!stopCategoryLcnTracking) return;
+  stopCategoryLcnTracking();
+  stopCategoryLcnTracking = null;
+}
+
+function initCategoryLcnTracking(catView) {
+  clearCategoryLcnTracking();
+  const cards = Array.from(catView.querySelectorAll('.cv-site-card[data-lcn]'));
+  if (!cards.length) {
+    hideLcnLink();
+    return;
+  }
+
+  function updateLcnLink() {
+    const viewportCenter = window.innerHeight * 0.52;
+    let activeCard = null;
+    let activeDistance = Infinity;
+
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      if (rect.bottom < window.innerHeight * 0.18 || rect.top > window.innerHeight * 0.82) return;
+      const distance = Math.abs((rect.top + rect.bottom) / 2 - viewportCenter);
+      if (distance < activeDistance) {
+        activeDistance = distance;
+        activeCard = card;
+      }
+    });
+
+    if (activeCard) {
+      showLcnLink(activeCard.dataset.lcn);
+    } else {
+      hideLcnLink();
+    }
+  }
+
+  catView.addEventListener('scroll', updateLcnLink, { passive: true });
+  window.addEventListener('resize', updateLcnLink);
+  requestAnimationFrame(updateLcnLink);
+
+  stopCategoryLcnTracking = () => {
+    catView.removeEventListener('scroll', updateLcnLink);
+    window.removeEventListener('resize', updateLcnLink);
+  };
+}
+
+function hideBackBtn() {
+  const group = document.querySelector('.cv-back-group');
+  const backBtn = document.querySelector('.cv-back-btn');
+  const tag = document.querySelector('.cv-back-tag');
+
+  backBtn.classList.remove('visible');
+  backBtn.classList.add('hiding');
+  if (tag && tag.classList.contains('visible')) {
+    const token = ++tagHideToken;
+    tag.classList.remove('visible');
+    tag.classList.add('hiding');
+    tag.addEventListener('animationend', () => {
+      if (token !== tagHideToken) return;
+      tag.classList.remove('hiding');
+      const label = tag.querySelector('.cv-back-tag-label');
+      if (label) label.textContent = '';
+      tag.dataset.catKey = '';
+    }, { once: true });
+  }
+
+  backBtn.addEventListener('animationend', () => {
+    backBtn.classList.remove('hiding');
+    group.style.removeProperty('--cat-color');
+  }, { once: true });
+}
+
+export async function openCatView(categoryKey) {
+  const catView = document.querySelector('.cat-view');
+  const hero = document.querySelector('.hero');
+  clearCategoryLcnTracking();
+  hideLcnLink();
+
+  const built = await buildCatView(categoryKey);
+  if (!built) return;
+
+  const color = catView.style.getPropertyValue('--cat-color');
+  showBackBtn(color, null, null);
+  initCategoryLcnTracking(catView);
+
+  hero.classList.add('cv-open');
+  catView.classList.add('open');
+}
+
+export async function openAppView(app) {
+  const catView = document.querySelector('.cat-view');
+  const hero = document.querySelector('.hero');
+  clearCategoryLcnTracking();
+  hideLcnLink();
+
+  const result = await buildAppView(app);
+  if (!result) {
+    // Fallback: open regular cat-view for the category
+    openCatView(app.category.toLowerCase());
+    return;
+  }
+
+  const color = catView.style.getPropertyValue('--cat-color');
+  const catTitle = result.catData.title || result.foundInKey;
+  const lcnAbove = Boolean(result.lcnPath && catTitle);
+  const group = document.querySelector('.cv-back-group');
+  if (group) group.classList.toggle('lcn-above', lcnAbove);
+  showBackBtn(color, catTitle, result.foundInKey);
+  if (result.lcnPath) showLcnLink(result.lcnPath, { above: lcnAbove });
+
   hero.classList.add('cv-open');
   catView.classList.add('open');
 }
@@ -660,15 +943,17 @@ function openCatView(categoryKey) {
 function closeCatView() {
   const catView = document.querySelector('.cat-view');
   const hero = document.querySelector('.hero');
-  const backBtn = document.querySelector('.cv-back-btn');
 
-  backBtn.classList.remove('visible');
+  clearCategoryLcnTracking();
+  hideLcnLink();
+  hideBackBtn();
   hero.classList.remove('cv-open');
 
   catView.classList.add('closing');
   catView.addEventListener('animationend', () => {
     catView.classList.remove('open', 'closing');
     catView.style.removeProperty('--cat-color');
+    catView.style.removeProperty('--cat-cover');
     catView.innerHTML = '';
   }, { once: true });
 }
@@ -678,12 +963,77 @@ function closeCatView() {
 function initCatView() {
   document.querySelector('.cv-back-btn').addEventListener('click', closeCatView);
 
-  document.querySelectorAll('.card-back[data-showCat]').forEach(card => {
-    card.addEventListener('click', () => {
-      const cat = card.dataset.showcat ?? card.getAttribute('data-showCat');
-      openCatView(cat);
+  // "Found in X" tag click → navigate to full cat-view
+  const tag = document.querySelector('.cv-back-tag');
+  if (tag) {
+    tag.addEventListener('click', e => {
+      e.stopPropagation();
+      const catKey = tag.dataset.catKey;
+      if (!catKey) return;
+      closeCatView();
+      setTimeout(() => openCatView(catKey), 400);
     });
-  });
+  }
+
+  // Wait for home.js to settle. If it took over the grid (dynamic layout from
+  // data/home.json), it wires routing itself — so we skip to avoid double binds.
+  Promise.resolve(window.__homeReady)
+    .catch(() => {})
+    .then(() => {
+      if (window.__homeDynamic) return;
+      bindStaticRouting();
+    });
+}
+
+function bindStaticRouting() {
+  fetch('data/apps.json')
+    .then(r => (r.ok ? r.json() : null))
+    .then(json => {
+      const apps = Array.isArray(json?.apps) ? json.apps : [];
+      document.querySelectorAll('.card-back').forEach(card => {
+        if (!homeCardHasRoute(card)) return;
+        card.addEventListener('click', () => {
+          openHomeRoute(resolveHomeRoute(card), apps);
+        });
+      });
+    })
+    .catch(() => {});
+}
+
+function readHomeRoute(el) {
+  if (!el) return null;
+  const category = el.getAttribute('data-showCat');
+  if (category) return { type: 'category', value: category };
+  const app = el.getAttribute('data-showApp');
+  if (app) return { type: 'app', value: app };
+  const link = el.getAttribute('data-showLink');
+  if (link) return { type: 'link', value: link };
+  return null;
+}
+
+function homeCardHasRoute(card) {
+  return Boolean(readHomeRoute(card) || card.querySelector('.slide-item[data-showCat], .slide-item[data-showApp], .slide-item[data-showLink]'));
+}
+
+function resolveHomeRoute(card) {
+  const activeSlide = card.querySelector('.slide-item.active');
+  return readHomeRoute(activeSlide) || readHomeRoute(card);
+}
+
+function openHomeRoute(route, apps) {
+  if (!route) return;
+  if (route.type === 'category') {
+    openCatView(route.value);
+    return;
+  }
+  if (route.type === 'app') {
+    const app = apps.find(a => a.id === route.value);
+    if (app) openAppView(app);
+    return;
+  }
+  if (route.type === 'link') {
+    window.location.href = route.value;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initCatView);

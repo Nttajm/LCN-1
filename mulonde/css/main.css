@@ -681,6 +681,17 @@ body {
   scale: 0.5;
 }
 
+.spicon {
+  width: 2.4rem;
+  height: auto;
+  margin: auto auto 0;
+  align-self: center;
+}
+
+.item-small .spicon {
+  width: 1.8rem;
+}
+
 .slide-text {
   font-size: 1.4rem;
   font-weight: 600;
@@ -1549,6 +1560,19 @@ body {
   letter-spacing: 0.01em;
 }
 
+.finder-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.finder-item-sub {
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.52);
+  letter-spacing: 0.01em;
+}
+
 @media (max-width: 768px) {
   .finder {
     background-color: transparent;
@@ -1603,6 +1627,10 @@ body {
 
   .finder-item-name {
     font-size: 1rem;
+  }
+
+  .finder-item-sub {
+    font-size: 0.78rem;
   }
 
   .viewmore .circle {

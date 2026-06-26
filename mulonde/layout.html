@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Layout Editor</title>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding-top:52px;min-height:100vh}
+
+/* ─── Toolbar ─────────────────────────────────────────────── */
+.toolbar{position:fixed;top:0;left:0;right:0;height:52px;background:rgba(6,6,6,.97);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 1.1rem;gap:.6rem;z-index:9999;backdrop-filter:blur(20px)}
+.tb-brand{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);white-space:nowrap}
+.tb-sep{width:1px;height:18px;background:rgba(255,255,255,.1);flex-shrink:0}
+.tb-toggle{display:flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:5px;overflow:hidden}
+.tb-toggle-btn{padding:.32rem .7rem;font-size:.74rem;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.35);transition:all .15s}
+.tb-toggle-btn.active{background:rgba(255,255,255,.1);color:#fff}
+.tb-grid-size{display:flex;align-items:center;gap:.3rem;font-size:.72rem;color:rgba(255,255,255,.4)}
+.tb-grid-size input{width:2.6rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:#fff;font-size:.75rem;padding:.22rem .3rem;text-align:center;font-family:inherit}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.btn{padding:.32rem .8rem;border-radius:5px;font-size:.76rem;font-weight:500;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.85);transition:all .15s;white-space:nowrap}
+.btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.btn.accent{background:#fff;border-color:#fff;color:#000;font-weight:600}
+.btn.accent:hover{opacity:.85;background:#fff}
+.btn.danger{border-color:rgba(255,80,80,.3);color:rgba(255,130,130,.85)}
+.btn.danger:hover{background:rgba(180,20,20,.5);color:#fff}
+.btn.sm{padding:.2rem .5rem;font-size:.68rem}
+
+/* ─── Stage ───────────────────────────────────────────────── */
+.stage{display:flex;min-height:calc(100vh - 52px)}
+.canvas{flex:1;padding:2rem;overflow:auto;display:flex;flex-direction:column;align-items:center}
+.canvas-head{width:100%;max-width:1100px;display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.canvas-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25)}
+.frame{width:100%;max-width:1100px;background:#000; aspect-ratio: 16/9;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;position:relative;transition:max-width .2s}
+.frame.mobile{max-width:430px}
+.frame.tablet{max-width:760px}
+
+/* ─── Editor grid ─────────────────────────────────────────── */
+.ed-grid{display:grid;gap:.35rem;position:relative;--cols:8;--rows:4;grid-template-columns:repeat(var(--cols),1fr);grid-template-rows:repeat(var(--rows),5rem)}
+.ed-guides{position:absolute;inset:1rem;display:grid;gap:.35rem;pointer-events:none;z-index:0;grid-template-columns:repeat(var(--cols),1fr);grid-template-rows:repeat(var(--rows),5rem)}
+.ed-cell{border:1px dashed rgba(255,255,255,.07);border-radius:3px}
+.ed-tile{position:relative;overflow:hidden;border-radius:4px;cursor:move;user-select:none;background:#222;display:flex;align-items:center;justify-content:center;transition:box-shadow .15s;z-index:1}
+.ed-tile.selected{box-shadow:0 0 0 2px #4dabf7,0 8px 28px rgba(0,0,0,.5);z-index:5}
+.ed-tile:hover{box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.ed-tile.dragging{opacity:.9;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.ed-tile img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.ed-tile .t-title{position:absolute;bottom:0;left:0;right:0;padding:.3rem .4rem;font-size:.62rem;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.75));pointer-events:none;line-height:1.2}
+.ed-tile .t-expl{width:100%;height:100%;padding:.55rem .6rem;display:flex;flex-direction:column;gap:.2rem}
+.ed-tile .t-expl h4{font-size:.78rem;font-weight:300;pointer-events:none}
+.ed-tile .t-expl ul{list-style:none;font-size:.56rem;line-height:1.35;color:rgba(255,255,255,.9);pointer-events:none}
+.ed-tile .t-text{font-size:.8rem;font-weight:600;text-align:center;letter-spacing:.04em;line-height:1.25;padding:.4rem;pointer-events:none}
+.ed-tile .t-widget{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7);pointer-events:none}
+.ed-tile .t-seq{position:absolute;top:4px;left:4px;font-size:.55rem;font-family:monospace;background:rgba(0,0,0,.6);padding:1px 5px;border-radius:3px;color:rgba(255,255,255,.75);pointer-events:none;z-index:3}
+.ed-tile .t-route{position:absolute;top:4px;right:4px;font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:rgba(77,171,247,.85);color:#001;padding:1px 5px;border-radius:3px;pointer-events:none;z-index:3}
+.ed-tile .t-route.app{background:rgba(255,196,7,.9)}
+.ed-tile .t-route.link{background:rgba(156,54,181,.9);color:#fff}
+.ed-tile .t-pos{position:absolute;bottom:4px;right:4px;font-size:.55rem;font-family:monospace;background:rgba(0,0,0,.65);color:rgba(255,255,255,.7);padding:1px 5px;border-radius:3px;opacity:0;transition:opacity .15s;pointer-events:none;z-index:3}
+.ed-tile:hover .t-pos,.ed-tile.dragging .t-pos{opacity:1}
+
+/* Resize handles */
+.rz{position:absolute;background:rgba(77,171,247,.5);opacity:0;transition:opacity .15s;z-index:10}
+.ed-tile.selected .rz,.ed-tile:hover .rz{opacity:1}
+.rz:hover{background:rgba(77,171,247,.9)}
+.rz.e{right:0;top:12%;width:6px;height:76%;cursor:e-resize;border-radius:3px}
+.rz.w{left:0;top:12%;width:6px;height:76%;cursor:w-resize;border-radius:3px}
+.rz.n{top:0;left:12%;height:6px;width:76%;cursor:n-resize;border-radius:3px}
+.rz.s{bottom:0;left:12%;height:6px;width:76%;cursor:s-resize;border-radius:3px}
+.rz.se{right:0;bottom:0;width:13px;height:13px;cursor:se-resize}
+.rz.sw{left:0;bottom:0;width:13px;height:13px;cursor:sw-resize}
+.rz.ne{right:0;top:0;width:13px;height:13px;cursor:ne-resize}
+.rz.nw{left:0;top:0;width:13px;height:13px;cursor:nw-resize}
+
+/* ─── Inspector ───────────────────────────────────────────── */
+.inspector{width:340px;flex-shrink:0;background:#0e0e0e;border-left:1px solid rgba(255,255,255,.08);overflow-y:auto;height:calc(100vh - 52px);position:sticky;top:52px}
+.insp-empty{padding:2.5rem 1.5rem;color:rgba(255,255,255,.3);font-size:.82rem;text-align:center;line-height:1.6}
+.insp-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;background:#0e0e0e;z-index:2}
+.insp-head .it{font-size:.85rem;font-weight:600}
+.insp-body{padding:1.1rem}
+.fg{margin-bottom:.95rem}
+.fg-label{display:block;font-size:.66rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.35rem}
+.fg-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#fff;font-size:.84rem;padding:.5rem .65rem;font-family:inherit}
+.fg-input:focus{outline:none;border-color:rgba(255,255,255,.3)}
+textarea.fg-input{resize:vertical;min-height:54px;line-height:1.4}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.seg{display:flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;overflow:hidden}
+.seg button{flex:1;padding:.4rem .2rem;font-size:.72rem;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.4);transition:all .12s}
+.seg button.active{background:rgba(255,255,255,.12);color:#fff}
+.color-row{display:flex;gap:.5rem;align-items:center}
+.color-inp{width:2.3rem;height:2.3rem;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:.12rem;background:transparent;cursor:pointer;flex-shrink:0}
+.check-row{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:rgba(255,255,255,.8);cursor:pointer}
+.check-row input{width:1rem;height:1rem;accent-color:#4dabf7}
+.divider{height:1px;background:rgba(255,255,255,.07);margin:1.1rem 0}
+.sec-title{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center}
+
+/* Sequence list */
+.slide-row{border:1px solid rgba(255,255,255,.1);border-radius:8px;margin-bottom:.55rem;overflow:hidden;background:rgba(255,255,255,.02)}
+.slide-bar{display:flex;align-items:center;gap:.4rem;padding:.45rem .55rem;cursor:pointer}
+.slide-bar .badge{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.slide-bar .badge.image{background:rgba(77,171,247,.25);color:#9ecbf5}
+.slide-bar .badge.explainer{background:rgba(56,194,25,.22);color:#86d96f}
+.slide-bar .badge.text{background:rgba(255,196,7,.22);color:#f0c95a}
+.slide-bar .badge.html{background:rgba(156,54,181,.26);color:#dcb1ea}
+.slide-bar .t-route{position:static;font-size:.54rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:rgba(77,171,247,.2);color:#9ecbf5;padding:1px 6px;border-radius:4px;pointer-events:none}
+.slide-bar .t-route.app{background:rgba(255,196,7,.2);color:#f0c95a}
+.slide-bar .t-route.link{background:rgba(156,54,181,.24);color:#dcb1ea}
+.slide-bar .s-name{flex:1;font-size:.74rem;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slide-bar .mini{width:22px;height:22px;border-radius:4px;background:#222;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.slide-bar .mini:hover{background:rgba(255,255,255,.15);color:#fff}
+.slide-edit{padding:.55rem;border-top:1px solid rgba(255,255,255,.08);display:none}
+.slide-row.open .slide-edit{display:block}
+.add-slide{display:flex;gap:.4rem;margin-top:.4rem}
+.add-slide .btn{flex:1}
+
+/* Export */
+.export-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.export-overlay.hidden{display:none}
+.export-box{background:#0e0e0e;border:1px solid rgba(255,255,255,.1);border-radius:10px;width:min(720px,95vw);max-height:88vh;display:flex;flex-direction:column}
+.export-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.08);font-size:.85rem;font-weight:600}
+.export-actions{display:flex;align-items:center;gap:.5rem}
+.export-fn{font-size:.7rem;color:rgba(255,255,255,.3);font-family:monospace}
+.export-code{flex:1;overflow:auto;padding:1.1rem;font-family:'Courier New',monospace;font-size:.72rem;line-height:1.6;color:rgba(255,255,255,.78);white-space:pre;scrollbar-width:thin}
+.export-hint{padding:.7rem 1.1rem;border-top:1px solid rgba(255,255,255,.06);font-size:.72rem;color:rgba(255,255,255,.3);line-height:1.5}
+.export-hint code{color:rgba(255,255,255,.5);background:rgba(255,255,255,.06);padding:.1rem .3rem;border-radius:3px}
+
+.save-toast{position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%) translateY(1rem);background:rgba(20,20,20,.96);border:1px solid rgba(255,255,255,.12);color:#fff;padding:.55rem 1rem;border-radius:8px;font-size:.78rem;z-index:10000;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
+.save-toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+.save-toast.error{border-color:rgba(255,100,100,.35);color:#ffb4b4}
+.save-toast a{color:#9ecbf5;margin-left:.45rem}
+
+@media(max-width:900px){.inspector{position:fixed;right:0;top:52px;z-index:8000;box-shadow:-10px 0 40px rgba(0,0,0,.6)}}
+  </style>
+</head>
+<body>
+
+<header class="toolbar">
+  <span class="tb-brand">Home Layout</span>
+  <div class="tb-sep"></div>
+  <div class="tb-toggle" id="bpToggle">
+    <button class="tb-toggle-btn active" data-bp="desktop">Desktop</button>
+    <button class="tb-toggle-btn" data-bp="tablet">Tablet</button>
+    <button class="tb-toggle-btn" data-bp="mobile">Mobile</button>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-grid-size">
+    cols <input id="gridCols" type="number" min="1" max="12">
+    rows <input id="gridRows" type="number" min="1" max="12">
+  </div>
+  <div class="tb-right">
+    <button class="btn" id="addTile">+ Tile</button>
+    <button class="btn" id="exportHtml">Export HTML</button>
+    <button class="btn" id="exportJson">Copy JSON</button>
+    <button class="btn accent" id="saveMain" title="Save directly to data/home.json (Ctrl+S)">Save to Main Page</button>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="canvas">
+    <div class="canvas-head">
+      <span class="canvas-title" id="canvasTitle">Desktop · 8 × 4</span>
+      <span class="canvas-title">Drag to move · drag edges to resize</span>
+    </div>
+    <div class="frame" id="frame">
+      <div class="ed-guides" id="edGuides"></div>
+      <div class="ed-grid" id="edGrid"></div>
+    </div>
+  </div>
+  <aside class="inspector" id="inspector">
+    <div class="insp-empty">Select a tile to edit its sequence, colors, and where it links.</div>
+  </aside>
+</div>
+
+<div class="save-toast" id="saveToast" role="status" aria-live="polite"></div>
+
+<div class="export-overlay hidden" id="exportOverlay">
+  <div class="export-box">
+    <div class="export-head">
+      <span id="exportTitle">Export</span>
+      <div class="export-actions">
+        <code class="export-fn" id="exportFn"></code>
+        <button class="btn sm accent" id="exportCopy">Copy</button>
+        <button class="btn sm" id="exportClose">×</button>
+      </div>
+    </div>
+    <pre class="export-code" id="exportCode"></pre>
+    <div class="export-hint" id="exportHint"></div>
+  </div>
+</div>
+
+<script>
+// ─── Default layout (used when data/home.json is missing) ─────────────────────
+const DEFAULT = {
+  grid: { desktop:{cols:8,rows:4}, tablet:{cols:5,rows:5}, mobile:{cols:3,rows:6} },
+  items: [
+    { id:'item-0', kind:'loader', color:'#588B6F', interval:3500, route:{type:'category',value:'demos'},
+      pos:{desktop:{col:'7/9',row:'1/3'},tablet:{col:'4/6',row:'3/5'},mobile:{col:'2/4',row:'1/3'}},
+      slides:[{type:'image',src:'data/work/lacosta/main-image.png',title:'LA COSTA TAQUERIA'},{type:'explainer',color:'#E8590C',heading:'Demos',list:['Interactive prototypes','Creative experiments'],brand:'JM'}] },
+    { id:'item-4', kind:'slideshow', small:true, color:'#38c219', interval:4000, route:{type:'category',value:'games'},
+      pos:{desktop:{col:'6/7',row:'1/2'},tablet:{col:'4/5',row:'1/2'},mobile:{col:'3/4',row:'3/4'}},
+      slides:[{type:'explainer',color:'#38c219',heading:'Games',icon:'icons/games.png',brand:''},{type:'image',src:'data/work/games/overunderThs.png'},{type:'image',src:'data/work/games/mulon.png'}] },
+  ],
+};
+
+const BPS = ['desktop','tablet','mobile'];
+const KNOWN_CATS = ['demos','games','projects'];
+
+const S = { data:null, bp:'desktop', sel:null, apps:[], cats:[], openSlide:null };
+
+const clone = o => JSON.parse(JSON.stringify(o));
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const rich = s => esc(s).replace(/&lt;br\s*\/?&gt;/gi,'<br>');
+const cur = () => S.data.items[S.sel];
+const gridDef = () => S.data.grid[S.bp];
+
+// ─── Load ─────────────────────────────────────────────────────────────────────
+async function loadJSON(url){ try{ const r=await fetch(url); if(r.ok) return await r.json(); }catch{} return null; }
+
+let homeFileHandle = null;
+let toastTimer = null;
+
+const HANDLE_DB = 'mulonde-layout-editor';
+const HANDLE_STORE = 'handles';
+const HANDLE_KEY = 'home-json';
+
+function supportsFileSave() {
+  return typeof window.showOpenFilePicker === 'function';
+}
+
+function openHandleDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(HANDLE_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(HANDLE_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function storeFileHandle(handle) {
+  const db = await openHandleDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(HANDLE_STORE, 'readwrite');
+    tx.objectStore(HANDLE_STORE).put(handle, HANDLE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadStoredFileHandle() {
+  const db = await openHandleDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(HANDLE_STORE, 'readonly');
+    const req = tx.objectStore(HANDLE_STORE).get(HANDLE_KEY);
+    req.onsuccess = () => resolve(req.result ?? null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function clearStoredFileHandle() {
+  const db = await openHandleDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(HANDLE_STORE, 'readwrite');
+    tx.objectStore(HANDLE_STORE).delete(HANDLE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function ensureWritePermission(handle) {
+  if (await handle.queryPermission({ mode: 'readwrite' }) === 'granted') return true;
+  return (await handle.requestPermission({ mode: 'readwrite' })) === 'granted';
+}
+
+function showSaveToast(message, { error = false, preview = false } = {}) {
+  const toast = document.getElementById('saveToast');
+  if (!toast) return;
+  clearTimeout(toastTimer);
+  toast.classList.toggle('error', error);
+  toast.innerHTML = preview
+    ? `${message}<a href="index.html" target="_blank" rel="noopener">Open index.html</a>`
+    : message;
+  toast.classList.add('visible');
+  toastTimer = setTimeout(() => toast.classList.remove('visible'), preview ? 5000 : 2800);
+}
+
+function updateSaveButton() {
+  const btn = document.getElementById('saveMain');
+  if (!btn) return;
+  if (!supportsFileSave()) {
+    btn.title = 'Direct save needs Chrome or Edge over localhost';
+    return;
+  }
+  btn.title = homeFileHandle
+    ? 'Save to data/home.json (Ctrl+S)'
+    : 'Pick data/home.json once, then save anytime (Ctrl+S)';
+}
+
+async function pickHomeFile() {
+  [homeFileHandle] = await window.showOpenFilePicker({
+    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+    multiple: false,
+  });
+  await storeFileHandle(homeFileHandle);
+  updateSaveButton();
+  return homeFileHandle;
+}
+
+async function saveToMainPage() {
+  if (!supportsFileSave()) {
+    showSaveToast('Direct save not supported — use Copy JSON', { error: true });
+    return;
+  }
+
+  const json = JSON.stringify(S.data, null, 2);
+
+  try {
+    if (!homeFileHandle) homeFileHandle = await pickHomeFile();
+    if (!(await ensureWritePermission(homeFileHandle))) {
+      showSaveToast('Save cancelled — file permission needed', { error: true });
+      return;
+    }
+
+    const writable = await homeFileHandle.createWritable();
+    await writable.write(json);
+    await writable.close();
+    showSaveToast('Saved — refresh index.html to preview', { preview: true });
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+    homeFileHandle = null;
+    await clearStoredFileHandle().catch(() => {});
+    updateSaveButton();
+    showSaveToast('Save failed — pick the file again', { error: true });
+  }
+}
+
+async function restoreFileHandle() {
+  if (!supportsFileSave()) {
+    updateSaveButton();
+    return;
+  }
+  try {
+    const handle = await loadStoredFileHandle();
+    if (handle && (await handle.queryPermission({ mode: 'readwrite' })) === 'granted') {
+      homeFileHandle = handle;
+    }
+  } catch {}
+  updateSaveButton();
+}
+
+async function init(){
+  S.data = await loadJSON('data/home.json') || clone(DEFAULT);
+  // normalize grid
+  BPS.forEach(bp=>{ if(!S.data.grid[bp]) S.data.grid[bp]=clone(DEFAULT.grid[bp]); });
+  const appsPayload = await loadJSON('data/apps.json');
+  S.apps = Array.isArray(appsPayload?.apps) ? appsPayload.apps : [];
+  // categories: known + any referenced by apps
+  const set = new Set(KNOWN_CATS);
+  S.apps.forEach(a=>{ if(Array.isArray(a.foundIn)) a.foundIn.forEach(c=>set.add(c)); if(a.category) set.add(String(a.category).toLowerCase()); });
+  S.cats = [...set];
+  await restoreFileHandle();
+  render();
+}
+
+// ─── Position helpers ───────────────────────────────────────────────────────────
+function ensurePos(item){
+  if(!item.pos) item.pos={};
+  BPS.forEach(bp=>{ if(!item.pos[bp]) item.pos[bp]={col:'1/2',row:'1/2'}; });
+  return item.pos;
+}
+const parse = str => { const [a,b]=String(str).split('/').map(Number); return {start:a,end:b}; };
+
+// ─── Render ─────────────────────────────────────────────────────────────────────
+function render(){
+  renderToolbar();
+  renderGrid();
+  renderInspector();
+}
+
+function renderToolbar(){
+  const g = gridDef();
+  document.getElementById('gridCols').value = g.cols;
+  document.getElementById('gridRows').value = g.rows;
+  document.getElementById('canvasTitle').textContent =
+    `${S.bp[0].toUpperCase()+S.bp.slice(1)} · ${g.cols} × ${g.rows}`;
+  const frame = document.getElementById('frame');
+  frame.className = 'frame' + (S.bp==='desktop'?'':' '+S.bp);
+}
+
+function renderGrid(){
+  const g = gridDef();
+  const grid = document.getElementById('edGrid');
+  const guides = document.getElementById('edGuides');
+  [grid,guides].forEach(el=>{ el.style.setProperty('--cols',g.cols); el.style.setProperty('--rows',g.rows); });
+
+  guides.innerHTML = Array(g.cols*g.rows).fill(0).map(()=>'<div class="ed-cell"></div>').join('');
+  grid.innerHTML = S.data.items.map((it,idx)=>renderTile(it,idx)).join('');
+}
+
+function slidePreview(item){
+  if(String(item.backHtml || '').trim()) return '<div class="t-widget">Custom Back HTML</div>';
+  const s = (item.slides||[])[0];
+  if(item.kind==='weather') return '<div class="t-widget">Weather</div>';
+  if(item.kind==='date') return '<div class="t-widget">Date</div>';
+  if(!s) return `<div class="t-widget">${esc(item.kind||'empty')}</div>`;
+  if(s.type==='image') return `${s.src?`<img src="${esc(s.src)}" alt="">`:'<div class="t-widget">image</div>'}${s.title?`<div class="t-title">${rich(s.title)}</div>`:''}`;
+  if(s.type==='explainer'){
+    const list = Array.isArray(s.list)&&s.list.length?`<ul>${s.list.slice(0,3).map(l=>`<li>${rich(l)}</li>`).join('')}</ul>`:'';
+    return `<div class="t-expl"><h4>${rich(s.heading||'')}</h4>${list}</div>`;
+  }
+  if(s.type==='text') return `<div class="t-text">${rich(s.content||'')}</div>`;
+  if(s.type==='html') return `<div class="t-text" style="font-size:.62rem;font-family:monospace;text-transform:none">HTML Slide</div>`;
+  if(s.type==='aboutLogo') return `<div class="t-text" style="font-style:italic;font-family:Georgia,serif;font-size:1.6rem">${esc(s.content||'i')}</div>`;
+  if(s.type==='aboutBio') return `<div class="t-text" style="font-size:.62rem;font-weight:400">${rich(s.content||'')}</div>`;
+  return '<div class="t-widget">slide</div>';
+}
+
+function tileBg(item){
+  const s=(item.slides||[])[0];
+  if(s && s.type==='explainer' && s.color) return s.color;
+  return item.color || '#222';
+}
+
+function routeBadge(route){
+  if(!route||route.type==='none'||!route.value) return '';
+  const cls = route.type==='app'?' app':route.type==='link'?' link':'';
+  return `<div class="t-route${cls}">${esc(route.value)}</div>`;
+}
+
+function renderTile(item,idx){
+  const p = ensurePos(item)[S.bp];
+  const sel = idx===S.sel?' selected':'';
+  const seq = (item.slides||[]).length;
+  const handles = ['n','s','e','w','ne','nw','se','sw'].map(d=>`<div class="rz ${d}" data-dir="${d}"></div>`).join('');
+  return `<div class="ed-tile${sel}" data-idx="${idx}" style="grid-column:${p.col};grid-row:${p.row};background:${tileBg(item)}">
+    ${slidePreview(item)}
+    ${seq>1?`<div class="t-seq">${seq} slides</div>`:''}
+    ${routeBadge(item.route)}
+    <div class="t-pos">${p.col} · ${p.row}</div>
+    ${handles}
+  </div>`;
+}
+
+// ─── Inspector ────────────────────────────────────────────────────────────────
+function renderInspector(){
+  const insp = document.getElementById('inspector');
+  if(S.sel==null || !S.data.items[S.sel]){
+    insp.innerHTML = '<div class="insp-empty">Select a tile to edit its sequence, colors, and where it links.</div>';
+    return;
+  }
+  const it = cur();
+  insp.innerHTML = `
+    <div class="insp-head">
+      <span class="it">${esc(it.id)}</span>
+      <button class="btn sm danger" onclick="deleteTile()">Delete</button>
+    </div>
+    <div class="insp-body">
+      <div class="fg">
+        <label class="fg-label">Tile ID</label>
+        <input class="fg-input" value="${esc(it.id)}" onchange="setId(this.value)">
+      </div>
+      <div class="fg">
+        <label class="fg-label">Type</label>
+        <div class="seg" id="kindSeg">
+          ${['slideshow','image','loader','about','weather','date'].map(k=>`<button class="${(it.kind||'slideshow')===k?'active':''}" onclick="setKind('${k}')">${k[0].toUpperCase()+k.slice(1)}</button>`).join('')}
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fg-label">Card Color</label>
+          <div class="color-row">
+            <input class="color-inp" type="color" value="${/^#/.test(it.color||'')?it.color:'#222222'}" oninput="setColor(this.value)">
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fg-label">Interval (ms)</label>
+          <input class="fg-input" type="number" value="${it.interval||3500}" onchange="setField('interval',+this.value)">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="check-row"><input type="checkbox" ${it.small?'checked':''} onchange="setField('small',this.checked)"> Small tile (compact explainer text)</label>
+      </div>
+
+      <div class="divider"></div>
+      <div class="sec-title">Links to</div>
+      <div class="fg">
+        <div class="seg" id="routeSeg">
+          ${['none','category','app','link'].map(t=>`<button class="${(it.route?.type||'none')===t?'active':''}" onclick="setRouteType('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}
+        </div>
+      </div>
+      ${renderRouteValue(it.route)}
+
+      <div class="divider"></div>
+      <div class="sec-title">Full Back Inner HTML</div>
+      <div class="fg">
+        <textarea class="fg-input" style="min-height:120px;font-family:monospace;font-size:.72rem" onblur="setField('backHtml',this.value)" placeholder="Optional: replaces everything inside .card-back. Leave blank to use the generated sequence/widgets.">${esc(it.backHtml||'')}</textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="sec-title"><span>Sequence (${(it.slides||[]).length})</span></div>
+      <div id="slideList">${(it.slides||[]).map((s,i)=>renderSlideRow(s,i)).join('')}</div>
+      <div class="add-slide">
+        <button class="btn sm" onclick="addSlide('image')">+ Image</button>
+        <button class="btn sm" onclick="addSlide('explainer')">+ Explainer</button>
+        <button class="btn sm" onclick="addSlide('text')">+ Text</button>
+        <button class="btn sm" onclick="addSlide('html')">+ HTML</button>
+      </div>
+    </div>`;
+}
+
+function renderRouteValue(route){
+  if(!route || route.type==='none') return '';
+  if(route.type==='link') return `<div class="fg">
+    <label class="fg-label">Link URL</label>
+    <input class="fg-input" value="${esc(route.value||'')}" onchange="setRouteValue(this.value)" placeholder="https://... or ../path/page.html">
+  </div>`;
+  let opts='';
+  if(route.type==='category') opts = S.cats.map(c=>`<option value="${esc(c)}" ${route.value===c?'selected':''}>${esc(c)}</option>`).join('');
+  else opts = S.apps.map(a=>`<option value="${esc(a.id)}" ${route.value===a.id?'selected':''}>${esc(a.name||a.id)}</option>`).join('');
+  return `<div class="fg">
+    <label class="fg-label">${route.type==='category'?'Category view':'App'}</label>
+    <select class="fg-input" onchange="setRouteValue(this.value)"><option value="">— choose —</option>${opts}</select>
+  </div>`;
+}
+
+function renderSlideRow(s,i){
+  const open = S.openSlide===i?' open':'';
+  const name = s.type==='image'?(s.title||s.src||'image')
+             : s.type==='explainer'?(s.heading||'explainer')
+             : s.type==='text'?(s.content||'text')
+             : s.type==='html'?(s.html||'html')
+             : (s.content||s.type);
+  return `<div class="slide-row${open}">
+    <div class="slide-bar" onclick="toggleSlide(${i})">
+      <span class="badge ${s.type}">${s.type}</span>
+      ${routeBadge(s.route)}
+      <span class="s-name">${rich(String(name).replace(/<br>/g,' '))}</span>
+      <button class="mini" title="Up" onclick="event.stopPropagation();moveSlide(${i},-1)">↑</button>
+      <button class="mini" title="Down" onclick="event.stopPropagation();moveSlide(${i},1)">↓</button>
+      <button class="mini" title="Delete" onclick="event.stopPropagation();delSlide(${i})">×</button>
+    </div>
+    <div class="slide-edit">${renderSlideEdit(s,i)}</div>
+  </div>`;
+}
+
+function renderSlideEdit(s,i){
+  let html = '';
+  if(s.type==='image') html = `
+    <div class="fg"><label class="fg-label">Image URL</label>
+      <input class="fg-input" value="${esc(s.src||'')}" onchange="setSlide(${i},'src',this.value)" placeholder="data/work/... or https://"></div>
+    <div class="fg"><label class="fg-label">Title overlay (optional)</label>
+      <input class="fg-input" value="${esc(s.title||'')}" onchange="setSlide(${i},'title',this.value)"></div>
+    <button class="btn sm" onclick="pickFromApps(${i})">Use app image…</button>`;
+  else if(s.type==='explainer') html = `
+    <div class="fg"><label class="fg-label">Heading</label>
+      <input class="fg-input" value="${esc(s.heading||'')}" onchange="setSlide(${i},'heading',this.value)"></div>
+    <div class="fg"><label class="fg-label">List (one per line)</label>
+      <textarea class="fg-input" onchange="setSlideList(${i},this.value)">${esc((s.list||[]).join('\n'))}</textarea></div>
+    <div class="fg-row">
+      <div class="fg"><label class="fg-label">Color</label>
+        <div class="color-row"><input class="color-inp" type="color" value="${/^#/.test(s.color||'')?s.color:'#E8590C'}" oninput="setSlide(${i},'color',this.value)"></div></div>
+      <div class="fg"><label class="fg-label">Brand</label>
+        <input class="fg-input" value="${esc(s.brand||'')}" onchange="setSlide(${i},'brand',this.value)" placeholder="JM"></div>
+    </div>
+    <div class="fg"><label class="fg-label">Icon URL (optional, replaces list)</label>
+      <input class="fg-input" value="${esc(s.icon||'')}" onchange="setSlide(${i},'icon',this.value)" placeholder="icons/games.png"></div>`;
+  else if(s.type==='text') html = `
+    <div class="fg"><label class="fg-label">Text (use &lt;br&gt; for line break)</label>
+      <textarea class="fg-input" onchange="setSlide(${i},'content',this.value)">${esc(s.content||'')}</textarea></div>`;
+  else if(s.type==='html') html = `
+    <div class="fg"><label class="fg-label">Slide Inner HTML</label>
+      <textarea class="fg-input" style="min-height:140px;font-family:monospace;font-size:.72rem" onchange="setSlide(${i},'html',this.value)" placeholder="<div class=&quot;slide-text&quot;>Custom</div>">${esc(s.html||'')}</textarea></div>`;
+  else html = `<div class="fg"><label class="fg-label">Content</label>
+      <input class="fg-input" value="${esc(s.content||'')}" onchange="setSlide(${i},'content',this.value)"></div>`;
+  return html + renderSlideRouteEdit(s, i);
+}
+
+function renderSlideRouteEdit(s,i){
+  return `
+    <div class="divider"></div>
+    <div class="sec-title">Sequence Link Override</div>
+    <div class="fg">
+      <div class="seg">
+        ${['none','category','app','link'].map(t=>`<button class="${(s.route?.type||'none')===t?'active':''}" onclick="setSlideRouteType(${i},'${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}
+      </div>
+    </div>
+    ${renderSlideRouteValue(s.route, i)}`;
+}
+
+function renderSlideRouteValue(route,i){
+  if(!route || route.type==='none') return '';
+  if(route.type==='link') return `<div class="fg">
+    <label class="fg-label">Link URL</label>
+    <input class="fg-input" value="${esc(route.value||'')}" onchange="setSlideRouteValue(${i},this.value)" placeholder="https://... or ../path/page.html">
+  </div>`;
+  let opts='';
+  if(route.type==='category') opts = S.cats.map(c=>`<option value="${esc(c)}" ${route.value===c?'selected':''}>${esc(c)}</option>`).join('');
+  else opts = S.apps.map(a=>`<option value="${esc(a.id)}" ${route.value===a.id?'selected':''}>${esc(a.name||a.id)}</option>`).join('');
+  return `<div class="fg">
+    <label class="fg-label">${route.type==='category'?'Category view':'App'}</label>
+    <select class="fg-input" onchange="setSlideRouteValue(${i},this.value)"><option value="">— choose —</option>${opts}</select>
+  </div>`;
+}
+
+// ─── Mutations ──────────────────────────────────────────────────────────────────
+window.setId = v => { cur().id = v.trim()||cur().id; renderGrid(); };
+window.setKind = k => { cur().kind=k; renderInspector(); renderGrid(); };
+window.setColor = v => { cur().color=v; renderGrid(); };
+window.setField = (k,v) => { cur()[k]=v; renderGrid(); };
+window.setRouteType = t => { if(t==='none') cur().route=null; else cur().route={type:t,value:''}; renderInspector(); renderGrid(); };
+window.setRouteValue = v => { if(cur().route) cur().route.value=v; renderGrid(); };
+
+window.addSlide = type => {
+  if(!cur().slides) cur().slides=[];
+  const base = type==='image'?{type:'image',src:'',title:''}
+    : type==='explainer'?{type:'explainer',heading:'Heading',list:['Point one'],color:cur().color||'#E8590C',brand:'JM'}
+    : type==='html'?{type:'html',html:'<div class="slide-text">Custom HTML</div>'}
+    : {type:'text',content:'TEXT'};
+  cur().slides.push(base);
+  S.openSlide=cur().slides.length-1;
+  renderInspector(); renderGrid();
+};
+window.delSlide = i => { cur().slides.splice(i,1); if(S.openSlide===i)S.openSlide=null; renderInspector(); renderGrid(); };
+window.moveSlide = (i,dir) => { const a=cur().slides; const j=i+dir; if(j<0||j>=a.length)return; [a[i],a[j]]=[a[j],a[i]]; S.openSlide=j; renderInspector(); renderGrid(); };
+window.toggleSlide = i => { S.openSlide = S.openSlide===i?null:i; renderInspector(); };
+window.setSlide = (i,k,v) => { cur().slides[i][k]=v; renderGrid(); };
+window.setSlideList = (i,v) => { cur().slides[i].list = v.split('\n').map(x=>x.trim()).filter(Boolean); renderGrid(); };
+window.setSlideRouteType = (i,t) => { if(t==='none') cur().slides[i].route=null; else cur().slides[i].route={type:t,value:''}; renderInspector(); renderGrid(); };
+window.setSlideRouteValue = (i,v) => { if(cur().slides[i].route) cur().slides[i].route.value=v; renderGrid(); };
+window.pickFromApps = i => {
+  const names = S.apps.map((a,n)=>`${n+1}. ${a.name}`).join('\n');
+  const pick = prompt('Pick app number for image:\n'+names);
+  const n = parseInt(pick,10);
+  if(n>=1 && n<=S.apps.length){ const a=S.apps[n-1]; cur().slides[i].src = a.cover||a.logo||a.smallLogo||''; renderInspector(); renderGrid(); }
+};
+
+window.deleteTile = () => {
+  if(!confirm('Delete this tile?')) return;
+  S.data.items.splice(S.sel,1); S.sel=null; S.openSlide=null; render();
+};
+
+function addTile(){
+  const n = S.data.items.length+1;
+  const item = { id:`item-new-${n}`, kind:'image', color:'#444', interval:3500, route:null,
+    pos:{}, slides:[{type:'image',src:'',title:'New'}] };
+  ensurePos(item);
+  // place at 1/2 in each bp
+  BPS.forEach(bp=>{ item.pos[bp]={col:'1/2',row:'1/2'}; });
+  S.data.items.push(item); S.sel=S.data.items.length-1; S.openSlide=null; render();
+}
+
+// ─── Selection ──────────────────────────────────────────────────────────────────
+function selectTile(idx){ S.sel=idx; S.openSlide=null; renderInspector(); renderGrid(); }
+
+// ─── Drag / Resize engine ─────────────────────────────────────────────────────────
+let drag=null;
+function metrics(){
+  const grid=document.getElementById('edGrid');
+  const rect=grid.getBoundingClientRect();
+  const g=gridDef();
+  const gap=parseFloat(getComputedStyle(grid).gap)||6;
+  const cellW=(rect.width-gap*(g.cols-1))/g.cols;
+  const cellH=(rect.height-gap*(g.rows-1))/g.rows;
+  return {rect,cols:g.cols,rows:g.rows,gap,cellW,cellH};
+}
+function ptToCell(x,y,m){
+  const col=Math.max(1,Math.min(m.cols+1,Math.round((x-m.rect.left)/(m.cellW+m.gap))+1));
+  const row=Math.max(1,Math.min(m.rows+1,Math.round((y-m.rect.top)/(m.cellH+m.gap))+1));
+  return {col,row};
+}
+
+document.getElementById('edGrid').addEventListener('pointerdown',e=>{
+  const tile=e.target.closest('.ed-tile');
+  if(!tile) return;
+  const idx=+tile.dataset.idx;
+  selectTile(idx);
+  const item=S.data.items[idx];
+  const p=ensurePos(item)[S.bp];
+  const c=parse(p.col), r=parse(p.row);
+  const m=metrics();
+  const handle=e.target.closest('.rz');
+  e.preventDefault();
+  if(handle){
+    drag={mode:'resize',dir:handle.dataset.dir,idx,m,cs:c.start,ce:c.end,rs:r.start,re:r.end};
+  } else {
+    drag={mode:'move',idx,m,colSpan:c.end-c.start,rowSpan:r.end-r.start,startX:e.clientX,startY:e.clientY,startCol:c.start,startRow:r.start};
+  }
+  tile.classList.add('dragging');
+  tile.setPointerCapture?.(e.pointerId);
+});
+
+document.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const item=S.data.items[drag.idx];
+  const p=item.pos[S.bp];
+  const m=drag.m;
+  if(drag.mode==='move'){
+    const dC=Math.round((e.clientX-drag.startX)/(m.cellW+m.gap));
+    const dR=Math.round((e.clientY-drag.startY)/(m.cellH+m.gap));
+    const ncs=Math.max(1,Math.min(m.cols-drag.colSpan+1,drag.startCol+dC));
+    const nrs=Math.max(1,Math.min(m.rows-drag.rowSpan+1,drag.startRow+dR));
+    p.col=`${ncs}/${ncs+drag.colSpan}`;
+    p.row=`${nrs}/${nrs+drag.rowSpan}`;
+  } else {
+    const {col,row}=ptToCell(e.clientX,e.clientY,m);
+    let cs=drag.cs,ce=drag.ce,rs=drag.rs,re=drag.re;
+    const d=drag.dir;
+    if(d.includes('e')) ce=Math.max(cs+1,Math.min(m.cols+1,col));
+    if(d.includes('w')) cs=Math.max(1,Math.min(ce-1,col));
+    if(d.includes('s')) re=Math.max(rs+1,Math.min(m.rows+1,row));
+    if(d.includes('n')) rs=Math.max(1,Math.min(re-1,row));
+    p.col=`${cs}/${ce}`; p.row=`${rs}/${re}`;
+  }
+  const tile=document.querySelector(`.ed-tile[data-idx="${drag.idx}"]`);
+  if(tile){ tile.style.gridColumn=p.col; tile.style.gridRow=p.row; const pos=tile.querySelector('.t-pos'); if(pos)pos.textContent=`${p.col} · ${p.row}`; }
+});
+
+document.addEventListener('pointerup',()=>{
+  if(!drag) return;
+  document.querySelectorAll('.ed-tile.dragging').forEach(t=>t.classList.remove('dragging'));
+  drag=null;
+});
+
+// ─── Toolbar wiring ───────────────────────────────────────────────────────────
+document.getElementById('bpToggle').addEventListener('click',e=>{
+  const b=e.target.closest('.tb-toggle-btn'); if(!b)return;
+  document.querySelectorAll('.tb-toggle-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); S.bp=b.dataset.bp; render();
+});
+document.getElementById('gridCols').addEventListener('change',e=>{ gridDef().cols=Math.max(1,+e.target.value||1); render(); });
+document.getElementById('gridRows').addEventListener('change',e=>{ gridDef().rows=Math.max(1,+e.target.value||1); render(); });
+document.getElementById('addTile').addEventListener('click',addTile);
+
+// ─── Export ─────────────────────────────────────────────────────────────────────
+function openExport(title,fn,code,hint){
+  document.getElementById('exportTitle').textContent=title;
+  document.getElementById('exportFn').textContent=fn;
+  document.getElementById('exportCode').textContent=code;
+  document.getElementById('exportHint').innerHTML=hint;
+  document.getElementById('exportOverlay').classList.remove('hidden');
+}
+document.getElementById('saveMain').addEventListener('click', () => { void saveToMainPage(); });
+document.getElementById('exportJson').addEventListener('click',()=>{
+  openExport('Copy JSON','mulonde/data/home.json',JSON.stringify(S.data,null,2),
+    'Backup export. Prefer <strong>Save to Main Page</strong> — or paste into <code>mulonde/data/home.json</code> manually.');
+});
+document.getElementById('exportHtml').addEventListener('click',()=>{
+  openExport('Export grid HTML','paste inside &lt;div class="grid"&gt;',buildGridHTML(),
+    'Optional: paste inside <code>&lt;div class="grid"&gt;</code> in index.html for a fully static grid.');
+});
+document.getElementById('exportClose').addEventListener('click',()=>document.getElementById('exportOverlay').classList.add('hidden'));
+document.getElementById('exportOverlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.currentTarget.classList.add('hidden'); });
+document.getElementById('exportCopy').addEventListener('click',()=>{
+  navigator.clipboard.writeText(document.getElementById('exportCode').textContent).then(()=>{
+    const b=document.getElementById('exportCopy'); const t=b.textContent; b.textContent='Copied!'; setTimeout(()=>b.textContent=t,1500);
+  });
+});
+
+function slideHTML(s,first){
+  const a=first?' active':'';
+  const route = routeAttr(s.route);
+  if(s.type==='explainer'){
+    const wImg=s.icon?' wImg':'';
+    let inner=`<h3 class="explainer-heading">${rich(s.heading||'')}</h3>`;
+    if(s.icon) inner+=`<img class="spicon" src="${esc(s.icon)}" alt="">`;
+    else if(s.list?.length) inner+=`<ul class="explainer-list">${s.list.map(l=>`<li>${rich(l)}</li>`).join('')}</ul>`;
+    if(s.brand) inner+=`<span class="explainer-brand">${esc(s.brand)}</span>`;
+    return `<div class="slide-item slide-explainer${wImg}${a}"${route} style="--card-color: ${esc(s.color||'#E8590C')};"><div class="explainer-card">${inner}</div></div>`;
+  }
+  if(s.type==='text') return `<div class="slide-item${a}"${route}><div class="slide-text">${rich(s.content||'')}</div></div>`;
+  if(s.type==='html') return `<div class="slide-item${a}"${route}>${s.html||''}</div>`;
+  if(s.type==='aboutLogo') return `<div class="slide-item about-i-slide${a}"${route}><span class="about-i">${esc(s.content||'i')}</span></div>`;
+  if(s.type==='aboutBio') return `<div class="slide-item about-bio-slide${a}"${route}><div class="about-bio-text"><span class="bio-role">${rich(s.content||'')}</span></div></div>`;
+  return `<div class="slide-item${a}"${route}><img src="${esc(s.src||'')}" alt="">${s.title?`<div class="title"><span>${rich(s.title)}</span></div>`:''}</div>`;
+}
+
+function routeAttr(route){
+  if(!route||route.type==='none'||!route.value) return '';
+  if(route.type==='category') return ` data-showCat="${esc(route.value)}"`;
+  if(route.type==='app') return ` data-showApp="${esc(route.value)}"`;
+  if(route.type==='link') return ` data-showLink="${esc(route.value)}"`;
+  return '';
+}
+
+function buildGridHTML(){
+  return S.data.items.map(it=>{
+    const small=it.small?' item-small':'';
+    const route = routeAttr(it.route);
+    let back='';
+    if(String(it.backHtml||'').trim()) back=it.backHtml;
+    else if(it.kind==='weather') back='<div class="weather-holder">…</div>';
+    else if(it.kind==='date') back='<div class="date-holder">…</div>';
+    else {
+      const slides=it.slides||[];
+      const attr=slides.length>1?` data-slideshow="true" data-interval="${it.interval||3500}"`:'';
+      back=`<div class="slides"${attr}>${slides.map((s,i)=>slideHTML(s,i===0)).join('')}</div>`;
+    }
+    const front = it.kind==='loader'
+      ? `<svg class="loader" viewBox="0 0 100 100"><circle class="loader-bg" cx="50" cy="50" r="45"></circle><circle class="loader-progress" cx="50" cy="50" r="45"></circle></svg><span class="loader-text">0%</span>`
+      : '';
+    return `<div id="${esc(it.id)}" class="grid-item${small}">
+  <div class="cards">
+    <div class="card card-front">${front}</div>
+    <div class="card card-back"${route}>${back}</div>
+  </div>
+</div>`;
+  }).join('\n');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('exportOverlay').classList.add('hidden');
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    void saveToMainPage();
+  }
+});
+
+init();
+</script>
+</body>
+</html>

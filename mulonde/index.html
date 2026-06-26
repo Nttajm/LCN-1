@@ -26,7 +26,13 @@
     </div>
   </div>
 
-
+<!--   
+  ███╗   ███╗██╗   ██╗██╗      ██████╗ ███╗   ██╗██████╗ ███████╗
+  ████╗ ████║██║   ██║██║     ██╔═══██╗████╗  ██║██╔══██╗██╔════╝
+  ██╔████╔██║██║   ██║██║     ██║   ██║██╔██╗ ██║██║  ██║█████╗  
+  ██║╚██╔╝██║██║   ██║██║     ██║   ██║██║╚██╗██║██║  ██║██╔══╝  
+  ██║ ╚═╝ ██║╚██████╔╝███████╗╚██████╔╝██║ ╚████║██████╔╝███████╗
+  ╚═╝     ╚═╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚══════╝ -->
   <div class="hero cont stand_er-scroll">
     <div class="grid-context">
       <div class="left">
@@ -287,12 +293,35 @@
     </div>
     <div class="finder-list"></div>
   </div>
-  <button class="cv-back-btn" aria-label="Back">←</button>
+  <div class="cv-back-group">
+    <a class="cv-lcn-link" href="#" aria-label="Read more on LCN">
+      <span>See more on LCN</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 17L17 7"/>
+        <path d="M9 7h8v8"/>
+      </svg>
+    </a>
+    <div class="cv-back-row">
+      <button class="cv-back-btn" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="cv-back-tag" aria-label="Found in">
+        <span class="cv-back-tag-label"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M7 17L17 7"/>
+          <path d="M9 7h8v8"/>
+        </svg>
+      </button>
+    </div>
+  </div>
   <div class="cat-view"></div>
 
 </body>
 <script src="js/animation.js" type="module"></script>
 <script src="js/api.js"></script>
 <script src="js/render.js" type="module"></script>
+<script src="js/home.js" type="module"></script>
 <script src="js/finder.js" type="module"></script>
 </html>

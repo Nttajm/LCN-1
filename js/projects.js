@@ -32,6 +32,18 @@
         return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
     }
 
+    function getSortTime(doc) {
+        if (doc.date) {
+            var articleDate = new Date(doc.date + 'T00:00:00').getTime();
+            if (!isNaN(articleDate)) return articleDate;
+        }
+        if (doc.updatedAt) {
+            var updated = doc.updatedAt.toDate ? doc.updatedAt.toDate() : new Date(doc.updatedAt);
+            return updated.getTime();
+        }
+        return 0;
+    }
+
     function buildItem(id, doc) {
         var cat = doc.subCategory ? doc.subCategory.toLowerCase() : 'active';
         var dateStr = '';
@@ -100,7 +112,6 @@
     db.collection('editor_docs')
         .where('category', '==', 'projects')
         .where('published', '==', true)
-        .orderBy('updatedAt', 'desc')
         .get()
         .then(function (snap) {
             list.innerHTML = '';
@@ -110,11 +121,18 @@
                 return;
             }
             var seen = [];
+            var items = [];
             snap.forEach(function (docSnap) {
-                var data = docSnap.data();
+                items.push({ id: docSnap.id, data: docSnap.data() });
+            });
+            items.sort(function (a, b) {
+                return getSortTime(b.data) - getSortTime(a.data);
+            });
+            items.forEach(function (item) {
+                var data = item.data;
                 var cat = data.subCategory || 'Active';
                 if (seen.indexOf(cat) === -1) seen.push(cat);
-                list.appendChild(buildItem(docSnap.id, data));
+                list.appendChild(buildItem(item.id, data));
             });
             buildTabs(seen);
         })
