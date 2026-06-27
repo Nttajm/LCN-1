@@ -59,6 +59,18 @@
       "foundIn": [
         "games"
       ]
+    },
+    {
+      "id": "comcal",
+      "name": "ComCal",
+      "nameSmall": "C",
+      "logo": "data/work/comcal/comcal.png",
+      "smallLogo": "data/work/comcal/comcal-small.png",
+      "cover": "data/work/comcal/comcal.png",
+      "category": "Apps",
+      "foundIn": [
+        "projects"
+      ]
     }
   ]
 }

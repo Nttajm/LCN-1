@@ -80,16 +80,13 @@
       },
       "slides": [
         {
-          "type": "text",
-          "content": "PROJECTS"
-        },
-        {
-          "type": "text",
-          "content": "PLATFORMS<br>& TOOLS"
-        },
-        {
-          "type": "text",
-          "content": "WEB<br>APPS"
+          "type": "image",
+          "src": "data/work/comcal/comcal.png",
+          "title": "ComCal",
+          "route": {
+            "type": "app",
+            "value": "comcal"
+          }
         },
         {
           "type": "explainer",
@@ -111,7 +108,7 @@
       "fit": "contain",
       "route": {
         "type": "app",
-        "value": "overunderths"
+        "value": ""
       },
       "pos": {
         "desktop": {
@@ -368,16 +365,15 @@
       "slides": [
         {
           "type": "explainer",
-          "color": "#9C36B5",
-          "heading": "Research",
+          "color": "#3667b5",
+          "heading": "Development ",
           "list": [
-            "Older projects & iterations",
-            "Process documentation",
-            "Design evolution"
+            "Patches, fixes, iterations with improvements"
           ],
-          "brand": "JM"
+          "brand": "LCN"
         }
-      ]
+      ],
+      "backHtml": ""
     },
     {
       "id": "item-weather-rp",

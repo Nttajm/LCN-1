@@ -1,8 +1,10 @@
 {
-  "generated": "2026-06-24T02:25:43.174Z",
+  "generated": "2026-06-27T00:00:10.820Z",
   "basePath": "a_home_assets/",
   "folders": [
     "alkai",
+    "clanclash",
+    "comcal",
     "dbnm",
     "gradients",
     "mulon",
@@ -11,7 +13,7 @@
     "square",
     "ttt"
   ],
-  "totalImages": 28,
+  "totalImages": 33,
   "images": [
     {
       "path": "content/fnat_poster_web.jpg",
@@ -39,6 +41,41 @@
       "folder": "alkai",
       "subfolders": [],
       "name": "composer_1.png",
+      "ext": "png"
+    },
+    {
+      "path": "content/clanclash/ss-1.png",
+      "folder": "clanclash",
+      "subfolders": [],
+      "name": "ss-1.png",
+      "ext": "png"
+    },
+    {
+      "path": "content/clanclash/ss-2.png",
+      "folder": "clanclash",
+      "subfolders": [],
+      "name": "ss-2.png",
+      "ext": "png"
+    },
+    {
+      "path": "content/clanclash/ss-3.png",
+      "folder": "clanclash",
+      "subfolders": [],
+      "name": "ss-3.png",
+      "ext": "png"
+    },
+    {
+      "path": "content/clanclash/ss-4.png",
+      "folder": "clanclash",
+      "subfolders": [],
+      "name": "ss-4.png",
+      "ext": "png"
+    },
+    {
+      "path": "content/comcal/comcal.png",
+      "folder": "comcal",
+      "subfolders": [],
+      "name": "comcal.png",
       "ext": "png"
     },
     {
