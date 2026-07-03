@@ -19,6 +19,14 @@
     <script src="js/audio-store.js"></script>
 </head>
 <body>
+    <div class="mobile-warning" id="mobileWarning" hidden aria-modal="true" role="dialog" aria-labelledby="mobileWarningTitle">
+        <div class="mobile-warning-card">
+            <h2 id="mobileWarningTitle">Desktop only</h2>
+            <p>Josu is built for keyboard play and works best on desktop. You can still try it on mobile, but the experience won't be great.</p>
+            <button type="button" class="mobile-warning-btn" id="mobileWarningContinue">Continue anyway</button>
+        </div>
+    </div>
+
     <div class="sc_wrapper" id="startWrapper">
         <div class="screen start">
         <div class="start-bg" id="startBg" aria-hidden="true"></div>
@@ -550,5 +558,34 @@
         </div>
     </div>
 </body>
+<script>
+(function () {
+    var STORAGE_KEY = 'josu-mobile-warning-dismissed';
+
+    function isMobileDevice() {
+        var coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+        var narrow = window.matchMedia('(max-width: 768px)').matches;
+        var touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        return narrow || (coarsePointer && touch);
+    }
+
+    function showMobileWarning() {
+        var overlay = document.getElementById('mobileWarning');
+        var btn = document.getElementById('mobileWarningContinue');
+        if (!overlay || !btn) return;
+
+        overlay.hidden = false;
+
+        btn.addEventListener('click', function () {
+            try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+            overlay.hidden = true;
+        });
+    }
+
+    if (isMobileDevice() && !sessionStorage.getItem(STORAGE_KEY)) {
+        showMobileWarning();
+    }
+})();
+</script>
 <script type="module" src="js/main.js"></script>
 </html>

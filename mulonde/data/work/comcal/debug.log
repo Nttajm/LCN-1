@@ -1,0 +1,6 @@
+[0626/223117.808:WARNING:dns_config_service_win.cc(668)] Failed to read DnsConfig.
+[0627/094607.217:WARNING:dns_config_service_win.cc(668)] Failed to read DnsConfig.
+[0628/000425.117:WARNING:dns_config_service_win.cc(668)] Failed to read DnsConfig.
+[0628/115430.283:WARNING:dns_config_service_win.cc(668)] Failed to read DnsConfig.
+[0628/222012.213:ERROR:browser_gpu_channel_host_factory.cc(139)] Failed to launch GPU process.
+[0628/222012.216:WARNING:ipc_message_attachment_set.cc(49)] MessageAttachmentSet destroyed with unconsumed attachments: 0/1

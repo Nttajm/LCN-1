@@ -81,7 +81,7 @@
         <button class="primary" id="exportBtn">Export JSON</button>
       </div>
     </div>
-    <p class="hint">Edit app fields (logo, name, nameSmall, smallLogo, cover, category, foundIn), then export and paste into <code>data/apps.json</code>. <strong>Found In</strong> links an app to a category view in <code>views.json</code> (e.g. games).</p>
+    <p class="hint">Edit app fields (logo, name, nameSmall, smallLogo, cover, category, foundIn, isInLcn), then export and paste into <code>data/apps.json</code>. <strong>Found In</strong> links an app to a category view in <code>views.json</code> (e.g. games). <strong>LCN Link</strong> is the path on LCN for “See more on LCN” (e.g. <code>projects/overunderths</code>).</p>
 
     <div id="cards" class="cards"></div>
 
@@ -127,6 +127,9 @@
       const foundInKey = getFoundInKey(out);
       if (foundInKey) out.foundIn = [foundInKey];
       else delete out.foundIn;
+      const lcnPath = (out.isInLcn || '').trim();
+      if (lcnPath) out.isInLcn = lcnPath;
+      else delete out.isInLcn;
       return out;
     }
 
@@ -220,6 +223,9 @@
                 `).join('')}
               </select>
             </label>
+          </div>
+          <div class="row">
+            <label>LCN Link <input value="${app.isInLcn ?? ''}" placeholder="projects/overunderths" oninput="update(${i},'isInLcn',this.value)"></label>
           </div>
         </div>
       `).join('');

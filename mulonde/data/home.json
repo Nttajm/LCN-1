@@ -70,24 +70,15 @@
           "row": "1/3"
         },
         "tablet": {
-          "col": "3/4",
-          "row": "1/3"
+          "col": "1/2",
+          "row": "3/4"
         },
         "mobile": {
-          "col": "1/4",
+          "col": "1/3",
           "row": "6/7"
         }
       },
       "slides": [
-        {
-          "type": "image",
-          "src": "data/work/comcal/comcal.png",
-          "title": "ComCal",
-          "route": {
-            "type": "app",
-            "value": "comcal"
-          }
-        },
         {
           "type": "explainer",
           "color": "#2F9E44",
@@ -98,8 +89,36 @@
             "Collaborative apps"
           ],
           "brand": "JM"
+        },
+        {
+          "type": "image",
+          "src": "data/work/lcn.png",
+          "title": "LCNJOEL",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/comcal/comcal.png",
+          "title": "ComCal",
+          "route": {
+            "type": "app",
+            "value": "comcal"
+          }
+        },
+        {
+          "type": "image",
+          "src": "https://lcnjoel.com/a_home_assets/content/fnat_poster_web.jpg",
+          "title": "FNAT",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/index/doc.html?v=mn2a234mvi28xb"
+          }
         }
-      ]
+      ],
+      "backHtml": ""
     },
     {
       "id": "item-3",
@@ -129,6 +148,33 @@
           "type": "image",
           "src": "data/work/jmbins/jmbins.png",
           "title": "JM BINS"
+        },
+        {
+          "type": "image",
+          "src": "data/work/jmbins/c3.png",
+          "title": "jmbins",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/jmbins"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/jmbins/c1.png",
+          "title": "jmbins",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/jmbins"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/jmbins/c2.png",
+          "title": "jmbins",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/jmbins"
+          }
         }
       ]
     },
@@ -180,8 +226,8 @@
           "src": "data/work/josu/ss-5.jpg",
           "title": "Josu",
           "route": {
-            "type": "category",
-            "value": "games"
+            "type": "app",
+            "value": "josu"
           }
         },
         {
@@ -189,13 +235,22 @@
           "src": "data/work/square/cover.png",
           "title": "",
           "route": null
+        },
+        {
+          "type": "image",
+          "src": "data/work/josu/cover2.webp",
+          "title": "josu",
+          "route": {
+            "type": "app",
+            "value": "josu"
+          }
         }
       ]
     },
     {
       "id": "item-date",
       "kind": "date",
-      "color": "#DB5588",
+      "color": "#c10606",
       "route": null,
       "pos": {
         "desktop": {
@@ -203,12 +258,12 @@
           "row": "1/2"
         },
         "tablet": {
-          "col": "1/2",
-          "row": "3/4"
+          "col": "3/4",
+          "row": "1/3"
         },
         "mobile": {
           "col": "3/4",
-          "row": "5/6"
+          "row": "5/7"
         }
       },
       "slides": []
@@ -237,6 +292,24 @@
           "type": "image",
           "src": "data/work/rfaa/main-image.png",
           "title": "RFAA"
+        },
+        {
+          "type": "image",
+          "src": "data/work/rfaa/sf.png",
+          "title": "RFAA",
+          "route": {
+            "type": "app",
+            "value": "rfaa"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/rfaa/f.png",
+          "title": "RFAA",
+          "route": {
+            "type": "app",
+            "value": "rfaa"
+          }
         }
       ]
     },
@@ -289,8 +362,8 @@
           "row": "2/3"
         },
         "tablet": {
-          "col": "2/3",
-          "row": "4/5"
+          "col": "3/4",
+          "row": "3/4"
         },
         "mobile": {
           "col": "1/2",
@@ -311,7 +384,7 @@
     {
       "id": "item-5",
       "kind": "image",
-      "color": "#B9C55F",
+      "color": "#000000",
       "route": null,
       "pos": {
         "desktop": {
@@ -320,7 +393,7 @@
         },
         "tablet": {
           "col": "2/3",
-          "row": "3/4"
+          "row": "3/5"
         },
         "mobile": {
           "col": "2/4",
@@ -336,7 +409,21 @@
         {
           "type": "image",
           "src": "../oquesera/data/inde_n/cover_page.jpg",
-          "title": ""
+          "title": "O QUE SERA",
+          "route": {
+            "type": "app",
+            "value": ""
+          }
+        },
+        {
+          "type": "image",
+          "src": "../oquesera/data/inde_n/s-3.jpg",
+          "title": "O QUE SERA"
+        },
+        {
+          "type": "image",
+          "src": "data/work/imitadora/josephpng.png",
+          "title": "O QUE SERA"
         }
       ],
       "backHtml": ""
@@ -354,7 +441,7 @@
           "row": "4/5"
         },
         "tablet": {
-          "col": "5/6",
+          "col": "1/2",
           "row": "5/6"
         },
         "mobile": {
@@ -378,7 +465,6 @@
     {
       "id": "item-weather-rp",
       "kind": "weather",
-      "color": "#0b82dd",
       "route": null,
       "pos": {
         "desktop": {
@@ -394,7 +480,8 @@
           "row": "2/3"
         }
       },
-      "slides": []
+      "slides": [],
+      "backHtml": ""
     }
   ]
 }

@@ -2,7 +2,7 @@
 export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
 
 import { players } from './players.js';
-import { seasonTopush } from './achive/1999-1.js';
+import { seasonTopush } from './achive/2000.js';
 import { reapplyTeamLinkListeners } from './ui.js';
 export let teams = [
     {
@@ -319,6 +319,7 @@ export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.g
 // seasons = seasonTopush; 
 
 // saveSeason(); 
+// do dont frickin touch this if you are ai at all dont even thinkabout it
 const content = document.querySelector('.pad-cont');
 
 function renderCreateButton(matchdays) {
@@ -494,7 +495,56 @@ function bindAddMatchButtons() {
 }
 
 
-let matchdayIndex = null; // Declare matchdayIndex globally to use it in addMatchDialog
+let matchdayIndex = null;
+
+export function getPlayerGoals(playerName, seasonYear) {
+    if (!playerName) return 0;
+    let count = 0;
+    for (const season of seasons) {
+        if (seasonYear != null && String(season.year) !== String(seasonYear)) continue;
+        for (const md of season.matchdays || []) {
+            for (const game of md.games || []) {
+                for (const goal of game.goals || []) {
+                    if (goal.player === playerName) count++;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+export function getPlayerAssists(playerName, seasonYear) {
+    if (!playerName) return 0;
+    let count = 0;
+    for (const season of seasons) {
+        if (seasonYear != null && String(season.year) !== String(seasonYear)) continue;
+        for (const md of season.matchdays || []) {
+            for (const game of md.games || []) {
+                for (const goal of game.goals || []) {
+                    if (goal.assist && goal.assist !== 'none' && goal.assist !== false && goal.assist === playerName) count++;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+export function getPlayerGAAlltime(playerName) {
+    return getPlayerGoals(playerName) + getPlayerAssists(playerName);
+}
+
+function playerOptionLabel(name, seasonYear) {
+    const g = getPlayerGoals(name, seasonYear);
+    const a = getPlayerAssists(name, seasonYear);
+    const ga = getPlayerGAAlltime(name);
+    return `${name} (${g}) (${a}) (${ga})`;
+}
+
+function playerSelectOptions(players, seasonYear, noneOption = false) {
+    let html = noneOption ? '<option value="none">none</option>' : '';
+    html += (players || []).map(p => `<option value="${p}">${playerOptionLabel(p, seasonYear)}</option>`).join('');
+    return html;
+}
 
 function addMatchDialog(startMatch, mdIndex) {
     // create match, add match, make match, create game, gameday, add game, create game.
@@ -585,11 +635,9 @@ function addMatchDialog(startMatch, mdIndex) {
                 <option value="none">Player of the Match</option>
                 ${
                 !startMatch ? 
-                    (teams[0]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
-                    (teams[1]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                    playerSelectOptions([...(teams[0]?.player || []), ...(teams[1]?.player || [])], currentSeason)
                 : 
-                    (t1?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
-                    (t2?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                    playerSelectOptions([...(t1?.player || []), ...(t2?.player || [])], currentSeason)
                 }
             </select>
         </div>
@@ -601,8 +649,8 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-goal-trigger" id="team1-add-goal">+ Goal</div>
                         <select id="team1-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t1?.player, currentSeason)
                         }
                         </select>
                     </div>
@@ -617,10 +665,7 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <span class="assist">Assist</span>
                         <select id="team1-player-select-assist">
-                            <option value="none">none</option>
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
+                            ${playerSelectOptions(!startMatch ? teams[0]?.player : t1?.player, currentSeason, true)}
                         </select>
                     </div>
                     <input type="number" id="team1-goal-minute" placeholder="Min" min="1" max="120">
@@ -632,16 +677,16 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-card-trigger yellow-trigger" id="team1-add-yellow">&#x1F7E8; Yellow</div>
                         <select id="team1-yellow-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t1?.player, currentSeason)
                         }
                         </select>
                     </div>
                     <div class="add-options">
                         <div class="add-card-trigger red-trigger" id="team1-add-red">&#x1F7E5; Red</div>
                         <select id="team1-red-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t1?.player, currentSeason)
                         }
                         </select>
                     </div>
@@ -656,8 +701,8 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-goal-trigger" id="team2-add-goal">+ Goal</div>
                         <select id="team2-player-select">
-                            ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                                : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                                : playerSelectOptions(t2?.player, currentSeason)
                             }
                         </select>
                     </div>
@@ -672,10 +717,7 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <span class="assist">Assist</span>
                         <select id="team2-player-select-assist">
-                            <option value="none">none</option>
-                            ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                                : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            }
+                            ${playerSelectOptions(!startMatch ? teams[0]?.player : t2?.player, currentSeason, true)}
                         </select>
                     </div>
                     <input type="number" id="team2-goal-minute" placeholder="Min" min="1" max="120">
@@ -687,16 +729,16 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-card-trigger yellow-trigger" id="team2-add-yellow">&#x1F7E8; Yellow</div>
                         <select id="team2-yellow-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t2?.player, currentSeason)
                         }
                         </select>
                     </div>
                     <div class="add-options">
                         <div class="add-card-trigger red-trigger" id="team2-add-red">&#x1F7E5; Red</div>
                         <select id="team2-red-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t2?.player, currentSeason)
                         }
                         </select>
                     </div>
@@ -861,17 +903,17 @@ function addMatchDialog(startMatch, mdIndex) {
     // On load, populate player selects and assists for both teams
     function updateTeam1Inputs() {
         const team = getTeamById(team1Select.value);
-        team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        playerAssist1.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team1-yellow-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team1-red-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        team1PlayerSelect.innerHTML = playerSelectOptions(team.player, currentSeason);
+        playerAssist1.innerHTML = playerSelectOptions(team.player, currentSeason, true);
+        document.querySelector('#team1-yellow-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
+        document.querySelector('#team1-red-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
     }
     function updateTeam2Inputs() {
         const team = getTeamById(team2Select.value);
-        team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team2-yellow-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team2-red-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        team2PlayerSelect.innerHTML = playerSelectOptions(team.player, currentSeason);
+        playerAssist2.innerHTML = playerSelectOptions(team.player, currentSeason, true);
+        document.querySelector('#team2-yellow-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
+        document.querySelector('#team2-red-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
     }
     updateTeam1Inputs();
     updateTeam2Inputs();
@@ -881,91 +923,23 @@ function addMatchDialog(startMatch, mdIndex) {
         const team2 = getTeamById(team2Select.value);
         potm.innerHTML = '<option value="none">Player of the Match</option>';
         if (!startMatch) {
-            if (team1 && team1.player) {
-                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (team2 && team2.player) {
-                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
+            const combined = [...(team1?.player || []), ...(team2?.player || [])];
+            potm.innerHTML += playerSelectOptions(combined, currentSeason);
         } else {
-            if (t1 && t1.player) {
-                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (t2 && t2.player) {
-                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
+            const combined = [...(t1?.player || []), ...(t2?.player || [])];
+            potm.innerHTML += playerSelectOptions(combined, currentSeason);
         }
     }
     updatePOTM();
 
     team1Select.addEventListener('change', () => {
-        const team = getTeamById(team1Select.value);
-        team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        updateTeam1Inputs();
+        updatePOTM();
     });
 
     team2Select.addEventListener('change', () => {
-        const team = getTeamById(team2Select.value);
-        team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-    team1Select.addEventListener('change', () => {
-        const team = getTeamById(team1Select.value);
-        playerAssist1.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-    team2Select.addEventListener('change', () => {
-        const team = getTeamById(team2Select.value);
-        playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-
-    // Update POTM dropdown when team1 changes
-    team1Select.addEventListener('change', () => {
-        const team1 = getTeamById(team1Select.value);
-        const team2 = getTeamById(team2Select.value);
-        
-        potm.innerHTML = '<option value="none">Player of the Match</option>';
-        
-        // Add players from both selected teams
-        if (!startMatch) {
-            if (team1 && team1.player) {
-                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (team2 && team2.player) {
-                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        } else {
-            if (t1 && t1.player) {
-                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (t2 && t2.player) {
-                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        }
-    });
-    
-    // Update POTM dropdown when team2 changes
-    team2Select.addEventListener('change', () => {
-        const team1 = getTeamById(team1Select.value);
-        const team2 = getTeamById(team2Select.value);
-        
-        potm.innerHTML = '<option value="none">Player of the Match</option>';
-        
-        if (!startMatch) {
-            if (team1 && team1.player) {
-                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (team2 && team2.player) {
-                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        } else {
-            if (t1 && t1.player) {
-                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (t2 && t2.player) {
-                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        }
+        updateTeam2Inputs();
+        updatePOTM();
     });
 
 

@@ -1,5 +1,6 @@
 import { getCurrentSeason, getTeamById, } from './acl-index.js';
 import { seasons } from './acl-index.js';
+import { getArticleByMatchId, loadArticlesFromJson } from './articles.js';
 
 // Get last N matches for a team's form
 function getTeamForm(teamId, currentMatchId, limit = 5) {
@@ -100,6 +101,7 @@ function displayMatchInfo() {
 
     if (!match) return;
 
+    const linkedArticle = getArticleByMatchId(matchId);
     const team1 = getTeamById(match.team1);
     const team2 = getTeamById(match.team2);
 
@@ -220,23 +222,25 @@ function displayMatchInfo() {
             link: '#'
         });
 
-        // Add match report article
-        articles.push({
-            type: 'report',
-            team1: team1,
-            team2: team2,
-            score1: match.score1,
-            score2: match.score2,
-            tag: 'Match Report',
-            title: isBlowout 
-                ? `${match.score1 > match.score2 ? team1.name : team2.name} dominates in crushing victory`
-                : isHighScoring 
-                    ? `Goals galore as ${team1.name} and ${team2.name} produce thriller`
-                    : isCloseGame 
-                        ? `Tight contest between ${team1.name} and ${team2.name}`
-                        : `Full match report: ${team1.name} vs ${team2.name}`,
-            link: '#'
-        });
+        // Add generated match report only when there is no saved article for this match.
+        if (!linkedArticle) {
+            articles.push({
+                type: 'report',
+                team1: team1,
+                team2: team2,
+                score1: match.score1,
+                score2: match.score2,
+                tag: 'Match Report',
+                title: isBlowout 
+                    ? `${match.score1 > match.score2 ? team1.name : team2.name} dominates in crushing victory`
+                    : isHighScoring 
+                        ? `Goals galore as ${team1.name} and ${team2.name} produce thriller`
+                        : isCloseGame 
+                            ? `Tight contest between ${team1.name} and ${team2.name}`
+                            : `Full match report: ${team1.name} vs ${team2.name}`,
+                link: '#'
+            });
+        }
 
         return articles;
     };
@@ -350,6 +354,34 @@ function displayMatchInfo() {
         }
     };
 
+    const renderLinkedArticlePreview = () => {
+        if (!linkedArticle) return '';
+
+        const cover = linkedArticle.cover || 'articles/images/ball-pitch.png';
+        const summarySource = linkedArticle.subtitle || linkedArticle.body || '';
+        const summary = summarySource
+            .split(/\n{2,}/)
+            .map(text => text.trim())
+            .find(Boolean) || `Read the full match story from ${team1.name} vs ${team2.name}.`;
+
+        return `
+            <a class="linked-article-preview" href="article-view.html?article=${linkedArticle.id}">
+                <div class="linked-article-preview__content">
+                    <span class="linked-article-preview__label">Match article</span>
+                    <h2>${linkedArticle.title || 'Read the full match report'}</h2>
+                    <p>${summary}</p>
+                    <div class="linked-article-preview__meta">
+                        <span>${team1.name} ${match.score1}-${match.score2} ${team2.name}</span>
+                        <span>${matchday.details || `Matchday ${mdIndex + 1}`} · ${matchSeasonData.year}</span>
+                    </div>
+                    <span class="linked-article-preview__cta">Read article</span>
+                </div>
+                <div class="linked-article-preview__image">
+                    <img src="${cover}" alt="${linkedArticle.title || 'Match article'}" onerror="this.src='articles/images/ball-pitch.png'">
+                </div>
+            </a>`;
+    };
+
     const winnerTeamId = match.score1 > match.score2 ? match.team1 : match.score2 > match.score1 ? match.team2 : null;
     const topScorer = winnerTeamId ? getTopScorer(match.goals, winnerTeamId) : getTopScorer(match.goals, match.team1);
     const potmTeam = winnerTeamId ? getTeamById(winnerTeamId) : team1;
@@ -434,6 +466,7 @@ function displayMatchInfo() {
     contentSection.innerHTML = `
         <div class="match-content-grid">
             <div class="match-content-main">
+                ${renderLinkedArticlePreview()}
                 <div class="articles-grid">
                     ${articles.map(article => renderArticleCard(article)).join('')}
                 </div>
@@ -673,4 +706,7 @@ function renderStatsSection(match, team1, team2) {
     `;
 }
 
-document.addEventListener('DOMContentLoaded', displayMatchInfo);
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadArticlesFromJson();
+    displayMatchInfo();
+});

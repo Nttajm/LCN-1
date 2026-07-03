@@ -540,3 +540,62 @@ body {
   opacity: 1;
   visibility: visible;
 }
+
+/* Mobile warning */
+.mobile-warning {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.mobile-warning[hidden] {
+  display: none;
+}
+
+.mobile-warning-card {
+  width: min(100%, 22rem);
+  padding: 1.5rem 1.35rem;
+  border-radius: 0.75rem;
+  background: rgba(28, 28, 28, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.mobile-warning-card h2 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 0.65rem;
+}
+
+.mobile-warning-card p {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  margin-bottom: 1.15rem;
+}
+
+.mobile-warning-btn {
+  appearance: none;
+  border: none;
+  border-radius: 0.45rem;
+  padding: 0.65rem 1.1rem;
+  background: #ff79b0;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+
+.mobile-warning-btn:active {
+  filter: brightness(0.92);
+}

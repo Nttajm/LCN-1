@@ -450,6 +450,15 @@
     border-radius: 0;
 }
 
+.add-options select {
+    min-width: 16rem;
+    flex: 1;
+}
+
+.potm-bar select {
+    min-width: 20rem;
+}
+
 .add-options .type, .add-options .assist {
     color: rgba(255, 255, 255, 0.35);
     font-size: 0.8rem;

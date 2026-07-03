@@ -319,6 +319,39 @@ body {
   padding: 1rem;
 }
 
+.grid-item .card-front .waiting-joke {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: clamp(0.7rem, 2.2vw, 1.05rem);
+  font-weight: 400;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.45;
+  padding: 0.6rem 0.85rem;
+  max-width: 92%;
+  margin: 0;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  #item-1 .card-front .waiting-joke {
+    font-size: clamp(0.8rem, 3.5vw, 1rem);
+    max-width: 88%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  #item-2 .card-front .waiting-joke {
+    font-size: clamp(0.75rem, 2.4vw, 1.05rem);
+  }
+}
+
+@media (min-width: 1101px) {
+  #item-5 .card-front .waiting-joke {
+    font-size: clamp(0.85rem, 1.1vw, 1.15rem);
+    max-width: 75%;
+  }
+}
+
 /* Back card content styling */
 
 .grid-item .card-back .title {
@@ -557,18 +590,15 @@ body {
 }
 
 #item-9 .card-back {
-   background-color: #DB5588;
+   background-color: #d61d1d;
 }
 
 #item-weather-rp {
-  background-color: #0b82dd; 
    grid-row-start: 3;
    grid-column-start: 2;
 
    grid-row-end: 4;
    grid-column-end: 3;
-
-   font-size: 0.8rem;
 }
 
 #item-date {
@@ -580,66 +610,137 @@ body {
 }
 
 #item-date .card-back {
-  background-color: #DB5588;
+  background-color: #da0d0d;
+  overflow: hidden;
 }
 
 .date-holder {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 0.8rem;
-  font-weight: 300;
-  font-size: 0.7rem;
-  justify-content: space-between;
-}
-
-.date-holder .s-1 {
-  padding-top: 0.2rem;
-  display: flex;
-  gap: -0.4rem;
-  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  container-type: size;
 }
 
 .date-holder .date {
-  font-size: 3rem !important;
-  font-weight: 400 !important;
+  position: absolute;
+  right: -0.06em;
+  bottom: -0.14em;
+  font-size: 100cqh;
+  font-weight: 400;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  z-index: 0 !important;
+  pointer-events: none;
+  user-select: none;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.25px rgba(255, 255, 255, 0.45);
+  filter: drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.22));
+}
+
+.date-holder .info {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 1.55rem;
+  text-align: right;
+  z-index: 2;
+  font-weight: 300;
   color: #fff;
-  margin-bottom: -0.3rem;
+  line-height: 1.2;
 }
 
-.date-holder .calendar {
-  justify-self: flex-end;
-
+.date-holder .info .month {
+  font-size: 0.72rem;
+  font-weight: 300;
+  opacity: 0.92;
 }
 
-.weaather-holder {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem;
-  font-size: 0.4rem;
+.date-holder .info .day {
+  font-size: 0.92rem;
   font-weight: 400;
 }
 
-.weather-holder .temp {
-  font-size: 1.2rem !important;
-  font-weight: 500;
+.date-holder .app {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.45rem;
+  z-index: 2;
+  font-size: 0.68rem;
+  font-weight: 300;
   color: #fff;
-  margin-bottom: 0.15rem; 
+}
+
+#item-weather-rp .card-back {
+  background-color: #0b82dd;
+  background-size: 130%;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.weather-holder {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+}
+
+.weather-holder .temp {
+  position: absolute;
+  right: -0.06em;
+  bottom: -0.14em;
+  font-size: 100cqh;
+  font-weight: 400;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  z-index: 0 !important;
+  pointer-events: none;
+  user-select: none;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.25px rgba(255, 255, 255, 0.45);
+  filter: drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.22));
 }
 
 .weather-holder .info {
-  font-size: 0.8rem !important;
+  position: absolute;
+  right: 0.55rem;
+  bottom: 1.55rem;
+  text-align: right;
+  z-index: 2;
   font-weight: 300;
+  color: #fff;
+  line-height: 1.2;
 }
 
-.weaather-holder .app {
-  align-self: flex-end;
-  font-size: 0.675rem;
+.weather-holder .info .place {
+  font-size: 0.72rem;
   font-weight: 300;
+  opacity: 0.92;
+}
+
+.weather-holder .info .desc {
+  font-size: 0.92rem;
+  font-weight: 400;
+}
+
+.weather-holder .info .hi-low {
+  font-size: 0.78rem;
+  font-weight: 300;
+  opacity: 0.88;
+  margin-top: 0.08rem;
+}
+
+.weather-holder .app {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.45rem;
+  z-index: 2;
+  font-size: 0.68rem;
+  font-weight: 300;
+  color: #fff;
 }
 
 
@@ -1245,6 +1346,30 @@ body {
   #item-weather-rp {
     grid-row: 2 / 3;
     grid-column: 1 / 2;
+  }
+
+  .weather-holder .temp,
+  .date-holder .date {
+    top: -0.05em;
+    right: -0.12em;
+    font-size: 70cqh;
+  }
+
+  .weather-holder .info,
+  .date-holder .info {
+    bottom: 1.35rem;
+    right: 0.45rem;
+  }
+
+  .weather-holder .info .desc,
+  .date-holder .info .day {
+    font-size: 0.82rem;
+  }
+
+  .weather-holder .app,
+  .date-holder .app {
+    right: 0.45rem;
+    bottom: 0.35rem;
   }
 
   .slide-text {

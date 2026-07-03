@@ -103,9 +103,48 @@ function whenHomeReady() {
   return Promise.resolve(window.__homeReady).catch(() => {});
 }
 
+const WAITING_JOKES = [
+  "Why do footballers bring string to the game? So they can tie the score.",
+  "The coach went to the bank. He wanted his quarter back.",
+  "I told my computer I needed a break. It said: \"No problem — I'll go to sleep.\"",
+  "Why do programmers prefer dark mode? Light attracts bugs.",
+  "I would tell you a UDP joke, but you might not get it.",
+  "What do you call a goalie who never saves? A banker.",
+  "There are 10 types of people: those who understand binary, and those who don't.",
+  "Why did the web developer leave the restaurant? Too many tables.",
+  "CSS jokes are #000000 — no one gets them.",
+  "My code works and I have no idea why. Classic.",
+  "Why was the stadium so cool? It was full of fans.",
+  "A SQL query walks into a bar, walks up to two tables, and asks: \"Can I join you?\"",
+];
+
+function getWaitingJokeTargetId() {
+  const w = window.innerWidth;
+  if (w <= 768) return 'item-1';
+  if (w <= 1100) return 'item-2';
+  return 'item-5';
+}
+
+function initWaitingJokes() {
+  const item = document.getElementById(getWaitingJokeTargetId());
+  if (!item) return;
+
+  const front = item.querySelector('.card-front');
+  if (!front || front.querySelector('.loader')) return;
+
+  const joke = WAITING_JOKES[Math.floor(Math.random() * WAITING_JOKES.length)];
+  const el = document.createElement('p');
+  el.className = 'waiting-joke';
+  el.textContent = joke;
+  front.appendChild(el);
+}
+
 // Initialize loader when page loads
 window.addEventListener("load", () => {
-  whenHomeReady().then(() => setTimeout(initCircularLoader, 500));
+  whenHomeReady().then(() => {
+    initWaitingJokes();
+    setTimeout(initCircularLoader, 500);
+  });
 });
 
 

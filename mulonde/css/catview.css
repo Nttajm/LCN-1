@@ -64,8 +64,10 @@
 
 .cv-back-group {
   position: fixed;
-  bottom: 2rem;
+  top: 2rem;
   left: 2rem;
+  right: auto;
+  bottom: auto;
   z-index: 200;
   display: block;
   pointer-events: none;
@@ -115,9 +117,26 @@
   animation: cv-btn-out 0.3s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
+.cv-back-group.lcn-above {
+  top: 2rem;
+  left: 2rem;
+  right: auto;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.cv-back-group.lcn-above .cv-back-row {
+  order: 1;
+}
+
 .cv-back-group.lcn-above .cv-lcn-link {
+  position: relative;
+  order: 2;
   left: 0;
-  bottom: 3.25rem;
+  bottom: auto;
 }
 
 .cv-lcn-link:hover {
@@ -540,8 +559,9 @@
   }
 
   .cv-back-group {
-    bottom: 1.25rem;
+    top: 1.25rem;
     left: 1.25rem;
+    bottom: auto;
   }
 
   .cv-lcn-link {
@@ -551,9 +571,16 @@
     font-size: 0.65rem;
   }
 
+  .cv-back-group.lcn-above {
+    top: 1.25rem;
+    left: 1.25rem;
+    right: auto;
+    bottom: auto;
+  }
+
   .cv-back-group.lcn-above .cv-lcn-link {
     left: 0;
-    bottom: 2.9rem;
+    bottom: auto;
   }
 
   .cv-back-btn {

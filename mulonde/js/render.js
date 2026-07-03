@@ -930,11 +930,11 @@ export async function openAppView(app) {
 
   const color = catView.style.getPropertyValue('--cat-color');
   const catTitle = result.catData.title || result.foundInKey;
-  const lcnAbove = Boolean(result.lcnPath && catTitle);
+  const useTopLayout = Boolean(catTitle);
   const group = document.querySelector('.cv-back-group');
-  if (group) group.classList.toggle('lcn-above', lcnAbove);
+  if (group) group.classList.toggle('lcn-above', useTopLayout);
   showBackBtn(color, catTitle, result.foundInKey);
-  if (result.lcnPath) showLcnLink(result.lcnPath, { above: lcnAbove });
+  if (result.lcnPath) showLcnLink(result.lcnPath, { above: useTopLayout });
 
   hero.classList.add('cv-open');
   catView.classList.add('open');
@@ -943,10 +943,12 @@ export async function openAppView(app) {
 function closeCatView() {
   const catView = document.querySelector('.cat-view');
   const hero = document.querySelector('.hero');
+  const group = document.querySelector('.cv-back-group');
 
   clearCategoryLcnTracking();
   hideLcnLink();
   hideBackBtn();
+  if (group) group.classList.remove('lcn-above');
   hero.classList.remove('cv-open');
 
   catView.classList.add('closing');

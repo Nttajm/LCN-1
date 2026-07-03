@@ -2,6 +2,27 @@ import { seasons, getTeamById } from './acl-index.js';
 import { players } from './players.js';
 import { rankPlayers } from './ratings.js';
 
+// ─── Articles data (for final headlines/images) ──────────────────────────────
+let articlesData = [];
+
+async function loadArticles() {
+    try {
+        const res = await fetch('articles.json');
+        if (res.ok) {
+            articlesData = await res.json();
+        }
+    } catch (e) {
+        console.warn('Could not load articles:', e);
+    }
+}
+
+function getFinalArticle(year) {
+    return articlesData.find(a => 
+        a.season === year && 
+        (a.tags?.includes('final') || a.matchdayIndex === 13)
+    ) || null;
+}
+
 // ─── Season Index ────────────────────────────────────────────────────────────
 // Build a sorted list of available season years (newest first)
 function getSeasonYears() {
@@ -223,75 +244,315 @@ function renderClubLogos(playerName) {
     }).join('');
 }
 
+const ROAD_ROUNDS = [
+    { key: 'finals', label: 'Final', layout: 'full' },
+    { key: 'semiFinals', label: 'Semi-finals', layout: 'pair' },
+    { key: 'quarterFinals', label: 'Quarter-finals', layout: 'pair' },
+    { key: 'round16', label: 'Round of 16', layout: 'pair' },
+];
+
+function getMatchWinnerNote(game) {
+    if (!game || game.standby) return '';
+    if (game.score1 === undefined || game.score2 === undefined) return '';
+    if (game.score1 === game.score2) return '';
+
+    const winner = game.score1 > game.score2 ? getTeamById(game.team1) : getTeamById(game.team2);
+    return `${winner.sub || winner.name} win`;
+}
+
+function renderRoadMatchCard(game) {
+    const t1 = getTeamById(game.team1);
+    const t2 = getTeamById(game.team2);
+    const isStandby = !!game.standby;
+    const score = isStandby ? '–' : `${game.score1} – ${game.score2}`;
+    const winnerNote = getMatchWinnerNote(game);
+    const href = game.id && !isStandby ? `match-info.html?match=${game.id}` : null;
+
+    const inner = `
+        ${winnerNote ? `<div class="rtf-match-note">${winnerNote}</div>` : ''}
+        <div class="rtf-match-teams">
+            <div class="rtf-team">
+                <img class="rtf-team-logo" src="${t1.img}" alt="${t1.name}">
+                <span class="rtf-team-name">${t1.sub || t1.name}</span>
+            </div>
+            <div class="rtf-score">${score}</div>
+            <div class="rtf-team rtf-team--away">
+                <img class="rtf-team-logo" src="${t2.img}" alt="${t2.name}">
+                <span class="rtf-team-name">${t2.sub || t2.name}</span>
+            </div>
+        </div>`;
+
+    if (href) {
+        return `<a class="rtf-match" href="${href}">${inner}</a>`;
+    }
+    return `<div class="rtf-match rtf-match--upcoming">${inner}</div>`;
+}
+
+function renderRoadToFinal(year) {
+    const container = document.getElementById('roadToFinal');
+    if (!container) return;
+
+    const data = getSeasonData(year);
+    if (!data) {
+        container.innerHTML = '<div class="no-data">No knockout data for this season.</div>';
+        return;
+    }
+
+    const sections = [];
+
+    ROAD_ROUNDS.forEach(round => {
+        const md = (data.matchdays || []).find(matchday => matchday.bracketType === round.key);
+        if (!md || !(md.games || []).length) return;
+
+        const games = md.games.filter(game => game.team1 && game.team2);
+        if (!games.length) return;
+
+        sections.push(`
+            <div class="rtf-round">
+                <h3 class="rtf-round-title">${round.label}</h3>
+                <div class="rtf-matches rtf-matches--${round.layout}">
+                    ${games.map(renderRoadMatchCard).join('')}
+                </div>
+            </div>
+        `);
+    });
+
+    container.innerHTML = sections.length
+        ? sections.join('')
+        : '<div class="no-data">Knockout phase has not started yet.</div>';
+}
+
+const KO_PHASES = [
+    { key: 'finals', label: 'Final' },
+    { key: 'semiFinals', label: 'Semi-finals' },
+    { key: 'quarterFinals', label: 'Quarter-finals' },
+    { key: 'round16', label: 'Round of 16' },
+];
+
+function isPlayoffMatchday(md) {
+    const details = (md.details || '').toLowerCase();
+    return !md.bracketType && (details.includes('leaderboard') || details.includes('play-off') || details.includes('playoff'));
+}
+
+function isLeagueMatchday(md) {
+    if (md.bracketType || isPlayoffMatchday(md)) return false;
+    const details = (md.details || '').toLowerCase();
+    return details.includes('league') || !details;
+}
+
+function getTeamsFromMatchday(md) {
+    const ids = new Set();
+    (md.games || []).forEach(game => {
+        if (game.team1) ids.add(game.team1);
+        if (game.team2) ids.add(game.team2);
+    });
+    return [...ids];
+}
+
+function getTeamOriginCode(team) {
+    if (!team?.originC) return '';
+    return team.originC.slice(0, 3).toUpperCase();
+}
+
+function getSeasonClubPhases(year) {
+    const data = getSeasonData(year);
+    if (!data) return [];
+
+    const phases = [];
+
+    KO_PHASES.forEach(phase => {
+        const md = (data.matchdays || []).find(matchday => matchday.bracketType === phase.key);
+        if (!md) return;
+        const teamIds = getTeamsFromMatchday(md);
+        if (teamIds.length) {
+            phases.push({ label: phase.label, teamIds });
+        }
+    });
+
+    const leagueIds = new Set();
+    const playoffIds = new Set();
+    (data.matchdays || []).forEach(md => {
+        if (md.bracketType) return;
+        if (isPlayoffMatchday(md)) {
+            getTeamsFromMatchday(md).forEach(id => playoffIds.add(id));
+            return;
+        }
+        if (isLeagueMatchday(md)) {
+            getTeamsFromMatchday(md).forEach(id => leagueIds.add(id));
+        }
+    });
+
+    if (playoffIds.size) {
+        phases.push({ label: 'KO play-offs', teamIds: [...playoffIds] });
+    }
+
+    if (leagueIds.size) {
+        phases.push({ label: 'League Phase', teamIds: [...leagueIds] });
+    }
+
+    return phases;
+}
+
+function renderClubCard(teamId) {
+    const team = getTeamById(teamId);
+    const origin = getTeamOriginCode(team);
+    const name = team.sub || team.name;
+    return `
+        <div class="club-item">
+            <img class="club-item-logo" src="${team.img}" alt="${team.name}">
+            <span class="club-item-name">${name}</span>
+            ${origin ? `<span class="club-item-origin">(${origin})</span>` : ''}
+        </div>`;
+}
+
+function renderClubsView(year) {
+    const clubsYearEl = document.getElementById('clubsSectionYear');
+    const phasesEl = document.getElementById('clubsPhases');
+    if (!phasesEl) return;
+
+    if (clubsYearEl) clubsYearEl.textContent = year;
+
+    const phases = getSeasonClubPhases(year);
+    if (!phases.length) {
+        phasesEl.innerHTML = '<div class="no-data">No club data for this season.</div>';
+        return;
+    }
+
+    phasesEl.innerHTML = phases.map(phase => `
+        <div class="club-phase">
+            <h3 class="club-phase-title">${phase.label}</h3>
+            <div class="club-phase-teams">
+                ${phase.teamIds.map(renderClubCard).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+let activeHeroTab = 'overview';
+
+function setHeroTab(tabName) {
+    activeHeroTab = tabName;
+
+    document.querySelectorAll('.hero-tab').forEach(tab => {
+        tab.classList.toggle('hero-tab--active', tab.dataset.tab === tabName);
+    });
+
+    const overviewEl = document.getElementById('seasonOverviewContent');
+    const clubsEl = document.getElementById('seasonClubsContent');
+    const showClubs = tabName === 'clubs';
+
+    if (overviewEl) overviewEl.hidden = showClubs;
+    if (clubsEl) clubsEl.hidden = !showClubs;
+}
+
 // ─── Main render ─────────────────────────────────────────────────────────────
 let yearList = [];
 let currentIndex = 0;
 
-function render(year) {
-    // --- Banner ---
-    document.getElementById('bannerYear').textContent = year;
-    const seasonTeamsCount = (getSeasonData(year)?.teams || []).length;
-    document.getElementById('tourneySectionYear').textContent = year;
+function renderSeasonTabs() {
+    const tabsEl = document.getElementById('seasonTabs');
+    if (!tabsEl) return;
 
-    // Disable/enable arrows
-    document.getElementById('prevSeasonBtn').disabled = currentIndex >= yearList.length - 1;
-    document.getElementById('nextSeasonBtn').disabled = currentIndex <= 0;
-
-    // --- Finals / completion ---
-    const finalResult    = getFinalResult(year);
-    const isComplete     = finalResult !== null;
-    const banner         = document.getElementById('seasonBanner');
-    const finalCardWrap  = document.getElementById('finalCardWrap');
-    const winnerLogoEl   = document.getElementById('bannerWinnerLogo');
-    const bannerSubEl    = document.getElementById('bannerSub');
-
-    // Season sub-label
-    bannerSubEl.textContent = seasonTeamsCount ? `${seasonTeamsCount} clubs` : '';
-
-    if (isComplete) {
-        banner.classList.add('is-complete');
-        winnerLogoEl.src = finalResult.winner.img;
-        winnerLogoEl.alt = finalResult.winner.name;
-        finalCardWrap.style.display = '';
-
-        // Build final card teams rows
-        const winTeam  = finalResult.winner;
-        const losTeam  = finalResult.loser;
-        const winScore = finalResult.winScore;
-        const losScore = finalResult.losScore;
-
-        document.getElementById('finalTeams').innerHTML = `
-            <div style="display:flex;align-items:flex-start;gap:0">
-                <div class="final-teams" style="flex:1;gap:0.6rem">
-                    <div class="final-team-row">
-                        <img class="final-team-logo" src="${winTeam.img}" alt="${winTeam.name}">
-                        <span class="final-team-name is-winner">${winTeam.name}</span>
-                        <span class="final-winner-crown">&#9733;</span>
-                    </div>
-                    <div class="final-vs-sep"></div>
-                    <div class="final-team-row">
-                        <img class="final-team-logo" src="${losTeam.img}" alt="${losTeam.name}">
-                        <span class="final-team-name">${losTeam.name}</span>
-                    </div>
-                </div>
-                <div class="final-score-col">
-                    <div class="final-score is-winner-score">${winScore}</div>
-                    <div class="final-score">${losScore}</div>
-                </div>
+    tabsEl.innerHTML = yearList.map((year, idx) => {
+        const finalResult = getFinalResult(year);
+        const hasWinner = finalResult !== null;
+        const winnerImg = hasWinner ? finalResult.winner.img : 'images/icons/cl-image.png';
+        const isActive = idx === currentIndex;
+        
+        return `
+            <div class="season-tab ${isActive ? 'is-active' : ''}" data-index="${idx}">
+                <img class="season-tab-logo ${hasWinner ? 'has-winner' : ''}" 
+                     src="${winnerImg}" alt="${hasWinner ? finalResult.winner.name : year}">
+                <span class="season-tab-year">${year}</span>
             </div>
         `;
+    }).join('');
 
-        // Clickable to match viewer
-        const finalCard = document.getElementById('finalCard');
-        finalCard.onclick = () => {
+    tabsEl.querySelectorAll('.season-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const idx = parseInt(tab.dataset.index);
+            if (!isNaN(idx)) {
+                currentIndex = idx;
+                render(yearList[currentIndex]);
+            }
+        });
+    });
+
+    scrollActiveTabIntoView();
+}
+
+function scrollActiveTabIntoView() {
+    const tabsEl = document.getElementById('seasonTabs');
+    const activeTab = tabsEl?.querySelector('.season-tab.is-active');
+    if (activeTab) {
+        activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+}
+
+function render(year) {
+    document.getElementById('tourneySectionYear').textContent = year;
+
+    // Update selector arrows
+    const prevBtn = document.getElementById('selectorPrevBtn');
+    const nextBtn = document.getElementById('selectorNextBtn');
+    if (prevBtn) prevBtn.disabled = currentIndex >= yearList.length - 1;
+    if (nextBtn) nextBtn.disabled = currentIndex <= 0;
+
+    // Render season tabs
+    renderSeasonTabs();
+
+    // --- Finals / completion ---
+    const finalResult = getFinalResult(year);
+    const isComplete = finalResult !== null;
+    const seasonHero = document.getElementById('seasonHero');
+    const heroWinnerLogo = document.getElementById('heroWinnerLogo');
+    const heroLabel = document.getElementById('heroLabel');
+    const heroTeamName = document.getElementById('heroTeamName');
+    const heroHeadline = document.getElementById('heroHeadline');
+    const heroImage = document.getElementById('heroImage');
+
+    const finalArticle = getFinalArticle(year);
+
+    if (isComplete) {
+        seasonHero.classList.remove('no-winner');
+        heroWinnerLogo.src = finalResult.winner.img;
+        heroWinnerLogo.alt = finalResult.winner.name;
+        heroWinnerLogo.style.display = '';
+        heroLabel.textContent = 'WINNERS';
+        heroLabel.style.display = '';
+        heroTeamName.textContent = finalResult.winner.name;
+
+        if (finalArticle) {
+            heroHeadline.textContent = finalArticle.title;
+            if (finalArticle.cover) {
+                heroImage.src = finalArticle.cover;
+                heroImage.classList.remove('is-placeholder');
+            } else {
+                heroImage.src = 'images/icons/cl-image.png';
+                heroImage.classList.add('is-placeholder');
+            }
+        } else {
+            heroHeadline.textContent = `${finalResult.winner.name} ${finalResult.winScore}–${finalResult.losScore} ${finalResult.loser.name}`;
+            heroImage.src = 'images/icons/cl-image.png';
+            heroImage.classList.add('is-placeholder');
+        }
+
+        heroImage.onclick = () => {
             if (finalResult.id) {
                 window.location.href = `match-info.html?match=${finalResult.id}`;
             }
         };
+        heroImage.style.cursor = 'pointer';
     } else {
-        banner.classList.remove('is-complete');
-        winnerLogoEl.src = '';
-        finalCardWrap.style.display = 'none';
+        seasonHero.classList.add('no-winner');
+        heroWinnerLogo.style.display = 'none';
+        heroLabel.style.display = 'none';
+        heroTeamName.textContent = `Season ${year}`;
+        heroHeadline.textContent = 'Season in progress';
+        heroImage.src = 'images/icons/cl-image.png';
+        heroImage.classList.add('is-placeholder');
+        heroImage.onclick = null;
+        heroImage.style.cursor = 'default';
     }
 
     // --- Awards ---
@@ -379,32 +640,77 @@ function render(year) {
             <div class="chart-bar-label">${p.label}</div>
         </div>`;
     }).join('');
+
+    renderRoadToFinal(year);
+    renderClubsView(year);
+    setHeroTab(activeHeroTab);
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadArticles();
     yearList = getSeasonYears();
 
     if (!yearList.length) {
-        document.getElementById('bannerYear').textContent = 'No seasons';
-        document.getElementById('awardsGrid').innerHTML  = '<div class="no-data">No season data available.</div>';
+        const heroTeamName = document.getElementById('heroTeamName');
+        if (heroTeamName) heroTeamName.textContent = 'No seasons';
+        document.getElementById('awardsGrid').innerHTML = '<div class="no-data">No season data available.</div>';
         return;
     }
 
     currentIndex = getLatestSeasonIndex();
     render(yearList[currentIndex]);
 
-    document.getElementById('prevSeasonBtn').addEventListener('click', () => {
-        if (currentIndex < yearList.length - 1) {
-            currentIndex++;
-            render(yearList[currentIndex]);
-        }
+    // Selector bar navigation
+    const selectorPrevBtn = document.getElementById('selectorPrevBtn');
+    const selectorNextBtn = document.getElementById('selectorNextBtn');
+    const seasonTabs = document.getElementById('seasonTabs');
+
+    if (selectorPrevBtn) {
+        selectorPrevBtn.addEventListener('click', () => {
+            if (currentIndex < yearList.length - 1) {
+                currentIndex++;
+                render(yearList[currentIndex]);
+            }
+        });
+    }
+
+    if (selectorNextBtn) {
+        selectorNextBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                render(yearList[currentIndex]);
+            }
+        });
+    }
+
+    // Scroll tabs with arrows
+    if (seasonTabs) {
+        selectorPrevBtn?.addEventListener('click', () => {
+            seasonTabs.scrollBy({ left: -200, behavior: 'smooth' });
+        });
+        selectorNextBtn?.addEventListener('click', () => {
+            seasonTabs.scrollBy({ left: 200, behavior: 'smooth' });
+        });
+    }
+
+    document.querySelectorAll('.hero-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.dataset.tab;
+            if (tabName === 'overview' || tabName === 'clubs') {
+                setHeroTab(tabName);
+            }
+        });
     });
 
-    document.getElementById('nextSeasonBtn').addEventListener('click', () => {
-        if (currentIndex > 0) {
-            currentIndex--;
-            render(yearList[currentIndex]);
+    document.addEventListener('keydown', async (e) => {
+        if (!e.ctrlKey || !e.shiftKey || e.key.toLowerCase() !== 's') return;
+        e.preventDefault();
+        try {
+            await navigator.clipboard.writeText(JSON.stringify(seasons, null, 2));
+            console.log('Seasons copied to clipboard');
+        } catch (err) {
+            console.error('Failed to copy seasons:', err);
         }
     });
 });

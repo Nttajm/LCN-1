@@ -86,7 +86,7 @@ function renderWeather() {
   return `<div class="weather-holder">
     <div class="temp">67°</div>
     <div class="info">
-      <div class="place">Rhonert Park, CA</div>
+      <div class="place">Rohnert Park, CA</div>
       <div class="desc">Partly Cloudy</div>
       <div class="hi-low">64° / 52°</div>
     </div>
@@ -96,11 +96,12 @@ function renderWeather() {
 
 function renderDate() {
   return `<div class="date-holder">
-    <div class="s-1">
-      <div class="date">15</div>
-      <div class="day">Saturday</div>
+    <div class="date"></div>
+    <div class="info">
+      <div class="month"></div>
+      <div class="day"></div>
     </div>
-    <div class="calender">Calender</div>
+    <div class="app">Calender</div>
   </div>`;
 }
 

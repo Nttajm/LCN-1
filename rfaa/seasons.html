@@ -62,35 +62,60 @@
         </div>
     </div>
 
-    <!-- Season Banner -->
-    <div class="season-banner" id="seasonBanner">
-        <div class="banner-noise"></div>
-        <!-- Winner logo ghost (only shown when season is complete) -->
-        <img class="banner-winner-logo" id="bannerWinnerLogo" src="" alt="" aria-hidden="true">
-        <div class="banner-content">
-            <button class="season-arrow" id="prevSeasonBtn" aria-label="Previous season">&#8592;</button>
-            <div class="banner-center">
-                <span class="banner-label">Season</span>
-                <h1 class="banner-year" id="bannerYear">—</h1>
-                <span class="banner-sub" id="bannerSub"></span>
+    <!-- Season Selector Bar -->
+    <div class="season-selector-bar">
+        <button class="selector-arrow selector-arrow--left" id="selectorPrevBtn" aria-label="Previous seasons">
+            <span class="arrow-icon">&lsaquo;</span>
+        </button>
+        <div class="season-tabs-wrap">
+            <div class="season-tabs" id="seasonTabs">
+                <!-- JS renders year tabs with winner logos -->
             </div>
-            <button class="season-arrow" id="nextSeasonBtn" aria-label="Next season">&#8594;</button>
+        </div>
+        <button class="selector-arrow selector-arrow--right" id="selectorNextBtn" aria-label="Next seasons">
+            <span class="arrow-icon">&rsaquo;</span>
+        </button>
+        <button class="all-seasons-btn" id="allSeasonsBtn">All seasons</button>
+    </div>
+
+    <!-- Season Hero Section -->
+    <div class="season-hero" id="seasonHero">
+        <div class="hero-content">
+            <div class="hero-winner-info" id="heroWinnerInfo">
+                <img class="hero-winner-logo" id="heroWinnerLogo" src="" alt="">
+                <div class="hero-winner-text">
+                    <span class="hero-label" id="heroLabel">WINNERS</span>
+                    <h1 class="hero-team-name" id="heroTeamName">—</h1>
+                </div>
+            </div>
+            <div class="hero-divider"></div>
+            <h2 class="hero-headline" id="heroHeadline"></h2>
+            <div class="hero-tabs">
+                <button class="hero-tab hero-tab--active" data-tab="overview">Overview</button>
+                <button class="hero-tab" data-tab="matches">Matches</button>
+                <button class="hero-tab" data-tab="stats">Stats</button>
+                <button class="hero-tab" data-tab="clubs">Clubs</button>
+            </div>
+        </div>
+        <div class="hero-image-wrap" id="heroImageWrap">
+            <div class="hero-image-overlay"></div>
+            <img class="hero-image" id="heroImage" src="" alt="">
         </div>
     </div>
 
-    <!-- Final match card (only shown when season is complete) -->
-    <div class="final-card-wrap" id="finalCardWrap" style="display:none">
-        <div class="final-card" id="finalCard">
-            <img class="final-trophy-bg" src="images/icons/cl-image.png" alt="" aria-hidden="true">
-            <div class="final-card-inner">
-                <div class="final-tag">&#127942; Champions</div>
-                <div class="final-teams" id="finalTeams"><!-- JS --></div>
+    <div id="seasonOverviewContent">
+    <div class="overview-layout season-section">
+        <div class="overview-main">
+            <div class="road-to-final-panel">
+                <h2 class="section-title">Road to the final</h2>
+                <div class="road-to-final" id="roadToFinal"></div>
+                <a class="rtf-all-matches" href="matches.html">All matches</a>
             </div>
         </div>
-    </div>
 
+        <aside class="overview-sidebar">
     <!-- Awards row -->
-    <div class="season-section awards-section">
+    <div class="awards-section">
         <div class="awards-grid" id="awardsGrid">
             <!-- Top Scorer -->
             <div class="award-card" id="award-scorer">
@@ -135,7 +160,7 @@
     </div>
 
     <!-- MOTM section -->
-    <div class="season-section motm-section">
+    <div class="motm-section">
         <h2 class="section-title">Man of the Match</h2>
         <div class="motm-list" id="motmList">
             <!-- rendered by JS -->
@@ -143,7 +168,7 @@
     </div>
 
     <!-- Tournament stats section -->
-    <div class="season-section tourney-section">
+    <div class="tourney-section">
         <h2 class="section-title">Tournament Stats <span class="section-year" id="tourneySectionYear"></span></h2>
         <div class="tourney-cards">
             <div class="tourney-card">
@@ -170,6 +195,15 @@
                     <!-- rendered by JS -->
                 </div>
             </div>
+        </div>
+    </div>
+        </aside>
+    </div>
+    </div>
+
+    <div class="season-section clubs-section" id="seasonClubsContent" hidden>
+        <h2 class="section-title">Clubs <span class="section-year" id="clubsSectionYear"></span></h2>
+        <div class="clubs-phases" id="clubsPhases">
         </div>
     </div>
 
