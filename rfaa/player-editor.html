@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Editor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .app-header {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .app-header .actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success {
+            background: #10b981;
+            color: #fff;
+        }
+        .btn-success:hover { background: #059669; }
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary {
+            background: #374151;
+            color: #e0e0e0;
+        }
+        .btn-secondary:hover { background: #4b5563; }
+
+        html, body { height: 100%; }
+        .container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            height: calc(100vh - 61px);
+            min-height: 0;
+        }
+
+        /* Left Panel - Editor */
+        .editor-panel {
+            background: #1a1a1a;
+            border-right: 1px solid #2a2a2a;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .editor-panel h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #9ca3af;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 9px 12px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .team-entries {
+            margin-top: 10px;
+        }
+        .team-entry {
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .team-entry .remove-team {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+        .team-entry .remove-team:hover { color: #f87171; }
+        .team-entry .form-group { margin-bottom: 8px; }
+
+        .year-ranges {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .year-range-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .year-range-row input {
+            width: 80px;
+            padding: 6px 8px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+        .year-range-row input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .year-range-row .remove-range {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .year-range-row .remove-range:hover { color: #ef4444; }
+        .add-range-btn {
+            font-size: 11px;
+            color: #3b82f6;
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .add-range-btn:hover { text-decoration: underline; }
+
+        .add-team-btn {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px dashed #444;
+            border-radius: 6px;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+        .add-team-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+        }
+        .editor-actions .btn { flex: 1; }
+
+        /* Right Panel */
+        .list-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .view-tabs {
+            display: flex;
+            background: #111;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .view-tab {
+            flex: 1;
+            padding: 11px 0;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+        }
+        .view-tab:hover { color: #e0e0e0; }
+        .view-tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+
+        .search-bar {
+            padding: 14px 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .search-bar input,
+        .search-bar select {
+            padding: 8px 12px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+        .search-bar input:focus,
+        .search-bar select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .search-bar input[type="text"] { flex: 1; min-width: 180px; }
+        .search-bar select { min-width: 140px; }
+
+        /* Teams Grid View */
+        .grid-toolbar {
+            display: none;
+            padding: 14px 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            align-items: center;
+            gap: 12px;
+        }
+        .grid-toolbar.active { display: flex; }
+        .grid-toolbar label { font-size: 13px; color: #9ca3af; }
+        .grid-toolbar select {
+            padding: 8px 12px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+            min-width: 120px;
+        }
+        .grid-toolbar select:focus { outline: none; border-color: #3b82f6; }
+        .grid-toolbar .grid-year-note { font-size: 12px; color: #6b7280; margin-left: auto; }
+
+        .team-grid {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            align-content: start;
+            min-height: 0;
+        }
+        .team-grid.active { display: grid; }
+
+        .team-tile {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .team-tile:hover { border-color: #3b82f6; background: #1a2235; }
+        .team-tile.has-players { border-color: #2d3748; }
+        .team-tile.no-players { opacity: 0.35; }
+
+        .team-tile .tile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .team-tile .tile-logo {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            flex-shrink: 0;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+        }
+        .team-tile .tile-logo-placeholder {
+            width: 36px;
+            height: 36px;
+            background: #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .team-tile .tile-text { min-width: 0; }
+        .team-tile .tile-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .team-tile .tile-id {
+            font-size: 11px;
+            color: #6b7280;
+        }
+        .team-tile .tile-stats {
+            display: flex;
+            gap: 12px;
+            padding-top: 6px;
+            border-top: 1px solid #222;
+        }
+        .team-tile .tile-stat { flex: 1; }
+        .team-tile .tile-stat .val {
+            font-size: 20px;
+            font-weight: 700;
+            color: #e0e0e0;
+            line-height: 1;
+        }
+        .team-tile .tile-stat .val.accent { color: #3b82f6; }
+        .team-tile .tile-stat .lbl {
+            font-size: 10px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 3px;
+        }
+
+        .view-player-list { display: none; flex-direction: column; overflow: hidden; flex: 1; min-height: 0; }
+        .view-player-list.active { display: flex; }
+
+        .player-count {
+            padding: 8px 20px;
+            font-size: 12px;
+            color: #6b7280;
+            background: #151515;
+            border-bottom: 1px solid #222;
+        }
+        .player-count.squad-view {
+            color: #93c5fd;
+            background: #1a2744;
+            border-bottom-color: #2563eb;
+        }
+
+        .squad-banner {
+            display: none;
+            padding: 10px 20px;
+            background: #1a2744;
+            border-bottom: 1px solid #2563eb;
+            font-size: 13px;
+            color: #93c5fd;
+        }
+        .squad-banner.active { display: block; }
+        .squad-banner strong { color: #fff; }
+
+        .player-card .meta .highlight-team {
+            color: #93c5fd;
+            font-weight: 500;
+        }
+
+        .player-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px;
+        }
+        .player-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .player-card:hover {
+            border-color: #3b82f6;
+            background: #1f1f1f;
+        }
+        .player-card.selected {
+            border-color: #3b82f6;
+            background: #1a2744;
+        }
+        .player-card .info h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .player-card .info .meta {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .player-card .info .meta span {
+            margin-right: 12px;
+        }
+        .player-card .badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .badge-active { background: #064e3b; color: #6ee7b7; }
+        .badge-retired { background: #451a03; color: #fbbf24; }
+
+        /* Export Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 { font-size: 16px; color: #fff; }
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 22px;
+            cursor: pointer;
+        }
+        .modal-header .close-btn:hover { color: #fff; }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-body textarea {
+            width: 100%;
+            min-height: 400px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            padding: 16px;
+            resize: vertical;
+        }
+        .modal-body textarea:focus { outline: none; border-color: #3b82f6; }
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 300;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        .id-display {
+            font-family: monospace;
+            font-size: 11px;
+            color: #6b7280;
+            background: #111;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid #2a2a2a;
+                max-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <h1>Player Editor</h1>
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="reloadFromFile()">Reload from players.js</button>
+            <button class="btn btn-success" onclick="exportAll()">Export JS</button>
+            <button class="btn btn-secondary" onclick="importFromJS()">Import JS</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="editor-panel">
+            <h2 id="editor-title">Add New Player</h2>
+            <input type="hidden" id="edit-index" value="-1">
+
+            <div class="form-group">
+                <label>Player ID</label>
+                <input type="text" id="player-id" placeholder="Auto-generated" readonly>
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="player-name" placeholder="Full name">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="player-type">
+                    <option value="active">Active</option>
+                    <option value="retired">Retired</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="player-dob">
+            </div>
+
+            <div class="form-group">
+                <label>Teams</label>
+                <div class="team-entries" id="team-entries"></div>
+                <button class="add-team-btn" onclick="addTeamEntry()">+ Add Team</button>
+            </div>
+
+            <div class="editor-actions">
+                <button class="btn btn-primary" onclick="savePlayer()">Save Player</button>
+                <button class="btn btn-secondary" onclick="resetForm()">Clear</button>
+            </div>
+        </aside>
+
+        <main class="list-panel">
+
+            <div class="view-tabs">
+                <button class="view-tab active" onclick="switchView('players')">Player List</button>
+                <button class="view-tab" onclick="switchView('grid')">Teams Grid</button>
+            </div>
+
+            <!-- Player List View -->
+            <div class="view-player-list active" id="view-players">
+                <div class="search-bar">
+                    <input type="text" id="search-name" placeholder="Search by name...">
+                    <select id="filter-team">
+                        <option value="">All Teams</option>
+                    </select>
+                    <select id="filter-year">
+                        <option value="">All Years</option>
+                    </select>
+                    <select id="filter-type">
+                        <option value="">All Types</option>
+                        <option value="active">Active</option>
+                        <option value="retired">Retired</option>
+                    </select>
+                </div>
+                <div class="squad-banner" id="squad-banner"></div>
+                <div class="player-count" id="player-count">0 players</div>
+                <div class="player-list" id="player-list"></div>
+            </div>
+
+            <!-- Teams Grid View -->
+            <div class="grid-toolbar active" id="view-grid-toolbar" style="display:none">
+                <label>Year</label>
+                <select id="grid-year">
+                    <option value="">Select year...</option>
+                </select>
+                <span class="grid-year-note" id="grid-year-note"></span>
+            </div>
+            <div class="team-grid" id="team-grid"></div>
+
+        </main>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="export-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Export Players JS</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="export-output" readonly></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="copyExport()">Copy to Clipboard</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="import-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Import Players JS</h2>
+                <button class="close-btn" onclick="closeImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;color:#9ca3af;margin-bottom:12px;">
+                    Paste your players.js content below. The import will parse player objects and add them to the editor.
+                </p>
+                <textarea id="import-input" placeholder="Paste players.js content here..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="doImport()">Import</button>
+                <button class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+const TEAMS = [
+    { id: 'tex',       name: 'Cerius Texico',      img: 'images/teams/cerx.png' },
+    { id: 'DELU',      name: 'DelU',                img: 'images/teams/delU.png' },
+    { id: 'teso',      name: 'Teso FC',             img: 'images/teams/teso.png' },
+    { id: 'DELM',      name: 'Del Mer',             img: 'images/teams/DelMer.png' },
+    { id: 'Dom',       name: 'Domania',             img: 'images/teams/Donamia.png' },
+    { id: 'fill',      name: 'Fillham United',      img: 'images/teams/fillham.png' },
+    { id: 'esg',       name: 'Esgual CF',           img: 'images/teams/fcesgual.png' },
+    { id: 'hewi',      name: 'Hewi FC',             img: 'images/teams/Hewifc.png' },
+    { id: 'lenico',    name: 'Lenico',              img: 'images/teams/lenico.png' },
+    { id: 'nb',        name: 'New Bern',            img: 'images/teams/newbern.png' },
+    { id: 'pali',      name: 'Pali',                img: 'images/teams/pali.png' },
+    { id: 'Sprta',     name: 'Sporta CF',           img: 'images/teams/Sporta.png' },
+    { id: 'Uly',       name: 'Ulimy',               img: 'images/teams/Ulimy.png' },
+    { id: 'RS',        name: 'Real Sol',            img: 'images/teams/real-sol.png' },
+    { id: 'BCCR',      name: 'BC Central',          img: 'images/teams/bc-central.png' },
+    { id: 'serpo',     name: 'Serpogol',            img: 'images/teams/serpogol.png' },
+    { id: 'DelUnited', name: 'Del United',          img: 'images/teams/del-united.png' },
+    { id: 'PSL',       name: 'Pacific Saint Leon',  img: 'images/teams/psl.png' },
+    { id: 'NDIJON',    name: 'North Dijon',         img: 'images/teams/north-dijon.png' },
+    { id: 'ocio',      name: 'Ocio',                img: 'images/teams/ocio.png' },
+    { id: 'riofc',     name: 'Rio FC',              img: 'images/teams/riofc.png' },
+    { id: 'Sentago',   name: 'Sentago',             img: 'images/teams/Sentago.png' },
+    { id: 'pacer',     name: 'Pacer FC',            img: 'images/teams/pacer.png' },
+    { id: 'gks',       name: 'GKS',                 img: 'images/teams/gks.png' },
+    { id: 'BVB',       name: 'Borussia Dortmund',   img: 'images/teams/Borussia.png' },
+    { id: 'deg',       name: 'Degato',              img: 'images/teams/degato.png' },
+    { id: 'astH',      name: 'Astana Hotspurs',     img: 'images/teams/AST-Hotspur.png' },
+    { id: 'bsti',      name: 'Bistana FC',          img: 'images/teams/Bistana.png' },
+    { id: 'hogn',      name: 'Hougon FC',           img: 'images/teams/CastelHogan.png' },
+    { id: 'penn',      name: 'Penn FC',             img: 'images/teams/penn.png' },
+    { id: 'dj',        name: 'Dijel FC',            img: 'images/teams/dijel.png' },
+    { id: 'athmak',    name: 'Athmak FC',           img: 'images/teams/athmak.png' },
+    { id: 'V',         name: 'Visto FC',            img: 'images/teams/VistoFc.png' },
+    { id: 'BB',        name: 'Bardon FC',           img: 'images/teams/Bardon.png' },
+    { id: 'Vfy',       name: 'Vfy',                 img: null },
+    { id: 'SLV',       name: 'SLV',                 img: null },
+    { id: 'SprtBlk',   name: 'SprtBlk',             img: null },
+];
+
+let players = [];
+
+function generateId() {
+    return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 5);
+}
+
+function yearsToRanges(years) {
+    if (!years || years.length === 0) return [];
+    if (Array.isArray(years[0])) return years;
+
+    const sorted = [...new Set(years)].sort((a, b) => a - b);
+    const ranges = [];
+    let start = sorted[0];
+    let end = sorted[0];
+
+    for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i] === end + 1) {
+            end = sorted[i];
+        } else {
+            ranges.push([start, end]);
+            start = end = sorted[i];
+        }
+    }
+    ranges.push([start, end]);
+    return ranges;
+}
+
+function normalizePlayer(player) {
+    const teams = {};
+    for (const [teamId, data] of Object.entries(player.teams || {})) {
+        const years = data?.years || [];
+        teams[teamId] = { years: yearsToRanges(years) };
+    }
+
+    return {
+        id: player.id || generateId(),
+        name: player.name,
+        type: player.type || 'active',
+        dob: player.dob || '',
+        teams
+    };
+}
+
+async function loadFromPlayersFile({ silent = false } = {}) {
+    const res = await fetch('./js/players.js');
+    if (!res.ok) throw new Error(`Failed to load players.js (${res.status})`);
+
+    const raw = await res.text();
+    const parsed = parsePlayersJS(raw);
+    if (parsed.length === 0) throw new Error('No players found in players.js');
+
+    players = parsed.map(normalizePlayer);
+    persist();
+    populateYearFilter();
+    populateGridYearFilter();
+    renderPlayerList();
+    resetForm();
+    if (!silent) {
+        showToast(`Loaded ${players.length} players from players.js`);
+    }
+}
+
+function reloadFromFile() {
+    if (players.length && !confirm('Reload from players.js? Unsaved edits in this session will be replaced.')) {
+        return;
+    }
+    loadFromPlayersFile().catch(err => {
+        console.error(err);
+        showToast(err.message, true);
+    });
+}
+
+async function init() {
+    populateTeamFilter();
+    addTeamEntry();
+
+    document.getElementById('search-name').addEventListener('input', renderPlayerList);
+    document.getElementById('filter-team').addEventListener('change', renderPlayerList);
+    document.getElementById('filter-type').addEventListener('change', renderPlayerList);
+    document.getElementById('filter-year').addEventListener('change', renderPlayerList);
+
+    try {
+        await loadFromPlayersFile({ silent: true });
+    } catch (err) {
+        console.error(err);
+        const cached = localStorage.getItem('pe_players');
+        if (cached) {
+            players = JSON.parse(cached);
+            populateYearFilter();
+            populateGridYearFilter();
+            renderPlayerList();
+            showToast('Could not load players.js — using cached data', true);
+        } else {
+            renderPlayerList();
+            showToast('Could not load players.js. Use a local server or Import JS.', true);
+        }
+    }
+}
+
+function populateTeamFilter() {
+    const sel = document.getElementById('filter-team');
+    TEAMS.sort((a, b) => a.name.localeCompare(b.name)).forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = `${t.name} (${t.id})`;
+        sel.appendChild(opt);
+    });
+}
+
+function populateYearFilter() {
+    const sel = document.getElementById('filter-year');
+    const current = sel.value;
+    const years = new Set();
+
+    for (const player of players) {
+        for (const data of Object.values(player.teams || {})) {
+            for (const [start, end] of data.years || []) {
+                for (let y = start; y <= end; y++) years.add(y);
+            }
+        }
+    }
+
+    sel.innerHTML = '<option value="">All Years</option>';
+    [...years].sort((a, b) => b - a).forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        sel.appendChild(opt);
+    });
+
+    if (current && years.has(parseInt(current))) sel.value = current;
+}
+
+function getTeamLabel(teamId) {
+    const team = TEAMS.find(t => t.id === teamId);
+    return team ? team.name : teamId;
+}
+
+function playerOnTeamInYear(player, teamId, year) {
+    const teamData = player.teams?.[teamId];
+    if (!teamData) return false;
+
+    return (teamData.years || []).some(([start, end]) => year >= start && year <= end);
+}
+
+function playerActiveInYear(player, year) {
+    for (const data of Object.values(player.teams || {})) {
+        if ((data.years || []).some(([start, end]) => year >= start && year <= end)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getTeamStintLabel(player, teamId) {
+    const ranges = player.teams?.[teamId]?.years || [];
+    if (!ranges.length) return '';
+    return ranges.map(([s, e]) => s === e ? `${s}` : `${s}–${e}`).join(', ');
+}
+
+function buildTeamSelect(selectedId) {
+    let html = '<option value="">-- Select Team --</option>';
+    TEAMS.sort((a, b) => a.name.localeCompare(b.name)).forEach(t => {
+        html += `<option value="${t.id}" ${t.id === selectedId ? 'selected' : ''}>${t.name} (${t.id})</option>`;
+    });
+    return html;
+}
+
+function addTeamEntry(teamId = '', ranges = [[null, null]]) {
+    const container = document.getElementById('team-entries');
+    const div = document.createElement('div');
+    div.className = 'team-entry';
+
+    let rangeHtml = '';
+    ranges.forEach(([start, end], i) => {
+        rangeHtml += `
+            <div class="year-range-row">
+                <input type="number" placeholder="Start" min="1990" max="2050" value="${start || ''}" class="range-start">
+                <span style="color:#666">—</span>
+                <input type="number" placeholder="End" min="1990" max="2050" value="${end || ''}" class="range-end">
+                <button class="remove-range" onclick="this.parentElement.remove()">×</button>
+            </div>`;
+    });
+
+    div.innerHTML = `
+        <button class="remove-team" onclick="this.parentElement.remove()">×</button>
+        <div class="form-group">
+            <label>Team</label>
+            <select class="team-select">${buildTeamSelect(teamId)}</select>
+        </div>
+        <div class="form-group">
+            <label>Year Ranges</label>
+            <div class="year-ranges">${rangeHtml}</div>
+            <button class="add-range-btn" onclick="addYearRange(this)">+ Add range</button>
+        </div>`;
+    container.appendChild(div);
+}
+
+function addYearRange(btn) {
+    const rangesDiv = btn.previousElementSibling;
+    const row = document.createElement('div');
+    row.className = 'year-range-row';
+    row.innerHTML = `
+        <input type="number" placeholder="Start" min="1990" max="2050" class="range-start">
+        <span style="color:#666">—</span>
+        <input type="number" placeholder="End" min="1990" max="2050" class="range-end">
+        <button class="remove-range" onclick="this.parentElement.remove()">×</button>`;
+    rangesDiv.appendChild(row);
+}
+
+function getFormData() {
+    const id = document.getElementById('player-id').value || generateId();
+    const name = document.getElementById('player-name').value.trim();
+    const type = document.getElementById('player-type').value;
+    const dob = document.getElementById('player-dob').value;
+
+    if (!name) { showToast('Name is required', true); return null; }
+
+    const teams = {};
+    const entries = document.querySelectorAll('.team-entry');
+    for (const entry of entries) {
+        const teamId = entry.querySelector('.team-select').value;
+        if (!teamId) continue;
+
+        const ranges = [];
+        entry.querySelectorAll('.year-range-row').forEach(row => {
+            const start = parseInt(row.querySelector('.range-start').value);
+            const end = parseInt(row.querySelector('.range-end').value);
+            if (start && end) ranges.push([start, end]);
+        });
+
+        if (ranges.length > 0) {
+            teams[teamId] = { years: ranges };
+        }
+    }
+
+    return { id, name, type, dob, teams };
+}
+
+function savePlayer() {
+    const data = getFormData();
+    if (!data) return;
+
+    const editIndex = parseInt(document.getElementById('edit-index').value);
+
+    if (editIndex >= 0) {
+        players[editIndex] = data;
+        showToast('Player updated');
+    } else {
+        players.push(data);
+        showToast('Player added');
+    }
+
+    persist();
+    populateYearFilter();
+    populateGridYearFilter();
+    if (currentView === 'grid') renderTeamGrid();
+    else renderPlayerList();
+    resetForm();
+}
+
+function resetForm() {
+    document.getElementById('edit-index').value = '-1';
+    document.getElementById('player-id').value = '';
+    document.getElementById('player-name').value = '';
+    document.getElementById('player-type').value = 'active';
+    document.getElementById('player-dob').value = '';
+    document.getElementById('team-entries').innerHTML = '';
+    document.getElementById('editor-title').textContent = 'Add New Player';
+    document.getElementById('player-id').value = generateId();
+    addTeamEntry();
+}
+
+function editPlayer(index) {
+    const p = players[index];
+    document.getElementById('edit-index').value = index;
+    document.getElementById('player-id').value = p.id || '';
+    document.getElementById('player-name').value = p.name;
+    document.getElementById('player-type').value = p.type;
+    document.getElementById('player-dob').value = p.dob || '';
+    document.getElementById('editor-title').textContent = 'Edit Player';
+
+    const container = document.getElementById('team-entries');
+    container.innerHTML = '';
+    const teamKeys = Object.keys(p.teams || {});
+    if (teamKeys.length === 0) {
+        addTeamEntry();
+    } else {
+        teamKeys.forEach(tid => {
+            const ranges = p.teams[tid].years || [[null, null]];
+            addTeamEntry(tid, ranges);
+        });
+    }
+
+    document.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
+    const card = document.querySelector(`[data-index="${index}"]`);
+    if (card) card.classList.add('selected');
+}
+
+function deletePlayer(index) {
+    if (!confirm(`Delete "${players[index].name}"?`)) return;
+    players.splice(index, 1);
+    persist();
+    populateYearFilter();
+    populateGridYearFilter();
+    renderPlayerList();
+    resetForm();
+    showToast('Player deleted');
+}
+
+function getFilteredPlayers() {
+    const nameQ = document.getElementById('search-name').value.toLowerCase();
+    const teamQ = document.getElementById('filter-team').value;
+    const typeQ = document.getElementById('filter-type').value;
+    const yearQ = parseInt(document.getElementById('filter-year').value);
+
+    return players.filter((p, i) => {
+        p._origIndex = i;
+        if (nameQ && !p.name.toLowerCase().includes(nameQ)) return false;
+        if (typeQ && p.type !== typeQ) return false;
+
+        if (teamQ && yearQ) {
+            if (!playerOnTeamInYear(p, teamQ, yearQ)) return false;
+        } else if (teamQ) {
+            if (!p.teams?.[teamQ]) return false;
+        } else if (yearQ) {
+            if (!playerActiveInYear(p, yearQ)) return false;
+        }
+
+        return true;
+    });
+}
+
+function renderPlayerList() {
+    const filtered = getFilteredPlayers();
+    const listEl = document.getElementById('player-list');
+    const countEl = document.getElementById('player-count');
+    const squadBanner = document.getElementById('squad-banner');
+
+    const teamQ = document.getElementById('filter-team').value;
+    const yearQ = parseInt(document.getElementById('filter-year').value);
+    const squadView = teamQ && yearQ;
+
+    if (squadView) {
+        const teamName = getTeamLabel(teamQ);
+        squadBanner.classList.add('active');
+        squadBanner.innerHTML = `Squad list: <strong>${teamName}</strong> in <strong>${yearQ}</strong>`;
+        countEl.classList.add('squad-view');
+        countEl.textContent = `${filtered.length} player${filtered.length !== 1 ? 's' : ''} on ${teamName} in ${yearQ}`;
+    } else {
+        squadBanner.classList.remove('active');
+        squadBanner.innerHTML = '';
+        countEl.classList.remove('squad-view');
+        countEl.textContent = `${filtered.length} player${filtered.length !== 1 ? 's' : ''} (${players.length} total)`;
+    }
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = squadView
+            ? `<p style="color:#6b7280;text-align:center;padding:40px;">No players found on ${getTeamLabel(teamQ)} in ${yearQ}</p>`
+            : '<p style="color:#6b7280;text-align:center;padding:40px;">No players found</p>';
+        return;
+    }
+
+    listEl.innerHTML = filtered.map(p => {
+        const teamIds = Object.keys(p.teams || {});
+
+        let metaHtml;
+        if (squadView) {
+            const stint = getTeamStintLabel(p, teamQ);
+            metaHtml = `
+                <span class="highlight-team">${getTeamLabel(teamQ)} (${stint})</span>
+                ${p.dob ? `<span>DOB: ${p.dob}</span>` : ''}`;
+        } else {
+            const teamNames = teamIds.map(id => getTeamLabel(id)).join(', ');
+            const allYears = [];
+            for (const tid of teamIds) {
+                for (const [s, e] of (p.teams[tid].years || [])) {
+                    allYears.push(s, e);
+                }
+            }
+            const rangeDisplay = allYears.length ? `${Math.min(...allYears)}–${Math.max(...allYears)}` : '';
+            metaHtml = `
+                <span>${teamNames || 'No team'}</span>
+                <span>${rangeDisplay}</span>
+                ${p.dob ? `<span>DOB: ${p.dob}</span>` : ''}`;
+        }
+
+        return `
+            <div class="player-card" data-index="${p._origIndex}" onclick="editPlayer(${p._origIndex})">
+                <div class="info">
+                    <h3>${p.name} ${p.id ? `<span class="id-display">${p.id}</span>` : ''}</h3>
+                    <div class="meta">${metaHtml}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="badge badge-${p.type}">${p.type}</span>
+                    <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();deletePlayer(${p._origIndex})">Del</button>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+function exportAll() {
+    const output = generateJSOutput();
+    document.getElementById('export-output').value = output;
+    document.getElementById('export-modal').classList.add('active');
+}
+
+function generateJSOutput() {
+    let lines = [];
+    lines.push(`import { playerYears } from "./acl-index.js"`);
+    lines.push(`export let players = [`);
+
+    players.forEach((p, i) => {
+        lines.push(`  {`);
+        if (p.id) lines.push(`    id: '${p.id}',`);
+        lines.push(`    name: '${p.name}',`);
+        lines.push(`    type: '${p.type}',`);
+        lines.push(`    dob: '${p.dob || ''}',`);
+        lines.push(`    teams: {`);
+
+        const teamKeys = Object.keys(p.teams || {});
+        teamKeys.forEach((tid, ti) => {
+            const ranges = p.teams[tid].years || [];
+            const rangeStr = ranges.map(r => `[${r[0]}, ${r[1]}]`).join(', ');
+            const comma = ti < teamKeys.length - 1 ? ',' : '';
+            lines.push(`      '${tid}': {`);
+            lines.push(`        years: playerYears([${rangeStr}])`);
+            lines.push(`      }${comma}`);
+        });
+
+        lines.push(`    }`);
+        lines.push(`  }${i < players.length - 1 ? ',' : ''}`);
+    });
+
+    lines.push(`]`);
+    return lines.join('\n');
+}
+
+function copyExport() {
+    const textarea = document.getElementById('export-output');
+    textarea.select();
+    document.execCommand('copy');
+    showToast('Copied to clipboard');
+}
+
+function closeModal() {
+    document.getElementById('export-modal').classList.remove('active');
+}
+
+function importFromJS() {
+    document.getElementById('import-input').value = '';
+    document.getElementById('import-modal').classList.add('active');
+}
+
+function closeImportModal() {
+    document.getElementById('import-modal').classList.remove('active');
+}
+
+function doImport() {
+    const raw = document.getElementById('import-input').value;
+    if (!raw.trim()) { showToast('Nothing to import', true); return; }
+
+    try {
+        const parsed = parsePlayersJS(raw);
+        if (parsed.length === 0) {
+            showToast('No players found in input', true);
+            return;
+        }
+        players = parsed;
+        persist();
+        populateYearFilter();
+        populateGridYearFilter();
+        renderPlayerList();
+        closeImportModal();
+        showToast(`Imported ${parsed.length} players`);
+    } catch (e) {
+        showToast('Parse error: ' + e.message, true);
+    }
+}
+
+function parsePlayersJS(raw) {
+    const startMarker = raw.indexOf('export let players');
+    const arrayStart = raw.indexOf('[', startMarker);
+    if (arrayStart === -1) throw new Error('players array not found');
+
+    const blocks = [];
+    let depth = 0;
+    let objStart = -1;
+
+    for (let i = arrayStart + 1; i < raw.length; i++) {
+        const ch = raw[i];
+        if (ch === '{') {
+            if (depth === 0) objStart = i;
+            depth++;
+        } else if (ch === '}') {
+            depth--;
+            if (depth === 0 && objStart !== -1) {
+                blocks.push(raw.slice(objStart, i + 1));
+                objStart = -1;
+            }
+        } else if (ch === ']' && depth === 0) {
+            break;
+        }
+    }
+
+    return blocks.map(parsePlayerBlock).filter(Boolean);
+}
+
+function parsePlayerBlock(block) {
+    const idMatch = block.match(/(?:"?id"?\s*:\s*['"]([^'"]*?)['"])/);
+    const nameMatch = block.match(/(?:"?name"?\s*:\s*['"]([^'"]*?)['"])/);
+    const typeMatch = block.match(/(?:"?type"?\s*:\s*['"]([^'"]*?)['"])/);
+    const dobMatch = block.match(/(?:"?dob"?\s*:\s*['"]([^'"]*?)['"])/);
+
+    if (!nameMatch) return null;
+
+    const teams = {};
+    const teamsStart = block.search(/"?teams"?\s*:/);
+    if (teamsStart !== -1) {
+        const braceStart = block.indexOf('{', teamsStart);
+        if (braceStart !== -1) {
+            let depth = 0;
+            let teamsEnd = -1;
+            for (let i = braceStart; i < block.length; i++) {
+                if (block[i] === '{') depth++;
+                else if (block[i] === '}') {
+                    depth--;
+                    if (depth === 0) {
+                        teamsEnd = i;
+                        break;
+                    }
+                }
+            }
+            if (teamsEnd !== -1) {
+                const teamsBlock = block.slice(braceStart + 1, teamsEnd);
+                const teamPattern = /['"]?([\w]+)['"]?\s*:\s*\{[\s\S]*?playerYears\(\[([\s\S]*?)\]\)/g;
+                let tm;
+                while ((tm = teamPattern.exec(teamsBlock)) !== null) {
+                    const teamId = tm[1];
+                    const rangesRaw = tm[2];
+                    const ranges = [];
+                    const rp = /\[\s*(\d+)\s*,\s*(\d+)\s*\]/g;
+                    let rm;
+                    while ((rm = rp.exec(rangesRaw)) !== null) {
+                        ranges.push([parseInt(rm[1]), parseInt(rm[2])]);
+                    }
+                    if (ranges.length > 0) teams[teamId] = { years: ranges };
+                }
+            }
+        }
+    }
+
+    return {
+        id: idMatch ? idMatch[1] : generateId(),
+        name: nameMatch[1],
+        type: typeMatch ? typeMatch[1] : 'active',
+        dob: dobMatch ? dobMatch[1] : '',
+        teams
+    };
+}
+
+function persist() {
+    localStorage.setItem('pe_players', JSON.stringify(players));
+}
+
+function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.background = isError ? '#ef4444' : '#10b981';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ── View switching ──────────────────────────────────────────────
+
+let currentView = 'players';
+
+function switchView(view) {
+    currentView = view;
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view-tab')[view === 'players' ? 0 : 1].classList.add('active');
+
+    const playerListEl = document.getElementById('view-players');
+    const gridToolbar  = document.getElementById('view-grid-toolbar');
+    const teamGridEl   = document.getElementById('team-grid');
+
+    if (view === 'players') {
+        playerListEl.classList.add('active');
+        gridToolbar.style.display = 'none';
+        teamGridEl.classList.remove('active');
+    } else {
+        playerListEl.classList.remove('active');
+        gridToolbar.style.display = 'flex';
+        teamGridEl.classList.add('active');
+        renderTeamGrid();
+    }
+}
+
+// ── Teams Grid ───────────────────────────────────────────────────
+
+function populateGridYearFilter() {
+    const sel = document.getElementById('grid-year');
+    const current = sel.value;
+    const years = new Set();
+
+    for (const player of players) {
+        for (const data of Object.values(player.teams || {})) {
+            for (const [start, end] of data.years || []) {
+                for (let y = start; y <= end; y++) years.add(y);
+            }
+        }
+    }
+
+    sel.innerHTML = '<option value="">Select year...</option>';
+    [...years].sort((a, b) => b - a).forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        sel.appendChild(opt);
+    });
+
+    if (current && years.has(parseInt(current))) sel.value = current;
+    sel.addEventListener('change', renderTeamGrid);
+}
+
+function calcAge(dob, year) {
+    if (!dob) return null;
+    const birthYear = parseInt(dob.split('-')[0]);
+    const birthMonth = parseInt(dob.split('-')[1] || 1);
+    if (isNaN(birthYear)) return null;
+    // mid-year estimate: assume the season is played during the year
+    return year - birthYear;
+}
+
+function renderTeamGrid() {
+    const yearQ = parseInt(document.getElementById('grid-year').value);
+    const noteEl = document.getElementById('grid-year-note');
+    const gridEl = document.getElementById('team-grid');
+
+    if (!yearQ) {
+        noteEl.textContent = '';
+        gridEl.innerHTML = '<p style="color:#6b7280;text-align:center;padding:40px;grid-column:1/-1">Select a year to see squad stats</p>';
+        return;
+    }
+
+    // Compute stats per team
+    const teamStats = TEAMS.map(team => {
+        const squad = players.filter(p => playerOnTeamInYear(p, team.id, yearQ));
+        const ages = squad.map(p => calcAge(p.dob, yearQ)).filter(a => a !== null);
+        const avgAge = ages.length ? (ages.reduce((s, a) => s + a, 0) / ages.length).toFixed(1) : null;
+        return { team, count: squad.size || squad.length, avgAge, squad };
+    });
+
+    const total = teamStats.reduce((s, t) => s + t.count, 0);
+    noteEl.textContent = `${total} players in ${yearQ} across ${teamStats.filter(t => t.count > 0).length} teams`;
+
+    teamStats.sort((a, b) => b.count - a.count);
+
+    gridEl.innerHTML = teamStats.map(({ team, count, avgAge }) => {
+        const cls = count > 0 ? 'has-players' : 'no-players';
+        const logoHtml = team.img
+            ? `<img class="tile-logo" src="${team.img}" alt="${team.id}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            : '';
+        const initials = team.id.slice(0, 3).toUpperCase();
+        const placeholderStyle = team.img ? 'display:none' : '';
+        return `
+        <div class="team-tile ${cls}" onclick="selectTeamFromGrid('${team.id}', ${yearQ})">
+            <div class="tile-header">
+                ${logoHtml}
+                <div class="tile-logo-placeholder" style="${placeholderStyle}">${initials}</div>
+                <div class="tile-text">
+                    <div class="tile-name">${team.name}</div>
+                    <div class="tile-id">${team.id}</div>
+                </div>
+            </div>
+            <div class="tile-stats">
+                <div class="tile-stat">
+                    <div class="val accent">${count}</div>
+                    <div class="lbl">Players</div>
+                </div>
+                <div class="tile-stat">
+                    <div class="val">${avgAge !== null ? avgAge : '—'}</div>
+                    <div class="lbl">Avg Age</div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function selectTeamFromGrid(teamId, year) {
+    // Switch to player list, set filters, show squad
+    document.getElementById('filter-team').value = teamId;
+    document.getElementById('filter-year').value = year;
+    switchView('players');
+    renderPlayerList();
+}
+
+Object.assign(window, {
+    addTeamEntry,
+    addYearRange,
+    savePlayer,
+    resetForm,
+    editPlayer,
+    deletePlayer,
+    exportAll,
+    copyExport,
+    closeModal,
+    importFromJS,
+    closeImportModal,
+    doImport,
+    reloadFromFile,
+    switchView,
+    selectTeamFromGrid
+});
+
+document.getElementById('player-id').value = generateId();
+init();
+    </script>
+</body>
+</html>

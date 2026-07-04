@@ -11,6 +11,168 @@
     }
 }
 
+@media (max-width: 768px) {
+    :root {
+        --nav-h: 5rem;
+    }
+
+    html {
+        scroll-padding-top: var(--nav-h);
+    }
+
+    body {
+        padding-top: var(--nav-h);
+    }
+
+    .league-nav {
+        display: none;
+    }
+
+    .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 1.2rem;
+        min-height: var(--nav-h);
+        box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.3);
+        cursor: default;
+    }
+
+    .nav.p2-group {
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
+    }
+
+    .nav-logo {
+        display: flex;
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+    }
+
+    .nav .imgel {
+        width: 3.8rem;
+        margin-right: 0;
+    }
+
+    .nav-mobile-matches {
+        display: block;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: roboto, sans-serif;
+        font-size: 1.9rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        color: white;
+        text-decoration: none;
+    }
+
+    .nav-mobile-matches.selected {
+        font-weight: 600;
+        border-bottom: 0.22rem solid var(--mc-3);
+        padding-bottom: 0.15rem;
+    }
+
+    .nav-toggle {
+        display: flex;
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+        width: 2.4rem;
+        height: 2.4rem;
+        padding: 0;
+        border: none;
+        gap: 0.45rem;
+    }
+
+    .nav .options {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 0;
+        font-size: 1.6rem;
+        margin-top: 0;
+        padding: 0.4rem 0;
+        background: var(--grad-nav);
+        border-bottom: var(--border-3);
+        box-shadow: 0 0.8rem 1.6rem rgba(0, 0, 0, 0.35);
+        max-height: calc(100vh - var(--nav-h));
+        overflow-y: auto;
+    }
+
+    .nav.nav-open .options {
+        display: flex;
+    }
+
+    .nav .option-elem {
+        padding: 0.9rem 1.2rem;
+        border-bottom: var(--border-2);
+    }
+
+    .nav .option-elem span a,
+    .nav .nav-history-toggle {
+        display: block;
+        width: 100%;
+        text-align: left;
+        font-size: 1.7rem;
+        font-weight: 400;
+    }
+
+    #histab-parent .more-info {
+        position: static;
+        opacity: 1;
+        pointer-events: none;
+        transform: none;
+        max-height: 0;
+        overflow: hidden;
+        margin: 0;
+        transition: max-height 0.25s ease;
+    }
+
+    #histab-parent.history-open .more-info {
+        pointer-events: all;
+        max-height: 12rem;
+        margin-top: 0.4rem;
+    }
+
+    #histab-parent .more-info ul {
+        border: var(--border-3);
+        border-radius: 0.6rem;
+        background-color: var(--mc-1);
+        font-size: 1.4rem;
+    }
+
+    #histab-parent.history-open .nav-history-caret {
+        transform: rotate(180deg);
+    }
+
+    #histab-parent .more-info ul li {
+        padding: 0.6rem 1rem;
+    }
+
+    .season-cont,
+    .pad-cont,
+    .content-match-info,
+    .league-cont,
+    .preview-matches-cont,
+    .home-featured,
+    .season-page {
+        scroll-margin-top: var(--nav-h);
+    }
+}
+
 /* Medium devices (tablets, between 577px and 768px) */
 @media (min-width: 577px) and (max-width: 768px) {
     .md-match {

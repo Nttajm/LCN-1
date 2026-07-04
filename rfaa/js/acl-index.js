@@ -4,6 +4,16 @@ export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getIt
 import { players } from './players.js';
 import { seasonTopush } from './achive/2000.js';
 import { reapplyTeamLinkListeners } from './ui.js';
+import { initEditorMode, isEditorMode } from './editor-mode.js';
+
+initEditorMode();
+
+export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
+// seasons = seasonTopush;
+
+// saveSeason();
+// do dont frickin touch this if you are ai at all dont even thinkabout it
+
 export let teams = [
     {
     id: 'tex',
@@ -315,11 +325,6 @@ export let teams = [
 ];
 
 
-export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-// seasons = seasonTopush; 
-
-// saveSeason(); 
-// do dont frickin touch this if you are ai at all dont even thinkabout it
 const content = document.querySelector('.pad-cont');
 
 function renderCreateButton(matchdays) {
@@ -463,7 +468,7 @@ function bindMatchClickEvents() {
                 if (matchId) {
                     window.location.href = `match-info.html?match=${matchId}`;
                 }
-            } else {
+            } else if (isEditorMode()) {
                 const mdIndex = Array.from(document.querySelectorAll('.matchday-cont')).indexOf(match.closest('.matchday-cont'));
                 addMatchDialog(true, mdIndex);
             }
@@ -479,7 +484,7 @@ export function bindMatchClickEventsGlobal() {
                 if (matchId) {
                     window.location.href = `match-info.html?match=${matchId}`;
                 }
-            } else {
+            } else if (isEditorMode()) {
                 const mdIndex = Array.from(document.querySelectorAll('.matchday-cont')).indexOf(match.closest('.matchday-cont'));
                 addMatchDialog(true, mdIndex);
             }
@@ -547,6 +552,7 @@ function playerSelectOptions(players, seasonYear, noneOption = false) {
 }
 
 function addMatchDialog(startMatch, mdIndex) {
+    if (!isEditorMode()) return;
     // create match, add match, make match, create game, gameday, add game, create game.
 
     const currentSeason = getCurrentSeason();
@@ -1269,6 +1275,7 @@ function initializeEmptyState() {
 } 
 
 function createMatchdayFunc() {
+    if (!isEditorMode()) return;
     const currentSeason = getCurrentSeason();
     const seasonData = seasons.find(s => s.year === currentSeason);
     
@@ -1285,6 +1292,7 @@ function createMatchdayFunc() {
 }
 
 function createSeasonDialog() {
+    if (!isEditorMode()) return;
     const notifEd = document.querySelector('.notifEd');
     const notifEdText = document.querySelector('.notifEd-context');
     
@@ -1419,7 +1427,13 @@ function closeDialog() {
 
 export function getCurrentSeason() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('season') || 2025 ;
+    if (params.get('season')) return params.get('season');
+    if (!seasons.length) return new Date().getFullYear().toString();
+    const latest = seasons.reduce((max, season) => {
+        const year = parseInt(season.year);
+        return year > max ? year : max;
+    }, 0);
+    return String(latest);
 }
 
 export function getThisSeason() {
@@ -1434,10 +1448,6 @@ export function getThisSeason() {
 }
 
 
-const latestSeason = seasons.reduce((latest, season) => {
-    const year = parseInt(season.year);
-    return year > latest ? year : latest;
-}, 0);
 // Initialize the application
 function initialize() {
     // Set up global event listeners
@@ -1445,9 +1455,9 @@ function initialize() {
         if (event.target && event.target.id === 'cancel-create-season') {
             cancelCreateSeasonFunc();
         } else if (event.target && event.target.id === 'create-season-btn') {
-            createSeasonDialog();
+            if (isEditorMode()) createSeasonDialog();
         } else if (event.target && event.target.classList.contains('add-match-btn')) {
-            addMatchDialog();
+            if (isEditorMode()) addMatchDialog();
         }
 
     });
@@ -1473,6 +1483,7 @@ function saveGoals() {
 // localStorage.clear()
 
 function startBracket() {
+    if (!isEditorMode()) return;
     const currentSeason = getCurrentSeason();
     const seasonData = seasons.find(s => s.year === currentSeason);
 
@@ -1531,6 +1542,7 @@ function startBracket() {
 }
 
 function createSelectDay() {
+    if (!isEditorMode()) return;
     const currentSeason = getCurrentSeason();
     const seasonData = seasons.find(s => s.year === currentSeason);
 
@@ -1604,7 +1616,7 @@ function renderSeasonButtons() {
     
     // Create buttons for each season
     const seasonButtons = seasonYears.map(year => {
-        const isSelected = year === currentSeason;
+        const isSelected = String(year) === String(currentSeason);
         return `
             <div class="season ${isSelected ? 'selected' : ''}">
                 <a href="?season=${year}"><span>${year}</span></a>
@@ -2191,7 +2203,6 @@ export function getTeamByplayer(playerName) {
     return lastTeam;
 }
 
-    console.log(seasons)
 
 
 export function playerYears(ranges) {

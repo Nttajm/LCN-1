@@ -863,3 +863,9 @@
     pointer-events: none;
     z-index: 1;
 }
+
+body:not(.editor-mode) .add-match-btn,
+body:not(.editor-mode) .create-matchday,
+body:not(.editor-mode) .start-match-btn {
+    display: none !important;
+}

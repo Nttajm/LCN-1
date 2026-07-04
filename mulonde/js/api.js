@@ -1,42 +1,10 @@
 // Weather API for Rohnert Park, CA
-// Using Open-Meteo free API (no API key required)
+// Using wttr.in free API (no API key required)
 
 const ROHNERT_PARK = {
   lat: 38.3399,
   lon: -122.7011,
   name: "Rohnert Park, CA"
-};
-
-// Weather code descriptions from Open-Meteo
-const weatherCodes = {
-  0: "Clear sky",
-  1: "Mainly clear",
-  2: "Partly cloudy",
-  3: "Overcast",
-  45: "Foggy",
-  48: "Depositing rime fog",
-  51: "Light drizzle",
-  53: "Moderate drizzle",
-  55: "Dense drizzle",
-  56: "Light freezing drizzle",
-  57: "Dense freezing drizzle",
-  61: "Slight rain",
-  63: "Moderate rain",
-  65: "Heavy rain",
-  66: "Light freezing rain",
-  67: "Heavy freezing rain",
-  71: "Slight snow",
-  73: "Moderate snow",
-  75: "Heavy snow",
-  77: "Snow grains",
-  80: "Slight rain showers",
-  81: "Moderate rain showers",
-  82: "Violent rain showers",
-  85: "Slight snow showers",
-  86: "Heavy snow showers",
-  95: "Thunderstorm",
-  96: "Thunderstorm with slight hail",
-  99: "Thunderstorm with heavy hail"
 };
 
 const WEATHER_TIMEZONE = "America/Los_Angeles";
@@ -59,8 +27,9 @@ const WEATHER_BG_SLOTS = [
   { from: 1320, to: 1440, image: "pm10.png" }
 ];
 
-const RAIN_CODES = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
-const CLOUDY_CODES = new Set([2, 3, 45, 48]);
+// wttr.in weather codes
+const RAIN_CODES = new Set([176, 263, 266, 281, 284, 293, 296, 299, 302, 305, 308, 311, 314, 317, 320, 353, 356, 359, 362, 365, 374, 377, 386, 389, 392, 395]);
+const CLOUDY_CODES = new Set([119, 122, 143, 248, 260]);
 
 let currentWeatherCode = null;
 
@@ -108,15 +77,14 @@ function getLocalMinutes(date = new Date()) {
 }
 
 async function fetchWeather() {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${ROHNERT_PARK.lat}&longitude=${ROHNERT_PARK.lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America/Los_Angeles`;
+  const url = `https://wttr.in/${ROHNERT_PARK.lat},${ROHNERT_PARK.lon}?format=j1`;
 
   try {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Weather API error: ${response.status}`);
     }
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Failed to fetch weather:", error);
     return null;
@@ -135,14 +103,19 @@ function updateWeatherUI(data) {
   const hiLowEl = weatherHolder.querySelector(".hi-low");
 
   if (data) {
-    const currentTemp = Math.round(data.current.temperature_2m);
+    const current = data.current_condition?.[0];
+    const today = data.weather?.[0];
+
+    const currentTemp = current?.temp_F ?? "—";
     tempEl.textContent = `${currentTemp}°`;
     placeEl.textContent = ROHNERT_PARK.name;
-    const weatherCode = data.current.weather_code;
+
+    const weatherCode = parseInt(current?.weatherCode ?? "0", 10);
     currentWeatherCode = weatherCode;
-    descEl.textContent = weatherCodes[weatherCode] || "Unknown";
-    const highTemp = Math.round(data.daily.temperature_2m_max[0]);
-    const lowTemp = Math.round(data.daily.temperature_2m_min[0]);
+    descEl.textContent = current?.weatherDesc?.[0]?.value || "Unknown";
+
+    const highTemp = today?.maxtempF ?? "—";
+    const lowTemp = today?.mintempF ?? "—";
     hiLowEl.textContent = `${highTemp}° / ${lowTemp}°`;
     updateWeatherBackground(new Date(), weatherCode);
   } else if (descEl) {

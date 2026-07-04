@@ -22791,38 +22791,6 @@ export const seasonTopush = [
     ]
   },
   {
-    "year": "2026",
-    "teams": [
-      "tex",
-      "DELU",
-      "DELM",
-      "fill",
-      "esg",
-      "hewi",
-      "nb",
-      "pali",
-      "Sprta",
-      "Uly",
-      "RS",
-      "BCCR",
-      "DelUnited",
-      "PSL",
-      "NDIJON",
-      "ocio",
-      "riofc",
-      "Sentago",
-      "pacer",
-      "gks",
-      "bsti",
-      "hogn",
-      "penn",
-      "dj"
-    ],
-    "id": "season-2026",
-    "matchdays": [],
-    "transfers": []
-  },
-  {
     "year": "2000",
     "teams": [
       "tex",
@@ -24219,6 +24187,263 @@ export const seasonTopush = [
           }
         ],
         "id": "matchday-1"
+      },
+      {
+        "details": "League Phase",
+        "games": [
+          {
+            "id": "match-c8z3j79q0",
+            "potm": "none",
+            "team1": "tex",
+            "team2": "RS",
+            "score1": 2,
+            "score2": 0,
+            "appearances": [
+              {
+                "team": "Cerius Texico",
+                "name": "Otto Nesta"
+              },
+              {
+                "team": "Cerius Texico",
+                "name": "Jota Eme"
+              },
+              {
+                "team": "Cerius Texico",
+                "name": "Fojan Grick"
+              },
+              {
+                "team": "Cerius Texico",
+                "name": "Lamar Greenson"
+              },
+              {
+                "team": "Cerius Texico",
+                "name": "Raúl Blanco"
+              },
+              {
+                "team": "Cerius Texico",
+                "name": "Diego Ortema"
+              },
+              {
+                "team": "Cerius Texico",
+                "name": "Fernando Martínez Reyes"
+              },
+              {
+                "team": "Cerius Texico",
+                "name": "Carlos Mendoza"
+              },
+              {
+                "team": "Real Sol",
+                "name": "James Falcao"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Blane Hene"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Fezto Maradini"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Jerly Enock"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Rafael Torres Espinosa"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Daniel Vargas"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Emilio Gallego"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Antonio Rodriguez"
+              },
+              {
+                "team": "Real Sol",
+                "name": "Ricardo Ortiz"
+              }
+            ],
+            "seed": 4777,
+            "goals": [
+              {
+                "player": "Otto Nesta",
+                "minute": 20,
+                "team": "tex",
+                "assist": "Jota Eme",
+                "type": false
+              },
+              {
+                "player": "Diego Ortema",
+                "minute": 78,
+                "team": "tex",
+                "assist": "Jota Eme",
+                "type": false
+              }
+            ],
+            "yellowCards": [],
+            "redCards": [],
+            "stats": {
+              "possession": {
+                "team1": 60,
+                "team2": 40
+              },
+              "shotsOnTarget": {
+                "team1": 6,
+                "team2": 5
+              },
+              "passAccuracy": {
+                "team1": 81,
+                "team2": 67
+              },
+              "corners": {
+                "team1": 6,
+                "team2": 3
+              },
+              "offsides": {
+                "team1": 3,
+                "team2": 2
+              }
+            }
+          },
+          {
+            "id": "match-x0vjs96jw",
+            "potm": "Warn Foden",
+            "team1": "DELU",
+            "team2": "esg",
+            "score1": 4,
+            "score2": 1,
+            "appearances": [
+              {
+                "team": "DelU",
+                "name": "Fern Vardy"
+              },
+              {
+                "team": "DelU",
+                "name": "Bebi Fanton"
+              },
+              {
+                "team": "DelU",
+                "name": "Oswin Glanstoné"
+              },
+              {
+                "team": "DelU",
+                "name": "Oliver Barrington"
+              },
+              {
+                "team": "DelU",
+                "name": "Mark Westfield"
+              },
+              {
+                "team": "DelU",
+                "name": "Paul Stockbridge"
+              },
+              {
+                "team": "DelU",
+                "name": "Ian Bridgewater"
+              },
+              {
+                "team": "DelU",
+                "name": "Warn Foden"
+              },
+              {
+                "team": "Esgual CF",
+                "name": "Javier Hernandez"
+              },
+              {
+                "team": "Esgual CF",
+                "name": "Marcos Luitana"
+              },
+              {
+                "team": "Esgual CF",
+                "name": "Finz Poala"
+              },
+              {
+                "team": "Esgual CF",
+                "name": "Egnini Lafano"
+              },
+              {
+                "team": "Esgual CF",
+                "name": "Carlos Moreno"
+              },
+              {
+                "team": "Esgual CF",
+                "name": "Javier Muñoz"
+              },
+              {
+                "team": "Esgual CF",
+                "name": "Antonio García"
+              }
+            ],
+            "seed": 9437,
+            "goals": [
+              {
+                "player": "Ian Bridgewater",
+                "minute": 44,
+                "team": "DELU",
+                "assist": "Bebi Fanton",
+                "type": false
+              },
+              {
+                "player": "Warn Foden",
+                "minute": 42,
+                "team": "DELU",
+                "assist": "Paul Stockbridge",
+                "type": false
+              },
+              {
+                "player": "Warn Foden",
+                "minute": 92,
+                "team": "DELU",
+                "assist": false,
+                "type": "penalty"
+              },
+              {
+                "player": "Warn Foden",
+                "minute": 38,
+                "team": "DELU",
+                "assist": "Mark Westfield",
+                "type": "penalty"
+              },
+              {
+                "player": "Javier Hernandez",
+                "minute": 63,
+                "team": "esg",
+                "assist": "Egnini Lafano",
+                "type": false
+              }
+            ],
+            "yellowCards": [],
+            "redCards": [],
+            "stats": {
+              "possession": {
+                "team1": 50,
+                "team2": 50
+              },
+              "shotsOnTarget": {
+                "team1": 0,
+                "team2": 0
+              },
+              "passAccuracy": {
+                "team1": 0,
+                "team2": 0
+              },
+              "corners": {
+                "team1": 0,
+                "team2": 0
+              },
+              "offsides": {
+                "team1": 0,
+                "team2": 0
+              }
+            }
+          }
+        ],
+        "id": "matchday-2"
       }
     ],
     "transfers": []
