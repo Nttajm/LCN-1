@@ -59,6 +59,17 @@ function transformSingleWords() {
 
 transformSingleWords();
 
+// Lock mobile viewport height once so browser chrome (URL bar) doesn't resize cards.
+function lockMobileViewport() {
+  if (!window.matchMedia('(max-width: 768px)').matches) return;
+  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+
+lockMobileViewport();
+window.addEventListener('orientationchange', () => {
+  setTimeout(lockMobileViewport, 300);
+});
+
 // Circular loader animation for item-0 only
 function initCircularLoader() {
   const item = document.getElementById('item-0');

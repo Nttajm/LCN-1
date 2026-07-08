@@ -247,12 +247,14 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
+  -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
   transition: transform 0.8s ease-in-out;
 }
 
 /* Flip animation triggered by .flip-on class on .grid */
 .grid.flip-on .grid-item .cards {
+  -webkit-transform: rotateX(180deg);
   transform: rotateX(180deg);
 }
 
@@ -260,6 +262,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   display: flex;
   justify-content: center;
@@ -271,6 +274,7 @@ body {
 }
 
 .grid-item .card-back {
+  -webkit-transform: rotateX(180deg);
   transform: rotateX(180deg);
   display: flex;
   position: relative;
@@ -430,6 +434,24 @@ body {
 .grid.flip-on #item-date .cards {
   transition-delay: 0.5s;
 }
+
+/* Fade front face as each tile's flip begins (prevents text bleed on mobile) */
+.grid.flip-on .grid-item .card-front {
+  opacity: 0;
+  transition: opacity 0.08s linear;
+}
+
+.grid.flip-on #item-0 .card-front { transition-delay: 0s; }
+.grid.flip-on #item-4 .card-front { transition-delay: 0.05s; }
+.grid.flip-on #item-2 .card-front { transition-delay: 0.1s; }
+.grid.flip-on #item-3 .card-front { transition-delay: 0.15s; }
+.grid.flip-on #item-1 .card-front { transition-delay: 0.2s; }
+.grid.flip-on #item-5 .card-front { transition-delay: 0.25s; }
+.grid.flip-on #item-7 .card-front { transition-delay: 0.3s; }
+.grid.flip-on #item-8 .card-front { transition-delay: 0.35s; }
+.grid.flip-on #item-9 .card-front { transition-delay: 0.4s; }
+.grid.flip-on #item-weather-rp .card-front { transition-delay: 0.45s; }
+.grid.flip-on #item-date .card-front { transition-delay: 0.5s; }
 
 #item-0 {
    grid-row-start: 1;
@@ -1270,7 +1292,38 @@ body {
 @media (max-width: 768px) {
 
   :root {
+    --app-height: 100svh;
     font-size: 13px;
+  }
+
+  html,
+  body {
+    overflow: hidden;
+    overscroll-behavior: none;
+    margin: 0 !important;
+    width: 100%;
+    height: var(--app-height);
+  }
+
+  .hero.cont {
+    margin-top: 0;
+    height: var(--app-height);
+    max-height: var(--app-height);
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .view-more-cont {
+    position: fixed;
+    right: 1rem;
+    bottom: 0.75rem;
+    padding: 0;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  .view-more-cont .viewmore {
+    pointer-events: auto;
   }
 
   .hero {
@@ -1278,6 +1331,10 @@ body {
   }
 
   .grid {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    margin-top: 0.5rem;
     grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
     grid-template-columns: 1fr 1fr 1fr;
   }

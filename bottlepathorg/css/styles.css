@@ -40,6 +40,132 @@ body {
     object-fit: contain;
 }
 
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--bp-color);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.hamburger-icon:hover {
+    background: rgba(37, 121, 230, 0.08);
+}
+
+.hamburger-icon__bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.hamburger-icon.is-open .hamburger-icon__bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger-icon.is-open .hamburger-icon__bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-icon.is-open .hamburger-icon__bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+.nav-menu {
+    position: fixed;
+    top: var(--nav-height);
+    left: 0;
+    right: 0;
+    z-index: 99;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    background: #fff;
+    border-bottom: 1px solid rgba(37, 121, 230, 0.12);
+    box-shadow: 0 12px 32px rgba(37, 121, 230, 0.1);
+    transition:
+        max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease,
+        visibility 0.3s ease;
+}
+
+.nav-menu.is-open {
+    max-height: 520px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.nav-menu__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.5rem 1.5rem;
+    transform: translateY(-12px);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-menu.is-open .nav-menu__inner {
+    transform: translateY(0);
+}
+
+.nav-menu__link {
+    display: block;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: 14px;
+    background: transparent;
+    color: #1a1a1a;
+    font-family: var(--main-font);
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-menu__link:hover,
+.nav-menu__link:focus-visible {
+    background: rgba(37, 121, 230, 0.08);
+    color: var(--bp-color);
+    outline: none;
+}
+
+.nav-menu__email {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--bp-color);
+}
+
+.nav-menu__link--app {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.nav-menu__app-arrow {
+    display: block;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
 .cont-1 {
     padding: 0px 1.5rem;
     display: flex;
@@ -100,8 +226,17 @@ body {
 
 .image-qrt-cont {
     width: 100%;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1 / 2;
     position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.quarter-stack {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
 }
 
 .quarter-circle {
@@ -114,6 +249,13 @@ body {
     overflow: hidden;
     box-sizing: border-box;
     z-index: 1;
+}
+
+.quarter-circle--reflected {
+    top: 0;
+    bottom: auto;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 100%;
 }
 
 .quarter-circle img {
@@ -136,12 +278,18 @@ body {
     z-index: 0;
 }
 
-.gradient-border:nth-child(1) {
-    scale: 1.12;
-}
 .gradient-border:nth-child(2) {
     scale: 1.12;
 }
+
 .gradient-border:nth-child(3) {
     scale: 1.22;
+}
+
+.gradient-border--reflected {
+    top: 0;
+    bottom: auto;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 100%;
+    transform-origin: top left;
 }
