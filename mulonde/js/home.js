@@ -1,4 +1,6 @@
 import { openCatView, openAppView } from './render.js';
+import { bindWeatherCard } from './weather-app.js';
+import { bindCalendarCard } from './calendar-app.js';
 
 // ─── Home grid renderer ──────────────────────────────────────────────────────
 // Reads data/home.json and rebuilds the .grid so the layout editor (layout.html)
@@ -250,6 +252,8 @@ async function buildHome() {
   injectLayoutCSS(buildLayoutCSS(data));
   window.__homeDynamic = true;
   await wireRouting();
+  bindWeatherCard();
+  bindCalendarCard();
 }
 
 // Expose a readiness promise so animation.js can wait for the dynamic grid

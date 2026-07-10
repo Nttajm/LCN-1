@@ -765,7 +765,7 @@ let stopCategoryLcnTracking = null;
 let lcnHideToken = 0;
 let tagHideToken = 0;
 
-function showBackBtn(color, tagText, tagCatKey) {
+export function showBackBtn(color, tagText, tagCatKey) {
   const group = document.querySelector('.cv-back-group');
   const backBtn = document.querySelector('.cv-back-btn');
   const tag = document.querySelector('.cv-back-tag');
@@ -952,6 +952,8 @@ function closeCatView() {
   hero.classList.remove('cv-open');
 
   catView.classList.add('closing');
+  catView.classList.remove('weather-mode', 'calendar-mode');
+  catView.style.removeProperty('--wx-avg-color');
   catView.addEventListener('animationend', () => {
     catView.classList.remove('open', 'closing');
     catView.style.removeProperty('--cat-color');

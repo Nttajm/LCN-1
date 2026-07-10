@@ -32,6 +32,7 @@ const RAIN_CODES = new Set([176, 263, 266, 281, 284, 293, 296, 299, 302, 305, 30
 const CLOUDY_CODES = new Set([119, 122, 143, 248, 260]);
 
 let currentWeatherCode = null;
+let cachedWeatherData = null;
 
 function isNightTime(date = new Date()) {
   const minutes = getLocalMinutes(date);
@@ -84,10 +85,12 @@ async function fetchWeather() {
     if (!response.ok) {
       throw new Error(`Weather API error: ${response.status}`);
     }
-    return await response.json();
+    const data = await response.json();
+    cachedWeatherData = data;
+    return data;
   } catch (error) {
     console.error("Failed to fetch weather:", error);
-    return null;
+    return cachedWeatherData;
   }
 }
 
@@ -163,3 +166,16 @@ setInterval(async () => {
   const weatherData = await fetchWeather();
   updateWeatherUI(weatherData);
 }, 10 * 60 * 1000);
+
+window.WeatherAPI = {
+  ROHNERT_PARK,
+  WEATHER_TIMEZONE,
+  RAIN_CODES,
+  CLOUDY_CODES,
+  getWeatherBackgroundImage,
+  getLocalMinutes,
+  isNightTime,
+  fetchWeather,
+  getCachedData: () => cachedWeatherData,
+  getWeatherCode: () => currentWeatherCode
+};
