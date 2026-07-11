@@ -1812,7 +1812,9 @@
             gameRunning = true; // For pause detection
             const loopToken = ++arrowLoopToken; // Capture token for this loop
 
-            resetInGameGif();
+            setTimeout(() => { 
+                resetInGameGif(); 
+            }, 1000);
             playAudioWithFadeIn(totalAudioOffset);
             audioEqualizer.classList.add('active');
 
