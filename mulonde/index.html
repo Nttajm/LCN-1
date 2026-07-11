@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=overlays-content">
   <title>Document</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/catview.css">
+  <link rel="stylesheet" href="css/weather-app.css">
+  <link rel="stylesheet" href="css/calendar-app.css">
   <link rel="stylesheet" href="/css/standard.css">
 </head>
 <body class="stand_er-scroll">
@@ -26,7 +28,13 @@
     </div>
   </div>
 
-
+<!--   
+  ███╗   ███╗██╗   ██╗██╗      ██████╗ ███╗   ██╗██████╗ ███████╗
+  ████╗ ████║██║   ██║██║     ██╔═══██╗████╗  ██║██╔══██╗██╔════╝
+  ██╔████╔██║██║   ██║██║     ██║   ██║██╔██╗ ██║██║  ██║█████╗  
+  ██║╚██╔╝██║██║   ██║██║     ██║   ██║██║╚██╗██║██║  ██║██╔══╝  
+  ██║ ╚═╝ ██║╚██████╔╝███████╗╚██████╔╝██║ ╚████║██████╔╝███████╗
+  ╚═╝     ╚═╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚══════╝ -->
   <div class="hero cont stand_er-scroll">
     <div class="grid-context">
       <div class="left">
@@ -237,19 +245,11 @@
             <div class="weather-holder">
               <div class="temp">67°</div>
               <div class="info">
-                  <div class="place">
-                Rhonert Park, CA
+                <div class="place">Rohnert Park, CA</div>
+                <div class="desc">Partly Cloudy</div>
+                <div class="hi-low">64° / 52°</div>
               </div>
-              <div class="desc">
-                Partly Cloudy
-              </div>
-              <div class="hi-low">
-                64° / 52°
-              </div>
-              </div>
-              <div class="app">
-                Weather
-              </div>
+              <div class="app">Weather</div>
             </div>
           </div>
         </div>
@@ -260,11 +260,12 @@
           </div>
           <div class="card card-back">
             <div class="date-holder">
-              <div class="s-1">
-                <div class="date">15</div>
-                <div class="day">Saturday</div>
+              <div class="date"></div>
+              <div class="info">
+                <div class="month"></div>
+                <div class="day"></div>
               </div>
-              <div class="calender">Calender</div>
+              <div class="app">Calender</div>
             </div>
           </div>
         </div>
@@ -287,12 +288,37 @@
     </div>
     <div class="finder-list"></div>
   </div>
-  <button class="cv-back-btn" aria-label="Back">←</button>
+  <div class="cv-back-group">
+    <div class="cv-back-row">
+      <button class="cv-back-btn" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="cv-back-tag" aria-label="Found in">
+        <span class="cv-back-tag-label"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M7 17L17 7"/>
+          <path d="M9 7h8v8"/>
+        </svg>
+      </button>
+    </div>
+    <a class="cv-lcn-link" href="#" aria-label="Read more on LCN">
+      <span>See more on LCN</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 17L17 7"/>
+        <path d="M9 7h8v8"/>
+      </svg>
+    </a>
+  </div>
   <div class="cat-view"></div>
 
 </body>
 <script src="js/animation.js" type="module"></script>
 <script src="js/api.js"></script>
 <script src="js/render.js" type="module"></script>
+<script src="js/home.js" type="module"></script>
+<script src="js/weather-app.js" type="module"></script>
+<script src="js/calendar-app.js" type="module"></script>
 <script src="js/finder.js" type="module"></script>
 </html>

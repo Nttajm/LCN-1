@@ -1,0 +1,487 @@
+{
+  "grid": {
+    "desktop": {
+      "cols": 8,
+      "rows": 4
+    },
+    "tablet": {
+      "cols": 5,
+      "rows": 5
+    },
+    "mobile": {
+      "cols": 3,
+      "rows": 6
+    }
+  },
+  "items": [
+    {
+      "id": "item-0",
+      "kind": "loader",
+      "color": "#588B6F",
+      "interval": 3500,
+      "route": {
+        "type": "category",
+        "value": "demos"
+      },
+      "pos": {
+        "desktop": {
+          "col": "7/9",
+          "row": "1/3"
+        },
+        "tablet": {
+          "col": "4/6",
+          "row": "3/5"
+        },
+        "mobile": {
+          "col": "2/4",
+          "row": "1/3"
+        }
+      },
+      "slides": [
+        {
+          "type": "image",
+          "src": "data/work/lacosta/main-image.png",
+          "title": "LA COSTA TAQUERIA"
+        },
+        {
+          "type": "explainer",
+          "color": "#E8590C",
+          "heading": "Demos",
+          "list": [
+            "Interactive prototypes made for various projects",
+            "Creative experiments showcasing different techniques"
+          ],
+          "brand": "JM"
+        }
+      ]
+    },
+    {
+      "id": "item-8",
+      "kind": "slideshow",
+      "color": "#998CA8",
+      "interval": 4500,
+      "route": {
+        "type": "category",
+        "value": "projects"
+      },
+      "pos": {
+        "desktop": {
+          "col": "1/3",
+          "row": "1/3"
+        },
+        "tablet": {
+          "col": "1/2",
+          "row": "3/4"
+        },
+        "mobile": {
+          "col": "1/3",
+          "row": "6/7"
+        }
+      },
+      "slides": [
+        {
+          "type": "explainer",
+          "color": "#2F9E44",
+          "heading": "Projects",
+          "list": [
+            "Platforms & tools",
+            "Web applications",
+            "Collaborative apps"
+          ],
+          "brand": "JM"
+        },
+        {
+          "type": "image",
+          "src": "data/work/lcn.png",
+          "title": "LCNJOEL",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/comcal/comcal.png",
+          "title": "ComCal",
+          "route": {
+            "type": "app",
+            "value": "comcal"
+          }
+        },
+        {
+          "type": "image",
+          "src": "https://lcnjoel.com/a_home_assets/content/fnat_poster_web.jpg",
+          "title": "FNAT",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/index/doc.html?v=mn2a234mvi28xb"
+          }
+        }
+      ],
+      "backHtml": ""
+    },
+    {
+      "id": "item-3",
+      "kind": "image",
+      "color": "#FFC107",
+      "fit": "contain",
+      "route": {
+        "type": "app",
+        "value": ""
+      },
+      "pos": {
+        "desktop": {
+          "col": "5/6",
+          "row": "1/2"
+        },
+        "tablet": {
+          "col": "5/6",
+          "row": "1/2"
+        },
+        "mobile": {
+          "col": "2/3",
+          "row": "5/6"
+        }
+      },
+      "slides": [
+        {
+          "type": "image",
+          "src": "data/work/jmbins/jmbins.png",
+          "title": "JM BINS"
+        },
+        {
+          "type": "image",
+          "src": "data/work/jmbins/c3.png",
+          "title": "jmbins",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/jmbins"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/jmbins/c1.png",
+          "title": "jmbins",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/jmbins"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/jmbins/c2.png",
+          "title": "jmbins",
+          "route": {
+            "type": "link",
+            "value": "lcnjoel.com/jmbins"
+          }
+        }
+      ]
+    },
+    {
+      "id": "item-4",
+      "kind": "slideshow",
+      "small": true,
+      "color": "#3cb620",
+      "interval": 4000,
+      "route": {
+        "type": "category",
+        "value": "games"
+      },
+      "pos": {
+        "desktop": {
+          "col": "6/7",
+          "row": "1/2"
+        },
+        "tablet": {
+          "col": "4/5",
+          "row": "1/2"
+        },
+        "mobile": {
+          "col": "3/4",
+          "row": "3/4"
+        }
+      },
+      "slides": [
+        {
+          "type": "explainer",
+          "color": "#38c219",
+          "heading": "Games",
+          "icon": "",
+          "brand": "LCN",
+          "list": [
+            "Multiplayer, Interactive and arcade Web games from LCN."
+          ]
+        },
+        {
+          "type": "image",
+          "src": "data/work/ou/logo.png"
+        },
+        {
+          "type": "image",
+          "src": "data/work/mulon/mulon.png"
+        },
+        {
+          "type": "image",
+          "src": "data/work/josu/ss-5.jpg",
+          "title": "Josu",
+          "route": {
+            "type": "app",
+            "value": "josu"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/square/cover.png",
+          "title": "",
+          "route": null
+        },
+        {
+          "type": "image",
+          "src": "data/work/josu/cover2.webp",
+          "title": "josu",
+          "route": {
+            "type": "app",
+            "value": "josu"
+          }
+        }
+      ]
+    },
+    {
+      "id": "item-date",
+      "kind": "date",
+      "color": "#c10606",
+      "route": null,
+      "pos": {
+        "desktop": {
+          "col": "3/4",
+          "row": "1/2"
+        },
+        "tablet": {
+          "col": "3/4",
+          "row": "1/3"
+        },
+        "mobile": {
+          "col": "3/4",
+          "row": "5/7"
+        }
+      },
+      "slides": []
+    },
+    {
+      "id": "item-1",
+      "kind": "image",
+      "color": "#1e23ae",
+      "route": null,
+      "pos": {
+        "desktop": {
+          "col": "5/6",
+          "row": "2/3"
+        },
+        "tablet": {
+          "col": "1/3",
+          "row": "1/3"
+        },
+        "mobile": {
+          "col": "1/3",
+          "row": "3/4"
+        }
+      },
+      "slides": [
+        {
+          "type": "image",
+          "src": "data/work/rfaa/main-image.png",
+          "title": "RFAA"
+        },
+        {
+          "type": "image",
+          "src": "data/work/rfaa/sf.png",
+          "title": "RFAA",
+          "route": {
+            "type": "app",
+            "value": "rfaa"
+          }
+        },
+        {
+          "type": "image",
+          "src": "data/work/rfaa/f.png",
+          "title": "RFAA",
+          "route": {
+            "type": "app",
+            "value": "rfaa"
+          }
+        }
+      ]
+    },
+    {
+      "id": "item-2",
+      "kind": "slideshow",
+      "color": "#BCD689",
+      "route": null,
+      "pos": {
+        "desktop": {
+          "col": "6/7",
+          "row": "2/3"
+        },
+        "tablet": {
+          "col": "4/6",
+          "row": "2/3"
+        },
+        "mobile": {
+          "col": "1/2",
+          "row": "4/5"
+        }
+      },
+      "slides": [
+        {
+          "type": "image",
+          "src": "data/work/aero/main-image.png",
+          "title": "AERO"
+        },
+        {
+          "type": "image",
+          "src": "data/work/josu/cover.jpg",
+          "title": "Josu",
+          "route": {
+            "type": "app",
+            "value": "josu"
+          }
+        }
+      ],
+      "interval": 2500
+    },
+    {
+      "id": "item-6",
+      "kind": "about",
+      "color": "#0d2a5c",
+      "interval": 4200,
+      "route": null,
+      "pos": {
+        "desktop": {
+          "col": "3/4",
+          "row": "2/3"
+        },
+        "tablet": {
+          "col": "3/4",
+          "row": "3/4"
+        },
+        "mobile": {
+          "col": "1/2",
+          "row": "1/2"
+        }
+      },
+      "slides": [
+        {
+          "type": "aboutLogo",
+          "content": "i"
+        },
+        {
+          "type": "aboutBio",
+          "content": "I build websites, Apps, games, and edit videos."
+        }
+      ]
+    },
+    {
+      "id": "item-5",
+      "kind": "image",
+      "color": "#000000",
+      "route": null,
+      "pos": {
+        "desktop": {
+          "col": "5/7",
+          "row": "3/4"
+        },
+        "tablet": {
+          "col": "2/3",
+          "row": "3/5"
+        },
+        "mobile": {
+          "col": "2/4",
+          "row": "4/5"
+        }
+      },
+      "slides": [
+        {
+          "type": "image",
+          "src": "../images/mag-ana-2.jpg",
+          "title": "O QUE SERA"
+        },
+        {
+          "type": "image",
+          "src": "../oquesera/data/inde_n/cover_page.jpg",
+          "title": "O QUE SERA",
+          "route": {
+            "type": "app",
+            "value": ""
+          }
+        },
+        {
+          "type": "image",
+          "src": "../oquesera/data/inde_n/s-3.jpg",
+          "title": "O QUE SERA"
+        },
+        {
+          "type": "image",
+          "src": "data/work/imitadora/josephpng.png",
+          "title": "O QUE SERA"
+        }
+      ],
+      "backHtml": ""
+    },
+    {
+      "id": "item-9",
+      "kind": "slideshow",
+      "small": true,
+      "color": "#DB5588",
+      "interval": 3200,
+      "route": null,
+      "pos": {
+        "desktop": {
+          "col": "6/7",
+          "row": "4/5"
+        },
+        "tablet": {
+          "col": "1/2",
+          "row": "5/6"
+        },
+        "mobile": {
+          "col": "1/2",
+          "row": "5/6"
+        }
+      },
+      "slides": [
+        {
+          "type": "explainer",
+          "color": "#3667b5",
+          "heading": "Development ",
+          "list": [
+            "Patches, fixes, iterations with improvements"
+          ],
+          "brand": "LCN"
+        }
+      ],
+      "backHtml": ""
+    },
+    {
+      "id": "item-weather-rp",
+      "kind": "weather",
+      "route": null,
+      "pos": {
+        "desktop": {
+          "col": "2/3",
+          "row": "3/4"
+        },
+        "tablet": {
+          "col": "1/2",
+          "row": "4/5"
+        },
+        "mobile": {
+          "col": "1/2",
+          "row": "2/3"
+        }
+      },
+      "slides": [],
+      "backHtml": ""
+    }
+  ]
+}

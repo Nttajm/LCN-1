@@ -2,20 +2,16 @@ import { songKeys } from './keys.js';
 
  const songsI = [
     {
-        id: 1,
-        title: "Blinding Lights",
-        artist: "The Weeknd",
-        time: '00:07',
-        image: 'songs/theweeknd/main.png',
-        audio: 'songs/theweeknd/audio.mp3',
-        inGameGif: 'songs/theweeknd/gif.gif',
+        id: 3,
+        title: "School Rooftop",
+        artist: "hisohkah",
+        time: '2:48',
+        image: 'songs/school_rooftop/main.png',
+        audio: 'songs/school_rooftop/audio.mp3',
         ranked: true,
+        audioCorrection: 400,
         difficulties: [
-            { name: "Easy", speed: 1, mapper: "joelM", stars: 0.79,
-                songData: songKeys.blindingLights.easy
-            },
-            { name: "Normal", mapper: "joelM", stars: 1.20 },
-            { name: "Hard", mapper: "joelM", stars: 1.54 },
+            { name: "nooby", mapper: "joelM", stars: 4.10, songData: songKeys.school_rooftop.medium },
         ]
     },
     {
@@ -34,7 +30,7 @@ import { songKeys } from './keys.js';
     },
     {
         id: 7,
-        title: "dothatshit",
+        title: "dothatsht",
         artist: "Playboi Carti",
         time: '3:04',
         image: 'songs/dothatshit/main.png',
@@ -69,16 +65,20 @@ import { songKeys } from './keys.js';
         ]
     },
     {
-        id: 3,
-        title: "School Rooftop",
-        artist: "hisohkah",
-        time: '2:48',
-        image: 'songs/school_rooftop/main.png',
-        audio: 'songs/school_rooftop/audio.mp3',
+        id: 1,
+        title: "Blinding Lights",
+        artist: "The Weeknd",
+        time: '00:07',
+        image: 'songs/theweeknd/main.png',
+        audio: 'songs/theweeknd/audio.mp3',
+        inGameGif: 'songs/theweeknd/gif.gif',
         ranked: true,
-        audioCorrection: 400,
         difficulties: [
-            { name: "nooby", mapper: "joelM", stars: 4.10, songData: songKeys.school_rooftop.medium },
+            { name: "Easy", speed: 1, mapper: "joelM", stars: 0.79,
+                songData: songKeys.blindingLights.easy
+            },
+            { name: "Normal", mapper: "joelM", stars: 1.20 },
+            { name: "Hard", mapper: "joelM", stars: 1.54 },
         ]
     },
 ];

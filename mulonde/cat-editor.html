@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat View Editor</title>
+  <style>
+/* ─── Reset ─────────────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding-top:52px;min-height:100vh}
+
+/* ─── Toolbar ────────────────────────────────────────────────────────────────── */
+.toolbar{position:fixed;top:0;left:0;right:0;height:52px;background:rgba(6,6,6,.97);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 1.25rem;gap:.625rem;z-index:9999;backdrop-filter:blur(20px)}
+.tb-brand{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.28);white-space:nowrap}
+.tb-sep{width:1px;height:18px;background:rgba(255,255,255,.1);flex-shrink:0}
+.tb-tabs{display:flex;gap:.2rem;flex-wrap:nowrap}
+.tb-tab{padding:.3rem .72rem;border-radius:5px;font-size:.78rem;font-weight:500;cursor:pointer;background:transparent;border:1px solid transparent;color:rgba(255,255,255,.4);transition:all .15s;display:flex;align-items:center;gap:.35rem}
+.tb-tab:hover{color:rgba(255,255,255,.75);background:rgba(255,255,255,.05)}
+.tb-tab.active{color:#fff;background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.12)}
+.tb-tab-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.tb-add-cat{padding:.3rem .6rem;border-radius:5px;font-size:.78rem;cursor:pointer;background:transparent;border:1px dashed rgba(255,255,255,.18);color:rgba(255,255,255,.28);transition:all .15s;white-space:nowrap}
+.tb-add-cat:hover{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.4)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.tb-toggle{display:flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:5px;overflow:hidden}
+.tb-toggle-btn{padding:.3rem .65rem;font-size:.73rem;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.3);transition:all .15s}
+.tb-toggle-btn.active{background:rgba(255,255,255,.1);color:#fff}
+.tb-export{padding:.32rem 1rem;border-radius:5px;font-size:.78rem;font-weight:600;cursor:pointer;background:#fff;border:none;color:#000;transition:opacity .15s}
+.tb-export:hover{opacity:.85}
+
+/* ─── CatView Core ───────────────────────────────────────────────────────────── */
+@keyframes cv-in{from{opacity:0;transform:translateY(1.5rem)}to{opacity:1;transform:translateY(0)}}
+.cat-view{--cat-color:#38c219;min-height:calc(100vh - 52px)}
+
+/* ─── Explainer ──────────────────────────────────────────────────────────────── */
+.cv-explainer{padding:5rem 2rem 3rem;max-width:75rem;margin:0 auto;position:relative;height:40vh;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;background-color:var(--cat-color);background-image:var(--cat-cover);background-size:cover;background-position:center}
+.cv-explainer::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.6) 70%,rgba(0,0,0,1) 100%);z-index:0}
+.cv-explainer>*{position:relative;z-index:1}
+.cv-explainer h1{font-size:5.5rem;font-weight:200;letter-spacing:-.04em;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.65) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.75rem;line-height:1}
+.cv-explainer p{font-size:1.1rem;font-weight:300;color:rgba(255,255,255,.5);max-width:32rem;line-height:1.65}
+
+/* ─── Dail ───────────────────────────────────────────────────────────────────── */
+.cv-dail{position:sticky;top:52px;z-index:100;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;gap:.25rem;padding:.6rem 1rem;flex-wrap:wrap}
+.cv-dail-item{display:flex;align-items:center;gap:.25rem}
+.cv-dail-label{padding:.35rem .85rem;border-radius:20px;font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;background:transparent;border:1px solid transparent;color:rgba(255,255,255,.45);transition:all .2s}
+.cv-dail-label:hover{color:rgba(255,255,255,.8)}
+.cv-dail-label.active{color:#fff;background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.1)}
+
+/* ─── Sections / Cards ───────────────────────────────────────────────────────── */
+.cv-sections{max-width:75rem;margin:0 auto;padding:0 2rem}
+.cv-section{padding:5rem 0;min-height:80vh;scroll-margin-top:70px}
+.cv-section:first-child{padding-top:2.5rem}
+.cv-site-card{margin-bottom:4.5rem;padding-bottom:3rem;border-bottom:1px solid rgba(255,255,255,.05)}
+.cv-site-card:last-of-type{border-bottom:none}
+.cv-card-title{font-size:2rem;font-weight:200;letter-spacing:-.02em;color:#fff;margin-bottom:.4rem}
+.cv-card-desc{font-size:.9rem;font-weight:300;color:rgba(255,255,255,.5);max-width:34rem;margin-bottom:1.5rem;line-height:1.7}
+
+/* ─── Grid ───────────────────────────────────────────────────────────────────── */
+.cv-grid{display:grid;gap:.375rem;position:relative}
+.cv-grid.desktop{--grid-cols:5;grid-template-columns:repeat(var(--grid-cols),1fr);grid-template-rows:repeat(var(--grid-rows,4),8rem)}
+.cv-grid.mobile{--grid-cols:3;grid-template-columns:repeat(var(--grid-cols),1fr);grid-template-rows:repeat(var(--grid-rows,5),10rem)}
+.ed-mobile-frame{width:100%;max-width:24.375rem;margin:0 auto;padding:.75rem;background:#000;border:1px solid rgba(255,255,255,.1);border-radius:1.25rem;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.ed-mobile-label{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.28);text-align:center;margin-bottom:.65rem}
+.ed-mobile-frame .cv-grid-item.text-item{padding:1.25rem;font-size:.9rem;line-height:1.6}
+.ed-mobile-frame .cv-grid-item.text-item.cv-ts-sm{font-size:.65rem}
+.ed-mobile-frame .cv-grid-item.text-item.cv-ts-lg{font-size:1.15rem}
+.ed-mobile-frame .cv-grid-item.text-item.cv-ts-xl{font-size:1.7rem;line-height:1.2}
+.ed-mobile-frame .cv-grid-item.text-item.cv-tw-label{font-size:.6rem}
+.cv-grid-item{overflow:hidden;background:rgba(255,255,255,.04);position:relative;cursor:grab;user-select:none;touch-action:none;transition:box-shadow .15s,opacity .15s}
+.cv-grid-item.dragging{cursor:grabbing}
+.cv-grid-item img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.cv-grid-item.text-item{display:flex;align-items:center;justify-content:center;padding:1rem;font-size:.8rem;font-weight:300;color:rgba(255,255,255,.8);line-height:1.5;text-align:center;background:rgba(255,255,255,.04)}
+/* Text size modifiers */
+.cv-grid-item.text-item.cv-ts-sm{font-size:.62rem}
+.cv-grid-item.text-item.cv-ts-lg{font-size:1.05rem}
+.cv-grid-item.text-item.cv-ts-xl{font-size:1.5rem;line-height:1.2}
+/* Text style modifiers */
+.cv-grid-item.text-item.cv-tw-head{font-weight:600;letter-spacing:-.025em;line-height:1.15}
+.cv-grid-item.text-item.cv-tw-label{font-weight:700;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase}
+/* Horizontal alignment */
+.cv-grid-item.text-item.cv-ta-left{text-align:left;justify-content:flex-start}
+.cv-grid-item.text-item.cv-ta-right{text-align:right;justify-content:flex-end}
+/* Vertical alignment */
+.cv-grid-item.text-item.cv-va-top{align-items:flex-start;padding-top:.75rem}
+.cv-grid-item.text-item.cv-va-bot{align-items:flex-end;padding-bottom:.75rem}
+/* Segmented control for text formatting */
+.seg-group{display:flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;overflow:hidden}
+.seg-btn{flex:1;padding:.38rem .3rem;font-size:.74rem;font-weight:500;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.4);transition:all .15s;text-align:center;white-space:nowrap}
+.seg-btn:hover{color:rgba(255,255,255,.75)}
+.seg-btn.active{background:rgba(255,255,255,.12);color:#fff}
+.cv-grid-item.dragging{opacity:.85;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.cv-grid-item:hover{box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.cv-grid-item::after{content:attr(data-pos);position:absolute;bottom:4px;right:4px;padding:2px 6px;background:rgba(0,0,0,.7);color:rgba(255,255,255,.7);font-size:.65rem;font-family:monospace;border-radius:3px;opacity:0;transition:opacity .15s;pointer-events:none}
+.cv-grid-item.dragging::after,.cv-grid-item:hover::after{opacity:1}
+
+/* ─── Resize Handles ─────────────────────────────────────────────────────────── */
+.ed-resize{position:absolute;background:rgba(255,255,255,.15);opacity:0;transition:opacity .15s,background .15s;z-index:10}
+.cv-grid-item:hover .ed-resize{opacity:1}
+.ed-resize:hover{background:rgba(255,255,255,.4)}
+.ed-resize.e{right:0;top:10%;width:6px;height:80%;cursor:e-resize;border-radius:3px}
+.ed-resize.w{left:0;top:10%;width:6px;height:80%;cursor:w-resize;border-radius:3px}
+.ed-resize.n{top:0;left:10%;height:6px;width:80%;cursor:n-resize;border-radius:3px}
+.ed-resize.s{bottom:0;left:10%;height:6px;width:80%;cursor:s-resize;border-radius:3px}
+.ed-resize.se{right:0;bottom:0;width:12px;height:12px;cursor:se-resize;border-radius:3px 0 0 0}
+.ed-resize.sw{left:0;bottom:0;width:12px;height:12px;cursor:sw-resize;border-radius:0 3px 0 0}
+.ed-resize.ne{right:0;top:0;width:12px;height:12px;cursor:ne-resize;border-radius:0 0 0 3px}
+.ed-resize.nw{left:0;top:0;width:12px;height:12px;cursor:nw-resize;border-radius:0 0 3px 0}
+
+/* ─── Grid Cell Guides ───────────────────────────────────────────────────────── */
+.ed-grid-guides{position:absolute;inset:0;display:grid;gap:.375rem;pointer-events:none;z-index:0}
+.ed-grid-guides.desktop{--grid-cols:5;grid-template-columns:repeat(var(--grid-cols),1fr);grid-template-rows:repeat(var(--grid-rows,4),8rem)}
+.ed-grid-guides.mobile{--grid-cols:3;grid-template-columns:repeat(var(--grid-cols),1fr);grid-template-rows:repeat(var(--grid-rows,5),10rem)}
+.ed-grid-cell{border:1px dashed rgba(255,255,255,.08);border-radius:2px}
+.ed-grid-cell.drop-target{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25)}
+
+/* ─── Info Block ─────────────────────────────────────────────────────────────── */
+.cv-info-block{margin-top:2rem;max-width:14rem;border:1px solid rgba(255,255,255,.15);font-size:.75rem}
+.cv-info-header{padding:.5rem .75rem;font-weight:700;font-size:.875rem;letter-spacing:.05em;text-transform:uppercase;color:#fff;border-bottom:1px solid rgba(255,255,255,.08)}
+.cv-info-row{display:flex;justify-content:space-between;gap:1rem;padding:.375rem .75rem}
+.cv-info-label{color:rgba(255,255,255,.5)}
+.cv-info-value{font-weight:500;color:#fff}
+
+/* ─── ContentEditable ────────────────────────────────────────────────────────── */
+[contenteditable]{outline:none;cursor:text;border-radius:3px;transition:background .15s}
+[contenteditable]:hover{background:rgba(255,255,255,.04)}
+[contenteditable]:focus{background:rgba(255,255,255,.06);outline:1px solid rgba(255,255,255,.18);outline-offset:3px}
+
+/* ─── Editor Buttons ─────────────────────────────────────────────────────────── */
+.ed-btn{padding:.3rem .65rem;border-radius:5px;font-size:.73rem;font-weight:500;cursor:pointer;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);backdrop-filter:blur(8px);transition:all .15s;display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap}
+.ed-btn:hover{background:rgba(30,30,30,.8);color:#fff;border-color:rgba(255,255,255,.35)}
+.ed-btn.danger{border-color:rgba(255,80,80,.3);color:rgba(255,130,130,.8)}
+.ed-btn.danger:hover{background:rgba(180,20,20,.5);border-color:rgba(255,80,80,.6);color:#fff}
+.ed-btn.accent{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:#fff}
+.ed-btn.accent:hover{background:rgba(255,255,255,.18)}
+.ed-btn.sm{padding:.2rem .45rem;font-size:.68rem}
+
+/* ─── Explainer Bar ──────────────────────────────────────────────────────────── */
+.ed-explainer-bar{position:absolute;top:1rem;right:1rem;display:flex;gap:.35rem;align-items:center;z-index:2}
+
+/* ─── Dail Edit Controls ─────────────────────────────────────────────────────── */
+.cv-dail-item .ed-del-tier{width:18px;height:18px;border-radius:50%;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.4);cursor:pointer;font-size:.75rem;line-height:1;display:none;align-items:center;justify-content:center;transition:all .15s;padding:0;flex-shrink:0}
+.cv-dail-item:hover .ed-del-tier{display:flex}
+.ed-del-tier:hover{background:rgba(180,20,20,.5);border-color:rgba(255,80,80,.5);color:#fff}
+.cv-dail-add{padding:.3rem .65rem;border-radius:20px;font-size:.73rem;cursor:pointer;background:transparent;border:1px dashed rgba(255,255,255,.2);color:rgba(255,255,255,.3);transition:all .15s;margin-left:.25rem}
+.cv-dail-add:hover{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.5)}
+
+/* ─── Section Bar ────────────────────────────────────────────────────────────── */
+.ed-section-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding-bottom:.875rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.ed-section-label{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.22)}
+.ed-section-actions{display:flex;gap:.4rem;align-items:center}
+
+/* ─── Card Bar ───────────────────────────────────────────────────────────────── */
+.ed-card-bar{display:flex;gap:.4rem;align-items:center;margin-bottom:.75rem}
+
+/* ─── Grid Item Overlay ──────────────────────────────────────────────────────── */
+.cv-grid-item .ed-item-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;gap:.4rem;opacity:0;transition:opacity .15s;flex-direction:column;z-index:2;pointer-events:none}
+.cv-grid-item:hover .ed-item-overlay{opacity:1}
+.cv-grid-item.dragging .ed-item-overlay{opacity:0}
+.cv-grid-item .ed-item-overlay .ed-btn{pointer-events:all;cursor:pointer}
+
+/* ─── Grid Add Row ───────────────────────────────────────────────────────────── */
+.ed-grid-add{grid-column:1/-1;display:flex;gap:.4rem;padding:.5rem 0;align-items:center}
+
+/* ─── Info Block Editor ──────────────────────────────────────────────────────── */
+.ed-info-row{display:flex;gap:.35rem;align-items:center;padding:.3rem .5rem;border-top:1px solid rgba(255,255,255,.06)}
+.ed-info-inp{background:transparent;border:none;color:inherit;font-size:.75rem;padding:.2rem .3rem;border-radius:3px;transition:background .15s;min-width:0;flex:1;font-family:inherit}
+.ed-info-inp.lbl{color:rgba(255,255,255,.5)}
+.ed-info-inp.val{font-weight:500;color:#fff}
+.ed-info-inp:hover{background:rgba(255,255,255,.05)}
+.ed-info-inp:focus{background:rgba(255,255,255,.08);outline:none}
+.ed-del-info{width:16px;height:16px;border-radius:50%;background:transparent;border:none;color:rgba(255,255,255,.2);cursor:pointer;font-size:.75rem;opacity:0;transition:all .15s;flex-shrink:0;line-height:1;padding:0}
+.ed-info-row:hover .ed-del-info{opacity:1}
+.ed-del-info:hover{background:rgba(180,20,20,.4);color:#fff}
+.ed-info-add{width:100%;padding:.35rem;background:transparent;border:none;border-top:1px dashed rgba(255,255,255,.1);color:rgba(255,255,255,.25);cursor:pointer;font-size:.72rem;transition:all .15s;text-align:center;font-family:inherit}
+.ed-info-add:hover{color:rgba(255,255,255,.6);background:rgba(255,255,255,.03)}
+
+/* ─── Modal ──────────────────────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+.modal-overlay.hidden{display:none}
+.modal{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:10px;width:min(500px,93vw);max-height:88vh;overflow-y:auto;animation:slideUp .2s cubic-bezier(.05,.65,.4,1) both}
+@keyframes slideUp{from{opacity:0;transform:translateY(1rem)}to{opacity:1;transform:translateY(0)}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:#111;z-index:1}
+.modal-title{font-size:.85rem;font-weight:600;letter-spacing:.03em}
+.modal-x{background:none;border:none;color:rgba(255,255,255,.4);font-size:1.4rem;cursor:pointer;line-height:1;padding:0;transition:color .15s}
+.modal-x:hover{color:#fff}
+.modal-body{padding:1.25rem}
+.modal-foot{padding:.9rem 1.25rem;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+
+/* ─── Form Elements ──────────────────────────────────────────────────────────── */
+.fg{margin-bottom:1rem}
+.fg:last-child{margin-bottom:0}
+.fg-label{display:block;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:.4rem}
+.fg-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#fff;font-size:.88rem;padding:.55rem .75rem;transition:border-color .15s;font-family:inherit}
+.fg-input:focus{outline:none;border-color:rgba(255,255,255,.3)}
+.fg-input::placeholder{color:rgba(255,255,255,.18)}
+textarea.fg-input{resize:vertical;min-height:80px}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.type-toggle{display:flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;overflow:hidden;margin-bottom:1.1rem}
+.type-btn{flex:1;padding:.48rem;font-size:.78rem;font-weight:500;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.4);transition:all .15s;text-align:center}
+.type-btn.active{background:rgba(255,255,255,.1);color:#fff}
+.img-preview{width:100%;height:7.5rem;background:rgba(255,255,255,.04);border-radius:6px;margin-top:.5rem;overflow:hidden;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.18);font-size:.78rem}
+.img-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.color-row{display:flex;gap:.5rem;align-items:center}
+.color-inp{width:2.5rem;height:2.5rem;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:.15rem;background:transparent;cursor:pointer;flex-shrink:0}
+
+/* ─── Export Panel ───────────────────────────────────────────────────────────── */
+.export-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.export-overlay.hidden{display:none}
+.export-box{background:#0e0e0e;border:1px solid rgba(255,255,255,.1);border-radius:10px;width:min(680px,95vw);max-height:88vh;display:flex;flex-direction:column;animation:slideUp .2s cubic-bezier(.05,.65,.4,1) both}
+.export-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.08);font-size:.85rem;font-weight:600;flex-shrink:0}
+.export-actions{display:flex;align-items:center;gap:.5rem}
+.export-fn{font-size:.7rem;color:rgba(255,255,255,.3);font-family:monospace;letter-spacing:.02em}
+.export-copy{padding:.28rem .8rem;border-radius:5px;font-size:.75rem;font-weight:600;cursor:pointer;background:#fff;border:none;color:#000;transition:all .15s}
+.export-copy:hover{opacity:.85}
+.export-copy.done{background:#38c219;color:#fff}
+.export-x{background:none;border:none;color:rgba(255,255,255,.4);font-size:1.4rem;cursor:pointer;line-height:1;padding:0;transition:color .15s}
+.export-x:hover{color:#fff}
+.export-code{flex:1;overflow-y:auto;padding:1.25rem;font-family:'Courier New',monospace;font-size:.73rem;line-height:1.65;color:rgba(255,255,255,.78);background:transparent;white-space:pre;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
+.export-hint{padding:.75rem 1.25rem;border-top:1px solid rgba(255,255,255,.06);font-size:.72rem;color:rgba(255,255,255,.28);line-height:1.5}
+.export-hint code{font-size:.72rem;color:rgba(255,255,255,.45);background:rgba(255,255,255,.06);padding:.1rem .3rem;border-radius:3px}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+.cat-view.ed-layout-mobile .cv-sections{padding:0 1.25rem}
+.cat-view.ed-layout-mobile .cv-explainer h1{font-size:3rem}
+.cat-view.ed-layout-mobile .cv-explainer-inner{padding:3.5rem 1.25rem 2rem;margin-top:4rem}
+.cat-view.ed-layout-mobile .cv-explainer{min-height:20rem}
+@media(max-width:768px){
+  .cv-explainer h1{font-size:3rem}
+  .cv-explainer{padding:3.5rem 1.25rem 2rem}
+  .cv-sections{padding:0 1.25rem}
+  .tb-brand,.tb-sep:first-of-type{display:none}
+  .fg-row{grid-template-columns:1fr}
+}
+  </style>
+</head>
+<body>
+
+<!-- ─── Toolbar ──────────────────────────────────────────────────────────────── -->
+<header class="toolbar">
+  <span class="tb-brand">Cat View Editor</span>
+  <div class="tb-sep"></div>
+  <div id="tbTabs" class="tb-tabs"></div>
+  <button class="tb-add-cat" id="tbAddCat">+ Category</button>
+  <div class="tb-right">
+    <div class="tb-toggle">
+      <button class="tb-toggle-btn active" data-layout="desktop">Desktop</button>
+      <button class="tb-toggle-btn" data-layout="mobile">Mobile</button>
+    </div>
+    <button class="tb-export" id="tbExport">Export JSON</button>
+    <button class="tb-export" id="tbUpdate" style="background:#38c219;border-color:#38c219" title="Save directly to views/{category}.json (Ctrl+S)">Update</button>
+  </div>
+</header>
+
+<!-- ─── Cat View (rendered by JS) ────────────────────────────────────────────── -->
+<div class="cat-view" id="catView"></div>
+
+<!-- ─── Modal ────────────────────────────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="mTitle"></span>
+      <button class="modal-x" id="mClose">×</button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+    <div class="modal-foot" id="mFoot"></div>
+  </div>
+</div>
+
+<!-- ─── Export Panel ──────────────────────────────────────────────────────────── -->
+<div class="export-overlay hidden" id="exportOverlay">
+  <div class="export-box">
+    <div class="export-head">
+      <span>Export JSON</span>
+      <div class="export-actions">
+        <code class="export-fn" id="exportFn"></code>
+        <button class="export-copy" id="exportCopy">Copy</button>
+        <button class="export-x" id="exportClose">×</button>
+      </div>
+    </div>
+    <pre class="export-code" id="exportCode"></pre>
+    <div class="export-hint">
+      Save to <code>mulonde/data/views.json</code> — all categories are stored in one file.
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Default fallback data (used when no views/{key}.json exists) ─────────────
+const DEFAULTS = {
+  demos: {
+      color: '#E8590C',
+      cover: null,
+      title: 'Demos',
+      description: 'Three tiers of web experiences. Each crafted with precision, tailored to different scales and ambitions.',
+      tiers: [
+        {
+          id: 'simple', label: 'Simple',
+          cards: [
+            {
+              title: 'La Costa del Sol',
+              description: 'A refined 3–4 page presence. Clean layouts, essential information, timeless design. Perfect for restaurants, portfolios, and local businesses.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80', col: '1/3', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80', col: '2/3', row: '2/4' },
+                  { src: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80', col: '1/2', row: '3/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80', col: '1/3', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80', col: '3/5', row: '2/4' },
+                  { src: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80', col: '5/6', row: '2/5' },
+                ],
+              },
+            },
+            {
+              title: 'Atelier Noir',
+              description: 'Minimal portfolio for creative professionals. Single-page flow with elegant typography and considered whitespace.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80', col: '1/2', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80', col: '2/3', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80', col: '1/4', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80', col: '1/2', row: '2/4' },
+                  { src: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&q=80', col: '2/4', row: '2/5' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Price: '$100–150', Pages: '1–4', Turnaround: '3–4 days' },
+        },
+        {
+          id: 'interactive', label: 'Interactive',
+          cards: [
+            {
+              title: 'Kinetic Studio',
+              description: 'Motion-driven portfolio with scroll animations, page transitions, and interactive galleries. For brands that demand attention.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '1/3', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80', col: '2/3', row: '2/3' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '3/5', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80', col: '5/6', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', col: '1/3', row: '2/4' },
+                ],
+              },
+            },
+            {
+              title: 'Meridian Commerce',
+              description: 'E-commerce foundation with cart functionality, product filtering, and checkout flow. Stripe-ready, conversion-optimized.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80', col: '1/2', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80', col: '2/3', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80', col: '1/2', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80', col: '5/6', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80', col: '2/4', row: '2/4' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Price: '$300–500', Pages: '5–10', Turnaround: '1–2 weeks' },
+        },
+        {
+          id: 'app', label: 'App',
+          cards: [
+            {
+              title: 'Nexus Dashboard',
+              description: 'Full-featured web application with authentication, real-time data, and complex state management. SaaS-ready architecture.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80', col: '1/3', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80', col: '1/4', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/5' },
+                  { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80', col: '2/4', row: '3/5' },
+                ],
+              },
+            },
+            {
+              title: 'Pulse Analytics',
+              description: 'Data visualization platform with charts, reports, and exportable insights. Built for teams that need clarity from complexity.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80', col: '2/3', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80', col: '1/2', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80', col: '1/3', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80', col: '3/4', row: '2/4' },
+                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80', col: '4/6', row: '3/5' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Price: '$800–1500', Screens: '10+', Turnaround: '3–6 weeks' },
+        },
+      ],
+    },
+
+    games: {
+      color: '#38c219',
+      cover: 'icons/games.png',
+      title: 'Games',
+      description: 'Browser-based games built for real engagement. From casual prediction to competitive multiplayer.',
+      tiers: [
+        {
+          id: 'arcade', label: 'Arcade',
+          cards: [
+            {
+              title: 'OverUnderThs',
+              description: 'An interactive prediction game challenging players to analyze scenarios and make educated guesses to win. 207 players, $50 revenue.',
+              gridImages: {
+                mobile: [{ src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' }],
+                desktop: [{ src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' }],
+              },
+            },
+            {
+              title: 'Mulon',
+              description: 'A fast-paced strategy game built around resource management and real-time decision making, with a seasonal leaderboard system.',
+              gridImages: {
+                mobile: [{ src: 'data/work/games/mulon.png', col: '1/3', row: '1/3' }],
+                desktop: [{ src: 'data/work/games/mulon.png', col: '1/3', row: '1/3' }],
+              },
+            },
+          ],
+          infoBlock: { Players: '200+', Revenue: '$50', Status: 'Active' },
+        },
+        {
+          id: 'multiplayer', label: 'Multiplayer',
+          cards: [
+            {
+              title: 'Square',
+              description: 'A collaborative pixel canvas where players place colored squares on a shared real-time grid. Inspired by r/place.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&q=80', col: '1/3', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=80', col: '1/2', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80', col: '1/4', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', col: '1/3', row: '2/4' },
+                ],
+              },
+            },
+            {
+              title: 'Imposter',
+              description: 'An online social deduction game with lobby creation, singleplayer mode, and multiplayer sessions. Inspired by Among Us.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?w=600&q=80', col: '1/3', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&q=80', col: '2/3', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?w=800&q=80', col: '3/6', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '1/3', row: '2/4' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Mode: 'Online', Players: '2–10', Status: 'Active' },
+        },
+        {
+          id: 'puzzle', label: 'Puzzle',
+          cards: [
+            {
+              title: 'Josu',
+              description: 'A rhythm game inspired by osu! with a song browser, custom beatmap editor, and community song integration via Firebase.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80', col: '1/3', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80', col: '1/2', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80', col: '1/4', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&q=80', col: '1/3', row: '2/4' },
+                ],
+              },
+            },
+            {
+              title: 'Titan Games',
+              description: 'A hub of word and puzzle games — crosswords, Nerdle, and other brain-teasing challenges with a clean NYT-inspired interface.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=600&q=80', col: '1/3', row: '1/2' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=800&q=80', col: '3/6', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1580541832626-2a7131ee809f?w=600&q=80', col: '1/3', row: '2/4' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Mode: 'Solo', Games: '5+', Status: 'Growing' },
+        },
+      ],
+    },
+
+    projects: {
+      color: '#2F9E44',
+      cover: null,
+      title: 'Projects',
+      description: 'Platforms, tools, and web applications built for real use cases and real people.',
+      tiers: [
+        {
+          id: 'platforms', label: 'Platforms',
+          cards: [
+            {
+              title: 'RFAA',
+              description: 'A sports league management platform tracking matches, league tables, and player statistics across multiple competitions.',
+              gridImages: {
+                mobile: [{ src: 'data/work/rfaa/main-image.png', col: '1/3', row: '1/3' }],
+                desktop: [
+                  { src: 'data/work/rfaa/main-image.png', col: '1/3', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=600&q=80', col: '3/6', row: '2/4' },
+                ],
+              },
+            },
+            {
+              title: 'Cascade',
+              description: 'A collaborative workspace platform with user profiles, shared workspaces, sidebar-based navigation, and real-time updates.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&q=80', col: '1/3', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/4' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80', col: '1/4', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80', col: '1/3', row: '2/4' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Type: 'Web App', Stack: 'Full-Stack', Status: 'Active' },
+        },
+        {
+          id: 'tools', label: 'Tools',
+          cards: [
+            {
+              title: 'Manifest',
+              description: 'A university tracking and planning tool helping students organize college applications, track deadlines, and compare schools.',
+              gridImages: {
+                mobile: [
+                  { src: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80', col: '1/3', row: '1/2' },
+                ],
+                desktop: [
+                  { src: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80', col: '1/4', row: '1/2' },
+                  { src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80', col: '1/3', row: '2/4' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Type: 'Tool', Users: 'Students', Status: 'Active' },
+        },
+        {
+          id: 'experiments', label: 'Experiments',
+          cards: [
+            {
+              title: 'Traffic Sim',
+              description: 'A canvas-based traffic simulation exploring autonomous vehicle pathfinding and intersection logic, built iteratively.',
+              gridImages: {
+                mobile: [{ src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' }],
+                desktop: [
+                  { src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' },
+                  { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80', col: '3/6', row: '2/4' },
+                ],
+              },
+            },
+            {
+              title: 'JM Bins',
+              description: 'A clothing brand concept exploring product presentation, branding identity, and e-commerce layout for a local streetwear label.',
+              gridImages: {
+                mobile: [
+                  { src: 'data/work/jmbins/jmbins.png', col: '1/2', row: '1/3' },
+                  { src: 'data/work/jmbins/slides/hoodie.png', col: '2/3', row: '1/3' },
+                ],
+                desktop: [
+                  { src: 'data/work/jmbins/jmbins.png', col: '1/2', row: '1/3' },
+                  { src: 'data/work/jmbins/slides/hoodie.png', col: '2/4', row: '1/3' },
+                  { src: 'data/work/jmbins/slides/shirt.png', col: '4/6', row: '2/4' },
+                ],
+              },
+            },
+          ],
+          infoBlock: { Type: 'Experiment', Status: 'Archived' },
+        },
+      ],
+    },
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+const S = {
+  active: 'games',
+  layout: 'desktop',
+  cats: {},        // populated by loadAllViews()
+};
+
+// ─── Load views from single JSON file, fall back to DEFAULTS ─────────────────
+const KNOWN_KEYS = ['demos', 'games', 'projects'];
+
+async function loadAllViews() {
+  try {
+    const res = await fetch('data/views.json');
+    if (res.ok) {
+      const allViews = await res.json();
+      Object.entries(allViews).forEach(([key, data]) => {
+        if (data) S.cats[key] = data;
+      });
+      return;
+    }
+  } catch {}
+  // Fall back to DEFAULTS if views.json is missing
+  KNOWN_KEYS.forEach(key => {
+    if (DEFAULTS[key]) S.cats[key] = JSON.parse(JSON.stringify(DEFAULTS[key]));
+  });
+}
+
+// ─── Deep clone helper ────────────────────────────────────────────────────────
+const clone = obj => JSON.parse(JSON.stringify(obj));
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  const data = S.cats[S.active];
+  const cv = document.getElementById('catView');
+  cv.classList.toggle('ed-layout-mobile', S.layout === 'mobile');
+  cv.style.setProperty('--cat-color', data.color);
+  cv.style.setProperty('--cat-cover', data.cover ? `url('${data.cover}')` : 'none');
+
+  cv.innerHTML =
+    renderExplainer(data) +
+    renderDail(data.tiers) +
+    renderSections(data.tiers);
+}
+
+function renderExplainer(data) {
+  return `<div class="cv-explainer">
+    <div class="ed-explainer-bar">
+      <button class="ed-btn" onclick="openHeaderModal()">✏ Cover &amp; Color</button>
+    </div>
+    <h1 contenteditable spellcheck="false"
+        data-ce="title" onblur="saveField(this,'title')">${esc(data.title)}</h1>
+    <p contenteditable spellcheck="false"
+       data-ce="description" onblur="saveField(this,'description')">${esc(data.description)}</p>
+  </div>`;
+}
+
+function renderDail(tiers) {
+  const items = tiers.map((tier, i) => `
+    <div class="cv-dail-item">
+      <button class="cv-dail-label${i === 0 ? ' active' : ''}"
+              onclick="dailNav('cv-${tier.id}',this)">${esc(tier.label)}</button>
+      <button class="ed-del-tier" title="Delete tier" onclick="deleteTier(${i})">×</button>
+    </div>`).join('');
+  return `<div class="cv-dail" id="cvDail">
+    ${items}
+    <button class="cv-dail-add" onclick="openAddTierModal()">+ Tier</button>
+  </div>`;
+}
+
+function renderSections(tiers) {
+  return `<div class="cv-sections">
+    ${tiers.map((tier, ti) => renderSection(tier, ti)).join('')}
+  </div>`;
+}
+
+function renderSection(tier, ti) {
+  return `<section class="cv-section" id="cv-${tier.id}">
+    <div class="ed-section-bar">
+      <span class="ed-section-label">${esc(tier.label)}</span>
+      <div class="ed-section-actions">
+        <button class="ed-btn sm" onclick="openEditTierModal(${ti})">✏ Rename</button>
+        <button class="ed-btn sm accent" onclick="addCard(${ti})">+ Card</button>
+      </div>
+    </div>
+    ${tier.cards.map((card, ci) => renderCard(card, ti, ci)).join('')}
+    ${renderInfoBlock(tier.infoBlock, ti)}
+  </section>`;
+}
+
+function getDefaultRows(layout) {
+  return layout === 'desktop' ? 4 : 5;
+}
+
+function getMaxItemRow(items = []) {
+  return items.reduce((max, item) => {
+    const [, end = 2] = String(item.row ?? '1/2').split('/').map(Number);
+    return Math.max(max, end - 1);
+  }, 1);
+}
+
+function getCardRows(card, layout) {
+  const configured = card.gridRows?.[layout] ?? getDefaultRows(layout);
+  const fromItems = getMaxItemRow(card.gridImages?.[layout] ?? []);
+  return Math.max(configured, fromItems);
+}
+
+function ensureCardGridRows(card) {
+  if (!card.gridRows) card.gridRows = {};
+  if (typeof card.gridRows.desktop !== 'number') card.gridRows.desktop = getCardRows(card, 'desktop');
+  if (typeof card.gridRows.mobile !== 'number') card.gridRows.mobile = getCardRows(card, 'mobile');
+}
+
+function renderCard(card, ti, ci) {
+  const rows = getCardRows(card, S.layout);
+  const items = card.gridImages[S.layout] || [];
+  const cols = S.layout === 'desktop' ? 5 : 3;
+  const cells = Array(cols * rows).fill(0).map((_, i) => `<div class="ed-grid-cell" data-col="${(i % cols) + 1}" data-row="${Math.floor(i / cols) + 1}"></div>`).join('');
+  const gridHtml = `<div class="cv-grid ${S.layout}" style="--grid-rows:${rows}" data-ti="${ti}" data-ci="${ci}">
+      <div class="ed-grid-guides ${S.layout}" style="--grid-rows:${rows}">${cells}</div>
+      ${items.map((item, ii) => renderGridItem(item, ti, ci, ii)).join('')}
+    </div>`;
+  const gridBlock = S.layout === 'mobile'
+    ? `<div class="ed-mobile-frame"><div class="ed-mobile-label">Mobile · 3 cols · 390px</div>${gridHtml}</div>`
+    : gridHtml;
+  return `<div class="cv-site-card">
+    <div class="ed-card-bar">
+      <button class="ed-btn sm danger" onclick="deleteCard(${ti},${ci})">✕ Card</button>
+      <button class="ed-btn sm" onclick="addGridItem(${ti},${ci},'image')">+ Image</button>
+      <button class="ed-btn sm" onclick="addGridItem(${ti},${ci},'text')">+ Text</button>
+      <button class="ed-btn sm" onclick="removeGridRow(${ti},${ci})">- Row</button>
+      <button class="ed-btn sm" onclick="addGridRow(${ti},${ci})">+ Row</button>
+      <button class="ed-btn sm" onclick="mergeToLayout(${ti},${ci},'mobile')" title="Copy desktop items to mobile">Merge → Mobile</button>
+      <button class="ed-btn sm" onclick="mergeToLayout(${ti},${ci},'desktop')" title="Copy mobile items to desktop">Merge → Desktop</button>
+      <span class="ed-section-label">Rows: ${rows}</span>
+    </div>
+    <h2 class="cv-card-title" contenteditable spellcheck="false"
+        onblur="saveCardField(this,${ti},${ci},'title')">${esc(card.title)}</h2>
+    <p class="cv-card-desc" contenteditable spellcheck="false"
+       onblur="saveCardField(this,${ti},${ci},'description')">${esc(card.description)}</p>
+    ${gridBlock}
+  </div>`;
+}
+
+function buildTextItemClasses(item) {
+  const cls = ['cv-grid-item', 'text-item'];
+  if (item.textSize && item.textSize !== 'md')       cls.push(`cv-ts-${item.textSize}`);
+  if (item.textStyle && item.textStyle !== 'body')   cls.push(`cv-tw-${item.textStyle}`);
+  if (item.textAlign && item.textAlign !== 'center') cls.push(`cv-ta-${item.textAlign}`);
+  if (item.verticalAlign && item.verticalAlign !== 'mid') cls.push(`cv-va-${item.verticalAlign}`);
+  return cls.join(' ');
+}
+
+function renderGridItem(item, ti, ci, ii) {
+  const sty = `grid-column:${item.col};grid-row:${item.row}`;
+  const pos = `c${item.col} r${item.row}`;
+  const resizeHandles = `
+    <div class="ed-resize n" data-dir="n"></div>
+    <div class="ed-resize s" data-dir="s"></div>
+    <div class="ed-resize e" data-dir="e"></div>
+    <div class="ed-resize w" data-dir="w"></div>
+    <div class="ed-resize ne" data-dir="ne"></div>
+    <div class="ed-resize nw" data-dir="nw"></div>
+    <div class="ed-resize se" data-dir="se"></div>
+    <div class="ed-resize sw" data-dir="sw"></div>`;
+  const overlay = `<div class="ed-item-overlay">
+    <button class="ed-btn sm" onclick="event.stopPropagation();openGridItemModal(${ti},${ci},${ii})">✏ Edit</button>
+    <button class="ed-btn sm danger" onclick="event.stopPropagation();deleteGridItem(${ti},${ci},${ii})">✕</button>
+  </div>`;
+  if (item.type === 'text') {
+    const bg = item.bg ? `;background:${item.bg}` : '';
+    const cls = buildTextItemClasses(item);
+    return `<div class="${cls}" style="${sty}${bg}" data-ti="${ti}" data-ci="${ci}" data-ii="${ii}" data-pos="${pos}"><span style="pointer-events:none">${esc(item.content || '')}</span>${resizeHandles}${overlay}</div>`;
+  }
+  return `<div class="cv-grid-item" style="${sty}" data-ti="${ti}" data-ci="${ci}" data-ii="${ii}" data-pos="${pos}">
+    ${item.src ? `<img src="${item.src}" alt="" loading="lazy">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.2);font-size:.75rem">No image</div>'}
+    ${resizeHandles}${overlay}
+  </div>`;
+}
+
+function renderInfoBlock(infoBlock, ti) {
+  const entries = Object.entries(infoBlock);
+  const rows = entries.map(([k, v], ii) => `
+    <div class="ed-info-row">
+      <input class="ed-info-inp lbl" value="${esc(k)}"
+             onchange="updateInfoKey(${ti},${ii},this.value)" title="Key">
+      <input class="ed-info-inp val" value="${esc(v)}"
+             onchange="updateInfoVal(${ti},${ii},this.value)" title="Value">
+      <button class="ed-del-info" onclick="deleteInfoRow(${ti},${ii})" title="Remove row">×</button>
+    </div>`).join('');
+  return `<div class="cv-info-block">
+    <div class="cv-info-header">Info</div>
+    ${rows}
+    <button class="ed-info-add" onclick="addInfoRow(${ti})">+ Add row</button>
+  </div>`;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function saveField(el, field) {
+  S.cats[S.active][field] = el.textContent.trim();
+}
+
+function saveCardField(el, ti, ci, field) {
+  S.cats[S.active].tiers[ti].cards[ci][field] = el.textContent.trim();
+}
+
+// ─── Dail Nav ─────────────────────────────────────────────────────────────────
+function dailNav(id, btn) {
+  document.querySelectorAll('.cv-dail-label').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ─── Tier Actions ─────────────────────────────────────────────────────────────
+function openEditTierModal(ti) {
+  const tier = S.cats[S.active].tiers[ti];
+  openModal('Edit Tier', `
+    <div class="fg">
+      <label class="fg-label">Label</label>
+      <input class="fg-input" id="mTierLabel" value="${esc(tier.label)}">
+    </div>
+    <div class="fg">
+      <label class="fg-label">Section ID (used for scroll)</label>
+      <input class="fg-input" id="mTierId" value="${esc(tier.id)}">
+    </div>`,
+  () => {
+    tier.label = document.getElementById('mTierLabel').value.trim() || tier.label;
+    tier.id   = document.getElementById('mTierId').value.trim().toLowerCase().replace(/\s+/g,'-') || tier.id;
+    closeModal(); render();
+  });
+}
+
+function openAddTierModal() {
+  openModal('New Tier', `
+    <div class="fg">
+      <label class="fg-label">Label</label>
+      <input class="fg-input" id="mTierLabel" placeholder="Premium">
+    </div>
+    <div class="fg">
+      <label class="fg-label">Section ID</label>
+      <input class="fg-input" id="mTierId" placeholder="premium">
+    </div>`,
+  () => {
+    const label = document.getElementById('mTierLabel').value.trim();
+    if (!label) return;
+    const id = document.getElementById('mTierId').value.trim().toLowerCase().replace(/\s+/g,'-') || label.toLowerCase().replace(/\s+/g,'-');
+    S.cats[S.active].tiers.push({ id, label, cards: [], infoBlock: {} });
+    closeModal(); render();
+  });
+}
+
+function deleteTier(ti) {
+  if (S.cats[S.active].tiers.length <= 1) { alert('A category needs at least one tier.'); return; }
+  if (!confirm('Delete this tier and all its cards?')) return;
+  S.cats[S.active].tiers.splice(ti, 1);
+  render();
+}
+
+// ─── Card Actions ─────────────────────────────────────────────────────────────
+function addCard(ti) {
+  S.cats[S.active].tiers[ti].cards.push({
+    title: 'New Card',
+    description: 'Card description.',
+    gridImages: { mobile: [], desktop: [] },
+  });
+  render();
+}
+
+function deleteCard(ti, ci) {
+  if (!confirm('Delete this card?')) return;
+  S.cats[S.active].tiers[ti].cards.splice(ci, 1);
+  render();
+}
+
+// ─── Grid Item Actions ────────────────────────────────────────────────────────
+function openGridItemModal(ti, ci, ii) {
+  const item = S.cats[S.active].tiers[ti].cards[ci].gridImages[S.layout][ii];
+  const isText = item.type === 'text';
+  const ts = item.textStyle || 'body';
+  const sz = item.textSize || 'md';
+  const ta = item.textAlign || 'center';
+  const va = item.verticalAlign || 'mid';
+
+  openModal('Edit Grid Item', `
+    <div class="type-toggle">
+      <button class="type-btn${!isText?' active':''}" onclick="toggleItemType(this,'image')">Image</button>
+      <button class="type-btn${isText?' active':''}" onclick="toggleItemType(this,'text')">Text</button>
+    </div>
+    <div id="mImgSec"${isText?' style="display:none"':''}>
+      <div class="fg">
+        <label class="fg-label">Image URL</label>
+        <input class="fg-input" id="mSrc" value="${esc(item.src||'')}" placeholder="https://... or data/work/...">
+        <div class="img-preview${item.src?'':' empty'}" id="mImgPrev">
+          ${item.src?`<img src="${item.src}" alt="">`:'No image'}
+        </div>
+      </div>
+    </div>
+    <div id="mTxtSec"${!isText?' style="display:none"':''}>
+      <div class="fg">
+        <label class="fg-label">Text Content</label>
+        <textarea class="fg-input" id="mContent">${esc(item.content||'')}</textarea>
+      </div>
+      <div class="fg">
+        <label class="fg-label">Background Color (optional)</label>
+        <input class="fg-input" id="mBg" value="${esc(item.bg||'')}" placeholder="rgba(255,255,255,0.06)">
+      </div>
+      <div class="fg">
+        <label class="fg-label">Text Style</label>
+        <div class="seg-group" data-seg="textStyle">
+          <button class="seg-btn${ts==='body'?' active':''}" data-val="body">Body</button>
+          <button class="seg-btn${ts==='head'?' active':''}" data-val="head">Heading</button>
+          <button class="seg-btn${ts==='label'?' active':''}" data-val="label">Label</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fg-label">Size</label>
+        <div class="seg-group" data-seg="textSize">
+          <button class="seg-btn${sz==='sm'?' active':''}" data-val="sm">S</button>
+          <button class="seg-btn${sz==='md'?' active':''}" data-val="md">M</button>
+          <button class="seg-btn${sz==='lg'?' active':''}" data-val="lg">L</button>
+          <button class="seg-btn${sz==='xl'?' active':''}" data-val="xl">XL</button>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fg-label">H. Align</label>
+          <div class="seg-group" data-seg="textAlign">
+            <button class="seg-btn${ta==='left'?' active':''}" data-val="left">Left</button>
+            <button class="seg-btn${ta==='center'?' active':''}" data-val="center">Center</button>
+            <button class="seg-btn${ta==='right'?' active':''}" data-val="right">Right</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fg-label">V. Position</label>
+          <div class="seg-group" data-seg="verticalAlign">
+            <button class="seg-btn${va==='top'?' active':''}" data-val="top">Top</button>
+            <button class="seg-btn${va==='mid'?' active':''}" data-val="mid">Mid</button>
+            <button class="seg-btn${va==='bot'?' active':''}" data-val="bot">Bot</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg">
+        <label class="fg-label">Column (e.g. 1/3)</label>
+        <input class="fg-input" id="mCol" value="${esc(item.col)}">
+      </div>
+      <div class="fg">
+        <label class="fg-label">Row (e.g. 1/2)</label>
+        <input class="fg-input" id="mRow" value="${esc(item.row)}">
+      </div>
+    </div>`,
+  () => {
+    const type = document.querySelector('.type-btn.active').textContent === 'Image' ? 'image' : 'text';
+    item.type = type;
+    item.col  = document.getElementById('mCol').value.trim() || item.col;
+    item.row  = document.getElementById('mRow').value.trim() || item.row;
+    if (type === 'image') {
+      item.src = document.getElementById('mSrc').value.trim();
+      delete item.content; delete item.bg;
+      delete item.textStyle; delete item.textSize;
+      delete item.textAlign; delete item.verticalAlign;
+    } else {
+      item.content = document.getElementById('mContent').value;
+      const bg = document.getElementById('mBg').value.trim();
+      if (bg) item.bg = bg; else delete item.bg;
+      const getSegVal = prop => document.querySelector(`.seg-group[data-seg="${prop}"] .seg-btn.active`)?.dataset.val;
+      item.textStyle     = getSegVal('textStyle')     || 'body';
+      item.textSize      = getSegVal('textSize')      || 'md';
+      item.textAlign     = getSegVal('textAlign')     || 'center';
+      item.verticalAlign = getSegVal('verticalAlign') || 'mid';
+      delete item.src;
+    }
+    closeModal(); render();
+  },
+  () => { deleteGridItem(ti, ci, ii); closeModal(); });
+
+  // Live preview for image URL
+  const srcInput = document.getElementById('mSrc');
+  if (srcInput) {
+    srcInput.addEventListener('input', e => {
+      const prev = document.getElementById('mImgPrev');
+      const v = e.target.value;
+      prev.innerHTML = v ? `<img src="${v}" alt="">` : 'No image';
+      prev.classList.toggle('empty', !v);
+    });
+  }
+
+  // Segmented control click handling
+  document.querySelectorAll('.seg-group').forEach(group => {
+    group.addEventListener('click', e => {
+      const btn = e.target.closest('.seg-btn');
+      if (!btn) return;
+      group.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+
+function toggleItemType(btn, type) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mImgSec').style.display = type === 'image' ? '' : 'none';
+  document.getElementById('mTxtSec').style.display = type === 'text'  ? '' : 'none';
+}
+
+function addGridItem(ti, ci, type) {
+  const card = S.cats[S.active].tiers[ti].cards[ci];
+  const items = card.gridImages[S.layout];
+  const cols = S.layout === 'desktop' ? 5 : 3;
+  const rows = getCardRows(card, S.layout);
+  // Find first empty cell
+  const occupied = new Set();
+  items.forEach(it => {
+    const [cs, ce] = it.col.split('/').map(Number);
+    const [rs, re] = it.row.split('/').map(Number);
+    for (let c = cs; c < ce; c++) for (let r = rs; r < re; r++) occupied.add(`${c},${r}`);
+  });
+  let col = '1/2', row = '1/2';
+  outer: for (let r = 1; r <= rows; r++) {
+    for (let c = 1; c <= cols; c++) {
+      if (!occupied.has(`${c},${r}`)) {
+        col = `${c}/${c + 1}`;
+        row = `${r}/${r + 1}`;
+        break outer;
+      }
+    }
+  }
+  const newItem = type === 'text'
+    ? { type: 'text', content: 'Text', col, row }
+    : { type: 'image', src: '', col, row };
+  items.push(newItem);
+  render();
+  requestAnimationFrame(() => openGridItemModal(ti, ci, items.length - 1));
+}
+
+function addGridRow(ti, ci) {
+  const card = S.cats[S.active].tiers[ti].cards[ci];
+  ensureCardGridRows(card);
+  card.gridRows[S.layout] += 1;
+  render();
+}
+
+function removeGridRow(ti, ci) {
+  const card = S.cats[S.active].tiers[ti].cards[ci];
+  ensureCardGridRows(card);
+  const currentRows = card.gridRows[S.layout];
+  const minRows = getMaxItemRow(card.gridImages[S.layout] || []);
+  if (currentRows <= minRows) {
+    alert('Cannot remove row: move/resize items first.');
+    return;
+  }
+  card.gridRows[S.layout] = Math.max(1, currentRows - 1);
+  render();
+}
+
+function mergeToLayout(ti, ci, targetLayout) {
+  const card = S.cats[S.active].tiers[ti].cards[ci];
+  const sourceLayout = targetLayout === 'mobile' ? 'desktop' : 'mobile';
+  const sourceItems = card.gridImages[sourceLayout] || [];
+  
+  if (sourceItems.length === 0) {
+    alert(`No items in ${sourceLayout} view to merge.`);
+    return;
+  }
+  
+  const existingCount = (card.gridImages[targetLayout] || []).length;
+  const action = existingCount > 0 
+    ? confirm(`This will replace ${existingCount} existing item(s) in ${targetLayout} view with ${sourceItems.length} item(s) from ${sourceLayout}. Continue?`)
+    : true;
+  
+  if (!action) return;
+  
+  const sourceCols = sourceLayout === 'desktop' ? 5 : 3;
+  const targetCols = targetLayout === 'desktop' ? 5 : 3;
+  const colRatio = targetCols / sourceCols;
+  
+  const adaptedItems = sourceItems.map(item => {
+    const newItem = clone(item);
+    const [colStart, colEnd] = item.col.split('/').map(Number);
+    const colSpan = colEnd - colStart;
+    
+    let newColStart = Math.max(1, Math.round((colStart - 1) * colRatio) + 1);
+    let newColSpan = Math.max(1, Math.round(colSpan * colRatio));
+    
+    if (newColStart + newColSpan > targetCols + 1) {
+      newColStart = Math.max(1, targetCols + 1 - newColSpan);
+    }
+    
+    newItem.col = `${newColStart}/${newColStart + newColSpan}`;
+    return newItem;
+  });
+  
+  card.gridImages[targetLayout] = adaptedItems;
+  
+  ensureCardGridRows(card);
+  const requiredRows = getMaxItemRow(adaptedItems);
+  if (card.gridRows[targetLayout] < requiredRows) {
+    card.gridRows[targetLayout] = requiredRows;
+  }
+  
+  render();
+}
+
+function deleteGridItem(ti, ci, ii) {
+  S.cats[S.active].tiers[ti].cards[ci].gridImages[S.layout].splice(ii, 1);
+  render();
+}
+
+// ─── Info Block Actions ───────────────────────────────────────────────────────
+function updateInfoKey(ti, ii, newKey) {
+  const entries = Object.entries(S.cats[S.active].tiers[ti].infoBlock);
+  const val = entries[ii][1];
+  entries[ii][0] = newKey;
+  S.cats[S.active].tiers[ti].infoBlock = Object.fromEntries(entries);
+}
+
+function updateInfoVal(ti, ii, newVal) {
+  const entries = Object.entries(S.cats[S.active].tiers[ti].infoBlock);
+  entries[ii][1] = newVal;
+  S.cats[S.active].tiers[ti].infoBlock = Object.fromEntries(entries);
+}
+
+function deleteInfoRow(ti, ii) {
+  const entries = Object.entries(S.cats[S.active].tiers[ti].infoBlock);
+  entries.splice(ii, 1);
+  S.cats[S.active].tiers[ti].infoBlock = Object.fromEntries(entries);
+  render();
+}
+
+function addInfoRow(ti) {
+  S.cats[S.active].tiers[ti].infoBlock['Key'] = 'Value';
+  render();
+}
+
+// ─── Header Modal ─────────────────────────────────────────────────────────────
+function openHeaderModal() {
+  const data = S.cats[S.active];
+  openModal('Cover &amp; Color', `
+    <div class="fg">
+      <label class="fg-label">Cover Image URL</label>
+      <input class="fg-input" id="mCover" value="${esc(data.cover||'')}" placeholder="icons/games.png or https://...">
+      <div class="img-preview${data.cover?'':' empty'}" id="mCoverPrev">
+        ${data.cover?`<img src="${data.cover}" alt="">`:'No cover'}
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fg-label">Accent Color</label>
+      <div class="color-row">
+        <input class="color-inp" type="color" id="mColor" value="${data.color}">
+        <input class="fg-input" id="mColorTxt" value="${data.color}" placeholder="#38c219">
+      </div>
+    </div>`,
+  () => {
+    const cover = document.getElementById('mCover').value.trim();
+    data.cover = cover || null;
+    data.color = document.getElementById('mColor').value;
+    closeModal(); render(); renderTabs();
+  });
+
+  document.getElementById('mCover').addEventListener('input', e => {
+    const v = e.target.value;
+    const prev = document.getElementById('mCoverPrev');
+    prev.innerHTML = v ? `<img src="${v}" alt="">` : 'No cover';
+    prev.classList.toggle('empty', !v);
+  });
+  document.getElementById('mColor').addEventListener('input', e => {
+    document.getElementById('mColorTxt').value = e.target.value;
+  });
+  document.getElementById('mColorTxt').addEventListener('input', e => {
+    if (/^#[0-9a-f]{6}$/i.test(e.target.value)) {
+      document.getElementById('mColor').value = e.target.value;
+    }
+  });
+}
+
+// ─── Category Actions ─────────────────────────────────────────────────────────
+function openNewCategoryModal() {
+  openModal('New Category', `
+    <div class="fg">
+      <label class="fg-label">Name</label>
+      <input class="fg-input" id="mCatName" placeholder="Design">
+    </div>
+    <div class="fg">
+      <label class="fg-label">Accent Color</label>
+      <div class="color-row">
+        <input class="color-inp" type="color" id="mCatColor" value="#6741d9">
+        <input class="fg-input" id="mCatColorTxt" value="#6741d9">
+      </div>
+    </div>`,
+  () => {
+    const name = document.getElementById('mCatName').value.trim();
+    if (!name) return;
+    const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const color = document.getElementById('mCatColor').value;
+    S.cats[key] = {
+      color, cover: null, title: name,
+      description: 'Category description.',
+      tiers: [{ id: 'default', label: 'Default', cards: [], infoBlock: {} }],
+    };
+    S.active = key;
+    closeModal(); renderTabs(); render();
+  });
+
+  document.getElementById('mCatColor').addEventListener('input', e => {
+    document.getElementById('mCatColorTxt').value = e.target.value;
+  });
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+function renderTabs() {
+  document.getElementById('tbTabs').innerHTML =
+    Object.entries(S.cats).map(([key, cat]) =>
+      `<button class="tb-tab${key === S.active ? ' active' : ''}" onclick="switchCat('${key}')">
+        <span class="tb-tab-dot" style="background:${cat.color}"></span>
+        ${esc(cat.title)}
+      </button>`
+    ).join('');
+}
+
+function switchCat(key) {
+  S.active = key;
+  renderTabs(); render();
+}
+
+// ─── Modal System ─────────────────────────────────────────────────────────────
+let _pendingConfirm = null;
+
+function openModal(title, bodyHTML, onConfirm, onDelete) {
+  _pendingConfirm = onConfirm;
+  document.getElementById('mTitle').innerHTML = title;
+  document.getElementById('mBody').innerHTML = bodyHTML;
+
+  const foot = document.getElementById('mFoot');
+  foot.innerHTML = '';
+
+  if (onDelete) {
+    const d = document.createElement('button');
+    d.className = 'ed-btn danger';
+    d.textContent = '✕ Delete';
+    d.onclick = onDelete;
+    foot.appendChild(d);
+  } else {
+    foot.appendChild(document.createElement('span'));
+  }
+
+  const ok = document.createElement('button');
+  ok.className = 'ed-btn accent';
+  ok.textContent = 'Save';
+  ok.onclick = onConfirm;
+  foot.appendChild(ok);
+
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+  _pendingConfirm = null;
+}
+
+document.getElementById('mClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    document.getElementById('exportOverlay').classList.add('hidden');
+  }
+  if (e.key === 'Enter' && e.ctrlKey && _pendingConfirm) _pendingConfirm();
+});
+
+// ─── Grid Drag & Resize System ────────────────────────────────────────────────
+let dragState = null;
+
+function parseColRow(str) {
+  const [start, end] = str.split('/').map(Number);
+  return { start, end };
+}
+
+function getGridMetrics(gridEl) {
+  const rect = gridEl.getBoundingClientRect();
+  const style = getComputedStyle(gridEl);
+  const cols = S.layout === 'desktop' ? 5 : 3;
+  const rows = parseInt(style.getPropertyValue('--grid-rows'), 10) || getDefaultRows(S.layout);
+  const gap = parseFloat(style.gap) || 6;
+  const cellW = (rect.width - gap * (cols - 1)) / cols;
+  const cellH = (rect.height - gap * (rows - 1)) / rows;
+  return { rect, cols, rows, gap, cellW, cellH };
+}
+
+function posToCell(x, y, metrics) {
+  const { rect, cols, rows, gap, cellW, cellH } = metrics;
+  const relX = x - rect.left;
+  const relY = y - rect.top;
+  const col = Math.max(1, Math.min(cols + 1, Math.round(relX / (cellW + gap)) + 1));
+  const row = Math.max(1, Math.min(rows + 1, Math.round(relY / (cellH + gap)) + 1));
+  return { col, row };
+}
+
+function updateItemPosition(ti, ci, ii, col, row) {
+  const item = S.cats[S.active].tiers[ti].cards[ci].gridImages[S.layout][ii];
+  item.col = col;
+  item.row = row;
+}
+
+function applyItemGridStyle(gridItem, item) {
+  gridItem.style.gridColumn = item.col;
+  gridItem.style.gridRow = item.row;
+  gridItem.dataset.pos = `c${item.col} r${item.row}`;
+}
+
+function updateDragPosition(clientX, clientY) {
+  if (!dragState) return;
+  const { type, ti, ci, ii, metrics, gridItem } = dragState;
+  const item = S.cats[S.active].tiers[ti].cards[ci].gridImages[S.layout][ii];
+
+  if (type === 'move') {
+    const { colSpan, rowSpan, startX, startY, startCol, startRow } = dragState;
+    const deltaCol = Math.round((clientX - startX) / (metrics.cellW + metrics.gap));
+    const deltaRow = Math.round((clientY - startY) / (metrics.cellH + metrics.gap));
+    const newColStart = Math.max(1, Math.min(metrics.cols - colSpan + 1, startCol + deltaCol));
+    const newRowStart = Math.max(1, Math.min(metrics.rows - rowSpan + 1, startRow + deltaRow));
+    item.col = `${newColStart}/${newColStart + colSpan}`;
+    item.row = `${newRowStart}/${newRowStart + rowSpan}`;
+  } else if (type === 'resize') {
+    const { dir, colStart, colEnd, rowStart, rowEnd } = dragState;
+    const { col, row } = posToCell(clientX, clientY, metrics);
+    let newColStart = colStart, newColEnd = colEnd, newRowStart = rowStart, newRowEnd = rowEnd;
+    if (dir.includes('e')) newColEnd = Math.max(colStart + 1, Math.min(metrics.cols + 1, col));
+    if (dir.includes('w')) newColStart = Math.max(1, Math.min(colEnd - 1, col));
+    if (dir.includes('s')) newRowEnd = Math.max(rowStart + 1, Math.min(metrics.rows + 1, row));
+    if (dir.includes('n')) newRowStart = Math.max(1, Math.min(rowEnd - 1, row));
+    item.col = `${newColStart}/${newColEnd}`;
+    item.row = `${newRowStart}/${newRowEnd}`;
+  }
+
+  applyItemGridStyle(gridItem, item);
+}
+
+function endDrag(e) {
+  if (!dragState) return;
+  const { gridItem, pointerId } = dragState;
+  gridItem?.classList.remove('dragging');
+  if (gridItem?.hasPointerCapture?.(pointerId)) {
+    gridItem.releasePointerCapture(pointerId);
+  }
+  dragState = null;
+}
+
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  if (e.target.closest('button')) return;
+
+  const gridItem = e.target.closest('.cv-grid-item');
+  if (!gridItem) return;
+
+  const grid = gridItem.closest('.cv-grid');
+  if (!grid) return;
+
+  const ti = parseInt(gridItem.dataset.ti, 10);
+  const ci = parseInt(gridItem.dataset.ci, 10);
+  const ii = parseInt(gridItem.dataset.ii, 10);
+  const item = S.cats[S.active].tiers[ti].cards[ci].gridImages[S.layout][ii];
+  const metrics = getGridMetrics(grid);
+  const colStart = parseColRow(item.col);
+  const rowStart = parseColRow(item.row);
+  const resizeHandle = e.target.closest('.ed-resize');
+
+  e.preventDefault();
+
+  if (resizeHandle) {
+    dragState = {
+      type: 'resize',
+      dir: resizeHandle.dataset.dir,
+      ti, ci, ii,
+      grid,
+      metrics,
+      gridItem,
+      pointerId: e.pointerId,
+      colStart: colStart.start,
+      colEnd: colStart.end,
+      rowStart: rowStart.start,
+      rowEnd: rowStart.end,
+    };
+  } else {
+    dragState = {
+      type: 'move',
+      ti, ci, ii,
+      grid,
+      metrics,
+      gridItem,
+      pointerId: e.pointerId,
+      colSpan: colStart.end - colStart.start,
+      rowSpan: rowStart.end - rowStart.start,
+      startX: e.clientX,
+      startY: e.clientY,
+      startCol: colStart.start,
+      startRow: rowStart.start,
+    };
+  }
+
+  gridItem.classList.add('dragging');
+  gridItem.setPointerCapture?.(e.pointerId);
+});
+
+document.addEventListener('pointermove', e => {
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
+  updateDragPosition(e.clientX, e.clientY);
+});
+
+document.addEventListener('pointerup', e => {
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
+  endDrag(e);
+});
+
+document.addEventListener('pointercancel', e => {
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
+  endDrag(e);
+});
+
+// ─── Layout Toggle ────────────────────────────────────────────────────────────
+document.querySelectorAll('.tb-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tb-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    S.layout = btn.dataset.layout;
+    render();
+  });
+});
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+document.getElementById('tbExport').addEventListener('click', () => {
+  const json = JSON.stringify(S.cats, null, 2);
+  document.getElementById('exportFn').textContent = 'mulonde/data/views.json';
+  document.getElementById('exportCode').textContent = json;
+  document.getElementById('exportOverlay').classList.remove('hidden');
+});
+
+document.getElementById('exportClose').addEventListener('click', () => {
+  document.getElementById('exportOverlay').classList.add('hidden');
+});
+
+document.getElementById('exportOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+});
+
+document.getElementById('exportCopy').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('exportCode').textContent).then(() => {
+    const btn = document.getElementById('exportCopy');
+    btn.textContent = 'Copied!';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 2000);
+  });
+});
+
+// ─── Add Category Button ──────────────────────────────────────────────────────
+document.getElementById('tbAddCat').addEventListener('click', openNewCategoryModal);
+
+// ─── Direct Save (File System Access API) ─────────────────────────────────────
+const HANDLE_DB = 'cat-view-editor';
+const HANDLE_STORE = 'handles';
+
+
+function supportsFileSave() {
+  return typeof window.showOpenFilePicker === 'function';
+}
+
+function openHandleDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(HANDLE_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(HANDLE_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function storeFileHandle(key, handle) {
+  const db = await openHandleDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(HANDLE_STORE, 'readwrite');
+    tx.objectStore(HANDLE_STORE).put(handle, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadStoredFileHandle(key) {
+  const db = await openHandleDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(HANDLE_STORE, 'readonly');
+    const req = tx.objectStore(HANDLE_STORE).get(key);
+    req.onsuccess = () => resolve(req.result ?? null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function clearStoredFileHandle(key) {
+  const db = await openHandleDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(HANDLE_STORE, 'readwrite');
+    tx.objectStore(HANDLE_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function ensureWritePermission(handle) {
+  if (await handle.queryPermission({ mode: 'readwrite' }) === 'granted') return true;
+  return (await handle.requestPermission({ mode: 'readwrite' })) === 'granted';
+}
+
+let toastTimer = null;
+function showToast(message, { error = false } = {}) {
+  let toast = document.getElementById('saveToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'saveToast';
+    toast.style.cssText = 'position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%) translateY(1rem);background:rgba(20,20,20,.96);border:1px solid rgba(255,255,255,.12);color:#fff;padding:.55rem 1rem;border-radius:8px;font-size:.78rem;z-index:10000;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap';
+    document.body.appendChild(toast);
+  }
+  clearTimeout(toastTimer);
+  toast.style.borderColor = error ? 'rgba(255,100,100,.35)' : 'rgba(255,255,255,.12)';
+  toast.style.color = error ? '#ffb4b4' : '#fff';
+  toast.textContent = message;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  toastTimer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(1rem)';
+  }, 2800);
+}
+
+let viewsFileHandle = null;
+
+async function pickViewsFile() {
+  const [handle] = await window.showOpenFilePicker({
+    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+    multiple: false,
+    suggestedName: 'views.json',
+  });
+  viewsFileHandle = handle;
+  await storeFileHandle('views', handle);
+  return handle;
+}
+
+async function saveAllViews() {
+  if (!supportsFileSave()) {
+    showToast('Direct save not supported — use Export JSON', { error: true });
+    return;
+  }
+
+  const json = JSON.stringify(S.cats, null, 2);
+
+  try {
+    if (!viewsFileHandle) {
+      viewsFileHandle = await pickViewsFile();
+    }
+    if (!(await ensureWritePermission(viewsFileHandle))) {
+      showToast('Save cancelled — file permission needed', { error: true });
+      return;
+    }
+
+    const writable = await viewsFileHandle.createWritable();
+    await writable.write(json);
+    await writable.close();
+    showToast('Saved views.json — refresh main page to preview');
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+    viewsFileHandle = null;
+    await clearStoredFileHandle('views').catch(() => {});
+    showToast('Save failed — pick the file again', { error: true });
+  }
+}
+
+async function restoreFileHandle() {
+  if (!supportsFileSave()) return;
+  try {
+    const handle = await loadStoredFileHandle('views');
+    if (handle && (await handle.queryPermission({ mode: 'readwrite' })) === 'granted') {
+      viewsFileHandle = handle;
+    }
+  } catch {}
+}
+
+document.getElementById('tbUpdate').addEventListener('click', () => void saveAllViews());
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    void saveAllViews();
+  }
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+(async () => {
+  await loadAllViews();
+  // Start on the first available category
+  S.active = Object.keys(S.cats)[0] ?? 'games';
+  await restoreFileHandle();
+  renderTabs();
+  render();
+})();
+</script>
+</body>
+</html>

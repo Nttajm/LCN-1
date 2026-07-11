@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O QUE SERA</title>
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&family=Cal+Sans&family=Changa+One:ital@0;1&family=DM+Serif+Text:ital@0;1&family=Doto:wght@100..900&family=Fredoka:wght@300..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Merriweather+Sans:ital,wght@0,643;1,643&family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&family=Oswald:wght@200..700&family=Pacifico&family=Pirata+One&family=Pixelify+Sans:wght@400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Space+Grotesk:wght@300..700&family=Special+Gothic+Expanded+One&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/standard.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="scrolling-bar description-font" aria-label="la mujer de piedra">
+        <div class="scroll-track">
+            <div class="scroll-group">
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+            </div>
+            <div class="scroll-group" aria-hidden="true">
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+                <div class="scroll-item"><span>la mujer de piedra</span></div>
+                <div class="scroll-sep" aria-hidden="true">●</div>
+            </div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="logo-anim oqs-font">
+            <div class="anim-line" data-text="O QUE">
+                <span>
+                    O QUE
+                </span>
+            </div>
+            <div class="anim-line" data-text="SERA">
+                <span>
+                    SERA
+                </span>
+            </div>
+        </div>
+        <div class="magz">
+            <div class="mag-row">
+                <div class="mag mobile-full" data-mag="inde_1">
+                    <img src="data/inde_n/cover-page_pixel.png" alt="Magazine Cover">
+                </div>
+            </div>
+            <dov class="mag-row">
+                <div class="mag mobile-30" data-mag="lana_1">
+                    <img src="data/lana-1/lana-mag-4.jpg" alt="Magazine Cover">
+                </div>
+                <div class="mag mobile-full" data-mag="eyn-1">
+                    <img src="data/EYN1/cover_page.png" alt="Magazine Cover">
+                </div>
+            </dov>
+            <div class="mag-row">
+                <div class="mag mobile-50" data-mag="marabella-1">
+                    <img src="data/marabella-1/cover_page.webp" alt="Magazine Cover">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/pixel.js" defer></script>
+    <script src="js/viewer.js" defer></script>
+    <script>
+        const logoAnim = document.querySelector('.logo-anim');
+        const animLines = document.querySelectorAll('.anim-line');
+        const magz = document.querySelector('.magz');
+        let lineHeights = [];
+        let naturalSpan = 0;  // px from logo's top to bottom of last line at full height
+        let logoViewportTop = 0; // constant since logo is position:fixed
+
+        function measure() {
+            animLines.forEach(l => l.style.height = '');
+            lineHeights = Array.from(animLines).map(l => l.offsetHeight);
+            // logo is fixed so its viewport top never changes
+            logoViewportTop = logoAnim.getBoundingClientRect().top;
+            naturalSpan = animLines[animLines.length - 1].getBoundingClientRect().bottom - logoViewportTop;
+        }
+
+        function onScroll() {
+            // How far magz's top currently is from the viewport top
+            const magzViewportTop = magz.getBoundingClientRect().top;
+            // Scale all lines so their combined bottom lands exactly on magz's top
+            const targetSpan = Math.max(0, magzViewportTop - logoViewportTop);
+            const ratio = naturalSpan > 0 ? Math.min(1, targetSpan / naturalSpan) : 0;
+            animLines.forEach((l, i) => {
+                l.style.height = (lineHeights[i] * ratio) + 'px';
+            });
+        }
+
+        window.addEventListener('load', () => { measure(); onScroll(); });
+        window.addEventListener('resize', () => { measure(); onScroll(); });
+        window.addEventListener('scroll', onScroll, { passive: true });
+    </script>
+</body>
+</html>

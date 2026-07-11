@@ -1,0 +1,492 @@
+/* Weather app — Apple Weather layout, Windows 8 sharp corners */
+
+.cat-view.weather-mode {
+  background: var(--wx-avg-color, #1a4f8a);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.cat-view.weather-mode::-webkit-scrollbar {
+  display: none;
+}
+
+.wx-app {
+  position: relative;
+  min-height: 100vh;
+  color: #fff;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Background layer ─────────────────────────────────────────────────── */
+
+.wx-bg {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: min(52vh, 28rem);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wx-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 38%,
+    color-mix(in srgb, var(--wx-avg-color, #1a4f8a) 20%, transparent) 62%,
+    var(--wx-avg-color, #1a4f8a) 100%
+  );
+}
+
+.wx-bg-blur {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--wx-avg-color, #1a4f8a);
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .wx-bg {
+    height: min(46vh, 22rem);
+  }
+
+  .wx-bg-blur {
+    opacity: 1;
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    mask-image: linear-gradient(to bottom, transparent 0%, transparent 28%, #000 52%, #000 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 28%, #000 52%, #000 100%);
+  }
+}
+
+@media (min-width: 769px) {
+  .wx-bg {
+    height: 100vh;
+  }
+
+  .wx-bg::before {
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 22%,
+      color-mix(in srgb, var(--wx-avg-color, #1a4f8a) 55%, transparent) 55%,
+      var(--wx-avg-color, #1a4f8a) 100%
+    );
+  }
+
+  .wx-bg-blur {
+    opacity: 1;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, #000 60%, #000 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, #000 60%, #000 100%);
+  }
+}
+
+/* ─── Content ──────────────────────────────────────────────────────────── */
+
+.wx-content {
+  position: relative;
+  z-index: 1;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 5.5rem 1rem 3rem;
+}
+
+@media (min-width: 769px) {
+  .wx-content {
+    padding: 6.5rem 2rem 4rem;
+  }
+}
+
+/* ─── Hero ───────────────────────────────────────────────────────────────── */
+
+.wx-hero {
+  text-align: center;
+  margin-bottom: 1.75rem;
+  animation: wx-in 0.55s cubic-bezier(0.05, 0.65, 0.4, 1) both;
+}
+
+.wx-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  opacity: 0.72;
+  margin-bottom: 0.35rem;
+}
+
+.wx-city {
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.15rem;
+}
+
+.wx-temp {
+  font-size: clamp(4.5rem, 18vw, 6.5rem);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin: 0.1rem 0;
+}
+
+.wx-condition {
+  font-size: 1.15rem;
+  font-weight: 400;
+  opacity: 0.95;
+}
+
+.wx-hilo {
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.82;
+  margin-top: 0.35rem;
+}
+
+/* ─── Panels (Win8 tiles) ────────────────────────────────────────────────── */
+
+.wx-panel {
+  background: rgba(255, 255, 255, 0.027);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 0;
+  margin-bottom: 0.65rem;
+  overflow: hidden;
+  animation: wx-in 0.55s cubic-bezier(0.05, 0.65, 0.4, 1) both;
+}
+
+.wx-panel:nth-child(2) { animation-delay: 0.06s; }
+.wx-panel:nth-child(3) { animation-delay: 0.1s; }
+.wx-panel:nth-child(4) { animation-delay: 0.14s; }
+
+.wx-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.85rem 1rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.wx-panel-head svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  opacity: 0.85;
+}
+
+.wx-summary {
+  padding: 0.85rem 1rem 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.45;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ─── Hourly scroll ──────────────────────────────────────────────────────── */
+
+.wx-hourly-scroll {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0.75rem 0.5rem 1rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wx-hourly-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.wx-hour {
+  flex: 0 0 auto;
+  min-width: 3.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.wx-hour-time {
+  font-size: 0.78rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.wx-hour-icon {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.wx-hour-temp {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.wx-hour-divider {
+  flex: 0 0 1px;
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0.25rem 0;
+}
+
+/* ─── Daily forecast ─────────────────────────────────────────────────────── */
+
+.wx-daily-list {
+  padding: 0.25rem 0 0.5rem;
+}
+
+.wx-day-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1.6rem 2.2rem 1fr 2.2rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wx-day-row:last-child {
+  border-bottom: none;
+}
+
+.wx-day-name {
+  font-weight: 600;
+}
+
+.wx-day-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  justify-self: center;
+}
+
+.wx-day-low {
+  text-align: right;
+  opacity: 0.65;
+  font-size: 0.88rem;
+}
+
+.wx-day-high {
+  text-align: right;
+  font-size: 0.88rem;
+}
+
+.wx-day-bar-wrap {
+  position: relative;
+  height: 0.35rem;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: visible;
+}
+
+.wx-day-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 0;
+  background: linear-gradient(90deg, #4da3ff 0%, #7ec8ff 25%, #ffd166 60%, #ff8c42 100%);
+}
+
+.wx-day-dot {
+  position: absolute;
+  top: 50%;
+  width: 0.45rem;
+  height: 0.45rem;
+  background: #fff;
+  border-radius: 0;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Detail grid ────────────────────────────────────────────────────────── */
+
+.wx-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+@media (min-width: 769px) {
+  .wx-layout {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 0.65rem;
+    align-items: start;
+  }
+
+  .wx-layout .wx-panel {
+    margin-bottom: 0;
+  }
+
+  .wx-detail-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+}
+
+.wx-detail {
+  padding: 1rem;
+  min-height: 7.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.wx-detail-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  margin-bottom: 0.55rem;
+}
+
+.wx-detail-label svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.wx-detail-value {
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.wx-detail-sub {
+  font-size: 0.88rem;
+  font-weight: 500;
+  opacity: 0.75;
+  margin-top: 0.25rem;
+}
+
+/* Wind compass */
+.wx-wind-compass {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: 0.25rem auto 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+}
+
+.wx-wind-compass::before,
+.wx-wind-compass::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.wx-wind-compass::before {
+  top: 50%;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.wx-wind-compass::after {
+  left: 50%;
+  top: 8%;
+  bottom: 8%;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.wx-wind-needle {
+  position: absolute;
+  inset: 18%;
+  transform-origin: center center;
+}
+
+.wx-wind-needle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 2px;
+  height: 42%;
+  background: #fff;
+  transform: translateX(-50%);
+  border-radius: 0;
+}
+
+.wx-wind-dir {
+  position: absolute;
+  font-size: 0.58rem;
+  font-weight: 700;
+  opacity: 0.55;
+}
+
+.wx-wind-dir.n { top: 0.2rem; left: 50%; transform: translateX(-50%); }
+.wx-wind-dir.e { right: 0.25rem; top: 50%; transform: translateY(-50%); }
+.wx-wind-dir.s { bottom: 0.2rem; left: 50%; transform: translateX(-50%); }
+.wx-wind-dir.w { left: 0.25rem; top: 50%; transform: translateY(-50%); }
+
+/* UV bar */
+.wx-uv-bar {
+  height: 0.35rem;
+  margin-top: 0.65rem;
+  background: linear-gradient(90deg, #4ade80 0%, #facc15 40%, #f97316 70%, #a855f7 100%);
+  border-radius: 0;
+  position: relative;
+}
+
+.wx-uv-marker {
+  position: absolute;
+  top: 50%;
+  width: 0.35rem;
+  height: 0.65rem;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  border-radius: 0;
+}
+
+/* ─── Weather icons ──────────────────────────────────────────────────────── */
+
+.wx-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Card click affordance ──────────────────────────────────────────────── */
+
+#item-weather-rp .card-back {
+  cursor: pointer;
+}
+
+#item-weather-rp .card-back:hover .weather-holder .info,
+#item-weather-rp .card-back:hover .weather-holder .app {
+  opacity: 1;
+}
+
+@keyframes wx-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.85rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

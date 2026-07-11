@@ -1,0 +1,76 @@
+{
+  "apps": [
+    {
+      "id": "lacosta",
+      "name": "La Costa Taqueria",
+      "nameSmall": "LaCosta",
+      "logo": "data/work/lacosta/main-image.png",
+      "smallLogo": "data/work/lacosta/main-image.png",
+      "cover": "data/work/lacosta/main-image.png",
+      "category": "Demos",
+      "description": "An interactive prototype built for La Costa Taqueria — a local restaurant brand. The demo showcases a digital menu and ordering experience."
+    },
+    {
+      "id": "overunderths",
+      "name": "OverUnderThs",
+      "nameSmall": "OUTHS",
+      "logo": "data/work/ou/logo.png",
+      "smallLogo": "data/work/ou/logo.png",
+      "cover": "data/work/ou/cover.jpg",
+      "category": "Games",
+      "foundIn": [
+        "games"
+      ],
+      "isInLcn": "projects/overunderths",
+      "description": "An interactive prediction game challenging players to analyze scenarios and make educated guesses to win. 207 players, (8 banned) $50 revenue."
+    },
+    {
+      "id": "mulon",
+      "name": "Mulon",
+      "nameSmall": "Mulon",
+      "logo": "data/work/mulon/mulon.png",
+      "smallLogo": "data/work/mulon/mulon.png",
+      "cover": "data/work/mulon/mulon.png",
+      "category": "Games",
+      "foundIn": [
+        "games"
+      ],
+      "isInLcn": "projects/mulon",
+      "description": "A fast-paced strategy game built around resource management and real-time decision making, with a seasonal leaderboard system."
+    },
+    {
+      "id": "rfaa",
+      "name": "RFAA",
+      "nameSmall": "RFAA",
+      "logo": "data/work/rfaa/main-image.png",
+      "smallLogo": "data/work/rfaa/main-image.png",
+      "cover": "data/work/rfaa/main-image.png",
+      "category": "Projects",
+      "description": "A sports league management platform tracking matches, league tables, and player statistics across multiple competitions."
+    },
+    {
+      "id": "josu",
+      "name": "Josu",
+      "nameSmall": "Rhythm Game",
+      "logo": "data/work/josu/logo.png",
+      "smallLogo": "",
+      "cover": "data/work/josu/cover.jpg",
+      "category": "Apps",
+      "foundIn": [
+        "games"
+      ]
+    },
+    {
+      "id": "comcal",
+      "name": "ComCal",
+      "nameSmall": "C",
+      "logo": "data/work/comcal/comcal.png",
+      "smallLogo": "data/work/comcal/comcal-small.png",
+      "cover": "data/work/comcal/comcal.png",
+      "category": "Apps",
+      "foundIn": [
+        "projects"
+      ]
+    }
+  ]
+}

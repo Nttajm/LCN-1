@@ -59,6 +59,17 @@ function transformSingleWords() {
 
 transformSingleWords();
 
+// Lock mobile viewport height once so browser chrome (URL bar) doesn't resize cards.
+function lockMobileViewport() {
+  if (!window.matchMedia('(max-width: 768px)').matches) return;
+  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+
+lockMobileViewport();
+window.addEventListener('orientationchange', () => {
+  setTimeout(lockMobileViewport, 300);
+});
+
 // Circular loader animation for item-0 only
 function initCircularLoader() {
   const item = document.getElementById('item-0');
@@ -97,9 +108,54 @@ function initCircularLoader() {
   }, interval);
 }
 
+// Wait for the dynamic home grid (home.js) before touching grid DOM. Resolves
+// immediately when the page is using the static markup.
+function whenHomeReady() {
+  return Promise.resolve(window.__homeReady).catch(() => {});
+}
+
+const WAITING_JOKES = [
+  "Why do footballers bring string to the game? So they can tie the score.",
+  "The coach went to the bank. He wanted his quarter back.",
+  "I told my computer I needed a break. It said: \"No problem — I'll go to sleep.\"",
+  "Why do programmers prefer dark mode? Light attracts bugs.",
+  "I would tell you a UDP joke, but you might not get it.",
+  "What do you call a goalie who never saves? A banker.",
+  "There are 10 types of people: those who understand binary, and those who don't.",
+  "Why did the web developer leave the restaurant? Too many tables.",
+  "CSS jokes are #000000 — no one gets them.",
+  "My code works and I have no idea why. Classic.",
+  "Why was the stadium so cool? It was full of fans.",
+  "A SQL query walks into a bar, walks up to two tables, and asks: \"Can I join you?\"",
+];
+
+function getWaitingJokeTargetId() {
+  const w = window.innerWidth;
+  if (w <= 768) return 'item-1';
+  if (w <= 1100) return 'item-2';
+  return 'item-5';
+}
+
+function initWaitingJokes() {
+  const item = document.getElementById(getWaitingJokeTargetId());
+  if (!item) return;
+
+  const front = item.querySelector('.card-front');
+  if (!front || front.querySelector('.loader')) return;
+
+  const joke = WAITING_JOKES[Math.floor(Math.random() * WAITING_JOKES.length)];
+  const el = document.createElement('p');
+  el.className = 'waiting-joke';
+  el.textContent = joke;
+  front.appendChild(el);
+}
+
 // Initialize loader when page loads
 window.addEventListener("load", () => {
-  setTimeout(initCircularLoader, 500);
+  whenHomeReady().then(() => {
+    initWaitingJokes();
+    setTimeout(initCircularLoader, 500);
+  });
 });
 
 
@@ -152,7 +208,7 @@ function initSlideshows() {
 // Start slideshows after the card flip finishes
 window.addEventListener("load", () => {
   // Wait for loader (2s) + flip trigger delay (300ms) + flip anim (800ms) + buffer
-  setTimeout(initSlideshows, 3600);
+  whenHomeReady().then(() => setTimeout(initSlideshows, 3600));
 });
 
 
@@ -180,7 +236,7 @@ function initRevealBorder() {
 }
 
 window.addEventListener('load', () => {
-  setTimeout(initRevealBorder, 3600);
+  whenHomeReady().then(() => setTimeout(initRevealBorder, 3600));
 });
 
 
@@ -217,5 +273,7 @@ function initTilePress() {
   });
 }
 
-window.addEventListener('load', initTilePress);
+window.addEventListener('load', () => {
+  whenHomeReady().then(initTilePress);
+});
 

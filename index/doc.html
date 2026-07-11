@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/home_2026/home.css">
     <link rel="stylesheet" href="../css/standard.css">
     <link rel="stylesheet" href="../css/doc.css">
+    <script src="../js/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
@@ -146,6 +147,7 @@
                 img.src = resolveImg(img.getAttribute('src'));
             });
             document.getElementById('doc-body').innerHTML = tmp.innerHTML;
+            if (window.EdChart) EdChart.renderAll(document.getElementById('doc-body'));
 
             if (images.length > 1) {
                 var imagesEl = document.getElementById('doc-images');

@@ -1,4 +1,4 @@
-import { work } from './render.js';
+import { work, openCatView, openAppView } from './render.js';
 
 const DESKTOP_ORDER = [
   ['item-8', 'item-weather-rp'],
@@ -22,6 +22,7 @@ const LETTER_COLORS = [
 
 let finderOpen = false;
 let animating = false;
+let cachedApps = null;
 
 function getOrder() {
   return window.innerWidth <= 768 ? MOBILE_ORDER : DESKTOP_ORDER;
@@ -47,12 +48,58 @@ function enterDelays(count) {
   return d;
 }
 
-function getAllItems() {
+function getAllItemsFromWork() {
   const items = [];
   Object.values(work).forEach(cat => {
-    cat.items.forEach(item => items.push({ ...item, category: cat.label }));
+    cat.items.forEach(item => {
+      items.push({
+        id: item.id,
+        name: item.name,
+        nameSmall: item.name,
+        logo: item.thumb,
+        smallLogo: item.thumb,
+        cover: item.thumb,
+        category: cat.label,
+      });
+    });
   });
-  return items.sort((a, b) => a.name.localeCompare(b.name));
+  return items;
+}
+
+function normalizeAppsPayload(payload) {
+  const raw = Array.isArray(payload) ? payload : (Array.isArray(payload?.apps) ? payload.apps : []);
+  return raw.map((item, i) => ({
+    id: item.id ?? `app-${i + 1}`,
+    name: item.name ?? 'Untitled',
+    nameSmall: item.nameSmall ?? '',
+    logo: item.logo ?? item.cover ?? item.smallLogo ?? '',
+    smallLogo: item.smallLogo ?? item.logo ?? item.cover ?? '',
+    cover: item.cover ?? item.logo ?? '',
+    category: item.category ?? 'Apps',
+    foundIn: item.foundIn ?? null,
+    isInLcn: item.isInLcn ?? null,
+    description: item.description ?? '',
+  }));
+}
+
+async function loadAppsData() {
+  if (cachedApps) return cachedApps;
+  try {
+    const res = await fetch('data/apps.json');
+    if (res.ok) {
+      const payload = await res.json();
+      const apps = normalizeAppsPayload(payload);
+      if (apps.length) {
+        cachedApps = apps.sort((a, b) => a.name.localeCompare(b.name));
+        return cachedApps;
+      }
+    }
+  } catch {
+    // fall back to work data
+  }
+
+  cachedApps = getAllItemsFromWork().sort((a, b) => a.name.localeCompare(b.name));
+  return cachedApps;
 }
 
 function groupByLetter(items) {
@@ -65,9 +112,9 @@ function groupByLetter(items) {
   return groups;
 }
 
-function renderFinderList() {
+async function renderFinderList() {
   const container = document.querySelector('.finder-list');
-  const items = getAllItems();
+  const items = await loadAppsData();
   const grouped = groupByLetter(items);
   const letters = Object.keys(grouped).sort();
   let html = '';
@@ -80,9 +127,12 @@ function renderFinderList() {
     html += `<div class="finder-letter" style="--letter-color: ${color}">${letter.toUpperCase()}</div>`;
     html += `<div class="finder-items">`;
     grouped[letter].forEach(item => {
-      html += `<div class="finder-item">`;
-      html += `<div class="finder-item-icon"><img src="${item.thumb}" alt="${item.name}"></div>`;
+      html += `<div class="finder-item" data-app-id="${item.id}">`;
+      html += `<div class="finder-item-icon"><img src="${item.smallLogo || item.logo || item.cover}" alt="${item.name}"></div>`;
+      html += `<div class="finder-item-main">`;
       html += `<span class="finder-item-name">${item.name}</span>`;
+      if (item.nameSmall) html += `<span class="finder-item-sub">${item.nameSmall}</span>`;
+      html += `</div>`;
       html += `</div>`;
     });
     html += `</div></div>`;
@@ -93,7 +143,22 @@ function renderFinderList() {
   const allFinderItems = container.querySelectorAll('.finder-item');
   allFinderItems.forEach((el, i) => {
     el.style.setProperty('--item-delay', `${i * 60 + 120}ms`);
+    el.addEventListener('click', () => handleFinderItemClick(el.dataset.appId));
   });
+}
+
+function handleFinderItemClick(appId) {
+  const app = cachedApps?.find(a => a.id === appId);
+  if (!app) return;
+
+  // If no foundIn and category matches a cat-view key, open the regular cat-view
+  const catKey = app.category.toLowerCase();
+  if (!app.foundIn) {
+    openCatView(catKey);
+    return;
+  }
+
+  openAppView(app);
 }
 
 function openFinder() {
@@ -121,8 +186,8 @@ function openFinder() {
   btn.classList.add('finder-active');
 
   const totalExit = delays[delays.length - 1] + 620;
-  setTimeout(() => {
-    renderFinderList();
+  setTimeout(async () => {
+    await renderFinderList();
     finder.classList.add('open');
     finderOpen = true;
     animating = false;
@@ -177,6 +242,7 @@ function closeFinder() {
 }
 
 function initFinder() {
+  void loadAppsData();
   document.querySelector('.viewmore').addEventListener('click', () => {
     if (finderOpen) closeFinder();
     else openFinder();

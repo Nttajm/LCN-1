@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Registry Editor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background: #0b0b0b;
+      color: #fff;
+      min-height: 100vh;
+      padding: 1.2rem;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; margin-bottom: 1rem;
+    }
+    h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: .02em; }
+    .btns { display: flex; gap: .5rem; flex-wrap: wrap; }
+    button {
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color: #fff; padding: .45rem .75rem; border-radius: 8px;
+      cursor: pointer; font-size: .83rem;
+    }
+    button.primary { background: #fff; color: #000; border-color: #fff; font-weight: 600; }
+    .hint { color: rgba(255,255,255,.55); font-size: .8rem; margin-bottom: .9rem; }
+    .cards { display: grid; gap: .75rem; }
+    .card {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      border-radius: 10px; padding: .75rem;
+      display: grid; gap: .55rem;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+    label { display: grid; gap: .25rem; font-size: .72rem; color: rgba(255,255,255,.68); }
+    input, select {
+      width: 100%;
+      background: rgba(0,0,0,.35);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 7px; padding: .45rem .55rem;
+      font-size: .82rem;
+    }
+    select { cursor: pointer; }
+    select option { background: #141414; color: #fff; }
+    .card-tools { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .preview { display: flex; gap: .45rem; align-items: center; color: rgba(255,255,255,.75); font-size: .8rem; }
+    .preview img { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; background: #1a1a1a; }
+    .out {
+      margin-top: 1rem;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .out-head {
+      display:flex; justify-content:space-between; align-items:center;
+      background: rgba(255,255,255,.05); padding: .55rem .7rem;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      font-size: .78rem; color: rgba(255,255,255,.72);
+    }
+    pre {
+      max-height: 360px; overflow: auto; padding: .8rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .76rem; line-height: 1.55; color: rgba(255,255,255,.88);
+      background: #080808;
+    }
+    @media (max-width: 760px) { .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <h1>App Registry (apps.json)</h1>
+      <div class="btns">
+        <button id="loadBtn">Reload from data/apps.json</button>
+        <button id="addBtn">+ Add App</button>
+        <button class="primary" id="exportBtn">Export JSON</button>
+      </div>
+    </div>
+    <p class="hint">Edit app fields (logo, name, nameSmall, smallLogo, cover, category, foundIn, isInLcn), then export and paste into <code>data/apps.json</code>. <strong>Found In</strong> links an app to a category view in <code>views.json</code> (e.g. games). <strong>LCN Link</strong> is the path on LCN for “See more on LCN” (e.g. <code>projects/overunderths</code>).</p>
+
+    <div id="cards" class="cards"></div>
+
+    <div class="out">
+      <div class="out-head">
+        <span>Output</span>
+        <div class="btns">
+          <button id="copyBtn">Copy</button>
+        </div>
+      </div>
+      <pre id="out">{ "apps": [] }</pre>
+    </div>
+  </div>
+
+  <script>
+    const state = { apps: [], categoryKeys: [] };
+
+    async function loadCategoryKeys() {
+      try {
+        const res = await fetch('data/views.json');
+        if (res.ok) {
+          const json = await res.json();
+          state.categoryKeys = Object.keys(json).sort();
+          return;
+        }
+      } catch {}
+      state.categoryKeys = ['demos', 'games', 'projects'];
+    }
+
+    function getFoundInKey(app) {
+      return Array.isArray(app.foundIn) ? (app.foundIn[0] || '') : '';
+    }
+
+    function getCategoryOptions(app) {
+      const current = getFoundInKey(app);
+      const keys = [...state.categoryKeys];
+      if (current && !keys.includes(current)) keys.unshift(current);
+      return keys;
+    }
+
+    function serializeApp(app) {
+      const out = { ...app };
+      const foundInKey = getFoundInKey(out);
+      if (foundInKey) out.foundIn = [foundInKey];
+      else delete out.foundIn;
+      const lcnPath = (out.isInLcn || '').trim();
+      if (lcnPath) out.isInLcn = lcnPath;
+      else delete out.isInLcn;
+      return out;
+    }
+
+    function makeEmpty() {
+      const n = state.apps.length + 1;
+      return {
+        id: `app-${n}`,
+        name: `New App ${n}`,
+        nameSmall: '',
+        logo: '',
+        smallLogo: '',
+        cover: '',
+        category: 'Apps',
+      };
+    }
+
+    async function loadApps() {
+      await loadCategoryKeys();
+      try {
+        const res = await fetch('data/apps.json');
+        if (res.ok) {
+          const json = await res.json();
+          state.apps = Array.isArray(json?.apps) ? json.apps : [];
+        }
+      } catch {}
+      if (!state.apps.length) state.apps = [makeEmpty()];
+      render();
+      buildOutput();
+    }
+
+    function updatePreview(i) {
+      const card = document.querySelector(`#cards .card[data-index="${i}"]`);
+      if (!card) return;
+      const app = state.apps[i];
+      const img = card.querySelector('.preview img');
+      const span = card.querySelector('.preview span');
+      if (img) img.src = app.smallLogo || app.logo || app.cover || '';
+      if (span) span.textContent = app.name || 'Untitled';
+    }
+
+    function update(i, key, value) {
+      state.apps[i][key] = value;
+      if (key === 'name' && !state.apps[i].nameSmall) state.apps[i].nameSmall = value;
+      updatePreview(i);
+      buildOutput();
+    }
+
+    function updateFoundIn(i, value) {
+      if (value) state.apps[i].foundIn = [value];
+      else delete state.apps[i].foundIn;
+      buildOutput();
+    }
+
+    function removeApp(i) {
+      state.apps.splice(i, 1);
+      if (!state.apps.length) state.apps.push(makeEmpty());
+      render();
+      buildOutput();
+    }
+
+    function render() {
+      const cards = document.getElementById('cards');
+      cards.innerHTML = state.apps.map((app, i) => `
+        <div class="card" data-index="${i}">
+          <div class="card-tools">
+            <div class="preview">
+              <img src="${app.smallLogo || app.logo || app.cover || ''}" alt="">
+              <span>${app.name || 'Untitled'}</span>
+            </div>
+            <button onclick="removeApp(${i})">Delete</button>
+          </div>
+          <div class="row">
+            <label>ID <input value="${app.id ?? ''}" oninput="update(${i},'id',this.value)"></label>
+            <label>Category <input value="${app.category ?? ''}" oninput="update(${i},'category',this.value)"></label>
+          </div>
+          <div class="row">
+            <label>Name <input value="${app.name ?? ''}" oninput="update(${i},'name',this.value)"></label>
+            <label>Name Small <input value="${app.nameSmall ?? ''}" oninput="update(${i},'nameSmall',this.value)"></label>
+          </div>
+          <div class="row">
+            <label>Logo URL <input value="${app.logo ?? ''}" oninput="update(${i},'logo',this.value)"></label>
+            <label>Small Logo URL <input value="${app.smallLogo ?? ''}" oninput="update(${i},'smallLogo',this.value)"></label>
+          </div>
+          <div class="row">
+            <label>Cover URL <input value="${app.cover ?? ''}" oninput="update(${i},'cover',this.value)"></label>
+            <label>Found In
+              <select onchange="updateFoundIn(${i}, this.value)">
+                <option value=""${!getFoundInKey(app) ? ' selected' : ''}>— none —</option>
+                ${getCategoryOptions(app).map(key => `
+                  <option value="${key}"${getFoundInKey(app) === key ? ' selected' : ''}>${key}</option>
+                `).join('')}
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>LCN Link <input value="${app.isInLcn ?? ''}" placeholder="projects/overunderths" oninput="update(${i},'isInLcn',this.value)"></label>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function buildOutput() {
+      const payload = { apps: state.apps.map(serializeApp) };
+      document.getElementById('out').textContent = JSON.stringify(payload, null, 2);
+      return payload;
+    }
+
+    function exportJson() {
+      const payload = buildOutput();
+      const json = JSON.stringify(payload, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'apps.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('loadBtn').addEventListener('click', loadApps);
+    document.getElementById('addBtn').addEventListener('click', () => {
+      state.apps.push(makeEmpty());
+      render();
+      buildOutput();
+    });
+    document.getElementById('exportBtn').addEventListener('click', exportJson);
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(document.getElementById('out').textContent);
+      const btn = document.getElementById('copyBtn');
+      const old = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = old, 1100);
+    });
+
+    loadApps();
+  </script>
+</body>
+</html>

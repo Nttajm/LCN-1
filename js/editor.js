@@ -237,11 +237,13 @@
         els.subCatCustom.value = '';
         els.editor.innerHTML = doc.content || '';
         lastSavedContent = doc.content || '';
+        deselectEditorImage();
 
         renderImages(doc.images || []);
         updateTopbar(doc);
         updateWordCount();
         renderDocList(els.filterInput.value);
+        rebindCharts();
     }
 
     function renderImages(images) {
@@ -350,7 +352,7 @@
             date: els.dateInput.value,
             category: cat,
             subCategory: subCat,
-            content: els.editor.innerHTML,
+            content: getEditorHtmlForSave(),
             images: collectImages(),
             updatedAt: TS()
         };
@@ -494,22 +496,243 @@
         scheduleAutoSave();
     }
 
-    function insertImageInEditor(url) {
-        els.editor.focus();
+    var lastEditorRange = null;
+
+    function isRangeInEditor(range) {
+        if (!range) return false;
+        var node = range.commonAncestorContainer;
+        return node === els.editor || els.editor.contains(node);
+    }
+
+    function saveEditorSelection() {
         var sel = window.getSelection();
-        if (!sel.rangeCount) return;
+        if (!sel || !sel.rangeCount) return;
+
         var range = sel.getRangeAt(0);
+        if (isRangeInEditor(range)) {
+            lastEditorRange = range.cloneRange();
+        }
+    }
+
+    function getEditorInsertionRange() {
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount) {
+            var currentRange = sel.getRangeAt(0);
+            if (isRangeInEditor(currentRange)) {
+                lastEditorRange = currentRange.cloneRange();
+                return currentRange.cloneRange();
+            }
+        }
+
+        if (lastEditorRange && isRangeInEditor(lastEditorRange)) {
+            return lastEditorRange.cloneRange();
+        }
+
+        var bottomRange = document.createRange();
+        bottomRange.selectNodeContents(els.editor);
+        bottomRange.collapse(false);
+        return bottomRange;
+    }
+
+    function setEditorSelection(range) {
+        if (!range) return;
+        var sel = window.getSelection();
+        if (!sel) return;
+        sel.removeAllRanges();
+        sel.addRange(range);
+        saveEditorSelection();
+    }
+
+    document.addEventListener('selectionchange', saveEditorSelection);
+
+    function insertImageInEditor(url, width) {
+        var range = getEditorInsertionRange();
+        els.editor.focus();
         range.deleteContents();
         var img = document.createElement('img');
         img.src = url;
         img.alt = '';
+        if (width && width >= 50) {
+            img.style.width = width + 'px';
+            img.style.height = 'auto';
+        }
         range.insertNode(img);
         range.setStartAfter(img);
         range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
+        setEditorSelection(range);
+        selectEditorImage(img);
         scheduleAutoSave();
     }
+
+    // ─── In-editor image resize ────────────────────────────────────────────────
+    var selectedEditorImg = null;
+    var imgResizeDragging = false;
+
+    var imgResizeEls = {
+        bar: document.getElementById('ed-toolbar-img-resize'),
+        widthInput: document.getElementById('ed-img-resize-width'),
+        resetBtn: document.getElementById('ed-img-resize-reset'),
+        overlay: document.getElementById('ed-img-resize-overlay'),
+        handle: document.getElementById('ed-img-resize-handle'),
+        wrap: document.querySelector('.ed-editor-wrap')
+    };
+
+    function getEditorImageWidth(img) {
+        if (!img) return '';
+        var w = parseInt(img.style.width, 10);
+        if (w) return w;
+        return Math.round(img.getBoundingClientRect().width) || '';
+    }
+
+    function applyEditorImageWidth(img, width) {
+        if (!img) return;
+        if (width && width >= 50) {
+            img.style.width = width + 'px';
+            img.style.height = 'auto';
+            img.style.maxWidth = '100%';
+        } else {
+            img.style.removeProperty('width');
+            img.style.removeProperty('height');
+        }
+        positionImageResizeOverlay();
+        if (imgResizeEls.widthInput) {
+            imgResizeEls.widthInput.value = width && width >= 50 ? width : '';
+        }
+        scheduleAutoSave();
+    }
+
+    function positionImageResizeOverlay() {
+        if (!selectedEditorImg || !imgResizeEls.overlay || !imgResizeEls.wrap) {
+            if (imgResizeEls.overlay) imgResizeEls.overlay.hidden = true;
+            return;
+        }
+
+        var wrapRect = imgResizeEls.wrap.getBoundingClientRect();
+        var imgRect = selectedEditorImg.getBoundingClientRect();
+
+        imgResizeEls.overlay.hidden = false;
+        imgResizeEls.overlay.style.left = (imgRect.left - wrapRect.left + imgResizeEls.wrap.scrollLeft) + 'px';
+        imgResizeEls.overlay.style.top = (imgRect.top - wrapRect.top + imgResizeEls.wrap.scrollTop) + 'px';
+        imgResizeEls.overlay.style.width = imgRect.width + 'px';
+        imgResizeEls.overlay.style.height = imgRect.height + 'px';
+    }
+
+    function selectEditorImage(img) {
+        if (!img || img.tagName !== 'IMG') return;
+        if (selectedEditorImg === img) return;
+
+        deselectEditorImage(false);
+        selectedEditorImg = img;
+        img.classList.add('ed-editor-img--selected');
+
+        if (imgResizeEls.bar) imgResizeEls.bar.hidden = false;
+        if (imgResizeEls.widthInput) {
+            imgResizeEls.widthInput.value = getEditorImageWidth(img);
+        }
+        positionImageResizeOverlay();
+    }
+
+    function deselectEditorImage(clearSelection) {
+        if (selectedEditorImg) {
+            selectedEditorImg.classList.remove('ed-editor-img--selected');
+            selectedEditorImg = null;
+        }
+        if (imgResizeEls.bar) imgResizeEls.bar.hidden = true;
+        if (imgResizeEls.overlay) imgResizeEls.overlay.hidden = true;
+        if (clearSelection !== false) {
+            var sel = window.getSelection();
+            if (sel) sel.removeAllRanges();
+        }
+    }
+
+    function applyEditorImagePercent(percent) {
+        if (!selectedEditorImg) return;
+        var natural = selectedEditorImg.naturalWidth;
+        if (!natural) {
+            selectedEditorImg.onload = function () {
+                applyEditorImagePercent(percent);
+            };
+            return;
+        }
+        applyEditorImageWidth(selectedEditorImg, Math.round(natural * percent / 100));
+    }
+
+    els.editor.addEventListener('click', function (e) {
+        if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            selectEditorImage(e.target);
+        } else if (selectedEditorImg) {
+            deselectEditorImage(false);
+            saveEditorSelection();
+        } else {
+            saveEditorSelection();
+        }
+    });
+
+    els.editor.addEventListener('keyup', saveEditorSelection);
+    els.editor.addEventListener('mouseup', saveEditorSelection);
+    els.editor.addEventListener('focus', saveEditorSelection);
+
+    document.addEventListener('click', function (e) {
+        if (imgResizeDragging) return;
+        if (selectedEditorImg && !els.editor.contains(e.target) &&
+            !(imgResizeEls.bar && imgResizeEls.bar.contains(e.target)) &&
+            !(imgResizeEls.overlay && imgResizeEls.overlay.contains(e.target))) {
+            deselectEditorImage();
+        }
+    });
+
+    if (imgResizeEls.widthInput) {
+        imgResizeEls.widthInput.addEventListener('input', function () {
+            if (!selectedEditorImg) return;
+            var w = parseInt(this.value, 10);
+            if (this.value === '') {
+                applyEditorImageWidth(selectedEditorImg, 0);
+            } else if (w >= 50) {
+                applyEditorImageWidth(selectedEditorImg, w);
+            }
+        });
+    }
+
+    if (imgResizeEls.resetBtn) {
+        imgResizeEls.resetBtn.addEventListener('click', function () {
+            applyEditorImageWidth(selectedEditorImg, 0);
+        });
+    }
+
+    document.querySelectorAll('.ed-toolbar-img-preset').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyEditorImagePercent(parseInt(this.getAttribute('data-preset'), 10));
+        });
+    });
+
+    if (imgResizeEls.handle) {
+        imgResizeEls.handle.addEventListener('mousedown', function (e) {
+            if (!selectedEditorImg) return;
+            e.preventDefault();
+            e.stopPropagation();
+            imgResizeDragging = true;
+            var startX = e.clientX;
+            var startW = selectedEditorImg.getBoundingClientRect().width;
+
+            function onMove(ev) {
+                var next = Math.max(50, Math.min(2000, Math.round(startW + (ev.clientX - startX))));
+                applyEditorImageWidth(selectedEditorImg, next);
+            }
+
+            function onUp() {
+                imgResizeDragging = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            }
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+    }
+
+    window.addEventListener('resize', positionImageResizeOverlay);
+    els.editor.addEventListener('scroll', positionImageResizeOverlay, true);
 
     function openModal(id) {
         document.getElementById(id).classList.add('open');
@@ -643,6 +866,17 @@
             });
 
             tmp.querySelectorAll('*').forEach(function (el) {
+                var tag = el.tagName.toLowerCase();
+                if (tag === 'img') {
+                    var w = el.style.width;
+                    var h = el.style.height;
+                    el.removeAttribute('style');
+                    el.removeAttribute('class');
+                    el.removeAttribute('id');
+                    if (w) el.style.width = w;
+                    if (h) el.style.height = h;
+                    return;
+                }
                 el.removeAttribute('style');
                 el.removeAttribute('class');
                 el.removeAttribute('id');
@@ -658,6 +892,7 @@
             document.execCommand('insertText', false, text);
         }
         scheduleAutoSave();
+        saveEditorSelection();
     });
 
     document.querySelectorAll('.ed-toolbar-btn[data-cmd]').forEach(function (btn) {
@@ -697,9 +932,12 @@
         activateLinkTab('standard');
     });
 
+    document.getElementById('ed-insert-image-btn').addEventListener('mousedown', saveEditorSelection);
+
     document.getElementById('ed-insert-image-btn').addEventListener('click', function () {
         openModal('ed-img-modal');
         document.getElementById('ed-img-url').value = '';
+        document.getElementById('ed-img-insert-width').value = '';
         activateImgTab('url');
         setTimeout(function () { document.getElementById('ed-img-url').focus(); }, 50);
     });
@@ -729,10 +967,11 @@
 
     document.getElementById('ed-img-insert').addEventListener('click', function () {
         var val = document.getElementById('ed-img-url').value.trim();
+        var width = parseInt(document.getElementById('ed-img-insert-width').value, 10);
         closeModal('ed-img-modal');
         if (!val) return;
         var src = currentImgType === 'local' ? '../a_home_assets/' + val : val;
-        insertImageInEditor(src);
+        insertImageInEditor(src, width >= 50 ? width : 0);
     });
 
     document.getElementById('ed-img-cancel').addEventListener('click', function () {
@@ -741,6 +980,191 @@
 
     document.getElementById('ed-img-modal').addEventListener('click', function (e) {
         if (e.target === this) closeModal('ed-img-modal');
+    });
+
+    // ─── Picture Browser ───────────────────────────────────────────────────────
+    var picManifest = null;
+    var picCurrentFolder = '';
+    var picSelectedImage = null;
+    var picInsertMode = 'editor'; // 'editor' or 'list'
+
+    var picEls = {
+        modal: document.getElementById('ed-pic-modal'),
+        folders: document.getElementById('ed-pic-folders'),
+        search: document.getElementById('ed-pic-search'),
+        grid: document.getElementById('ed-pic-grid'),
+        empty: document.getElementById('ed-pic-empty'),
+        preview: document.getElementById('ed-pic-preview'),
+        width: document.getElementById('ed-pic-width'),
+        insertBtn: document.getElementById('ed-pic-insert'),
+        cancelBtn: document.getElementById('ed-pic-cancel'),
+        closeBtn: document.getElementById('ed-pic-close'),
+        browseBtn: document.getElementById('ed-browse-images')
+    };
+
+    function loadPicManifest() {
+        if (picManifest) return Promise.resolve(picManifest);
+        return fetch('../a_home_assets/manifest.json')
+            .then(function (res) {
+                if (!res.ok) throw new Error('Manifest not found');
+                return res.json();
+            })
+            .then(function (data) {
+                picManifest = data;
+                return data;
+            })
+            .catch(function () {
+                picManifest = { folders: [], images: [] };
+                return picManifest;
+            });
+    }
+
+    function renderPicFolders() {
+        var html = '<button class="ed-pic-folder-btn' + (picCurrentFolder === '' ? ' ed-pic-folder-btn--active' : '') + '" data-folder="">All</button>';
+        (picManifest.folders || []).forEach(function (folder) {
+            var isActive = picCurrentFolder === folder;
+            html += '<button class="ed-pic-folder-btn' + (isActive ? ' ed-pic-folder-btn--active' : '') + '" data-folder="' + folder + '">' + folder + '</button>';
+        });
+        picEls.folders.innerHTML = html;
+
+        picEls.folders.querySelectorAll('.ed-pic-folder-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                picCurrentFolder = this.getAttribute('data-folder');
+                renderPicFolders();
+                renderPicGrid();
+            });
+        });
+    }
+
+    function filterImages() {
+        var images = picManifest.images || [];
+        var query = (picEls.search.value || '').toLowerCase().trim();
+
+        return images.filter(function (img) {
+            if (picCurrentFolder && img.folder !== picCurrentFolder) return false;
+            if (query && img.name.toLowerCase().indexOf(query) === -1) return false;
+            return true;
+        });
+    }
+
+    function renderPicGrid() {
+        var images = filterImages();
+
+        if (images.length === 0) {
+            picEls.grid.innerHTML = '';
+            picEls.empty.style.display = 'flex';
+            return;
+        }
+
+        picEls.empty.style.display = 'none';
+        var html = '';
+        images.forEach(function (img) {
+            var isSelected = picSelectedImage && picSelectedImage.path === img.path;
+            html += '<div class="ed-pic-thumb' + (isSelected ? ' ed-pic-thumb--selected' : '') + '" data-path="' + img.path + '">';
+            html += '<img src="../a_home_assets/' + img.path + '" alt="' + img.name + '" loading="lazy">';
+            html += '<span class="ed-pic-thumb-name">' + img.name + '</span>';
+            html += '</div>';
+        });
+        picEls.grid.innerHTML = html;
+
+        picEls.grid.querySelectorAll('.ed-pic-thumb').forEach(function (thumb) {
+            thumb.addEventListener('click', function () {
+                var path = this.getAttribute('data-path');
+                selectPicImage(path);
+            });
+        });
+    }
+
+    function selectPicImage(path) {
+        var img = (picManifest.images || []).find(function (i) { return i.path === path; });
+        if (!img) return;
+
+        picSelectedImage = img;
+
+        picEls.grid.querySelectorAll('.ed-pic-thumb').forEach(function (thumb) {
+            thumb.classList.toggle('ed-pic-thumb--selected', thumb.getAttribute('data-path') === path);
+        });
+
+        picEls.preview.innerHTML = '<img src="../a_home_assets/' + img.path + '" alt="">' +
+            '<div class="ed-pic-preview-info">' +
+            '<span class="ed-pic-preview-name">' + img.name + '</span>' +
+            '<span class="ed-pic-preview-path">' + img.path + '</span>' +
+            '</div>';
+
+        picEls.insertBtn.disabled = false;
+    }
+
+    function resetPicBrowser() {
+        picSelectedImage = null;
+        picCurrentFolder = '';
+        picEls.search.value = '';
+        picEls.width.value = '';
+        picEls.insertBtn.disabled = true;
+        picEls.preview.innerHTML = '<span class="ed-pic-preview-placeholder">Select an image</span>';
+    }
+
+    function openPicBrowser(mode) {
+        picInsertMode = mode || 'editor';
+        resetPicBrowser();
+        openModal('ed-pic-modal');
+
+        loadPicManifest().then(function () {
+            renderPicFolders();
+            renderPicGrid();
+        });
+    }
+
+    function closePicBrowser() {
+        closeModal('ed-pic-modal');
+    }
+
+    function insertPicImage() {
+        if (!picSelectedImage) return;
+
+        var src = '../a_home_assets/' + picSelectedImage.path;
+        var width = parseInt(picEls.width.value, 10);
+
+        if (picInsertMode === 'list') {
+            var localPath = picSelectedImage.path;
+            addImageRow('a_home_assets/' + localPath);
+            scheduleAutoSave();
+        } else {
+            insertImageInEditor(src, width >= 50 ? width : 0);
+        }
+
+        closePicBrowser();
+    }
+
+    picEls.search.addEventListener('input', function () {
+        renderPicGrid();
+    });
+
+    picEls.insertBtn.addEventListener('click', insertPicImage);
+    picEls.cancelBtn.addEventListener('click', closePicBrowser);
+    picEls.closeBtn.addEventListener('click', closePicBrowser);
+
+    picEls.modal.addEventListener('click', function (e) {
+        if (e.target === this) closePicBrowser();
+    });
+
+    if (picEls.browseBtn) {
+        picEls.browseBtn.addEventListener('mousedown', saveEditorSelection);
+        picEls.browseBtn.addEventListener('click', function () {
+            openPicBrowser('list');
+        });
+    }
+
+    // Update image tab to handle 'browse' type
+    imgTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            var type = this.getAttribute('data-img-type');
+            if (type === 'browse') {
+                closeModal('ed-img-modal');
+                openPicBrowser('editor');
+            } else {
+                activateImgTab(type);
+            }
+        });
     });
 
     document.getElementById('ed-insert-hr-btn').addEventListener('click', function () {
@@ -843,6 +1267,461 @@
     document.getElementById('ed-quote-btn').addEventListener('click', function () {
         execCmd('formatBlock', 'blockquote');
     });
+
+    // ─── Chart Feature ────────────────────────────────────────────────────────
+    var chartEls = {
+        modal: document.getElementById('ed-chart-modal'),
+        title: document.getElementById('ed-chart-title'),
+        type: document.getElementById('ed-chart-type'),
+        yLabel: document.getElementById('ed-chart-y-label'),
+        xLabel: document.getElementById('ed-chart-x-label'),
+        colorList: document.getElementById('ed-chart-color-list'),
+        addSeriesBtn: document.getElementById('ed-chart-add-series'),
+        width: document.getElementById('ed-chart-width'),
+        height: document.getElementById('ed-chart-height'),
+        json: document.getElementById('ed-chart-json'),
+        upload: document.getElementById('ed-chart-upload'),
+        loadSample: document.getElementById('ed-chart-load-sample'),
+        preview: document.getElementById('ed-chart-preview'),
+        insertBtn: document.getElementById('ed-chart-insert'),
+        cancelBtn: document.getElementById('ed-chart-cancel'),
+        closeBtn: document.getElementById('ed-chart-close')
+    };
+
+    var chartSeriesColors = [
+        { color: '#93c5fd', name: 'No oxidant' },
+        { color: '#3b82f6', name: 'Optimized TEMPO' }
+    ];
+
+    function normalizeChartSeries(series) {
+        return EdChart.normalizeSeries(series);
+    }
+
+    function renderChartColorList() {
+        chartEls.colorList.innerHTML = '';
+        chartSeriesColors.forEach(function (s, i) {
+            var row = document.createElement('div');
+            row.className = 'ed-chart-color-row';
+
+            var colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.className = 'ed-chart-color';
+            colorInput.value = s.color;
+            colorInput.setAttribute('data-series', i);
+
+            var nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'ed-chart-color-name';
+            nameInput.placeholder = 'Series ' + (i + 1) + ' name';
+            nameInput.value = s.name || '';
+            nameInput.setAttribute('data-series', i);
+
+            colorInput.addEventListener('input', function () {
+                chartSeriesColors[i].color = this.value;
+                updateChartPreview();
+            });
+
+            nameInput.addEventListener('input', function () {
+                chartSeriesColors[i].name = this.value;
+                updateChartPreview();
+            });
+
+            row.appendChild(colorInput);
+            row.appendChild(nameInput);
+
+            if (chartSeriesColors.length > 1) {
+                var removeBtn = document.createElement('button');
+                removeBtn.className = 'ed-chart-color-remove';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.type = 'button';
+                removeBtn.addEventListener('click', function () {
+                    chartSeriesColors.splice(i, 1);
+                    renderChartColorList();
+                    updateChartPreview();
+                });
+                row.appendChild(removeBtn);
+            }
+
+            chartEls.colorList.appendChild(row);
+        });
+    }
+
+    function addChartSeries() {
+        var colors = ['#93c5fd', '#3b82f6', '#60a5fa', '#2563eb', '#1d4ed8', '#dbeafe', '#bfdbfe', '#1e40af'];
+        var newColor = colors[chartSeriesColors.length % colors.length];
+        chartSeriesColors.push({ color: newColor, name: '' });
+        renderChartColorList();
+        updateChartPreview();
+    }
+
+    function parseChartJson() {
+        var jsonStr = chartEls.json.value.trim();
+        if (!jsonStr) return null;
+        try {
+            var parsed = JSON.parse(jsonStr);
+
+            if (Array.isArray(parsed)) {
+                return { meta: null, series: null, data: parsed };
+            }
+
+            if (parsed && typeof parsed === 'object') {
+                var data = parsed.data || parsed.points;
+                if (!Array.isArray(data)) return null;
+                return {
+                    meta: {
+                        title: parsed.title,
+                        type: parsed.type,
+                        xLabel: parsed.xLabel != null ? parsed.xLabel : parsed.xAxis,
+                        yLabel: parsed.yLabel != null ? parsed.yLabel : parsed.yAxis,
+                        width: parsed.width,
+                        height: parsed.height
+                    },
+                    series: normalizeChartSeries(parsed.series || parsed.colors),
+                    data: data
+                };
+            }
+            return null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function applyChartJsonToForm(parsed) {
+        if (!parsed) return;
+
+        if (parsed.meta) {
+            if (parsed.meta.title != null) chartEls.title.value = parsed.meta.title;
+            if (parsed.meta.type) chartEls.type.value = parsed.meta.type === 'bar' ? 'bar' : 'grouped';
+            if (parsed.meta.yLabel != null) chartEls.yLabel.value = parsed.meta.yLabel;
+            if (parsed.meta.xLabel != null) chartEls.xLabel.value = parsed.meta.xLabel;
+            if (parsed.meta.width) chartEls.width.value = parsed.meta.width;
+            if (parsed.meta.height) chartEls.height.value = parsed.meta.height;
+        }
+
+        if (parsed.series && parsed.series.length) {
+            chartSeriesColors = parsed.series.slice();
+            renderChartColorList();
+        }
+    }
+
+    function getChartOptionsFromForm() {
+        return {
+            type: chartEls.type.value,
+            width: parseInt(chartEls.width.value, 10) || 600,
+            height: parseInt(chartEls.height.value, 10) || 350,
+            yLabel: chartEls.yLabel.value,
+            xLabel: chartEls.xLabel.value
+        };
+    }
+
+    function buildChartConfigFromForm(data) {
+        var options = getChartOptionsFromForm();
+        return {
+            title: chartEls.title.value,
+            type: options.type,
+            xLabel: options.xLabel,
+            yLabel: options.yLabel,
+            width: options.width,
+            height: options.height,
+            series: chartSeriesColors.map(function (s) {
+                return { name: s.name, color: s.color };
+            }),
+            colors: chartSeriesColors,
+            data: data
+        };
+    }
+
+    function syncChartJsonToForm() {
+        var parsed = parseChartJson();
+        if (!parsed) return null;
+        applyChartJsonToForm(parsed);
+        return parsed;
+    }
+
+    function updateChartPreview() {
+        var parsed = parseChartJson();
+        if (!parsed || !parsed.data || parsed.data.length === 0) {
+            chartEls.preview.innerHTML = '<span class="ed-chart-preview-placeholder">Enter valid JSON data to see preview</span>';
+            chartEls.insertBtn.disabled = true;
+            return;
+        }
+
+        var data = parsed.data;
+        var config = buildChartConfigFromForm(data);
+
+        chartEls.preview.innerHTML = EdChart.buildHtml(config);
+        chartEls.insertBtn.disabled = false;
+        EdChart.bindTooltips(chartEls.preview, config);
+    }
+
+    function openChartModal() {
+        chartEls.title.value = '';
+        chartEls.type.value = 'grouped';
+        chartEls.yLabel.value = 'Mean yield (%)';
+        chartEls.xLabel.value = 'Substrate ID';
+        chartEls.width.value = '600';
+        chartEls.height.value = '350';
+        chartEls.json.value = '';
+
+        chartSeriesColors = [
+            { color: '#93c5fd', name: 'No oxidant' },
+            { color: '#3b82f6', name: 'Optimized TEMPO' }
+        ];
+        renderChartColorList();
+        updateChartPreview();
+
+        openModal('ed-chart-modal');
+    }
+
+    function closeChartModal() {
+        closeModal('ed-chart-modal');
+        EdChart.hideTooltip();
+    }
+
+    function loadSampleData() {
+        var sample = {
+            title: 'TEMPO improves yields across sulfonamides',
+            type: 'grouped',
+            xLabel: 'Substrate ID',
+            yLabel: 'Mean yield (%)',
+            width: 600,
+            height: 350,
+            series: [
+                { name: 'No oxidant', color: '#93c5fd' },
+                { name: 'Optimized TEMPO', color: '#3b82f6' }
+            ],
+            data: [
+                { label: '10', values: [31, 50], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S10' } },
+                { label: '12', values: [24, 42], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S12' } },
+                { label: '9', values: [22, 38], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S09' } },
+                { label: '6', values: [20, 34], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S06' } },
+                { label: '11', values: [21, 28], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S11' } },
+                { label: '5', values: [15, 25], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S05' } },
+                { label: '7', values: [18, 22], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S07' } },
+                { label: '8', values: [14, 20], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S08' } },
+                { label: '2', values: [13, 18], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S02' } },
+                { label: '4', values: [11, 16], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S04' } },
+                { label: '3', values: [10, 14], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S03' } },
+                { label: '1', values: [8, 7.5], tooltip: { 'Substrate family': 'Sulfonamide', 'Substrate ID': 'S01' } }
+            ]
+        };
+
+        chartEls.json.value = JSON.stringify(sample, null, 2);
+        syncChartJsonToForm();
+        updateChartPreview();
+    }
+
+    function insertChart() {
+        var parsed = syncChartJsonToForm();
+        if (!parsed || !parsed.data || parsed.data.length === 0) return;
+
+        var chartEl = EdChart.createContainer(buildChartConfigFromForm(parsed.data));
+
+        var range = getEditorInsertionRange();
+        els.editor.focus();
+        range.deleteContents();
+        range.insertNode(chartEl);
+        range.setStartAfter(chartEl);
+        range.collapse(true);
+        setEditorSelection(range);
+
+        bindChartEditorEvents(chartEl);
+
+        closeChartModal();
+        scheduleAutoSave();
+        showToast('Chart inserted', 'success');
+    }
+
+    function bindChartEditorEvents(chartEl) {
+        if (chartEl._edChartBound) return;
+        chartEl._edChartBound = true;
+
+        chartEl.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            document.querySelectorAll('.ed-chart-container.ed-chart--selected').forEach(function (c) {
+                c.classList.remove('ed-chart--selected');
+            });
+            this.classList.add('ed-chart--selected');
+        });
+
+        chartEl.addEventListener('dblclick', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var config = EdChart.parseConfig(this);
+            if (config) editChart(this, config);
+        });
+    }
+
+    function bindChartEvents(chartEl) {
+        EdChart.render(chartEl);
+        bindChartEditorEvents(chartEl);
+    }
+
+    function editChart(chartEl, config) {
+        chartEls.title.value = config.title || '';
+        chartEls.type.value = config.type || 'grouped';
+        chartEls.yLabel.value = config.yLabel || '';
+        chartEls.xLabel.value = config.xLabel || '';
+        chartEls.width.value = config.width || 600;
+        chartEls.height.value = config.height || 350;
+
+        chartSeriesColors = normalizeChartSeries(config.series || config.colors) || [
+            { color: '#93c5fd', name: 'No oxidant' },
+            { color: '#3b82f6', name: 'Optimized TEMPO' }
+        ];
+
+        chartEls.json.value = JSON.stringify({
+            title: config.title || '',
+            type: config.type || 'grouped',
+            xLabel: config.xLabel || '',
+            yLabel: config.yLabel || '',
+            width: config.width || 600,
+            height: config.height || 350,
+            series: chartSeriesColors.map(function (s) {
+                return { name: s.name, color: s.color };
+            }),
+            data: config.data || []
+        }, null, 2);
+
+        renderChartColorList();
+        updateChartPreview();
+
+        openModal('ed-chart-modal');
+
+        chartEls.insertBtn.onclick = function () {
+            var parsed = syncChartJsonToForm();
+            if (!parsed || !parsed.data || parsed.data.length === 0) return;
+
+            EdChart.render(chartEl, { config: buildChartConfigFromForm(parsed.data) });
+            bindChartEditorEvents(chartEl);
+
+            closeChartModal();
+            scheduleAutoSave();
+            showToast('Chart updated', 'success');
+
+            chartEls.insertBtn.onclick = insertChart;
+        };
+    }
+
+    els.editor.addEventListener('click', function (e) {
+        if (!e.target.closest('.ed-chart-container')) {
+            document.querySelectorAll('.ed-chart-container.ed-chart--selected').forEach(function (c) {
+                c.classList.remove('ed-chart--selected');
+            });
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            var selected = document.querySelector('.ed-chart-container.ed-chart--selected');
+            if (selected && els.editor.contains(selected)) {
+                e.preventDefault();
+                selected.remove();
+                scheduleAutoSave();
+                showToast('Chart deleted', 'success');
+            }
+        }
+    });
+
+    function rebindCharts() {
+        EdChart.renderAll(els.editor);
+        els.editor.querySelectorAll('.ed-chart-container').forEach(function (chartEl) {
+            chartEl._edChartBound = false;
+            bindChartEditorEvents(chartEl);
+        });
+    }
+
+    function getEditorHtmlForSave() {
+        var clone = els.editor.cloneNode(true);
+        clone.querySelectorAll('.ed-chart-container').forEach(function (el) {
+            el.innerHTML = '';
+        });
+        return clone.innerHTML;
+    }
+
+    if (chartEls.addSeriesBtn) {
+        chartEls.addSeriesBtn.addEventListener('click', addChartSeries);
+    }
+
+    if (chartEls.json) {
+        chartEls.json.addEventListener('input', function () {
+            syncChartJsonToForm();
+            updateChartPreview();
+        });
+    }
+
+    if (chartEls.title) {
+        chartEls.title.addEventListener('input', updateChartPreview);
+    }
+
+    if (chartEls.type) {
+        chartEls.type.addEventListener('change', updateChartPreview);
+    }
+
+    if (chartEls.yLabel) {
+        chartEls.yLabel.addEventListener('input', updateChartPreview);
+    }
+
+    if (chartEls.xLabel) {
+        chartEls.xLabel.addEventListener('input', updateChartPreview);
+    }
+
+    if (chartEls.width) {
+        chartEls.width.addEventListener('input', updateChartPreview);
+    }
+
+    if (chartEls.height) {
+        chartEls.height.addEventListener('input', updateChartPreview);
+    }
+
+    if (chartEls.loadSample) {
+        chartEls.loadSample.addEventListener('click', loadSampleData);
+    }
+
+    if (chartEls.upload) {
+        chartEls.upload.addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function (ev) {
+                try {
+                    var data = JSON.parse(ev.target.result);
+                    chartEls.json.value = JSON.stringify(data, null, 2);
+                    syncChartJsonToForm();
+                    updateChartPreview();
+                    showToast('JSON loaded', 'success');
+                } catch (err) {
+                    showToast('Invalid JSON file', 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+    }
+
+    if (chartEls.insertBtn) {
+        chartEls.insertBtn.addEventListener('click', insertChart);
+    }
+
+    if (chartEls.cancelBtn) {
+        chartEls.cancelBtn.addEventListener('click', closeChartModal);
+    }
+
+    if (chartEls.closeBtn) {
+        chartEls.closeBtn.addEventListener('click', closeChartModal);
+    }
+
+    if (chartEls.modal) {
+        chartEls.modal.addEventListener('click', function (e) {
+            if (e.target === this) closeChartModal();
+        });
+    }
+
+    document.getElementById('ed-insert-chart-btn').addEventListener('mousedown', saveEditorSelection);
+    document.getElementById('ed-insert-chart-btn').addEventListener('click', openChartModal);
     
     } // End initEditor function
 })();

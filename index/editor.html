@@ -95,7 +95,10 @@
                     <div class="ed-images">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
                             <span class="ed-images-title">Images</span>
-                            <button class="ed-btn ed-btn--small" id="ed-add-image">+ Add URL</button>
+                            <div style="display:flex;gap:0.35rem;">
+                                <button class="ed-btn ed-btn--small" id="ed-browse-images">Browse</button>
+                                <button class="ed-btn ed-btn--small" id="ed-add-image">+ Add URL</button>
+                            </div>
                         </div>
                         <div class="ed-images-list" id="ed-images-list"></div>
                     </div>
@@ -155,8 +158,21 @@
                     <button class="ed-toolbar-btn" id="ed-insert-image-btn" title="Insert Image">
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     </button>
+                    <div class="ed-toolbar-img-resize" id="ed-toolbar-img-resize" hidden>
+                        <span class="ed-toolbar-img-resize-label">Width</span>
+                        <input type="number" class="ed-toolbar-img-resize-input" id="ed-img-resize-width" min="50" max="2000" placeholder="auto">
+                        <span class="ed-toolbar-img-resize-unit">px</span>
+                        <button type="button" class="ed-toolbar-img-preset" data-preset="25">25%</button>
+                        <button type="button" class="ed-toolbar-img-preset" data-preset="50">50%</button>
+                        <button type="button" class="ed-toolbar-img-preset" data-preset="75">75%</button>
+                        <button type="button" class="ed-toolbar-img-preset" data-preset="100">100%</button>
+                        <button type="button" class="ed-toolbar-img-reset" id="ed-img-resize-reset" title="Reset to original size">Reset</button>
+                    </div>
                     <button class="ed-toolbar-btn" id="ed-insert-hr-btn" title="Horizontal Rule">
                         <svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" id="ed-insert-chart-btn" title="Insert Chart">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="8" width="4" height="13"/><rect x="17" y="4" width="4" height="17"/></svg>
                     </button>
 
                     <span class="ed-toolbar-sep"></span>
@@ -166,7 +182,12 @@
                     </button>
                 </div>
 
-                <div class="ed-editor" id="ed-editor" contenteditable="true" data-placeholder="Start writing..." spellcheck="true"></div>
+                <div class="ed-editor-wrap">
+                    <div class="ed-editor" id="ed-editor" contenteditable="true" data-placeholder="Start writing..." spellcheck="true"></div>
+                    <div class="ed-img-resize-overlay" id="ed-img-resize-overlay" hidden>
+                        <div class="ed-img-resize-handle" id="ed-img-resize-handle" title="Drag to resize"></div>
+                    </div>
+                </div>
 
                 <div class="ed-wordcount" id="ed-wordcount">0 words</div>
             </div>
@@ -212,10 +233,15 @@
             <div class="ed-link-type-tabs">
                 <button class="ed-link-type-tab ed-link-type-tab--active" data-img-type="url">URL</button>
                 <button class="ed-link-type-tab" data-img-type="local">Local (a_home_assets/)</button>
+                <button class="ed-link-type-tab" data-img-type="browse">Browse</button>
             </div>
             <div class="ed-modal-field">
                 <label id="ed-img-label">Image URL</label>
                 <input type="text" id="ed-img-url" placeholder="https://">
+            </div>
+            <div class="ed-modal-field">
+                <label>Width (optional)</label>
+                <input type="number" id="ed-img-insert-width" placeholder="auto" min="50" max="2000">
             </div>
             <div class="ed-modal-actions">
                 <button class="ed-btn" id="ed-img-cancel">Cancel</button>
@@ -224,8 +250,190 @@
         </div>
     </div>
 
+    <div class="ed-modal-overlay" id="ed-pic-modal">
+        <div class="ed-modal ed-pic-browser">
+            <div class="ed-pic-header">
+                <div class="ed-pic-header-top">
+                    <div class="ed-modal-title">Browse Images</div>
+                    <button class="ed-btn ed-btn--icon ed-pic-close" id="ed-pic-close" aria-label="Close">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div class="ed-pic-controls">
+                    <div class="ed-pic-folders" id="ed-pic-folders">
+                        <button class="ed-pic-folder-btn ed-pic-folder-btn--active" data-folder="">All</button>
+                    </div>
+                    <input type="text" class="ed-pic-search" id="ed-pic-search" placeholder="Search images...">
+                </div>
+            </div>
+            <div class="ed-pic-body">
+                <div class="ed-pic-grid" id="ed-pic-grid"></div>
+                <div class="ed-pic-empty" id="ed-pic-empty" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>No images found</span>
+                    <span class="ed-pic-empty-sub">Run <code>node scripts/scan-images.js</code> to scan for images</span>
+                </div>
+            </div>
+            <div class="ed-pic-footer">
+                <div class="ed-pic-preview" id="ed-pic-preview">
+                    <span class="ed-pic-preview-placeholder">Select an image</span>
+                </div>
+                <div class="ed-pic-resize">
+                    <label class="ed-pic-resize-label">Width</label>
+                    <input type="number" class="ed-pic-resize-input" id="ed-pic-width" placeholder="auto" min="50" max="2000">
+                    <span class="ed-pic-resize-unit">px</span>
+                </div>
+                <div class="ed-pic-actions">
+                    <button class="ed-btn" id="ed-pic-cancel">Cancel</button>
+                    <button class="ed-btn ed-btn--accent" id="ed-pic-insert" disabled>Insert</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="ed-toast" id="ed-toast"></div>
 
+    <!-- Chart Modal -->
+    <div class="ed-modal-overlay" id="ed-chart-modal">
+        <div class="ed-modal ed-chart-modal">
+            <div class="ed-chart-header">
+                <div class="ed-modal-title">Insert Chart</div>
+                <button class="ed-btn ed-btn--icon ed-chart-close" id="ed-chart-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="ed-chart-body">
+                <div class="ed-chart-config">
+                    <div class="ed-chart-section">
+                        <label class="ed-chart-label">Chart Title</label>
+                        <input type="text" class="ed-chart-input" id="ed-chart-title" placeholder="My Chart Title">
+                    </div>
+                    <div class="ed-chart-section">
+                        <label class="ed-chart-label">Chart Type</label>
+                        <select class="ed-chart-select" id="ed-chart-type">
+                            <option value="bar">Bar Chart</option>
+                            <option value="grouped">Grouped Bar Chart</option>
+                        </select>
+                    </div>
+                    <div class="ed-chart-section">
+                        <label class="ed-chart-label">Y-Axis Label</label>
+                        <input type="text" class="ed-chart-input" id="ed-chart-y-label" placeholder="Value (%)">
+                    </div>
+                    <div class="ed-chart-section">
+                        <label class="ed-chart-label">X-Axis Label</label>
+                        <input type="text" class="ed-chart-input" id="ed-chart-x-label" placeholder="Category">
+                    </div>
+                    <div class="ed-chart-section ed-chart-colors" id="ed-chart-colors">
+                        <label class="ed-chart-label">Series Colors</label>
+                        <div class="ed-chart-color-list" id="ed-chart-color-list">
+                            <div class="ed-chart-color-row">
+                                <input type="color" class="ed-chart-color" value="#93c5fd" data-series="0">
+                                <input type="text" class="ed-chart-color-name" placeholder="Series 1 name" data-series="0">
+                            </div>
+                        </div>
+                        <button class="ed-btn ed-btn--small" id="ed-chart-add-series">+ Add Series</button>
+                    </div>
+                    <div class="ed-chart-section">
+                        <label class="ed-chart-label">Chart Width (px)</label>
+                        <input type="number" class="ed-chart-input" id="ed-chart-width" value="600" min="300" max="1200">
+                    </div>
+                    <div class="ed-chart-section">
+                        <label class="ed-chart-label">Chart Height (px)</label>
+                        <input type="number" class="ed-chart-input" id="ed-chart-height" value="350" min="200" max="800">
+                    </div>
+                </div>
+                <div class="ed-chart-data">
+                    <div class="ed-chart-section">
+                        <div class="ed-chart-data-header">
+                            <label class="ed-chart-label">JSON Data</label>
+                            <div class="ed-chart-data-actions">
+                                <button class="ed-btn ed-btn--small" id="ed-chart-load-sample">Load Sample</button>
+                                <label class="ed-btn ed-btn--small ed-chart-upload-label">
+                                    Upload JSON
+                                    <input type="file" id="ed-chart-upload" accept=".json" hidden>
+                                </label>
+                            </div>
+                        </div>
+                        <textarea class="ed-chart-json" id="ed-chart-json" placeholder='{
+  "title": "My Chart",
+  "type": "grouped",
+  "xLabel": "Category",
+  "yLabel": "Value (%)",
+  "series": [
+    { "name": "Series A", "color": "#93c5fd" },
+    { "name": "Series B", "color": "#3b82f6" }
+  ],
+  "data": [
+    { "label": "A", "values": [30, 50] },
+    { "label": "B", "values": [45, 65] }
+  ]
+}'></textarea>
+                        <div class="ed-chart-json-help">
+                            <details>
+                                <summary>JSON Format Help</summary>
+                                <div class="ed-chart-json-examples">
+                                    <p><strong>Full config (recommended):</strong></p>
+                                    <pre>{
+  "title": "TEMPO improves yields",
+  "type": "grouped",
+  "xLabel": "Substrate ID",
+  "yLabel": "Mean yield (%)",
+  "width": 600,
+  "height": 350,
+  "series": [
+    { "name": "No oxidant", "color": "#93c5fd" },
+    { "name": "Optimized TEMPO", "color": "#3b82f6" }
+  ],
+  "data": [
+    {
+      "label": "S01",
+      "values": [12, 7.5],
+      "tooltip": {
+        "Substrate family": "Sulfonamide",
+        "Substrate ID": "S01"
+      }
+    }
+  ]
+}</pre>
+                                    <p><strong>Simple bar chart (data only):</strong></p>
+                                    <pre>[
+  { "label": "A", "value": 45 },
+  { "label": "B", "value": 72 }
+]</pre>
+                                    <p><strong>Grouped bars with tooltips:</strong></p>
+                                    <pre>{
+  "xLabel": "Condition",
+  "yLabel": "Yield (%)",
+  "series": [
+    { "name": "Control", "color": "#93c5fd" },
+    { "name": "Treatment", "color": "#e0e7ff" }
+  ],
+  "data": [
+    { "label": "A", "values": [30, 50], "tooltip": { "note": "Details" } },
+    { "label": "B", "values": [45, 65], "tooltip": { "note": "More info" } }
+  ]
+}</pre>
+                                    <p><em>Keys: <code>title</code>, <code>type</code> (<code>bar</code> or <code>grouped</code>), <code>xLabel</code>, <code>yLabel</code>, <code>series</code>, <code>data</code>. Aliases: <code>xAxis</code>, <code>yAxis</code>, <code>colors</code>, <code>points</code>.</em></p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ed-chart-preview-section">
+                <label class="ed-chart-label">Preview</label>
+                <div class="ed-chart-preview" id="ed-chart-preview">
+                    <span class="ed-chart-preview-placeholder">Enter JSON data to see preview</span>
+                </div>
+            </div>
+            <div class="ed-chart-footer">
+                <button class="ed-btn" id="ed-chart-cancel">Cancel</button>
+                <button class="ed-btn ed-btn--accent" id="ed-chart-insert" disabled>Insert Chart</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/chart.js"></script>
     <script src="../js/editor.js"></script>
 </body>
 </html>

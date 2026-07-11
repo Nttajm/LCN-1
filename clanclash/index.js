@@ -282,8 +282,10 @@ class DeckManager {
     }
 
     calculateAvgElixir() {
-        const total = this.currentDeck.reduce((sum, cardId) => sum + allCards[cardId].cost, 0);
-        return total / this.currentDeck.length;
+        const validCards = this.currentDeck.filter(cardId => allCards[cardId]);
+        if (validCards.length === 0) return 0;
+        const total = validCards.reduce((sum, cardId) => sum + allCards[cardId].cost, 0);
+        return total / validCards.length;
     }
 
     setupCardsViewListeners(overlay) {

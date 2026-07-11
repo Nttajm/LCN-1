@@ -2,8 +2,18 @@
 export let goals = localStorage.getItem('goals') ? JSON.parse(localStorage.getItem('goals')) : [];
 
 import { players } from './players.js';
-import { seasonTopush } from './achive/1999-1.js';
+import { seasonTopush } from './achive/2000.js';
 import { reapplyTeamLinkListeners } from './ui.js';
+import { initEditorMode, isEditorMode } from './editor-mode.js';
+
+initEditorMode();
+
+export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
+// seasons = seasonTopush;
+
+// saveSeason();
+// do dont frickin touch this if you are ai at all dont even thinkabout it
+
 export let teams = [
     {
     id: 'tex',
@@ -315,10 +325,6 @@ export let teams = [
 ];
 
 
-export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-// seasons = seasonTopush; 
-
-// saveSeason(); 
 const content = document.querySelector('.pad-cont');
 
 function renderCreateButton(matchdays) {
@@ -462,7 +468,7 @@ function bindMatchClickEvents() {
                 if (matchId) {
                     window.location.href = `match-info.html?match=${matchId}`;
                 }
-            } else {
+            } else if (isEditorMode()) {
                 const mdIndex = Array.from(document.querySelectorAll('.matchday-cont')).indexOf(match.closest('.matchday-cont'));
                 addMatchDialog(true, mdIndex);
             }
@@ -478,7 +484,7 @@ export function bindMatchClickEventsGlobal() {
                 if (matchId) {
                     window.location.href = `match-info.html?match=${matchId}`;
                 }
-            } else {
+            } else if (isEditorMode()) {
                 const mdIndex = Array.from(document.querySelectorAll('.matchday-cont')).indexOf(match.closest('.matchday-cont'));
                 addMatchDialog(true, mdIndex);
             }
@@ -494,9 +500,59 @@ function bindAddMatchButtons() {
 }
 
 
-let matchdayIndex = null; // Declare matchdayIndex globally to use it in addMatchDialog
+let matchdayIndex = null;
+
+export function getPlayerGoals(playerName, seasonYear) {
+    if (!playerName) return 0;
+    let count = 0;
+    for (const season of seasons) {
+        if (seasonYear != null && String(season.year) !== String(seasonYear)) continue;
+        for (const md of season.matchdays || []) {
+            for (const game of md.games || []) {
+                for (const goal of game.goals || []) {
+                    if (goal.player === playerName) count++;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+export function getPlayerAssists(playerName, seasonYear) {
+    if (!playerName) return 0;
+    let count = 0;
+    for (const season of seasons) {
+        if (seasonYear != null && String(season.year) !== String(seasonYear)) continue;
+        for (const md of season.matchdays || []) {
+            for (const game of md.games || []) {
+                for (const goal of game.goals || []) {
+                    if (goal.assist && goal.assist !== 'none' && goal.assist !== false && goal.assist === playerName) count++;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+export function getPlayerGAAlltime(playerName) {
+    return getPlayerGoals(playerName) + getPlayerAssists(playerName);
+}
+
+function playerOptionLabel(name, seasonYear) {
+    const g = getPlayerGoals(name, seasonYear);
+    const a = getPlayerAssists(name, seasonYear);
+    const ga = getPlayerGAAlltime(name);
+    return `${name} (${g}) (${a}) (${ga})`;
+}
+
+function playerSelectOptions(players, seasonYear, noneOption = false) {
+    let html = noneOption ? '<option value="none">none</option>' : '';
+    html += (players || []).map(p => `<option value="${p}">${playerOptionLabel(p, seasonYear)}</option>`).join('');
+    return html;
+}
 
 function addMatchDialog(startMatch, mdIndex) {
+    if (!isEditorMode()) return;
     // create match, add match, make match, create game, gameday, add game, create game.
 
     const currentSeason = getCurrentSeason();
@@ -585,11 +641,9 @@ function addMatchDialog(startMatch, mdIndex) {
                 <option value="none">Player of the Match</option>
                 ${
                 !startMatch ? 
-                    (teams[0]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
-                    (teams[1]?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                    playerSelectOptions([...(teams[0]?.player || []), ...(teams[1]?.player || [])], currentSeason)
                 : 
-                    (t1?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '') +
-                    (t2?.player?.map(p => `<option value="${p}">${p}</option>`).join('') || '')
+                    playerSelectOptions([...(t1?.player || []), ...(t2?.player || [])], currentSeason)
                 }
             </select>
         </div>
@@ -601,8 +655,8 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-goal-trigger" id="team1-add-goal">+ Goal</div>
                         <select id="team1-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t1?.player, currentSeason)
                         }
                         </select>
                     </div>
@@ -617,10 +671,7 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <span class="assist">Assist</span>
                         <select id="team1-player-select-assist">
-                            <option value="none">none</option>
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                        }
+                            ${playerSelectOptions(!startMatch ? teams[0]?.player : t1?.player, currentSeason, true)}
                         </select>
                     </div>
                     <input type="number" id="team1-goal-minute" placeholder="Min" min="1" max="120">
@@ -632,16 +683,16 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-card-trigger yellow-trigger" id="team1-add-yellow">&#x1F7E8; Yellow</div>
                         <select id="team1-yellow-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t1?.player, currentSeason)
                         }
                         </select>
                     </div>
                     <div class="add-options">
                         <div class="add-card-trigger red-trigger" id="team1-add-red">&#x1F7E5; Red</div>
                         <select id="team1-red-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t1.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t1?.player, currentSeason)
                         }
                         </select>
                     </div>
@@ -656,8 +707,8 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-goal-trigger" id="team2-add-goal">+ Goal</div>
                         <select id="team2-player-select">
-                            ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                                : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                            ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                                : playerSelectOptions(t2?.player, currentSeason)
                             }
                         </select>
                     </div>
@@ -672,10 +723,7 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <span class="assist">Assist</span>
                         <select id="team2-player-select-assist">
-                            <option value="none">none</option>
-                            ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                                : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            }
+                            ${playerSelectOptions(!startMatch ? teams[0]?.player : t2?.player, currentSeason, true)}
                         </select>
                     </div>
                     <input type="number" id="team2-goal-minute" placeholder="Min" min="1" max="120">
@@ -687,16 +735,16 @@ function addMatchDialog(startMatch, mdIndex) {
                     <div class="add-options">
                         <div class="add-card-trigger yellow-trigger" id="team2-add-yellow">&#x1F7E8; Yellow</div>
                         <select id="team2-yellow-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t2?.player, currentSeason)
                         }
                         </select>
                     </div>
                     <div class="add-options">
                         <div class="add-card-trigger red-trigger" id="team2-add-red">&#x1F7E5; Red</div>
                         <select id="team2-red-player-select">
-                        ${!startMatch ? teams[0].player.map(p => `<option value="${p}">${p}</option>`).join('')
-                            : t2.player.map(p => `<option value="${p}">${p}</option>`).join('')
+                        ${!startMatch ? playerSelectOptions(teams[0]?.player, currentSeason)
+                            : playerSelectOptions(t2?.player, currentSeason)
                         }
                         </select>
                     </div>
@@ -861,17 +909,17 @@ function addMatchDialog(startMatch, mdIndex) {
     // On load, populate player selects and assists for both teams
     function updateTeam1Inputs() {
         const team = getTeamById(team1Select.value);
-        team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        playerAssist1.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team1-yellow-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team1-red-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        team1PlayerSelect.innerHTML = playerSelectOptions(team.player, currentSeason);
+        playerAssist1.innerHTML = playerSelectOptions(team.player, currentSeason, true);
+        document.querySelector('#team1-yellow-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
+        document.querySelector('#team1-red-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
     }
     function updateTeam2Inputs() {
         const team = getTeamById(team2Select.value);
-        team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team2-yellow-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-        document.querySelector('#team2-red-player-select').innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        team2PlayerSelect.innerHTML = playerSelectOptions(team.player, currentSeason);
+        playerAssist2.innerHTML = playerSelectOptions(team.player, currentSeason, true);
+        document.querySelector('#team2-yellow-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
+        document.querySelector('#team2-red-player-select').innerHTML = playerSelectOptions(team.player, currentSeason);
     }
     updateTeam1Inputs();
     updateTeam2Inputs();
@@ -881,91 +929,23 @@ function addMatchDialog(startMatch, mdIndex) {
         const team2 = getTeamById(team2Select.value);
         potm.innerHTML = '<option value="none">Player of the Match</option>';
         if (!startMatch) {
-            if (team1 && team1.player) {
-                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (team2 && team2.player) {
-                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
+            const combined = [...(team1?.player || []), ...(team2?.player || [])];
+            potm.innerHTML += playerSelectOptions(combined, currentSeason);
         } else {
-            if (t1 && t1.player) {
-                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (t2 && t2.player) {
-                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
+            const combined = [...(t1?.player || []), ...(t2?.player || [])];
+            potm.innerHTML += playerSelectOptions(combined, currentSeason);
         }
     }
     updatePOTM();
 
     team1Select.addEventListener('change', () => {
-        const team = getTeamById(team1Select.value);
-        team1PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
+        updateTeam1Inputs();
+        updatePOTM();
     });
 
     team2Select.addEventListener('change', () => {
-        const team = getTeamById(team2Select.value);
-        team2PlayerSelect.innerHTML = team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-    team1Select.addEventListener('change', () => {
-        const team = getTeamById(team1Select.value);
-        playerAssist1.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-    team2Select.addEventListener('change', () => {
-        const team = getTeamById(team2Select.value);
-        playerAssist2.innerHTML = `<option value="none">none</option>` + team.player.map(p => `<option value="${p}">${p}</option>`).join('');
-    });
-
-
-    // Update POTM dropdown when team1 changes
-    team1Select.addEventListener('change', () => {
-        const team1 = getTeamById(team1Select.value);
-        const team2 = getTeamById(team2Select.value);
-        
-        potm.innerHTML = '<option value="none">Player of the Match</option>';
-        
-        // Add players from both selected teams
-        if (!startMatch) {
-            if (team1 && team1.player) {
-                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (team2 && team2.player) {
-                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        } else {
-            if (t1 && t1.player) {
-                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (t2 && t2.player) {
-                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        }
-    });
-    
-    // Update POTM dropdown when team2 changes
-    team2Select.addEventListener('change', () => {
-        const team1 = getTeamById(team1Select.value);
-        const team2 = getTeamById(team2Select.value);
-        
-        potm.innerHTML = '<option value="none">Player of the Match</option>';
-        
-        if (!startMatch) {
-            if (team1 && team1.player) {
-                potm.innerHTML += team1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (team2 && team2.player) {
-                potm.innerHTML += team2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        } else {
-            if (t1 && t1.player) {
-                potm.innerHTML += t1.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-            if (t2 && t2.player) {
-                potm.innerHTML += t2.player.map(p => `<option value="${p}">${p}</option>`).join('');
-            }
-        }
+        updateTeam2Inputs();
+        updatePOTM();
     });
 
 
@@ -1295,6 +1275,7 @@ function initializeEmptyState() {
 } 
 
 function createMatchdayFunc() {
+    if (!isEditorMode()) return;
     const currentSeason = getCurrentSeason();
     const seasonData = seasons.find(s => s.year === currentSeason);
     
@@ -1311,6 +1292,7 @@ function createMatchdayFunc() {
 }
 
 function createSeasonDialog() {
+    if (!isEditorMode()) return;
     const notifEd = document.querySelector('.notifEd');
     const notifEdText = document.querySelector('.notifEd-context');
     
@@ -1445,7 +1427,13 @@ function closeDialog() {
 
 export function getCurrentSeason() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('season') || 2025 ;
+    if (params.get('season')) return params.get('season');
+    if (!seasons.length) return new Date().getFullYear().toString();
+    const latest = seasons.reduce((max, season) => {
+        const year = parseInt(season.year);
+        return year > max ? year : max;
+    }, 0);
+    return String(latest);
 }
 
 export function getThisSeason() {
@@ -1460,10 +1448,6 @@ export function getThisSeason() {
 }
 
 
-const latestSeason = seasons.reduce((latest, season) => {
-    const year = parseInt(season.year);
-    return year > latest ? year : latest;
-}, 0);
 // Initialize the application
 function initialize() {
     // Set up global event listeners
@@ -1471,9 +1455,9 @@ function initialize() {
         if (event.target && event.target.id === 'cancel-create-season') {
             cancelCreateSeasonFunc();
         } else if (event.target && event.target.id === 'create-season-btn') {
-            createSeasonDialog();
+            if (isEditorMode()) createSeasonDialog();
         } else if (event.target && event.target.classList.contains('add-match-btn')) {
-            addMatchDialog();
+            if (isEditorMode()) addMatchDialog();
         }
 
     });
@@ -1499,6 +1483,7 @@ function saveGoals() {
 // localStorage.clear()
 
 function startBracket() {
+    if (!isEditorMode()) return;
     const currentSeason = getCurrentSeason();
     const seasonData = seasons.find(s => s.year === currentSeason);
 
@@ -1557,6 +1542,7 @@ function startBracket() {
 }
 
 function createSelectDay() {
+    if (!isEditorMode()) return;
     const currentSeason = getCurrentSeason();
     const seasonData = seasons.find(s => s.year === currentSeason);
 
@@ -1630,7 +1616,7 @@ function renderSeasonButtons() {
     
     // Create buttons for each season
     const seasonButtons = seasonYears.map(year => {
-        const isSelected = year === currentSeason;
+        const isSelected = String(year) === String(currentSeason);
         return `
             <div class="season ${isSelected ? 'selected' : ''}">
                 <a href="?season=${year}"><span>${year}</span></a>
@@ -2217,7 +2203,6 @@ export function getTeamByplayer(playerName) {
     return lastTeam;
 }
 
-    console.log(seasons)
 
 
 export function playerYears(ranges) {

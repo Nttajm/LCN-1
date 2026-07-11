@@ -19,6 +19,14 @@
     <script src="js/audio-store.js"></script>
 </head>
 <body>
+    <div class="mobile-warning" id="mobileWarning" hidden aria-modal="true" role="dialog" aria-labelledby="mobileWarningTitle">
+        <div class="mobile-warning-card">
+            <h2 id="mobileWarningTitle">Desktop only</h2>
+            <p>Josu is built for keyboard play and works best on desktop. You can still try it on mobile, but the experience won't be great.</p>
+            <button type="button" class="mobile-warning-btn" id="mobileWarningContinue">Continue anyway</button>
+        </div>
+    </div>
+
     <div class="sc_wrapper" id="startWrapper">
         <div class="screen start">
         <div class="start-bg" id="startBg" aria-hidden="true"></div>
@@ -93,6 +101,54 @@
             <div class="tip-label">A tip for you:</div>
             <div class="tip-text">Use D and F keys for outer and inner drum hits. Press ESC to pause during gameplay!</div>
         </div>
+
+        <!-- Settings Sidebar -->
+        <div class="settings-sidebar" id="settingsSidebar">
+            <div class="settings-sidebar-header">
+                <h2>Settings</h2>
+                <button class="settings-close-btn" id="settingsCloseBtn">&times;</button>
+            </div>
+            <div class="settings-sidebar-content">
+                <!-- User Section -->
+                <div class="settings-section">
+                    <h3>Account</h3>
+                    <button class="settings-btn-action" id="settingsSignBtn">
+                        <span class="settings-btn-icon">👤</span>
+                        <span class="settings-btn-text" id="settingsSignText">Sign In</span>
+                    </button>
+                </div>
+
+                <!-- Keybinds Section -->
+                <div class="settings-section">
+                    <h3>Keybinds</h3>
+                    <div class="settings-option">
+                        <label>Taiko Keys</label>
+                        <div class="keybind-toggle" id="taikoKeybindToggle">
+                            <button class="keybind-option selected" data-keys="df">D F</button>
+                            <button class="keybind-option" data-keys="jk">J K</button>
+                        </div>
+                    </div>
+                    <div class="settings-option">
+                        <label>Arrow Keys</label>
+                        <div class="keybind-toggle" id="arrowKeybindToggle">
+                            <button class="keybind-option selected" data-keys="dfjk">D F J K</button>
+                            <button class="keybind-option" data-keys="arrows">← ↓ ↑ →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cache Section -->
+                <div class="settings-section">
+                    <h3>Data</h3>
+                    <button class="settings-btn-action danger" id="settingsResetCache">
+                        <span class="settings-btn-icon">🗑️</span>
+                        <span class="settings-btn-text">Reset Cache</span>
+                    </button>
+                    <p class="settings-hint">Clears all local storage data including records and preferences.</p>
+                </div>
+            </div>
+        </div>
+        <div class="settings-overlay" id="settingsOverlay"></div>
     </div>
     </div>
 
@@ -502,5 +558,34 @@
         </div>
     </div>
 </body>
+<script>
+(function () {
+    var STORAGE_KEY = 'josu-mobile-warning-dismissed';
+
+    function isMobileDevice() {
+        var coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+        var narrow = window.matchMedia('(max-width: 768px)').matches;
+        var touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        return narrow || (coarsePointer && touch);
+    }
+
+    function showMobileWarning() {
+        var overlay = document.getElementById('mobileWarning');
+        var btn = document.getElementById('mobileWarningContinue');
+        if (!overlay || !btn) return;
+
+        overlay.hidden = false;
+
+        btn.addEventListener('click', function () {
+            try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+            overlay.hidden = true;
+        });
+    }
+
+    if (isMobileDevice() && !sessionStorage.getItem(STORAGE_KEY)) {
+        showMobileWarning();
+    }
+})();
+</script>
 <script type="module" src="js/main.js"></script>
 </html>
