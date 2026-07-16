@@ -1475,6 +1475,8 @@ function saveSeason() {
     localStorage.setItem('seasons', JSON.stringify(seasons));
 }
 
+export { saveSeason };
+
 function saveGoals() {
     localStorage.setItem('goals', JSON.stringify(goals));
 }  

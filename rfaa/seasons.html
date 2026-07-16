@@ -79,7 +79,7 @@
     </div>
 
     <!-- Season Hero Section -->
-    <div class="season-hero" id="seasonHero">
+    <div class="season-hero" id="seasonHero" hidden>
         <div class="hero-content">
             <div class="hero-winner-info" id="heroWinnerInfo">
                 <img class="hero-winner-logo" id="heroWinnerLogo" src="" alt="">
@@ -103,17 +103,67 @@
         </div>
     </div>
 
-    <div id="seasonOverviewContent">
+    <!-- Featured / all-time view (default) -->
+    <div id="featuredOverviewContent">
+        <div class="overview-layout season-section">
+            <div class="overview-main">
+                <div class="featured-save-bar" id="featuredSaveBar">
+                    <span class="featured-save-label" id="featuredSeasonLabel">Featured season: —</span>
+                    <button type="button" class="featured-save-btn" id="featuredSaveBtn">Save</button>
+                    <span class="featured-save-status" id="featuredSaveStatus" hidden></span>
+                </div>
+                <article class="featured-article-card" id="featuredArticleCard">
+                    <div class="featured-article-cover">
+                        <img id="featuredArticleCover" src="" alt="">
+                    </div>
+                    <div class="featured-article-body">
+                        <span class="featured-article-badge">Editor's pick</span>
+                        <h2 class="featured-article-title" id="featuredArticleTitle"></h2>
+                        <p class="featured-article-subtitle" id="featuredArticleSubtitle"></p>
+                    </div>
+                </article>
+            </div>
+
+            <aside class="overview-sidebar alltime-sidebar">
+                <div class="alltime-stats-panel">
+                    <h2 class="alltime-stats-title">All-time stats</h2>
+
+                    <div class="alltime-stat-group">
+                        <h3 class="alltime-stat-heading">Most titles</h3>
+                        <ul class="alltime-stat-list" id="alltimeTitles"></ul>
+                        <a class="alltime-show-more" href="aot-stats.html">Show more &rsaquo;</a>
+                    </div>
+
+                    <div class="alltime-stat-group">
+                        <h3 class="alltime-stat-heading">Top scorers</h3>
+                        <ul class="alltime-stat-list" id="alltimeScorers"></ul>
+                        <a class="alltime-show-more" href="aot-stats.html">Show more &rsaquo;</a>
+                    </div>
+
+                    <div class="alltime-stat-group">
+                        <h3 class="alltime-stat-heading">Top assists</h3>
+                        <ul class="alltime-stat-list" id="alltimeAssists"></ul>
+                        <a class="alltime-show-more" href="aot-stats.html">Show more &rsaquo;</a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div id="seasonOverviewContent" hidden>
     <div class="overview-layout season-section">
         <div class="overview-main">
-            <div class="road-to-final-panel">
+            <div class="road-to-final-panel" id="roadToFinalPanel">
                 <h2 class="section-title">Road to the final</h2>
                 <div class="road-to-final" id="roadToFinal"></div>
-                <a class="rtf-all-matches" href="matches.html">All matches</a>
+            </div>
+            <div class="season-matches-section" id="seasonMatchesSection">
+                <h2 class="section-title view-all-matches-title">View all matches</h2>
+                <div class="season-matches-list" id="seasonMatchesList"></div>
             </div>
         </div>
 
-        <aside class="overview-sidebar">
+        <aside class="overview-sidebar season-stats-sidebar">
     <!-- Awards row -->
     <div class="awards-section">
         <div class="awards-grid" id="awardsGrid">

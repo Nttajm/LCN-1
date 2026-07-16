@@ -354,10 +354,25 @@ function displayMatchInfo() {
         }
     };
 
+    const getArticleCover = () => linkedArticle?.cover || 'articles/images/ball-pitch.png';
+
+    const renderMatchArticleHero = () => {
+        if (!linkedArticle) return '';
+        const cover = getArticleCover();
+        return `
+            <a class="match-info-article" href="article-view.html?article=${linkedArticle.id}" aria-label="Read match article: ${linkedArticle.title || 'Match report'}">
+                <img src="${cover}" alt="${linkedArticle.title || 'Match article'}" onerror="this.src='articles/images/ball-pitch.png'">
+                <span class="match-info-article__cta">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z"/></svg>
+                    Read article
+                </span>
+            </a>`;
+    };
+
     const renderLinkedArticlePreview = () => {
         if (!linkedArticle) return '';
 
-        const cover = linkedArticle.cover || 'articles/images/ball-pitch.png';
+        const cover = getArticleCover();
         const summarySource = linkedArticle.subtitle || linkedArticle.body || '';
         const summary = summarySource
             .split(/\n{2,}/)
@@ -420,7 +435,7 @@ function displayMatchInfo() {
     };
 
     const matchInfoHtml = `
-        <div class="match-info">
+        <div class="match-info${linkedArticle ? ' match-info--with-article' : ''}">
             <div class="match-info-context">
                 <div class="info-text">
                     <span>${matchday.details || 'MATCHDAY'} - ${'Matchday ' + (mdIndex + 1 + ',') || ''}</span>
@@ -449,10 +464,12 @@ function displayMatchInfo() {
                 </div>
                 ${renderCardsSection(match)}
             </div>
+            ${renderMatchArticleHero()}
         </div>
         <div class="match-tabs">
             <button class="match-tab match-tab--active" data-tab="overview">Overview</button>
             <button class="match-tab" data-tab="stats">Stats</button>
+            ${linkedArticle ? `<a class="match-tab match-tab--link" href="article-view.html?article=${linkedArticle.id}">Match article</a>` : ''}
         </div>
     `;
 

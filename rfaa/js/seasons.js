@@ -1,18 +1,133 @@
-import { seasons, getTeamById } from './acl-index.js';
+import { seasons, getTeamById, saveSeason } from './acl-index.js';
 import { players } from './players.js';
 import { rankPlayers } from './ratings.js';
+import { getTopGoalScorers, getTopAssistProviders } from './aot-stats.js';
+import {
+    loadArticlesFromJson,
+    getArticles,
+    saveArticle,
+    saveArticlesToFile,
+    hasLinkedArticlesFile,
+} from './articles.js';
+
+const ACL_LOGO = 'images/leagues-small/acl-logo-small.png';
+const FEATURED_ARTICLE_ID = 'art-mrhdwrhb';
+const FEATURED_CONFIG_KEY = 'rfaa-featured-season';
 
 // ─── Articles data (for final headlines/images) ──────────────────────────────
 let articlesData = [];
 
 async function loadArticles() {
+    await loadArticlesFromJson();
+    articlesData = getArticles();
+}
+
+function getFeaturedConfig() {
     try {
-        const res = await fetch('articles.json');
-        if (res.ok) {
-            articlesData = await res.json();
-        }
+        const raw = localStorage.getItem(FEATURED_CONFIG_KEY);
+        if (raw) return JSON.parse(raw);
     } catch (e) {
-        console.warn('Could not load articles:', e);
+        console.warn('Could not read featured config:', e);
+    }
+    return { seasonYear: null, articleId: FEATURED_ARTICLE_ID };
+}
+
+function setFeaturedConfig(config) {
+    localStorage.setItem(FEATURED_CONFIG_KEY, JSON.stringify(config));
+}
+
+function getLatestSeasonYear() {
+    if (!seasons.length) return null;
+    const latest = seasons.reduce((max, season) => {
+        const year = parseInt(season.year, 10);
+        return year > max ? year : max;
+    }, 0);
+    return latest ? String(latest) : null;
+}
+
+function updateFeaturedSeasonLabel() {
+    const labelEl = document.getElementById('featuredSeasonLabel');
+    if (!labelEl) return;
+
+    const config = getFeaturedConfig();
+    const latestYear = getLatestSeasonYear();
+    const savedYear = config.seasonYear;
+
+    if (savedYear) {
+        labelEl.textContent = `Featured season: ${savedYear}${latestYear && savedYear !== latestYear ? ` (latest: ${latestYear})` : ''}`;
+    } else if (latestYear) {
+        labelEl.textContent = `Featured season: not set (latest: ${latestYear})`;
+    } else {
+        labelEl.textContent = 'Featured season: —';
+    }
+}
+
+function showFeaturedSaveStatus(message, isError = false) {
+    const statusEl = document.getElementById('featuredSaveStatus');
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.hidden = !message;
+    statusEl.classList.toggle('is-error', isError);
+    if (message && !isError) {
+        window.clearTimeout(showFeaturedSaveStatus._timer);
+        showFeaturedSaveStatus._timer = window.setTimeout(() => {
+            statusEl.hidden = true;
+            statusEl.textContent = '';
+        }, 3000);
+    }
+}
+
+async function copySeasonsToClipboard() {
+    await navigator.clipboard.writeText(JSON.stringify(seasons, null, 2));
+}
+
+async function saveFeaturedSeason() {
+    const latestYear = getLatestSeasonYear();
+    if (!latestYear) {
+        showFeaturedSaveStatus('No season data to save.', true);
+        return;
+    }
+
+    const saveBtn = document.getElementById('featuredSaveBtn');
+    if (saveBtn) saveBtn.disabled = true;
+
+    try {
+        setFeaturedConfig({ seasonYear: latestYear, articleId: FEATURED_ARTICLE_ID });
+
+        const article = getArticleById(FEATURED_ARTICLE_ID);
+        if (article) {
+            saveArticle({
+                ...article,
+                season: latestYear,
+                updatedAt: new Date().toISOString(),
+            });
+        }
+
+        saveSeason();
+        articlesData = getArticles();
+
+        if (hasLinkedArticlesFile()) {
+            try {
+                await saveArticlesToFile();
+            } catch (err) {
+                console.warn('Could not write articles file:', err);
+            }
+        }
+
+        try {
+            await copySeasonsToClipboard();
+        } catch (err) {
+            console.warn('Could not copy seasons to clipboard:', err);
+        }
+
+        updateFeaturedSeasonLabel();
+        renderFeaturedView();
+        showFeaturedSaveStatus(`Saved season ${latestYear} to Featured. Seasons copied to clipboard.`);
+    } catch (err) {
+        console.error('Failed to save featured season:', err);
+        showFeaturedSaveStatus('Save failed.', true);
+    } finally {
+        if (saveBtn) saveBtn.disabled = false;
     }
 }
 
@@ -24,15 +139,129 @@ function getFinalArticle(year) {
 }
 
 // ─── Season Index ────────────────────────────────────────────────────────────
-// Build a sorted list of available season years (newest first)
+// Build a sorted list of completed season years (newest first)
 function getSeasonYears() {
     return seasons
         .map(s => s.year)
+        .filter(year => getFinalResult(year) !== null)
         .sort((a, b) => parseInt(b) - parseInt(a));
 }
 
-function getLatestSeasonIndex() {
-    return 0; // years sorted newest-first
+const FEATURED_INDEX = -1;
+
+function isFeaturedMode() {
+    return currentIndex === FEATURED_INDEX;
+}
+
+/** Count titles won per team across all completed seasons */
+function getMostTitles() {
+    const counts = {};
+    yearList.forEach(year => {
+        const result = getFinalResult(year);
+        if (!result) return;
+        const id = result.winner.id;
+        counts[id] = (counts[id] || 0) + 1;
+    });
+    return Object.entries(counts)
+        .map(([id, count]) => ({ team: getTeamById(id), count }))
+        .filter(entry => entry.team)
+        .sort((a, b) => b.count - a.count);
+}
+
+function getArticleById(id) {
+    return articlesData.find(a => a.id === id) || getArticles().find(a => a.id === id) || null;
+}
+
+function renderAlltimeStatRow({ rank, img, name, count }) {
+    return `
+        <li class="alltime-stat-row">
+            <span class="alltime-stat-rank">${rank}</span>
+            ${img ? `<img class="alltime-stat-img" src="${img}" alt="">` : ''}
+            <span class="alltime-stat-name">${name}</span>
+            <span class="alltime-stat-value">${count}</span>
+        </li>`;
+}
+
+function renderFeaturedView() {
+    setViewMode(true);
+
+    const clubsEl = document.getElementById('seasonClubsContent');
+    if (clubsEl) clubsEl.hidden = true;
+
+    updateFeaturedSeasonLabel();
+
+    const article = getArticleById(FEATURED_ARTICLE_ID);
+    const coverEl = document.getElementById('featuredArticleCover');
+    const titleEl = document.getElementById('featuredArticleTitle');
+    const subtitleEl = document.getElementById('featuredArticleSubtitle');
+    const cardEl = document.getElementById('featuredArticleCard');
+
+    if (article) {
+        if (coverEl) {
+            coverEl.src = article.cover || ACL_LOGO;
+            coverEl.alt = article.title;
+        }
+        if (titleEl) titleEl.textContent = article.title;
+        if (subtitleEl) {
+            subtitleEl.textContent = article.subtitle || '';
+            subtitleEl.hidden = !article.subtitle;
+        }
+        if (cardEl) cardEl.dataset.articleId = article.id;
+    }
+
+    const titles = getMostTitles().slice(0, 3);
+    const scorers = getTopGoalScorers().slice(0, 3);
+    const assists = getTopAssistProviders().slice(0, 3);
+
+    const titlesEl = document.getElementById('alltimeTitles');
+    const scorersEl = document.getElementById('alltimeScorers');
+    const assistsEl = document.getElementById('alltimeAssists');
+
+    if (titlesEl) {
+        titlesEl.innerHTML = titles.length
+            ? titles.map((entry, i) => renderAlltimeStatRow({
+                rank: i + 1,
+                img: entry.team.img,
+                name: entry.team.sub || entry.team.name,
+                count: entry.count,
+            })).join('')
+            : '<li class="alltime-stat-empty">No titles yet</li>';
+    }
+
+    if (scorersEl) {
+        scorersEl.innerHTML = scorers.length
+            ? scorers.map((entry, i) => renderAlltimeStatRow({
+                rank: i + 1,
+                img: '',
+                name: entry.name,
+                count: entry.count,
+            })).join('')
+            : '<li class="alltime-stat-empty">No data yet</li>';
+    }
+
+    if (assistsEl) {
+        assistsEl.innerHTML = assists.length
+            ? assists.map((entry, i) => renderAlltimeStatRow({
+                rank: i + 1,
+                img: '',
+                name: entry.name,
+                count: entry.count,
+            })).join('')
+            : '<li class="alltime-stat-empty">No data yet</li>';
+    }
+}
+
+function setViewMode(featured) {
+    const heroEl = document.getElementById('seasonHero');
+    const featuredEl = document.getElementById('featuredOverviewContent');
+    const seasonEl = document.getElementById('seasonOverviewContent');
+
+    if (heroEl) {
+        heroEl.hidden = featured;
+        heroEl.style.display = featured ? 'none' : '';
+    }
+    if (featuredEl) featuredEl.hidden = !featured;
+    if (seasonEl) seasonEl.hidden = featured;
 }
 
 // ─── Player lookup helpers ───────────────────────────────────────────────────
@@ -248,7 +477,6 @@ const ROAD_ROUNDS = [
     { key: 'finals', label: 'Final', layout: 'full' },
     { key: 'semiFinals', label: 'Semi-finals', layout: 'pair' },
     { key: 'quarterFinals', label: 'Quarter-finals', layout: 'pair' },
-    { key: 'round16', label: 'Round of 16', layout: 'pair' },
 ];
 
 function getMatchWinnerNote(game) {
@@ -320,6 +548,36 @@ function renderRoadToFinal(year) {
     container.innerHTML = sections.length
         ? sections.join('')
         : '<div class="no-data">Knockout phase has not started yet.</div>';
+}
+
+function renderSeasonMatches(year) {
+    const container = document.getElementById('seasonMatchesList');
+    if (!container) return;
+
+    const data = getSeasonData(year);
+    if (!data) {
+        container.innerHTML = '<div class="no-data">No matches for this season.</div>';
+        return;
+    }
+
+    const sections = (data.matchdays || []).map((matchday, index) => {
+        const games = (matchday.games || []).filter(game => game.team1 && game.team2);
+        if (!games.length) return '';
+
+        return `
+            <div class="season-matchday">
+                <h3 class="season-matchday-title">Matchday ${index + 1}</h3>
+                ${matchday.details ? `<p class="season-matchday-details">${matchday.details}</p>` : ''}
+                <div class="season-matchday-games">
+                    ${games.map(renderRoadMatchCard).join('')}
+                </div>
+            </div>
+        `;
+    }).filter(Boolean);
+
+    container.innerHTML = sections.length
+        ? sections.join('')
+        : '<div class="no-data">No matches for this season.</div>';
 }
 
 const KO_PHASES = [
@@ -439,10 +697,17 @@ function setHeroTab(tabName) {
 
     const overviewEl = document.getElementById('seasonOverviewContent');
     const clubsEl = document.getElementById('seasonClubsContent');
+    const roadPanel = document.getElementById('roadToFinalPanel');
+    const matchesSection = document.getElementById('seasonMatchesSection');
+
     const showClubs = tabName === 'clubs';
+    const showMatches = tabName === 'matches';
 
     if (overviewEl) overviewEl.hidden = showClubs;
     if (clubsEl) clubsEl.hidden = !showClubs;
+
+    if (roadPanel) roadPanel.hidden = showMatches;
+    if (matchesSection) matchesSection.hidden = showClubs;
 }
 
 // ─── Main render ─────────────────────────────────────────────────────────────
@@ -453,26 +718,35 @@ function renderSeasonTabs() {
     const tabsEl = document.getElementById('seasonTabs');
     if (!tabsEl) return;
 
-    tabsEl.innerHTML = yearList.map((year, idx) => {
+    const featuredTab = `
+        <div class="season-tab season-tab--featured ${isFeaturedMode() ? 'is-active' : ''}" data-index="${FEATURED_INDEX}">
+            <img class="season-tab-logo season-tab-logo--acl" src="${ACL_LOGO}" alt="Featured">
+            <span class="season-tab-year">Featured</span>
+        </div>`;
+
+    const seasonTabs = yearList.map((year, idx) => {
         const finalResult = getFinalResult(year);
-        const hasWinner = finalResult !== null;
-        const winnerImg = hasWinner ? finalResult.winner.img : 'images/icons/cl-image.png';
-        const isActive = idx === currentIndex;
-        
+        const isActive = !isFeaturedMode() && idx === currentIndex;
+
         return `
             <div class="season-tab ${isActive ? 'is-active' : ''}" data-index="${idx}">
-                <img class="season-tab-logo ${hasWinner ? 'has-winner' : ''}" 
-                     src="${winnerImg}" alt="${hasWinner ? finalResult.winner.name : year}">
+                <img class="season-tab-logo has-winner" 
+                     src="${finalResult.winner.img}" alt="${finalResult.winner.name}">
                 <span class="season-tab-year">${year}</span>
             </div>
         `;
     }).join('');
 
+    tabsEl.innerHTML = featuredTab + seasonTabs;
+
     tabsEl.querySelectorAll('.season-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const idx = parseInt(tab.dataset.index);
-            if (!isNaN(idx)) {
-                currentIndex = idx;
+            if (isNaN(idx)) return;
+            currentIndex = idx;
+            if (isFeaturedMode()) {
+                renderFeatured();
+            } else {
                 render(yearList[currentIndex]);
             }
         });
@@ -490,20 +764,21 @@ function scrollActiveTabIntoView() {
 }
 
 function render(year) {
+    setViewMode(false);
+
     document.getElementById('tourneySectionYear').textContent = year;
 
     // Update selector arrows
     const prevBtn = document.getElementById('selectorPrevBtn');
     const nextBtn = document.getElementById('selectorNextBtn');
     if (prevBtn) prevBtn.disabled = currentIndex >= yearList.length - 1;
-    if (nextBtn) nextBtn.disabled = currentIndex <= 0;
+    if (nextBtn) nextBtn.disabled = false;
 
     // Render season tabs
     renderSeasonTabs();
 
     // --- Finals / completion ---
     const finalResult = getFinalResult(year);
-    const isComplete = finalResult !== null;
     const seasonHero = document.getElementById('seasonHero');
     const heroWinnerLogo = document.getElementById('heroWinnerLogo');
     const heroLabel = document.getElementById('heroLabel');
@@ -513,47 +788,35 @@ function render(year) {
 
     const finalArticle = getFinalArticle(year);
 
-    if (isComplete) {
-        seasonHero.classList.remove('no-winner');
-        heroWinnerLogo.src = finalResult.winner.img;
-        heroWinnerLogo.alt = finalResult.winner.name;
-        heroWinnerLogo.style.display = '';
-        heroLabel.textContent = 'WINNERS';
-        heroLabel.style.display = '';
-        heroTeamName.textContent = finalResult.winner.name;
+    seasonHero.classList.remove('no-winner');
+    heroWinnerLogo.src = finalResult.winner.img;
+    heroWinnerLogo.alt = finalResult.winner.name;
+    heroWinnerLogo.style.display = '';
+    heroLabel.textContent = 'WINNERS';
+    heroLabel.style.display = '';
+    heroTeamName.textContent = finalResult.winner.name;
 
-        if (finalArticle) {
-            heroHeadline.textContent = finalArticle.title;
-            if (finalArticle.cover) {
-                heroImage.src = finalArticle.cover;
-                heroImage.classList.remove('is-placeholder');
-            } else {
-                heroImage.src = 'images/icons/cl-image.png';
-                heroImage.classList.add('is-placeholder');
-            }
+    if (finalArticle) {
+        heroHeadline.textContent = finalArticle.title;
+        if (finalArticle.cover) {
+            heroImage.src = finalArticle.cover;
+            heroImage.classList.remove('is-placeholder');
         } else {
-            heroHeadline.textContent = `${finalResult.winner.name} ${finalResult.winScore}–${finalResult.losScore} ${finalResult.loser.name}`;
             heroImage.src = 'images/icons/cl-image.png';
             heroImage.classList.add('is-placeholder');
         }
-
-        heroImage.onclick = () => {
-            if (finalResult.id) {
-                window.location.href = `match-info.html?match=${finalResult.id}`;
-            }
-        };
-        heroImage.style.cursor = 'pointer';
     } else {
-        seasonHero.classList.add('no-winner');
-        heroWinnerLogo.style.display = 'none';
-        heroLabel.style.display = 'none';
-        heroTeamName.textContent = `Season ${year}`;
-        heroHeadline.textContent = 'Season in progress';
+        heroHeadline.textContent = `${finalResult.winner.name} ${finalResult.winScore}–${finalResult.losScore} ${finalResult.loser.name}`;
         heroImage.src = 'images/icons/cl-image.png';
         heroImage.classList.add('is-placeholder');
-        heroImage.onclick = null;
-        heroImage.style.cursor = 'default';
     }
+
+    heroImage.onclick = () => {
+        if (finalResult.id) {
+            window.location.href = `match-info.html?match=${finalResult.id}`;
+        }
+    };
+    heroImage.style.cursor = 'pointer';
 
     // --- Awards ---
     const scorers  = seasonTopScorers(year);
@@ -642,8 +905,19 @@ function render(year) {
     }).join('');
 
     renderRoadToFinal(year);
+    renderSeasonMatches(year);
     renderClubsView(year);
     setHeroTab(activeHeroTab);
+}
+
+function renderFeatured() {
+    const prevBtn = document.getElementById('selectorPrevBtn');
+    const nextBtn = document.getElementById('selectorNextBtn');
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = yearList.length === 0;
+
+    renderSeasonTabs();
+    renderFeaturedView();
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
@@ -652,14 +926,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     yearList = getSeasonYears();
 
     if (!yearList.length) {
-        const heroTeamName = document.getElementById('heroTeamName');
-        if (heroTeamName) heroTeamName.textContent = 'No seasons';
-        document.getElementById('awardsGrid').innerHTML = '<div class="no-data">No season data available.</div>';
+        currentIndex = FEATURED_INDEX;
+        renderFeatured();
         return;
     }
 
-    currentIndex = getLatestSeasonIndex();
-    render(yearList[currentIndex]);
+    currentIndex = FEATURED_INDEX;
+    renderFeatured();
 
     // Selector bar navigation
     const selectorPrevBtn = document.getElementById('selectorPrevBtn');
@@ -668,6 +941,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (selectorPrevBtn) {
         selectorPrevBtn.addEventListener('click', () => {
+            if (isFeaturedMode()) return;
+            if (currentIndex === 0) {
+                currentIndex = FEATURED_INDEX;
+                renderFeatured();
+                return;
+            }
             if (currentIndex < yearList.length - 1) {
                 currentIndex++;
                 render(yearList[currentIndex]);
@@ -677,9 +956,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (selectorNextBtn) {
         selectorNextBtn.addEventListener('click', () => {
+            if (isFeaturedMode()) {
+                currentIndex = 0;
+                render(yearList[currentIndex]);
+                return;
+            }
             if (currentIndex > 0) {
                 currentIndex--;
                 render(yearList[currentIndex]);
+            } else {
+                currentIndex = FEATURED_INDEX;
+                renderFeatured();
             }
         });
     }
@@ -697,17 +984,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.hero-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const tabName = tab.dataset.tab;
-            if (tabName === 'overview' || tabName === 'clubs') {
+            if (tabName === 'overview' || tabName === 'matches' || tabName === 'clubs') {
                 setHeroTab(tabName);
             }
         });
     });
 
+    const featuredArticleCard = document.getElementById('featuredArticleCard');
+    if (featuredArticleCard) {
+        featuredArticleCard.addEventListener('click', () => {
+            const id = featuredArticleCard.dataset.articleId;
+            if (id) window.location.href = `article-view.html?article=${id}`;
+        });
+    }
+
+    const featuredSaveBtn = document.getElementById('featuredSaveBtn');
+    if (featuredSaveBtn) {
+        featuredSaveBtn.addEventListener('click', () => {
+            if (!isFeaturedMode()) {
+                currentIndex = FEATURED_INDEX;
+                renderFeatured();
+            }
+            void saveFeaturedSeason();
+        });
+    }
+
     document.addEventListener('keydown', async (e) => {
         if (!e.ctrlKey || !e.shiftKey || e.key.toLowerCase() !== 's') return;
         e.preventDefault();
         try {
-            await navigator.clipboard.writeText(JSON.stringify(seasons, null, 2));
+            await copySeasonsToClipboard();
             console.log('Seasons copied to clipboard');
         } catch (err) {
             console.error('Failed to copy seasons:', err);

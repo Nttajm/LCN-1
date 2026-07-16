@@ -1,17 +1,31 @@
 const pageName = window.location.pathname.split("/").pop() || "index.html";
 const isMatchesPage = pageName === "matches.html" || pageName === "match-info.html";
 
+function getRfaaBase() {
+    const path = window.location.pathname.replace(/\\/g, "/");
+    const marker = "/rfaa/";
+    const idx = path.toLowerCase().indexOf(marker);
+    if (idx === -1) return "";
+    const rest = path.slice(idx + marker.length);
+    const lastSlash = rest.lastIndexOf("/");
+    const dir = lastSlash === -1 ? "" : rest.slice(0, lastSlash);
+    const depth = dir ? dir.split("/").filter(Boolean).length : 0;
+    return depth > 0 ? "../".repeat(depth) : "";
+}
+
+const rfaaBase = getRfaaBase();
+
 const nav = document.querySelector(".nav");
 if (nav) {
     nav.classList.add("p2-group");
 
     nav.innerHTML = `
-<a href="index.html" class="nav-logo">
+<a href="${rfaaBase}index.html" class="nav-logo">
             <div class="imgel">
-                <img src="images/leagues/acl.png" alt="tx">
+                <img src="${rfaaBase}images/leagues/acl.png" alt="tx">
             </div>
         </a>
-        <a href="matches.html" class="nav-mobile-matches${isMatchesPage ? " selected" : ""}"${isMatchesPage ? ' aria-current="page"' : ""}>Matches</a>
+        <a href="${rfaaBase}matches.html" class="nav-mobile-matches${isMatchesPage ? " selected" : ""}"${isMatchesPage ? ' aria-current="page"' : ""}>Matches</a>
         <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Open menu">
             <span class="nav-toggle-bar"></span>
             <span class="nav-toggle-bar"></span>
@@ -19,10 +33,10 @@ if (nav) {
         </button>
         <div class="options">
             <div class="option-elem">
-                <span><a href="matches.html">Matches</a></span>
+                <span><a href="${rfaaBase}matches.html">Matches</a></span>
             </div>
             <div class="option-elem">
-                <span><a href="table.html">Table</a></span>
+                <span><a href="${rfaaBase}table.html">Table</a></span>
             </div>
             <div class="option-elem" id="histab-parent">
                 <button type="button" class="nav-history-toggle" aria-expanded="false">
@@ -30,13 +44,13 @@ if (nav) {
                 </button>
                 <div class="more-info" id="histab">
                     <ul>
-                        <li><a href="seasons.html">Seasons</a></li>
-                        <li><a href="aot-stats.html">AOT</a></li>
+                        <li><a href="${rfaaBase}seasons.html">Seasons</a></li>
+                        <li><a href="${rfaaBase}aot-stats.html">AOT</a></li>
                     </ul>
                 </div>
             </div>
             <div class="option-elem">
-                <span><a href="acl/stats/alltime.html">Stats</a></span>
+                <span><a href="${rfaaBase}acl/stats/alltime.html">Stats</a></span>
             </div>
             <div class="option-elem">
                 <span><a href="#compare">Compare</a></span>
@@ -147,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault();
                 const teamId = link.getAttribute("data-team-id");
                 if (teamId) {
-                    window.location.href = `team-info.html?team=${teamId}`;
+                    window.location.href = `${rfaaBase}team-info.html?team=${teamId}`;
                 }
             });
         });
@@ -168,7 +182,7 @@ export function reapplyTeamLinkListeners() {
                 e.preventDefault();
                 const teamId = link.getAttribute("data-team-id");
                 if (teamId) {
-                    window.location.href = `team-info.html?team=${teamId}`;
+                    window.location.href = `${rfaaBase}team-info.html?team=${teamId}`;
                 }
             });
         });

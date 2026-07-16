@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossshare View</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: "Segoe UI", "Adobe Clean", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .stage {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        .stage img, .stage video {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .text-content {
+            max-width: 82vw;
+            color: #fff;
+            font-size: clamp(28px, 6vw, 86px);
+            line-height: 1.1;
+            text-align: center;
+            white-space: pre-wrap;
+        }
+
+        .instance-badge {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            min-width: 36px;
+            min-height: 32px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            background: #d71920;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .instance-badge.visible { display: flex; }
+
+        .loading {
+            color: #6d6d6d;
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            gap: 12px;
+            width: min(720px, 88vw);
+        }
+
+        .instance-card {
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #d71920;
+            color: #fff;
+            font-size: 30px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <main class="stage" id="stage"><span class="loading">Loading view</span></main>
+    <div class="instance-badge" id="instanceBadge"></div>
+
+    <script type="module">
+        import { db } from '../js/firebase.js';
+        import {
+            collection,
+            doc,
+            getDoc,
+            getDocs,
+            onSnapshot,
+            orderBy,
+            query,
+            runTransaction,
+            serverTimestamp,
+            setDoc
+        } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+
+        var params = new URLSearchParams(window.location.search);
+        var projName = params.get('proj') || '';
+        var viewParam = params.get('view') || 'main';
+        var stage = document.getElementById('stage');
+        var badge = document.getElementById('instanceBadge');
+        var projectRef = doc(db, 'projects', projName);
+        var selectedViewId = null;
+        var selectedView = null;
+        var instanceRef = null;
+        var instanceNum = null;
+        var revealInstances = false;
+        var heartbeatTimer = null;
+        var slideTimer = null;
+        var slideIndex = 0;
+        var activeInstances = [];
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, function (ch) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+            });
+        }
+
+        function getInstanceId() {
+            var key = 'crossshare_instance:' + projName + ':' + selectedViewId;
+            var id = localStorage.getItem(key);
+            if (!id) {
+                id = 'instance_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+                localStorage.setItem(key, id);
+            }
+            return id;
+        }
+
+        async function resolveView() {
+            if (!projName) throw new Error('Missing project name');
+
+            var direct = await getDoc(doc(db, 'projects', projName, 'views', viewParam));
+            if (direct.exists()) {
+                selectedViewId = direct.id;
+                return;
+            }
+
+            var snap = await getDocs(query(collection(db, 'projects', projName, 'views'), orderBy('created', 'asc')));
+            var match = snap.docs.find(function (item) {
+                var data = item.data();
+                return item.id === viewParam || data.name === viewParam;
+            }) || snap.docs[0];
+
+            if (!match) throw new Error('No views found');
+            selectedViewId = match.id;
+        }
+
+        async function registerInstance() {
+            var id = getInstanceId();
+            instanceRef = doc(db, 'projects', projName, 'views', selectedViewId, 'instances', id);
+            var counterRef = doc(db, 'projects', projName, 'views', selectedViewId, 'meta', 'instanceCounter');
+
+            await runTransaction(db, async function (transaction) {
+                var instanceSnap = await transaction.get(instanceRef);
+                if (instanceSnap.exists() && instanceSnap.data().num) {
+                    instanceNum = instanceSnap.data().num;
+                    transaction.set(instanceRef, {
+                        kind: selectedViewId === 'main' ? 'main' : 'link',
+                        lastSeen: serverTimestamp()
+                    }, { merge: true });
+                    return;
+                }
+
+                var counterSnap = await transaction.get(counterRef);
+                var next = counterSnap.exists() && counterSnap.data().next ? counterSnap.data().next : 1;
+                instanceNum = next;
+                transaction.set(counterRef, { next: next + 1 }, { merge: true });
+                transaction.set(instanceRef, {
+                    num: next,
+                    kind: selectedViewId === 'main' ? 'main' : 'link',
+                    created: serverTimestamp(),
+                    lastSeen: serverTimestamp()
+                }, { merge: true });
+            });
+
+            heartbeatTimer = setInterval(function () {
+                setDoc(instanceRef, { lastSeen: serverTimestamp() }, { merge: true });
+            }, 10000);
+        }
+
+        function subscribe() {
+            onSnapshot(projectRef, function (snap) {
+                revealInstances = snap.exists() && !!snap.data().revealInstances;
+                renderBadge();
+            });
+
+            onSnapshot(doc(db, 'projects', projName, 'views', selectedViewId), function (snap) {
+                selectedView = snap.exists() ? Object.assign({ id: snap.id }, snap.data()) : null;
+                document.title = selectedView ? 'Crossshare — ' + selectedView.name : 'Crossshare View';
+                render();
+            });
+
+            onSnapshot(collection(db, 'projects', projName, 'views', selectedViewId, 'instances'), function (snap) {
+                var now = Date.now();
+                activeInstances = snap.docs.map(function (item) {
+                    return Object.assign({ id: item.id }, item.data());
+                }).filter(function (item) {
+                    var lastSeen = item.lastSeen && item.lastSeen.toDate ? item.lastSeen.toDate().getTime() : 0;
+                    return !lastSeen || now - lastSeen < 45000;
+                }).sort(function (a, b) {
+                    return (a.num || 0) - (b.num || 0);
+                });
+                render();
+            });
+        }
+
+        function renderBadge() {
+            if (!revealInstances || !instanceNum) {
+                badge.classList.remove('visible');
+                return;
+            }
+
+            badge.textContent = selectedViewId === 'main' ? '[' + instanceNum + ']' : String(instanceNum);
+            badge.classList.add('visible');
+        }
+
+        function render() {
+            clearInterval(slideTimer);
+            slideTimer = null;
+
+            if (!selectedView) {
+                stage.innerHTML = '<span class="loading">View not found</span>';
+                renderBadge();
+                return;
+            }
+
+            var content = Array.isArray(selectedView.content) ? selectedView.content : [];
+            var item = content[selectedView.activeIndex || 0] || null;
+
+            if (selectedView.isMain && activeInstances.length) {
+                stage.innerHTML = '<div class="badge-grid">' + activeInstances.map(function (instance) {
+                    return '<div class="instance-card">[' + escapeHtml(instance.num || '?') + ']</div>';
+                }).join('') + '</div>';
+                renderBadge();
+                return;
+            }
+
+            if (!selectedView.live || !item) {
+                stage.innerHTML = '<img src="../i/ncl.png" alt="No content loaded">';
+                renderBadge();
+                return;
+            }
+
+            if (item.type === 'slide') {
+                renderSlide(item);
+            } else {
+                stage.innerHTML = renderItem(item);
+            }
+
+            renderBadge();
+        }
+
+        function renderItem(item) {
+            if (!item) return '';
+            if (item.type === 'text') return '<div class="text-content">' + escapeHtml(item.text) + '</div>';
+            if (item.type === 'video') return '<video src="' + escapeHtml(item.url || item.text || '') + '" autoplay muted loop playsinline></video>';
+            return '<img src="' + escapeHtml(item.url || item.text || '') + '" alt="Crossshare content">';
+        }
+
+        function renderSlide(item) {
+            var slides = Array.isArray(item.slides) ? item.slides : [];
+            if (!slides.length) {
+                stage.innerHTML = '<div class="text-content">Empty slideshow</div>';
+                return;
+            }
+
+            function showSlide() {
+                var slide = slides[slideIndex % slides.length];
+                stage.innerHTML = slide.url
+                    ? '<img src="' + escapeHtml(slide.url) + '" alt="Crossshare slide">'
+                    : '<div class="text-content">' + escapeHtml(slide.text) + '</div>';
+                slideIndex += 1;
+            }
+
+            showSlide();
+            slideTimer = setInterval(showSlide, 5000);
+        }
+
+        window.addEventListener('beforeunload', function () {
+            if (heartbeatTimer) clearInterval(heartbeatTimer);
+            if (slideTimer) clearInterval(slideTimer);
+        });
+
+        resolveView()
+            .then(registerInstance)
+            .then(subscribe)
+            .catch(function (e) {
+                console.error('Could not load CrossShare view:', e);
+                stage.innerHTML = '<img src="../i/ncl.png" alt="No content loaded">';
+            });
+    </script>
+</body>
+</html>

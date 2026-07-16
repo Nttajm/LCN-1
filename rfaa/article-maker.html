@@ -132,6 +132,58 @@
             gap: 0.8rem;
         }
 
+        .am-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            cursor: pointer;
+        }
+
+        .am-check input {
+            margin-top: 0.2rem;
+            width: 1rem;
+            height: 1rem;
+            accent-color: #00aeff;
+            flex-shrink: 0;
+        }
+
+        .am-check .am-check-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .am-check .am-check-title {
+            color: #d4dff5;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .am-check .am-check-hint {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .si-featured {
+            display: inline-block;
+            margin-left: 0.35rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 999px;
+            background: rgba(0,174,255,0.18);
+            border: 1px solid rgba(0,174,255,0.35);
+            color: #00aeff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            vertical-align: middle;
+        }
+
         .cover-preview {
             width: 100%;
             aspect-ratio: 16/9;
@@ -736,6 +788,16 @@
                 </div>
                 <div class="tag-wrap" id="tagWrap"></div>
             </div>
+
+            <div class="am-field">
+                <label class="am-check" for="f-featured">
+                    <input id="f-featured" type="checkbox">
+                    <span class="am-check-text">
+                        <span class="am-check-title">Feature on home</span>
+                        <span class="am-check-hint">Only for the main home banner (games-article). If several are checked, the latest one wins. Does not change Latest news cards.</span>
+                    </span>
+                </label>
+            </div>
         </div>
 
         <div class="am-section">
@@ -1216,6 +1278,7 @@ function buildArticle() {
         matchScore1: game?.score1 ?? null,
         matchScore2: game?.score2 ?? null,
         featuredPlayer: $('f-player').value || null,
+        featured: !!$('f-featured').checked,
         createdAt: prior?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
@@ -1223,6 +1286,7 @@ function buildArticle() {
 
 function clearForm() {
     ['f-title','f-sub','f-cover','f-body'].forEach(id => $(id).value = '');
+    $('f-featured').checked = false;
     tags = [];
     editingId = null;
     renderTags();
@@ -1308,6 +1372,7 @@ function loadArticleIntoForm(art) {
     $('f-sub').value   = art.subtitle || '';
     $('f-cover').value = art.cover || '';
     $('f-body').value  = art.body || '';
+    $('f-featured').checked = !!art.featured;
     tags = [...(art.tags || [])];
     renderTags();
     refreshCoverPreview();
@@ -1360,7 +1425,7 @@ function renderSavedList() {
                 ${a.cover ? `<img src="${a.cover}" onerror="this.style.display='none'" alt="">` : ''}
             </div>
             <div class="si-info">
-                <div class="si-title">${a.title}</div>
+                <div class="si-title">${a.title}${(a.featured === true || a.featured === 'true') ? '<span class="si-featured">Featured</span>' : ''}</div>
                 <div class="si-meta">${a.season ? 'Season ' + a.season : ''}${a.matchId ? ' · ' + a.matchId : ''}${a.featuredPlayer ? ' · ' + a.featuredPlayer : ''}</div>
             </div>
             <button class="si-del" data-del="${a.id}" title="Delete">✕</button>

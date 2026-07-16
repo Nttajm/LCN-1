@@ -1,4 +1,5 @@
 export const ARTICLES_JSON_PATH = 'articles.json';
+const HOME_FEATURED_KEY = 'rfaa-home-featured-id';
 
 const HANDLE_DB = 'rfaa-article-editor';
 const HANDLE_STORE = 'handles';
@@ -80,6 +81,85 @@ export function getArticleByMatchId(matchId) {
     return getArticles().find(a => String(a.matchId) === String(matchId)) || null;
 }
 
+function articleTimestamp(article) {
+    return new Date(article?.updatedAt || article?.createdAt || 0).getTime();
+}
+
+export function isArticleFeatured(article) {
+    return article?.featured === true || article?.featured === 'true';
+}
+
+function mergeArticleLists(...lists) {
+    const byId = new Map();
+    for (const list of lists) {
+        for (const article of list) {
+            if (!article?.id) continue;
+            const existing = byId.get(article.id);
+            if (!existing || articleTimestamp(article) >= articleTimestamp(existing)) {
+                byId.set(article.id, article);
+            }
+        }
+    }
+    return Array.from(byId.values());
+}
+
+function syncHomeFeaturedId(articles) {
+    const featured = articles
+        .filter(isArticleFeatured)
+        .sort((a, b) => articleTimestamp(b) - articleTimestamp(a))[0];
+    if (featured?.id) {
+        try { localStorage.setItem(HOME_FEATURED_KEY, featured.id); } catch {}
+    }
+}
+
+/** Latest home-featureable article (`featured: true`), by updatedAt then createdAt. */
+export function getLatestFeaturedArticle() {
+    const flagged = getArticles()
+        .filter(isArticleFeatured)
+        .sort((a, b) => articleTimestamp(b) - articleTimestamp(a));
+
+    if (flagged[0]) return flagged[0];
+
+    try {
+        const storedId = localStorage.getItem(HOME_FEATURED_KEY);
+        if (storedId) {
+            const stored = getArticles().find(a => a.id === storedId);
+            if (stored) return stored;
+        }
+    } catch {}
+
+    return null;
+}
+
+/** All articles newest-first, any season. */
+export function getArticlesSortedNewest() {
+    return [...getArticles()].sort((a, b) => articleTimestamp(b) - articleTimestamp(a));
+}
+
+/** Articles for headlines — never includes home-featured articles. */
+export function getArticlesForHomeFeed(limit) {
+    const featuredIds = new Set(
+        getArticles().filter(isArticleFeatured).map(a => a.id)
+    );
+    const seenTitles = new Set();
+    const result = [];
+
+    for (const article of getArticlesSortedNewest()) {
+        if (featuredIds.has(article.id)) continue;
+
+        const titleKey = (article.title || '').trim().toLowerCase();
+        if (titleKey) {
+            if (seenTitles.has(titleKey)) continue;
+            seenTitles.add(titleKey);
+        }
+
+        result.push(article);
+        if (limit && result.length >= limit) break;
+    }
+
+    return result;
+}
+
 export function setArticles(articles) {
     articlesCache = Array.isArray(articles) ? articles : [];
     return articlesCache;
@@ -106,23 +186,25 @@ export async function restoreArticlesFileHandle() {
 }
 
 export async function loadArticlesFromJson() {
+    let fetched = [];
+    try {
+        const res = await fetch(`${ARTICLES_JSON_PATH}?t=${Date.now()}`);
+        if (res.ok) fetched = normalizeArticles(await res.json());
+    } catch {}
+
+    let fromFile = [];
     await restoreArticlesFileHandle();
     if (articlesFileHandle) {
         try {
             if (await ensureWritePermission(articlesFileHandle)) {
-                setArticles(await readArticlesFromHandle(articlesFileHandle));
-                return getArticles();
+                fromFile = await readArticlesFromHandle(articlesFileHandle);
             }
         } catch {}
     }
-    try {
-        const res = await fetch(`${ARTICLES_JSON_PATH}?t=${Date.now()}`);
-        if (res.ok) {
-            setArticles(normalizeArticles(await res.json()));
-            return getArticles();
-        }
-    } catch {}
-    if (!articlesCache) setArticles([]);
+
+    const merged = mergeArticleLists(fromFile, fetched);
+    setArticles(merged.length ? merged : (fetched.length ? fetched : []));
+    syncHomeFeaturedId(getArticles());
     return getArticles();
 }
 
@@ -215,12 +297,14 @@ export function saveArticle(article) {
         articles.push(article);
     }
     setArticles(articles);
+    syncHomeFeaturedId(articles);
     void syncJsonIfLinked();
     return articles[idx !== -1 ? idx : articles.length - 1];
 }
 
 export function deleteArticle(id) {
     setArticles(getArticles().filter(a => a.id !== id));
+    syncHomeFeaturedId(getArticles());
     void syncJsonIfLinked();
 }
 

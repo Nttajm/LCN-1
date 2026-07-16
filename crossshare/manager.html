@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossshare — Manager</title>
+    <style>
+        :root {
+            --ad-bg-app: #1a1a1a;
+            --ad-bg-panel: #232323;
+            --ad-bg-chrome: #2b2b2b;
+            --ad-bg-elevated: #323232;
+            --ad-bg-input: #1a1a1a;
+            --ad-border: #323232;
+            --ad-border-strong: #454545;
+            --ad-accent: #1473e6;
+            --ad-text: #e1e1e1;
+            --ad-text-secondary: #959595;
+            --ad-text-muted: #6d6d6d;
+            --ad-text-bright: #fff;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: "Segoe UI", "Adobe Clean", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            background: var(--ad-bg-app);
+            color: var(--ad-text);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button, input, textarea, select { font: inherit; }
+        button { cursor: pointer; }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 44px;
+            padding: 0 12px;
+            background: var(--ad-bg-chrome);
+            border-bottom: 1px solid var(--ad-bg-app);
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .topbar-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .topbar-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ad-text-bright);
+        }
+
+        .topbar-divider {
+            width: 1px;
+            height: 18px;
+            background: var(--ad-border-strong);
+        }
+
+        .stream-name {
+            color: var(--ad-text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .workspace {
+            height: calc(100vh - 44px);
+            display: grid;
+            grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.1fr);
+            grid-template-rows: minmax(260px, 1fr) minmax(260px, 1fr);
+            gap: 1px;
+            background: var(--ad-border);
+        }
+
+        .panel {
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--ad-bg-panel);
+            border: 1px solid var(--ad-border);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 30px;
+            padding: 0 8px;
+            background: var(--ad-bg-chrome);
+            border-bottom: 1px solid var(--ad-border);
+            flex-shrink: 0;
+        }
+
+        .panel-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 16px;
+            padding: 0 4px;
+            border: 1px solid var(--ad-border-strong);
+            border-radius: 2px;
+            color: var(--ad-text-secondary);
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .tabs {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+            flex: 1;
+            height: 100%;
+        }
+
+        .tab {
+            height: 100%;
+            display: inline-flex;
+            align-items: center;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: var(--ad-text-secondary);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .tab.is-active {
+            border-bottom-color: var(--ad-accent);
+            color: var(--ad-text);
+        }
+
+        .panel-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--ad-bg-panel);
+            overflow: hidden;
+        }
+
+        .section-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 36px;
+            padding: 7px 10px;
+            border-bottom: 1px solid var(--ad-border);
+            background: var(--ad-bg-chrome);
+        }
+
+        .section-title {
+            color: var(--ad-text-bright);
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .body-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            background: var(--ad-bg-app);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+            min-height: 42px;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--ad-border);
+        }
+
+        .row:hover { background: var(--ad-bg-elevated); }
+        .row.is-selected { outline: 1px solid var(--ad-accent); outline-offset: -1px; }
+
+        .row-title {
+            color: var(--ad-text-bright);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .row-meta {
+            margin-top: 2px;
+            color: var(--ad-text-secondary);
+            font-size: 11px;
+        }
+
+        .row-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn {
+            min-height: 26px;
+            padding: 0 10px;
+            border: 1px solid var(--ad-border-strong);
+            border-radius: 3px;
+            background: var(--ad-bg-elevated);
+            color: var(--ad-text);
+            font-size: 12px;
+        }
+
+        .btn:hover { background: #3a3a3a; }
+
+        .btn-blue {
+            border-color: var(--ad-accent);
+            background: var(--ad-accent);
+            color: #fff;
+        }
+
+        .btn-live {
+            width: 72px;
+            height: 28px;
+            border: 0;
+            border-radius: 2px;
+            background: #d71920;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .btn-live.is-off {
+            background: #4a1d1f;
+            border: 1px solid #7a2a2d;
+        }
+
+        .input, .textarea, .select {
+            width: 100%;
+            min-height: 28px;
+            padding: 5px 8px;
+            border: 1px solid var(--ad-border-strong);
+            border-radius: 2px;
+            background: var(--ad-bg-input);
+            color: var(--ad-text);
+            outline: none;
+        }
+
+        .textarea {
+            min-height: 74px;
+            resize: vertical;
+        }
+
+        .input:focus, .textarea:focus, .select:focus {
+            border-color: var(--ad-accent);
+            outline: 1px solid var(--ad-accent);
+        }
+
+        .form {
+            display: grid;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .field { display: grid; gap: 5px; }
+        .label { color: var(--ad-text-secondary); font-size: 11px; }
+
+        .empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-height: 0;
+            color: var(--ad-text-muted);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .preview {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .preview img, .preview video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-text {
+            max-width: 80%;
+            color: #fff;
+            font-size: clamp(26px, 5vw, 72px);
+            line-height: 1.15;
+            text-align: center;
+            white-space: pre-wrap;
+        }
+
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+            gap: 8px;
+            width: min(560px, 90%);
+        }
+
+        .instance-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            background: #d71920;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .footer-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 10px;
+            border-top: 1px solid var(--ad-border);
+            background: var(--ad-bg-chrome);
+        }
+
+        .switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--ad-text-secondary);
+            font-size: 12px;
+        }
+
+        .switch input { accent-color: var(--ad-accent); }
+
+        .status-line {
+            color: var(--ad-text-secondary);
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-brand">
+            <img class="topbar-logo" src="logos/crossshare-logo.png" alt="Crossshare">
+            <span class="topbar-name">crossshare</span>
+            <span class="topbar-divider" aria-hidden="true"></span>
+            <span class="stream-name" id="streamName">Untitled Stream</span>
+        </div>
+    </header>
+
+    <main class="workspace" id="workspace"></main>
+
+    <script type="module">
+        import { db } from './js/firebase.js';
+        import {
+            collection,
+            doc,
+            getDoc,
+            onSnapshot,
+            orderBy,
+            query,
+            serverTimestamp,
+            setDoc,
+            updateDoc
+        } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+
+        var params = new URLSearchParams(window.location.search);
+        var projName = params.get('proj') || 'Untitled Stream';
+        var projectRef = doc(db, 'projects', projName);
+        var viewsRef = collection(db, 'projects', projName, 'views');
+        var projectData = { name: projName, revealInstances: false };
+        var views = [];
+        var selectedViewId = 'main';
+        var selectedView = null;
+        var instances = [];
+        var draggedTab = null;
+
+        var windowTabs = {
+            1: [{ id: 'views', label: 'Views' }],
+            2: [{ id: 'stream', label: 'Stream View' }],
+            3: [{ id: 'media', label: 'Main View: Media' }],
+            4: [{ id: 'shower', label: 'Shower' }]
+        };
+
+        var activeTabs = { 1: 'views', 2: 'stream', 3: 'media', 4: 'shower' };
+
+        document.getElementById('streamName').textContent = projName;
+        document.title = 'Crossshare — ' + projName;
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, function (ch) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+            });
+        }
+
+        function slugName(name) {
+            return String(name || 'view').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'view';
+        }
+
+        function viewLink(view) {
+            var url = new URL('v/', window.location.href);
+            url.searchParams.set('proj', projName);
+            url.searchParams.set('view', view.id === 'main' ? 'main' : view.name);
+            return url.href;
+        }
+
+        function currentItem() {
+            if (!selectedView || !Array.isArray(selectedView.content)) return null;
+            return selectedView.content[selectedView.activeIndex || 0] || null;
+        }
+
+        async function ensureProject() {
+            var snap = await getDoc(projectRef);
+            if (!snap.exists()) {
+                await setDoc(projectRef, {
+                    name: projName,
+                    created: serverTimestamp(),
+                    revealInstances: false
+                }, { merge: true });
+            }
+
+            var mainRef = doc(viewsRef, 'main');
+            var mainSnap = await getDoc(mainRef);
+            if (!mainSnap.exists()) {
+                await setDoc(mainRef, {
+                    name: 'Main View',
+                    isMain: true,
+                    live: false,
+                    activeIndex: 0,
+                    content: [],
+                    created: serverTimestamp(),
+                    updated: serverTimestamp()
+                });
+            }
+        }
+
+        function subscribe() {
+            onSnapshot(projectRef, function (snap) {
+                if (snap.exists()) projectData = Object.assign({ name: projName, revealInstances: false }, snap.data());
+                render();
+            });
+
+            onSnapshot(query(viewsRef, orderBy('created', 'asc')), function (snap) {
+                views = snap.docs.map(function (item) {
+                    return Object.assign({ id: item.id }, item.data());
+                });
+                selectedView = views.find(function (view) { return view.id === selectedViewId; }) || views[0] || null;
+                if (selectedView) selectedViewId = selectedView.id;
+                updateDynamicTabLabels();
+                subscribeInstances();
+                render();
+            });
+        }
+
+        var unsubscribeInstances = null;
+
+        function subscribeInstances() {
+            if (unsubscribeInstances) unsubscribeInstances();
+            if (!selectedViewId) return;
+
+            unsubscribeInstances = onSnapshot(collection(db, 'projects', projName, 'views', selectedViewId, 'instances'), function (snap) {
+                var now = Date.now();
+                instances = snap.docs.map(function (item) {
+                    return Object.assign({ id: item.id }, item.data());
+                }).filter(function (item) {
+                    var lastSeen = item.lastSeen && item.lastSeen.toDate ? item.lastSeen.toDate().getTime() : 0;
+                    return !lastSeen || now - lastSeen < 45000;
+                }).sort(function (a, b) {
+                    return (a.num || 0) - (b.num || 0);
+                });
+                render();
+            });
+        }
+
+        function updateDynamicTabLabels() {
+            var name = selectedView ? selectedView.name : 'Stream';
+            windowTabs[3][0].label = name + ': Media';
+        }
+
+        function render() {
+            var workspace = document.getElementById('workspace');
+            workspace.innerHTML = [1, 2, 3, 4].map(renderPanel).join('');
+            bindPanelEvents(workspace);
+        }
+
+        function renderPanel(num) {
+            var active = activeTabs[num];
+            return [
+                '<section class="panel" data-window="' + num + '">',
+                    '<div class="panel-header">',
+                        '<span class="panel-num">#' + num + '</span>',
+                        '<div class="tabs" data-window="' + num + '">',
+                            windowTabs[num].map(function (tab) {
+                                return '<button class="tab' + (tab.id === active ? ' is-active' : '') + '" type="button" draggable="true" data-tab="' + tab.id + '">' + escapeHtml(tab.label) + '</button>';
+                            }).join(''),
+                        '</div>',
+                    '</div>',
+                    '<div class="panel-body">' + renderTab(active) + '</div>',
+                '</section>'
+            ].join('');
+        }
+
+        function renderTab(tabId) {
+            if (tabId === 'views') return renderViewsTab();
+            if (tabId === 'stream') return renderStreamTab();
+            if (tabId === 'media') return renderMediaTab();
+            if (tabId === 'shower') return renderShowerTab();
+            return '<div class="empty">No tab loaded.</div>';
+        }
+
+        function renderViewsTab() {
+            return [
+                '<div class="section-toolbar">',
+                    '<span class="section-title">Views</span>',
+                    '<button class="btn btn-blue" type="button" data-action="add-view">New View</button>',
+                '</div>',
+                '<div class="body-scroll">',
+                    views.map(function (view) {
+                        var selected = view.id === selectedViewId;
+                        var contentCount = Array.isArray(view.content) ? view.content.length : 0;
+                        return [
+                            '<div class="row' + (selected ? ' is-selected' : '') + '" data-view="' + view.id + '">',
+                                '<div>',
+                                    '<div class="row-title">' + escapeHtml(view.name) + '</div>',
+                                    '<div class="row-meta">' + (view.live ? 'Live' : 'Offline') + ' · ' + contentCount + ' item' + (contentCount === 1 ? '' : 's') + '</div>',
+                                '</div>',
+                                '<div class="row-actions">',
+                                    '<button class="btn" type="button" data-action="open-link" data-view="' + view.id + '">Link</button>',
+                                    '<button class="btn" type="button" data-action="copy-link" data-view="' + view.id + '">Copy</button>',
+                                '</div>',
+                            '</div>'
+                        ].join('');
+                    }).join('') || '<div class="empty">No views yet.</div>',
+                '</div>',
+                '<div class="footer-toggle">',
+                    '<label class="switch"><input type="checkbox" data-action="toggle-reveal" ' + (projectData.revealInstances ? 'checked' : '') + '> Reveal instances</label>',
+                    '<span class="status-line">' + instances.length + ' active instance' + (instances.length === 1 ? '' : 's') + '</span>',
+                '</div>'
+            ].join('');
+        }
+
+        function renderStreamTab() {
+            if (!selectedView) return '<div class="empty">Select a view.</div>';
+            var item = currentItem();
+            var preview = renderPreview(selectedView, item, true);
+
+            return [
+                '<div class="section-toolbar">',
+                    '<span class="section-title">' + escapeHtml(selectedView.name) + ' stream</span>',
+                    '<button class="btn-live' + (selectedView.live ? '' : ' is-off') + '" type="button" data-action="toggle-live">' + (selectedView.live ? 'End' : 'Start') + '</button>',
+                '</div>',
+                preview
+            ].join('');
+        }
+
+        function renderMediaTab() {
+            if (!selectedView) return '<div class="empty">Select a view.</div>';
+            var content = Array.isArray(selectedView.content) ? selectedView.content : [];
+            return [
+                '<div class="section-toolbar"><span class="section-title">Create media for ' + escapeHtml(selectedView.name) + '</span></div>',
+                '<form class="form" data-action="add-content">',
+                    '<div class="field"><label class="label">Type</label><select class="select" name="type"><option value="image">Image URL</option><option value="text">Text</option><option value="slide">Slideshow URLs / text</option></select></div>',
+                    '<div class="field"><label class="label">Content</label><textarea class="textarea" name="content" placeholder="Image URL, text, or one slideshow item per line"></textarea></div>',
+                    '<button class="btn btn-blue" type="submit">Add to View</button>',
+                '</form>',
+                '<div class="body-scroll">',
+                    content.map(function (item, index) {
+                        return [
+                            '<div class="row' + (index === (selectedView.activeIndex || 0) ? ' is-selected' : '') + '">',
+                                '<div>',
+                                    '<div class="row-title">' + escapeHtml(itemLabel(item)) + '</div>',
+                                    '<div class="row-meta">' + escapeHtml(item.type || 'item') + '</div>',
+                                '</div>',
+                                '<div class="row-actions"><button class="btn" type="button" data-action="set-active" data-index="' + index + '">Show</button></div>',
+                            '</div>'
+                        ].join('');
+                    }).join('') || '<div class="empty">No media in this view.</div>',
+                '</div>'
+            ].join('');
+        }
+
+        function renderShowerTab() {
+            if (!selectedView) return '<div class="empty">Select a view.</div>';
+            var content = Array.isArray(selectedView.content) ? selectedView.content : [];
+            return [
+                '<div class="section-toolbar"><span class="section-title">Shower options</span></div>',
+                '<div class="form">',
+                    '<div class="field"><label class="label">Active item</label><select class="select" data-action="active-select">',
+                        content.map(function (item, index) {
+                            return '<option value="' + index + '" ' + (index === (selectedView.activeIndex || 0) ? 'selected' : '') + '>' + escapeHtml(itemLabel(item)) + '</option>';
+                        }).join(''),
+                    '</select></div>',
+                    '<div class="field"><label class="label">Current type</label><select class="select" data-action="type-select" ' + (!content.length ? 'disabled' : '') + '>',
+                        ['image', 'text', 'slide', 'video'].map(function (type) {
+                            var item = currentItem();
+                            return '<option value="' + type + '" ' + (item && item.type === type ? 'selected' : '') + '>' + type + '</option>';
+                        }).join(''),
+                    '</select></div>',
+                    '<div class="status-line">Image, text, slideshow, and video URL display are supported in the viewer.</div>',
+                '</div>',
+                '<div class="preview">' + (content.length ? renderItem(currentItem(), false) : '<span class="empty">No content selected.</span>') + '</div>'
+            ].join('');
+        }
+
+        function renderPreview(view, item, includeMainInstances) {
+            if (view.isMain && includeMainInstances && instances.length) {
+                return '<div class="preview"><div class="badge-grid">' + instances.map(function (instance) {
+                    return '<div class="instance-card">[' + escapeHtml(instance.num || '?') + ']</div>';
+                }).join('') + '</div></div>';
+            }
+
+            if (!view.live || !item) {
+                return '<div class="preview"><img src="i/ncl.png" alt="No content loaded"></div>';
+            }
+
+            return '<div class="preview">' + renderItem(item, true) + '</div>';
+        }
+
+        function renderItem(item, allowVideo) {
+            if (!item) return '';
+            if (item.type === 'text') return '<div class="preview-text">' + escapeHtml(item.text) + '</div>';
+            if (item.type === 'video' && allowVideo) return '<video src="' + escapeHtml(item.url) + '" autoplay muted loop playsinline></video>';
+            if (item.type === 'slide') {
+                var slide = item.slides && item.slides.length ? item.slides[0] : null;
+                if (!slide) return '<div class="preview-text">Empty slideshow</div>';
+                return slide.url ? '<img src="' + escapeHtml(slide.url) + '" alt="Slideshow item">' : '<div class="preview-text">' + escapeHtml(slide.text) + '</div>';
+            }
+            return '<img src="' + escapeHtml(item.url || item.text || '') + '" alt="Stream content">';
+        }
+
+        function itemLabel(item) {
+            if (!item) return 'Untitled item';
+            if (item.type === 'slide') return 'Slideshow (' + ((item.slides && item.slides.length) || 0) + ')';
+            return (item.text || item.url || 'Untitled item').slice(0, 50);
+        }
+
+        function bindPanelEvents(root) {
+            root.querySelectorAll('.tab').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    activeTabs[this.closest('[data-window]').dataset.window] = this.dataset.tab;
+                    render();
+                });
+                tab.addEventListener('dragstart', function () {
+                    draggedTab = {
+                        sourceWindow: this.closest('[data-window]').dataset.window,
+                        tabId: this.dataset.tab
+                    };
+                });
+            });
+
+            root.querySelectorAll('.tabs').forEach(function (tabs) {
+                tabs.addEventListener('dragover', function (e) { e.preventDefault(); });
+                tabs.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    if (!draggedTab) return;
+                    moveTab(draggedTab.sourceWindow, this.dataset.window, draggedTab.tabId);
+                    draggedTab = null;
+                });
+            });
+
+            root.querySelectorAll('[data-view]').forEach(function (row) {
+                row.addEventListener('click', function (e) {
+                    if (e.target.closest('button')) return;
+                    selectedViewId = this.dataset.view;
+                    selectedView = views.find(function (view) { return view.id === selectedViewId; }) || selectedView;
+                    updateDynamicTabLabels();
+                    subscribeInstances();
+                    render();
+                });
+            });
+
+            root.querySelectorAll('[data-action]').forEach(function (el) {
+                var action = el.dataset.action;
+                if (action === 'add-view') el.addEventListener('click', addView);
+                if (action === 'open-link') el.addEventListener('click', function () { openViewLink(this.dataset.view); });
+                if (action === 'copy-link') el.addEventListener('click', function () { copyViewLink(this.dataset.view); });
+                if (action === 'toggle-reveal') el.addEventListener('change', toggleReveal);
+                if (action === 'toggle-live') el.addEventListener('click', toggleLive);
+                if (action === 'set-active') el.addEventListener('click', function () { setActiveIndex(parseInt(this.dataset.index, 10)); });
+                if (action === 'active-select') el.addEventListener('change', function () { setActiveIndex(parseInt(this.value, 10)); });
+                if (action === 'type-select') el.addEventListener('change', function () { updateCurrentType(this.value); });
+            });
+
+            var form = root.querySelector('form[data-action="add-content"]');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    addContent(new FormData(form));
+                    form.reset();
+                });
+            }
+        }
+
+        function moveTab(sourceWindow, targetWindow, tabId) {
+            if (sourceWindow === targetWindow) return;
+            var source = windowTabs[sourceWindow];
+            var index = source.findIndex(function (tab) { return tab.id === tabId; });
+            if (index === -1) return;
+            var tab = source.splice(index, 1)[0];
+            windowTabs[targetWindow].push(tab);
+            activeTabs[targetWindow] = tab.id;
+            if (activeTabs[sourceWindow] === tab.id) activeTabs[sourceWindow] = source[0] ? source[0].id : null;
+            render();
+        }
+
+        async function addView() {
+            var name = prompt('View name');
+            if (!name) return;
+            var id = slugName(name);
+            await setDoc(doc(viewsRef, id), {
+                name: name.trim(),
+                isMain: false,
+                live: false,
+                activeIndex: 0,
+                content: [],
+                created: serverTimestamp(),
+                updated: serverTimestamp()
+            }, { merge: true });
+            selectedViewId = id;
+        }
+
+        function findView(viewId) {
+            return views.find(function (view) { return view.id === viewId; });
+        }
+
+        function openViewLink(viewId) {
+            var view = findView(viewId);
+            if (!view) return;
+            window.open(viewLink(view), '_blank', 'noopener');
+        }
+
+        async function copyViewLink(viewId) {
+            var view = findView(viewId);
+            if (!view) return;
+            var link = viewLink(view);
+            try {
+                await navigator.clipboard.writeText(link);
+            } catch (e) {
+                prompt('Copy viewer link', link);
+            }
+        }
+
+        async function toggleReveal(e) {
+            await setDoc(projectRef, { revealInstances: e.target.checked }, { merge: true });
+        }
+
+        async function toggleLive() {
+            if (!selectedView) return;
+            await updateDoc(doc(viewsRef, selectedView.id), {
+                live: !selectedView.live,
+                updated: serverTimestamp()
+            });
+        }
+
+        async function setActiveIndex(index) {
+            if (!selectedView || isNaN(index)) return;
+            await updateDoc(doc(viewsRef, selectedView.id), {
+                activeIndex: index,
+                updated: serverTimestamp()
+            });
+        }
+
+        async function updateCurrentType(type) {
+            if (!selectedView) return;
+            var content = Array.isArray(selectedView.content) ? selectedView.content.slice() : [];
+            var index = selectedView.activeIndex || 0;
+            if (!content[index]) return;
+            content[index] = Object.assign({}, content[index], { type: type });
+            await updateDoc(doc(viewsRef, selectedView.id), {
+                content: content,
+                updated: serverTimestamp()
+            });
+        }
+
+        async function addContent(formData) {
+            if (!selectedView) return;
+            var type = formData.get('type');
+            var raw = String(formData.get('content') || '').trim();
+            if (!raw) return;
+
+            var item = {
+                id: 'item_' + Date.now().toString(36),
+                type: type
+            };
+
+            if (type === 'image') item.url = raw;
+            if (type === 'text') item.text = raw;
+            if (type === 'slide') {
+                item.slides = raw.split(/\r?\n/).map(function (line) {
+                    var value = line.trim();
+                    return /^https?:\/\//i.test(value) ? { url: value } : { text: value };
+                }).filter(function (slide) { return slide.url || slide.text; });
+            }
+
+            var content = Array.isArray(selectedView.content) ? selectedView.content.slice() : [];
+            content.push(item);
+            await updateDoc(doc(viewsRef, selectedView.id), {
+                content: content,
+                activeIndex: content.length - 1,
+                updated: serverTimestamp()
+            });
+        }
+
+        ensureProject().then(subscribe).catch(function (e) {
+            console.error('Could not initialize CrossShare manager:', e);
+            document.getElementById('workspace').innerHTML = '<div class="empty">Could not load this project from Firebase.</div>';
+        });
+    </script>
+</body>
+</html>

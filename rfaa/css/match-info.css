@@ -6,10 +6,141 @@
     background: var(--grad-2);
     color: white;
     height: 70vh;
+    position: relative;
+    overflow: hidden;
 
     background-size: 200% 200%;
     animation: gradientAnimation 1s ease forwards;
         font-family: var(--font-1);
+}
+
+.match-info--with-article {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: stretch;
+    height: clamp(28rem, 62vh, 40rem);
+    animation: none;
+    background: #070d54;
+    background-size: auto;
+}
+
+.match-info--with-article .match-info-context {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 46%;
+    max-width: none;
+    height: 100%;
+    justify-content: center;
+    padding: 1.5rem 2rem 1.5rem 2.5rem;
+    background: #070d54;
+    gap: 0.85rem;
+}
+
+.match-info--with-article .match-info-context::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -8rem;
+    width: 8rem;
+    height: 100%;
+    pointer-events: none;
+    background: linear-gradient(90deg, #070d54 0%, rgba(7, 13, 84, 0.82) 35%, rgba(7, 13, 84, 0) 100%);
+}
+
+.match-info--with-article .info-text {
+    padding: 0.75rem 0 1rem;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.match-info--with-article .team-score {
+    width: 100%;
+    max-width: 36rem;
+    gap: 1rem;
+}
+
+.match-info--with-article .team-score .team1 img,
+.match-info--with-article .team-score .team2 img {
+    width: 4.5rem;
+    height: 4.5rem;
+}
+
+.match-info--with-article .team-score .team1 span,
+.match-info--with-article .team-score .team2 span {
+    font-size: 1.15rem;
+}
+
+.match-info--with-article .final-score {
+    font-size: 2.4rem;
+}
+
+.match-info--with-article .player-goals {
+    gap: 4rem;
+    margin-top: 0.35rem;
+}
+
+.match-info--with-article .player-goals .team1,
+.match-info--with-article .player-goals .team2 {
+    font-size: 1.05rem;
+}
+
+.match-info--with-article .minute {
+    font-size: 1.05rem;
+    max-width: 8rem;
+}
+
+.match-info--with-article .cards-section {
+    width: 100%;
+    max-width: 36rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+}
+
+.match-info-article {
+    position: relative;
+    flex: 1 1 54%;
+    min-width: 0;
+    display: block;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+}
+
+.match-info-article img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s ease;
+}
+
+.match-info-article:hover img {
+    transform: scale(1.03);
+}
+
+.match-info-article__cta {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.55rem;
+    background: #00d9ff;
+    color: #04104e;
+    font-family: var(--font-1);
+    font-size: 0.95rem;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 0.6rem 1.6rem rgba(0, 0, 0, 0.28);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.match-info-article:hover .match-info-article__cta {
+    background: #5eefff;
+    transform: translate(-50%, -50%) scale(1.03);
 }
 
 .match-info-context {
@@ -254,6 +385,10 @@
     right: 0;
     height: 3px;
     background: #00a6cf;
+}
+
+a.match-tab--link {
+    text-decoration: none;
 }
 
 .match-content-section {
@@ -1314,6 +1449,56 @@
 
     .articles-grid {
         grid-template-columns: 1fr;
+    }
+
+    .match-info--with-article {
+        flex-direction: column-reverse;
+        height: auto;
+        min-height: 0;
+    }
+
+    .match-info--with-article .match-info-context {
+        flex: none;
+        width: 100%;
+        padding: 1.25rem 1rem 1.5rem;
+    }
+
+    .match-info--with-article .match-info-context::after {
+        display: none;
+    }
+
+    .match-info--with-article .team-score {
+        max-width: none;
+    }
+
+    .match-info--with-article .team-score .team1 img,
+    .match-info--with-article .team-score .team2 img {
+        width: 3.5rem;
+        height: 3.5rem;
+    }
+
+    .match-info--with-article .player-goals {
+        gap: 2rem;
+    }
+
+    .match-info--with-article .cards-section {
+        max-width: none;
+    }
+
+    .match-info-article {
+        flex: none;
+        width: 100%;
+        height: 16rem;
+    }
+
+    .match-info-article__cta {
+        top: auto;
+        bottom: 1rem;
+        transform: translateX(-50%);
+    }
+
+    .match-info-article:hover .match-info-article__cta {
+        transform: translateX(-50%) scale(1.03);
     }
 
     .linked-article-preview {

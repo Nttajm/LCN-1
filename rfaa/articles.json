@@ -48,7 +48,7 @@
   },
   {
     "id": "art-mr0267r8",
-    "title": "Back-to-Back Glory: Pacific Saint Leon Rule Europe as Juve Seals Ballon d'Or Destiny",
+    "title": "Back-to-Back Glory: Pacific Saint Leon Conquer Aceo",
     "subtitle": null,
     "cover": "articles/1999/f.png",
     "body": "The 1999 Champions League final delivered a legendary showcase of European football, concluding with Pacific Saint Leon lifting the trophy once again after a thrilling 4-2 victory over Pacer FC. With this triumph, PSL completes the highly elusive back-to-back continental double, cementing their era of absolute dominance. The night also served as the final, undeniable argument for Juventus juve to claim the Ballon d'Or, as the talismanic forward delivered a masterclass performance when everything was on the line.\n\nPSL asserted control early on, commanding 59% of the possession and showcasing precise, elegant passing at an 80% accuracy rate. Pacer FC fought valiantly, attempting to disrupt the rhythm with quick counter-attacks, but they were largely starved of the ball, finishing with 41% possession and a 68% passing completion rate.\n\nFirst Half Action\nThe scoring opened in the 23rd minute when Fisca Lapierre found the back of the net, clinical in his finish after receiving a perfectly weighted pass from Diaz Chesma. Pacer FC refused to back down, executing an aggressive attacking spell that forced a mistake in the PSL penalty area. San Guia stepped up in the 41st minute and calmly converted the penalty, briefly shifting the momentum.\n\nHowever, just before the stroke of halftime in the 45th minute, Luke Bartho picked out Juventus juve, who hammered home a crucial goal to restore PSL's lead going into the break.\n\nJuve Silences the Comeback\nWhile Pacer FC threatened a late comeback in the 72nd minute through Connor Fullerton, assisted by Mans Icao, it only set the stage for greatness. In the 79th minute, Diaz Chesma provided his second assist of the match, finding Juventus juve, who struck a devastating blow to make it 3-2. This second goal from Juve completely shattered Pacer FC's resistance and wrapped up a sensational season on an individual and team level.\n\nTo put the final stamp on an extraordinary campaign, Ethan Bale added a fourth goal in stoppage time (90+3') off a Maylo Suarez assist.\n\nThe underlying statistics heavily reflected PSL's offensive supremacy, as they forced 8 shots on target compared to just 4 from Pacer FC, and earned 6 corners to Pacer FC's 3. PSL's backline also displayed masterful organization, catching Pacer FC in the offside trap twice while keeping their own record clean at zero offsides.\n\nAs the final whistle blew, the celebration belonged to Pacific Saint Leon, the back-to-back champions of Europe. For Juventus juve, the match was the crowning achievement of a stellar year, leaving no doubt about where the Ballon d'Or belongs.",
@@ -68,6 +68,88 @@
     "matchScore2": 2,
     "featuredPlayer": null,
     "createdAt": "2026-06-30T02:59:42.404Z",
-    "updatedAt": "2026-06-30T02:59:42.404Z"
+    "updatedAt": "2026-07-15T01:38:33.466Z"
+  },
+  {
+    "id": "art-mrhdwrhb",
+    "title": "Which team has the best route to the final?",
+    "subtitle": "Comparing the best season runs to the final",
+    "cover": "articles/images/pending.png",
+    "body": "",
+    "tags": [],
+    "season": "2000",
+    "matchdayIndex": null,
+    "matchId": null,
+    "matchTeam1": null,
+    "matchTeam2": null,
+    "matchScore1": null,
+    "matchScore2": null,
+    "featuredPlayer": null,
+    "createdAt": "2026-07-12T06:01:13.831Z",
+    "updatedAt": "2026-07-15T04:52:24.136Z"
+  },
+  {
+    "id": "art-mrhemokh",
+    "title": "Di'Lano: Most satisfying Hattrick?",
+    "subtitle": "The Ocio striker scores all three goals as Rio FC are swept aside in a dominant League Phase performance.",
+    "cover": "articles/2000/vshatrick.png",
+    "body": "Ocio cruised to a convincing 3–0 victory over Rio FC, with Perco Di'lano delivering a sensational hat-trick. He opened the scoring in the 30th minute after being set up by Raul Hernandez, before taking control late in the match with goals in the 84th and 87th minutes, assisted by Francisco Torres and James Garcia respectively. Rio FC struggled to find a response and saw Jason Blu booked in the 55th minute. After scoring every goal in the match, Perco Di'lano was the clear choice for Player of the Match, leading Ocio to an impressive League Phase victory.",
+    "tags": [
+      "ocio",
+      "rio",
+      "dilano"
+    ],
+    "season": "2000",
+    "matchdayIndex": 1,
+    "matchId": "match-tl2caztmw",
+    "matchTeam1": "ocio",
+    "matchTeam2": "riofc",
+    "matchScore1": 3,
+    "matchScore2": 0,
+    "featuredPlayer": null,
+    "featured": false,
+    "createdAt": "2026-07-12T06:20:31.073Z",
+    "updatedAt": "2026-07-15T04:51:31.984Z"
+  },
+  {
+    "id": "art-mrljg8mg",
+    "title": "Andre Picao's Free-Kick Brace Lifts New Bern Past Del Mer",
+    "subtitle": "Two stunning set-piece goals from Picao secure a dramatic 2–1 victory in the Leaderboard Matchups.",
+    "cover": "articles/2000/picao.png",
+    "body": "New Bern claimed a hard-fought 2–1 win over Del Mer thanks to a sensational performance from Andre Picao. The midfielder opened the scoring in the 30th minute with a perfectly struck free kick before Del Mer responded early in the second half through Tipo Legante, who finished from a Yanim Yali assist in the 51st minute. With the match seemingly headed for a draw, Picao stepped up once again in the 86th minute, curling home his second free kick of the night to seal all three points. His match-winning brace earned him a well-deserved Player of the Match award.",
+    "tags": [],
+    "season": "2000",
+    "matchdayIndex": 2,
+    "matchId": "match-mcirat965",
+    "matchTeam1": "DELM",
+    "matchTeam2": "nb",
+    "matchScore1": 1,
+    "matchScore2": 2,
+    "featuredPlayer": null,
+    "featured": false,
+    "createdAt": "2026-07-15T03:46:33.256Z",
+    "updatedAt": "2026-07-15T04:45:22.100Z"
+  },
+  {
+    "id": "art-mrlkypc4",
+    "title": "Sentago Cruise to 4–0 Victory Over BC Central",
+    "subtitle": "Rafi Pulla shines with a goal, an assist, and Player of the Match honors as Sentago dominate from start to finish.",
+    "cover": "articles/2000/l1-sentago.png",
+    "body": "Sentago delivered a commanding 4–0 win over BC Central in the League Phase, opening the scoring just three minutes in through Resto Elli after a setup from Rafi Pulla. Manuel Castro doubled the lead from the penalty spot before halftime, and Pulla added a goal of his own just before the break with an assist from Ricardo Iglesias. Apuma Hedona'to capped off the performance in the 81st minute from a Roberto Vargas assist. BC Central's Hius Ruo received the match's only booking in the 54th minute, while Rafi Pulla earned Player of the Match after contributing both a goal and an assist in Sentago's dominant display.",
+    "tags": [
+      "Rafi Pulla",
+      "Sentago"
+    ],
+    "season": "2000",
+    "matchdayIndex": 0,
+    "matchId": "match-0urxp1p3b",
+    "matchTeam1": "Sentago",
+    "matchTeam2": "BCCR",
+    "matchScore1": 4,
+    "matchScore2": 0,
+    "featuredPlayer": null,
+    "featured": true,
+    "createdAt": "2026-07-15T04:28:54.340Z",
+    "updatedAt": "2026-07-15T04:30:14.581Z"
   }
 ]

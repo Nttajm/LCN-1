@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossshare</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            background: #232323;
+            color: #e8e8e8;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Top bar ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 44px;
+            padding: 0 12px;
+            background: #2b2b2b;
+            border-bottom: 1px solid #1a1a1a;
+            flex-shrink: 0;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .topbar-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f0f0f0;
+            letter-spacing: 0.01em;
+        }
+
+        .topbar-search {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: none;
+            border: none;
+            color: #b0b0b0;
+            cursor: default;
+            padding: 0;
+        }
+
+        .topbar-search svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ── Layout ── */
+        .layout {
+            display: flex;
+            height: calc(100vh - 44px);
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 200px;
+            flex-shrink: 0;
+            padding: 20px 16px;
+            border-right: 1px solid #2e2e2e;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: #333333;
+            color: #e8e8e8;
+            font-size: 13px;
+            font-weight: 400;
+            width: fit-content;
+            cursor: default;
+            user-select: none;
+        }
+
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pill-btn {
+            display: block;
+            width: 100%;
+            padding: 9px 16px;
+            border: 1px solid #d0d0d0;
+            border-radius: 20px;
+            background: transparent;
+            color: #e8e8e8;
+            font-family: inherit;
+            font-size: 13px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+
+        .pill-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        /* ── Main content ── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 28px 32px 0;
+        }
+
+        .main-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .main-title {
+            font-size: 22px;
+            font-weight: 300;
+            color: #f0f0f0;
+            letter-spacing: -0.01em;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-label {
+            color: #8a8a8a;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .filter-input-wrap {
+            position: relative;
+            width: 200px;
+        }
+
+        .filter-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #555;
+            color: #e8e8e8;
+            font-family: inherit;
+            font-size: 12px;
+            padding: 4px 0 6px;
+            outline: none;
+            cursor: default;
+        }
+
+        .filter-input::placeholder {
+            color: #666;
+        }
+
+        /* ── Table ── */
+        .recent-table {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 1fr 140px 80px 180px;
+            padding: 0 0 8px;
+            border-bottom: 1px solid #3a3a3a;
+            flex-shrink: 0;
+        }
+
+        .col-header {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: #7a7a7a;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+        }
+
+        .col-header.sortable {
+            cursor: default;
+        }
+
+        .sort-arrow {
+            width: 10px;
+            height: 10px;
+            opacity: 0.7;
+        }
+
+        .table-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 140px 80px 180px;
+            padding: 10px 0;
+            border-bottom: 1px solid #2e2e2e;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .table-cell {
+            font-size: 13px;
+            color: #d8d8d8;
+            padding-right: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-cell--name {
+            color: #e8e8e8;
+        }
+
+        .table-cell--muted {
+            color: #9a9a9a;
+        }
+
+        .table-body:empty,
+        .table-body--empty {
+            flex: 1;
+        }
+
+        /* ── Modal overlay (Adobe-style) ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.55);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.18s ease, visibility 0.18s ease;
+        }
+
+        .modal-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            width: 420px;
+            max-width: calc(100vw - 32px);
+            background: #323232;
+            border: 1px solid #1f1f1f;
+            border-radius: 4px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+            transform: translateY(8px) scale(0.98);
+            transition: transform 0.18s ease;
+        }
+
+        .modal-overlay.is-open .modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f0f0f0;
+        }
+
+        .modal-close {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: #a8a8a8;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e8e8e8;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-step {
+            display: none;
+        }
+
+        .modal-step.is-active {
+            display: block;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 12px;
+            color: #a0a0a0;
+            margin-bottom: 6px;
+        }
+
+        .field-input {
+            width: 100%;
+            height: 36px;
+            padding: 0 10px;
+            background: #1e1e1e;
+            border: 1px solid #4a4a4a;
+            border-radius: 3px;
+            color: #f0f0f0;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .field-input:focus {
+            border-color: #2680eb;
+        }
+
+        .field-input::placeholder {
+            color: #666;
+        }
+
+        .field-hint {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .pin-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .pin-digit {
+            width: 44px;
+            height: 48px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0;
+            background: #1e1e1e;
+            border: 1px solid #4a4a4a;
+            border-radius: 3px;
+            color: #f0f0f0;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .pin-digit:focus {
+            border-color: #2680eb;
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 14px 20px 18px;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .modal-btn {
+            height: 32px;
+            padding: 0 16px;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        .modal-btn--ghost {
+            background: transparent;
+            border-color: #6a6a6a;
+            color: #e8e8e8;
+        }
+
+        .modal-btn--ghost:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .modal-btn--primary {
+            background: #2680eb;
+            border-color: #2680eb;
+            color: #fff;
+        }
+
+        .modal-btn--primary:hover:not(:disabled) {
+            background: #1473e6;
+            border-color: #1473e6;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Top bar -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <img class="topbar-logo" src="logos/crossshare-logo.png" alt="Crossshare">
+            <span class="topbar-name">crossshare</span>
+        </div>
+        <button class="topbar-search" type="button" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"/>
+                <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+            </svg>
+        </button>
+    </header>
+
+    <div class="layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="nav-item">Home</div>
+            <div class="sidebar-actions">
+                <button class="pill-btn" type="button" id="newStreamBtn">New Stream</button>
+                <button class="pill-btn" type="button">Connect</button>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <div class="main-header">
+                <h1 class="main-title">Recent</h1>
+                <div class="filter-group">
+                    <span class="filter-label">Filter</span>
+                    <div class="filter-input-wrap">
+                        <input class="filter-input" type="text" placeholder="Filter Recent Files" readonly tabindex="-1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-table">
+                <div class="table-header">
+                    <span class="col-header">Name</span>
+                    <span class="col-header sortable">
+                        Recent
+                        <svg class="sort-arrow" viewBox="0 0 10 10" fill="currentColor">
+                            <path d="M2 4 L5 7 L8 4 Z"/>
+                        </svg>
+                    </span>
+                    <span class="col-header">Size</span>
+                    <span class="col-header">Kind</span>
+                </div>
+                <div class="table-body" id="recentTableBody"></div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- New Stream modal -->
+    <div class="modal-overlay" id="streamModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">New Stream</h2>
+                <button class="modal-close" type="button" id="modalClose" aria-label="Close">&times;</button>
+            </div>
+
+            <!-- Step 1: name project -->
+            <div class="modal-step is-active" id="stepName" data-step="name">
+                <div class="modal-body">
+                    <div class="field">
+                        <label class="field-label" for="projectName">Project name</label>
+                        <input class="field-input" type="text" id="projectName" placeholder="Untitled Stream" autocomplete="off">
+                        <p class="field-hint">Name this stream to create it, or authenticate to add a PIN.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn--ghost" type="button" id="modalCancel">Cancel</button>
+                    <button class="modal-btn modal-btn--ghost" type="button" id="authenticateBtn" disabled>Authenticate</button>
+                    <button class="modal-btn modal-btn--primary" type="button" id="createBtn">Create</button>
+                </div>
+            </div>
+
+            <!-- Step 2: PIN -->
+            <div class="modal-step" id="stepPin" data-step="pin">
+                <div class="modal-body">
+                    <div class="field">
+                        <label class="field-label">Enter PIN</label>
+                        <div class="pin-row" id="pinRow">
+                            <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="PIN digit 1" autocomplete="off">
+                            <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="PIN digit 2" autocomplete="off">
+                            <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="PIN digit 3" autocomplete="off">
+                            <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="PIN digit 4" autocomplete="off">
+                        </div>
+                        <p class="field-hint">Additional security options coming later. For now, enter a 4-digit PIN.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn--ghost" type="button" id="pinBack">Back</button>
+                    <button class="modal-btn modal-btn--primary" type="button" id="pinContinue" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from './js/firebase.js';
+        import {
+            collection,
+            doc,
+            getDocs,
+            limit,
+            orderBy,
+            query,
+            serverTimestamp,
+            setDoc
+        } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+
+        (function () {
+            var STORAGE_KEY = 'crossshare_streams';
+            var modal = document.getElementById('streamModal');
+            var stepName = document.getElementById('stepName');
+            var stepPin = document.getElementById('stepPin');
+            var modalTitle = document.getElementById('modalTitle');
+            var projectName = document.getElementById('projectName');
+            var pinDigits = Array.prototype.slice.call(document.querySelectorAll('.pin-digit'));
+            var pinContinue = document.getElementById('pinContinue');
+            var authenticateBtn = document.getElementById('authenticateBtn');
+            var recentTableBody = document.getElementById('recentTableBody');
+
+            function loadStreams() {
+                try {
+                    var raw = localStorage.getItem(STORAGE_KEY);
+                    var list = raw ? JSON.parse(raw) : [];
+                    return Array.isArray(list) ? list : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveStreams(streams) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(streams));
+            }
+
+            function formatTimeAgo(iso) {
+                var then = new Date(iso).getTime();
+                if (isNaN(then)) return '—';
+
+                var seconds = Math.floor((Date.now() - then) / 1000);
+                if (seconds < 60) return 'Just now';
+
+                var minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return minutes === 1 ? '1 minute ago' : minutes + ' minutes ago';
+
+                var hours = Math.floor(minutes / 60);
+                if (hours < 24) return hours === 1 ? '1 hour ago' : hours + ' hours ago';
+
+                var days = Math.floor(hours / 24);
+                if (days < 30) return days === 1 ? '1 day ago' : days + ' days ago';
+
+                var months = Math.floor(days / 30);
+                if (months < 12) return months === 1 ? '1 month ago' : months + ' months ago';
+
+                var years = Math.floor(months / 12);
+                return years === 1 ? '1 year ago' : years + ' years ago';
+            }
+
+            function formatSize(instance) {
+                var bytes = new Blob([JSON.stringify(instance)]).size;
+                if (bytes < 1024) return bytes + ' B';
+                return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+            }
+
+            async function loadFirestoreStreams() {
+                try {
+                    var q = query(collection(db, 'projects'), orderBy('created', 'desc'), limit(50));
+                    var snap = await getDocs(q);
+                    return snap.docs.map(function (item) {
+                        var data = item.data();
+                        return {
+                            id: item.id,
+                            name: data.name || item.id,
+                            pin: data.pin || null,
+                            created: data.created && data.created.toDate ? data.created.toDate().toISOString() : (data.created || new Date().toISOString()),
+                            managerLink: 'manager.html?proj=' + encodeURIComponent(data.name || item.id)
+                        };
+                    });
+                } catch (e) {
+                    console.warn('Could not load Firestore streams:', e);
+                    return loadStreams();
+                }
+            }
+
+            async function renderRecentList() {
+                var streams = loadStreams().slice().sort(function (a, b) {
+                    return new Date(b.created).getTime() - new Date(a.created).getTime();
+                });
+
+                streams = await loadFirestoreStreams();
+
+                recentTableBody.innerHTML = '';
+
+                streams.forEach(function (stream) {
+                    var row = document.createElement('div');
+                    row.className = 'table-row';
+                    row.setAttribute('role', 'button');
+                    row.setAttribute('tabindex', '0');
+                    row.setAttribute('aria-label', 'Open ' + stream.name);
+
+                    var nameCell = document.createElement('span');
+                    nameCell.className = 'table-cell table-cell--name';
+                    nameCell.textContent = stream.name;
+
+                    var recentCell = document.createElement('span');
+                    recentCell.className = 'table-cell table-cell--muted';
+                    recentCell.textContent = formatTimeAgo(stream.created);
+
+                    var sizeCell = document.createElement('span');
+                    sizeCell.className = 'table-cell table-cell--muted';
+                    sizeCell.textContent = formatSize(stream);
+
+                    var kindCell = document.createElement('span');
+                    kindCell.className = 'table-cell table-cell--muted';
+                    kindCell.textContent = stream.pin ? 'Secured Stream' : 'Crossshare Stream';
+
+                    row.appendChild(nameCell);
+                    row.appendChild(recentCell);
+                    row.appendChild(sizeCell);
+                    row.appendChild(kindCell);
+
+                    function openStream() {
+                        window.location.href = stream.managerLink;
+                    }
+
+                    row.addEventListener('click', openStream);
+                    row.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            openStream();
+                        }
+                    });
+
+                    recentTableBody.appendChild(row);
+                });
+            }
+
+            function createId() {
+                if (window.crypto && typeof crypto.randomUUID === 'function') {
+                    return crypto.randomUUID();
+                }
+                return 'stream_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+            }
+
+            function resolveName() {
+                var name = projectName.value.trim();
+                return name || 'Untitled Stream';
+            }
+
+            function hasProjectName() {
+                return projectName.value.trim().length > 0;
+            }
+
+            function updateNameActions() {
+                authenticateBtn.disabled = !hasProjectName();
+            }
+
+            function openModal() {
+                stepName.classList.add('is-active');
+                stepPin.classList.remove('is-active');
+                modalTitle.textContent = 'New Stream';
+                projectName.value = '';
+                pinDigits.forEach(function (el) { el.value = ''; });
+                pinContinue.disabled = true;
+                updateNameActions();
+                modal.classList.add('is-open');
+                setTimeout(function () { projectName.focus(); }, 50);
+            }
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+            }
+
+            function showPinStep() {
+                if (!hasProjectName()) return;
+                stepName.classList.remove('is-active');
+                stepPin.classList.add('is-active');
+                modalTitle.textContent = 'Authenticate';
+                pinDigits.forEach(function (el) { el.value = ''; });
+                pinContinue.disabled = true;
+                setTimeout(function () { pinDigits[0].focus(); }, 50);
+            }
+
+            function showNameStep() {
+                stepPin.classList.remove('is-active');
+                stepName.classList.add('is-active');
+                modalTitle.textContent = 'New Stream';
+                updateNameActions();
+                setTimeout(function () { projectName.focus(); }, 50);
+            }
+
+            function getPin() {
+                return pinDigits.map(function (el) { return el.value; }).join('');
+            }
+
+            function updatePinContinue() {
+                pinContinue.disabled = getPin().length !== 4;
+            }
+
+            async function createStream(withPin) {
+                var name = resolveName();
+                var pin = withPin ? getPin() : null;
+                if (withPin && (!pin || pin.length !== 4)) return;
+
+                var managerLink = 'manager.html?proj=' + encodeURIComponent(name);
+                var instance = {
+                    id: createId(),
+                    name: name,
+                    pin: pin,
+                    created: new Date().toISOString(),
+                    managerLink: managerLink
+                };
+
+                var streams = loadStreams();
+                streams.push(instance);
+                saveStreams(streams);
+
+                try {
+                    await setDoc(doc(db, 'projects', name), {
+                        name: name,
+                        pin: pin,
+                        created: serverTimestamp(),
+                        revealInstances: false
+                    }, { merge: true });
+
+                    await setDoc(doc(db, 'projects', name, 'views', 'main'), {
+                        name: 'Main View',
+                        isMain: true,
+                        live: false,
+                        activeIndex: 0,
+                        content: [],
+                        created: serverTimestamp(),
+                        updated: serverTimestamp()
+                    }, { merge: true });
+                } catch (e) {
+                    console.error('Could not create Firestore project:', e);
+                    alert('CrossShare could not create this stream in Firebase. Check your Firestore rules and connection.');
+                    return;
+                }
+
+                console.log('Stream instances:', streams);
+                console.log('Created stream:', instance);
+
+                window.location.href = managerLink;
+            }
+
+            document.getElementById('newStreamBtn').addEventListener('click', openModal);
+            document.getElementById('modalClose').addEventListener('click', closeModal);
+            document.getElementById('modalCancel').addEventListener('click', closeModal);
+            document.getElementById('createBtn').addEventListener('click', function () {
+                createStream(false);
+            });
+            document.getElementById('authenticateBtn').addEventListener('click', showPinStep);
+            document.getElementById('pinBack').addEventListener('click', showNameStep);
+            document.getElementById('pinContinue').addEventListener('click', function () {
+                createStream(true);
+            });
+
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+                    closeModal();
+                }
+            });
+
+            pinDigits.forEach(function (input, index) {
+                input.addEventListener('input', function () {
+                    var val = input.value.replace(/\D/g, '');
+                    input.value = val.slice(0, 1);
+                    if (val && index < pinDigits.length - 1) {
+                        pinDigits[index + 1].focus();
+                    }
+                    updatePinContinue();
+                });
+
+                input.addEventListener('keydown', function (e) {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        pinDigits[index - 1].focus();
+                    }
+                    if (e.key === 'Enter' && !pinContinue.disabled) {
+                        createStream(true);
+                    }
+                });
+
+                input.addEventListener('paste', function (e) {
+                    e.preventDefault();
+                    var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 4);
+                    text.split('').forEach(function (ch, i) {
+                        if (pinDigits[i]) pinDigits[i].value = ch;
+                    });
+                    var focusIndex = Math.min(text.length, pinDigits.length - 1);
+                    pinDigits[focusIndex].focus();
+                    updatePinContinue();
+                });
+            });
+
+            projectName.addEventListener('input', updateNameActions);
+
+            projectName.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') createStream(false);
+            });
+
+            console.log('Stream instances:', loadStreams());
+            renderRecentList();
+        })();
+    </script>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 import { getThisSeason, getCurrentSeason, getTeamById, getMatchById, bindMatchClickEventsGlobal, seasons } from './acl-index.js';
 import { calculateStandings, renderStandingsTable } from './table.js';
-import { getArticles, loadArticlesFromJson } from './articles.js';
+import { getArticlesForHomeFeed, getLatestFeaturedArticle, loadArticlesFromJson } from './articles.js';
 
 function isPlayedGame(game) {
     if (!game || game.standby) return false;
@@ -56,6 +56,10 @@ function formatPhase(meta) {
     return day;
 }
 
+function previewMatchLimit() {
+    return window.matchMedia('(max-width: 768px)').matches ? 3 : 4;
+}
+
 function recentCount(total) {
     if (!total) return 0;
     return Math.min(4, Math.max(2, total));
@@ -93,7 +97,8 @@ function renderPreviewMatches() {
         return;
     }
 
-    const recent = allPlayed.slice(-recentCount(allPlayed.length));
+    const limit = previewMatchLimit();
+    const recent = allPlayed.slice(-Math.min(limit, Math.max(2, allPlayed.length)));
     container.innerHTML = recent.map(renderPreviewMatchCard).join('');
 }
 
@@ -101,28 +106,31 @@ function renderGamesArticle(season) {
     const section = document.querySelector('.games-article');
     if (!section) return;
 
-    const linkedArticle = getArticles().find(a => a.matchId) || null;
-    if (linkedArticle?.matchId) {
-        const game = getMatchById(linkedArticle.matchId);
-        if (game) {
-            const team1 = getTeamById(game.team1);
-            const team2 = getTeamById(game.team2);
+    const featuredArticle = getLatestFeaturedArticle();
+    if (featuredArticle) {
+        const cover = featuredArticle.cover || '';
 
-            section.style.display = '';
-            section.innerHTML = `
-                <div class="info">
-                    <span>${linkedArticle.title}</span>
-                </div>
-                <div class="display-teams-article">
-                    <img src="${team1.img}" alt="${team1.name}">
-                    <img src="${team2.img}" alt="${team2.name}">
-                </div>`;
-            section.classList.add('link-match');
-            section.removeAttribute('data-match-id');
-            section.dataset.articleId = linkedArticle.id;
-            return;
-        }
+        section.style.display = '';
+        section.style.backgroundImage = cover
+            ? `linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.55)), url('${cover}')`
+            : '';
+        section.style.backgroundSize = cover ? 'cover' : '';
+        section.style.backgroundPosition = cover ? 'center' : '';
+
+        section.innerHTML = `
+            <div class="info">
+                <span>${featuredArticle.title}</span>
+            </div>`;
+
+        section.classList.add('link-match');
+        section.removeAttribute('data-match-id');
+        section.dataset.articleId = featuredArticle.id;
+        return;
     }
+
+    section.style.backgroundImage = '';
+    section.style.backgroundSize = '';
+    section.style.backgroundPosition = '';
 
     if (!season) {
         section.style.display = 'none';
@@ -203,7 +211,7 @@ function renderFeatureHeadlines() {
     if (!container) return;
 
     const matchItems = getAllPlayedMatches(4).reverse().map(renderHeadlineMatch);
-    const articleItems = getArticles().slice(-4).reverse().map(renderHeadlineArticle);
+    const articleItems = getArticlesForHomeFeed(4).map(renderHeadlineArticle);
     const merged = [];
     const limit = Math.max(matchItems.length, articleItems.length);
 
@@ -231,82 +239,120 @@ function renderFeatureHeadlines() {
     }
 }
 
-function renderHighlightCard(meta) {
+function probeImage(src) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = src;
+    });
+}
+
+let resultBackgroundsCache = null;
+
+/** Discovers articles/images/r-1.png, r-2.png, … until the first missing file. */
+async function discoverResultBackgrounds() {
+    if (resultBackgroundsCache) return resultBackgroundsCache;
+
+    const found = [];
+    const maxProbe = 40;
+    for (let i = 1; i <= maxProbe; i++) {
+        const src = `articles/images/r-${i}.png`;
+        if (await probeImage(src)) found.push(src);
+        else break;
+    }
+
+    resultBackgroundsCache = found.length ? found : ['articles/images/ball-pitch.png'];
+    return resultBackgroundsCache;
+}
+
+function formatResultHeadline(game, team1, team2) {
+    const s1 = game.score1;
+    const s2 = game.score2;
+    if (s1 === s2) {
+        return `${team1.name} and ${team2.name} draw ${s1}-${s2}`;
+    }
+    if (s1 > s2) {
+        return `${team1.name} wins ${s1}-${s2} against ${team2.name}`;
+    }
+    return `${team2.name} wins ${s2}-${s1} against ${team1.name}`;
+}
+
+function renderHighlightCard(meta, backgroundSrc) {
     const { game } = meta;
     const team1 = getTeamById(game.team1);
     const team2 = getTeamById(game.team2);
+    const title = formatResultHeadline(game, team1, team2);
+
     return `
-        <div class="hl-game link-match" data-match-id="${game.id}">
-            <div class="cover">
-                <div class="score-hero">
-                    <div class="hl-team-1 hl-team">
-                        <span class="score">${game.score1}</span>
-                        <img src="${team1.img}" alt="${team1.name}">
-                    </div>
-                    <div class="hl-team-2 hl-team">
-                        <img src="${team2.img}" alt="${team2.name}">
-                        <span class="score">${game.score2}</span>
-                    </div>
+        <a class="hl-card hl-card--score link-match" href="match-info.html?match=${game.id}" data-match-id="${game.id}" aria-label="${title}">
+            <div class="hl-card__media">
+                <img class="hl-card__bg" src="${backgroundSrc}" alt="" onerror="this.src='articles/images/ball-pitch.png'">
+                <div class="hl-card__scorechip">
+                    <img src="${team1.img}" alt="">
+                    <span>${game.score1}-${game.score2}</span>
+                    <img src="${team2.img}" alt="">
                 </div>
             </div>
-            <div class="info">
-                <span>${team1.name} ${game.score1}-${game.score2} ${team2.name}</span>
-                <span>${formatPhase(meta)} · ${meta.seasonYear}</span>
+            <div class="hl-card__body">
+                <h3 class="hl-card__title">${title}</h3>
+                <span class="hl-card__meta">${formatPhase(meta)} · ${meta.seasonYear}</span>
             </div>
-        </div>`;
+        </a>`;
 }
 
-function renderArticleCard(article) {
-    const cover = article.cover
-        ? `<img class="img-art" src="${article.cover}" onerror="this.style.display='none'" alt="">`
-        : `<img class="img-art" src="articles/images/ball-pitch.png" alt="">`;
-
+function renderArticleCard(article, { large = false } = {}) {
+    const cover = article.cover || 'articles/images/ball-pitch.png';
     const meta = [
         article.season ? `Season ${article.season}` : null,
         article.featuredPlayer || null
-    ].filter(Boolean).join(' · ') || 'Articles';
+    ].filter(Boolean).join(' · ') || 'Article';
+    const sizeClass = large ? 'hl-card--feature' : 'hl-card--score';
 
     return `
-        <div class="hl-game hl-article" data-article-id="${article.id}">
-            <div class="cover">${cover}</div>
-            <div class="info">
-                <span>${article.title}</span>
-                <span>${meta}</span>
+        <a class="hl-card ${sizeClass} hl-article" href="article-view.html?article=${article.id}" data-article-id="${article.id}">
+            <div class="hl-card__media">
+                <img class="img-art" src="${cover}" onerror="this.src='articles/images/ball-pitch.png'" alt="">
             </div>
-        </div>`;
+            <div class="hl-card__body">
+                <h3 class="hl-card__title">${article.title}</h3>
+                <span class="hl-card__meta">${meta}</span>
+            </div>
+        </a>`;
 }
 
-function renderRecentHighlights() {
+async function renderRecentHighlights() {
     const container = document.querySelector('.hl-games');
     if (!container) return;
 
+    const backgrounds = await discoverResultBackgrounds();
     const allPlayed = getAllPlayedMatches();
-    const count = recentCount(allPlayed.length);
-    const highlights = allPlayed.slice(-count).reverse();
+    const newsArticles = getArticlesForHomeFeed(2);
+    const matchCount = newsArticles.length >= 2 ? 4 : newsArticles.length === 1 ? 4 : recentCount(allPlayed.length);
+    const highlights = allPlayed.slice(-matchCount).reverse();
 
-    const articles = getArticles().slice(-3).reverse();
+    const cards = [];
+    if (newsArticles[0]) cards.push(renderArticleCard(newsArticles[0], { large: true }));
+    cards.push(...highlights.map((meta, i) =>
+        renderHighlightCard(meta, backgrounds[i % backgrounds.length])
+    ));
+    if (newsArticles[1]) cards.push(renderArticleCard(newsArticles[1], { large: true }));
 
-    const articleCards = articles.length
-        ? articles.map(renderArticleCard).join('')
-        : `<div class="hl-game">
-            <div class="cover">
-                <img class="img-art" src="articles/images/ball-pitch.png" alt="">
-            </div>
-            <div class="info">
-                <span>What to expect this season</span>
-                <span>Articles</span>
-            </div>
-        </div>`;
+    if (!cards.length) {
+        container.innerHTML = `
+            <div class="hl-card hl-card--feature">
+                <div class="hl-card__media">
+                    <img class="img-art" src="articles/images/ball-pitch.png" alt="">
+                </div>
+                <div class="hl-card__body">
+                    <h3 class="hl-card__title">What to expect this season</h3>
+                    <span class="hl-card__meta">Articles</span>
+                </div>
+            </div>`;
+        return;
+    }
 
-    container.innerHTML = highlights.map(renderHighlightCard).join('') + articleCards;
-
-    container.querySelectorAll('.hl-article').forEach(el => {
-        el.style.cursor = 'pointer';
-        el.addEventListener('click', () => {
-            const id = el.dataset.articleId;
-            window.location.href = `article-view.html?article=${id}`;
-        });
-    });
+    container.innerHTML = cards.join('');
 }
 
 function renderHomeStandings(season) {
@@ -320,18 +366,18 @@ function renderHomeStandings(season) {
     );
 }
 
-function initHome() {
+async function initHome() {
     const season = getHomeSeason();
 
     renderPreviewMatches();
     renderGamesArticle(season);
     renderFeatureHeadlines();
-    renderRecentHighlights();
+    await renderRecentHighlights();
     renderHomeStandings(season);
     bindMatchClickEventsGlobal();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadArticlesFromJson();
-    initHome();
+    await initHome();
 });
