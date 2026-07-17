@@ -669,9 +669,89 @@
         var onBufferingChange = typeof options.onBufferingChange === 'function' ? options.onBufferingChange : function () {};
         var nodes = {};
         var buffering = false;
-        var SEEK_DRIFT_WHILE_PLAYING = 0.12;
         var SEEK_DRIFT_WHILE_PAUSED = 0.08;
-        var SEEK_THROTTLE_MS = 250;
+        // While playing, small drift is corrected by playbackRate nudging and
+        // a hard seek only happens for large drift, at most once every few
+        // seconds. Seeking to an unbuffered position on a slow network aborts
+        // in-flight data and starts a new request, so frequent catch-up seeks
+        // turn a short stall into a permanent buffering loop.
+        var RATE_DRIFT_MIN = 0.06;
+        var HARD_SEEK_DRIFT = 0.75;
+        var RESYNC_MIN_INTERVAL_MS = 3000;
+        var POOL_MAX_MEDIA = 8;
+        var POOL_MAX_IMAGES = 16;
+
+        // Detached media elements kept for reuse. Presentations loop the same
+        // media over and over; recreating elements forces a full re-download
+        // of data the browser already had buffered.
+        var elementPool = {};
+        var poolOrder = [];
+
+        function disposePooledEntry(entry) {
+            if (!entry || !entry.el) return;
+            entry.el._csNode = null;
+            if (entry.el.pause) {
+                try { entry.el.pause(); } catch (e) {}
+                entry.el.removeAttribute('src');
+                try { entry.el.load(); } catch (e) {}
+            }
+        }
+
+        function poolPrune() {
+            var mediaCount = 0;
+            var imageCount = 0;
+            for (var i = poolOrder.length - 1; i >= 0; i--) {
+                var id = poolOrder[i];
+                var entry = elementPool[id];
+                if (!entry) {
+                    poolOrder.splice(i, 1);
+                    continue;
+                }
+                var playable = !!(entry.el && entry.el.pause);
+                if (playable) mediaCount++;
+                else imageCount++;
+                if ((playable && mediaCount > POOL_MAX_MEDIA) || (!playable && imageCount > POOL_MAX_IMAGES)) {
+                    disposePooledEntry(entry);
+                    delete elementPool[id];
+                    poolOrder.splice(i, 1);
+                }
+            }
+        }
+
+        function poolPut(mediaId, el) {
+            if (!mediaId || !el) return;
+            var url = el._csUrl || el.currentSrc || el.src || '';
+            if (!url) return;
+            var existing = elementPool[mediaId];
+            if (existing && existing.el !== el) disposePooledEntry(existing);
+            el._csNode = null;
+            elementPool[mediaId] = { el: el, url: url };
+            var idx = poolOrder.indexOf(mediaId);
+            if (idx !== -1) poolOrder.splice(idx, 1);
+            poolOrder.push(mediaId);
+            poolPrune();
+        }
+
+        function poolTake(mediaId, url) {
+            var entry = elementPool[mediaId];
+            if (!entry) return null;
+            delete elementPool[mediaId];
+            var idx = poolOrder.indexOf(mediaId);
+            if (idx !== -1) poolOrder.splice(idx, 1);
+            if (entry.url !== url) {
+                disposePooledEntry(entry);
+                return null;
+            }
+            return entry.el;
+        }
+
+        function clearPool() {
+            Object.keys(elementPool).forEach(function (id) {
+                disposePooledEntry(elementPool[id]);
+            });
+            elementPool = {};
+            poolOrder = [];
+        }
 
         function reportBuffering() {
             var next = false;
@@ -692,7 +772,14 @@
 
         function removeNode(node) {
             if (!node) return;
-            if (node.el && node.el.pause) node.el.pause();
+            if (node.el) {
+                if (node.el.pause) {
+                    try { node.el.pause(); } catch (e) {}
+                }
+                if (node.mediaId) poolPut(node.mediaId, node.el);
+                else node.el._csNode = null;
+                node.el = null;
+            }
             setNodeBuffering(node, false);
             if (node.wrap && node.wrap.parentNode) node.wrap.parentNode.removeChild(node.wrap);
         }
@@ -715,27 +802,33 @@
             applyPendingSeek(node);
         }
 
-        function installMediaEvents(node, playing) {
-            if (!node || !node.el || node.eventsInstalled) return;
-            node.eventsInstalled = true;
+        function installMediaEvents(el) {
+            if (!el || el._csEventsInstalled) return;
+            el._csEventsInstalled = true;
+            // Listeners resolve the owning node via el._csNode so pooled
+            // elements can move between layer nodes without re-binding.
             ['waiting', 'stalled', 'seeking'].forEach(function (eventName) {
-                node.el.addEventListener(eventName, function () {
-                    setNodeBuffering(node, !!node.wantsPlayback);
+                el.addEventListener(eventName, function () {
+                    var node = el._csNode;
+                    if (node) setNodeBuffering(node, !!node.wantsPlayback);
                 });
             });
             ['canplay', 'canplaythrough', 'playing', 'timeupdate', 'seeked', 'loadeddata'].forEach(function (eventName) {
-                node.el.addEventListener(eventName, function () {
+                el.addEventListener(eventName, function () {
+                    var node = el._csNode;
+                    if (!node) return;
                     applyPendingSeek(node);
                     setNodeBuffering(node, false);
                 });
             });
-            node.el.addEventListener('loadedmetadata', function () {
-                applyPendingSeek(node);
+            el.addEventListener('loadedmetadata', function () {
+                var node = el._csNode;
+                if (node) applyPendingSeek(node);
             });
-            node.el.addEventListener('error', function () {
-                setNodeBuffering(node, false);
+            el.addEventListener('error', function () {
+                var node = el._csNode;
+                if (node) setNodeBuffering(node, false);
             });
-            node.wantsPlayback = !!playing;
         }
 
         function removeMissing(visible) {
@@ -748,6 +841,16 @@
             reportBuffering();
         }
 
+        function timeIsBuffered(el, time, slackSeconds) {
+            try {
+                var ranges = el.buffered;
+                for (var i = 0; i < ranges.length; i++) {
+                    if (time >= ranges.start(i) && time <= ranges.end(i) + (slackSeconds || 0)) return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
         function setMediaNode(layer, node, playing) {
             if (!node.el) return;
             node.el.className = 'cs-render-media cs-fit-' + layer.item.fit;
@@ -758,24 +861,34 @@
                 var drift = Math.abs(signedDrift);
                 var now = Date.now();
                 var canCorrect = node.el.readyState >= 1;
-                var largeDrift = drift > SEEK_DRIFT_WHILE_PLAYING &&
-                    now - (node.lastSeekAt || 0) > SEEK_THROTTLE_MS;
 
-                installMediaEvents(node, playing);
+                installMediaEvents(node.el);
+                node.el._csNode = node;
                 node.wantsPlayback = !!playing;
                 node.el.muted = true;
                 node.el.loop = false;
-                if (
-                    node.pendingSeekTime != null ||
-                    node.forceSeek ||
-                    (!playing && drift > SEEK_DRIFT_WHILE_PAUSED) ||
-                    (playing && canCorrect && largeDrift)
-                ) {
+
+                var wantsHardSeek = false;
+                if (node.pendingSeekTime != null || node.forceSeek) {
+                    wantsHardSeek = true;
+                } else if (!playing && drift > SEEK_DRIFT_WHILE_PAUSED) {
+                    wantsHardSeek = true;
+                } else if (playing && canCorrect && drift > HARD_SEEK_DRIFT) {
+                    // Behind the shared clock while playing. A hard seek only
+                    // helps if the target is already buffered; otherwise it
+                    // discards buffered data and stalls the element again, so
+                    // rate-based catch-up (or simply tolerating drift) wins.
+                    var throttled = now - (node.lastSeekAt || 0) < RESYNC_MIN_INTERVAL_MS;
+                    if (!throttled && (timeIsBuffered(node.el, mediaTime, 0.5) || drift > 8)) {
+                        wantsHardSeek = true;
+                    }
+                }
+                if (wantsHardSeek) {
                     seekMediaNode(node, mediaTime);
                 }
                 if ('playbackRate' in node.el) {
-                    if (playing && drift > 0.035 && drift <= SEEK_DRIFT_WHILE_PLAYING) {
-                        node.el.playbackRate = signedDrift > 0 ? 1.05 : 0.95;
+                    if (playing && !wantsHardSeek && drift > RATE_DRIFT_MIN) {
+                        node.el.playbackRate = signedDrift > 0 ? Math.min(1.12, 1 + drift * 0.15) : 0.92;
                     } else {
                         node.el.playbackRate = 1;
                     }
@@ -786,7 +899,10 @@
                 } else if (!playing && !node.el.paused) {
                     node.el.pause();
                 }
-                setNodeBuffering(node, !!playing && (node.el.seeking || node.el.readyState < 3));
+                // readyState 2 (HAVE_CURRENT_DATA) is enough to keep showing
+                // frames; only report buffering when the element truly cannot
+                // present the current position.
+                setNodeBuffering(node, !!playing && (node.el.seeking || node.el.readyState < 2));
             }
         }
 
@@ -822,11 +938,17 @@
 
                 if (node.mediaId !== layer.media.id && (!node.retryAt || Date.now() >= node.retryAt)) {
                     var requestedMediaId = layer.media.id;
+                    var previousMediaId = node.mediaId;
                     node.mediaId = requestedMediaId;
                     node.retryAt = 0;
-                    if (node.el && node.el.pause) node.el.pause();
+                    if (node.el) {
+                        if (node.el.pause) {
+                            try { node.el.pause(); } catch (e) {}
+                        }
+                        if (previousMediaId) poolPut(previousMediaId, node.el);
+                        else node.el._csNode = null;
+                    }
                     node.el = null;
-                    node.eventsInstalled = false;
                     node.pendingSeekTime = null;
                     node.forceSeek = true;
                     node.lastSeekAt = 0;
@@ -843,27 +965,39 @@
                             setNodeBuffering(current, false);
                             return;
                         }
-                        var el = document.createElement(
-                            layer.media.kind === 'video' ? 'video' :
-                                (layer.media.kind === 'audio' ? 'audio' : 'img')
-                        );
-                        el.className = 'cs-render-media cs-fit-' + layer.item.fit;
-                        el.alt = '';
-                        if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
-                            el.preload = 'auto';
-                            el.muted = true;
-                            el.controls = false;
-                            if (el.disableRemotePlayback != null) el.disableRemotePlayback = true;
-                            if (layer.media.kind === 'video') {
-                                el.playsInline = true;
-                                el.setAttribute('playsinline', '');
-                                el.setAttribute('webkit-playsinline', '');
+                        // Reuse a pooled element for this media if one exists:
+                        // it keeps the browser's buffered/decoded data alive so
+                        // looping content plays instantly instead of refetching.
+                        var el = poolTake(requestedMediaId, url);
+                        if (!el) {
+                            el = document.createElement(
+                                layer.media.kind === 'video' ? 'video' :
+                                    (layer.media.kind === 'audio' ? 'audio' : 'img')
+                            );
+                            el.alt = '';
+                            if (el.tagName === 'IMG') el.decoding = 'async';
+                            if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
+                                el.preload = 'auto';
+                                el.muted = true;
+                                el.controls = false;
+                                if (el.disableRemotePlayback != null) el.disableRemotePlayback = true;
+                                if (layer.media.kind === 'video') {
+                                    el.playsInline = true;
+                                    el.setAttribute('playsinline', '');
+                                    el.setAttribute('webkit-playsinline', '');
+                                }
                             }
+                            el._csUrl = url;
+                            el.src = url;
                         }
-                        el.src = url;
+                        el.className = 'cs-render-media cs-fit-' + layer.item.fit;
                         current.wrap.innerHTML = '';
                         current.wrap.appendChild(el);
                         current.el = el;
+                        el._csNode = current;
+                        if (layer.media.kind !== 'video' && layer.media.kind !== 'audio') {
+                            setNodeBuffering(current, false);
+                        }
                         setMediaNode(layer, current, playing);
                     });
                 } else {
@@ -894,6 +1028,7 @@
                 removeNode(node);
             });
             nodes = {};
+            clearPool();
             reportBuffering();
         }
 

@@ -958,11 +958,42 @@
                 return (elapsed / 1000) % duration;
             }
 
-            function warmMedia(media) {
-                if (!media || mediaWarmers[media.id]) return;
+            var MAX_MEDIA_WARMERS = 6;
+            var mediaWarmerOrder = [];
+
+            function releaseWarmer(id) {
+                var warmer = mediaWarmers[id];
+                delete mediaWarmers[id];
+                var idx = mediaWarmerOrder.indexOf(id);
+                if (idx !== -1) mediaWarmerOrder.splice(idx, 1);
+                if (warmer && warmer.pause) {
+                    try { warmer.pause(); } catch (_) {}
+                    warmer.removeAttribute('src');
+                    try { warmer.load(); } catch (_) {}
+                }
+                if (warmer && warmer.parentNode) warmer.parentNode.removeChild(warmer);
+            }
+
+            function trackWarmer(id, isMediaEl) {
+                if (!isMediaEl) return;
+                mediaWarmerOrder.push(id);
+                while (mediaWarmerOrder.length > MAX_MEDIA_WARMERS) {
+                    releaseWarmer(mediaWarmerOrder[0]);
+                }
+            }
+
+            function warmMedia(media, nearTerm) {
+                if (!media) return;
+                var existing = mediaWarmers[media.id];
+                if (existing) {
+                    // Upgrade a metadata-only video warmer to real preloading
+                    // once the item is close to going live.
+                    if (nearTerm && existing.preload === 'metadata') existing.preload = 'auto';
+                    return;
+                }
                 mediaWarmers[media.id] = true;
                 getMediaObjectUrl(media.id).then(function (url) {
-                    if (!url) return;
+                    if (!url || !mediaWarmers[media.id]) return;
                     if (media.kind === 'image') {
                         var img = new Image();
                         img.decoding = 'async';
@@ -974,7 +1005,11 @@
                     }
                     if (media.kind === 'video' || media.kind === 'audio') {
                         var el = document.createElement(media.kind === 'video' ? 'video' : 'audio');
-                        el.preload = 'metadata';
+                        // Near-term media buffers actual data (fills the HTTP
+                        // cache so the renderer's element starts instantly);
+                        // farther-out media only fetches metadata to avoid
+                        // competing with the currently playing stream.
+                        el.preload = nearTerm ? 'auto' : 'metadata';
                         el.muted = true;
                         if (media.kind === 'video') {
                             el.playsInline = true;
@@ -986,6 +1021,7 @@
                         document.body.appendChild(el);
                         try { el.load(); } catch (_) {}
                         mediaWarmers[media.id] = el;
+                        trackWarmer(media.id, true);
                     }
                 }).catch(function () {
                     delete mediaWarmers[media.id];
@@ -996,11 +1032,11 @@
                 if (!project || !stream || !stream.presentationId || Date.now() - lastPrewarmAt < 1500) return;
                 lastPrewarmAt = Date.now();
                 var seen = {};
-                [0, 2, 6, 12].forEach(function (offset) {
+                [0, 2, 6, 12, 20].forEach(function (offset) {
                     Engine.resolveLayers(project, stream.presentationId, Math.max(0, playhead + offset)).forEach(function (layer) {
                         if (!layer.media || seen[layer.media.id]) return;
                         seen[layer.media.id] = true;
-                        warmMedia(layer.media);
+                        warmMedia(layer.media, offset <= 6);
                     });
                 });
             }
