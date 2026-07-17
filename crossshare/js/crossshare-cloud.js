@@ -251,6 +251,14 @@ import {
     async function findProjectByCode(code) {
         var needle = String(code || '').trim().toUpperCase();
         if (!needle) return null;
+        if (needle.length === 4) {
+            var byTempFirst = await queryFirstProject('tempCode', needle);
+            if (byTempFirst) {
+                if (byTempFirst.tempCodeExpiresAt && byTempFirst.tempCodeExpiresAt > Date.now()) {
+                    return byTempFirst;
+                }
+            }
+        }
         var byCode = await queryFirstProject('projectCode', needle);
         if (!byCode) byCode = await queryFirstProject('projectCode', String(code || '').trim());
         if (byCode) return byCode;

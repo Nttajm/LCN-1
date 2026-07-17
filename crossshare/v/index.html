@@ -80,6 +80,41 @@
             font-size: 11px;
         }
 
+        .buffer-indicator {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 80;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.48);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 22px rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(4px) scale(0.92);
+            transition: opacity 120ms ease, transform 120ms ease;
+        }
+
+        .buffer-indicator.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .buffer-indicator::before {
+            position: absolute;
+            inset: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.26);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: buffer-spin 780ms linear infinite;
+            content: "";
+        }
+
+        @keyframes buffer-spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Gallery home (remote-friendly) */
         .gallery {
             width: 100%;
@@ -457,6 +492,10 @@
             .connect-submit {
                 transition: none;
             }
+
+            .buffer-indicator::before {
+                animation-duration: 1.6s;
+            }
         }
     </style>
 </head>
@@ -485,6 +524,10 @@
             var renderer = null;
             var frame = null;
             var mediaObjectUrls = {};
+            var mediaObjectUrlPromises = {};
+            var mediaWarmers = {};
+            var bufferIndicator = null;
+            var lastPrewarmAt = 0;
             var playback = Engine.normalizePlaybackState(null, false);
             var session = null;
             var unsubscribe = null;
@@ -646,6 +689,7 @@
                     renderer = null;
                 }
                 frame = null;
+                setBuffering(false);
                 viewer.innerHTML = '<div class="message"><strong></strong><span></span></div>';
                 viewer.querySelector('strong').textContent = title;
                 viewer.querySelector('span').textContent = detail;
@@ -653,6 +697,40 @@
 
             function getProjectKey() {
                 return project && project.id ? project.id : '_default';
+            }
+
+            function normalizeAccessCode(value) {
+                return String(value || '').trim().toUpperCase();
+            }
+
+            function projectParamMatchesTempCode(activeProject) {
+                return !!(
+                    activeProject &&
+                    activeProject.tempCode &&
+                    normalizeAccessCode(activeProject.tempCode) === normalizeAccessCode(projectParam) &&
+                    activeProject.tempCodeExpiresAt > Date.now()
+                );
+            }
+
+            function projectParamMatchesProjectCode(activeProject) {
+                return !!(
+                    activeProject &&
+                    activeProject.projectCode &&
+                    normalizeAccessCode(activeProject.projectCode) === normalizeAccessCode(projectParam)
+                );
+            }
+
+            function projectParamIsExpiredProjectCode(activeProject) {
+                return projectParamMatchesProjectCode(activeProject) &&
+                    StreamSession.isProjectCodeExpired(activeProject);
+            }
+
+            function viewerAccessCode() {
+                if (projectParamMatchesTempCode(project)) return projectParam;
+                if (project && project.projectCode && !StreamSession.isProjectCodeExpired(project)) {
+                    return project.projectCode;
+                }
+                return projectParam || (project && project.projectCode) || null;
             }
 
             function resolveProjectLocal() {
@@ -668,7 +746,7 @@
                 }
 
                 var expired = StreamSession.findProjectByPublicCode(projectParam, { allowExpired: true });
-                if (expired && StreamSession.isProjectCodeExpired(expired)) {
+                if (expired && projectParamIsExpiredProjectCode(expired)) {
                     unavailableReason = 'expired-code';
                     return null;
                 }
@@ -679,7 +757,7 @@
                     allowExpired: true
                 });
                 if (byIdentity) {
-                    if (byIdentity.projectCode && StreamSession.isProjectCodeExpired(byIdentity)) {
+                    if (projectParamIsExpiredProjectCode(byIdentity)) {
                         unavailableReason = 'expired-code';
                         return null;
                     }
@@ -710,7 +788,7 @@
                         unavailableReason = 'missing-project';
                         return null;
                     }
-                    if (remote.projectCode && StreamSession.isProjectCodeExpired(remote)) {
+                    if (projectParamIsExpiredProjectCode(remote)) {
                         unavailableReason = 'expired-code';
                         return null;
                     }
@@ -777,6 +855,7 @@
 
             function getMediaObjectUrl(itemId) {
                 if (mediaObjectUrls[itemId]) return Promise.resolve(mediaObjectUrls[itemId]);
+                if (mediaObjectUrlPromises[itemId]) return mediaObjectUrlPromises[itemId];
                 var mediaItem = project ? Engine.getMediaItem(project, itemId) : null;
                 var cloudUrl = null;
                 if (Cloud && mediaItem) cloudUrl = Cloud.mediaPlaybackUrl(mediaItem);
@@ -785,7 +864,7 @@
                     mediaObjectUrls[itemId] = cloudUrl;
                     return Promise.resolve(cloudUrl);
                 }
-                return openMediaBlobDb().then(function (db) {
+                mediaObjectUrlPromises[itemId] = openMediaBlobDb().then(function (db) {
                     return new Promise(function (resolve, reject) {
                         var tx = db.transaction('blobs', 'readonly');
                         var req = tx.objectStore('blobs').get(getProjectKey() + ':' + itemId);
@@ -799,6 +878,74 @@
                             resolve(url);
                         };
                         req.onerror = function () { reject(req.error); };
+                    });
+                }).then(function (url) {
+                    delete mediaObjectUrlPromises[itemId];
+                    return url;
+                }).catch(function (err) {
+                    delete mediaObjectUrlPromises[itemId];
+                    throw err;
+                });
+                return mediaObjectUrlPromises[itemId];
+            }
+
+            function ensureBufferIndicator() {
+                if (bufferIndicator && bufferIndicator.isConnected) return bufferIndicator;
+                bufferIndicator = document.createElement('div');
+                bufferIndicator.className = 'buffer-indicator';
+                bufferIndicator.setAttribute('role', 'status');
+                bufferIndicator.setAttribute('aria-label', 'Buffering');
+                viewer.appendChild(bufferIndicator);
+                return bufferIndicator;
+            }
+
+            function setBuffering(active) {
+                ensureBufferIndicator().classList.toggle('is-visible', !!active);
+            }
+
+            function warmMedia(media) {
+                if (!media || mediaWarmers[media.id]) return;
+                mediaWarmers[media.id] = true;
+                getMediaObjectUrl(media.id).then(function (url) {
+                    if (!url) return;
+                    if (media.kind === 'image') {
+                        var img = new Image();
+                        img.decoding = 'async';
+                        img.loading = 'eager';
+                        img.src = url;
+                        mediaWarmers[media.id] = img;
+                        if (img.decode) img.decode().catch(function () {});
+                        return;
+                    }
+                    if (media.kind === 'video' || media.kind === 'audio') {
+                        var el = document.createElement(media.kind === 'video' ? 'video' : 'audio');
+                        el.preload = 'metadata';
+                        el.muted = true;
+                        if (media.kind === 'video') {
+                            el.playsInline = true;
+                            el.setAttribute('playsinline', '');
+                            el.setAttribute('webkit-playsinline', '');
+                        }
+                        el.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+                        el.src = url;
+                        document.body.appendChild(el);
+                        try { el.load(); } catch (_) {}
+                        mediaWarmers[media.id] = el;
+                    }
+                }).catch(function () {
+                    delete mediaWarmers[media.id];
+                });
+            }
+
+            function prewarmMediaAround(playhead) {
+                if (!project || !stream || !stream.presentationId || Date.now() - lastPrewarmAt < 1500) return;
+                lastPrewarmAt = Date.now();
+                var seen = {};
+                [0, 2, 6, 12].forEach(function (offset) {
+                    Engine.resolveLayers(project, stream.presentationId, Math.max(0, playhead + offset)).forEach(function (layer) {
+                        if (!layer.media || seen[layer.media.id]) return;
+                        seen[layer.media.id] = true;
+                        warmMedia(layer.media);
                     });
                 });
             }
@@ -857,7 +1004,7 @@
             function ensureSession(onMessage) {
                 if (!project) return;
                 if (session && session.projectId === getProjectKey()) {
-                    session.projectCode = project.projectCode || session.projectCode;
+                    session.projectCode = viewerAccessCode() || session.projectCode;
                     return;
                 }
                 if (unsubscribe) {
@@ -870,7 +1017,7 @@
                 }
                 session = StreamSession.createSession({
                     projectId: getProjectKey(),
-                    projectCode: project.projectCode || projectParam || null
+                    projectCode: viewerAccessCode()
                 });
                 unsubscribe = session.subscribe(onMessage);
             }
@@ -953,14 +1100,17 @@
                 if (renderer) renderer.destroy();
                 renderer = Engine.createDomRenderer({
                     stage: frame,
-                    resolveUrl: getMediaObjectUrl
+                    resolveUrl: getMediaObjectUrl,
+                    onBufferingChange: setBuffering
                 });
+                prewarmMediaAround(playback.time);
 
                 if (raf) cancelAnimationFrame(raf);
                 function tick() {
                     if (!running || !project || !stream || !renderer) return;
                     var duration = presentationDuration();
                     Engine.syncPlaybackState(playback, duration, Date.now());
+                    prewarmMediaAround(playback.time);
                     renderer.render(project, stream.presentationId, playback.time, playback.playing);
                     raf = requestAnimationFrame(tick);
                 }
@@ -1003,7 +1153,7 @@
 
             function navigateToStream(s) {
                 if (!s) return;
-                var code = (project && project.projectCode) ? project.projectCode : projectParam;
+                var code = viewerAccessCode();
                 var viewId = currentViewId(project, s);
                 window.location.href = 'index.html?project=' + encodeURIComponent(code) + '&stream=' + encodeURIComponent(viewId);
             }
@@ -1125,7 +1275,7 @@
                 title.textContent = project.name || 'Streams';
                 var sub = document.createElement('div');
                 sub.className = 'gallery-sub';
-                sub.textContent = project.projectCode ? ('Code ' + project.projectCode) : 'Viewer';
+                sub.textContent = viewerAccessCode() ? ('Code ' + viewerAccessCode()) : 'Viewer';
                 head.appendChild(title);
                 head.appendChild(sub);
                 gallery.appendChild(head);
@@ -1264,6 +1414,11 @@
                 if (session) session.close();
                 if (cloudUnsub) cloudUnsub();
                 if (renderer) renderer.destroy();
+                Object.keys(mediaWarmers).forEach(function (id) {
+                    var warmer = mediaWarmers[id];
+                    if (warmer && warmer.pause) warmer.pause();
+                    if (warmer && warmer.parentNode) warmer.parentNode.removeChild(warmer);
+                });
                 Object.keys(mediaObjectUrls).forEach(function (id) {
                     if (mediaObjectUrls[id] && mediaObjectUrls[id].indexOf('blob:') === 0) {
                         URL.revokeObjectURL(mediaObjectUrls[id]);

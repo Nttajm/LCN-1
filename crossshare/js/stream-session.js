@@ -69,6 +69,19 @@
         var needle = String(code || '').trim().toUpperCase();
         if (!needle) return null;
         var list = loadProjects();
+        if (needle.length === 4) {
+            for (var t = list.length - 1; t >= 0; t--) {
+                var tempProject = list[t];
+                if (
+                    tempProject &&
+                    tempProject.tempCode &&
+                    String(tempProject.tempCode).toUpperCase() === needle &&
+                    tempProject.tempCodeExpiresAt > nowMs()
+                ) {
+                    return tempProject;
+                }
+            }
+        }
         for (var i = list.length - 1; i >= 0; i--) {
             var project = list[i];
             if (!project) continue;

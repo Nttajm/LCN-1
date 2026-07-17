@@ -603,25 +603,111 @@
     function createDomRenderer(options) {
         var stage = options.stage;
         var resolveUrl = options.resolveUrl;
+        var onBufferingChange = typeof options.onBufferingChange === 'function' ? options.onBufferingChange : function () {};
         var nodes = {};
+        var buffering = false;
+        var SEEK_DRIFT_WHILE_PLAYING = 1.25;
+        var SEEK_DRIFT_WHILE_PAUSED = 0.08;
+        var SEEK_THROTTLE_MS = 900;
+
+        function reportBuffering() {
+            var next = false;
+            Object.keys(nodes).forEach(function (key) {
+                var node = nodes[key];
+                if (node && node.buffering) next = true;
+            });
+            if (next === buffering) return;
+            buffering = next;
+            onBufferingChange(buffering);
+        }
+
+        function setNodeBuffering(node, value) {
+            if (!node || node.buffering === !!value) return;
+            node.buffering = !!value;
+            reportBuffering();
+        }
+
+        function removeNode(node) {
+            if (!node) return;
+            if (node.el && node.el.pause) node.el.pause();
+            setNodeBuffering(node, false);
+            if (node.wrap && node.wrap.parentNode) node.wrap.parentNode.removeChild(node.wrap);
+        }
+
+        function applyPendingSeek(node) {
+            if (!node || !node.el || node.pendingSeekTime == null || node.el.readyState < 1) return;
+            var target = Math.max(0, node.pendingSeekTime);
+            try {
+                node.el.currentTime = target;
+                node.pendingSeekTime = null;
+                node.forceSeek = false;
+                node.lastSeekAt = Date.now();
+            } catch (e) {}
+        }
+
+        function seekMediaNode(node, mediaTime) {
+            if (!node || !node.el || !isFinite(mediaTime)) return;
+            var target = Math.max(0, mediaTime);
+            node.pendingSeekTime = target;
+            applyPendingSeek(node);
+        }
+
+        function installMediaEvents(node, playing) {
+            if (!node || !node.el || node.eventsInstalled) return;
+            node.eventsInstalled = true;
+            ['waiting', 'stalled', 'seeking'].forEach(function (eventName) {
+                node.el.addEventListener(eventName, function () {
+                    setNodeBuffering(node, !!node.wantsPlayback);
+                });
+            });
+            ['canplay', 'canplaythrough', 'playing', 'timeupdate', 'seeked', 'loadeddata'].forEach(function (eventName) {
+                node.el.addEventListener(eventName, function () {
+                    applyPendingSeek(node);
+                    setNodeBuffering(node, false);
+                });
+            });
+            node.el.addEventListener('loadedmetadata', function () {
+                applyPendingSeek(node);
+            });
+            node.el.addEventListener('error', function () {
+                setNodeBuffering(node, false);
+            });
+            node.wantsPlayback = !!playing;
+        }
 
         function removeMissing(visible) {
             Object.keys(nodes).forEach(function (key) {
                 if (visible[key]) return;
                 var node = nodes[key];
-                if (node.wrap && node.wrap.parentNode) node.wrap.parentNode.removeChild(node.wrap);
+                removeNode(node);
                 delete nodes[key];
             });
+            reportBuffering();
         }
 
         function setMediaNode(layer, node, playing) {
             if (!node.el) return;
             node.el.className = 'cs-render-media cs-fit-' + layer.item.fit;
             if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
+                var mediaTime = isFinite(layer.mediaTime) ? Math.max(0, layer.mediaTime) : 0;
+                var currentTime = node.el.currentTime || 0;
+                var drift = Math.abs(currentTime - mediaTime);
+                var now = Date.now();
+                var canCorrect = node.el.readyState >= 1;
+                var largeDrift = drift > SEEK_DRIFT_WHILE_PLAYING &&
+                    now - (node.lastSeekAt || 0) > SEEK_THROTTLE_MS;
+
+                installMediaEvents(node, playing);
+                node.wantsPlayback = !!playing;
                 node.el.muted = true;
                 node.el.loop = false;
-                if (isFinite(layer.mediaTime) && Math.abs((node.el.currentTime || 0) - layer.mediaTime) > 0.25) {
-                    try { node.el.currentTime = Math.max(0, layer.mediaTime); } catch (e) {}
+                if (
+                    node.pendingSeekTime != null ||
+                    node.forceSeek ||
+                    (!playing && drift > SEEK_DRIFT_WHILE_PAUSED) ||
+                    (playing && (drift > 3 || (canCorrect && largeDrift)))
+                ) {
+                    seekMediaNode(node, mediaTime);
                 }
                 if (playing && node.el.paused) {
                     var promise = node.el.play();
@@ -629,6 +715,7 @@
                 } else if (!playing && !node.el.paused) {
                     node.el.pause();
                 }
+                setNodeBuffering(node, !!playing && (node.el.seeking || node.el.readyState < 3));
             }
         }
 
@@ -650,7 +737,7 @@
                     pending.textContent = layer.media.name || 'Loading';
                     wrap.appendChild(pending);
                     stage.appendChild(wrap);
-                    node = nodes[layer.key] = { wrap: wrap, mediaId: null, el: null };
+                    node = nodes[layer.key] = { wrap: wrap, mediaId: null, el: null, buffering: false };
                 }
 
                 node.wrap.style.zIndex = String(index + 1);
@@ -666,7 +753,13 @@
                     var requestedMediaId = layer.media.id;
                     node.mediaId = requestedMediaId;
                     node.retryAt = 0;
+                    if (node.el && node.el.pause) node.el.pause();
                     node.el = null;
+                    node.eventsInstalled = false;
+                    node.pendingSeekTime = null;
+                    node.forceSeek = true;
+                    node.lastSeekAt = 0;
+                    setNodeBuffering(node, layer.media.kind === 'video' || layer.media.kind === 'audio');
                     node.wrap.innerHTML = '<div class="cs-render-pending">Loading</div>';
                     resolveUrl(requestedMediaId).then(function (url) {
                         var current = nodes[layer.key];
@@ -676,17 +769,27 @@
                             // Blob missing: retry after a short delay instead of hanging on "Loading".
                             current.mediaId = null;
                             current.retryAt = Date.now() + 1000;
+                            setNodeBuffering(current, false);
                             return;
                         }
-                        var el = layer.media.kind === 'video' ? document.createElement('video') : document.createElement('img');
+                        var el = document.createElement(
+                            layer.media.kind === 'video' ? 'video' :
+                                (layer.media.kind === 'audio' ? 'audio' : 'img')
+                        );
                         el.className = 'cs-render-media cs-fit-' + layer.item.fit;
-                        el.src = url;
                         el.alt = '';
-                        if (layer.media.kind === 'video') {
+                        if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
                             el.preload = 'auto';
-                            el.playsInline = true;
                             el.muted = true;
+                            el.controls = false;
+                            if (el.disableRemotePlayback != null) el.disableRemotePlayback = true;
+                            if (layer.media.kind === 'video') {
+                                el.playsInline = true;
+                                el.setAttribute('playsinline', '');
+                                el.setAttribute('webkit-playsinline', '');
+                            }
                         }
+                        el.src = url;
                         current.wrap.innerHTML = '';
                         current.wrap.appendChild(el);
                         current.el = el;
@@ -703,10 +806,10 @@
         function destroy() {
             Object.keys(nodes).forEach(function (key) {
                 var node = nodes[key];
-                if (node.el && node.el.pause) node.el.pause();
-                if (node.wrap && node.wrap.parentNode) node.wrap.parentNode.removeChild(node.wrap);
+                removeNode(node);
             });
             nodes = {};
+            reportBuffering();
         }
 
         return { render: render, destroy: destroy };
