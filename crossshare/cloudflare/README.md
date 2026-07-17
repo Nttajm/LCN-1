@@ -69,15 +69,22 @@ There is no `package.json` and no `node_modules`. Wrangler is fetched on demand 
 
 - Browser sends `Authorization: Bearer <Firebase ID token>`
 - Worker verifies the token against Firebase JWKS for project `lcn-apps`
-- Worker fetches the Firestore project and verifies `ownerId` before upload
+- Worker fetches only the `ownerId` field of the Firestore project (field mask) and verifies it before upload; positive checks are cached for 5 minutes per worker instance
 - Objects are stored under `users/{uid}/projects/{projectId}/...`
 - Deletes are allowed only for the caller's own key prefix
 
 ## Endpoints
 
-- `POST /upload` multipart form fields: `file`, `projectId`, `mediaId?`, `kind?`
+- `POST /upload?projectId=...&mediaId=...&kind=...&name=...` raw file body (small files; streamed straight into R2). `Content-Type` header carries the file MIME type.
+- `POST /upload` multipart form fields: `file`, `projectId`, `mediaId?`, `kind?` (legacy; buffers the file in Worker memory)
+- `POST /multipart/create?projectId=...&mediaId=...&kind=...&name=...&mime=...` starts a chunked upload, returns `{ key, uploadId }`
+- `PUT /multipart/part?key=...&uploadId=...&partNumber=N` raw chunk body, returns `{ partNumber, etag }`
+- `POST /multipart/complete?key=...&uploadId=...&name=...&mime=...` JSON body `{ parts: [{ partNumber, etag }] }`, finalizes the object
+- `POST /multipart/abort?key=...&uploadId=...` cancels a chunked upload
 - `DELETE /media/:objectKey`
 - `GET /health`
+
+Files larger than 24 MB are uploaded by the browser in 8 MB chunks through the `/multipart/*` endpoints (3 chunks in parallel, each chunk retried up to 4 times with backoff). This keeps large uploads under the Workers ~100 MB request body limit and makes them resilient to connection hiccups. Smaller files still use the single `POST /upload` request.
 
 ## Configuration
 

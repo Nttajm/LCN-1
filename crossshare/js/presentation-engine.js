@@ -37,10 +37,17 @@
         return null;
     }
 
-    function defaultItemFromSource(source, createId) {
+    function defaultItemFromSource(source, createId, project, parentStack) {
         var kind = source.kind === 'presentation' ? 'presentation' : 'media';
-        var duration = kind === 'presentation' ? DEFAULT_PRESENTATION_DURATION :
-            (source.duration && isFinite(source.duration) ? source.duration : DEFAULT_IMAGE_DURATION);
+        var duration = DEFAULT_IMAGE_DURATION;
+        if (kind === 'presentation' && project) {
+            var nested = getPresentation(project, source.id);
+            duration = positive(presentationDuration(project, nested, parentStack || []), DEFAULT_PRESENTATION_DURATION);
+        } else if (source.duration && isFinite(source.duration)) {
+            duration = source.duration;
+        } else if (kind === 'media' && source.mediaEnd != null && source.mediaStart != null) {
+            duration = positive(Number(source.mediaEnd) - Number(source.mediaStart), DEFAULT_IMAGE_DURATION);
+        }
         return normalizeItem({
             id: createId(),
             type: kind,
@@ -130,6 +137,7 @@
 
     function layoutSequentialPresentation(project, presentation) {
         if (!presentation || !Array.isArray(presentation.items)) return;
+        syncPresentationItemDurations(project, presentation);
         var ordered = orderedPresentationItems(presentation);
         var prevEnd = 0;
         for (var i = 0; i < ordered.length; i++) {
@@ -237,22 +245,57 @@
             return positive(nestedDuration, item.duration || DEFAULT_PRESENTATION_DURATION);
         }
         var media = getMediaItem(project, item.mediaId);
-        if (media && media.duration && isFinite(media.duration)) {
-            var trimOut = item.trimOut == null ? media.duration : Math.min(item.trimOut, media.duration);
-            return positive(trimOut - Math.min(item.trimIn, trimOut), item.duration || DEFAULT_IMAGE_DURATION);
+        if (media && (media.kind === 'video' || media.kind === 'audio')) {
+            var mediaDuration = media.duration;
+            if ((mediaDuration == null || !isFinite(mediaDuration)) && media.mediaEnd != null && media.mediaStart != null) {
+                mediaDuration = Math.max(0, Number(media.mediaEnd) - Number(media.mediaStart));
+            }
+            if (mediaDuration != null && isFinite(mediaDuration)) {
+                var trimOut = item.trimOut == null ? mediaDuration : Math.min(item.trimOut, mediaDuration);
+                return positive(trimOut - Math.min(item.trimIn, trimOut), item.duration || DEFAULT_IMAGE_DURATION);
+            }
         }
         return positive(item.duration, DEFAULT_IMAGE_DURATION);
     }
 
     function itemUnitDuration(project, item, stack) {
         item = normalizeItem(item);
+        // Videos, audio, and nested presentations should always follow their
+        // source length (including trims), not a stale default item.duration.
+        if (item.type === 'presentation') {
+            return sourceDuration(project, item, stack);
+        }
         if (item.type === 'media') {
             var media = getMediaItem(project, item.mediaId);
-            if (media && (media.kind === 'video' || media.kind === 'audio') && media.duration) {
+            if (media && (media.kind === 'video' || media.kind === 'audio')) {
                 return sourceDuration(project, item, stack);
             }
         }
         return positive(item.duration || sourceDuration(project, item, stack), DEFAULT_IMAGE_DURATION);
+    }
+
+    function syncPresentationItemDurations(project, presentation, stack) {
+        if (!presentation || !Array.isArray(presentation.items)) return;
+        stack = stack || [];
+        if (stack.indexOf(presentation.id) !== -1 || stack.length > MAX_RENDER_DEPTH) return;
+        var nextStack = stack.concat(presentation.id);
+        for (var i = 0; i < presentation.items.length; i++) {
+            var live = presentation.items[i];
+            if (!live) continue;
+            var item = normalizeItem(live);
+            var duration = sourceDuration(project, item, nextStack);
+            if (!isFinite(duration) || duration <= 0) continue;
+            if (item.type === 'presentation') {
+                live.duration = duration;
+                continue;
+            }
+            if (item.type === 'media') {
+                var media = getMediaItem(project, item.mediaId);
+                if (media && (media.kind === 'video' || media.kind === 'audio')) {
+                    live.duration = duration;
+                }
+            }
+        }
     }
 
     function itemSpan(project, item, stack) {
@@ -331,9 +374,7 @@
         if (transAfter && playback.span !== Infinity) {
             var outDur = transAfter.duration;
             var remaining = playback.span - playback.elapsed;
-            if (transAfter.type === 'crossfade') {
-                if (remaining <= outDur) mult *= clamp(remaining / outDur, 0, 1);
-            } else if (transAfter.type === 'fadeblack') {
+            if (transAfter.type === 'crossfade' || transAfter.type === 'fade' || transAfter.type === 'fadeblack') {
                 if (remaining <= outDur) mult *= clamp(remaining / outDur, 0, 1);
             }
         }
@@ -429,13 +470,34 @@
         return state.time;
     }
 
-    function setPlaybackPlaying(state, playing, duration, nowMs) {
+    function setPlaybackPlaying(state, playing, duration, nowMs, options) {
         if (!state) return;
+        options = options || {};
         nowMs = num(nowMs, Date.now());
         syncPlaybackState(state, duration, nowMs);
+        var wasPlaying = state.playing;
         state.playing = !!playing;
         state.anchorTimeMs = state.playing ? nowMs : null;
-        if (state.playing) state.startedAt = nowMs;
+
+        if (state.playing && !wasPlaying) {
+            if (options.restart || state.time === 0) {
+                state.startedAt = nowMs;
+                state.time = 0;
+            } else {
+                state.startedAt = nowMs - (state.time * 1000);
+            }
+        }
+        if (!state.playing) {
+            state.startedAt = null;
+        }
+    }
+
+    function restartPlayback(state, duration, nowMs) {
+        if (!state) return;
+        nowMs = num(nowMs, Date.now());
+        state.time = 0;
+        state.startedAt = state.playing ? nowMs : null;
+        state.anchorTimeMs = state.playing ? nowMs : null;
     }
 
     function seekPlaybackState(state, time, duration, nowMs) {
@@ -444,6 +506,7 @@
         state.time = Math.max(0, num(time, 0));
         if (duration > 0 && isFinite(duration) && state.time > duration) state.time = state.time % duration;
         state.anchorTimeMs = state.playing ? nowMs : null;
+        state.startedAt = state.playing ? nowMs - state.time * 1000 : null;
     }
 
     function drawMediaFit(ctx, el, x, y, w, h, fit) {
@@ -606,9 +669,9 @@
         var onBufferingChange = typeof options.onBufferingChange === 'function' ? options.onBufferingChange : function () {};
         var nodes = {};
         var buffering = false;
-        var SEEK_DRIFT_WHILE_PLAYING = 1.25;
+        var SEEK_DRIFT_WHILE_PLAYING = 0.12;
         var SEEK_DRIFT_WHILE_PAUSED = 0.08;
-        var SEEK_THROTTLE_MS = 900;
+        var SEEK_THROTTLE_MS = 250;
 
         function reportBuffering() {
             var next = false;
@@ -691,7 +754,8 @@
             if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
                 var mediaTime = isFinite(layer.mediaTime) ? Math.max(0, layer.mediaTime) : 0;
                 var currentTime = node.el.currentTime || 0;
-                var drift = Math.abs(currentTime - mediaTime);
+                var signedDrift = mediaTime - currentTime;
+                var drift = Math.abs(signedDrift);
                 var now = Date.now();
                 var canCorrect = node.el.readyState >= 1;
                 var largeDrift = drift > SEEK_DRIFT_WHILE_PLAYING &&
@@ -705,9 +769,16 @@
                     node.pendingSeekTime != null ||
                     node.forceSeek ||
                     (!playing && drift > SEEK_DRIFT_WHILE_PAUSED) ||
-                    (playing && (drift > 3 || (canCorrect && largeDrift)))
+                    (playing && canCorrect && largeDrift)
                 ) {
                     seekMediaNode(node, mediaTime);
+                }
+                if ('playbackRate' in node.el) {
+                    if (playing && drift > 0.035 && drift <= SEEK_DRIFT_WHILE_PLAYING) {
+                        node.el.playbackRate = signedDrift > 0 ? 1.05 : 0.95;
+                    } else {
+                        node.el.playbackRate = 1;
+                    }
                 }
                 if (playing && node.el.paused) {
                     var promise = node.el.play();
@@ -803,6 +874,20 @@
             removeMissing(visible);
         }
 
+        function isReady() {
+            var keys = Object.keys(nodes);
+            for (var i = 0; i < keys.length; i++) {
+                var node = nodes[keys[i]];
+                if (!node || !node.el) return false;
+                if (node.el.tagName === 'VIDEO' || node.el.tagName === 'AUDIO') {
+                    if (node.pendingSeekTime != null || node.el.seeking || node.el.readyState < 3) return false;
+                } else if (!node.el.complete || !node.el.naturalWidth) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function destroy() {
             Object.keys(nodes).forEach(function (key) {
                 var node = nodes[key];
@@ -812,7 +897,7 @@
             reportBuffering();
         }
 
-        return { render: render, destroy: destroy };
+        return { render: render, isReady: isReady, destroy: destroy };
     }
 
     global.CrosssharePresentationEngine = {
@@ -831,6 +916,7 @@
         migrateLegacyTransitions: migrateLegacyTransitions,
         defaultItemFromSource: defaultItemFromSource,
         sourceDuration: sourceDuration,
+        syncPresentationItemDurations: syncPresentationItemDurations,
         itemUnitDuration: itemUnitDuration,
         itemSpan: itemSpan,
         presentationDuration: presentationDuration,
@@ -841,6 +927,7 @@
         normalizePlaybackState: normalizePlaybackState,
         syncPlaybackState: syncPlaybackState,
         setPlaybackPlaying: setPlaybackPlaying,
+        restartPlayback: restartPlayback,
         seekPlaybackState: seekPlaybackState,
         createPreviewCapture: createPreviewCapture,
         createDomRenderer: createDomRenderer

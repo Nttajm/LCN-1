@@ -867,6 +867,7 @@
             position: absolute;
             overflow: hidden;
             pointer-events: none;
+            isolation: isolate;
         }
 
         .cs-render-media {
@@ -2103,6 +2104,56 @@
             display: block;
         }
 
+        .media-tile-mosaic {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1px;
+            background: #1a1a1a;
+        }
+
+        .media-tile-mosaic-cell {
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+            background: #0d0d0d;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5a5a5a;
+        }
+
+        .media-tile-mosaic-cell img,
+        .media-tile-mosaic-cell video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .media-tile-mosaic-cell .media-tile-mosaic-icon {
+            width: 42%;
+            height: 42%;
+            opacity: 0.55;
+        }
+
+        .media-tile-mosaic.is-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        .media-tile.is-bin-drop .media-tile-thumb,
+        .media-list-row.is-bin-drop {
+            outline: 1px solid #7aa2d4;
+            outline-offset: -1px;
+            background: rgba(20, 115, 230, 0.12);
+        }
+
         .media-tile-badge {
             position: absolute;
             left: 4px;
@@ -2281,12 +2332,19 @@
         }
 
         .media-upload-track {
-            width: 120px;
+            width: 160px;
             height: 4px;
             background: rgba(255, 255, 255, 0.12);
             border-radius: 999px;
             overflow: hidden;
             flex-shrink: 0;
+        }
+
+        .media-upload-detail {
+            flex-shrink: 0;
+            font-variant-numeric: tabular-nums;
+            color: #9eb8d8;
+            white-space: nowrap;
         }
 
         .media-upload-fill {
@@ -2303,6 +2361,23 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
+        }
+
+        .media-scroll-wrap.is-file-drag::after {
+            content: 'Drop files to import';
+            position: absolute;
+            inset: 4px;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #7aa2d4;
+            border-radius: 8px;
+            background: rgba(20, 115, 230, 0.12);
+            color: #9eb8d8;
+            font-size: 13px;
+            font-weight: 600;
+            pointer-events: none;
         }
 
         .media-upload-overlay {
@@ -2322,15 +2397,35 @@
 
         .media-upload-overlay-card {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            min-width: 280px;
+            padding: 12px 16px;
             border-radius: 6px;
             background: rgba(35, 35, 35, 0.96);
             border: 1px solid #454545;
             color: #e1e1e1;
             font-size: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .media-upload-overlay-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .media-upload-overlay-detail {
+            font-variant-numeric: tabular-nums;
+            color: #9eb8d8;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .media-upload-overlay .media-upload-track {
+            width: 100%;
+            height: 5px;
         }
 
         .media-list-row.is-uploading {
@@ -2577,6 +2672,121 @@
             color: #959595;
         }
 
+        /* ── Instances (connected viewers) ── */
+        .panel-body--instances {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .instances-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 10px;
+        }
+
+        .instances-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 2px 10px;
+            color: #959595;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .instances-summary .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2d9d78;
+            box-shadow: 0 0 6px rgba(45, 157, 120, 0.8);
+        }
+
+        .instances-summary.is-empty .dot {
+            background: #6a6a72;
+            box-shadow: none;
+        }
+
+        .instance-row {
+            display: grid;
+            grid-template-columns: 22px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 8px;
+            border-bottom: 1px solid #2e2e2e;
+        }
+
+        .instance-row-icon {
+            width: 18px;
+            height: 18px;
+            color: #959595;
+        }
+
+        .instance-row-main {
+            min-width: 0;
+        }
+
+        .instance-row-device {
+            color: #e1e1e1;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .instance-row-viewing {
+            margin-top: 2px;
+            color: #8a8a8a;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .instance-row-meta {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .instance-row-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #6fd6a8;
+        }
+
+        .instance-row-status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #2d9d78;
+        }
+
+        .instance-row-status.is-idle {
+            color: #959595;
+        }
+
+        .instance-row-status.is-idle .dot {
+            background: #6a6a72;
+        }
+
+        .instance-row-time {
+            margin-top: 2px;
+            color: #7a7a7a;
+            font-size: 10px;
+        }
+
+        .instances-empty {
+            padding: 32px 12px;
+            color: #7a7a7a;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
         .view-row-actions {
             display: flex;
             align-items: center;
@@ -2661,7 +2871,7 @@
         .theme-menu {
             position: fixed;
             z-index: 20000;
-            min-width: 148px;
+            min-width: 196px;
             padding: 6px;
             background: #323232;
             border: 1px solid #454545;
@@ -2687,6 +2897,71 @@
             grid-template-columns: repeat(6, 1fr);
             gap: 4px;
             padding: 0 2px 2px;
+        }
+
+        .theme-menu-rename {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+            padding-top: 8px;
+            border-top: 1px solid #454545;
+        }
+
+        .theme-menu-rename.is-visible {
+            display: flex;
+        }
+
+        .theme-menu-rename-label {
+            padding: 0 4px;
+            color: #959595;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .theme-menu-rename-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .theme-menu-rename-input {
+            flex: 1;
+            min-width: 0;
+            height: 26px;
+            padding: 0 8px;
+            border: 1px solid #454545;
+            border-radius: 3px;
+            background: #1f1f1f;
+            color: #e1e1e1;
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        .theme-menu-rename-input:focus {
+            outline: none;
+            border-color: #1473E6;
+        }
+
+        .theme-menu-rename-btn {
+            flex-shrink: 0;
+            height: 26px;
+            padding: 0 10px;
+            border: 1px solid #454545;
+            border-radius: 3px;
+            background: #3a3a3a;
+            color: #e1e1e1;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .theme-menu-rename-btn:hover {
+            background: #474747;
+            border-color: #5a5a5a;
         }
 
         .theme-swatch {
@@ -3608,9 +3883,17 @@
             var cloudSaveTimer = null;
             var cloudSaveInFlight = false;
             var cloudSaveQueued = false;
+            var PROJECT_CACHE_TTL_MS = 5 * 60 * 1000;
+            var REMOTE_REFRESH_DEBOUNCE_MS = 750;
+            var remoteProjectRefreshTimer = null;
+            var remoteProjectRefreshInFlight = null;
             var params = new URLSearchParams(window.location.search);
             var projectIdParam = params.get('id') || '';
             var projName = params.get('proj') || '';
+
+            function sharedNow() {
+                return Cloud && typeof Cloud.now === 'function' ? Cloud.now() : Date.now();
+            }
 
             function waitForCloud(timeoutMs) {
                 timeoutMs = timeoutMs || 15000;
@@ -3659,6 +3942,15 @@
                 if (!found) list.push(project);
                 saveStreams(list);
                 return list;
+            }
+
+            function findLocalProject(predicate) {
+                if (typeof predicate !== 'function') return null;
+                var list = loadStreams();
+                for (var i = list.length - 1; i >= 0; i--) {
+                    if (list[i] && predicate(list[i])) return list[i];
+                }
+                return null;
             }
 
             function scheduleCloudSave(project) {
@@ -3819,7 +4111,7 @@
                 }
                 if (!sourceData) return null;
 
-                var item = Engine.defaultItemFromSource(sourceData, createId);
+                var item = Engine.defaultItemFromSource(sourceData, createId, match, [presentation.id]);
                 if (item.type === 'media') {
                     var media = Engine.getMediaItem(match, item.mediaId);
                     if (media) {
@@ -3831,6 +4123,8 @@
                         var unit = Math.max(0.1, (trimOut || 0) - (item.trimIn || 0));
                         if (isFinite(unit)) item.duration = unit;
                     }
+                } else if (item.type === 'presentation') {
+                    item.duration = Engine.sourceDuration(match, item, [presentation.id]);
                 }
                 item.z = presentation.items.length;
                 presentation.items.push(item);
@@ -3875,6 +4169,25 @@
                 if (!presentation) return;
                 Engine.migrateLegacyTransitions(presentation);
                 Engine.layoutSequentialPresentation(match, presentation);
+            }
+
+            function relayoutPresentationsUsingMedia(mediaId) {
+                if (!match || !mediaId) return;
+                var presentations = ensureProjectPresentations(match);
+                var changed = false;
+                for (var p = 0; p < presentations.length; p++) {
+                    var pres = presentations[p];
+                    if (!pres || !Array.isArray(pres.items)) continue;
+                    for (var i = 0; i < pres.items.length; i++) {
+                        var entry = pres.items[i];
+                        if (entry && entry.type === 'media' && entry.mediaId === mediaId) {
+                            relayoutPresentation(pres);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+                if (changed) notifyPresentationChanged();
             }
 
             function reorderPresentationItemToIndex(presentation, itemId, targetIndex) {
@@ -4313,6 +4626,7 @@
                 refreshPropertiesPanels();
                 refreshStreamsPanels();
                 if (window.__mediaBrowserRefresh) window.__mediaBrowserRefresh();
+                if (previewMode && !previewCommitting) return;
                 ensureStreamSession();
                 if (streamSession) {
                     streamSession.publishPresentation(sessionPublishPayload());
@@ -4320,7 +4634,17 @@
             }
 
             function notifyPlaybackChanged() {
+                syncSelectedStreamPlaybackFromEditor();
+                if (previewMode && !previewCommitting) {
+                    refreshStreamsPanels();
+                    return;
+                }
                 saveActiveProject(match);
+                if (cloudSaveTimer) {
+                    clearTimeout(cloudSaveTimer);
+                    cloudSaveTimer = null;
+                }
+                flushCloudSave(match);
                 refreshStreamsPanels();
                 ensureStreamSession();
                 if (streamSession) {
@@ -4342,31 +4666,40 @@
 
             var streams = loadStreams();
             var match = null;
+            var loadedProjectFromCache = false;
             var projectNameEl = document.getElementById('projectNameLabel');
             var projectSettingsBtn = document.getElementById('projectSettingsBtn');
 
             try {
                 Cloud = await waitForCloud();
                 await Cloud.waitForAuth();
+                if (typeof Cloud.syncClock === 'function') await Cloud.syncClock();
+                if (typeof Cloud.syncClock === 'function') {
+                    setInterval(function () { Cloud.syncClock(true); }, 60000);
+                }
                 if (!Cloud.getUser()) {
                     window.location.href = 'app.html';
                     return;
                 }
 
                 if (projectIdParam) {
-                    match = await Cloud.getProject(projectIdParam);
-                } else if (projName) {
-                    match = await Cloud.findOwnedProjectByName(projName);
+                    match = findLocalProject(function (project) {
+                        return project.id === projectIdParam;
+                    });
+                    loadedProjectFromCache = !!match;
                     if (!match) {
-                        for (var li = streams.length - 1; li >= 0; li--) {
-                            if (streams[li] && streams[li].name === projName) {
-                                match = streams[li];
-                                break;
-                            }
-                        }
+                        match = await Cloud.getProject(projectIdParam);
+                    }
+                } else if (projName) {
+                    match = findLocalProject(function (project) {
+                        return project.name === projName;
+                    });
+                    loadedProjectFromCache = !!match;
+                    if (!match) {
+                        match = await Cloud.findOwnedProjectByName(projName);
                         if (match && match.id) {
                             try {
-                                var remote = await Cloud.getProject(match.id);
+                                var remote = await Cloud.getProject(match.id, { preferCache: true, maxAgeMs: PROJECT_CACHE_TTL_MS });
                                 if (remote) match = remote;
                                 else if (!match.ownerId) {
                                     match.ownerId = Cloud.getUser().uid;
@@ -4383,6 +4716,7 @@
 
                 if (match) {
                     streams = upsertLocalProject(match);
+                    if (loadedProjectFromCache) scheduleRemoteProjectRefresh(0);
                     if (match.id && !projectIdParam) {
                         try {
                             history.replaceState(null, '', 'manager.html?id=' + encodeURIComponent(match.id));
@@ -4434,6 +4768,8 @@
             var selectedPresentationItemId = null;
             var editorPlayback = Engine.normalizePlaybackState(null, false);
             var previewMode = false;
+            var previewPendingSave = false;
+            var previewCommitting = false;
             var liveStatesByStream = {};
             var sourcePreview = {
                 mediaId: null,
@@ -4479,6 +4815,26 @@
                 return target;
             }
 
+            function syncSelectedStreamPlaybackFromEditor() {
+                var stream = getSelectedStream();
+                if (!stream) return null;
+                // In preview mode the editor playhead is private to the preview
+                // screen; the live stream playback must not be touched.
+                if (previewMode && !previewCommitting) return stream;
+                var target = ensureStreamPlayback(stream);
+                var incoming = Engine.normalizePlaybackState(editorPlayback, false);
+                target.playing = incoming.playing;
+                target.time = incoming.time;
+                target.anchorTimeMs = incoming.anchorTimeMs;
+                target.startedAt = incoming.startedAt;
+                if (previewCommitting) {
+                    var liveState = ensureLiveState(stream.id);
+                    if (liveState) liveState.playback = Engine.normalizePlaybackState(target, false);
+                }
+                if (!previewMode) editorPlayback = target;
+                return stream;
+            }
+
             var STREAM_PREVIEW_INTERVAL_MS = 2000;
             var streamPreviewCapture = null;
             var streamPreviewTimer = null;
@@ -4517,7 +4873,7 @@
                 if (!presentation || !presentation.items || !presentation.items.length) return Promise.resolve(null);
                 var playback = ensureStreamPlayback(stream);
                 var duration = streamPlaybackDuration(stream);
-                Engine.syncPlaybackState(playback, duration, Date.now());
+                Engine.syncPlaybackState(playback, duration, sharedNow());
                 return ensureStreamPreviewCapture().capture(match, presentation.id, playback.time);
             }
 
@@ -4573,9 +4929,10 @@
             function ensureLiveState(streamId) {
                 if (!streamId) return null;
                 if (!liveStatesByStream[streamId]) {
+                    var liveStream = findStreamInProject(match, streamId);
                     liveStatesByStream[streamId] = {
                         snapshot: match ? clone(match) : null,
-                        playback: Engine.normalizePlaybackState(editorPlayback, false)
+                        playback: Engine.normalizePlaybackState(liveStream && liveStream.playback, false)
                     };
                 }
                 return liveStatesByStream[streamId];
@@ -4583,20 +4940,50 @@
 
             function setPreviewMode(enabled) {
                 if (previewMode === enabled) return;
-                previewMode = enabled;
                 if (enabled) {
+                    previewMode = true;
+                    previewPendingSave = false;
                     ensureLiveState(selectedStreamId);
+                    // Detach the editor playhead from the live stream playback so
+                    // scrubbing/pausing in preview never touches the live output.
+                    var stream = getSelectedStream();
+                    editorPlayback = Engine.normalizePlaybackState(stream && stream.playback, false);
                 } else {
+                    // Leaving preview publishes any pending edits, then re-attaches
+                    // the editor to the (still running) live playback.
+                    previewMode = false;
                     liveStatesByStream = {};
+                    var selected = getSelectedStream();
+                    if (selected) {
+                        editorPlayback = ensureStreamPlayback(selected);
+                        Engine.syncPlaybackState(editorPlayback, streamPlaybackDuration(selected), sharedNow());
+                    }
+                    if (previewPendingSave) {
+                        previewPendingSave = false;
+                        saveActiveProject(match);
+                        notifyPresentationChanged();
+                        notifyPlaybackChanged();
+                    }
                 }
                 refreshProgramPanels();
+                refreshContentEditorPanels();
             }
 
             function syncPreviewToLive() {
                 if (!previewMode || !match || !selectedStreamId) return;
                 var liveState = ensureLiveState(selectedStreamId);
-                liveState.snapshot = clone(match);
-                liveState.playback = Engine.normalizePlaybackState(editorPlayback, false);
+                previewCommitting = true;
+                try {
+                    liveState.snapshot = clone(match);
+                    liveState.playback = Engine.normalizePlaybackState(editorPlayback, false);
+                    syncSelectedStreamPlaybackFromEditor();
+                    previewPendingSave = false;
+                    saveActiveProject(match);
+                    notifyPresentationChanged();
+                    notifyPlaybackChanged();
+                } finally {
+                    previewCommitting = false;
+                }
                 refreshProgramPanels();
             }
 
@@ -4659,7 +5046,11 @@
                     if (data.type === 'playback-change') {
                         var targetStream = findProjectStream(data.streamId || selectedStreamId);
                         var targetPlayback = applyPlaybackData(targetStream, data);
-                        if (targetStream && targetStream.id === selectedStreamId) {
+                        if (targetStream && liveStatesByStream[targetStream.id]) {
+                            liveStatesByStream[targetStream.id].playback =
+                                Engine.normalizePlaybackState(targetPlayback, false);
+                        }
+                        if (targetStream && targetStream.id === selectedStreamId && !previewMode) {
                             editorPlayback = targetPlayback;
                             refreshProgramPanels();
                             refreshContentEditorPanels();
@@ -4671,11 +5062,13 @@
                         data.type === 'stream-deleted' ||
                         data.type === 'project-change'
                     ) {
-                        reloadActiveProject();
-                        refreshProgramPanels();
-                        refreshContentEditorPanels();
-                        refreshPropertiesPanels();
-                        refreshStreamsPanels();
+                        var appliedReload = reloadActiveProject();
+                        if (appliedReload) {
+                            refreshProgramPanels();
+                            refreshContentEditorPanels();
+                            refreshPropertiesPanels();
+                            refreshStreamsPanels();
+                        }
                     }
                 });
                 return streamSession;
@@ -4742,6 +5135,14 @@
                 project = project || match;
                 if (!project) return false;
 
+                // Preview mode: keep edits in memory only so live viewers (who
+                // read the saved project) are not affected until Preview -> Live.
+                if (previewMode && !previewCommitting) {
+                    previewPendingSave = true;
+                    if (project !== match) match = project;
+                    return true;
+                }
+
                 project.updatedAt = new Date().toISOString();
                 if (Cloud && Cloud.getUser()) {
                     if (!project.ownerId) project.ownerId = Cloud.getUser().uid;
@@ -4778,6 +5179,12 @@
 
             function applyReloadedProject(next) {
                 if (!next) return false;
+                // Never clobber unpublished preview edits with a remote snapshot.
+                if (previewMode && previewPendingSave) return false;
+                if (match && isProjectOlderThan(next, match)) return false;
+                if (match && next.id === match.id && JSON.stringify(next) === JSON.stringify(match)) {
+                    return false;
+                }
                 match = next;
                 upsertLocalProject(match);
                 streams = loadStreams();
@@ -4787,23 +5194,65 @@
                 ensureProjectStreams(match);
                 ensureProjectMedia(match);
                 var selected = findProjectStream(selectedStreamId) || match.projectStreams[0];
-                if (selected) editorPlayback = ensureStreamPlayback(selected);
+                if (selected && !previewMode) editorPlayback = ensureStreamPlayback(selected);
                 ensureProjectCodes(match);
                 return true;
             }
 
-            function reloadActiveProject() {
-                if (Cloud && match && match.id) {
-                    Cloud.getProject(match.id).then(function (remote) {
-                        if (remote) applyReloadedProject(remote);
-                    }).catch(function () {});
+            function projectUpdatedAtMs(project) {
+                if (!project) return 0;
+                var value = project.updatedAt || project.createdAt || project.created || 0;
+                if (typeof value === 'number') return value;
+                var parsed = Date.parse(value);
+                return isNaN(parsed) ? 0 : parsed;
+            }
+
+            function isProjectOlderThan(candidate, current) {
+                if (!candidate || !current || candidate.id !== current.id) return false;
+                var candidateTime = projectUpdatedAtMs(candidate);
+                var currentTime = projectUpdatedAtMs(current);
+                return candidateTime > 0 && currentTime > 0 && candidateTime < currentTime;
+            }
+
+            function scheduleRemoteProjectRefresh(delayMs) {
+                if (!Cloud || !match || !match.id) return;
+                if (remoteProjectRefreshTimer) {
+                    window.clearTimeout(remoteProjectRefreshTimer);
                 }
+                remoteProjectRefreshTimer = window.setTimeout(function () {
+                    remoteProjectRefreshTimer = null;
+                    refreshProjectFromCloud();
+                }, Math.max(0, delayMs == null ? REMOTE_REFRESH_DEBOUNCE_MS : delayMs));
+            }
+
+            function refreshProjectFromCloud() {
+                if (!Cloud || !match || !match.id) return Promise.resolve(null);
+                if (remoteProjectRefreshInFlight) return remoteProjectRefreshInFlight;
+                var projectId = match.id;
+                remoteProjectRefreshInFlight = Cloud.getProject(projectId).then(function (remote) {
+                    remoteProjectRefreshInFlight = null;
+                    if (remote && match && match.id === projectId) {
+                        applyReloadedProject(remote);
+                    }
+                    return remote;
+                }).catch(function (err) {
+                    remoteProjectRefreshInFlight = null;
+                    console.warn('Cloud project refresh failed', err);
+                    return null;
+                });
+                return remoteProjectRefreshInFlight;
+            }
+
+            function reloadActiveProject() {
                 streams = loadStreams();
                 for (var i = streams.length - 1; i >= 0; i--) {
                     if ((match && match.id && streams[i].id === match.id) || streams[i].name === displayName || streams[i].name === projName || (projectIdParam && streams[i].id === projectIdParam)) {
-                        return applyReloadedProject(streams[i]);
+                        var applied = applyReloadedProject(streams[i]);
+                        scheduleRemoteProjectRefresh(REMOTE_REFRESH_DEBOUNCE_MS);
+                        return applied;
                     }
                 }
+                scheduleRemoteProjectRefresh(REMOTE_REFRESH_DEBOUNCE_MS);
                 return false;
             }
 
@@ -5097,14 +5546,18 @@
             function selectStream(id) {
                 var previousStream = getSelectedStream();
                 if (previousStream && previousStream.id !== id) {
-                    Engine.syncPlaybackState(editorPlayback, streamPlaybackDuration(previousStream), Date.now());
+                    Engine.syncPlaybackState(editorPlayback, streamPlaybackDuration(previousStream), sharedNow());
                 }
                 selectedStreamId = id;
                 selectedPresentationItemId = null;
                 var selected = findProjectStream(id);
-                editorPlayback = ensureStreamPlayback(selected);
-                Engine.syncPlaybackState(editorPlayback, streamPlaybackDuration(selected), Date.now());
-                if (previewMode) ensureLiveState(id);
+                if (previewMode) {
+                    ensureLiveState(id);
+                    editorPlayback = Engine.normalizePlaybackState(selected && selected.playback, false);
+                } else {
+                    editorPlayback = ensureStreamPlayback(selected);
+                }
+                Engine.syncPlaybackState(editorPlayback, streamPlaybackDuration(selected), sharedNow());
                 updateTopbarTitle();
                 refreshProgramPanels();
                 refreshContentEditorPanels();
@@ -5698,6 +6151,104 @@
                 return formatBytes(bytes);
             }
 
+            function getFolderContents(folderId) {
+                if (!match || !folderId) return { folders: [], items: [] };
+                var media = ensureProjectMedia(match);
+                return {
+                    folders: media.folders.filter(function (folder) {
+                        return (folder.parentId == null ? null : folder.parentId) === folderId;
+                    }),
+                    items: media.items.filter(function (item) {
+                        return (item.folderId == null ? null : item.folderId) === folderId;
+                    })
+                };
+            }
+
+            function getFolderPreviewItems(folderId, limit) {
+                var max = typeof limit === 'number' ? limit : 4;
+                var contents = getFolderContents(folderId);
+                var ranked = contents.items.slice().sort(function (a, b) {
+                    function rank(item) {
+                        if (item.kind === 'image') return 0;
+                        if (item.kind === 'video') return 1;
+                        if (item.kind === 'audio') return 2;
+                        return 3;
+                    }
+                    var diff = rank(a) - rank(b);
+                    if (diff) return diff;
+                    return String(b.importedAt || '').localeCompare(String(a.importedAt || ''));
+                });
+                return ranked.slice(0, max);
+            }
+
+            function moveMediaItemsToFolder(itemIds, folderId) {
+                if (!match || !itemIds || !itemIds.length) return 0;
+                var media = ensureProjectMedia(match);
+                var idSet = {};
+                itemIds.forEach(function (id) { idSet[id] = true; });
+                var moved = 0;
+                media.items.forEach(function (item) {
+                    if (!idSet[item.id]) return;
+                    if (item.kind === 'presentation') return;
+                    var nextFolder = folderId == null ? null : folderId;
+                    if ((item.folderId == null ? null : item.folderId) === nextFolder) return;
+                    item.folderId = nextFolder;
+                    moved += 1;
+                });
+                if (moved) saveMediaCatalog();
+                return moved;
+            }
+
+            function fillBinThumbPreview(thumbEl, folderId) {
+                if (!thumbEl) return;
+                var mosaic = document.createElement('div');
+                mosaic.className = 'media-tile-mosaic';
+                var previewItems = getFolderPreviewItems(folderId, 4);
+
+                if (!previewItems.length) {
+                    mosaic.classList.add('is-empty');
+                    thumbEl.insertBefore(mosaic, thumbEl.firstChild);
+                    return;
+                }
+
+                for (var i = 0; i < 4; i++) {
+                    var cell = document.createElement('div');
+                    cell.className = 'media-tile-mosaic-cell';
+                    var item = previewItems[i];
+                    if (!item) {
+                        mosaic.appendChild(cell);
+                        continue;
+                    }
+
+                    cell.insertAdjacentHTML('beforeend',
+                        mediaTypeIconSvg(item.kind).replace('media-type-icon', 'media-tile-mosaic-icon'));
+
+                    if (item.kind === 'image' || item.kind === 'video') {
+                        (function (cellEl, mediaItem) {
+                            getMediaObjectUrl(mediaItem.id).then(function (url) {
+                                if (!url || !cellEl.isConnected) return;
+                                if (mediaItem.kind === 'image') {
+                                    var img = document.createElement('img');
+                                    img.src = url;
+                                    img.alt = '';
+                                    cellEl.insertBefore(img, cellEl.firstChild);
+                                } else {
+                                    var vid = document.createElement('video');
+                                    vid.src = url;
+                                    vid.muted = true;
+                                    vid.preload = 'metadata';
+                                    cellEl.insertBefore(vid, cellEl.firstChild);
+                                }
+                            });
+                        })(cell, item);
+                    }
+
+                    mosaic.appendChild(cell);
+                }
+
+                thumbEl.insertBefore(mosaic, thumbEl.firstChild);
+            }
+
             function formatTimecode(seconds) {
                 if (seconds == null || isNaN(seconds) || !isFinite(seconds)) return '00;00;00;00';
                 var total = Math.max(0, Math.floor(seconds));
@@ -5787,26 +6338,51 @@
                 total: 0,
                 completed: 0,
                 failed: 0,
-                currentName: ''
+                currentName: '',
+                totalBytes: 0,
+                loadedBytes: 0,
+                percent: 0
             };
             var mediaImportUi = null;
             var mediaUploadingName = '';
 
+            function mediaImportByteProgress() {
+                var state = mediaImportState;
+                if (!state.totalBytes) return state.percent || 0;
+                return Math.min(100, Math.round((state.loadedBytes / state.totalBytes) * 100));
+            }
+
+            function mediaImportProgressLabel() {
+                var state = mediaImportState;
+                if (!state.active) return '';
+                var filePart = 'Uploading ' + Math.min(state.completed + 1, state.total) + ' of ' + state.total;
+                if (state.currentName) filePart += ': ' + state.currentName;
+                if (state.failed) filePart += ' · ' + state.failed + ' failed';
+                return filePart;
+            }
+
+            function mediaImportBytesLabel() {
+                var state = mediaImportState;
+                if (!state.active || !state.totalBytes) return '';
+                var pct = mediaImportByteProgress();
+                return formatBytes(state.loadedBytes) + ' / ' + formatBytes(state.totalBytes) + ' (' + pct + '%)';
+            }
+
             function syncMediaImportUi() {
                 if (!mediaImportUi) return;
                 var state = mediaImportState;
-                var pct = state.total ? Math.round((state.completed / state.total) * 100) : 0;
-                var label = state.active
-                    ? ('Uploading ' + Math.min(state.completed + 1, state.total) + ' of ' + state.total +
-                        (state.currentName ? ': ' + state.currentName : '') +
-                        (state.failed ? (' · ' + state.failed + ' failed') : ''))
-                    : '';
+                var pct = mediaImportByteProgress();
+                var label = mediaImportProgressLabel();
+                var bytesLabel = mediaImportBytesLabel();
 
                 mediaImportUi.bar.classList.toggle('is-visible', state.active);
                 mediaImportUi.overlay.classList.toggle('is-visible', state.active);
                 mediaImportUi.text.textContent = label;
                 mediaImportUi.overlayText.textContent = label || 'Uploading media…';
+                if (mediaImportUi.detail) mediaImportUi.detail.textContent = bytesLabel;
+                if (mediaImportUi.overlayDetail) mediaImportUi.overlayDetail.textContent = bytesLabel;
                 mediaImportUi.fill.style.width = pct + '%';
+                if (mediaImportUi.overlayFill) mediaImportUi.overlayFill.style.width = pct + '%';
 
                 if (mediaImportUi.importBtn) {
                     mediaImportUi.importBtn.disabled = state.active;
@@ -5836,6 +6412,37 @@
                 var created = [];
                 var failed = 0;
                 var useCloudUpload = !!(Cloud && Cloud.workerConfigured() && match.id);
+                var totalBytes = 0;
+                var completedBytes = 0;
+                var fileProgress = Object.create(null);
+
+                files.forEach(function (file) {
+                    totalBytes += Math.max(0, Number(file.size) || 0);
+                });
+
+                function sumLoadedBytes() {
+                    var loaded = completedBytes;
+                    Object.keys(fileProgress).forEach(function (key) {
+                        var entry = fileProgress[key];
+                        if (entry) loaded += Math.max(0, Number(entry.loaded) || 0);
+                    });
+                    return Math.min(totalBytes, loaded);
+                }
+
+                function emitProgress(extra) {
+                    if (!onProgress) return;
+                    var loadedBytes = sumLoadedBytes();
+                    var payload = Object.assign({
+                        phase: 'progress',
+                        total: files.length,
+                        completed: doneCount,
+                        failed: failed,
+                        totalBytes: totalBytes,
+                        loadedBytes: loadedBytes,
+                        percent: totalBytes ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 0
+                    }, extra || {});
+                    onProgress(payload);
+                }
 
                 if (onProgress) {
                     onProgress({
@@ -5843,105 +6450,172 @@
                         total: files.length,
                         completed: 0,
                         failed: 0,
+                        totalBytes: totalBytes,
+                        loadedBytes: 0,
+                        percent: 0,
                         name: files[0] ? files[0].name : ''
                     });
                 }
 
-                return files.reduce(function (chain, file, fileIndex) {
-                    return chain.then(function () {
-                        if (onProgress) {
-                            onProgress({
-                                phase: 'file',
-                                total: files.length,
-                                completed: fileIndex,
-                                failed: failed,
+                var doneCount = 0;
+                var nextIndex = 0;
+                // Upload several files at once instead of one at a time.
+                // Large files already upload their chunks in parallel, so
+                // fewer file lanes keeps the connection from being split
+                // across too many simultaneous transfers.
+                var hasLargeFiles = files.some(function (f) {
+                    return (Number(f.size) || 0) > 24 * 1024 * 1024;
+                });
+                var concurrency = Math.min(useCloudUpload ? (hasLargeFiles ? 2 : 4) : 2, files.length);
+
+                function processFile(file, fileIndex) {
+                    if (onProgress) {
+                        onProgress({
+                            phase: 'file',
+                            total: files.length,
+                            completed: doneCount,
+                            failed: failed,
+                            totalBytes: totalBytes,
+                            loadedBytes: sumLoadedBytes(),
+                            percent: totalBytes ? Math.min(100, Math.round((sumLoadedBytes() / totalBytes) * 100)) : 0,
+                            name: file.name,
+                            index: fileIndex
+                        });
+                    }
+                    var kind = detectMediaKind(file);
+                    var fileSize = Math.max(0, Number(file.size) || 0);
+
+                    function finishFileProgress() {
+                        delete fileProgress[fileIndex];
+                        completedBytes += fileSize;
+                    }
+
+                    function failItem(err) {
+                        finishFileProgress();
+                        failed += 1;
+                        doneCount += 1;
+                        console.warn('Media import failed', file.name, err);
+                        emitProgress({
+                            phase: 'file-failed',
+                            name: file.name,
+                            index: fileIndex,
+                            error: err
+                        });
+                    }
+
+                    return readMediaMeta(file, kind).then(function (meta) {
+                        var item = {
+                            id: createId(),
+                            name: file.name,
+                            folderId: folderId == null ? null : folderId,
+                            kind: kind,
+                            mime: file.type || '',
+                            ext: (file.name.split('.').pop() || '').toLowerCase(),
+                            size: file.size || 0,
+                            color: defaultThemeForKind(kind),
+                            importedAt: new Date().toISOString(),
+                            duration: meta.duration,
+                            frameRate: meta.frameRate,
+                            width: meta.width,
+                            height: meta.height,
+                            mediaStart: 0,
+                            mediaEnd: meta.duration,
+                            videoIn: null,
+                            videoOut: null,
+                            url: null,
+                            objectKey: null,
+                            storage: 'local'
+                        };
+
+                        function commitItem() {
+                            finishFileProgress();
+                            media.items.push(item);
+                            created.push(item);
+                            doneCount += 1;
+                            updateProjectCloudUsage(match);
+                            saveMediaCatalog();
+                            emitProgress({
+                                phase: 'file-done',
                                 name: file.name,
-                                index: fileIndex
+                                index: fileIndex,
+                                item: item
                             });
                         }
-                        var kind = detectMediaKind(file);
 
-                        function failItem(err) {
-                            failed += 1;
-                            console.warn('Media import failed', file.name, err);
-                            if (onProgress) {
-                                onProgress({
-                                    phase: 'file-failed',
-                                    total: files.length,
-                                    completed: fileIndex + 1,
-                                    failed: failed,
-                                    name: file.name,
-                                    index: fileIndex,
-                                    error: err
-                                });
-                            }
-                        }
-
-                        return readMediaMeta(file, kind).then(function (meta) {
-                            var item = {
-                                id: createId(),
-                                name: file.name,
-                                folderId: folderId == null ? null : folderId,
-                                kind: kind,
-                                mime: file.type || '',
-                                ext: (file.name.split('.').pop() || '').toLowerCase(),
-                                size: file.size || 0,
-                                color: defaultThemeForKind(kind),
-                                importedAt: new Date().toISOString(),
-                                duration: meta.duration,
-                                frameRate: meta.frameRate,
-                                width: meta.width,
-                                height: meta.height,
-                                mediaStart: 0,
-                                mediaEnd: meta.duration,
-                                videoIn: null,
-                                videoOut: null,
-                                url: null,
-                                objectKey: null,
-                                storage: 'local'
-                            };
-
-                            function commitItem() {
-                                media.items.push(item);
-                                created.push(item);
-                                updateProjectCloudUsage(match);
-                                saveMediaCatalog();
-                                if (onProgress) {
-                                    onProgress({
-                                        phase: 'file-done',
-                                        total: files.length,
-                                        completed: fileIndex + 1,
-                                        failed: failed,
+                        if (useCloudUpload) {
+                            fileProgress[fileIndex] = { loaded: 0, total: fileSize };
+                            return Cloud.uploadMedia(file, {
+                                projectId: match.id,
+                                mediaId: item.id,
+                                kind: 'media',
+                                onProgress: function (progress) {
+                                    fileProgress[fileIndex] = {
+                                        loaded: progress.loaded,
+                                        total: progress.total || fileSize
+                                    };
+                                    emitProgress({
+                                        phase: 'upload',
                                         name: file.name,
                                         index: fileIndex,
-                                        item: item
+                                        fileLoaded: progress.loaded,
+                                        fileTotal: progress.total || fileSize,
+                                        filePercent: progress.percent
                                     });
                                 }
-                            }
-
-                            if (useCloudUpload) {
-                                return Cloud.uploadMedia(file, {
-                                    projectId: match.id,
-                                    mediaId: item.id,
-                                    kind: 'media'
-                                }).then(function (uploaded) {
-                                    item.url = uploaded.url || null;
-                                    item.objectKey = uploaded.objectKey || null;
-                                    item.storage = 'r2';
-                                    item.cloudUploadedAt = new Date().toISOString();
-                                    if (uploaded.size) item.size = uploaded.size;
-                                    if (uploaded.mime) item.mime = uploaded.mime;
+                            }).then(function (uploaded) {
+                                item.url = uploaded.url || null;
+                                item.objectKey = uploaded.objectKey || null;
+                                item.storage = 'r2';
+                                item.cloudUploadedAt = new Date().toISOString();
+                                if (uploaded.size) item.size = uploaded.size;
+                                if (uploaded.mime) item.mime = uploaded.mime;
+                                commitItem();
+                            }).catch(function (uploadErr) {
+                                console.warn('Cloud upload failed, falling back to local blob', uploadErr);
+                                fileProgress[fileIndex] = { loaded: 0, total: fileSize };
+                                return putMediaBlob(item.id, file).then(function () {
+                                    fileProgress[fileIndex] = { loaded: fileSize, total: fileSize };
+                                    emitProgress({
+                                        phase: 'upload',
+                                        name: file.name,
+                                        index: fileIndex,
+                                        fileLoaded: fileSize,
+                                        fileTotal: fileSize,
+                                        filePercent: 100
+                                    });
                                     commitItem();
-                                }).catch(function (uploadErr) {
-                                    console.warn('Cloud upload failed, falling back to local blob', uploadErr);
-                                    return putMediaBlob(item.id, file).then(commitItem).catch(failItem);
-                                });
-                            }
+                                }).catch(failItem);
+                            });
+                        }
 
-                            return putMediaBlob(item.id, file).then(commitItem).catch(failItem);
+                        fileProgress[fileIndex] = { loaded: 0, total: fileSize };
+                        return putMediaBlob(item.id, file).then(function () {
+                            fileProgress[fileIndex] = { loaded: fileSize, total: fileSize };
+                            emitProgress({
+                                phase: 'upload',
+                                name: file.name,
+                                index: fileIndex,
+                                fileLoaded: fileSize,
+                                fileTotal: fileSize,
+                                filePercent: 100
+                            });
+                            commitItem();
                         }).catch(failItem);
-                    });
-                }, Promise.resolve()).then(function () {
+                    }).catch(failItem);
+                }
+
+                function runNext() {
+                    if (nextIndex >= files.length) return Promise.resolve();
+                    var idx = nextIndex++;
+                    return processFile(files[idx], idx).then(runNext);
+                }
+
+                var lanes = [];
+                for (var laneIdx = 0; laneIdx < concurrency; laneIdx++) {
+                    lanes.push(runNext());
+                }
+
+                return Promise.all(lanes).then(function () {
                     updateProjectCloudUsage(match);
                     saveMediaCatalog();
                     if (onProgress) {
@@ -5950,6 +6624,9 @@
                             total: files.length,
                             completed: created.length,
                             failed: failed,
+                            totalBytes: totalBytes,
+                            loadedBytes: totalBytes,
+                            percent: 100,
                             name: ''
                         });
                     }
@@ -6060,6 +6737,44 @@
                 saveMediaCatalog();
             }
 
+            function renameMediaAsset(kind, id, nextName) {
+                if (!match || !id) return false;
+                var name = String(nextName || '').trim();
+                if (!name) return false;
+
+                if (kind === 'presentation') {
+                    var presentation = getPresentation(id);
+                    if (!presentation) return false;
+                    presentation.name = name;
+                    saveActiveProject(match);
+                    refreshColorViews();
+                    return true;
+                }
+
+                var media = ensureProjectMedia(match);
+                var found = false;
+                for (var i = 0; i < media.items.length; i++) {
+                    if (media.items[i].id === id) {
+                        media.items[i].name = name;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    for (var j = 0; j < media.folders.length; j++) {
+                        if (media.folders[j].id === id) {
+                            media.folders[j].name = name;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) return false;
+                saveMediaCatalog();
+                refreshColorViews();
+                return true;
+            }
+
             function mediaTypeIconSvg(kind) {
                 if (kind === 'folder') {
                     return '<svg class="media-type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h6l2 2h10v10H3z"/></svg>';
@@ -6094,6 +6809,7 @@
                 }
                 ensureProjectCodes(match);
                 startStreamPreviewPolling();
+                startPresenceWatch();
             }
 
             if (match) {
@@ -6832,7 +7548,16 @@
 
                 themeMenu = document.createElement('div');
                 themeMenu.className = 'theme-menu';
-                themeMenu.innerHTML = '<div class="theme-menu-label">Group color</div><div class="theme-menu-colors"></div>';
+                themeMenu.innerHTML =
+                    '<div class="theme-menu-label">Group color</div>' +
+                    '<div class="theme-menu-colors"></div>' +
+                    '<div class="theme-menu-rename">' +
+                        '<div class="theme-menu-rename-label">Rename</div>' +
+                        '<div class="theme-menu-rename-row">' +
+                            '<input class="theme-menu-rename-input" type="text" maxlength="120" spellcheck="false" autocomplete="off">' +
+                            '<button type="button" class="theme-menu-rename-btn" data-action="rename">Save</button>' +
+                        '</div>' +
+                    '</div>';
                 document.body.appendChild(themeMenu);
 
                 var colorsEl = themeMenu.querySelector('.theme-menu-colors');
@@ -6846,8 +7571,8 @@
                     btn.addEventListener('click', function (e) {
                         e.stopPropagation();
                         if (!themeMenuTarget) return;
-                        if (themeMenuTarget.kind === 'media' || themeMenuTarget.kind === 'presentation') {
-                            setAssetColor(themeMenuTarget.kind, themeMenuTarget.id, theme.id);
+                        if (themeMenuTarget.kind === 'media' || themeMenuTarget.kind === 'presentation' || themeMenuTarget.kind === 'folder') {
+                            setAssetColor(themeMenuTarget.kind === 'folder' ? 'media' : themeMenuTarget.kind, themeMenuTarget.id, theme.id);
                             closeThemeMenu();
                             return;
                         }
@@ -6857,6 +7582,35 @@
                         closeThemeMenu();
                     });
                     colorsEl.appendChild(btn);
+                });
+
+                function commitThemeRename() {
+                    if (!themeMenuTarget) return;
+                    if (themeMenuTarget.kind !== 'media' && themeMenuTarget.kind !== 'presentation' && themeMenuTarget.kind !== 'folder') return;
+                    var input = themeMenu.querySelector('.theme-menu-rename-input');
+                    var nextName = input ? input.value : '';
+                    if (!renameMediaAsset(themeMenuTarget.kind, themeMenuTarget.id, nextName)) return;
+                    closeThemeMenu();
+                }
+
+                themeMenu.querySelector('[data-action="rename"]').addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    commitThemeRename();
+                });
+
+                themeMenu.querySelector('.theme-menu-rename-input').addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        commitThemeRename();
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        closeThemeMenu();
+                    }
+                });
+
+                // Keep the menu open while editing the rename field.
+                themeMenu.querySelector('.theme-menu-rename-input').addEventListener('mousedown', function (e) {
+                    e.stopPropagation();
                 });
 
                 document.addEventListener('mousedown', function (e) {
@@ -6877,16 +7631,27 @@
                 themeMenuTarget = badge;
                 var current = 'blue';
                 var labelEl = menu.querySelector('.theme-menu-label');
-                if (badge && (badge.kind === 'media' || badge.kind === 'presentation')) {
+                var renameEl = menu.querySelector('.theme-menu-rename');
+                var renameInput = menu.querySelector('.theme-menu-rename-input');
+                var canRename = !!(badge && (badge.kind === 'media' || badge.kind === 'presentation' || badge.kind === 'folder'));
+
+                if (canRename) {
                     labelEl.textContent = 'Label color';
                     current = badge.color || defaultThemeForKind(badge.kind === 'presentation' ? 'presentation' : badge.mediaKind || 'gray');
+                    renameEl.classList.add('is-visible');
+                    renameInput.value = badge.name || '';
                 } else if (badge && badge.getAttribute) {
                     labelEl.textContent = 'Group color';
                     var group = badge.getAttribute('data-group');
                     current = instanceGroupThemes[group] || 'blue';
+                    renameEl.classList.remove('is-visible');
+                    renameInput.value = '';
+                } else {
+                    renameEl.classList.remove('is-visible');
+                    renameInput.value = '';
                 }
-                var swatches = menu.querySelectorAll('.theme-swatch');
 
+                var swatches = menu.querySelectorAll('.theme-swatch');
                 for (var i = 0; i < swatches.length; i++) {
                     swatches[i].classList.toggle('is-selected', swatches[i].dataset.themeId === current);
                 }
@@ -6901,6 +7666,13 @@
                 }
                 if (rect.bottom > window.innerHeight) {
                     menu.style.top = Math.max(8, y - rect.height) + 'px';
+                }
+
+                if (canRename) {
+                    setTimeout(function () {
+                        renameInput.focus();
+                        renameInput.select();
+                    }, 0);
                 }
             }
 
@@ -7639,6 +8411,147 @@
                 });
             }
 
+            /* ── Instances tab: live connected viewers ── */
+
+            var PRESENCE_ACTIVE_MS = 50000;
+            var viewerPresenceList = [];
+            var viewerPresenceUnsub = null;
+
+            function startPresenceWatch() {
+                if (viewerPresenceUnsub || !Cloud || !match || !match.id) return;
+                if (typeof Cloud.subscribePresence !== 'function') return;
+                viewerPresenceUnsub = Cloud.subscribePresence(match.id, function (list, err) {
+                    if (err) {
+                        console.warn('Presence subscription failed', err);
+                        return;
+                    }
+                    if (!Array.isArray(list)) return;
+                    viewerPresenceList = list;
+                    refreshInstancesPanels();
+                });
+            }
+
+            function activePresenceEntries() {
+                var cutoff = Date.now() - PRESENCE_ACTIVE_MS;
+                return viewerPresenceList.filter(function (entry) {
+                    return entry && typeof entry.lastSeen === 'number' && entry.lastSeen >= cutoff;
+                }).sort(function (a, b) {
+                    return (a.joinedAt || 0) - (b.joinedAt || 0);
+                });
+            }
+
+            function presenceDeviceIconSvg(device) {
+                var label = String(device || '').toLowerCase();
+                if (/iphone|android phone|mobile/.test(label)) {
+                    return '<svg class="instance-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M11 18h2"/></svg>';
+                }
+                if (/ipad|tablet/.test(label)) {
+                    return '<svg class="instance-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M11 18h2"/></svg>';
+                }
+                if (/tv|roku/.test(label)) {
+                    return '<svg class="instance-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="12" rx="1"/><path d="M8 21h8M12 17v4"/></svg>';
+                }
+                return '<svg class="instance-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>';
+            }
+
+            function presenceConnectedLabel(entry) {
+                var since = Date.now() - (entry.joinedAt || Date.now());
+                var totalMin = Math.floor(since / 60000);
+                if (totalMin < 1) return 'Connected just now';
+                if (totalMin < 60) return 'Connected ' + totalMin + ' min';
+                var hours = Math.floor(totalMin / 60);
+                return 'Connected ' + hours + 'h ' + (totalMin % 60) + 'm';
+            }
+
+            function presenceViewingLabel(entry) {
+                if (entry.mode === 'gallery') return 'Browsing stream gallery';
+                var name = entry.streamName || 'Stream';
+                var viewId = entry.streamViewId ? (' · View ' + entry.streamViewId) : '';
+                return 'Watching ' + name + viewId;
+            }
+
+            function refreshInstancesPanels() {
+                var bodies = document.querySelectorAll('.panel-body--instances');
+                for (var i = 0; i < bodies.length; i++) {
+                    renderInstancesContent(bodies[i]);
+                }
+            }
+
+            function renderInstancesContent(body) {
+                cleanupPanelBody(body);
+                body.className = 'panel-body panel-body--instances';
+                body.innerHTML = '';
+                startPresenceWatch();
+
+                var scroll = document.createElement('div');
+                scroll.className = 'instances-scroll';
+
+                var entries = activePresenceEntries();
+                var summary = document.createElement('div');
+                summary.className = 'instances-summary' + (entries.length ? '' : ' is-empty');
+                summary.innerHTML = '<span class="dot"></span>' +
+                    (entries.length
+                        ? entries.length + ' device' + (entries.length === 1 ? '' : 's') + ' connected'
+                        : 'No devices connected');
+                scroll.appendChild(summary);
+
+                if (!entries.length) {
+                    var empty = document.createElement('div');
+                    empty.className = 'instances-empty';
+                    empty.textContent = 'Devices and tabs that open this project\u2019s viewer link will appear here while they are watching.';
+                    scroll.appendChild(empty);
+                } else {
+                    entries.forEach(function (entry) {
+                        var row = document.createElement('div');
+                        row.className = 'instance-row';
+
+                        var icon = document.createElement('span');
+                        icon.innerHTML = presenceDeviceIconSvg(entry.device);
+
+                        var main = document.createElement('div');
+                        main.className = 'instance-row-main';
+                        var deviceEl = document.createElement('div');
+                        deviceEl.className = 'instance-row-device';
+                        deviceEl.textContent = entry.device || 'Unknown device';
+                        var viewingEl = document.createElement('div');
+                        viewingEl.className = 'instance-row-viewing';
+                        viewingEl.textContent = presenceViewingLabel(entry);
+                        main.appendChild(deviceEl);
+                        main.appendChild(viewingEl);
+
+                        var meta = document.createElement('div');
+                        meta.className = 'instance-row-meta';
+                        var recentlySeen = Date.now() - (entry.lastSeen || 0) < 30000;
+                        var status = document.createElement('span');
+                        status.className = 'instance-row-status' + (recentlySeen ? '' : ' is-idle');
+                        status.innerHTML = '<span class="dot"></span>' + (recentlySeen ? 'Watching' : 'Idle');
+                        var time = document.createElement('div');
+                        time.className = 'instance-row-time';
+                        time.textContent = presenceConnectedLabel(entry);
+                        meta.appendChild(status);
+                        meta.appendChild(time);
+
+                        row.appendChild(icon);
+                        row.appendChild(main);
+                        row.appendChild(meta);
+                        scroll.appendChild(row);
+                    });
+                }
+
+                body.appendChild(scroll);
+
+                var refreshTimer = window.setInterval(function () {
+                    if (!body.isConnected) {
+                        window.clearInterval(refreshTimer);
+                        return;
+                    }
+                    renderInstancesContent(body);
+                }, 15000);
+                body.__crossshareCleanup = function () {
+                    window.clearInterval(refreshTimer);
+                };
+            }
+
             function renderGroupsContent(body) {
                 body.className = 'panel-body panel-body--groups';
                 body.innerHTML = '';
@@ -7914,7 +8827,7 @@
                     function tick(now) {
                         var ctx = getContext();
                         var pb = ctx.playback;
-                        Engine.syncPlaybackState(pb, ctx.duration, Date.now());
+                        Engine.syncPlaybackState(pb, ctx.duration, sharedNow());
                         if (ctx.presentation && ctx.presentation.items && ctx.presentation.items.length) {
                             renderer.render(ctx.project, ctx.presentation.id, pb.time, pb.playing);
                         } else if (!screen.frame.querySelector('.program-placeholder') && !screen.frame.querySelector('.cs-render-layer')) {
@@ -8254,6 +9167,22 @@
                                     thumb.appendChild(el);
                                 });
                             }
+                        } else if (item.type === 'presentation' && item.presentationId) {
+                            var previewCapture = Engine.createPreviewCapture({
+                                width: 160,
+                                height: 90,
+                                resolveUrl: getMediaObjectUrl
+                            });
+                            previewCapture.capture(match, item.presentationId, 0).then(function (dataUrl) {
+                                if (!dataUrl || !thumb.isConnected) return;
+                                thumb.innerHTML = '';
+                                var img = document.createElement('img');
+                                img.src = dataUrl;
+                                img.alt = '';
+                                thumb.appendChild(img);
+                            }).finally(function () {
+                                previewCapture.destroy();
+                            });
                         }
                         var main = document.createElement('div');
                         main.className = 'presentation-card-main';
@@ -8363,7 +9292,7 @@
                     var rect = timelineScrubber.getBoundingClientRect();
                     if (!rect.width) return;
                     var ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                    Engine.seekPlaybackState(editorPlayback, ratio * duration, streamPlaybackDuration(stream), Date.now());
+                    Engine.seekPlaybackState(editorPlayback, ratio * duration, streamPlaybackDuration(stream), sharedNow());
                     notifyPlaybackChanged();
                 }
 
@@ -8401,16 +9330,16 @@
                     var step = e.shiftKey ? 1 : (1 / 30);
                     var handled = false;
                     if (e.key === 'ArrowLeft') {
-                        Engine.seekPlaybackState(editorPlayback, Math.max(0, editorPlayback.time - step), streamPlaybackDuration(stream), Date.now());
+                        Engine.seekPlaybackState(editorPlayback, Math.max(0, editorPlayback.time - step), streamPlaybackDuration(stream), sharedNow());
                         handled = true;
                     } else if (e.key === 'ArrowRight') {
-                        Engine.seekPlaybackState(editorPlayback, Math.min(duration, editorPlayback.time + step), streamPlaybackDuration(stream), Date.now());
+                        Engine.seekPlaybackState(editorPlayback, Math.min(duration, editorPlayback.time + step), streamPlaybackDuration(stream), sharedNow());
                         handled = true;
                     } else if (e.key === 'Home') {
-                        Engine.seekPlaybackState(editorPlayback, 0, streamPlaybackDuration(stream), Date.now());
+                        Engine.seekPlaybackState(editorPlayback, 0, streamPlaybackDuration(stream), sharedNow());
                         handled = true;
                     } else if (e.key === 'End') {
-                        Engine.seekPlaybackState(editorPlayback, duration, streamPlaybackDuration(stream), Date.now());
+                        Engine.seekPlaybackState(editorPlayback, duration, streamPlaybackDuration(stream), sharedNow());
                         handled = true;
                     }
                     if (handled) {
@@ -8422,7 +9351,7 @@
 
                 var raf = 0;
                 function paint(now) {
-                    Engine.syncPlaybackState(editorPlayback, streamPlaybackDuration(stream), Date.now());
+                    Engine.syncPlaybackState(editorPlayback, streamPlaybackDuration(stream), sharedNow());
                     var duration = selectedPresentationDuration();
                     updateTimelineUi(duration);
                     timeLabel.textContent = formatTimecode(editorPlayback.time) + ' / ' + (isFinite(duration) ? formatTimecode(duration) : '∞');
@@ -8432,12 +9361,12 @@
 
                 playBtn.addEventListener('click', function () {
                     var duration = streamPlaybackDuration(stream);
-                    Engine.setPlaybackPlaying(editorPlayback, !editorPlayback.playing, duration, Date.now());
+                    Engine.setPlaybackPlaying(editorPlayback, !editorPlayback.playing, duration, sharedNow());
                     updateEditorPlayBtn();
                     notifyPlaybackChanged();
                 });
                 restartBtn.addEventListener('click', function () {
-                    Engine.seekPlaybackState(editorPlayback, 0, streamPlaybackDuration(stream), Date.now());
+                    Engine.seekPlaybackState(editorPlayback, 0, streamPlaybackDuration(stream), sharedNow());
                     notifyPlaybackChanged();
                 });
 
@@ -8692,6 +9621,7 @@
                                 media.duration = mediaEl.duration;
                                 if (sourcePreview.markOut == null) sourcePreview.markOut = media.duration;
                                 saveActiveProject(match);
+                                relayoutPresentationsUsingMedia(media.id);
                             }
                             paintChrome();
                         });
@@ -9108,6 +10038,7 @@
                 uploadBar.innerHTML =
                     '<span class="media-upload-spinner"></span>' +
                     '<span class="media-upload-text"></span>' +
+                    '<span class="media-upload-detail"></span>' +
                     '<div class="media-upload-track"><div class="media-upload-fill"></div></div>';
 
                 var scrollWrap = document.createElement('div');
@@ -9120,8 +10051,12 @@
                 uploadOverlay.className = 'media-upload-overlay';
                 uploadOverlay.innerHTML =
                     '<div class="media-upload-overlay-card">' +
-                        '<span class="media-upload-spinner"></span>' +
-                        '<span class="media-upload-overlay-text"></span>' +
+                        '<div class="media-upload-overlay-head">' +
+                            '<span class="media-upload-spinner"></span>' +
+                            '<span class="media-upload-overlay-text"></span>' +
+                        '</div>' +
+                        '<span class="media-upload-overlay-detail"></span>' +
+                        '<div class="media-upload-track"><div class="media-upload-fill media-upload-overlay-fill"></div></div>' +
                     '</div>';
 
                 scrollWrap.appendChild(scroll);
@@ -9271,9 +10206,17 @@
                     });
                 }
 
+                function resolveAssetMenuKind(entity, forceKind) {
+                    if (forceKind) return forceKind;
+                    if (entity.kind === 'presentation') return 'presentation';
+                    if (entity.kind === 'folder') return 'folder';
+                    if (Object.prototype.hasOwnProperty.call(entity, 'parentId') && !entity.kind) return 'folder';
+                    return 'media';
+                }
+
                 function colorSwatch(entity) {
-                    var assetKind = entity.kind === 'presentation' ? 'presentation' : 'media';
-                    var colorId = effectiveColor(entity);
+                    var assetKind = resolveAssetMenuKind(entity);
+                    var colorId = effectiveColor(entity.color ? entity : Object.assign({ kind: assetKind }, entity));
                     var el = document.createElement('span');
                     el.className = 'media-color';
                     el.style.background = getThemeColor(colorId);
@@ -9285,12 +10228,91 @@
                             kind: assetKind,
                             id: entity.id,
                             color: colorId,
-                            mediaKind: entity.kind
+                            mediaKind: entity.kind || assetKind,
+                            name: entity.name || ''
                         }, e.clientX, e.clientY);
                     }
                     el.addEventListener('click', openColorMenu);
                     el.addEventListener('contextmenu', openColorMenu);
                     return el;
+                }
+
+                function openAssetThemeMenu(entity, e, forceKind) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var assetKind = resolveAssetMenuKind(entity, forceKind);
+                    openThemeMenu({
+                        kind: assetKind,
+                        id: entity.id,
+                        color: effectiveColor(entity.color ? entity : Object.assign({ kind: assetKind }, entity)),
+                        mediaKind: entity.kind || assetKind,
+                        name: entity.name || ''
+                    }, e.clientX, e.clientY);
+                }
+
+                function dragHasMediaAsset(e) {
+                    return !!(e.dataTransfer && e.dataTransfer.types &&
+                        Array.prototype.indexOf.call(e.dataTransfer.types, 'application/x-crossshare-asset') !== -1);
+                }
+
+                function bindFolderDropTarget(el, folder) {
+                    var depth = 0;
+
+                    function clearDrop() {
+                        depth = 0;
+                        el.classList.remove('is-bin-drop');
+                    }
+
+                    el.addEventListener('dragenter', function (e) {
+                        if (!dragHasFiles(e) && !dragHasMediaAsset(e)) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        depth += 1;
+                        el.classList.add('is-bin-drop');
+                    });
+
+                    el.addEventListener('dragover', function (e) {
+                        if (!dragHasFiles(e) && !dragHasMediaAsset(e)) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.dataTransfer.dropEffect = 'copy';
+                        el.classList.add('is-bin-drop');
+                    });
+
+                    el.addEventListener('dragleave', function (e) {
+                        if (!dragHasFiles(e) && !dragHasMediaAsset(e)) return;
+                        depth = Math.max(0, depth - 1);
+                        if (!depth) el.classList.remove('is-bin-drop');
+                    });
+
+                    el.addEventListener('drop', function (e) {
+                        var hasFiles = dragHasFiles(e);
+                        var hasAsset = dragHasMediaAsset(e);
+                        if (!hasFiles && !hasAsset) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        clearDrop();
+                        scrollWrap.classList.remove('is-file-drag');
+
+                        if (hasFiles) {
+                            var dropped = e.dataTransfer.files;
+                            if (!dropped || !dropped.length) return;
+                            if (mediaImportState.active) {
+                                window.alert('An import is already in progress. Please wait for it to finish.');
+                                return;
+                            }
+                            beginMediaImport(dropped, folder.id);
+                            return;
+                        }
+
+                        var raw = e.dataTransfer.getData('application/x-crossshare-asset');
+                        if (!raw) return;
+                        try {
+                            var payload = JSON.parse(raw);
+                            if (!payload || !payload.id || payload.kind === 'presentation') return;
+                            if (moveMediaItemsToFolder([payload.id], folder.id)) refresh();
+                        } catch (_) {}
+                    });
                 }
 
                 function selectOnly(id) {
@@ -9327,7 +10349,8 @@
                         pendingRow.appendChild(document.createElement('span'));
                         pendingRow.appendChild(document.createElement('span'));
                         pendingRow.appendChild(pendingNameCell);
-                        var pendingCells = ['…', '—', '—', '—', '—', '—', '—'];
+                        var pendingSize = mediaImportBytesLabel() || '…';
+                        var pendingCells = [pendingSize, '—', '—', '—', '—', '—', '—'];
                         pendingCells.forEach(function (text) {
                             var cell = document.createElement('span');
                             cell.className = 'media-mono';
@@ -9364,6 +10387,10 @@
                             saveMediaCatalog();
                             refresh();
                         });
+                        row.addEventListener('contextmenu', function (e) {
+                            openAssetThemeMenu(folder, e, 'folder');
+                        });
+                        bindFolderDropTarget(row, folder);
                         list.appendChild(row);
                     });
 
@@ -9404,6 +10431,9 @@
                             if (item.kind === 'presentation') openPresentationPreview(item.id, { autoplay: true });
                             else openSourcePreview(item.id, { autoplay: true });
                         });
+                        row.addEventListener('contextmenu', function (e) {
+                            openAssetThemeMenu(item, e);
+                        });
                         makeAssetDraggable(row, item);
                         list.appendChild(row);
                     });
@@ -9421,13 +10451,31 @@
                         var tileEl = document.createElement('div');
                         tileEl.className = 'media-tile' + (mediaSelectedIds[folder.id] ? ' is-selected' : '');
                         var folderColor = getThemeColor(effectiveColor(folder));
-                        tileEl.innerHTML =
-                            '<div class="media-tile-thumb">' +
-                                '<span class="media-tile-badge" style="background:' + folderColor + '"></span>' +
-                                mediaTypeIconSvg('folder').replace('media-type-icon', 'media-tile-kind') +
-                            '</div>' +
-                            '<div class="media-tile-name"></div>';
-                        tileEl.querySelector('.media-tile-name').textContent = folder.name;
+                        var contents = getFolderContents(folder.id);
+                        var contentCount = contents.folders.length + contents.items.length;
+
+                        var thumb = document.createElement('div');
+                        thumb.className = 'media-tile-thumb';
+                        fillBinThumbPreview(thumb, folder.id);
+                        var badge = document.createElement('span');
+                        badge.className = 'media-tile-badge';
+                        badge.style.background = folderColor;
+                        thumb.appendChild(badge);
+                        thumb.insertAdjacentHTML('beforeend',
+                            mediaTypeIconSvg('folder').replace('media-type-icon', 'media-tile-kind'));
+
+                        var name = document.createElement('div');
+                        name.className = 'media-tile-name';
+                        name.textContent = folder.name;
+                        var size = document.createElement('div');
+                        size.className = 'media-tile-size';
+                        size.textContent = contentCount
+                            ? (contentCount + (contentCount === 1 ? ' item' : ' items'))
+                            : 'Empty bin';
+
+                        tileEl.appendChild(thumb);
+                        tileEl.appendChild(name);
+                        tileEl.appendChild(size);
                         tileEl.addEventListener('click', function (e) {
                             toggleSelect(folder.id, e.shiftKey || e.metaKey || e.ctrlKey);
                             refresh();
@@ -9437,6 +10485,10 @@
                             saveMediaCatalog();
                             refresh();
                         });
+                        tileEl.addEventListener('contextmenu', function (e) {
+                            openAssetThemeMenu(folder, e, 'folder');
+                        });
+                        bindFolderDropTarget(tileEl, folder);
                         grid.appendChild(tileEl);
                     });
 
@@ -9488,13 +10540,7 @@
                             else openSourcePreview(item.id, { autoplay: true });
                         });
                         tileEl.addEventListener('contextmenu', function (e) {
-                            e.preventDefault();
-                            openThemeMenu({
-                                kind: item.kind === 'presentation' ? 'presentation' : 'media',
-                                id: item.id,
-                                color: effectiveColor(item),
-                                mediaKind: item.kind
-                            }, e.clientX, e.clientY);
+                            openAssetThemeMenu(item, e);
                         });
                         makeAssetDraggable(tileEl, item);
                         grid.appendChild(tileEl);
@@ -9574,39 +10620,45 @@
                     }
                 });
 
-                fileInput.addEventListener('change', function () {
-                    if (!fileInput.files || !fileInput.files.length) return;
+                function beginMediaImport(files, targetFolderId) {
+                    if (!files || !files.length) return;
                     if (mediaImportState.active) return;
-                    var files = fileInput.files;
+                    var importFolderId = arguments.length > 1 ? targetFolderId : currentFolderId();
+                    var importTotalBytes = 0;
+                    for (var fi = 0; fi < files.length; fi++) {
+                        importTotalBytes += Math.max(0, Number(files[fi].size) || 0);
+                    }
                     mediaUploadingName = files[0].name;
                     setMediaImportState({
                         active: true,
                         total: files.length,
                         completed: 0,
                         failed: 0,
-                        currentName: files[0].name
+                        currentName: files[0].name,
+                        totalBytes: importTotalBytes,
+                        loadedBytes: 0,
+                        percent: 0
                     });
-                    importMediaFiles(files, currentFolderId(), {
+                    importMediaFiles(files, importFolderId, {
                         onProgress: function (p) {
-                            if (p.phase === 'file') {
+                            var nextState = {
+                                active: true,
+                                total: p.total,
+                                completed: p.completed,
+                                failed: p.failed,
+                                totalBytes: p.totalBytes || 0,
+                                loadedBytes: p.loadedBytes || 0,
+                                percent: p.percent || 0
+                            };
+                            if (p.phase === 'file' || p.phase === 'upload') {
                                 mediaUploadingName = p.name || '';
-                                setMediaImportState({
-                                    active: true,
-                                    total: p.total,
-                                    completed: p.completed,
-                                    failed: p.failed,
-                                    currentName: p.name || ''
-                                });
-                                refresh();
+                                nextState.currentName = p.name || '';
+                                setMediaImportState(nextState);
+                                if (p.phase === 'file') refresh();
                             } else if (p.phase === 'file-done' || p.phase === 'file-failed') {
                                 mediaUploadingName = '';
-                                setMediaImportState({
-                                    active: true,
-                                    total: p.total,
-                                    completed: p.completed,
-                                    failed: p.failed,
-                                    currentName: ''
-                                });
+                                nextState.currentName = '';
+                                setMediaImportState(nextState);
                                 refresh();
                             } else if (p.phase === 'complete') {
                                 mediaUploadingName = '';
@@ -9615,7 +10667,10 @@
                                     total: 0,
                                     completed: 0,
                                     failed: p.failed,
-                                    currentName: ''
+                                    currentName: '',
+                                    totalBytes: 0,
+                                    loadedBytes: 0,
+                                    percent: 0
                                 });
                                 fileInput.value = '';
                                 if (p.failed) {
@@ -9638,15 +10693,76 @@
                         window.alert((err && err.message) || 'Media import failed.');
                         refresh();
                     });
+                }
+
+                fileInput.addEventListener('change', function () {
+                    beginMediaImport(fileInput.files);
+                });
+
+                // OS file drag-and-drop onto the media panel.
+                function dragHasFiles(e) {
+                    if (!e.dataTransfer || !e.dataTransfer.types) return false;
+                    return Array.prototype.indexOf.call(e.dataTransfer.types, 'Files') !== -1;
+                }
+
+                // Stop the browser from navigating to a file dropped outside
+                // the media panel (which would unload the manager).
+                if (!window.__crossshareFileDropGuard) {
+                    window.__crossshareFileDropGuard = true;
+                    document.addEventListener('dragover', function (e) {
+                        if (dragHasFiles(e)) e.preventDefault();
+                    });
+                    document.addEventListener('drop', function (e) {
+                        if (dragHasFiles(e)) e.preventDefault();
+                    });
+                }
+
+                var dragDepth = 0;
+
+                scrollWrap.addEventListener('dragenter', function (e) {
+                    if (!dragHasFiles(e)) return;
+                    e.preventDefault();
+                    dragDepth += 1;
+                    scrollWrap.classList.add('is-file-drag');
+                });
+
+                scrollWrap.addEventListener('dragover', function (e) {
+                    if (!dragHasFiles(e)) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                });
+
+                scrollWrap.addEventListener('dragleave', function (e) {
+                    if (!dragHasFiles(e)) return;
+                    dragDepth = Math.max(0, dragDepth - 1);
+                    if (!dragDepth) scrollWrap.classList.remove('is-file-drag');
+                });
+
+                scrollWrap.addEventListener('drop', function (e) {
+                    if (!dragHasFiles(e)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dragDepth = 0;
+                    scrollWrap.classList.remove('is-file-drag');
+                    var dropped = e.dataTransfer.files;
+                    if (!dropped || !dropped.length) return;
+                    if (mediaImportState.active) {
+                        window.alert('An import is already in progress. Please wait for it to finish.');
+                        return;
+                    }
+                    beginMediaImport(dropped);
                 });
 
                 window.__mediaBrowserRefresh = refresh;
                 bindMediaImportUi({
                     bar: uploadBar,
                     text: uploadBar.querySelector('.media-upload-text'),
+                    detail: uploadBar.querySelector('.media-upload-detail'),
                     fill: uploadBar.querySelector('.media-upload-fill'),
                     overlay: uploadOverlay,
                     overlayText: uploadOverlay.querySelector('.media-upload-overlay-text'),
+                    overlayDetail: uploadOverlay.querySelector('.media-upload-overlay-detail'),
+                    overlayFill: uploadOverlay.querySelector('.media-upload-overlay-fill'),
                     importBtn: toolbar.querySelector('[data-action="import"]'),
                     deleteBtn: toolbar.querySelector('[data-action="delete"]')
                 });
@@ -9732,7 +10848,7 @@
 
                 scroll.appendChild(makeEffectsSection(
                     'Content effects',
-                    'Drag onto a slot before, between, or after content items.',
+                    'Drag onto a slot before, between, or after items — works with images, videos, and presentations.',
                     EFFECT_LIBRARY,
                     'application/x-crossshare-effect',
                     'effect-dragging',
@@ -9741,7 +10857,7 @@
 
                 scroll.appendChild(makeEffectsSection(
                     'Presentation effects',
-                    'Drag onto the content section to apply to all items.',
+                    'Drag onto the content section to apply transitions across the whole timeline.',
                     PRESENTATION_EFFECT_LIBRARY,
                     'application/x-crossshare-presentation-effect',
                     'presentation-effect-dragging',
@@ -9798,6 +10914,8 @@
                         }
                         if (id === 1 && active === 'Streams') {
                             renderViewsContent(body);
+                        } else if (id === 1 && active === 'Instances') {
+                            renderInstancesContent(body);
                         } else if (id === 1 && active === 'Groups') {
                             renderGroupsContent(body);
                         } else if (id === 1 && active === 'Preview') {
@@ -9987,7 +11105,7 @@
                     clearTimeout(cloudSaveTimer);
                     cloudSaveTimer = null;
                 }
-                if (match && Cloud) {
+                if (match && Cloud && !(previewMode && previewPendingSave)) {
                     try { Cloud.saveProject(match); } catch (_) {}
                 }
                 if (streamPreviewCapture) {

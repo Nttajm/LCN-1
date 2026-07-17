@@ -9,7 +9,17 @@
  *   - ALLOWED_ORIGINS        comma-separated, optional
  *
  * Endpoints:
- *   POST   /upload              multipart: file, projectId, mediaId?, kind?
+ *   GET    /time                unauthenticated server clock
+ *   POST   /upload              raw body (streamed to R2) with query params
+ *                               projectId, mediaId?, kind?, name? — or legacy
+ *                               multipart: file, projectId, mediaId?, kind?
+ *   POST   /multipart/create    start a chunked upload (query: projectId,
+ *                               mediaId?, kind?, name?, mime?) -> { key, uploadId }
+ *   PUT    /multipart/part      raw chunk body (query: key, uploadId,
+ *                               partNumber) -> { partNumber, etag }
+ *   POST   /multipart/complete  JSON body { parts: [{partNumber, etag}] }
+ *                               (query: key, uploadId, name?, mime?)
+ *   POST   /multipart/abort     query: key, uploadId
  *   DELETE /media/:objectKey    Authorization: Bearer <Firebase ID token>
  *   OPTIONS *                   CORS preflight
  */
@@ -25,7 +35,7 @@ function json(data, status, origin) {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': origin || '*',
         'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Max-Age': '86400'
     };
     return new Response(JSON.stringify(data), { status: status || 200, headers });
@@ -37,7 +47,7 @@ function corsPreflight(origin) {
         headers: {
             'Access-Control-Allow-Origin': origin || '*',
             'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-            'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
             'Access-Control-Max-Age': '86400'
         }
     });
@@ -126,13 +136,25 @@ function extFromName(name, mime) {
     return 'bin';
 }
 
+// Ownership rarely changes; cache positive checks briefly so a batch of
+// uploads only hits Firestore once per project instead of once per file.
+const ownerCache = new Map();
+const OWNER_CACHE_TTL_MS = 5 * 60 * 1000;
+
 async function assertProjectOwner(env, projectId, uid, token) {
     if (!projectId || !uid || !token) throw new Error('Missing project or user');
 
+    const cacheKey = `${uid}\u0000${projectId}`;
+    const cached = ownerCache.get(cacheKey);
+    if (cached && Date.now() - cached < OWNER_CACHE_TTL_MS) return;
+
     const firebaseProjectId = env.FIREBASE_PROJECT_ID || 'lcn-apps';
+    // mask.fieldPaths=ownerId: fetch only the owner field instead of the
+    // full project document (which can be very large).
     const documentUrl =
         `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(firebaseProjectId)}` +
-        `/databases/(default)/documents/crossshare_projects/${encodeURIComponent(projectId)}`;
+        `/databases/(default)/documents/crossshare_projects/${encodeURIComponent(projectId)}` +
+        `?mask.fieldPaths=ownerId`;
     const response = await fetch(documentUrl, {
         headers: { Authorization: `Bearer ${token}` }
     });
@@ -143,26 +165,12 @@ async function assertProjectOwner(env, projectId, uid, token) {
     const document = await response.json();
     const ownerId = document?.fields?.ownerId?.stringValue;
     if (!ownerId || ownerId !== uid) throw new Error('Not project owner');
+
+    ownerCache.set(cacheKey, Date.now());
 }
 
-async function handleUpload(request, env, origin, user, token) {
-    const form = await request.formData();
-    const file = form.get('file');
-    const projectId = String(form.get('projectId') || '');
-    const mediaId = String(form.get('mediaId') || crypto.randomUUID());
-    const kind = String(form.get('kind') || 'media');
-
-    if (!file || typeof file.arrayBuffer !== 'function') {
-        return json({ error: 'file required' }, 400, origin);
-    }
-    if (!projectId) return json({ error: 'projectId required' }, 400, origin);
-
-    await assertProjectOwner(env, projectId, user.sub, token);
-
-    const mime = file.type || 'application/octet-stream';
-    const name = file.name || 'upload.bin';
-    const ext = extFromName(name, mime);
-    const objectKey = [
+function buildObjectKey(user, projectId, mediaId, kind, ext) {
+    return [
         'users',
         sanitizeSegment(user.sub),
         'projects',
@@ -170,9 +178,14 @@ async function handleUpload(request, env, origin, user, token) {
         kind === 'empty' ? 'empty' : 'media',
         sanitizeSegment(mediaId) + '.' + ext
     ].join('/');
+}
 
-    const bytes = await file.arrayBuffer();
-    await env.MEDIA_BUCKET.put(objectKey, bytes, {
+async function putAndRespond(env, origin, user, params) {
+    const { projectId, mediaId, kind, mime, name, body } = params;
+    const ext = extFromName(name, mime);
+    const objectKey = buildObjectKey(user, projectId, mediaId, kind, ext);
+
+    const object = await env.MEDIA_BUCKET.put(objectKey, body, {
         httpMetadata: {
             contentType: mime,
             cacheControl: 'public, max-age=31536000, immutable'
@@ -195,11 +208,173 @@ async function handleUpload(request, env, origin, user, token) {
         url,
         publicUrl: url,
         mime,
-        size: bytes.byteLength,
+        size: object && object.size != null ? object.size : (params.size || 0),
         name,
         mediaId,
         projectId
     }, 200, origin);
+}
+
+async function handleUpload(request, env, origin, user, token) {
+    const url = new URL(request.url);
+    const contentType = request.headers.get('Content-Type') || '';
+
+    // Fast path: raw body upload. The request body is streamed straight into
+    // R2 without buffering the whole file in Worker memory, so R2 starts
+    // receiving bytes while the browser is still sending them.
+    if (contentType.indexOf('multipart/form-data') === -1) {
+        const projectId = String(url.searchParams.get('projectId') || '');
+        const mediaId = String(url.searchParams.get('mediaId') || crypto.randomUUID());
+        const kind = String(url.searchParams.get('kind') || 'media');
+        const name = url.searchParams.get('name') || 'upload.bin';
+
+        if (!projectId) return json({ error: 'projectId required' }, 400, origin);
+        if (!request.body) return json({ error: 'file required' }, 400, origin);
+
+        await assertProjectOwner(env, projectId, user.sub, token);
+
+        return putAndRespond(env, origin, user, {
+            projectId,
+            mediaId,
+            kind,
+            mime: contentType || 'application/octet-stream',
+            name,
+            body: request.body,
+            size: Number(request.headers.get('Content-Length')) || 0
+        });
+    }
+
+    // Legacy path: multipart form upload (buffers the file in memory).
+    const form = await request.formData();
+    const file = form.get('file');
+    const projectId = String(form.get('projectId') || '');
+    const mediaId = String(form.get('mediaId') || crypto.randomUUID());
+    const kind = String(form.get('kind') || 'media');
+
+    if (!file || typeof file.arrayBuffer !== 'function') {
+        return json({ error: 'file required' }, 400, origin);
+    }
+    if (!projectId) return json({ error: 'projectId required' }, 400, origin);
+
+    await assertProjectOwner(env, projectId, user.sub, token);
+
+    return putAndRespond(env, origin, user, {
+        projectId,
+        mediaId,
+        kind,
+        mime: file.type || 'application/octet-stream',
+        name: file.name || 'upload.bin',
+        body: await file.arrayBuffer(),
+        size: file.size || 0
+    });
+}
+
+function assertKeyOwnedByUser(key, user) {
+    const prefix = `users/${sanitizeSegment(user.sub)}/`;
+    if (!String(key || '').startsWith(prefix)) throw new Error('Not allowed');
+}
+
+async function handleMultipartCreate(request, env, origin, user, token) {
+    const url = new URL(request.url);
+    const projectId = String(url.searchParams.get('projectId') || '');
+    const mediaId = String(url.searchParams.get('mediaId') || crypto.randomUUID());
+    const kind = String(url.searchParams.get('kind') || 'media');
+    const name = url.searchParams.get('name') || 'upload.bin';
+    const mime = url.searchParams.get('mime') || 'application/octet-stream';
+
+    if (!projectId) return json({ error: 'projectId required' }, 400, origin);
+
+    await assertProjectOwner(env, projectId, user.sub, token);
+
+    const ext = extFromName(name, mime);
+    const objectKey = buildObjectKey(user, projectId, mediaId, kind, ext);
+
+    const upload = await env.MEDIA_BUCKET.createMultipartUpload(objectKey, {
+        httpMetadata: {
+            contentType: mime,
+            cacheControl: 'public, max-age=31536000, immutable'
+        },
+        customMetadata: {
+            ownerId: user.sub,
+            projectId: projectId,
+            mediaId: mediaId,
+            originalName: name
+        }
+    });
+
+    return json({ ok: true, key: objectKey, uploadId: upload.uploadId, mediaId, projectId }, 200, origin);
+}
+
+async function handleMultipartPart(request, env, origin, user) {
+    const url = new URL(request.url);
+    const key = String(url.searchParams.get('key') || '');
+    const uploadId = String(url.searchParams.get('uploadId') || '');
+    const partNumber = Number(url.searchParams.get('partNumber') || 0);
+
+    if (!key || !uploadId || !partNumber) {
+        return json({ error: 'key, uploadId and partNumber required' }, 400, origin);
+    }
+    assertKeyOwnedByUser(key, user);
+    if (!request.body) return json({ error: 'chunk body required' }, 400, origin);
+
+    const upload = env.MEDIA_BUCKET.resumeMultipartUpload(key, uploadId);
+    const part = await upload.uploadPart(partNumber, request.body);
+    return json({ ok: true, partNumber: part.partNumber, etag: part.etag }, 200, origin);
+}
+
+async function handleMultipartComplete(request, env, origin, user) {
+    const url = new URL(request.url);
+    const key = String(url.searchParams.get('key') || '');
+    const uploadId = String(url.searchParams.get('uploadId') || '');
+    const name = url.searchParams.get('name') || 'upload.bin';
+    const mime = url.searchParams.get('mime') || 'application/octet-stream';
+
+    if (!key || !uploadId) return json({ error: 'key and uploadId required' }, 400, origin);
+    assertKeyOwnedByUser(key, user);
+
+    let body = null;
+    try {
+        body = await request.json();
+    } catch (_) {
+        body = null;
+    }
+    const parts = (body && Array.isArray(body.parts)) ? body.parts : [];
+    if (!parts.length) return json({ error: 'parts required' }, 400, origin);
+
+    const upload = env.MEDIA_BUCKET.resumeMultipartUpload(key, uploadId);
+    const object = await upload.complete(parts.map((p) => ({
+        partNumber: Number(p.partNumber),
+        etag: String(p.etag)
+    })));
+
+    const base = String(env.PUBLIC_MEDIA_BASE_URL || '').replace(/\/$/, '');
+    const publicUrl = base ? `${base}/${key}` : null;
+
+    return json({
+        ok: true,
+        objectKey: key,
+        key,
+        url: publicUrl,
+        publicUrl,
+        mime,
+        size: object && object.size != null ? object.size : 0,
+        name
+    }, 200, origin);
+}
+
+async function handleMultipartAbort(request, env, origin, user) {
+    const url = new URL(request.url);
+    const key = String(url.searchParams.get('key') || '');
+    const uploadId = String(url.searchParams.get('uploadId') || '');
+    if (!key || !uploadId) return json({ error: 'key and uploadId required' }, 400, origin);
+    assertKeyOwnedByUser(key, user);
+    try {
+        const upload = env.MEDIA_BUCKET.resumeMultipartUpload(key, uploadId);
+        await upload.abort();
+    } catch (_) {
+        // Aborting an already-completed/aborted upload is fine.
+    }
+    return json({ ok: true }, 200, origin);
 }
 
 async function handleDelete(request, env, origin, user, objectKey) {
@@ -220,6 +395,9 @@ export default {
 
         try {
             const url = new URL(request.url);
+            if (request.method === 'GET' && url.pathname === '/time') {
+                return json({ nowMs: Date.now() }, 200, origin);
+            }
             if (request.method === 'GET' && url.pathname === '/health') {
                 return json({ ok: true, service: 'crossshare-upload' }, 200, origin);
             }
@@ -233,6 +411,19 @@ export default {
 
             if (request.method === 'POST' && url.pathname === '/upload') {
                 return await handleUpload(request, env, origin, user, token);
+            }
+
+            if (request.method === 'POST' && url.pathname === '/multipart/create') {
+                return await handleMultipartCreate(request, env, origin, user, token);
+            }
+            if (request.method === 'PUT' && url.pathname === '/multipart/part') {
+                return await handleMultipartPart(request, env, origin, user);
+            }
+            if (request.method === 'POST' && url.pathname === '/multipart/complete') {
+                return await handleMultipartComplete(request, env, origin, user);
+            }
+            if (request.method === 'POST' && url.pathname === '/multipart/abort') {
+                return await handleMultipartAbort(request, env, origin, user);
             }
 
             if (request.method === 'DELETE' && url.pathname.startsWith('/media/')) {

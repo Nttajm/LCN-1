@@ -50,6 +50,7 @@
             position: absolute;
             overflow: hidden;
             pointer-events: none;
+            isolation: isolate;
         }
 
         .cs-render-media {
@@ -85,11 +86,13 @@
             right: 18px;
             bottom: 18px;
             z-index: 80;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.48);
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 22px rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px 8px 10px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.58) 100%);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 22px rgba(0, 0, 0, 0.55);
             opacity: 0;
             pointer-events: none;
             transform: translateY(4px) scale(0.92);
@@ -101,14 +104,29 @@
             transform: translateY(0) scale(1);
         }
 
-        .buffer-indicator::before {
+        .buffer-spinner {
+            position: relative;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .buffer-spinner::before {
             position: absolute;
-            inset: 5px;
+            inset: 0;
             border: 2px solid rgba(255, 255, 255, 0.26);
             border-top-color: #ffffff;
             border-radius: 50%;
             animation: buffer-spin 780ms linear infinite;
             content: "";
+        }
+
+        .buffer-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.92);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
         }
 
         @keyframes buffer-spin {
@@ -807,7 +825,8 @@
                     if (err || !next) return;
                     project = next;
                     if (streamParam) {
-                        if (!reloadFromSnapshot()) return;
+                        if (!reloadFromSnapshot(next)) return;
+                        if (stream && stream.playback) applyPlaybackState(stream.playback);
                         if (!running) startRenderLoop();
                     } else {
                         renderGallery();
@@ -889,18 +908,54 @@
                 return mediaObjectUrlPromises[itemId];
             }
 
+            var syncState = {
+                isSyncing: false,
+                isBuffering: false,
+                requestedPlaying: false,
+                startedAt: null,
+                generation: 0
+            };
+
             function ensureBufferIndicator() {
                 if (bufferIndicator && bufferIndicator.isConnected) return bufferIndicator;
                 bufferIndicator = document.createElement('div');
                 bufferIndicator.className = 'buffer-indicator';
                 bufferIndicator.setAttribute('role', 'status');
-                bufferIndicator.setAttribute('aria-label', 'Buffering');
+                bufferIndicator.setAttribute('aria-label', 'Loading');
+                bufferIndicator.innerHTML = '<div class="buffer-spinner"></div><span class="buffer-label">Loading</span>';
                 viewer.appendChild(bufferIndicator);
                 return bufferIndicator;
             }
 
+            function updateIndicator(visible, label) {
+                var indicator = ensureBufferIndicator();
+                indicator.classList.toggle('is-visible', !!visible);
+                var labelEl = indicator.querySelector('.buffer-label');
+                if (labelEl) labelEl.textContent = label || 'Loading';
+                indicator.setAttribute('aria-label', label || 'Loading');
+            }
+
             function setBuffering(active) {
-                ensureBufferIndicator().classList.toggle('is-visible', !!active);
+                syncState.isBuffering = !!active;
+                if (syncState.isSyncing) return;
+                updateIndicator(!!active, 'Buffering');
+            }
+
+            function setSyncing(active) {
+                syncState.isSyncing = !!active;
+                updateIndicator(!!active || syncState.isBuffering, active ? 'Syncing' : 'Buffering');
+            }
+
+            function clockNow() {
+                return Cloud && typeof Cloud.now === 'function' ? Cloud.now() : Date.now();
+            }
+
+            function getGlobalPlayhead(streamStartedAt, duration, atMs) {
+                if (!streamStartedAt || !duration || duration <= 0 || !isFinite(duration)) {
+                    return 0;
+                }
+                var elapsed = Math.max(0, (atMs == null ? clockNow() : atMs) - streamStartedAt);
+                return (elapsed / 1000) % duration;
             }
 
             function warmMedia(media) {
@@ -982,11 +1037,120 @@
 
             function applyPlaybackState(data) {
                 var incoming = Engine.normalizePlaybackState(data && (data.playback || data), false);
-                playback.playing = incoming.playing;
+                var sameTimeline = syncState.requestedPlaying &&
+                    incoming.playing &&
+                    incoming.startedAt &&
+                    incoming.startedAt === syncState.startedAt;
+
                 playback.time = incoming.time;
                 playback.anchorTimeMs = incoming.anchorTimeMs;
                 playback.startedAt = incoming.startedAt;
-                Engine.syncPlaybackState(playback, presentationDuration(), Date.now());
+                syncState.requestedPlaying = incoming.playing;
+                syncState.startedAt = incoming.startedAt;
+
+                if (incoming.playing && incoming.startedAt) {
+                    var duration = presentationDuration();
+                    if (duration > 0 && isFinite(duration)) {
+                        if (!sameTimeline) {
+                            initiateSync(incoming.startedAt, duration);
+                        } else if (!syncState.isSyncing) {
+                            playback.playing = true;
+                            playback.time = getGlobalPlayhead(incoming.startedAt, duration);
+                            playback.anchorTimeMs = clockNow();
+                        }
+                        return;
+                    }
+                }
+
+                cancelSync();
+                playback.playing = incoming.playing;
+                Engine.syncPlaybackState(playback, presentationDuration(), clockNow());
+            }
+
+            var syncTimeoutId = 0;
+
+            function cancelSync() {
+                syncState.generation++;
+                if (syncTimeoutId) {
+                    clearTimeout(syncTimeoutId);
+                    syncTimeoutId = 0;
+                }
+                setSyncing(false);
+            }
+
+            function initiateSync(streamStartedAt, duration) {
+                if (!streamStartedAt || !duration || duration <= 0 || !isFinite(duration)) {
+                    cancelSync();
+                    return;
+                }
+
+                cancelSync();
+                var generation = syncState.generation;
+                syncState.requestedPlaying = true;
+                syncState.startedAt = streamStartedAt;
+                setSyncing(true);
+                playback.playing = false;
+                playback.anchorTimeMs = null;
+
+                var deadline = performance.now() + 3900;
+                var scheduledAt = 0;
+                var targetTime = 0;
+
+                function prepare() {
+                    if (generation !== syncState.generation || !syncState.requestedPlaying || !stream) return;
+                    var now = performance.now();
+
+                    if (!renderer) {
+                        if (now >= deadline) {
+                            finalizeSync(streamStartedAt, duration, generation);
+                            return;
+                        }
+                        syncTimeoutId = setTimeout(prepare, 25);
+                        return;
+                    }
+
+                    if (!scheduledAt || now >= scheduledAt - 12) {
+                        var leadMs = now + 320 < deadline ? 320 : Math.max(0, deadline - now);
+                        scheduledAt = now + leadMs;
+                        targetTime = getGlobalPlayhead(streamStartedAt, duration, clockNow() + leadMs);
+                        playback.time = targetTime;
+                        prewarmMediaAround(targetTime);
+                        renderer.render(project, stream.presentationId, targetTime, false);
+                    }
+
+                    if (typeof renderer.isReady === 'function' && renderer.isReady()) {
+                        var remaining = Math.max(0, scheduledAt - performance.now());
+                        syncTimeoutId = setTimeout(function () {
+                            finalizeSync(streamStartedAt, duration, generation);
+                        }, remaining);
+                        return;
+                    }
+                    if (now >= deadline) {
+                        finalizeSync(streamStartedAt, duration, generation);
+                        return;
+                    }
+                    syncTimeoutId = setTimeout(prepare, 35);
+                }
+
+                prepare();
+            }
+
+            function finalizeSync(streamStartedAt, duration, generation) {
+                if (generation !== syncState.generation || !stream || !syncState.requestedPlaying) {
+                    return;
+                }
+
+                var globalPlayhead = getGlobalPlayhead(streamStartedAt, duration);
+                playback.time = globalPlayhead;
+                playback.anchorTimeMs = clockNow();
+                playback.playing = true;
+                playback.startedAt = streamStartedAt;
+                setSyncing(false);
+
+                if (renderer) {
+                    renderer.render(project, stream.presentationId, globalPlayhead, true);
+                }
+                if (!running) startRenderLoop();
             }
 
             function unavailableMessage() {
@@ -1024,8 +1188,8 @@
 
             /* ---------------- Player mode ---------------- */
 
-            function reloadFromSnapshot() {
-                var nextProject = resolveProjectLocal() || project;
+            function reloadFromSnapshot(preferredProject) {
+                var nextProject = preferredProject || resolveProjectLocal() || project;
                 if (!nextProject) {
                     unavailableMessage();
                     return false;
@@ -1108,29 +1272,57 @@
                 if (raf) cancelAnimationFrame(raf);
                 function tick() {
                     if (!running || !project || !stream || !renderer) return;
+
+                    if (syncState.isSyncing) {
+                        raf = requestAnimationFrame(tick);
+                        return;
+                    }
+
                     var duration = presentationDuration();
-                    Engine.syncPlaybackState(playback, duration, Date.now());
+                    var now = clockNow();
+
+                    if (playback.playing && playback.startedAt && duration > 0 && isFinite(duration)) {
+                        playback.time = getGlobalPlayhead(playback.startedAt, duration);
+                        playback.anchorTimeMs = now;
+                    } else {
+                        Engine.syncPlaybackState(playback, duration, now);
+                    }
+
                     prewarmMediaAround(playback.time);
-                    renderer.render(project, stream.presentationId, playback.time, playback.playing);
+                    renderer.render(project, stream.presentationId, playback.time, playback.playing && !syncState.isSyncing);
                     raf = requestAnimationFrame(tick);
                 }
                 raf = requestAnimationFrame(tick);
             }
 
             async function bootPlayer() {
+                if (Cloud && typeof Cloud.syncClock === 'function') {
+                    await Cloud.syncClock();
+                }
                 var resolved = await resolveProjectAsync();
                 if (!resolved) {
                     unavailableMessage();
                     return;
                 }
+
                 project = resolved;
                 watchCloudProject(project.id);
                 if (!reloadFromSnapshot()) return;
-                applyPlaybackState(stream.playback);
                 startRenderLoop();
+                applyPlaybackState(stream.playback);
 
                 window.addEventListener('resize', function () {
                     if (frame) fitFrame(frame);
+                });
+                document.addEventListener('visibilitychange', function () {
+                    if (
+                        !document.hidden &&
+                        syncState.requestedPlaying &&
+                        syncState.startedAt
+                    ) {
+                        if (Cloud && typeof Cloud.syncClock === 'function') Cloud.syncClock(true);
+                        initiateSync(syncState.startedAt, presentationDuration());
+                    }
                 });
             }
 
@@ -1147,7 +1339,11 @@
                 var presentation = Engine.getPresentation(project, s.presentationId);
                 var duration = Engine.presentationDuration(project, presentation) || 10;
                 var pb = Engine.normalizePlaybackState(s.playback, false);
-                Engine.syncPlaybackState(pb, duration, Date.now());
+                if (pb.playing && pb.startedAt && isFinite(duration)) {
+                    pb.time = getGlobalPlayhead(pb.startedAt, duration);
+                } else {
+                    Engine.syncPlaybackState(pb, duration, clockNow());
+                }
                 return pb.time;
             }
 
@@ -1396,6 +1592,74 @@
                 });
             }
 
+            /* ---------------- Viewer presence ---------------- */
+
+            var PRESENCE_HEARTBEAT_MS = 20000;
+            var presenceTimer = 0;
+            var presenceInstanceId = (function () {
+                try {
+                    var stored = sessionStorage.getItem('crossshare_viewer_instance');
+                    if (stored) return stored;
+                    var fresh = 'vi_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+                    sessionStorage.setItem('crossshare_viewer_instance', fresh);
+                    return fresh;
+                } catch (_) {
+                    return 'vi_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+                }
+            })();
+            var presenceJoinedAt = Date.now();
+
+            function presenceEntry() {
+                if (!project || !project.id) return null;
+                return {
+                    projectId: project.id,
+                    instanceId: presenceInstanceId,
+                    mode: stream ? 'stream' : 'gallery',
+                    streamId: stream ? stream.id : null,
+                    streamViewId: stream ? streamViewId : null,
+                    streamName: stream ? (stream.name || null) : null,
+                    joinedAt: presenceJoinedAt
+                };
+            }
+
+            var presenceWarned = false;
+            function sendPresenceHeartbeat() {
+                if (!Cloud || typeof Cloud.publishPresence !== 'function') {
+                    if (!presenceWarned) {
+                        presenceWarned = true;
+                        console.warn('Presence unavailable: cloud module is outdated or missing (hard-refresh this tab).');
+                    }
+                    return;
+                }
+                var entry = presenceEntry();
+                if (!entry) return;
+                Cloud.publishPresence(entry).catch(function (err) {
+                    if (!presenceWarned) {
+                        presenceWarned = true;
+                        console.warn('Presence heartbeat failed', err);
+                    }
+                });
+            }
+
+            function startPresenceHeartbeat() {
+                if (presenceTimer || !project || !project.id) return;
+                sendPresenceHeartbeat();
+                presenceTimer = setInterval(sendPresenceHeartbeat, PRESENCE_HEARTBEAT_MS);
+                document.addEventListener('visibilitychange', function () {
+                    if (!document.hidden) sendPresenceHeartbeat();
+                });
+            }
+
+            function stopPresenceHeartbeat() {
+                if (presenceTimer) {
+                    clearInterval(presenceTimer);
+                    presenceTimer = 0;
+                }
+                if (Cloud && typeof Cloud.removePresence === 'function' && project && project.id) {
+                    Cloud.removePresence(project.id, presenceInstanceId);
+                }
+            }
+
             /* ---------------- Boot ---------------- */
 
             showMessage('Loading stream…', 'Fetching project from the cloud.');
@@ -1404,10 +1668,17 @@
             } else {
                 await bootGallery();
             }
+            startPresenceHeartbeat();
 
+            window.addEventListener('pagehide', stopPresenceHeartbeat);
             window.addEventListener('beforeunload', function () {
                 running = false;
                 cancelAnimationFrame(raf);
+                if (syncTimeoutId) {
+                    clearTimeout(syncTimeoutId);
+                    syncTimeoutId = 0;
+                }
+                stopPresenceHeartbeat();
                 stopGallery();
                 if (galleryCapture) galleryCapture.destroy();
                 if (unsubscribe) unsubscribe();

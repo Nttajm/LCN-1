@@ -157,6 +157,34 @@ service cloud.firestore {
       allow delete: if isAdmin() || isCrossshareOwner();
     }
 
+    // ---- Crossshare viewer presence ----
+    // Viewers (possibly signed out) heartbeat while a project link is open.
+    // Docs are keyed projectId__instanceId; content is limited to harmless
+    // device/stream labels so open writes are acceptable.
+    match /crossshare_presence/{presenceId} {
+      function presenceDataValid() {
+        return request.resource.data.keys().hasOnly([
+            'projectId', 'instanceId', 'device', 'mode',
+            'streamId', 'streamViewId', 'streamName',
+            'joinedAt', 'lastSeen'
+          ])
+          && request.resource.data.projectId is string
+          && request.resource.data.projectId.size() > 0
+          && request.resource.data.projectId.size() <= 120
+          && request.resource.data.instanceId is string
+          && request.resource.data.instanceId.size() > 0
+          && request.resource.data.instanceId.size() <= 80
+          && presenceId == request.resource.data.projectId + '__' + request.resource.data.instanceId
+          && request.resource.data.lastSeen is number
+          && (!('device' in request.resource.data) || (request.resource.data.device is string && request.resource.data.device.size() <= 120))
+          && (!('streamName' in request.resource.data) || request.resource.data.streamName == null || (request.resource.data.streamName is string && request.resource.data.streamName.size() <= 160));
+      }
+
+      allow read: if true;
+      allow create, update: if presenceDataValid();
+      allow delete: if true;
+    }
+
     // ---- Community calendars (commcals) ----
     match /commcals/{commcalId} {
       allow read: if true;
