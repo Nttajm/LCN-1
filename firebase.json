@@ -1,5 +1,8 @@
 {
   "firestore": {
     "rules": "crossshare/firebase.rules"
+  },
+  "database": {
+    "rules": "crossshare/database.rules.json"
   }
 }

@@ -157,6 +157,76 @@ service cloud.firestore {
       allow delete: if isAdmin() || isCrossshareOwner();
     }
 
+    // ---- Crossboard sessions ----
+    // Owners create/manage boards. Signed-in users may look up a session by
+    // active code and read public sessions. Viewers may only bump viewers count.
+    function isCrossboardOwner() {
+      return signedIn()
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    function isCrossboardOwnerCreate() {
+      return signedIn()
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    function crossboardCodeValid() {
+      return resource.data.code is string
+        && resource.data.code.size() == 4
+        && resource.data.codeExpiresAt is number
+        && resource.data.codeExpiresAt > request.time.toMillis();
+    }
+
+    function crossboardSessionData(sessionId) {
+      return get(/databases/$(database)/documents/crossboard_sessions/$(sessionId)).data;
+    }
+
+    function canReadCrossboardSession(sessionId) {
+      return isAdmin()
+        || (signedIn() && crossboardSessionData(sessionId).ownerId == request.auth.uid)
+        || (signedIn() && crossboardSessionData(sessionId).isPublic == true);
+    }
+
+    function isCrossboardSessionOwner(sessionId) {
+      return signedIn()
+        && crossboardSessionData(sessionId).ownerId == request.auth.uid;
+    }
+
+    match /crossboard_sessions/{sessionId} {
+      allow get: if isAdmin()
+        || isCrossboardOwner()
+        || (signedIn() && resource.data.isPublic == true && crossboardCodeValid())
+        || (signedIn() && resource.data.isPublic == true);
+
+      allow list: if isAdmin()
+        || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || (signedIn() && request.query.limit <= 1);
+
+      allow create: if isCrossboardOwnerCreate()
+        && request.resource.data.id == sessionId
+        && request.resource.data.keys().hasAll(['name', 'ownerId', 'code', 'createdAt', 'isPublic']);
+
+      allow update: if isAdmin()
+        || (
+          isCrossboardOwner()
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.id == sessionId
+        )
+        || (
+          signedIn()
+          && resource.data.isPublic == true
+          && changedKeysOnly(['viewers'])
+          && request.resource.data.viewers is number
+        );
+
+      allow delete: if isAdmin() || isCrossboardOwner();
+
+      match /slides/{slideId}/strokes/{strokeId} {
+        allow read: if canReadCrossboardSession(sessionId);
+        allow create, update, delete: if isCrossboardSessionOwner(sessionId);
+      }
+    }
+
     // ---- Crossshare viewer presence ----
     // Viewers (possibly signed out) heartbeat while a project link is open.
     // Docs are keyed projectId__instanceId; content is limited to harmless

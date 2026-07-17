@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crossboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=SF+Pro+Text:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1c1c1e;
+            --bg-secondary: #2c2c2e;
+            --bg-tertiary: #3a3a3c;
+            --bg-elevated: #48484a;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.5);
+            --accent: #0a84ff;
+            --accent-hover: #409cff;
+            --success: #30d158;
+            --warning: #ff9f0a;
+            --danger: #ff453a;
+            --border: rgba(255, 255, 255, 0.1);
+            --canvas-bg: #ffffff;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            touch-action: none;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent) 0%, #5856d6 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-left: 16px;
+            border-left: 1px solid var(--border);
+        }
+
+        .session-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .session-code {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--accent);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .session-code:hover {
+            background: var(--bg-elevated);
+        }
+
+        .session-code svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .session-timer {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+            letter-spacing: 0;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .viewers-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .viewers-badge svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-elevated);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        .btn-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Main content */
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            width: 72px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .tool-btn {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tool-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .tool-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tool-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .tool-divider {
+            width: 36px;
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        .color-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--accent);
+        }
+
+        .stroke-slider {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .stroke-slider input {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .stroke-slider input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Canvas area */
+        .canvas-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow: auto;
+        }
+
+        .canvas-frame {
+            background: var(--canvas-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #drawingCanvas {
+            display: block;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        /* Slide navigation */
+        .slide-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        .slide-nav-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .slide-nav-btn:hover:not(:disabled) {
+            background: var(--accent);
+        }
+
+        .slide-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .slide-nav-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .slide-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .slide-thumbnails {
+            display: flex;
+            gap: 8px;
+            max-width: 400px;
+            overflow-x: auto;
+            padding: 4px;
+        }
+
+        .slide-thumb {
+            width: 64px;
+            height: 48px;
+            border-radius: 6px;
+            background: var(--canvas-bg);
+            border: 2px solid transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .slide-thumb:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .slide-thumb.active {
+            border-color: var(--accent);
+        }
+
+        .slide-thumb img,
+        .slide-thumb canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .add-slide-btn {
+            width: 64px;
+            height: 48px;
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            border: 2px dashed var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            color: var(--text-tertiary);
+        }
+
+        .add-slide-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .add-slide-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            max-width: 440px;
+            width: calc(100% - 40px);
+            max-height: calc(100vh - 80px);
+            overflow: hidden;
+            transform: scale(0.95) translateY(20px);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .modal-close svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+        }
+
+        .toggle-label {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .toggle-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        .toggle-switch {
+            width: 51px;
+            height: 31px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--success);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 27px;
+            height: 27px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        /* Code input */
+        .code-input-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .code-digit {
+            width: 56px;
+            height: 64px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 0;
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .code-digit:focus {
+            border-color: var(--accent);
+        }
+
+        /* Landing screen */
+        .landing {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .landing-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent) 0%, #5856d6 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .landing-logo svg {
+            width: 48px;
+            height: 48px;
+            fill: white;
+        }
+
+        .landing-title {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .landing-subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .landing-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .landing-btn {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .landing-btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .landing-btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .landing-btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .landing-btn-secondary:hover {
+            background: var(--bg-elevated);
+        }
+
+        .landing-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .landing-divider::before,
+        .landing-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Viewer mode */
+        .viewer-badge {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .viewer-badge svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--accent);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 24px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Loading */
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Owner controls panel */
+        .owner-panel {
+            position: fixed;
+            top: 76px;
+            right: 20px;
+            width: 280px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            z-index: 90;
+            display: none;
+        }
+
+        .owner-panel.active {
+            display: block;
+        }
+
+        .owner-panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .owner-panel-body {
+            padding: 16px 20px;
+        }
+
+        .owner-panel-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .owner-panel-item:last-child {
+            border-bottom: none;
+        }
+
+        .owner-panel-item-label {
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 16px;
+            }
+
+            .session-info {
+                display: none;
+            }
+
+            .header-center {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .toolbar {
+                width: 60px;
+                padding: 12px 8px;
+            }
+
+            .tool-btn {
+                width: 44px;
+                height: 44px;
+            }
+
+            .canvas-container {
+                padding: 12px;
+            }
+
+            .slide-thumbnails {
+                display: none;
+            }
+
+            .landing {
+                padding: 24px;
+            }
+
+            .landing-title {
+                font-size: 28px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .auth-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            padding: 24px;
+        }
+
+        .auth-gate.is-hidden {
+            display: none;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            padding: 36px 28px;
+            text-align: center;
+        }
+
+        .auth-card h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .auth-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .auth-error {
+            color: var(--danger);
+            font-size: 13px;
+            min-height: 18px;
+            margin-bottom: 12px;
+        }
+
+        .auth-status {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            margin-top: 14px;
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 180px;
+        }
+
+        .user-chip-email {
+            font-size: 12px;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-gate" id="authGate">
+        <div class="auth-card">
+            <div class="landing-logo" style="margin:0 auto 20px">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            </div>
+            <h1>Sign in to Crossboard</h1>
+            <p>Use your Google account to create boards, share live codes, and sync notes in real time.</p>
+            <div class="auth-error" id="authError"></div>
+            <button class="landing-btn landing-btn-primary" type="button" id="googleSignInBtn" style="width:100%">Continue with Google</button>
+            <div class="auth-status" id="authStatus">Checking session…</div>
+        </div>
+    </div>
+
+    <div id="app" class="app hidden" style="display:none">
+        <!-- Landing Screen -->
+        <div id="landingScreen" class="landing">
+            <div class="landing-logo">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            </div>
+            <h1 class="landing-title">Crossboard</h1>
+            <p class="landing-subtitle">Real-time collaborative whiteboard. Share notes instantly with a simple code.</p>
+            <div class="landing-actions">
+                <button id="createSessionBtn" class="landing-btn landing-btn-primary">Create New Session</button>
+                <div class="landing-divider">or</div>
+                <button id="joinSessionBtn" class="landing-btn landing-btn-secondary">Join with Code</button>
+            </div>
+            <div style="margin-top:28px;display:flex;align-items:center;justify-content:center;gap:12px">
+                <span class="user-chip-email" id="landingUserEmail"></span>
+                <button class="btn btn-secondary" type="button" id="landingSignOutBtn" style="padding:6px 12px;font-size:12px">Sign out</button>
+            </div>
+        </div>
+
+        <!-- Board Screen -->
+        <div id="boardScreen" class="hidden">
+            <header class="header">
+                <div class="header-left">
+                    <a href="app.html" class="logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        </div>
+                        <span class="logo-text">Crossboard</span>
+                    </a>
+                    <div class="session-info" id="sessionInfo">
+                        <span class="session-name" id="sessionName">Untitled Board</span>
+                        <div class="session-code" id="sessionCodeDisplay" title="Click to copy">
+                            <span id="codeText">----</span>
+                            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        </div>
+                        <span class="session-timer" id="sessionTimer"></span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <button class="btn btn-icon btn-secondary" id="undoBtn" title="Undo">
+                        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                    </button>
+                    <button class="btn btn-icon btn-secondary" id="redoBtn" title="Redo">
+                        <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+                    </button>
+                </div>
+                <div class="header-right">
+                    <div class="viewers-badge" id="viewersBadge">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                        <span id="viewerCount">1</span>
+                    </div>
+                    <div class="user-chip">
+                        <span class="user-chip-email" id="boardUserEmail"></span>
+                    </div>
+                    <button class="btn btn-secondary" id="shareBtn">
+                        <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;margin-right:4px"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+                        Share
+                    </button>
+                    <button class="btn btn-icon btn-secondary" id="settingsBtn" title="Settings">
+                        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    </button>
+                    <button class="btn btn-secondary" type="button" id="boardSignOutBtn" style="padding:8px 12px;font-size:12px">Sign out</button>
+                </div>
+            </header>
+
+            <div class="main">
+                <aside class="toolbar" id="toolbar">
+                    <button class="tool-btn active" data-tool="pen" title="Pen">
+                        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="highlighter" title="Highlighter">
+                        <svg viewBox="0 0 24 24"><path d="M6 14l3 3v5h6v-5l3-3V9H6v5zm5-12h2v3h-2V2zM3.5 5.88l1.41-1.41 2.12 2.12L5.62 8 3.5 5.88zm13.46.71l2.12-2.12 1.41 1.41L18.38 8l-1.42-1.41z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="eraser" title="Eraser">
+                        <svg viewBox="0 0 24 24"><path d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.78-.78 2.05 0 2.83l3.85 3.85c.39.39.9.59 1.41.59h7.3c.51 0 1.02-.2 1.41-.59l5.85-5.85c.78-.78.78-2.05 0-2.83L16.55 3.6c-.39-.4-.9-.6-1.41-.6zM7.85 19.41l-3.26-3.26L11.41 9.3l3.26 3.26-6.82 6.85z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="pointer" title="Pointer">
+                        <svg viewBox="0 0 24 24"><path d="M13.64 21.97c-.19.05-.39-.05-.44-.23l-2.8-9.66-6.61 1.58c-.18.04-.37-.06-.42-.24-.04-.14.02-.29.13-.38l12.09-8.97c.15-.11.35-.1.48.03.13.13.15.34.04.49l-6.18 9.47 4.87 6.56c.11.15.08.36-.06.47-.14.1-.32.1-.46 0l-4.87-6.56-2.8 9.21z"/></svg>
+                    </button>
+                    <div class="tool-divider"></div>
+                    <button class="color-btn active" data-color="#000000" style="background:#000000" title="Black"></button>
+                    <button class="color-btn" data-color="#FF3B30" style="background:#FF3B30" title="Red"></button>
+                    <button class="color-btn" data-color="#FF9500" style="background:#FF9500" title="Orange"></button>
+                    <button class="color-btn" data-color="#FFCC00" style="background:#FFCC00" title="Yellow"></button>
+                    <button class="color-btn" data-color="#34C759" style="background:#34C759" title="Green"></button>
+                    <button class="color-btn" data-color="#007AFF" style="background:#007AFF" title="Blue"></button>
+                    <button class="color-btn" data-color="#5856D6" style="background:#5856D6" title="Purple"></button>
+                    <button class="color-btn" data-color="#FF2D92" style="background:#FF2D92" title="Pink"></button>
+                    <div class="tool-divider"></div>
+                    <div class="stroke-slider">
+                        <input type="range" id="strokeSize" min="1" max="20" value="3" title="Stroke size">
+                    </div>
+                    <button class="tool-btn" id="clearBtn" title="Clear slide">
+                        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    </button>
+                </aside>
+
+                <div class="canvas-wrapper">
+                    <div class="canvas-container">
+                        <div class="canvas-frame" id="canvasFrame">
+                            <canvas id="drawingCanvas"></canvas>
+                        </div>
+                    </div>
+                    <nav class="slide-nav" id="slideNav">
+                        <button class="slide-nav-btn" id="prevSlideBtn" title="Previous slide">
+                            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </button>
+                        <div class="slide-thumbnails" id="slideThumbnails"></div>
+                        <button class="add-slide-btn" id="addSlideBtn" title="Add slide">
+                            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        </button>
+                        <div class="slide-indicator">
+                            <span id="currentSlideNum">1</span> / <span id="totalSlides">1</span>
+                        </div>
+                        <button class="slide-nav-btn" id="nextSlideBtn" title="Next slide">
+                            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="viewer-badge hidden" id="viewerBadge">
+                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+                Viewing as guest
+            </div>
+        </div>
+
+        <!-- Owner Settings Panel -->
+        <div class="owner-panel" id="ownerPanel">
+            <div class="owner-panel-header">Session Settings</div>
+            <div class="owner-panel-body">
+                <div class="owner-panel-item">
+                    <div>
+                        <div class="owner-panel-item-label">Public Session</div>
+                        <div class="form-hint" style="margin-top:4px">Anyone with code can view</div>
+                    </div>
+                    <div class="toggle-switch active" id="publicToggle"></div>
+                </div>
+                <div class="owner-panel-item">
+                    <div>
+                        <div class="owner-panel-item-label">Refresh Code</div>
+                        <div class="form-hint" style="margin-top:4px">Generate new 3-min code</div>
+                    </div>
+                    <button class="btn btn-secondary" id="refreshCodeBtn" style="padding:6px 12px;font-size:13px">Refresh</button>
+                </div>
+                <div class="owner-panel-item">
+                    <div class="owner-panel-item-label">End Session</div>
+                    <button class="btn" id="endSessionBtn" style="padding:6px 12px;font-size:13px;background:var(--danger);color:white">End</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Session Modal -->
+    <div class="modal-overlay" id="createModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Session</h2>
+                <button class="modal-close" id="createModalClose">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Board Name</label>
+                    <input type="text" class="form-input" id="boardNameInput" placeholder="My Notes" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <div class="toggle-group">
+                        <div>
+                            <div class="toggle-label">Public Session</div>
+                            <div class="toggle-desc">Anyone with the code can view your board</div>
+                        </div>
+                        <div class="toggle-switch active" id="createPublicToggle"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="createModalCancel">Cancel</button>
+                <button class="btn btn-primary" id="createModalConfirm">Create Board</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Session Modal -->
+    <div class="modal-overlay" id="joinModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Join Session</h2>
+                <button class="modal-close" id="joinModalClose">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" style="text-align:center;display:block;margin-bottom:16px">Enter the 4-digit code</label>
+                    <div class="code-input-group" id="joinCodeGroup">
+                        <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9A-Za-z]">
+                        <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9A-Za-z]">
+                        <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9A-Za-z]">
+                        <input type="text" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9A-Za-z]">
+                    </div>
+                    <p class="form-hint" style="text-align:center;margin-top:16px">Ask the board owner for the session code</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="joinModalCancel">Cancel</button>
+                <button class="btn btn-primary" id="joinModalConfirm" disabled>Join</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Share Board</h2>
+                <button class="modal-close" id="shareModalClose">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center">
+                <div style="font-size:48px;font-weight:700;letter-spacing:8px;color:var(--accent);margin:24px 0" id="shareCodeDisplay">----</div>
+                <p class="form-hint">Share this code with others to let them view your board in real-time.</p>
+                <p class="form-hint" style="margin-top:8px">Code expires in <span id="shareTimerDisplay">3:00</span></p>
+                <button class="btn btn-primary" id="copyLinkBtn" style="margin-top:20px;width:100%">
+                    <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    Copy Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+        import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js';
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signInWithRedirect,
+            getRedirectResult,
+            signOut,
+            onAuthStateChanged
+        } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+        import {
+            getFirestore,
+            collection,
+            doc,
+            getDocs,
+            setDoc,
+            updateDoc,
+            deleteDoc,
+            query,
+            where,
+            limit,
+            onSnapshot,
+            writeBatch
+        } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyCy4lEzurGBcYqc8Pex1SUysXo-KbGBlu0',
+            authDomain: 'lcn-apps.firebaseapp.com',
+            projectId: 'lcn-apps',
+            storageBucket: 'lcn-apps.firebasestorage.app',
+            messagingSenderId: '663679231736',
+            appId: '1:663679231736:web:61e74f528ace92f4c8fd0d'
+        };
+
+        const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const firestore = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+        const SESSIONS_COLLECTION = 'crossboard_sessions';
+        const CODE_EXPIRY_MS = 3 * 60 * 1000;
+        const CANVAS_WIDTH = 1200;
+        const CANVAS_HEIGHT = 800;
+
+        let currentUser = null;
+        let currentSession = null;
+        let isOwner = false;
+        let currentSlide = 0;
+        let slides = [{ strokes: [], undoStack: [], redoStack: [] }];
+        let currentTool = 'pen';
+        let currentColor = '#000000';
+        let strokeSize = 3;
+        let isDrawing = false;
+        let currentStroke = null;
+        let canvas, ctx;
+        let unsubscribeSession = null;
+        let unsubscribeStrokes = null;
+        let codeTimerInterval = null;
+
+        const authGate = document.getElementById('authGate');
+        const appShell = document.getElementById('app');
+        const authError = document.getElementById('authError');
+        const authStatus = document.getElementById('authStatus');
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+
+        function generateId() {
+            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        }
+
+        function generateCode() {
+            const chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+            let code = '';
+            for (let i = 0; i < 4; i++) {
+                code += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return code;
+        }
+
+        function requireUser() {
+            if (!currentUser) {
+                const err = new Error('Sign in required');
+                err.code = 'auth/required';
+                throw err;
+            }
+            return currentUser;
+        }
+
+        function setSignedInUi(user) {
+            currentUser = user || null;
+            if (user) {
+                authGate.classList.add('is-hidden');
+                appShell.classList.remove('hidden');
+                appShell.style.display = '';
+                const label = user.email || user.displayName || user.uid;
+                document.getElementById('landingUserEmail').textContent = label;
+                document.getElementById('boardUserEmail').textContent = label;
+                authStatus.textContent = '';
+                authError.textContent = '';
+            } else {
+                authGate.classList.remove('is-hidden');
+                appShell.classList.add('hidden');
+                appShell.style.display = 'none';
+                authStatus.textContent = 'Sign in required to continue.';
+                document.getElementById('landingUserEmail').textContent = '';
+                document.getElementById('boardUserEmail').textContent = '';
+                if (currentSession) resetToLanding();
+            }
+        }
+
+        async function signInWithGoogle() {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                return result.user;
+            } catch (err) {
+                if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user')) {
+                    await signInWithRedirect(auth, googleProvider);
+                    return null;
+                }
+                throw err;
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function formatTime(ms) {
+            const seconds = Math.max(0, Math.floor(ms / 1000));
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('#landingScreen, #boardScreen').forEach(el => {
+                el.classList.toggle('hidden', el.id !== screenId);
+            });
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        async function createSession(name, isPublic) {
+            const user = requireUser();
+            const sessionId = generateId();
+            const code = generateCode();
+            const now = Date.now();
+
+            const session = {
+                id: sessionId,
+                name: name || 'Untitled Board',
+                code: code,
+                codeExpiresAt: now + CODE_EXPIRY_MS,
+                isPublic: isPublic,
+                ownerId: user.uid,
+                ownerEmail: user.email || null,
+                createdAt: now,
+                slideCount: 1,
+                currentSlide: 0,
+                viewers: 1
+            };
+
+            await setDoc(doc(firestore, SESSIONS_COLLECTION, sessionId), session);
+            return session;
+        }
+
+        async function findSessionByCode(code) {
+            requireUser();
+            const normalizedCode = code.toUpperCase().trim();
+            const q = query(
+                collection(firestore, SESSIONS_COLLECTION),
+                where('code', '==', normalizedCode),
+                limit(1)
+            );
+            const snap = await getDocs(q);
+            if (snap.empty) return null;
+
+            const session = snap.docs[0].data();
+            if (session.codeExpiresAt && session.codeExpiresAt < Date.now()) {
+                return null;
+            }
+            if (session.isPublic === false && session.ownerId !== currentUser.uid) {
+                return null;
+            }
+            return session;
+        }
+
+        async function refreshSessionCode(sessionId) {
+            requireUser();
+            const newCode = generateCode();
+            const now = Date.now();
+            await updateDoc(doc(firestore, SESSIONS_COLLECTION, sessionId), {
+                code: newCode,
+                codeExpiresAt: now + CODE_EXPIRY_MS
+            });
+            return { code: newCode, expiresAt: now + CODE_EXPIRY_MS };
+        }
+
+        async function joinSession(session, asOwner = false) {
+            requireUser();
+            currentSession = session;
+            isOwner = asOwner || session.ownerId === currentUser.uid;
+            currentSlide = session.currentSlide || 0;
+
+            const count = Math.max(1, session.slideCount || 1);
+            slides = [];
+            for (let i = 0; i < count; i++) {
+                slides.push({ strokes: [], undoStack: [], redoStack: [] });
+            }
+            if (currentSlide >= slides.length) currentSlide = 0;
+
+            showScreen('boardScreen');
+            document.getElementById('sessionName').textContent = session.name;
+            document.getElementById('codeText').textContent = session.code;
+            document.getElementById('shareCodeDisplay').textContent = session.code;
+
+            if (!isOwner) {
+                document.getElementById('toolbar').classList.add('hidden');
+                document.getElementById('viewerBadge').classList.remove('hidden');
+                document.getElementById('addSlideBtn').classList.add('hidden');
+                document.getElementById('settingsBtn').classList.add('hidden');
+                canvas.style.cursor = 'default';
+            } else {
+                document.getElementById('toolbar').classList.remove('hidden');
+                document.getElementById('viewerBadge').classList.add('hidden');
+                document.getElementById('addSlideBtn').classList.remove('hidden');
+                document.getElementById('settingsBtn').classList.remove('hidden');
+                canvas.style.cursor = 'crosshair';
+            }
+
+            subscribeToSession();
+            subscribeToStrokes();
+            startCodeTimer();
+            updateSlideUI();
+        }
+
+        function subscribeToSession() {
+            if (unsubscribeSession) unsubscribeSession();
+
+            unsubscribeSession = onSnapshot(
+                doc(firestore, SESSIONS_COLLECTION, currentSession.id),
+                (snap) => {
+                    if (!snap.exists()) {
+                        showToast('Session ended', 'error');
+                        resetToLanding();
+                        return;
+                    }
+                    const data = snap.data();
+                    currentSession = { ...currentSession, ...data };
+                    document.getElementById('codeText').textContent = data.code;
+                    document.getElementById('shareCodeDisplay').textContent = data.code;
+                    document.getElementById('viewerCount').textContent = data.viewers || 1;
+
+                    const count = Math.max(1, data.slideCount || 1);
+                    while (slides.length < count) {
+                        slides.push({ strokes: [], undoStack: [], redoStack: [] });
+                    }
+
+                    if (!isOwner && data.currentSlide !== currentSlide) {
+                        currentSlide = data.currentSlide || 0;
+                        loadSlide(currentSlide);
+                        updateSlideUI();
+                    } else {
+                        updateSlideUI();
+                    }
+                }
+            );
+        }
+
+        function strokesCollection(sessionId, slideIndex) {
+            return collection(
+                firestore,
+                SESSIONS_COLLECTION,
+                sessionId,
+                'slides',
+                String(slideIndex),
+                'strokes'
+            );
+        }
+
+        function strokeDoc(sessionId, slideIndex, strokeId) {
+            return doc(strokesCollection(sessionId, slideIndex), strokeId);
+        }
+
+        function subscribeToStrokes() {
+            if (unsubscribeStrokes) unsubscribeStrokes();
+
+            unsubscribeStrokes = onSnapshot(
+                strokesCollection(currentSession.id, currentSlide),
+                (snapshot) => {
+                    const strokeList = [];
+                    snapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        if (data) strokeList.push(data);
+                    });
+                    strokeList.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                    const prev = slides[currentSlide] || { undoStack: [], redoStack: [] };
+                    slides[currentSlide] = {
+                        strokes: strokeList,
+                        undoStack: prev.undoStack || [],
+                        redoStack: prev.redoStack || []
+                    };
+                    redrawCanvas();
+                },
+                (err) => {
+                    console.error('Stroke sync error:', err);
+                    showToast('Could not sync board strokes', 'error');
+                }
+            );
+        }
+
+        function startCodeTimer() {
+            if (codeTimerInterval) clearInterval(codeTimerInterval);
+
+            function updateTimer() {
+                if (!currentSession) return;
+                const remaining = Math.max(0, currentSession.codeExpiresAt - Date.now());
+                const timerText = formatTime(remaining);
+                document.getElementById('sessionTimer').textContent = remaining > 0 ? `expires in ${timerText}` : 'code expired';
+                document.getElementById('shareTimerDisplay').textContent = timerText;
+
+                if (remaining <= 0 && isOwner) {
+                    refreshSessionCode(currentSession.id).then(({ code, expiresAt }) => {
+                        currentSession.code = code;
+                        currentSession.codeExpiresAt = expiresAt;
+                    });
+                }
+            }
+
+            updateTimer();
+            codeTimerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d');
+
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            canvas.addEventListener('pointerdown', handlePointerDown);
+            canvas.addEventListener('pointermove', handlePointerMove);
+            canvas.addEventListener('pointerup', handlePointerUp);
+            canvas.addEventListener('pointerleave', handlePointerUp);
+            canvas.addEventListener('pointercancel', handlePointerUp);
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function resizeCanvas() {
+            const container = document.querySelector('.canvas-container');
+            const frame = document.getElementById('canvasFrame');
+            const maxWidth = container.clientWidth - 48;
+            const maxHeight = container.clientHeight - 48;
+            const ratio = CANVAS_WIDTH / CANVAS_HEIGHT;
+
+            let width = maxWidth;
+            let height = width / ratio;
+
+            if (height > maxHeight) {
+                height = maxHeight;
+                width = height * ratio;
+            }
+
+            frame.style.width = width + 'px';
+            frame.style.height = height + 'px';
+        }
+
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY,
+                pressure: e.pressure || 0.5
+            };
+        }
+
+        function handlePointerDown(e) {
+            if (!isOwner || currentTool === 'pointer') return;
+            e.preventDefault();
+            canvas.setPointerCapture(e.pointerId);
+
+            const coords = getCanvasCoords(e);
+            isDrawing = true;
+
+            currentStroke = {
+                id: generateId(),
+                tool: currentTool,
+                color: currentTool === 'eraser' ? '#FFFFFF' : currentColor,
+                size: currentTool === 'highlighter' ? strokeSize * 3 : strokeSize,
+                opacity: currentTool === 'highlighter' ? 0.4 : 1,
+                points: [{ x: coords.x, y: coords.y, p: coords.pressure }],
+                timestamp: Date.now()
+            };
+        }
+
+        function handlePointerMove(e) {
+            if (!isDrawing || !currentStroke) return;
+            e.preventDefault();
+
+            const coords = getCanvasCoords(e);
+            currentStroke.points.push({ x: coords.x, y: coords.y, p: coords.pressure });
+
+            redrawCanvas();
+            drawStroke(currentStroke, true);
+        }
+
+        function handlePointerUp(e) {
+            if (!isDrawing || !currentStroke) return;
+            e.preventDefault();
+
+            isDrawing = false;
+
+            if (currentStroke.points.length > 1) {
+                saveStroke(currentStroke);
+            }
+            currentStroke = null;
+        }
+
+        async function saveStroke(stroke) {
+            if (!currentSession) return;
+
+            await setDoc(strokeDoc(currentSession.id, currentSlide, stroke.id), stroke);
+
+            if (!slides[currentSlide]) {
+                slides[currentSlide] = { strokes: [], undoStack: [], redoStack: [] };
+            }
+            slides[currentSlide].undoStack.push(stroke.id);
+            slides[currentSlide].redoStack = [];
+        }
+
+        function drawStroke(stroke, isPreview = false) {
+            if (!stroke || stroke.points.length < 2) return;
+
+            ctx.save();
+            ctx.globalAlpha = stroke.opacity || 1;
+            ctx.strokeStyle = stroke.color;
+            ctx.lineWidth = stroke.size;
+
+            if (stroke.tool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+
+            for (let i = 1; i < stroke.points.length; i++) {
+                const p0 = stroke.points[i - 1];
+                const p1 = stroke.points[i];
+
+                const midX = (p0.x + p1.x) / 2;
+                const midY = (p0.y + p1.y) / 2;
+                ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
+            }
+
+            const lastPoint = stroke.points[stroke.points.length - 1];
+            ctx.lineTo(lastPoint.x, lastPoint.y);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function redrawCanvas() {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const slideData = slides[currentSlide];
+            if (slideData && slideData.strokes) {
+                slideData.strokes.forEach(stroke => drawStroke(stroke));
+            }
+        }
+
+        async function clearSlide() {
+            if (!currentSession || !isOwner) return;
+
+            const snap = await getDocs(strokesCollection(currentSession.id, currentSlide));
+            const batch = writeBatch(firestore);
+            snap.forEach((docSnap) => batch.delete(docSnap.ref));
+            if (!snap.empty) await batch.commit();
+
+            slides[currentSlide] = { strokes: [], undoStack: [], redoStack: [] };
+            redrawCanvas();
+        }
+
+        async function addSlide() {
+            if (!currentSession || !isOwner) return;
+
+            const newIndex = slides.length;
+            slides.push({ strokes: [], undoStack: [], redoStack: [] });
+
+            await updateDoc(doc(firestore, SESSIONS_COLLECTION, currentSession.id), {
+                slideCount: slides.length
+            });
+
+            goToSlide(newIndex);
+        }
+
+        async function goToSlide(index) {
+            if (index < 0 || index >= slides.length) return;
+
+            currentSlide = index;
+            subscribeToStrokes();
+            updateSlideUI();
+
+            if (isOwner) {
+                await updateDoc(doc(firestore, SESSIONS_COLLECTION, currentSession.id), {
+                    currentSlide: index
+                });
+            }
+        }
+
+        function loadSlide(index) {
+            if (index < 0) return;
+
+            while (slides.length <= index) {
+                slides.push({ strokes: [], undoStack: [], redoStack: [] });
+            }
+
+            subscribeToStrokes();
+        }
+
+        function updateSlideUI() {
+            document.getElementById('currentSlideNum').textContent = currentSlide + 1;
+            document.getElementById('totalSlides').textContent = slides.length;
+
+            document.getElementById('prevSlideBtn').disabled = currentSlide === 0;
+            document.getElementById('nextSlideBtn').disabled = currentSlide === slides.length - 1;
+
+            const container = document.getElementById('slideThumbnails');
+            container.innerHTML = '';
+
+            slides.forEach((slide, i) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'slide-thumb' + (i === currentSlide ? ' active' : '');
+                thumb.addEventListener('click', () => goToSlide(i));
+
+                const miniCanvas = document.createElement('canvas');
+                miniCanvas.width = 64;
+                miniCanvas.height = 48;
+                const miniCtx = miniCanvas.getContext('2d');
+                miniCtx.fillStyle = '#FFFFFF';
+                miniCtx.fillRect(0, 0, 64, 48);
+
+                if (slide.strokes && slide.strokes.length > 0) {
+                    const scale = 64 / CANVAS_WIDTH;
+                    miniCtx.scale(scale, scale);
+                    slide.strokes.forEach(stroke => {
+                        if (stroke.points && stroke.points.length > 1) {
+                            miniCtx.save();
+                            miniCtx.globalAlpha = stroke.opacity || 1;
+                            miniCtx.strokeStyle = stroke.color;
+                            miniCtx.lineWidth = stroke.size;
+                            miniCtx.lineCap = 'round';
+                            miniCtx.beginPath();
+                            miniCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
+                            stroke.points.forEach((p, j) => {
+                                if (j > 0) miniCtx.lineTo(p.x, p.y);
+                            });
+                            miniCtx.stroke();
+                            miniCtx.restore();
+                        }
+                    });
+                }
+
+                thumb.appendChild(miniCanvas);
+                container.appendChild(thumb);
+            });
+        }
+
+        async function undo() {
+            if (!isOwner || !currentSession) return;
+
+            const slideData = slides[currentSlide];
+            if (!slideData.undoStack || slideData.undoStack.length === 0) return;
+
+            const strokeId = slideData.undoStack.pop();
+            slideData.redoStack.push(strokeId);
+
+            await deleteDoc(strokeDoc(currentSession.id, currentSlide, strokeId));
+        }
+
+        async function redo() {
+            if (!isOwner || !currentSession) return;
+
+            const slideData = slides[currentSlide];
+            if (!slideData.redoStack || slideData.redoStack.length === 0) return;
+
+            const strokeId = slideData.redoStack.pop();
+            const stroke = slideData.strokes.find(s => s.id === strokeId);
+
+            if (stroke) {
+                slideData.undoStack.push(strokeId);
+                await setDoc(strokeDoc(currentSession.id, currentSlide, strokeId), stroke);
+            }
+        }
+
+        function resetToLanding() {
+            if (unsubscribeSession) unsubscribeSession();
+            if (unsubscribeStrokes) unsubscribeStrokes();
+            if (codeTimerInterval) clearInterval(codeTimerInterval);
+
+            currentSession = null;
+            isOwner = false;
+            currentSlide = 0;
+            slides = [{ strokes: [], undoStack: [], redoStack: [] }];
+
+            showScreen('landingScreen');
+            document.getElementById('ownerPanel').classList.remove('active');
+        }
+
+        async function endSession() {
+            if (!currentSession || !isOwner) return;
+
+            try {
+                const slideCount = Math.max(1, currentSession.slideCount || slides.length || 1);
+                for (let i = 0; i < slideCount; i++) {
+                    const snap = await getDocs(strokesCollection(currentSession.id, i));
+                    const batch = writeBatch(firestore);
+                    let ops = 0;
+                    snap.forEach((docSnap) => {
+                        batch.delete(docSnap.ref);
+                        ops += 1;
+                    });
+                    if (ops > 0) await batch.commit();
+                }
+                await deleteDoc(doc(firestore, SESSIONS_COLLECTION, currentSession.id));
+            } catch (e) {
+                console.error('Error ending session:', e);
+            }
+
+            resetToLanding();
+            showToast('Session ended', 'success');
+        }
+
+        function setupToolbar() {
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTool = btn.dataset.tool;
+                    document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    if (currentTool === 'eraser') {
+                        canvas.style.cursor = 'cell';
+                    } else if (currentTool === 'pointer') {
+                        canvas.style.cursor = 'default';
+                    } else {
+                        canvas.style.cursor = 'crosshair';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentColor = btn.dataset.color;
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+
+            document.getElementById('strokeSize').addEventListener('input', (e) => {
+                strokeSize = parseInt(e.target.value);
+            });
+
+            document.getElementById('clearBtn').addEventListener('click', clearSlide);
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+        }
+
+        function setupModals() {
+            const createPublicToggle = document.getElementById('createPublicToggle');
+            createPublicToggle.addEventListener('click', () => {
+                createPublicToggle.classList.toggle('active');
+            });
+
+            document.getElementById('createSessionBtn').addEventListener('click', () => {
+                document.getElementById('boardNameInput').value = '';
+                createPublicToggle.classList.add('active');
+                openModal('createModal');
+            });
+
+            document.getElementById('createModalClose').addEventListener('click', () => closeModal('createModal'));
+            document.getElementById('createModalCancel').addEventListener('click', () => closeModal('createModal'));
+
+            document.getElementById('createModalConfirm').addEventListener('click', async () => {
+                const name = document.getElementById('boardNameInput').value.trim() || 'Untitled Board';
+                const isPublic = createPublicToggle.classList.contains('active');
+
+                closeModal('createModal');
+
+                try {
+                    const session = await createSession(name, isPublic);
+                    await joinSession(session, true);
+                    showToast('Board created!', 'success');
+                } catch (e) {
+                    console.error('Error creating session:', e);
+                    showToast('Failed to create board', 'error');
+                }
+            });
+
+            document.getElementById('joinSessionBtn').addEventListener('click', () => {
+                document.querySelectorAll('#joinCodeGroup .code-digit').forEach(input => {
+                    input.value = '';
+                });
+                document.getElementById('joinModalConfirm').disabled = true;
+                openModal('joinModal');
+                document.querySelector('#joinCodeGroup .code-digit').focus();
+            });
+
+            document.getElementById('joinModalClose').addEventListener('click', () => closeModal('joinModal'));
+            document.getElementById('joinModalCancel').addEventListener('click', () => closeModal('joinModal'));
+
+            const codeDigits = document.querySelectorAll('#joinCodeGroup .code-digit');
+            codeDigits.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.toUpperCase();
+                    e.target.value = value;
+
+                    if (value && index < codeDigits.length - 1) {
+                        codeDigits[index + 1].focus();
+                    }
+
+                    const code = Array.from(codeDigits).map(d => d.value).join('');
+                    document.getElementById('joinModalConfirm').disabled = code.length !== 4;
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        codeDigits[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const text = (e.clipboardData || window.clipboardData).getData('text').toUpperCase().slice(0, 4);
+                    text.split('').forEach((char, i) => {
+                        if (codeDigits[i]) codeDigits[i].value = char;
+                    });
+                    if (text.length === 4) {
+                        document.getElementById('joinModalConfirm').disabled = false;
+                        codeDigits[3].focus();
+                    }
+                });
+            });
+
+            document.getElementById('joinModalConfirm').addEventListener('click', async () => {
+                const code = Array.from(codeDigits).map(d => d.value).join('');
+
+                closeModal('joinModal');
+
+                try {
+                    const session = await findSessionByCode(code);
+                    if (!session) {
+                        showToast('Invalid or expired code', 'error');
+                        return;
+                    }
+
+                    const owning = session.ownerId === currentUser.uid;
+                    if (!owning) {
+                        await updateDoc(doc(firestore, SESSIONS_COLLECTION, session.id), {
+                            viewers: (session.viewers || 1) + 1
+                        });
+                    }
+
+                    await joinSession(session, owning);
+                    showToast(owning ? 'Opened your board!' : 'Joined board!', 'success');
+                } catch (e) {
+                    console.error('Error joining session:', e);
+                    showToast((e && e.message) || 'Failed to join board', 'error');
+                }
+            });
+
+            document.getElementById('shareBtn').addEventListener('click', () => {
+                openModal('shareModal');
+            });
+
+            document.getElementById('shareModalClose').addEventListener('click', () => closeModal('shareModal'));
+
+            document.getElementById('copyLinkBtn').addEventListener('click', () => {
+                const code = currentSession?.code || '';
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('Code copied!', 'success');
+                }).catch(() => {
+                    showToast('Failed to copy', 'error');
+                });
+            });
+
+            document.getElementById('sessionCodeDisplay').addEventListener('click', () => {
+                const code = currentSession?.code || '';
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('Code copied!', 'success');
+                }).catch(() => {
+                    showToast('Failed to copy', 'error');
+                });
+            });
+        }
+
+        function setupNavigation() {
+            document.getElementById('prevSlideBtn').addEventListener('click', () => {
+                if (currentSlide > 0) goToSlide(currentSlide - 1);
+            });
+
+            document.getElementById('nextSlideBtn').addEventListener('click', () => {
+                if (currentSlide < slides.length - 1) goToSlide(currentSlide + 1);
+            });
+
+            document.getElementById('addSlideBtn').addEventListener('click', addSlide);
+        }
+
+        function setupOwnerPanel() {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const ownerPanel = document.getElementById('ownerPanel');
+            const publicToggle = document.getElementById('publicToggle');
+
+            settingsBtn.addEventListener('click', () => {
+                ownerPanel.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!ownerPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
+                    ownerPanel.classList.remove('active');
+                }
+            });
+
+            publicToggle.addEventListener('click', async () => {
+                if (!currentSession || !isOwner) return;
+
+                publicToggle.classList.toggle('active');
+                const isPublic = publicToggle.classList.contains('active');
+
+                await updateDoc(doc(firestore, SESSIONS_COLLECTION, currentSession.id), {
+                    isPublic: isPublic
+                });
+
+                showToast(isPublic ? 'Session is now public' : 'Session is now private', 'success');
+            });
+
+            document.getElementById('refreshCodeBtn').addEventListener('click', async () => {
+                if (!currentSession || !isOwner) return;
+
+                const { code, expiresAt } = await refreshSessionCode(currentSession.id);
+                currentSession.code = code;
+                currentSession.codeExpiresAt = expiresAt;
+                showToast('New code generated!', 'success');
+            });
+
+            document.getElementById('endSessionBtn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to end this session? This will remove all content.')) {
+                    endSession();
+                }
+            });
+        }
+
+        function checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+
+            if (!code || !currentUser) return;
+
+            findSessionByCode(code).then(session => {
+                if (session) {
+                    joinSession(session, session.ownerId === currentUser.uid);
+                } else {
+                    showToast('Invalid or expired code', 'error');
+                }
+            }).catch(err => {
+                console.error(err);
+                showToast((err && err.message) || 'Failed to open board', 'error');
+            });
+        }
+
+        function setupAuth() {
+            googleSignInBtn.addEventListener('click', async () => {
+                authError.textContent = '';
+                authStatus.textContent = 'Opening Google sign-in…';
+                googleSignInBtn.disabled = true;
+                try {
+                    await signInWithGoogle();
+                } catch (err) {
+                    console.error(err);
+                    authError.textContent = (err && err.message) || 'Sign-in failed';
+                    authStatus.textContent = 'Sign in required to continue.';
+                } finally {
+                    googleSignInBtn.disabled = false;
+                }
+            });
+
+            function handleSignOut() {
+                signOut(auth).catch(err => {
+                    showToast((err && err.message) || 'Sign out failed', 'error');
+                });
+            }
+
+            document.getElementById('landingSignOutBtn').addEventListener('click', handleSignOut);
+            document.getElementById('boardSignOutBtn').addEventListener('click', handleSignOut);
+
+            getRedirectResult(auth).catch(() => {});
+
+            onAuthStateChanged(auth, (user) => {
+                setSignedInUi(user);
+                if (user) checkUrlParams();
+            });
+        }
+
+        function init() {
+            initCanvas();
+            setupToolbar();
+            setupModals();
+            setupNavigation();
+            setupOwnerPanel();
+            setupAuth();
+
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            redo();
+                        } else {
+                            undo();
+                        }
+                    }
+                }
+
+                if (e.key === 'ArrowLeft') {
+                    if (currentSlide > 0) goToSlide(currentSlide - 1);
+                } else if (e.key === 'ArrowRight') {
+                    if (currentSlide < slides.length - 1) goToSlide(currentSlide + 1);
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
