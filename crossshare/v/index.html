@@ -3,303 +3,1274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossshare View</title>
+    <title>Crossshare Viewer</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { width: 100%; height: 100%; }
-
-        body {
-            background: #000;
-            color: #fff;
-            font-family: "Segoe UI", "Adobe Clean", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
             overflow: hidden;
+            background: #050505;
+            color: #e1e1e1;
+            font-family: "Segoe UI", Arial, sans-serif;
         }
 
-        .stage {
-            position: fixed;
+        .viewer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #050505;
+        }
+
+        .frame {
+            position: relative;
+            background: #000;
+            overflow: hidden;
+            border: 1px solid #202020;
+        }
+
+        .message {
+            max-width: 520px;
+            padding: 24px;
+            color: #959595;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .message strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .cs-render-layer {
+            position: absolute;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .cs-render-media {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .cs-fit-contain { object-fit: contain; }
+        .cs-fit-cover { object-fit: cover; }
+        .cs-fit-stretch { object-fit: fill; }
+        .cs-fit-original {
+            width: auto;
+            height: auto;
+            max-width: none;
+            max-height: none;
+            object-fit: none;
+        }
+
+        .cs-render-pending {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #6d6d6d;
+            background: #050505;
+            font-size: 11px;
+        }
+
+        /* Gallery home (remote-friendly) */
+        .gallery {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            padding: clamp(24px, 5vh, 64px) clamp(24px, 5vw, 96px);
+            background: radial-gradient(120% 120% at 50% 0%, #101014 0%, #050505 60%);
+            outline: none;
+        }
+
+        .gallery-head {
+            width: 100%;
+            max-width: 1500px;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: clamp(18px, 3.5vh, 44px);
+            gap: 16px;
+        }
+
+        .gallery-title {
+            font-size: clamp(20px, 2.6vw, 34px);
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.4px;
+        }
+
+        .gallery-sub {
+            font-size: clamp(12px, 1.2vw, 16px);
+            color: #7d7d85;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(16px, 2.4vw, 40px);
+            width: 100%;
+            max-width: 1500px;
+            align-content: center;
+        }
+
+        .tile {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid #202028;
+            cursor: pointer;
+            opacity: 0.42;
+            transform: scale(0.94);
+            filter: brightness(0.7);
+            transition: transform 180ms ease, opacity 180ms ease, filter 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .tile.is-selected {
+            opacity: 1;
+            transform: scale(1.06);
+            filter: brightness(1.08);
+            border-color: rgba(120, 180, 255, 0.85);
+            box-shadow:
+                0 0 0 2px rgba(120, 180, 255, 0.55),
+                0 0 32px rgba(90, 150, 255, 0.45),
+                0 18px 48px rgba(0, 0, 0, 0.65);
+            z-index: 2;
+        }
+
+        .tile-thumb {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+            display: block;
+        }
+
+        .tile-empty {
+            position: absolute;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #000;
+            color: #55555c;
+            font-size: clamp(11px, 1vw, 14px);
         }
 
-        .stage img, .stage video {
-            max-width: 100vw;
-            max-height: 100vh;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-        }
-
-        .text-content {
-            max-width: 82vw;
-            color: #fff;
-            font-size: clamp(28px, 6vw, 86px);
-            line-height: 1.1;
-            text-align: center;
-            white-space: pre-wrap;
-        }
-
-        .instance-badge {
-            position: fixed;
-            top: 0;
+        .tile-overlay {
+            position: absolute;
             left: 0;
-            z-index: 10;
-            min-width: 36px;
-            min-height: 32px;
-            display: none;
+            right: 0;
+            bottom: 0;
+            padding: 14px 16px;
+            display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 0 8px;
-            background: #d71920;
-            color: #fff;
-            font-size: 20px;
-            font-weight: 800;
-            line-height: 1;
+            justify-content: space-between;
+            gap: 10px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
         }
 
-        .instance-badge.visible { display: flex; }
+        .tile-name {
+            font-size: clamp(13px, 1.35vw, 18px);
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-        .loading {
-            color: #6d6d6d;
-            font-size: 13px;
-            letter-spacing: 0.04em;
+        .tile-badge {
+            flex: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: clamp(10px, 0.9vw, 12px);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #9aa0aa;
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 1px solid #2a2a32;
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .tile-badge.is-live {
+            color: #ff5c6a;
+            border-color: rgba(255, 92, 106, 0.5);
+        }
+
+        .tile-badge.is-live .dot {
+            background: #ff5c6a;
+            box-shadow: 0 0 8px rgba(255, 92, 106, 0.8);
+        }
+
+        .tile-badge .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #6a6a72;
+        }
+
+        .tile-viewid {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            font-size: clamp(11px, 1vw, 14px);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 2px 8px;
+        }
+
+        .gallery-hint {
+            margin-top: clamp(18px, 3.5vh, 40px);
+            color: #5c5c64;
+            font-size: clamp(11px, 1.1vw, 14px);
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .gallery-empty {
+            color: #7d7d85;
+            font-size: clamp(14px, 1.6vw, 20px);
+            text-align: center;
+        }
+
+        .connect {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+            box-sizing: border-box;
+            padding: 2rem;
+            overflow: auto;
+            background:
+                radial-gradient(circle at 50% 18%, rgba(50, 50, 50, 0.34), transparent 34rem),
+                #050505;
+        }
+
+        .connect-panel {
+            width: min(100%, 42rem);
+            text-align: center;
+            animation: connect-enter 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        .connect-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: clamp(2.5rem, 8vh, 5.5rem);
+            color: #959595;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
         }
 
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-            gap: 12px;
-            width: min(720px, 88vw);
+        .connect-logo {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.3rem;
+            object-fit: cover;
         }
 
-        .instance-card {
-            min-height: 64px;
+        .connect-eyebrow {
+            margin: 0 0 1rem;
+            color: #959595;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .connect-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(2.25rem, 6vw, 4.75rem);
+            font-weight: 500;
+            letter-spacing: -0.045em;
+            line-height: 1;
+        }
+
+        .connect-copy {
+            max-width: 31rem;
+            margin: 1.5rem auto 0;
+            color: #959595;
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            line-height: 1.55;
+        }
+
+        .connect-form {
+            margin-top: clamp(2.5rem, 7vh, 4rem);
+        }
+
+        .connect-code {
             display: flex;
-            align-items: center;
             justify-content: center;
-            background: #d71920;
-            color: #fff;
-            font-size: 30px;
-            font-weight: 800;
+            gap: clamp(0.55rem, 2vw, 1rem);
+        }
+
+        .connect-digit {
+            width: clamp(3.6rem, 13vw, 5.5rem);
+            height: clamp(4.5rem, 16vw, 6.75rem);
+            box-sizing: border-box;
+            border: 0.0625rem solid #454545;
+            border-radius: 0.75rem;
+            outline: none;
+            background: #1a1a1a;
+            color: #ffffff;
+            caret-color: #1473e6;
+            font: 500 clamp(2rem, 7vw, 3.5rem)/1 "Segoe UI", Arial, sans-serif;
+            text-align: center;
+            text-transform: uppercase;
+            transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+        }
+
+        .connect-digit:hover {
+            background: #232323;
+            border-color: #6d6d6d;
+        }
+
+        .connect-digit:focus {
+            border-color: #1473e6;
+            background: #232323;
+            box-shadow: 0 0 0 0.1875rem rgba(20, 115, 230, 0.28);
+            transform: scale(1.04);
+        }
+
+        .connect-submit {
+            min-width: 12rem;
+            height: 3.25rem;
+            margin-top: 2rem;
+            padding: 0 2rem;
+            border: 0.0625rem solid #ffffff;
+            border-radius: 999rem;
+            background: transparent;
+            color: #ffffff;
+            font: 600 1rem/1 "Segoe UI", Arial, sans-serif;
+            cursor: pointer;
+            transition: color 120ms ease, background 120ms ease, border-color 120ms ease, transform 120ms ease;
+        }
+
+        .connect-submit:hover,
+        .connect-submit:focus-visible {
+            border-color: #1473e6;
+            outline: none;
+            background: #1473e6;
+        }
+
+        .connect-submit:active {
+            transform: scale(0.98);
+        }
+
+        .connect-submit:disabled {
+            border-color: #454545;
+            color: #6d6d6d;
+            background: transparent;
+            cursor: default;
+        }
+
+        .connect-status {
+            min-height: 1.25rem;
+            margin: 1rem 0 0;
+            color: #959595;
+            font-size: 0.875rem;
+        }
+
+        .connect-devices {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.65rem 1.25rem;
+            margin-top: clamp(3rem, 8vh, 5rem);
+            color: #6d6d6d;
+            font-size: 0.75rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .connect-device {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .connect-device::before {
+            width: 0.3rem;
+            height: 0.3rem;
+            border-radius: 50%;
+            background: #6d6d6d;
+            content: "";
+        }
+
+        @keyframes connect-enter {
+            from {
+                opacity: 0;
+                transform: translateY(0.75rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 30rem) {
+            .connect {
+                padding: 1.25rem;
+            }
+
+            .connect-brand {
+                margin-bottom: 3rem;
+            }
+
+            .connect-devices {
+                max-width: 18rem;
+                margin-right: auto;
+                margin-left: auto;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .connect-panel {
+                animation: none;
+            }
+
+            .connect-digit,
+            .connect-submit {
+                transition: none;
+            }
         }
     </style>
 </head>
 <body>
-    <main class="stage" id="stage"><span class="loading">Loading view</span></main>
-    <div class="instance-badge" id="instanceBadge"></div>
+    <div class="viewer" id="viewer"></div>
 
-    <script type="module">
-        import { db } from '../js/firebase.js';
-        import {
-            collection,
-            doc,
-            getDoc,
-            getDocs,
-            onSnapshot,
-            orderBy,
-            query,
-            runTransaction,
-            serverTimestamp,
-            setDoc
-        } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    <script src="../js/presentation-engine.js"></script>
+    <script src="../js/stream-session.js"></script>
+    <script src="../js/crossshare-config.js"></script>
+    <script type="module" src="../js/crossshare-cloud.js"></script>
+    <script>
+        (async function () {
+            var MEDIA_BLOB_DB = 'crossshare_media_blobs';
+            var GRID_COLUMNS = 3;
+            var Engine = window.CrosssharePresentationEngine;
+            var StreamSession = window.CrossshareStreamSession;
+            var Cloud = null;
+            var cloudUnsub = null;
+            var params = new URLSearchParams(window.location.search);
+            var projectParam = params.get('project') || params.get('proj') || params.get('id') || '';
+            var streamParam = params.get('stream') || '';
+            var viewer = document.getElementById('viewer');
+            var project = null;
+            var stream = null;
+            var streamViewId = null;
+            var renderer = null;
+            var frame = null;
+            var mediaObjectUrls = {};
+            var playback = Engine.normalizePlaybackState(null, false);
+            var session = null;
+            var unsubscribe = null;
+            var raf = 0;
+            var running = false;
+            var unavailableReason = null;
 
-        var params = new URLSearchParams(window.location.search);
-        var projName = params.get('proj') || '';
-        var viewParam = params.get('view') || 'main';
-        var stage = document.getElementById('stage');
-        var badge = document.getElementById('instanceBadge');
-        var projectRef = doc(db, 'projects', projName);
-        var selectedViewId = null;
-        var selectedView = null;
-        var instanceRef = null;
-        var instanceNum = null;
-        var revealInstances = false;
-        var heartbeatTimer = null;
-        var slideTimer = null;
-        var slideIndex = 0;
-        var activeInstances = [];
+            function renderConnect() {
+                viewer.innerHTML =
+                    '<main class="connect">' +
+                        '<section class="connect-panel" aria-labelledby="connectTitle">' +
+                            '<div class="connect-brand">' +
+                                '<img class="connect-logo" src="../logos/crossshare-logo.png" alt="">' +
+                                '<span>Crossshare</span>' +
+                            '</div>' +
+                            '<p class="connect-eyebrow">Connect to a project</p>' +
+                            '<h1 class="connect-title" id="connectTitle">Enter your code</h1>' +
+                            '<p class="connect-copy">Use the four-character temporary code shown by the project owner.</p>' +
+                            '<form class="connect-form" id="connectForm">' +
+                                '<div class="connect-code" role="group" aria-label="Four-character project code">' +
+                                    '<input class="connect-digit" aria-label="Character 1" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="1" autocomplete="one-time-code">' +
+                                    '<input class="connect-digit" aria-label="Character 2" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="1">' +
+                                    '<input class="connect-digit" aria-label="Character 3" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="1">' +
+                                    '<input class="connect-digit" aria-label="Character 4" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="1">' +
+                                '</div>' +
+                                '<button class="connect-submit" type="submit" disabled>Connect</button>' +
+                                '<p class="connect-status" aria-live="polite">Enter all four characters to continue</p>' +
+                            '</form>' +
+                            '<div class="connect-devices" aria-label="Supported devices">' +
+                                '<span class="connect-device">Roku</span>' +
+                                '<span class="connect-device">Apple TV</span>' +
+                                '<span class="connect-device">Computer</span>' +
+                                '<span class="connect-device">Mobile</span>' +
+                            '</div>' +
+                        '</section>' +
+                    '</main>';
 
-        function escapeHtml(value) {
-            return String(value || '').replace(/[&<>"']/g, function (ch) {
-                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
-            });
-        }
+                var form = document.getElementById('connectForm');
+                var digits = Array.prototype.slice.call(form.querySelectorAll('.connect-digit'));
+                var submit = form.querySelector('.connect-submit');
+                var status = form.querySelector('.connect-status');
 
-        function getInstanceId() {
-            var key = 'crossshare_instance:' + projName + ':' + selectedViewId;
-            var id = localStorage.getItem(key);
-            if (!id) {
-                id = 'instance_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
-                localStorage.setItem(key, id);
+                function cleanCode(value) {
+                    return String(value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                }
+
+                function codeValue() {
+                    return digits.map(function (digit) { return digit.value; }).join('');
+                }
+
+                function updateConnectState() {
+                    var ready = codeValue().length === 4;
+                    submit.disabled = !ready;
+                    status.textContent = ready ? 'Press Connect or Enter' : 'Enter all four characters to continue';
+                }
+
+                function fillCode(value) {
+                    var clean = cleanCode(value).slice(0, 4);
+                    clean.split('').forEach(function (character, index) {
+                        digits[index].value = character;
+                    });
+                    updateConnectState();
+                    digits[Math.min(clean.length, 3)].focus();
+                }
+
+                digits.forEach(function (digit, index) {
+                    digit.addEventListener('input', function () {
+                        var value = cleanCode(digit.value);
+                        if (value.length > 1) {
+                            fillCode(value);
+                            return;
+                        }
+                        digit.value = value;
+                        if (value && index < digits.length - 1) digits[index + 1].focus();
+                        updateConnectState();
+                    });
+                    digit.addEventListener('keydown', function (event) {
+                        if (event.key === 'Backspace' && !digit.value && index > 0) digits[index - 1].focus();
+                        if (event.key === 'ArrowLeft' && index > 0) {
+                            event.preventDefault();
+                            digits[index - 1].focus();
+                        }
+                        if (event.key === 'ArrowRight' && index < digits.length - 1) {
+                            event.preventDefault();
+                            digits[index + 1].focus();
+                        }
+                    });
+                    digit.addEventListener('paste', function (event) {
+                        event.preventDefault();
+                        fillCode((event.clipboardData || window.clipboardData).getData('text'));
+                    });
+                });
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    var code = codeValue();
+                    if (!/^[A-Z0-9]{4}$/.test(code)) {
+                        status.textContent = 'Enter a valid four-character code';
+                        return;
+                    }
+                    submit.disabled = true;
+                    submit.textContent = 'Connecting…';
+                    status.textContent = 'Opening project ' + code;
+                    window.location.href = 'index.html?project=' + encodeURIComponent(code);
+                });
+
+                digits[0].focus();
             }
-            return id;
-        }
 
-        async function resolveView() {
-            if (!projName) throw new Error('Missing project name');
-
-            var direct = await getDoc(doc(db, 'projects', projName, 'views', viewParam));
-            if (direct.exists()) {
-                selectedViewId = direct.id;
+            if (!projectParam) {
+                renderConnect();
                 return;
             }
 
-            var snap = await getDocs(query(collection(db, 'projects', projName, 'views'), orderBy('created', 'asc')));
-            var match = snap.docs.find(function (item) {
-                var data = item.data();
-                return item.id === viewParam || data.name === viewParam;
-            }) || snap.docs[0];
+            function waitForCloud(timeoutMs) {
+                timeoutMs = timeoutMs || 12000;
+                if (window.CrossshareCloud) return Promise.resolve(window.CrossshareCloud);
+                return new Promise(function (resolve, reject) {
+                    var start = Date.now();
+                    var timer = setInterval(function () {
+                        if (window.CrossshareCloud) {
+                            clearInterval(timer);
+                            resolve(window.CrossshareCloud);
+                            return;
+                        }
+                        if (Date.now() - start > timeoutMs) {
+                            clearInterval(timer);
+                            reject(new Error('Cloud module failed to load'));
+                        }
+                    }, 30);
+                });
+            }
 
-            if (!match) throw new Error('No views found');
-            selectedViewId = match.id;
-        }
+            try {
+                Cloud = await waitForCloud();
+                await Cloud.waitForAuth();
+            } catch (cloudBootErr) {
+                console.warn('Viewer cloud boot degraded to local-only', cloudBootErr);
+                Cloud = window.CrossshareCloud || null;
+            }
 
-        async function registerInstance() {
-            var id = getInstanceId();
-            instanceRef = doc(db, 'projects', projName, 'views', selectedViewId, 'instances', id);
-            var counterRef = doc(db, 'projects', projName, 'views', selectedViewId, 'meta', 'instanceCounter');
+            // Gallery state
+            var galleryStreams = [];
+            var gallerySelected = 0;
+            var galleryTiles = [];
+            var galleryCapture = null;
+            var galleryTimer = 0;
+            var galleryKeyHandler = null;
+            var galleryBusy = false;
 
-            await runTransaction(db, async function (transaction) {
-                var instanceSnap = await transaction.get(instanceRef);
-                if (instanceSnap.exists() && instanceSnap.data().num) {
-                    instanceNum = instanceSnap.data().num;
-                    transaction.set(instanceRef, {
-                        kind: selectedViewId === 'main' ? 'main' : 'link',
-                        lastSeen: serverTimestamp()
-                    }, { merge: true });
+            function showMessage(title, detail) {
+                running = false;
+                if (raf) {
+                    cancelAnimationFrame(raf);
+                    raf = 0;
+                }
+                if (renderer) {
+                    renderer.destroy();
+                    renderer = null;
+                }
+                frame = null;
+                viewer.innerHTML = '<div class="message"><strong></strong><span></span></div>';
+                viewer.querySelector('strong').textContent = title;
+                viewer.querySelector('span').textContent = detail;
+            }
+
+            function getProjectKey() {
+                return project && project.id ? project.id : '_default';
+            }
+
+            function resolveProjectLocal() {
+                if (!projectParam) {
+                    unavailableReason = 'missing-project';
+                    return null;
+                }
+
+                var byCode = StreamSession.findProjectByPublicCode(projectParam, { allowExpired: false });
+                if (byCode) {
+                    unavailableReason = null;
+                    return byCode;
+                }
+
+                var expired = StreamSession.findProjectByPublicCode(projectParam, { allowExpired: true });
+                if (expired && StreamSession.isProjectCodeExpired(expired)) {
+                    unavailableReason = 'expired-code';
+                    return null;
+                }
+
+                var byIdentity = StreamSession.findProjectByIdentity({
+                    projectId: projectParam,
+                    projectName: projectParam,
+                    allowExpired: true
+                });
+                if (byIdentity) {
+                    if (byIdentity.projectCode && StreamSession.isProjectCodeExpired(byIdentity)) {
+                        unavailableReason = 'expired-code';
+                        return null;
+                    }
+                    unavailableReason = null;
+                    return byIdentity;
+                }
+
+                unavailableReason = 'missing-project';
+                return null;
+            }
+
+            function resolveProject() {
+                return resolveProjectLocal();
+            }
+
+            async function resolveProjectAsync() {
+                var local = resolveProjectLocal();
+                if (local) return local;
+                if (!Cloud || !projectParam) return null;
+
+                try {
+                    var remote = await Cloud.resolveProjectIdentity({
+                        projectId: projectParam,
+                        projectCode: projectParam,
+                        projectName: projectParam
+                    });
+                    if (!remote) {
+                        unavailableReason = 'missing-project';
+                        return null;
+                    }
+                    if (remote.projectCode && StreamSession.isProjectCodeExpired(remote)) {
+                        unavailableReason = 'expired-code';
+                        return null;
+                    }
+                    unavailableReason = null;
+                    return remote;
+                } catch (err) {
+                    console.warn('Cloud project resolve failed', err);
+                    unavailableReason = 'missing-project';
+                    return null;
+                }
+            }
+
+            function watchCloudProject(projectId) {
+                if (!Cloud || !projectId || cloudUnsub) return;
+                cloudUnsub = Cloud.subscribeProject(projectId, function (next, err) {
+                    if (err || !next) return;
+                    project = next;
+                    if (streamParam) {
+                        if (!reloadFromSnapshot()) return;
+                        if (!running) startRenderLoop();
+                    } else {
+                        renderGallery();
+                    }
+                });
+            }
+
+            function resolveStream(activeProject) {
+                if (!activeProject) return null;
+                if (!streamParam) {
+                    unavailableReason = 'missing-stream';
+                    return null;
+                }
+                var found = StreamSession.findStreamByViewId(activeProject, streamParam, { allowFallback: false });
+                if (!found) {
+                    unavailableReason = 'missing-stream';
+                    return null;
+                }
+                unavailableReason = null;
+                return found;
+            }
+
+            function currentViewId(activeProject, activeStream) {
+                if (!activeProject || !activeStream) return null;
+                var list = Array.isArray(activeProject.projectStreams) ? activeProject.projectStreams : [];
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i].id === activeStream.id) {
+                        return StreamSession.getStreamViewId(activeStream, i);
+                    }
+                }
+                return StreamSession.getStreamViewId(activeStream, 0);
+            }
+
+            function openMediaBlobDb() {
+                return new Promise(function (resolve, reject) {
+                    var req = indexedDB.open(MEDIA_BLOB_DB, 1);
+                    req.onupgradeneeded = function () {
+                        var db = req.result;
+                        if (!db.objectStoreNames.contains('blobs')) db.createObjectStore('blobs');
+                    };
+                    req.onsuccess = function () { resolve(req.result); };
+                    req.onerror = function () { reject(req.error); };
+                });
+            }
+
+            function getMediaObjectUrl(itemId) {
+                if (mediaObjectUrls[itemId]) return Promise.resolve(mediaObjectUrls[itemId]);
+                var mediaItem = project ? Engine.getMediaItem(project, itemId) : null;
+                var cloudUrl = null;
+                if (Cloud && mediaItem) cloudUrl = Cloud.mediaPlaybackUrl(mediaItem);
+                else if (mediaItem && mediaItem.url) cloudUrl = mediaItem.url;
+                if (cloudUrl) {
+                    mediaObjectUrls[itemId] = cloudUrl;
+                    return Promise.resolve(cloudUrl);
+                }
+                return openMediaBlobDb().then(function (db) {
+                    return new Promise(function (resolve, reject) {
+                        var tx = db.transaction('blobs', 'readonly');
+                        var req = tx.objectStore('blobs').get(getProjectKey() + ':' + itemId);
+                        req.onsuccess = function () {
+                            if (!req.result) {
+                                resolve(null);
+                                return;
+                            }
+                            var url = URL.createObjectURL(req.result);
+                            mediaObjectUrls[itemId] = url;
+                            resolve(url);
+                        };
+                        req.onerror = function () { reject(req.error); };
+                    });
+                });
+            }
+
+            function streamRatio() {
+                if (stream && stream.aspectRatio && stream.aspectRatio.width > 0 && stream.aspectRatio.height > 0) {
+                    return stream.aspectRatio.width / stream.aspectRatio.height;
+                }
+                return 16 / 9;
+            }
+
+            function fitFrame(target) {
+                if (!target) return;
+                var maxW = viewer.clientWidth - 24;
+                var maxH = viewer.clientHeight - 24;
+                var ratio = streamRatio();
+                var w = maxW;
+                var h = w / ratio;
+                if (h > maxH) {
+                    h = maxH;
+                    w = h * ratio;
+                }
+                target.style.width = Math.max(1, w) + 'px';
+                target.style.height = Math.max(1, h) + 'px';
+            }
+
+            function presentationDuration() {
+                if (!project || !stream) return 10;
+                var presentation = Engine.getPresentation(project, stream.presentationId);
+                var duration = Engine.presentationDuration(project, presentation);
+                if (!duration) return 10;
+                return isFinite(duration) ? Math.max(1, duration) : Infinity;
+            }
+
+            function applyPlaybackState(data) {
+                var incoming = Engine.normalizePlaybackState(data && (data.playback || data), false);
+                playback.playing = incoming.playing;
+                playback.time = incoming.time;
+                playback.anchorTimeMs = incoming.anchorTimeMs;
+                playback.startedAt = incoming.startedAt;
+                Engine.syncPlaybackState(playback, presentationDuration(), Date.now());
+            }
+
+            function unavailableMessage() {
+                if (unavailableReason === 'expired-code') {
+                    showMessage('Stream code expired', 'This project code is no longer valid. Open the manager Codes dialog for a fresh link.');
+                    return;
+                }
+                if (unavailableReason === 'missing-stream') {
+                    showMessage('Stream not found', 'No stream matches this View ID for the requested project.');
+                    return;
+                }
+                showMessage('Stream unavailable', 'Could not find this project in the cloud or in this browser. Check the project code/link and try again.');
+            }
+
+            function ensureSession(onMessage) {
+                if (!project) return;
+                if (session && session.projectId === getProjectKey()) {
+                    session.projectCode = project.projectCode || session.projectCode;
+                    return;
+                }
+                if (unsubscribe) {
+                    unsubscribe();
+                    unsubscribe = null;
+                }
+                if (session) {
+                    session.close();
+                    session = null;
+                }
+                session = StreamSession.createSession({
+                    projectId: getProjectKey(),
+                    projectCode: project.projectCode || projectParam || null
+                });
+                unsubscribe = session.subscribe(onMessage);
+            }
+
+            /* ---------------- Player mode ---------------- */
+
+            function reloadFromSnapshot() {
+                var nextProject = resolveProjectLocal() || project;
+                if (!nextProject) {
+                    unavailableMessage();
+                    return false;
+                }
+                var nextStream = resolveStream(nextProject);
+                if (!nextStream) {
+                    unavailableMessage();
+                    return false;
+                }
+                if (!nextStream.presentationId) {
+                    showMessage('No presentation linked', 'Create a stream presentation in the manager, then reopen or refresh this viewer.');
+                    return false;
+                }
+
+                project = nextProject;
+                stream = nextStream;
+                streamViewId = currentViewId(project, stream);
+                ensureSession(onSessionMessage);
+                return true;
+            }
+
+            function onSessionMessage(data) {
+                if (!data || !data.type) return;
+
+                if (data.type === 'stream-deleted') {
+                    if (session && session.matchesStream(data, stream && stream.id, streamViewId)) {
+                        showMessage('Stream removed', 'This stream was deleted in the manager.');
+                    } else {
+                        reloadFromSnapshot();
+                    }
                     return;
                 }
 
-                var counterSnap = await transaction.get(counterRef);
-                var next = counterSnap.exists() && counterSnap.data().next ? counterSnap.data().next : 1;
-                instanceNum = next;
-                transaction.set(counterRef, { next: next + 1 }, { merge: true });
-                transaction.set(instanceRef, {
-                    num: next,
-                    kind: selectedViewId === 'main' ? 'main' : 'link',
-                    created: serverTimestamp(),
-                    lastSeen: serverTimestamp()
-                }, { merge: true });
-            });
+                if (data.type === 'playback-change') {
+                    if (!stream || !session.matchesStream(data, stream.id, streamViewId)) return;
+                    applyPlaybackState(data);
+                    return;
+                }
 
-            heartbeatTimer = setInterval(function () {
-                setDoc(instanceRef, { lastSeen: serverTimestamp() }, { merge: true });
-            }, 10000);
-        }
+                if (
+                    data.type === 'presentation-change' ||
+                    data.type === 'snapshot-reload' ||
+                    data.type === 'project-change'
+                ) {
+                    if (!reloadFromSnapshot()) return;
+                    if (
+                        data.playback &&
+                        session.matchesStream(data, stream.id, streamViewId) &&
+                        (data.streamId || data.streamViewId)
+                    ) {
+                        applyPlaybackState(data);
+                    } else if (stream && stream.playback) {
+                        applyPlaybackState(stream.playback);
+                    }
+                    if (!running) startRenderLoop();
+                    else if (frame) fitFrame(frame);
+                }
+            }
 
-        function subscribe() {
-            onSnapshot(projectRef, function (snap) {
-                revealInstances = snap.exists() && !!snap.data().revealInstances;
-                renderBadge();
-            });
+            function startRenderLoop() {
+                if (!project || !stream || !stream.presentationId) return;
+                running = true;
 
-            onSnapshot(doc(db, 'projects', projName, 'views', selectedViewId), function (snap) {
-                selectedView = snap.exists() ? Object.assign({ id: snap.id }, snap.data()) : null;
-                document.title = selectedView ? 'Crossshare — ' + selectedView.name : 'Crossshare View';
-                render();
-            });
+                if (!frame || !frame.isConnected) {
+                    viewer.innerHTML = '';
+                    frame = document.createElement('div');
+                    frame.className = 'frame';
+                    viewer.appendChild(frame);
+                }
+                fitFrame(frame);
 
-            onSnapshot(collection(db, 'projects', projName, 'views', selectedViewId, 'instances'), function (snap) {
-                var now = Date.now();
-                activeInstances = snap.docs.map(function (item) {
-                    return Object.assign({ id: item.id }, item.data());
-                }).filter(function (item) {
-                    var lastSeen = item.lastSeen && item.lastSeen.toDate ? item.lastSeen.toDate().getTime() : 0;
-                    return !lastSeen || now - lastSeen < 45000;
-                }).sort(function (a, b) {
-                    return (a.num || 0) - (b.num || 0);
+                if (renderer) renderer.destroy();
+                renderer = Engine.createDomRenderer({
+                    stage: frame,
+                    resolveUrl: getMediaObjectUrl
                 });
-                render();
-            });
-        }
 
-        function renderBadge() {
-            if (!revealInstances || !instanceNum) {
-                badge.classList.remove('visible');
-                return;
+                if (raf) cancelAnimationFrame(raf);
+                function tick() {
+                    if (!running || !project || !stream || !renderer) return;
+                    var duration = presentationDuration();
+                    Engine.syncPlaybackState(playback, duration, Date.now());
+                    renderer.render(project, stream.presentationId, playback.time, playback.playing);
+                    raf = requestAnimationFrame(tick);
+                }
+                raf = requestAnimationFrame(tick);
             }
 
-            badge.textContent = selectedViewId === 'main' ? '[' + instanceNum + ']' : String(instanceNum);
-            badge.classList.add('visible');
-        }
+            async function bootPlayer() {
+                var resolved = await resolveProjectAsync();
+                if (!resolved) {
+                    unavailableMessage();
+                    return;
+                }
+                project = resolved;
+                watchCloudProject(project.id);
+                if (!reloadFromSnapshot()) return;
+                applyPlaybackState(stream.playback);
+                startRenderLoop();
 
-        function render() {
-            clearInterval(slideTimer);
-            slideTimer = null;
-
-            if (!selectedView) {
-                stage.innerHTML = '<span class="loading">View not found</span>';
-                renderBadge();
-                return;
+                window.addEventListener('resize', function () {
+                    if (frame) fitFrame(frame);
+                });
             }
 
-            var content = Array.isArray(selectedView.content) ? selectedView.content : [];
-            var item = content[selectedView.activeIndex || 0] || null;
+            /* ---------------- Gallery home mode ---------------- */
 
-            if (selectedView.isMain && activeInstances.length) {
-                stage.innerHTML = '<div class="badge-grid">' + activeInstances.map(function (instance) {
-                    return '<div class="instance-card">[' + escapeHtml(instance.num || '?') + ']</div>';
-                }).join('') + '</div>';
-                renderBadge();
-                return;
+            function galleryStreamList() {
+                var list = project && Array.isArray(project.projectStreams) ? project.projectStreams : [];
+                return list.filter(function (s) {
+                    return s && s.presentationId;
+                });
             }
 
-            if (!selectedView.live || !item) {
-                stage.innerHTML = '<img src="../i/ncl.png" alt="No content loaded">';
-                renderBadge();
-                return;
+            function streamPlayhead(s) {
+                var presentation = Engine.getPresentation(project, s.presentationId);
+                var duration = Engine.presentationDuration(project, presentation) || 10;
+                var pb = Engine.normalizePlaybackState(s.playback, false);
+                Engine.syncPlaybackState(pb, duration, Date.now());
+                return pb.time;
             }
 
-            if (item.type === 'slide') {
-                renderSlide(item);
+            function navigateToStream(s) {
+                if (!s) return;
+                var code = (project && project.projectCode) ? project.projectCode : projectParam;
+                var viewId = currentViewId(project, s);
+                window.location.href = 'index.html?project=' + encodeURIComponent(code) + '&stream=' + encodeURIComponent(viewId);
+            }
+
+            function setGallerySelection(index) {
+                if (!galleryTiles.length) return;
+                var count = galleryTiles.length;
+                gallerySelected = ((index % count) + count) % count;
+                for (var i = 0; i < galleryTiles.length; i++) {
+                    galleryTiles[i].classList.toggle('is-selected', i === gallerySelected);
+                }
+                var active = galleryTiles[gallerySelected];
+                if (active && active.scrollIntoView) {
+                    active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                }
+            }
+
+            function moveGallerySelection(deltaCols, deltaRows) {
+                if (!galleryTiles.length) return;
+                var next = gallerySelected + deltaCols + deltaRows * GRID_COLUMNS;
+                if (next < 0) next = 0;
+                if (next > galleryTiles.length - 1) next = galleryTiles.length - 1;
+                setGallerySelection(next);
+            }
+
+            function buildGalleryTile(s, index) {
+                var tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.setAttribute('role', 'button');
+                tile.tabIndex = -1;
+
+                var viewIdBadge = document.createElement('span');
+                viewIdBadge.className = 'tile-viewid';
+                viewIdBadge.textContent = StreamSession.getStreamViewId(s, index);
+
+                var empty = document.createElement('div');
+                empty.className = 'tile-empty';
+                empty.textContent = 'No preview yet';
+
+                var thumb = document.createElement('img');
+                thumb.className = 'tile-thumb';
+                thumb.alt = '';
+                thumb.style.display = 'none';
+
+                var overlay = document.createElement('div');
+                overlay.className = 'tile-overlay';
+
+                var name = document.createElement('span');
+                name.className = 'tile-name';
+                name.textContent = s.name || 'Untitled Stream';
+
+                var pb = Engine.normalizePlaybackState(s.playback, false);
+                var badge = document.createElement('span');
+                badge.className = 'tile-badge' + (pb.playing ? ' is-live' : '');
+                badge.innerHTML = '<span class="dot"></span>' + (pb.playing ? 'Live' : 'Idle');
+
+                overlay.appendChild(name);
+                overlay.appendChild(badge);
+                tile.appendChild(empty);
+                tile.appendChild(thumb);
+                tile.appendChild(viewIdBadge);
+                tile.appendChild(overlay);
+
+                tile._thumb = thumb;
+                tile._empty = empty;
+                tile._badge = badge;
+                tile._stream = s;
+
+                tile.addEventListener('mouseenter', function () {
+                    setGallerySelection(index);
+                });
+                tile.addEventListener('click', function () {
+                    setGallerySelection(index);
+                    navigateToStream(s);
+                });
+
+                return tile;
+            }
+
+            function refreshGalleryThumbnails() {
+                if (galleryBusy || !galleryCapture || !galleryStreams.length) return;
+                galleryBusy = true;
+                var chain = Promise.resolve();
+                galleryStreams.forEach(function (s, i) {
+                    chain = chain.then(function () {
+                        var playhead = streamPlayhead(s);
+                        return galleryCapture.capture(project, s.presentationId, playhead).then(function (dataUrl) {
+                            var tile = galleryTiles[i];
+                            if (!tile) return;
+                            if (dataUrl) {
+                                tile._thumb.src = dataUrl;
+                                tile._thumb.style.display = 'block';
+                                tile._empty.style.display = 'none';
+                            }
+                            var pb = Engine.normalizePlaybackState(s.playback, false);
+                            tile._badge.className = 'tile-badge' + (pb.playing ? ' is-live' : '');
+                            tile._badge.innerHTML = '<span class="dot"></span>' + (pb.playing ? 'Live' : 'Idle');
+                        }).catch(function () {});
+                    });
+                });
+                chain.then(function () {
+                    galleryBusy = false;
+                });
+            }
+
+            function renderGallery() {
+                galleryStreams = galleryStreamList();
+                galleryTiles = [];
+
+                viewer.innerHTML = '';
+                var gallery = document.createElement('div');
+                gallery.className = 'gallery';
+                gallery.tabIndex = 0;
+
+                var head = document.createElement('div');
+                head.className = 'gallery-head';
+                var title = document.createElement('div');
+                title.className = 'gallery-title';
+                title.textContent = project.name || 'Streams';
+                var sub = document.createElement('div');
+                sub.className = 'gallery-sub';
+                sub.textContent = project.projectCode ? ('Code ' + project.projectCode) : 'Viewer';
+                head.appendChild(title);
+                head.appendChild(sub);
+                gallery.appendChild(head);
+
+                if (!galleryStreams.length) {
+                    var emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'gallery-empty';
+                    emptyMsg.textContent = 'No streams are available for this project yet.';
+                    gallery.appendChild(emptyMsg);
+                    viewer.appendChild(gallery);
+                    return;
+                }
+
+                var grid = document.createElement('div');
+                grid.className = 'gallery-grid';
+                galleryStreams.forEach(function (s, i) {
+                    var tile = buildGalleryTile(s, i);
+                    grid.appendChild(tile);
+                    galleryTiles.push(tile);
+                });
+                gallery.appendChild(grid);
+
+                var hint = document.createElement('div');
+                hint.className = 'gallery-hint';
+                hint.textContent = 'Use arrow keys or WASD to move - Enter or click to open';
+                gallery.appendChild(hint);
+
+                viewer.appendChild(gallery);
+
+                if (gallerySelected > galleryTiles.length - 1) gallerySelected = galleryTiles.length - 1;
+                if (gallerySelected < 0) gallerySelected = 0;
+                setGallerySelection(gallerySelected);
+                gallery.focus();
+
+                if (!galleryCapture) {
+                    galleryCapture = Engine.createPreviewCapture({
+                        width: 480,
+                        height: 270,
+                        resolveUrl: getMediaObjectUrl
+                    });
+                }
+                refreshGalleryThumbnails();
+            }
+
+            function onGalleryKey(e) {
+                var key = e.key;
+                var handled = true;
+                if (key === 'ArrowRight' || key === 'd' || key === 'D') {
+                    moveGallerySelection(1, 0);
+                } else if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+                    moveGallerySelection(-1, 0);
+                } else if (key === 'ArrowDown' || key === 's' || key === 'S') {
+                    moveGallerySelection(0, 1);
+                } else if (key === 'ArrowUp' || key === 'w' || key === 'W') {
+                    moveGallerySelection(0, -1);
+                } else if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+                    var tile = galleryTiles[gallerySelected];
+                    if (tile && tile._stream) navigateToStream(tile._stream);
+                } else {
+                    handled = false;
+                }
+                if (handled) e.preventDefault();
+            }
+
+            function onGallerySessionMessage(data) {
+                if (!data || !data.type) return;
+                if (
+                    data.type === 'presentation-change' ||
+                    data.type === 'snapshot-reload' ||
+                    data.type === 'project-change' ||
+                    data.type === 'stream-deleted'
+                ) {
+                    var refreshed = resolveProjectLocal() || project;
+                    if (!refreshed) {
+                        stopGallery();
+                        unavailableMessage();
+                        return;
+                    }
+                    project = refreshed;
+                    var prevCount = galleryTiles.length;
+                    var nextCount = galleryStreamList().length;
+                    if (nextCount !== prevCount || data.type === 'stream-deleted' || data.type === 'presentation-change') {
+                        renderGallery();
+                    }
+                } else if (data.type === 'playback-change') {
+                    // Live badges + thumbnails refresh on the next poll.
+                }
+            }
+
+            function stopGallery() {
+                if (galleryTimer) {
+                    clearInterval(galleryTimer);
+                    galleryTimer = 0;
+                }
+                if (galleryKeyHandler) {
+                    document.removeEventListener('keydown', galleryKeyHandler);
+                    galleryKeyHandler = null;
+                }
+            }
+
+            async function bootGallery() {
+                var resolved = await resolveProjectAsync();
+                if (!resolved) {
+                    unavailableMessage();
+                    return;
+                }
+                project = resolved;
+                watchCloudProject(project.id);
+                ensureSession(onGallerySessionMessage);
+                renderGallery();
+
+                galleryKeyHandler = onGalleryKey;
+                document.addEventListener('keydown', galleryKeyHandler);
+                galleryTimer = setInterval(refreshGalleryThumbnails, 1200);
+
+                window.addEventListener('resize', function () {
+                    setGallerySelection(gallerySelected);
+                });
+            }
+
+            /* ---------------- Boot ---------------- */
+
+            showMessage('Loading stream…', 'Fetching project from the cloud.');
+            if (streamParam) {
+                await bootPlayer();
             } else {
-                stage.innerHTML = renderItem(item);
+                await bootGallery();
             }
 
-            renderBadge();
-        }
-
-        function renderItem(item) {
-            if (!item) return '';
-            if (item.type === 'text') return '<div class="text-content">' + escapeHtml(item.text) + '</div>';
-            if (item.type === 'video') return '<video src="' + escapeHtml(item.url || item.text || '') + '" autoplay muted loop playsinline></video>';
-            return '<img src="' + escapeHtml(item.url || item.text || '') + '" alt="Crossshare content">';
-        }
-
-        function renderSlide(item) {
-            var slides = Array.isArray(item.slides) ? item.slides : [];
-            if (!slides.length) {
-                stage.innerHTML = '<div class="text-content">Empty slideshow</div>';
-                return;
-            }
-
-            function showSlide() {
-                var slide = slides[slideIndex % slides.length];
-                stage.innerHTML = slide.url
-                    ? '<img src="' + escapeHtml(slide.url) + '" alt="Crossshare slide">'
-                    : '<div class="text-content">' + escapeHtml(slide.text) + '</div>';
-                slideIndex += 1;
-            }
-
-            showSlide();
-            slideTimer = setInterval(showSlide, 5000);
-        }
-
-        window.addEventListener('beforeunload', function () {
-            if (heartbeatTimer) clearInterval(heartbeatTimer);
-            if (slideTimer) clearInterval(slideTimer);
-        });
-
-        resolveView()
-            .then(registerInstance)
-            .then(subscribe)
-            .catch(function (e) {
-                console.error('Could not load CrossShare view:', e);
-                stage.innerHTML = '<img src="../i/ncl.png" alt="No content loaded">';
+            window.addEventListener('beforeunload', function () {
+                running = false;
+                cancelAnimationFrame(raf);
+                stopGallery();
+                if (galleryCapture) galleryCapture.destroy();
+                if (unsubscribe) unsubscribe();
+                if (session) session.close();
+                if (cloudUnsub) cloudUnsub();
+                if (renderer) renderer.destroy();
+                Object.keys(mediaObjectUrls).forEach(function (id) {
+                    if (mediaObjectUrls[id] && mediaObjectUrls[id].indexOf('blob:') === 0) {
+                        URL.revokeObjectURL(mediaObjectUrls[id]);
+                    }
+                });
             });
+        })();
     </script>
 </body>
 </html>

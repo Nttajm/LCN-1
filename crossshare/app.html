@@ -42,6 +42,18 @@
             gap: 10px;
         }
 
+        .topbar-home {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .topbar-home:hover .topbar-name {
+            color: #ffffff;
+        }
+
         .topbar-logo {
             width: 34px;
             height: 34px;
@@ -392,6 +404,102 @@
             line-height: 1.4;
         }
 
+        .project-empty-image-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .project-empty-image-preview {
+            display: block;
+            width: 180px;
+            max-width: 100%;
+            padding: 0;
+            border: 1px solid #4a4a4a;
+            border-radius: 3px;
+            background: #111;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .project-empty-image-preview:hover {
+            border-color: #2680eb;
+        }
+
+        .project-empty-image-preview img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .project-empty-image-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px;
+            border: 1px dashed #4a4a4a;
+            border-radius: 3px;
+            background: #1a1a1a;
+        }
+
+        .project-empty-image-upload.is-hidden {
+            display: none;
+        }
+
+        .project-empty-image-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            padding: 0 12px;
+            border: 1px solid #4a4a4a;
+            border-radius: 3px;
+            background: #323232;
+            color: #e8e8e8;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .project-empty-image-upload-btn:hover {
+            background: #3d3d3d;
+        }
+
+        .project-empty-image-upload-btn input {
+            display: none;
+        }
+
+        .project-empty-image-cancel-btn,
+        .project-empty-image-reset-btn {
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid #4a4a4a;
+            border-radius: 3px;
+            background: transparent;
+            color: #a0a0a0;
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .project-empty-image-cancel-btn:hover,
+        .project-empty-image-reset-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8e8e8;
+        }
+
+        .project-empty-image-preview.is-hidden {
+            display: none;
+        }
+
+        .project-empty-image-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .pin-row {
             display: flex;
             gap: 10px;
@@ -464,23 +572,184 @@
             border-color: #1473e6;
         }
 
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-user-email {
+            color: #9a9a9a;
+            font-size: 12px;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .topbar-signout {
+            padding: 5px 12px;
+            border: 1px solid #555;
+            border-radius: 14px;
+            background: transparent;
+            color: #d8d8d8;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .topbar-signout:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .auth-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #232323;
+        }
+
+        .auth-gate.is-hidden {
+            display: none;
+        }
+
+        .auth-card {
+            width: 380px;
+            max-width: calc(100vw - 32px);
+            background: #323232;
+            border: 1px solid #1f1f1f;
+            border-radius: 6px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+            padding: 32px 28px;
+            text-align: center;
+        }
+
+        .auth-card h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f0f0f0;
+            margin-bottom: 8px;
+        }
+
+        .auth-card p {
+            color: #9a9a9a;
+            font-size: 13px;
+            line-height: 1.45;
+            margin-bottom: 22px;
+        }
+
+        .auth-error {
+            color: #ff8f8f;
+            font-size: 12px;
+            margin: -8px 0 16px;
+            min-height: 16px;
+        }
+
+        .auth-status {
+            color: #8a8a8a;
+            font-size: 12px;
+            margin-top: 14px;
+        }
+
+        .app-shell.is-hidden {
+            display: none;
+        }
+
+        .status-banner {
+            display: none;
+            margin: 0 32px 12px;
+            padding: 10px 12px;
+            border-radius: 4px;
+            background: #3a3420;
+            border: 1px solid #6a5a20;
+            color: #f0e6b0;
+            font-size: 12px;
+        }
+
+        .status-banner.is-visible {
+            display: block;
+        }
+
+        .status-banner--error {
+            background: #3a2020;
+            border-color: #6a3030;
+            color: #ffc0c0;
+        }
+
+        .migrate-banner {
+            display: none;
+            margin: 0 0 16px;
+            padding: 12px 14px;
+            border-radius: 4px;
+            background: #2a3340;
+            border: 1px solid #3d5a80;
+            color: #d0e0f8;
+            font-size: 12px;
+        }
+
+        .migrate-banner.is-visible {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .migrate-banner button {
+            flex: none;
+            padding: 6px 12px;
+            border-radius: 14px;
+            border: 1px solid #7aa2d4;
+            background: transparent;
+            color: #d0e0f8;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .table-empty {
+            padding: 40px 12px;
+            color: #7a7a7a;
+            text-align: center;
+        }
+
+        .pill-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
     </style>
 </head>
 <body>
 
+    <div class="auth-gate" id="authGate">
+        <div class="auth-card">
+            <h1>Sign in to Crossshare</h1>
+            <p>Use your Google account to create streams, sync projects, and upload media.</p>
+            <div class="auth-error" id="authError"></div>
+            <button class="modal-btn modal-btn--primary" type="button" id="googleSignInBtn" style="width:100%;">Continue with Google</button>
+            <div class="auth-status" id="authStatus">Checking session…</div>
+        </div>
+    </div>
+
     <!-- Top bar -->
+    <div class="app-shell is-hidden" id="appShell">
     <header class="topbar">
         <div class="topbar-brand">
-            <img class="topbar-logo" src="logos/crossshare-logo.png" alt="Crossshare">
-            <span class="topbar-name">crossshare</span>
+            <a class="topbar-home" href="app.html" aria-label="Crossshare home">
+                <img class="topbar-logo" src="logos/crossshare-logo.png" alt="Crossshare">
+                <span class="topbar-name">crossshare</span>
+            </a>
         </div>
-        <button class="topbar-search" type="button" aria-label="Search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="7"/>
-                <line x1="16.5" y1="16.5" x2="21" y2="21"/>
-            </svg>
-        </button>
+        <div class="topbar-user">
+            <span class="topbar-user-email" id="userEmailLabel"></span>
+            <button class="topbar-signout" type="button" id="signOutBtn">Sign out</button>
+        </div>
     </header>
+
+    <div class="status-banner" id="statusBanner"></div>
 
     <div class="layout">
 
@@ -489,7 +758,7 @@
             <div class="nav-item">Home</div>
             <div class="sidebar-actions">
                 <button class="pill-btn" type="button" id="newStreamBtn">New Stream</button>
-                <button class="pill-btn" type="button">Connect</button>
+                <button class="pill-btn" type="button" id="connectBtn">Connect</button>
             </div>
         </aside>
 
@@ -500,9 +769,14 @@
                 <div class="filter-group">
                     <span class="filter-label">Filter</span>
                     <div class="filter-input-wrap">
-                        <input class="filter-input" type="text" placeholder="Filter Recent Files" readonly tabindex="-1">
+                        <input class="filter-input" type="text" id="filterInput" placeholder="Filter Recent Files">
                     </div>
                 </div>
+            </div>
+
+            <div class="migrate-banner" id="migrateBanner">
+                <span id="migrateBannerText">Local demo projects found in this browser.</span>
+                <button type="button" id="migrateLocalBtn">Import to cloud</button>
             </div>
 
             <div class="recent-table">
@@ -522,6 +796,7 @@
         </main>
 
     </div>
+    </div>
 
     <!-- New Stream modal -->
     <div class="modal-overlay" id="streamModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -538,6 +813,25 @@
                         <label class="field-label" for="projectName">Project name</label>
                         <input class="field-input" type="text" id="projectName" placeholder="Untitled Stream" autocomplete="off">
                         <p class="field-hint">Name this stream to create it, or authenticate to add a PIN.</p>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">No content image</span>
+                        <div class="project-empty-image-field">
+                            <button class="project-empty-image-preview" type="button" id="emptyImagePreviewBtn" title="Change no content image" aria-label="Change no content image">
+                                <img id="emptyImagePreview" src="i/ncl.png" alt="No content placeholder preview">
+                            </button>
+                            <div class="project-empty-image-upload is-hidden" id="emptyImageUpload">
+                                <p class="field-hint">Upload an image to show when this project has no content loaded.</p>
+                                <div class="project-empty-image-actions">
+                                    <label class="project-empty-image-upload-btn">
+                                        Choose image…
+                                        <input type="file" id="emptyImageInput" accept="image/*">
+                                    </label>
+                                    <button class="project-empty-image-cancel-btn" type="button" id="emptyImageCancelBtn">Cancel</button>
+                                </div>
+                            </div>
+                            <button class="project-empty-image-reset-btn is-hidden" type="button" id="emptyImageResetBtn">Use default image</button>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -569,102 +863,203 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db } from './js/firebase.js';
-        import {
-            collection,
-            doc,
-            getDocs,
-            limit,
-            orderBy,
-            query,
-            serverTimestamp,
-            setDoc
-        } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
-
+    <script src="js/crossshare-config.js"></script>
+    <script type="module" src="js/crossshare-cloud.js"></script>
+    <script>
         (function () {
-            var STORAGE_KEY = 'crossshare_streams';
+            var MEDIA_BLOB_DB = 'crossshare_media_blobs';
+            var DEFAULT_EMPTY_IMAGE = 'i/ncl.png';
+            var Cloud = null;
+            var projectsCache = [];
+            var creating = false;
+
+            var authGate = document.getElementById('authGate');
+            var appShell = document.getElementById('appShell');
+            var authError = document.getElementById('authError');
+            var authStatus = document.getElementById('authStatus');
+            var googleSignInBtn = document.getElementById('googleSignInBtn');
+            var signOutBtn = document.getElementById('signOutBtn');
+            var userEmailLabel = document.getElementById('userEmailLabel');
+            var statusBanner = document.getElementById('statusBanner');
+            var migrateBanner = document.getElementById('migrateBanner');
+            var migrateLocalBtn = document.getElementById('migrateLocalBtn');
+            var filterInput = document.getElementById('filterInput');
+
             var modal = document.getElementById('streamModal');
             var stepName = document.getElementById('stepName');
             var stepPin = document.getElementById('stepPin');
             var modalTitle = document.getElementById('modalTitle');
             var projectName = document.getElementById('projectName');
+            var emptyImagePreviewBtn = document.getElementById('emptyImagePreviewBtn');
+            var emptyImagePreview = document.getElementById('emptyImagePreview');
+            var emptyImageUpload = document.getElementById('emptyImageUpload');
+            var emptyImageInput = document.getElementById('emptyImageInput');
+            var emptyImageCancelBtn = document.getElementById('emptyImageCancelBtn');
+            var emptyImageResetBtn = document.getElementById('emptyImageResetBtn');
             var pinDigits = Array.prototype.slice.call(document.querySelectorAll('.pin-digit'));
             var pinContinue = document.getElementById('pinContinue');
             var authenticateBtn = document.getElementById('authenticateBtn');
+            var createBtn = document.getElementById('createBtn');
             var recentTableBody = document.getElementById('recentTableBody');
+            var pendingEmptyImageBlob = null;
+            var pendingEmptyImageUrl = null;
 
-            function loadStreams() {
-                try {
-                    var raw = localStorage.getItem(STORAGE_KEY);
-                    var list = raw ? JSON.parse(raw) : [];
-                    return Array.isArray(list) ? list : [];
-                } catch (e) {
-                    return [];
+            function waitForCloud(timeoutMs) {
+                timeoutMs = timeoutMs || 15000;
+                if (window.CrossshareCloud) return Promise.resolve(window.CrossshareCloud);
+                return new Promise(function (resolve, reject) {
+                    var start = Date.now();
+                    var timer = setInterval(function () {
+                        if (window.CrossshareCloud) {
+                            clearInterval(timer);
+                            resolve(window.CrossshareCloud);
+                            return;
+                        }
+                        if (Date.now() - start > timeoutMs) {
+                            clearInterval(timer);
+                            reject(new Error('Cloud module failed to load'));
+                        }
+                    }, 30);
+                });
+            }
+
+            function showBanner(message, isError) {
+                if (!message) {
+                    statusBanner.classList.remove('is-visible', 'status-banner--error');
+                    statusBanner.textContent = '';
+                    return;
+                }
+                statusBanner.textContent = message;
+                statusBanner.classList.add('is-visible');
+                statusBanner.classList.toggle('status-banner--error', !!isError);
+            }
+
+            function projectEmptyImageKey(projectId) {
+                return projectId + ':empty:project';
+            }
+
+            function openMediaBlobDb() {
+                return new Promise(function (resolve, reject) {
+                    var req = indexedDB.open(MEDIA_BLOB_DB, 1);
+                    req.onupgradeneeded = function () {
+                        var db = req.result;
+                        if (!db.objectStoreNames.contains('blobs')) db.createObjectStore('blobs');
+                    };
+                    req.onsuccess = function () { resolve(req.result); };
+                    req.onerror = function () { reject(req.error); };
+                });
+            }
+
+            function putProjectEmptyImageBlob(projectId, blob) {
+                return openMediaBlobDb().then(function (db) {
+                    return new Promise(function (resolve, reject) {
+                        var tx = db.transaction('blobs', 'readwrite');
+                        tx.objectStore('blobs').put(blob, projectEmptyImageKey(projectId));
+                        tx.oncomplete = function () { resolve(); };
+                        tx.onerror = function () { reject(tx.error); };
+                    });
+                });
+            }
+
+            function revokePendingEmptyImageUrl() {
+                if (pendingEmptyImageUrl) {
+                    URL.revokeObjectURL(pendingEmptyImageUrl);
+                    pendingEmptyImageUrl = null;
                 }
             }
 
-            function saveStreams(streams) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(streams));
+            function resetEmptyImageState() {
+                revokePendingEmptyImageUrl();
+                pendingEmptyImageBlob = null;
+                emptyImagePreview.src = DEFAULT_EMPTY_IMAGE;
+                emptyImageUpload.classList.add('is-hidden');
+                emptyImagePreviewBtn.classList.remove('is-hidden');
+                emptyImageResetBtn.classList.add('is-hidden');
+            }
+
+            function showEmptyImageUpload() {
+                emptyImageUpload.classList.remove('is-hidden');
+                emptyImagePreviewBtn.classList.add('is-hidden');
+            }
+
+            function hideEmptyImageUpload() {
+                emptyImageUpload.classList.add('is-hidden');
+                emptyImagePreviewBtn.classList.remove('is-hidden');
+            }
+
+            function updateEmptyImageResetVisibility() {
+                emptyImageResetBtn.classList.toggle('is-hidden', !pendingEmptyImageBlob);
             }
 
             function formatTimeAgo(iso) {
                 var then = new Date(iso).getTime();
                 if (isNaN(then)) return '—';
-
                 var seconds = Math.floor((Date.now() - then) / 1000);
                 if (seconds < 60) return 'Just now';
-
                 var minutes = Math.floor(seconds / 60);
                 if (minutes < 60) return minutes === 1 ? '1 minute ago' : minutes + ' minutes ago';
-
                 var hours = Math.floor(minutes / 60);
                 if (hours < 24) return hours === 1 ? '1 hour ago' : hours + ' hours ago';
-
                 var days = Math.floor(hours / 24);
                 if (days < 30) return days === 1 ? '1 day ago' : days + ' days ago';
-
                 var months = Math.floor(days / 30);
                 if (months < 12) return months === 1 ? '1 month ago' : months + ' months ago';
-
                 var years = Math.floor(months / 12);
                 return years === 1 ? '1 year ago' : years + ' years ago';
             }
 
             function formatSize(instance) {
-                var bytes = new Blob([JSON.stringify(instance)]).size;
-                if (bytes < 1024) return bytes + ' B';
-                return Math.max(1, Math.round(bytes / 1024)) + ' KB';
-            }
-
-            async function loadFirestoreStreams() {
-                try {
-                    var q = query(collection(db, 'projects'), orderBy('created', 'desc'), limit(50));
-                    var snap = await getDocs(q);
-                    return snap.docs.map(function (item) {
-                        var data = item.data();
-                        return {
-                            id: item.id,
-                            name: data.name || item.id,
-                            pin: data.pin || null,
-                            created: data.created && data.created.toDate ? data.created.toDate().toISOString() : (data.created || new Date().toISOString()),
-                            managerLink: 'manager.html?proj=' + encodeURIComponent(data.name || item.id)
-                        };
-                    });
-                } catch (e) {
-                    console.warn('Could not load Firestore streams:', e);
-                    return loadStreams();
+                var mediaItems = instance && instance.media && Array.isArray(instance.media.items)
+                    ? instance.media.items : [];
+                var mediaBytes = 0;
+                var uploadCount = 0;
+                mediaItems.forEach(function (item) {
+                    if (!item || (!item.objectKey && item.storage !== 'r2')) return;
+                    mediaBytes += Math.max(0, Number(item.size || item.sizeBytes) || 0);
+                    uploadCount += 1;
+                });
+                if (instance && instance.emptyImageKey) {
+                    mediaBytes += Math.max(0, Number(instance.emptyImageSize) || 0);
+                    uploadCount += 1;
                 }
+                var bytes = mediaBytes || Math.max(0, Number(instance && instance.cloudStorageBytes) || 0);
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+                if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
             }
 
-            async function renderRecentList() {
-                var streams = loadStreams().slice().sort(function (a, b) {
-                    return new Date(b.created).getTime() - new Date(a.created).getTime();
+            function cloudUploadCount(instance) {
+                var items = instance && instance.media && Array.isArray(instance.media.items)
+                    ? instance.media.items : [];
+                var count = items.filter(function (item) {
+                    return item && (item.objectKey || item.storage === 'r2');
+                }).length;
+                if (instance && instance.emptyImageKey) count += 1;
+                return count || Math.max(0, Number(instance && instance.cloudUploadCount) || 0);
+            }
+
+            function managerHref(project) {
+                if (project && project.id) return 'manager.html?id=' + encodeURIComponent(project.id);
+                if (project && project.managerLink) return project.managerLink;
+                return 'manager.html?proj=' + encodeURIComponent(project && project.name ? project.name : '');
+            }
+
+            function renderRecentList() {
+                var filter = (filterInput.value || '').trim().toLowerCase();
+                var streams = projectsCache.slice().filter(function (stream) {
+                    if (!filter) return true;
+                    return String(stream.name || '').toLowerCase().indexOf(filter) !== -1;
                 });
 
-                streams = await loadFirestoreStreams();
-
                 recentTableBody.innerHTML = '';
+                if (!streams.length) {
+                    var empty = document.createElement('div');
+                    empty.className = 'table-empty';
+                    empty.textContent = filter ? 'No projects match this filter.' : 'No cloud projects yet. Create a New Stream to get started.';
+                    recentTableBody.appendChild(empty);
+                    return;
+                }
 
                 streams.forEach(function (stream) {
                     var row = document.createElement('div');
@@ -679,7 +1074,7 @@
 
                     var recentCell = document.createElement('span');
                     recentCell.className = 'table-cell table-cell--muted';
-                    recentCell.textContent = formatTimeAgo(stream.created);
+                    recentCell.textContent = formatTimeAgo(stream.updatedAt || stream.created || stream.createdAt);
 
                     var sizeCell = document.createElement('span');
                     sizeCell.className = 'table-cell table-cell--muted';
@@ -687,7 +1082,9 @@
 
                     var kindCell = document.createElement('span');
                     kindCell.className = 'table-cell table-cell--muted';
-                    kindCell.textContent = stream.pin ? 'Secured Stream' : 'Crossshare Stream';
+                    var count = cloudUploadCount(stream);
+                    kindCell.textContent = (stream.pin ? 'Secured Stream' : 'Crossshare Stream') +
+                        ' · ' + count + ' upload' + (count === 1 ? '' : 's');
 
                     row.appendChild(nameCell);
                     row.appendChild(recentCell);
@@ -695,7 +1092,7 @@
                     row.appendChild(kindCell);
 
                     function openStream() {
-                        window.location.href = stream.managerLink;
+                        window.location.href = managerHref(stream);
                     }
 
                     row.addEventListener('click', openStream);
@@ -710,11 +1107,43 @@
                 });
             }
 
-            function createId() {
-                if (window.crypto && typeof crypto.randomUUID === 'function') {
-                    return crypto.randomUUID();
+            function refreshMigrateBanner() {
+                if (!Cloud) return;
+                var local = Cloud.getLocalProjects();
+                migrateBanner.classList.toggle('is-visible', local.length > 0);
+                document.getElementById('migrateBannerText').textContent =
+                    local.length + ' local demo project' + (local.length === 1 ? '' : 's') + ' found in this browser.';
+            }
+
+            async function refreshProjects() {
+                if (!Cloud) return;
+                recentTableBody.innerHTML = '<div class="table-empty">Loading projects…</div>';
+                try {
+                    projectsCache = await Cloud.listOwnedProjects();
+                    renderRecentList();
+                    refreshMigrateBanner();
+                    showBanner('');
+                } catch (err) {
+                    console.error(err);
+                    recentTableBody.innerHTML = '<div class="table-empty">Could not load projects.</div>';
+                    showBanner((err && err.message) || 'Failed to load projects', true);
                 }
-                return 'stream_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+            }
+
+            function setSignedInUi(user) {
+                if (user) {
+                    authGate.classList.add('is-hidden');
+                    appShell.classList.remove('is-hidden');
+                    userEmailLabel.textContent = user.email || user.displayName || user.uid;
+                    authStatus.textContent = '';
+                    authError.textContent = '';
+                } else {
+                    authGate.classList.remove('is-hidden');
+                    appShell.classList.add('is-hidden');
+                    authStatus.textContent = 'Sign in required to continue.';
+                    userEmailLabel.textContent = '';
+                    projectsCache = [];
+                }
             }
 
             function resolveName() {
@@ -727,22 +1156,27 @@
             }
 
             function updateNameActions() {
-                authenticateBtn.disabled = !hasProjectName();
+                authenticateBtn.disabled = !hasProjectName() || creating;
+                createBtn.disabled = creating;
             }
 
             function openModal() {
+                if (!Cloud || !Cloud.getUser()) return;
                 stepName.classList.add('is-active');
                 stepPin.classList.remove('is-active');
                 modalTitle.textContent = 'New Stream';
                 projectName.value = '';
+                resetEmptyImageState();
                 pinDigits.forEach(function (el) { el.value = ''; });
                 pinContinue.disabled = true;
+                creating = false;
                 updateNameActions();
                 modal.classList.add('is-open');
                 setTimeout(function () { projectName.focus(); }, 50);
             }
 
             function closeModal() {
+                if (creating) return;
                 modal.classList.remove('is-open');
             }
 
@@ -769,117 +1203,172 @@
             }
 
             function updatePinContinue() {
-                pinContinue.disabled = getPin().length !== 4;
+                pinContinue.disabled = getPin().length !== 4 || creating;
             }
 
             async function createStream(withPin) {
+                if (!Cloud || creating) return;
                 var name = resolveName();
                 var pin = withPin ? getPin() : null;
                 if (withPin && (!pin || pin.length !== 4)) return;
 
-                var managerLink = 'manager.html?proj=' + encodeURIComponent(name);
-                var instance = {
-                    id: createId(),
-                    name: name,
-                    pin: pin,
-                    created: new Date().toISOString(),
-                    managerLink: managerLink
-                };
-
-                var streams = loadStreams();
-                streams.push(instance);
-                saveStreams(streams);
+                creating = true;
+                updateNameActions();
+                updatePinContinue();
+                createBtn.textContent = 'Creating…';
+                showBanner('Creating project…');
 
                 try {
-                    await setDoc(doc(db, 'projects', name), {
+                    var project = await Cloud.createProject({
                         name: name,
                         pin: pin,
-                        created: serverTimestamp(),
-                        revealInstances: false
-                    }, { merge: true });
+                        customEmptyImage: !!pendingEmptyImageBlob
+                    });
 
-                    await setDoc(doc(db, 'projects', name, 'views', 'main'), {
-                        name: 'Main View',
-                        isMain: true,
-                        live: false,
-                        activeIndex: 0,
-                        content: [],
-                        created: serverTimestamp(),
-                        updated: serverTimestamp()
-                    }, { merge: true });
-                } catch (e) {
-                    console.error('Could not create Firestore project:', e);
-                    alert('CrossShare could not create this stream in Firebase. Check your Firestore rules and connection.');
-                    return;
+                    if (pendingEmptyImageBlob) {
+                        try {
+                            if (Cloud.workerConfigured()) {
+                                var uploaded = await Cloud.uploadMedia(pendingEmptyImageBlob, {
+                                    projectId: project.id,
+                                    mediaId: 'empty-project',
+                                    kind: 'empty'
+                                });
+                                project.customEmptyImage = true;
+                                project.emptyImageUrl = uploaded.url || null;
+                                project.emptyImageKey = uploaded.objectKey || null;
+                                project.emptyImageSize = uploaded.size || pendingEmptyImageBlob.size || 0;
+                                project.cloudStorageBytes = project.emptyImageSize;
+                                project.cloudUploadCount = 1;
+                                await Cloud.saveProject(project);
+                            } else {
+                                await putProjectEmptyImageBlob(project.id, pendingEmptyImageBlob);
+                            }
+                        } catch (uploadErr) {
+                            console.warn('Empty image upload failed; continuing with project create', uploadErr);
+                            try { await putProjectEmptyImageBlob(project.id, pendingEmptyImageBlob); } catch (_) {}
+                        }
+                    }
+
+                    window.location.href = managerHref(project);
+                } catch (err) {
+                    console.error(err);
+                    creating = false;
+                    createBtn.textContent = 'Create';
+                    updateNameActions();
+                    updatePinContinue();
+                    showBanner((err && err.message) || 'Could not create project', true);
                 }
-
-                console.log('Stream instances:', streams);
-                console.log('Created stream:', instance);
-
-                window.location.href = managerLink;
             }
 
+            emptyImagePreviewBtn.addEventListener('click', showEmptyImageUpload);
+            emptyImageCancelBtn.addEventListener('click', hideEmptyImageUpload);
+            emptyImageResetBtn.addEventListener('click', resetEmptyImageState);
+            emptyImageInput.addEventListener('change', function () {
+                var file = emptyImageInput.files && emptyImageInput.files[0];
+                emptyImageInput.value = '';
+                if (!file || !file.type || file.type.indexOf('image/') !== 0) return;
+                revokePendingEmptyImageUrl();
+                pendingEmptyImageBlob = file;
+                pendingEmptyImageUrl = URL.createObjectURL(file);
+                emptyImagePreview.src = pendingEmptyImageUrl;
+                updateEmptyImageResetVisibility();
+                hideEmptyImageUpload();
+            });
+
             document.getElementById('newStreamBtn').addEventListener('click', openModal);
+            document.getElementById('connectBtn').addEventListener('click', function () {
+                window.location.href = 'v/index.html';
+            });
             document.getElementById('modalClose').addEventListener('click', closeModal);
             document.getElementById('modalCancel').addEventListener('click', closeModal);
-            document.getElementById('createBtn').addEventListener('click', function () {
-                createStream(false);
-            });
+            createBtn.addEventListener('click', function () { createStream(false); });
             document.getElementById('authenticateBtn').addEventListener('click', showPinStep);
             document.getElementById('pinBack').addEventListener('click', showNameStep);
-            document.getElementById('pinContinue').addEventListener('click', function () {
-                createStream(true);
-            });
+            document.getElementById('pinContinue').addEventListener('click', function () { createStream(true); });
 
             modal.addEventListener('click', function (e) {
                 if (e.target === modal) closeModal();
             });
 
             document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && modal.classList.contains('is-open')) {
-                    closeModal();
-                }
+                if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
             });
 
             pinDigits.forEach(function (input, index) {
                 input.addEventListener('input', function () {
                     var val = input.value.replace(/\D/g, '');
                     input.value = val.slice(0, 1);
-                    if (val && index < pinDigits.length - 1) {
-                        pinDigits[index + 1].focus();
-                    }
+                    if (val && index < pinDigits.length - 1) pinDigits[index + 1].focus();
                     updatePinContinue();
                 });
-
                 input.addEventListener('keydown', function (e) {
-                    if (e.key === 'Backspace' && !input.value && index > 0) {
-                        pinDigits[index - 1].focus();
-                    }
-                    if (e.key === 'Enter' && !pinContinue.disabled) {
-                        createStream(true);
-                    }
+                    if (e.key === 'Backspace' && !input.value && index > 0) pinDigits[index - 1].focus();
+                    if (e.key === 'Enter' && !pinContinue.disabled) createStream(true);
                 });
-
                 input.addEventListener('paste', function (e) {
                     e.preventDefault();
                     var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 4);
                     text.split('').forEach(function (ch, i) {
                         if (pinDigits[i]) pinDigits[i].value = ch;
                     });
-                    var focusIndex = Math.min(text.length, pinDigits.length - 1);
-                    pinDigits[focusIndex].focus();
+                    pinDigits[Math.min(text.length, pinDigits.length - 1)].focus();
                     updatePinContinue();
                 });
             });
 
             projectName.addEventListener('input', updateNameActions);
-
             projectName.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') createStream(false);
             });
+            filterInput.addEventListener('input', renderRecentList);
 
-            console.log('Stream instances:', loadStreams());
-            renderRecentList();
+            googleSignInBtn.addEventListener('click', async function () {
+                authError.textContent = '';
+                authStatus.textContent = 'Opening Google sign-in…';
+                googleSignInBtn.disabled = true;
+                try {
+                    await Cloud.signInWithGoogle();
+                } catch (err) {
+                    console.error(err);
+                    authError.textContent = (err && err.message) || 'Sign-in failed';
+                    authStatus.textContent = 'Sign in required to continue.';
+                } finally {
+                    googleSignInBtn.disabled = false;
+                }
+            });
+
+            signOutBtn.addEventListener('click', function () {
+                Cloud.signOut().catch(function (err) {
+                    showBanner((err && err.message) || 'Sign out failed', true);
+                });
+            });
+
+            migrateLocalBtn.addEventListener('click', async function () {
+                migrateLocalBtn.disabled = true;
+                showBanner('Importing local projects…');
+                try {
+                    var result = await Cloud.migrateLocalProjects({ clearLocal: true });
+                    showBanner('Imported ' + result.imported + ' project' + (result.imported === 1 ? '' : 's') + '.');
+                    await refreshProjects();
+                } catch (err) {
+                    console.error(err);
+                    showBanner((err && err.message) || 'Import failed', true);
+                } finally {
+                    migrateLocalBtn.disabled = false;
+                }
+            });
+
+            waitForCloud().then(function (api) {
+                Cloud = api;
+                authStatus.textContent = 'Checking session…';
+                Cloud.onAuthStateChanged(function (user) {
+                    setSignedInUi(user);
+                    if (user) refreshProjects();
+                });
+            }).catch(function (err) {
+                authStatus.textContent = '';
+                authError.textContent = (err && err.message) || 'Failed to load auth';
+            });
         })();
     </script>
 

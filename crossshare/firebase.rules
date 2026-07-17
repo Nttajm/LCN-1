@@ -2,9 +2,192 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if
-          request.time < timestamp.date(2026, 8, 14);
+
+    // ---- Auth helpers ----
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // The founding superadmin — always admin by email token
+    function isSuperAdminEmail() {
+      return signedIn() && request.auth.token.email == 'joelmulonde81@gmail.com';
+    }
+
+    // Any user whose UID is in the xmen_admins collection
+    function isAdmin() {
+      return signedIn() && (
+        isSuperAdminEmail() ||
+        exists(/databases/$(database)/documents/xmen_admins/$(request.auth.uid))
+      );
+    }
+
+    function changedKeysOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    function isCommcalOwnerDoc(cc) {
+      return signedIn() && (
+        cc.ownerId == request.auth.uid
+        || (request.auth.token.email != null
+            && 'ownerEmails' in cc
+            && request.auth.token.email in cc.ownerEmails)
+      );
+    }
+
+    function isCommcalOwner(commcalId) {
+      return isCommcalOwnerDoc(
+        get(/databases/$(database)/documents/commcals/$(commcalId)).data
+      );
+    }
+
+    // ---- XMEN Admin registry ----
+    // Only the superadmin email can write. All admins can read.
+    match /xmen_admins/{uid} {
+      allow read:   if isAdmin();
+      allow create: if isSuperAdminEmail();
+      allow update: if isSuperAdminEmail();
+      allow delete: if isSuperAdminEmail();
+    }
+
+    // ---- XMEN config (auto-boost etc.) ----
+    match /xmen_config/{docId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ---- XMEN Audit log ----
+    // Any admin can read/create. Nobody can edit or delete entries.
+    match /xmen_audit_log/{logId} {
+      allow read:          if isAdmin();
+      allow create:        if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // ---- Collection-group query for events ----
+    // Authorises collectionGroup("events") reads used by the main app
+    // and the admin panel. Writes are governed by per-commcal rules below.
+    match /{path=**}/events/{eventId} {
+      allow read: if true;
+    }
+
+    // ---- User profiles & preferences ----
+    // Users read/write their own doc; admins can read/write any user doc.
+    match /users/{uid} {
+      allow read:  if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if signedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // ---- Official, app-managed data ----
+    // Public read; only admins can write (previously client write was blocked).
+    match /deadlines/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    match /gallery/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    match /meta/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    match /community/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ---- Crossshare projects ----
+    // Owners manage full project docs. Public viewers may read a project when
+    // it has a non-expired projectCode (used by the standalone viewer).
+    function isCrossshareOwner() {
+      return signedIn()
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    function isCrossshareOwnerCreate() {
+      return signedIn()
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    function crossshareCodeValid() {
+      return resource.data.projectCode is string
+        && resource.data.projectCode.size() > 0
+        && (
+          !('projectCodeExpiryMode' in resource.data)
+          || resource.data.projectCodeExpiryMode == 'never'
+          || !('projectCodeExpiresAt' in resource.data)
+          || resource.data.projectCodeExpiresAt == null
+          || resource.data.projectCodeExpiresAt > request.time.toMillis()
+        );
+    }
+
+    function crossshareTempCodeValid() {
+      return resource.data.tempCode is string
+        && resource.data.tempCode.size() == 4
+        && resource.data.tempCodeExpiresAt is int
+        && resource.data.tempCodeExpiresAt > request.time.toMillis();
+    }
+
+    match /crossshare_projects/{projectId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || crossshareCodeValid()
+        || crossshareTempCodeValid();
+
+      allow create: if isCrossshareOwnerCreate()
+        && request.resource.data.id == projectId
+        && request.resource.data.keys().hasAll(['name', 'ownerId', 'created']);
+
+      allow update: if isAdmin()
+        || (
+          isCrossshareOwner()
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.id == projectId
+        );
+
+      allow delete: if isAdmin() || isCrossshareOwner();
+    }
+
+    // ---- Community calendars (commcals) ----
+    match /commcals/{commcalId} {
+      allow read: if true;
+
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+
+      allow update: if signedIn() && (
+        isCommcalOwnerDoc(resource.data)
+        || changedKeysOnly(['subscribers', 'memberIds'])
+        || isAdmin()
+      );
+
+      allow delete: if signedIn() && (
+        isCommcalOwnerDoc(resource.data)
+        || isAdmin()
+      );
+
+      // Events within a commcal
+      match /events/{eventId} {
+        allow read: if true;
+
+        allow create: if signedIn()
+          && request.resource.data.authorId == request.auth.uid;
+
+        allow update: if signedIn() && (
+          resource.data.authorId == request.auth.uid
+          || isCommcalOwner(commcalId)
+          || changedKeysOnly(['likes', 'views', 'attending'])
+          || isAdmin()
+        );
+
+        allow delete: if signedIn() && (
+          resource.data.authorId == request.auth.uid
+          || isCommcalOwner(commcalId)
+          || isAdmin()
+        );
+      }
     }
   }
 }

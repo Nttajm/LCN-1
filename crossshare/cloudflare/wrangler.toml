@@ -1,0 +1,24 @@
+name = "crossshare-upload"
+main = "upload-worker.js"
+compatibility_date = "2025-01-01"
+
+# Create the bucket first:
+#   npx wrangler@latest r2 bucket create crossshare-media
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "crossshare-media"
+
+[vars]
+FIREBASE_PROJECT_ID = "lcn-apps"
+# Public URL base for objects (R2 custom domain or r2.dev public bucket URL)
+PUBLIC_MEDIA_BASE_URL = "https://pub-21d5b946991b464ea5952a5f6933679c.r2.dev"
+# Optional comma-separated browser origins
+# ALLOWED_ORIGINS = "https://your-site.example,http://localhost:5500"
+
+# Deploy:
+#   npx wrangler@latest deploy
+# Then set in the Crossshare pages:
+#   window.CROSSSHARE_CONFIG = {
+#     workerUrl: "https://crossshare-upload.<account>.workers.dev",
+#     publicMediaBaseUrl: "https://YOUR_PUBLIC_MEDIA_HOST"
+#   };
