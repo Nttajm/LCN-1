@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=BBH+Hegarty&family=Eagle+Lake&family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <title>Redeem Points — La Costa Taqueria</title>
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/miscellaneous.css">
+</head>
+<body class="points-page-body">
+    <header class="points-page-header">
+        <a href="index.html" class="points-page-back">← Back</a>
+        <h1 class="points-page-title">La Costa Rewards</h1>
+    </header>
+
+    <main class="points-page">
+        <section class="points-hero" aria-label="Your balance">
+            <div class="points-hero__card">
+                <div class="points-hero__top">
+                    <img src="photos/icons/points.png" alt="" class="points-hero__icon" width="56" height="56">
+                    <div class="points-hero__balance">
+                        <span class="points-hero__label">Your balance</span>
+                        <span class="points-hero__value" id="points-balance">240</span>
+                        <span class="points-hero__unit">points</span>
+                    </div>
+                </div>
+                <div class="points-hero__progress">
+                    <div class="points-hero__progress-labels">
+                        <span id="points-next-label">60 pts to Free Entrée</span>
+                        <span id="points-next-target">300</span>
+                    </div>
+                    <div class="points-hero__track">
+                        <div class="points-hero__fill" id="points-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="points-earn" aria-label="How to earn points">
+            <h2 class="points-section-title">Earn more</h2>
+            <ul class="points-earn__list">
+                <li class="points-earn__item">
+                    <span class="points-earn__pts">+10</span>
+                    <span class="points-earn__desc">per $1 spent in-store</span>
+                </li>
+                <li class="points-earn__item">
+                    <span class="points-earn__pts">+25</span>
+                    <span class="points-earn__desc">birthday visit bonus</span>
+                </li>
+                <li class="points-earn__item">
+                    <span class="points-earn__pts">+50</span>
+                    <span class="points-earn__desc">refer a friend who orders</span>
+                </li>
+            </ul>
+        </section>
+
+        <section class="points-redeem" aria-label="Redeem rewards">
+            <div class="points-redeem__head">
+                <h2 class="points-section-title">Redeem</h2>
+                <p class="points-redeem__hint">Show your code at the counter</p>
+            </div>
+
+            <div class="points-rewards" id="points-rewards">
+                <article class="points-reward" data-cost="50" data-name="Chips &amp; Salsa">
+                    <div class="points-reward__img">
+                        <img src="photos/food/f-1.png" alt="Chips and salsa">
+                    </div>
+                    <div class="points-reward__body">
+                        <h3 class="points-reward__name">Chips &amp; Salsa</h3>
+                        <p class="points-reward__cost"><span>50</span> pts</p>
+                        <button type="button" class="points-reward__btn" data-redeem>Redeem</button>
+                    </div>
+                </article>
+
+                <article class="points-reward" data-cost="80" data-name="Horchata">
+                    <div class="points-reward__img">
+                        <img src="photos/food/png-slides/bowl.png" alt="Horchata">
+                    </div>
+                    <div class="points-reward__body">
+                        <h3 class="points-reward__name">Horchata</h3>
+                        <p class="points-reward__cost"><span>80</span> pts</p>
+                        <button type="button" class="points-reward__btn" data-redeem>Redeem</button>
+                    </div>
+                </article>
+
+                <article class="points-reward" data-cost="120" data-name="Taco al Pastor">
+                    <div class="points-reward__img">
+                        <img src="photos/food/png-slides/burrito.png" alt="Taco al pastor">
+                    </div>
+                    <div class="points-reward__body">
+                        <h3 class="points-reward__name">Taco al Pastor</h3>
+                        <p class="points-reward__cost"><span>120</span> pts</p>
+                        <button type="button" class="points-reward__btn" data-redeem>Redeem</button>
+                    </div>
+                </article>
+
+                <article class="points-reward" data-cost="150" data-name="Quesadilla">
+                    <div class="points-reward__img">
+                        <img src="photos/food/specials/s-1.png" alt="Quesadilla">
+                    </div>
+                    <div class="points-reward__body">
+                        <h3 class="points-reward__name">Quesadilla</h3>
+                        <p class="points-reward__cost"><span>150</span> pts</p>
+                        <button type="button" class="points-reward__btn" data-redeem>Redeem</button>
+                    </div>
+                </article>
+
+                <article class="points-reward" data-cost="200" data-name="Margarita">
+                    <div class="points-reward__img">
+                        <img src="photos/food/png-slides/cocktail.png" alt="Margarita">
+                    </div>
+                    <div class="points-reward__body">
+                        <h3 class="points-reward__name">Margarita</h3>
+                        <p class="points-reward__cost"><span>200</span> pts</p>
+                        <button type="button" class="points-reward__btn" data-redeem>Redeem</button>
+                    </div>
+                </article>
+
+                <article class="points-reward" data-cost="250" data-name="Combo Upgrade">
+                    <div class="points-reward__img">
+                        <img src="photos/food/specials/s-2.png" alt="Combo upgrade">
+                    </div>
+                    <div class="points-reward__body">
+                        <h3 class="points-reward__name">Combo Upgrade</h3>
+                        <p class="points-reward__cost"><span>250</span> pts</p>
+                        <button type="button" class="points-reward__btn" data-redeem>Redeem</button>
+                    </div>
+                </article>
+
+                <article class="points-reward points-reward--featured" data-cost="300" data-name="Free Entrée">
+                    <div class="points-reward__badge">Top reward</div>
+                    <div class="points-reward__img">
+                        <img src="photos/food/specials/s-3.png" alt="Free entrée">
+                    </div>
+                    <div class="points-reward__body">
+                        <h3 class="points-reward__name">Free Entrée</h3>
+                        <p class="points-reward__cost"><span>300</span> pts</p>
+                        <button type="button" class="points-reward__btn" data-redeem>Redeem</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="points-history" aria-label="Recent redemptions" id="points-history" hidden>
+            <h2 class="points-section-title">Recent</h2>
+            <ul class="points-history__list" id="points-history-list"></ul>
+        </section>
+    </main>
+
+    <div class="points-toast" id="points-toast" role="status" aria-live="polite" hidden></div>
+
+    <dialog class="points-modal" id="points-modal">
+        <div class="points-modal__inner">
+            <p class="points-modal__eyebrow">Your reward code</p>
+            <p class="points-modal__code" id="points-modal-code">LC-0000</p>
+            <p class="points-modal__item" id="points-modal-item"></p>
+            <p class="points-modal__note">Show this at the counter within 24 hours.</p>
+            <button type="button" class="points-modal__close" id="points-modal-close">Got it</button>
+        </div>
+    </dialog>
+
+    <script src="points.js" defer></script>
+    <script>
+        document.querySelector('.points-page-back')?.addEventListener('click', () => {
+            sessionStorage.setItem('lacosta-skip-opening', 'true');
+        });
+    </script>
+</body>
+</html>

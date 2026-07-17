@@ -1,0 +1,64 @@
+
+.random-grid-contrast {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.18;
+    overflow: hidden;
+}
+
+.random-grid-contrast .line-vert,
+.random-grid-contrast .line-horiz,
+.random-grid-contrast .line-horz {
+    position: absolute;
+    background-color: var(--emerald);
+}
+
+.random-grid-contrast .line-vert {
+    width: 1px;
+    height: 100%;
+}
+
+.random-grid-contrast .line-horiz,
+.random-grid-contrast .line-horz {
+    height: 1px;
+    width: 100%;
+}
+
+.random-grid-contrast .line-vert.at25 {
+    left: 25%;
+}
+
+.random-grid-contrast .line-vert.at80 {
+    left: 80%;
+}
+
+.random-grid-contrast .line-horiz.at20,
+.random-grid-contrast .line-horz.at20 {
+    top: 20%;
+}
+
+.random-grid-contrast .line-horiz.at30,
+.random-grid-contrast .line-horz.at30 {
+    top: 30%;
+}
+
+.random-grid-contrast .line-horiz.at75,
+.random-grid-contrast .line-horz.at75 {
+    top: 75%;
+}
+
+.random-grid-contrast .line-horiz.at80,
+.random-grid-contrast .line-horz.at80 {
+    top: 80%;
+}
+
+.random-grid-contrast .line-horiz.at90,
+.random-grid-contrast .line-horz.at90 {
+    top: 90%;
+}
+
+

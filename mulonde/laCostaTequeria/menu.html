@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=BBH+Hegarty&family=Eagle+Lake&family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <title>Menú — La Costa Taqueria</title>
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/miscellaneous.css">
+</head>
+<body class="menu-page-body">
+    <header class="menu-page-header">
+        <a href="index.html" class="menu-page-back">← Back</a>
+        <h1 class="menu-page-title">Menú</h1>
+    </header>
+    <main class="menu-page">
+        <img src="photos/menu.jpg" alt="La Costa Taqueria menu" class="menu-page__image">
+    </main>
+    <script>
+        document.querySelector('.menu-page-back')?.addEventListener('click', () => {
+            sessionStorage.setItem('lacosta-skip-opening', 'true');
+        });
+    </script>
+</body>
+</html>
