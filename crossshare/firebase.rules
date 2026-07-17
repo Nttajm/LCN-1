@@ -141,8 +141,7 @@ service cloud.firestore {
       // so expiry is enforced client-side and on subsequent gets.
       allow list: if isAdmin()
         || (signedIn() && resource.data.ownerId == request.auth.uid)
-        || (resource.data.projectCode is string && resource.data.projectCode.size() > 0)
-        || (resource.data.tempCode is string && resource.data.tempCode.size() > 0);
+        || request.query.limit <= 1;
 
       allow create: if isCrossshareOwnerCreate()
         && request.resource.data.id == projectId

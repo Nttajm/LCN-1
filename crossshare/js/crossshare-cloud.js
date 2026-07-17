@@ -15,6 +15,7 @@ import {
     deleteDoc,
     query,
     where,
+    limit as queryLimit,
     orderBy,
     onSnapshot,
     serverTimestamp
@@ -236,26 +237,30 @@ import {
         return projectFromFirestore(snap);
     }
 
+    async function queryFirstProject(field, value) {
+        try {
+            var snap = await getDocs(query(projectsRef(), where(field, '==', value), queryLimit(1)));
+            if (snap.empty) return null;
+            return projectFromFirestore(snap.docs[0]);
+        } catch (err) {
+            console.warn('Project lookup failed', field, err);
+            return null;
+        }
+    }
+
     async function findProjectByCode(code) {
         var needle = String(code || '').trim().toUpperCase();
         if (!needle) return null;
-        var q = query(projectsRef(), where('projectCode', '==', needle));
-        var snap = await getDocs(q);
-        if (snap.empty) {
-            var q2 = query(projectsRef(), where('projectCode', '==', String(code || '').trim()));
-            snap = await getDocs(q2);
+        var byCode = await queryFirstProject('projectCode', needle);
+        if (!byCode) byCode = await queryFirstProject('projectCode', String(code || '').trim());
+        if (byCode) return byCode;
+
+        var byTemp = await queryFirstProject('tempCode', needle);
+        if (byTemp) {
+            if (!byTemp.tempCodeExpiresAt || byTemp.tempCodeExpiresAt <= Date.now()) return null;
+            return byTemp;
         }
-        if (snap.empty) {
-            var tempQuery = query(projectsRef(), where('tempCode', '==', needle));
-            snap = await getDocs(tempQuery);
-            if (!snap.empty) {
-                var tempProject = projectFromFirestore(snap.docs[0]);
-                if (!tempProject.tempCodeExpiresAt || tempProject.tempCodeExpiresAt <= Date.now()) return null;
-                return tempProject;
-            }
-        }
-        if (snap.empty) return null;
-        return projectFromFirestore(snap.docs[0]);
+        return null;
     }
 
     async function findOwnedProjectByName(name) {
@@ -279,16 +284,28 @@ import {
     async function resolveProjectIdentity(identity) {
         identity = identity || {};
         if (identity.projectId) {
-            var byId = await getProject(identity.projectId);
-            if (byId) return byId;
+            try {
+                var byId = await getProject(identity.projectId);
+                if (byId) return byId;
+            } catch (err) {
+                console.warn('Project id lookup failed', err);
+            }
         }
         if (identity.projectCode) {
-            var byCode = await findProjectByCode(identity.projectCode);
-            if (byCode) return byCode;
+            try {
+                var byCode = await findProjectByCode(identity.projectCode);
+                if (byCode) return byCode;
+            } catch (err) {
+                console.warn('Project code lookup failed', err);
+            }
         }
         if (identity.projectName && currentUser) {
-            var byName = await findOwnedProjectByName(identity.projectName);
-            if (byName) return byName;
+            try {
+                var byName = await findOwnedProjectByName(identity.projectName);
+                if (byName) return byName;
+            } catch (err) {
+                console.warn('Project name lookup failed', err);
+            }
         }
         return null;
     }

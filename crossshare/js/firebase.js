@@ -19,6 +19,7 @@ import {
     deleteDoc,
     query,
     where,
+    limit,
     orderBy,
     onSnapshot,
     serverTimestamp
@@ -74,6 +75,7 @@ export {
     deleteDoc,
     query,
     where,
+    limit,
     orderBy,
     onSnapshot,
     serverTimestamp
