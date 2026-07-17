@@ -127,15 +127,22 @@ service cloud.firestore {
     function crossshareTempCodeValid() {
       return resource.data.tempCode is string
         && resource.data.tempCode.size() == 4
-        && resource.data.tempCodeExpiresAt is int
+        && resource.data.tempCodeExpiresAt is number
         && resource.data.tempCodeExpiresAt > request.time.toMillis();
     }
 
     match /crossshare_projects/{projectId} {
-      allow read: if isAdmin()
+      allow get: if isAdmin()
         || (signedIn() && resource.data.ownerId == request.auth.uid)
         || crossshareCodeValid()
         || crossshareTempCodeValid();
+
+      // Queries can only be authorized by fields the query itself constrains,
+      // so expiry is enforced client-side and on subsequent gets.
+      allow list: if isAdmin()
+        || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || (resource.data.projectCode is string && resource.data.projectCode.size() > 0)
+        || (resource.data.tempCode is string && resource.data.tempCode.size() > 0);
 
       allow create: if isCrossshareOwnerCreate()
         && request.resource.data.id == projectId
