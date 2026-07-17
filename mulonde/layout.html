@@ -508,7 +508,7 @@ function renderRouteValue(route){
   if(!route || route.type==='none') return '';
   if(route.type==='link') return `<div class="fg">
     <label class="fg-label">Link URL</label>
-    <input class="fg-input" value="${esc(route.value||'')}" onchange="setRouteValue(this.value)" placeholder="https://... or ../path/page.html">
+    <input class="fg-input" value="${esc(route.value||'')}" onchange="setRouteValue(this.value)" placeholder="https://lcnjoel.com/... or projects/name">
   </div>`;
   let opts='';
   if(route.type==='category') opts = S.cats.map(c=>`<option value="${esc(c)}" ${route.value===c?'selected':''}>${esc(c)}</option>`).join('');
@@ -587,7 +587,7 @@ function renderSlideRouteValue(route,i){
   if(!route || route.type==='none') return '';
   if(route.type==='link') return `<div class="fg">
     <label class="fg-label">Link URL</label>
-    <input class="fg-input" value="${esc(route.value||'')}" onchange="setSlideRouteValue(${i},this.value)" placeholder="https://... or ../path/page.html">
+    <input class="fg-input" value="${esc(route.value||'')}" onchange="setSlideRouteValue(${i},this.value)" placeholder="https://lcnjoel.com/... or projects/name">
   </div>`;
   let opts='';
   if(route.type==='category') opts = S.cats.map(c=>`<option value="${esc(c)}" ${route.value===c?'selected':''}>${esc(c)}</option>`).join('');

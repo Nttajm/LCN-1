@@ -487,10 +487,16 @@ function getDataAttr(name, value) {
   return value ? ` data-${name}="${String(value).replace(/"/g, '&quot;')}"` : '';
 }
 
-function getLcnHref(path) {
+export function getLcnHref(path) {
   if (!path) return '#';
-  if (/^(https?:)?\/\//.test(path) || path.startsWith('/')) return path;
-  return `../${path.replace(/^\.?\//, '')}`;
+  const trimmed = String(path).trim();
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
+  if (/^(https?:)?\/\//.test(trimmed) || trimmed.startsWith('/')) return trimmed;
+  const firstSegment = trimmed.split('/')[0];
+  if (firstSegment.includes('.') && !firstSegment.startsWith('.')) {
+    return `https://${trimmed.replace(/^\.?\//, '')}`;
+  }
+  return `../${trimmed.replace(/^\.?\//, '')}`;
 }
 
 function renderCard(card) {
@@ -1036,7 +1042,7 @@ function openHomeRoute(route, apps) {
     return;
   }
   if (route.type === 'link') {
-    window.location.href = route.value;
+    window.location.href = getLcnHref(route.value);
   }
 }
 

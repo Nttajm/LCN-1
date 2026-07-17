@@ -23,6 +23,20 @@
             <div class="ed-filter">
                 <input type="text" class="ed-filter-input" id="ed-filter" placeholder="Filter docs...">
             </div>
+            <div class="ed-cat-tabs" id="ed-cat-tabs"></div>
+            <div class="ed-sort">
+                <label class="ed-sort-label" for="ed-sort">Sort by</label>
+                <select class="ed-sort-select" id="ed-sort">
+                    <option value="created-desc">Created (newest)</option>
+                    <option value="created-asc">Created (oldest)</option>
+                    <option value="modified-desc">Modified (newest)</option>
+                    <option value="modified-asc">Modified (oldest)</option>
+                    <option value="date-desc">Date (newest)</option>
+                    <option value="date-asc">Date (oldest)</option>
+                    <option value="title-asc">Title (A–Z)</option>
+                    <option value="title-desc">Title (Z–A)</option>
+                </select>
+            </div>
             <div class="ed-doclist" id="ed-doclist"></div>
             <div class="ed-sidebar-bottom">
                 <a href="../index.html">&larr; Home</a>

@@ -1,4 +1,4 @@
-import { openCatView, openAppView } from './render.js';
+import { openCatView, openAppView, getLcnHref } from './render.js';
 import { bindWeatherCard } from './weather-app.js';
 import { bindCalendarCard } from './calendar-app.js';
 
@@ -229,7 +229,7 @@ function openRoute(route, apps) {
     return;
   }
   if (route.type === 'link') {
-    window.location.href = route.value;
+    window.location.href = getLcnHref(route.value);
   }
 }
 
