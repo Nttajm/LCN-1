@@ -853,7 +853,11 @@
 
         function setMediaNode(layer, node, playing) {
             if (!node.el) return;
-            node.el.className = 'cs-render-media cs-fit-' + layer.item.fit;
+            var mediaClassName = 'cs-render-media cs-fit-' + layer.item.fit;
+            if (node.mediaClassName !== mediaClassName) {
+                node.el.className = mediaClassName;
+                node.mediaClassName = mediaClassName;
+            }
             if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
                 var mediaTime = isFinite(layer.mediaTime) ? Math.max(0, layer.mediaTime) : 0;
                 var currentTime = node.el.currentTime || 0;
@@ -927,14 +931,27 @@
                     node = nodes[layer.key] = { wrap: wrap, mediaId: null, el: null, buffering: false };
                 }
 
-                node.wrap.style.zIndex = String(index + 1);
                 var viewZoom = layer.viewZoom || 1;
-                node.wrap.style.left = (50 + (layer.item.x - 50) * viewZoom) + '%';
-                node.wrap.style.top = (50 + (layer.item.y - 50) * viewZoom) + '%';
-                node.wrap.style.width = (layer.item.scaleX * viewZoom) + '%';
-                node.wrap.style.height = (layer.item.scaleY * viewZoom) + '%';
-                node.wrap.style.opacity = String(layer.opacity / 100);
-                node.wrap.style.transform = 'translate(-50%, -50%) rotate(' + layer.item.rotation + 'deg)';
+                var layout = {
+                    zIndex: String(index + 1),
+                    left: (50 + (layer.item.x - 50) * viewZoom) + '%',
+                    top: (50 + (layer.item.y - 50) * viewZoom) + '%',
+                    width: (layer.item.scaleX * viewZoom) + '%',
+                    height: (layer.item.scaleY * viewZoom) + '%',
+                    opacity: String(layer.opacity / 100),
+                    transform: 'translate(-50%, -50%) rotate(' + layer.item.rotation + 'deg)'
+                };
+                var layoutKey = [layout.zIndex, layout.left, layout.top, layout.width, layout.height, layout.opacity, layout.transform].join('|');
+                if (node.layoutKey !== layoutKey) {
+                    node.wrap.style.zIndex = layout.zIndex;
+                    node.wrap.style.left = layout.left;
+                    node.wrap.style.top = layout.top;
+                    node.wrap.style.width = layout.width;
+                    node.wrap.style.height = layout.height;
+                    node.wrap.style.opacity = layout.opacity;
+                    node.wrap.style.transform = layout.transform;
+                    node.layoutKey = layoutKey;
+                }
 
                 if (node.mediaId !== layer.media.id && (!node.retryAt || Date.now() >= node.retryAt)) {
                     var requestedMediaId = layer.media.id;

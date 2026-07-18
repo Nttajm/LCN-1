@@ -49,7 +49,7 @@ export const work = {
         body: [
           { type: 'text', content: 'OverUnderThs is an interactive game that challenges players to predict outcomes based on given scenarios.' },
           { type: 'text', content: 'Players must analyze the information provided and make educated guesses to succeed in the game.' },
-          { type: 'image', src: '../bp/EE/assets/ouths/proof-4.JPG', caption: 'Screenshot of OverUnderThs gameplay' },
+          { type: 'image', src: 'data/work/ou/proof-3.JPG', caption: 'Screenshot of OverUnderThs gameplay' },
           { type: 'text', content: 'The game is designed to be engaging and thought-provoking, encouraging players to think critically and strategically.' },
         ],
       },

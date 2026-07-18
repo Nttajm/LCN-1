@@ -558,7 +558,7 @@
         "label": "Simple",
         "cards": [
           {
-            "title": "La Costa del Sol",
+            "title": "La Costa Tequira",
             "description": "A refined 3–4 page presence. Clean layouts, essential information, timeless design. Perfect for restaurants, portfolios, and local businesses.",
             "gridImages": {
               "mobile": [
@@ -580,19 +580,10 @@
               ],
               "desktop": [
                 {
-                  "src": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
-                  "col": "1/3",
-                  "row": "1/3"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80",
-                  "col": "3/5",
-                  "row": "2/4"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80",
-                  "col": "5/6",
-                  "row": "2/5"
+                  "type": "image",
+                  "src": "",
+                  "col": "1/2",
+                  "row": "1/2"
                 }
               ]
             }

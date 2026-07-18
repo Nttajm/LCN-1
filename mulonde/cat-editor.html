@@ -199,7 +199,53 @@ textarea.fg-input{resize:vertical;min-height:80px}
 .type-btn.active{background:rgba(255,255,255,.1);color:#fff}
 .img-preview{width:100%;height:7.5rem;background:rgba(255,255,255,.04);border-radius:6px;margin-top:.5rem;overflow:hidden;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.18);font-size:.78rem}
 .img-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.img-src-row{display:flex;gap:.5rem;align-items:center}
+.img-src-row .fg-input{flex:1;min-width:0}
 .color-row{display:flex;gap:.5rem;align-items:center}
+
+/* ─── Picture Browser ────────────────────────────────────────────────────────── */
+.pic-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.pic-overlay.hidden{display:none}
+.pic-browser{background:#0e0e0e;border:1px solid rgba(255,255,255,.1);border-radius:10px;width:min(56rem,92vw);height:min(75vh,42rem);min-height:24rem;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .2s cubic-bezier(.05,.65,.4,1) both}
+.pic-header{padding:1.1rem 1.25rem .9rem;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.pic-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.pic-header-top .modal-title{margin:0}
+.pic-controls{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.pic-folders{display:flex;gap:.3rem;flex-wrap:wrap;flex:1;min-width:0}
+.pic-folder-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.28rem .6rem;font-size:.7rem;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit}
+.pic-folder-btn:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.pic-folder-btn.active{background:rgba(56,194,25,.12);border-color:rgba(56,194,25,.35);color:#38c219}
+.pic-search{width:12rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;font-size:.75rem;color:#fff;outline:none;font-family:inherit;flex-shrink:0}
+.pic-search::placeholder{color:rgba(255,255,255,.2)}
+.pic-search:focus{border-color:rgba(255,255,255,.3)}
+.pic-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:1rem 1.25rem;background:#0a0a0a}
+.pic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(7rem,1fr));gap:.75rem}
+.pic-thumb{aspect-ratio:1;border-radius:6px;overflow:hidden;cursor:pointer;position:relative;background:rgba(255,255,255,.04);border:2px solid transparent;transition:border-color .15s,transform .15s}
+.pic-thumb:hover{border-color:rgba(255,255,255,.25);transform:scale(1.02)}
+.pic-thumb.selected{border-color:#38c219;box-shadow:0 0 0 2px rgba(56,194,25,.2)}
+.pic-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pic-thumb-name{position:absolute;bottom:0;left:0;right:0;padding:.5rem .4rem .35rem;background:linear-gradient(to top,rgba(0,0,0,.85),transparent);font-family:monospace;font-size:.55rem;color:rgba(255,255,255,.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transition:opacity .15s}
+.pic-thumb:hover .pic-thumb-name,.pic-thumb.selected .pic-thumb-name{opacity:1}
+.pic-empty{display:none;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:3rem;color:rgba(255,255,255,.3);text-align:center;font-size:.85rem}
+.pic-empty.visible{display:flex}
+.pic-empty-sub{font-size:.75rem;color:rgba(255,255,255,.22)}
+.pic-empty code{background:rgba(255,255,255,.06);padding:.1rem .35rem;border-radius:3px;font-size:.7rem;color:rgba(255,255,255,.45)}
+.pic-footer{padding:.9rem 1.25rem;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:1rem;flex-shrink:0;background:#111}
+.pic-preview{flex:1;min-width:0;display:flex;align-items:center;gap:.75rem}
+.pic-preview img{width:2.5rem;height:2.5rem;object-fit:cover;border-radius:4px;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.pic-preview-info{display:flex;flex-direction:column;gap:.1rem;min-width:0}
+.pic-preview-name{font-size:.8rem;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pic-preview-path{font-family:monospace;font-size:.6rem;color:rgba(255,255,255,.3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pic-preview-placeholder{font-size:.8rem;color:rgba(255,255,255,.28);font-style:italic}
+.pic-actions{display:flex;gap:.5rem;flex-shrink:0}
+@media(max-width:40rem){
+  .pic-browser{width:95vw;height:85vh;max-height:none}
+  .pic-controls{flex-direction:column;align-items:stretch}
+  .pic-search{width:100%}
+  .pic-grid{grid-template-columns:repeat(auto-fill,minmax(5.5rem,1fr));gap:.5rem}
+  .pic-footer{flex-wrap:wrap}
+  .pic-preview{order:-1;flex-basis:100%}
+}
 .color-inp{width:2.5rem;height:2.5rem;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:.15rem;background:transparent;cursor:pointer;flex-shrink:0}
 
 /* ─── Export Panel ───────────────────────────────────────────────────────────── */
@@ -279,6 +325,40 @@ textarea.fg-input{resize:vertical;min-height:80px}
     <pre class="export-code" id="exportCode"></pre>
     <div class="export-hint">
       Save to <code>mulonde/data/views.json</code> — all categories are stored in one file.
+    </div>
+  </div>
+</div>
+
+<!-- ─── Picture Browser ───────────────────────────────────────────────────────── -->
+<div class="pic-overlay hidden" id="picOverlay">
+  <div class="pic-browser">
+    <div class="pic-header">
+      <div class="pic-header-top">
+        <span class="modal-title">Browse Images</span>
+        <button class="modal-x" id="picClose" aria-label="Close">×</button>
+      </div>
+      <div class="pic-controls">
+        <div class="pic-folders" id="picFolders">
+          <button class="pic-folder-btn active" data-folder="">All</button>
+        </div>
+        <input type="text" class="pic-search" id="picSearch" placeholder="Search images...">
+      </div>
+    </div>
+    <div class="pic-body">
+      <div class="pic-grid" id="picGrid"></div>
+      <div class="pic-empty" id="picEmpty">
+        <span>No images found</span>
+        <span class="pic-empty-sub">Run <code>node scripts/scan-mulonde-images.js</code> to scan <code>mulonde/data</code></span>
+      </div>
+    </div>
+    <div class="pic-footer">
+      <div class="pic-preview" id="picPreview">
+        <span class="pic-preview-placeholder">Select an image</span>
+      </div>
+      <div class="pic-actions">
+        <button class="ed-btn" id="picCancel">Cancel</button>
+        <button class="ed-btn accent" id="picInsert" disabled>Use Image</button>
+      </div>
     </div>
   </div>
 </div>
@@ -887,8 +967,11 @@ function openGridItemModal(ti, ci, ii) {
     </div>
     <div id="mImgSec"${isText?' style="display:none"':''}>
       <div class="fg">
-        <label class="fg-label">Image URL</label>
-        <input class="fg-input" id="mSrc" value="${esc(item.src||'')}" placeholder="https://... or data/work/...">
+        <label class="fg-label">Image</label>
+        <div class="img-src-row">
+          <input class="fg-input" id="mSrc" value="${esc(item.src||'')}" placeholder="https://... or data/work/...">
+          <button type="button" class="ed-btn sm" id="mBrowseSrc">Browse</button>
+        </div>
         <div class="img-preview${item.src?'':' empty'}" id="mImgPrev">
           ${item.src?`<img src="${item.src}" alt="">`:'No image'}
         </div>
@@ -982,6 +1065,12 @@ function openGridItemModal(ti, ci, ii) {
       const v = e.target.value;
       prev.innerHTML = v ? `<img src="${v}" alt="">` : 'No image';
       prev.classList.toggle('empty', !v);
+    });
+    document.getElementById('mBrowseSrc')?.addEventListener('click', () => {
+      openPicBrowser(src => {
+        srcInput.value = src;
+        srcInput.dispatchEvent(new Event('input'));
+      });
     });
   }
 
@@ -1137,8 +1226,11 @@ function openHeaderModal() {
   const data = S.cats[S.active];
   openModal('Cover &amp; Color', `
     <div class="fg">
-      <label class="fg-label">Cover Image URL</label>
-      <input class="fg-input" id="mCover" value="${esc(data.cover||'')}" placeholder="icons/games.png or https://...">
+      <label class="fg-label">Cover Image</label>
+      <div class="img-src-row">
+        <input class="fg-input" id="mCover" value="${esc(data.cover||'')}" placeholder="data/work/... or https://...">
+        <button type="button" class="ed-btn sm" id="mBrowseCover">Browse</button>
+      </div>
       <div class="img-preview${data.cover?'':' empty'}" id="mCoverPrev">
         ${data.cover?`<img src="${data.cover}" alt="">`:'No cover'}
       </div>
@@ -1162,6 +1254,13 @@ function openHeaderModal() {
     const prev = document.getElementById('mCoverPrev');
     prev.innerHTML = v ? `<img src="${v}" alt="">` : 'No cover';
     prev.classList.toggle('empty', !v);
+  });
+  document.getElementById('mBrowseCover')?.addEventListener('click', () => {
+    const coverInput = document.getElementById('mCover');
+    openPicBrowser(src => {
+      coverInput.value = src;
+      coverInput.dispatchEvent(new Event('input'));
+    });
   });
   document.getElementById('mColor').addEventListener('input', e => {
     document.getElementById('mColorTxt').value = e.target.value;
@@ -1263,10 +1362,148 @@ document.getElementById('modalOverlay').addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (!document.getElementById('picOverlay').classList.contains('hidden')) {
+      closePicBrowser();
+      return;
+    }
     closeModal();
     document.getElementById('exportOverlay').classList.add('hidden');
   }
   if (e.key === 'Enter' && e.ctrlKey && _pendingConfirm) _pendingConfirm();
+});
+
+// ─── Picture Browser (mulonde/data) ───────────────────────────────────────────
+let picManifest = null;
+let picCurrentFolder = '';
+let picSelectedImage = null;
+let picOnSelect = null;
+
+const picEls = {
+  overlay: document.getElementById('picOverlay'),
+  folders: document.getElementById('picFolders'),
+  search: document.getElementById('picSearch'),
+  grid: document.getElementById('picGrid'),
+  empty: document.getElementById('picEmpty'),
+  preview: document.getElementById('picPreview'),
+  insertBtn: document.getElementById('picInsert'),
+};
+
+function loadPicManifest(force = false) {
+  if (picManifest && !force) return Promise.resolve(picManifest);
+  return fetch('data/manifest.json')
+    .then(res => {
+      if (!res.ok) throw new Error('Manifest not found');
+      return res.json();
+    })
+    .then(data => {
+      picManifest = data;
+      return data;
+    })
+    .catch(() => {
+      picManifest = { folders: [], images: [] };
+      return picManifest;
+    });
+}
+
+function renderPicFolders() {
+  let html = `<button class="pic-folder-btn${picCurrentFolder === '' ? ' active' : ''}" data-folder="">All</button>`;
+  (picManifest.folders || []).forEach(folder => {
+    html += `<button class="pic-folder-btn${picCurrentFolder === folder ? ' active' : ''}" data-folder="${esc(folder)}">${esc(folder)}</button>`;
+  });
+  picEls.folders.innerHTML = html;
+  picEls.folders.querySelectorAll('.pic-folder-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      picCurrentFolder = btn.getAttribute('data-folder') || '';
+      renderPicFolders();
+      renderPicGrid();
+    });
+  });
+}
+
+function filterPicImages() {
+  const images = picManifest.images || [];
+  const query = (picEls.search.value || '').toLowerCase().trim();
+  return images.filter(img => {
+    if (picCurrentFolder && img.folder !== picCurrentFolder) return false;
+    if (!query) return true;
+    return img.name.toLowerCase().includes(query) || img.path.toLowerCase().includes(query);
+  });
+}
+
+function renderPicGrid() {
+  const images = filterPicImages();
+  if (images.length === 0) {
+    picEls.grid.innerHTML = '';
+    picEls.empty.classList.add('visible');
+    return;
+  }
+  picEls.empty.classList.remove('visible');
+  picEls.grid.innerHTML = images.map(img => {
+    const selected = picSelectedImage && picSelectedImage.path === img.path;
+    return `<div class="pic-thumb${selected ? ' selected' : ''}" data-path="${esc(img.path)}">
+      <img src="data/${esc(img.path)}" alt="${esc(img.name)}" loading="lazy">
+      <span class="pic-thumb-name">${esc(img.name)}</span>
+    </div>`;
+  }).join('');
+  picEls.grid.querySelectorAll('.pic-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => selectPicImage(thumb.getAttribute('data-path')));
+    thumb.addEventListener('dblclick', () => {
+      selectPicImage(thumb.getAttribute('data-path'));
+      insertPicImage();
+    });
+  });
+}
+
+function selectPicImage(path) {
+  const img = (picManifest.images || []).find(i => i.path === path);
+  if (!img) return;
+  picSelectedImage = img;
+  picEls.grid.querySelectorAll('.pic-thumb').forEach(thumb => {
+    thumb.classList.toggle('selected', thumb.getAttribute('data-path') === path);
+  });
+  picEls.preview.innerHTML = `<img src="data/${esc(img.path)}" alt="">
+    <div class="pic-preview-info">
+      <span class="pic-preview-name">${esc(img.name)}</span>
+      <span class="pic-preview-path">data/${esc(img.path)}</span>
+    </div>`;
+  picEls.insertBtn.disabled = false;
+}
+
+function resetPicBrowser() {
+  picSelectedImage = null;
+  picCurrentFolder = '';
+  picEls.search.value = '';
+  picEls.insertBtn.disabled = true;
+  picEls.preview.innerHTML = '<span class="pic-preview-placeholder">Select an image</span>';
+}
+
+function openPicBrowser(onSelect) {
+  picOnSelect = onSelect;
+  resetPicBrowser();
+  picEls.overlay.classList.remove('hidden');
+  loadPicManifest().then(() => {
+    renderPicFolders();
+    renderPicGrid();
+  });
+}
+
+function closePicBrowser() {
+  picEls.overlay.classList.add('hidden');
+  picOnSelect = null;
+}
+
+function insertPicImage() {
+  if (!picSelectedImage || !picOnSelect) return;
+  picOnSelect(`data/${picSelectedImage.path}`);
+  closePicBrowser();
+}
+
+picEls.search.addEventListener('input', renderPicGrid);
+picEls.insertBtn.addEventListener('click', insertPicImage);
+document.getElementById('picCancel').addEventListener('click', closePicBrowser);
+document.getElementById('picClose').addEventListener('click', closePicBrowser);
+picEls.overlay.addEventListener('click', e => {
+  if (e.target === picEls.overlay) closePicBrowser();
 });
 
 // ─── Grid Drag & Resize System ────────────────────────────────────────────────

@@ -546,6 +546,8 @@
             var mediaWarmers = {};
             var bufferIndicator = null;
             var lastPrewarmAt = 0;
+            var lastViewerRenderAt = 0;
+            var viewerRenderInvalidated = true;
             var playback = Engine.normalizePlaybackState(null, false);
             var session = null;
             var unsubscribe = null;
@@ -958,8 +960,20 @@
                 return (elapsed / 1000) % duration;
             }
 
-            var MAX_MEDIA_WARMERS = 6;
             var mediaWarmerOrder = [];
+
+            function viewerNetworkProfile() {
+                var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                var effectiveType = connection && connection.effectiveType || '';
+                var saveData = !!(connection && connection.saveData);
+                var lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 2;
+                var constrained = saveData || lowMemory || effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
+                return {
+                    constrained: constrained,
+                    maxWarmers: constrained ? 1 : 3,
+                    renderInterval: constrained ? 100 : 33
+                };
+            }
 
             function releaseWarmer(id) {
                 var warmer = mediaWarmers[id];
@@ -977,7 +991,8 @@
             function trackWarmer(id, isMediaEl) {
                 if (!isMediaEl) return;
                 mediaWarmerOrder.push(id);
-                while (mediaWarmerOrder.length > MAX_MEDIA_WARMERS) {
+                var maxWarmers = viewerNetworkProfile().maxWarmers;
+                while (mediaWarmerOrder.length > maxWarmers) {
                     releaseWarmer(mediaWarmerOrder[0]);
                 }
             }
@@ -1031,12 +1046,21 @@
             function prewarmMediaAround(playhead) {
                 if (!project || !stream || !stream.presentationId || Date.now() - lastPrewarmAt < 1500) return;
                 lastPrewarmAt = Date.now();
+                var profile = viewerNetworkProfile();
                 var seen = {};
-                [0, 2, 6, 12, 20].forEach(function (offset) {
+                // The active element already owns the current media download.
+                // Avoid duplicating it in hidden elements, especially on mobile
+                // where parallel progressive downloads cause frequent stalls.
+                Engine.resolveLayers(project, stream.presentationId, Math.max(0, playhead)).forEach(function (layer) {
+                    if (layer.media) seen[layer.media.id] = true;
+                });
+                (profile.constrained ? [6] : [2, 6, 12, 20]).forEach(function (offset) {
                     Engine.resolveLayers(project, stream.presentationId, Math.max(0, playhead + offset)).forEach(function (layer) {
                         if (!layer.media || seen[layer.media.id]) return;
                         seen[layer.media.id] = true;
-                        warmMedia(layer.media, offset <= 6);
+                        // Slow networks only request next-item metadata. The
+                        // active player keeps all available bandwidth for data.
+                        warmMedia(layer.media, !profile.constrained && offset <= 6);
                     });
                 });
             }
@@ -1083,6 +1107,7 @@
                 playback.startedAt = incoming.startedAt;
                 syncState.requestedPlaying = incoming.playing;
                 syncState.startedAt = incoming.startedAt;
+                viewerRenderInvalidated = true;
 
                 if (incoming.playing && incoming.startedAt) {
                     var duration = presentationDuration();
@@ -1184,6 +1209,7 @@
                 setSyncing(false);
 
                 if (renderer) {
+                    viewerRenderInvalidated = true;
                     renderer.render(project, stream.presentationId, globalPlayhead, true);
                 }
                 if (!running) startRenderLoop();
@@ -1303,6 +1329,8 @@
                     resolveUrl: getMediaObjectUrl,
                     onBufferingChange: setBuffering
                 });
+                viewerRenderInvalidated = true;
+                lastViewerRenderAt = 0;
                 prewarmMediaAround(playback.time);
 
                 if (raf) cancelAnimationFrame(raf);
@@ -1325,7 +1353,13 @@
                     }
 
                     prewarmMediaAround(playback.time);
-                    renderer.render(project, stream.presentationId, playback.time, playback.playing && !syncState.isSyncing);
+                    var renderNow = performance.now();
+                    var profile = viewerNetworkProfile();
+                    if (viewerRenderInvalidated || (playback.playing && renderNow - lastViewerRenderAt >= profile.renderInterval)) {
+                        renderer.render(project, stream.presentationId, playback.time, playback.playing && !syncState.isSyncing);
+                        lastViewerRenderAt = renderNow;
+                        viewerRenderInvalidated = false;
+                    }
                     raf = requestAnimationFrame(tick);
                 }
                 raf = requestAnimationFrame(tick);

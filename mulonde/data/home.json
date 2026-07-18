@@ -110,7 +110,7 @@
         },
         {
           "type": "image",
-          "src": "https://lcnjoel.com/a_home_assets/content/fnat_poster_web.jpg",
+          "src": "data/work/fnat/fnat_poster_web.jpg",
           "title": "FNAT",
           "route": {
             "type": "link",
@@ -403,12 +403,12 @@
       "slides": [
         {
           "type": "image",
-          "src": "../images/mag-ana-2.jpg",
+          "src": "data/work/oquesera/mag-ana-2.jpg",
           "title": "O QUE SERA"
         },
         {
           "type": "image",
-          "src": "../oquesera/data/inde_n/cover_page.jpg",
+          "src": "data/work/oquesera/cover_page.jpg",
           "title": "O QUE SERA",
           "route": {
             "type": "app",
@@ -417,7 +417,7 @@
         },
         {
           "type": "image",
-          "src": "../oquesera/data/inde_n/s-3.jpg",
+          "src": "data/work/oquesera/s-3.jpg",
           "title": "O QUE SERA"
         },
         {
