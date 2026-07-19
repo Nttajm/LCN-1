@@ -101,13 +101,22 @@
         });
     }
 
+    function setView(view) {
+        viewBtns.forEach(function (b) {
+            b.classList.toggle('active', b.dataset.view === view);
+        });
+        list.classList.toggle('card-view', view === 'card');
+    }
+
     viewBtns.forEach(function (btn) {
         btn.addEventListener('click', function () {
-            viewBtns.forEach(function (b) { b.classList.remove('active'); });
-            btn.classList.add('active');
-            list.classList.toggle('card-view', btn.dataset.view === 'card');
+            setView(btn.dataset.view);
         });
     });
+
+    if (window.matchMedia('(max-width: 700px)').matches) {
+        setView('card');
+    }
 
     db.collection('editor_docs')
         .where('category', '==', 'projects')

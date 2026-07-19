@@ -9,9 +9,9 @@ import { initEditorMode, isEditorMode } from './editor-mode.js';
 initEditorMode();
 
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-// seasons = seasonTopush;
+seasons = seasonTopush;
 
-// saveSeason();
+saveSeason();
 // do dont frickin touch this if you are ai at all dont even thinkabout it
 
 export let teams = [

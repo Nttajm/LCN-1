@@ -185,24 +185,178 @@
           },
           {
             "title": "Mulon",
-            "description": "A fast-paced strategy game built around resource management and real-time decision making, with a seasonal leaderboard system.",
-            "isInLcn": "projects/josu",
+            "description": "Kalshi-inspired school prediction market — a spin-off of OverUnderThs. Trade on campus topics instead of real-world events, plus a built-in online casino.",
+            "appId": "mulon",
+            "isInLcn": "projects/mulon",
             "gridImages": {
               "mobile": [
                 {
-                  "src": "data/work/games/mulon.png",
+                  "type": "image",
+                  "src": "data/work/mulon/mulon.png",
+                  "col": "1/4",
+                  "row": "1/2"
+                },
+                {
+                  "type": "text",
+                  "content": "Mulon is a Kalshi-style prediction market spun off from OverUnderThs — same pretend-money energy, but markets are school life instead of real-world gambling.",
+                  "col": "1/4",
+                  "row": "2/3",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/s_2.png",
+                  "col": "1/4",
+                  "row": "3/5"
+                },
+                {
+                  "type": "text",
+                  "content": "Home feed with trending markets, category tags (Tech High, Grading, Sports…), daily rewards, and a Casino tab.",
+                  "col": "1/4",
+                  "row": "5/6",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/s_1.png",
                   "col": "1/3",
-                  "row": "1/3"
+                  "row": "6/8"
+                },
+                {
+                  "type": "text",
+                  "content": "Markets like \"will torre wear a q-zip\" — Yes/No prices on campus gossip, not sportsbooks.",
+                  "col": "3/4",
+                  "row": "6/8",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/s_3.png",
+                  "col": "1/4",
+                  "row": "8/10"
+                },
+                {
+                  "type": "text",
+                  "content": "Built-in online casino — roulette, keno, coin flip, plinko — for when markets aren't enough.",
+                  "col": "1/4",
+                  "row": "10/11",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "center",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/overunderThs.png",
+                  "col": "1/2",
+                  "row": "11/12"
+                },
+                {
+                  "type": "text",
+                  "content": "Born as a spin-off of OverUnderThs.",
+                  "col": "2/4",
+                  "row": "11/12",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
                 }
               ],
               "desktop": [
                 {
-                  "src": "data/work/mulon/mulon.png",
+                  "type": "text",
+                  "content": "Mulon is a Kalshi-inspired prediction market spun off from OverUnderThs — trade Yes/No on school topics instead of real-world events.",
                   "col": "1/3",
                   "row": "1/3",
-                  "type": "image"
+                  "textStyle": "head",
+                  "textSize": "xl",
+                  "textAlign": "left",
+                  "verticalAlign": "top"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/mulon.png",
+                  "col": "3/6",
+                  "row": "1/3"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/s_2.png",
+                  "col": "1/4",
+                  "row": "3/7"
+                },
+                {
+                  "type": "text",
+                  "content": "Full home: trending markets, portfolio balance, daily streak rewards, and category filters for Tech High, Grading, Sports, and more.",
+                  "col": "4/6",
+                  "row": "3/5",
+                  "textStyle": "body",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/s_1.png",
+                  "col": "4/6",
+                  "row": "5/7"
+                },
+                {
+                  "type": "text",
+                  "content": "School markets — \"will torre wear a q-zip,\" mock trial outcomes, grading drama — priced in cents like Kalshi, but all campus.",
+                  "col": "1/3",
+                  "row": "7/9",
+                  "textStyle": "head",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/s_3.png",
+                  "col": "3/6",
+                  "row": "7/11"
+                },
+                {
+                  "type": "text",
+                  "content": "Also shipped an online casino: roulette, keno, coin flip, and plinko — live under the Casino tab.",
+                  "col": "1/3",
+                  "row": "9/11",
+                  "textStyle": "body",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/mulon/overunderThs.png",
+                  "col": "1/3",
+                  "row": "11/13"
+                },
+                {
+                  "type": "text",
+                  "content": "Spin-off of OverUnderThs — same school audience, new Kalshi-shaped product.",
+                  "col": "3/6",
+                  "row": "11/13",
+                  "textStyle": "head",
+                  "textSize": "xl",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 13,
+              "mobile": 12
             }
           },
           {
@@ -290,6 +444,10 @@
                   "row": "2/4"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 4,
+              "mobile": 5
             }
           },
           {
@@ -320,6 +478,10 @@
                   "row": "2/4"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 4,
+              "mobile": 5
             }
           }
         ],
@@ -356,6 +518,10 @@
                   "row": "2/4"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 4,
+              "mobile": 5
             }
           }
         ],
@@ -379,27 +545,129 @@
         "cards": [
           {
             "title": "RFAA",
-            "description": "A sports league management platform tracking matches, league tables, and player statistics across multiple competitions.",
+            "description": "My personal fantasy football universe.",
+            "appId": "rfaa",
+            "goTo": {
+              "name": "RFAA",
+              "link": "rfaa/"
+            },
             "gridImages": {
               "mobile": [
                 {
-                  "src": "data/work/rfaa/main-image.png",
-                  "col": "1/3",
+                  "type": "image",
+                  "src": "data/work/rfaa/f.png",
+                  "col": "1/4",
                   "row": "1/3"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/logo.png",
+                  "col": "1/2",
+                  "row": "3/4"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/main-image.png",
+                  "col": "2/4",
+                  "row": "3/5"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/sf.png",
+                  "col": "1/3",
+                  "row": "5/7"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/r-1.png",
+                  "col": "3/4",
+                  "row": "5/7"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/picao.png",
+                  "col": "1/4",
+                  "row": "7/9"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/pending.png",
+                  "col": "1/3",
+                  "row": "9/11"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/vshatrick.png",
+                  "col": "3/4",
+                  "row": "9/11"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/l1-sentago.png",
+                  "col": "1/4",
+                  "row": "11/13"
                 }
               ],
               "desktop": [
                 {
-                  "src": "data/work/rfaa/main-image.png",
-                  "col": "1/3",
-                  "row": "1/3"
+                  "type": "image",
+                  "src": "data/work/rfaa/f.png",
+                  "col": "1/4",
+                  "row": "1/4"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1543286386-713bdd548da4?w=600&q=80",
-                  "col": "3/6",
+                  "type": "image",
+                  "src": "data/work/rfaa/logo.png",
+                  "col": "4/6",
+                  "row": "1/2"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/main-image.png",
+                  "col": "4/6",
                   "row": "2/4"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/sf.png",
+                  "col": "1/3",
+                  "row": "4/7"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/r-1.png",
+                  "col": "3/5",
+                  "row": "4/6"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/picao.png",
+                  "col": "5/6",
+                  "row": "4/7"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/pending.png",
+                  "col": "3/5",
+                  "row": "6/8"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/vshatrick.png",
+                  "col": "1/3",
+                  "row": "7/9"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/rfaa/l1-sentago.png",
+                  "col": "3/6",
+                  "row": "8/10"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 10,
+              "mobile": 13
             }
           },
           {
@@ -430,6 +698,10 @@
                   "row": "2/4"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 4,
+              "mobile": 5
             }
           }
         ],
@@ -466,6 +738,10 @@
                   "row": "2/4"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 4,
+              "mobile": 5
             }
           }
         ],
@@ -502,6 +778,10 @@
                   "row": "2/4"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 4,
+              "mobile": 5
             }
           },
           {
@@ -537,6 +817,10 @@
                   "row": "2/4"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 4,
+              "mobile": 5
             }
           }
         ],
@@ -551,76 +835,164 @@
     "color": "#E8590C",
     "cover": null,
     "title": "Demos",
-    "description": "Three tiers of web experiences. Each crafted with precision, tailored to different scales and ambitions.",
+    "description": "Demo templates by industry — restaurant, service business, and local shop. Each crafted with precision for real use cases.",
     "tiers": [
       {
-        "id": "simple",
-        "label": "Simple",
+        "id": "restaurant",
+        "label": "Restaurant",
         "cards": [
           {
-            "title": "La Costa Tequira",
-            "description": "A refined 3–4 page presence. Clean layouts, essential information, timeless design. Perfect for restaurants, portfolios, and local businesses.",
+            "title": "La Costa Taqueria",
+            "description": "A modern Mexican grill site with bold food photography, digital menu highlights, and a built-in loyalty system where guests earn and redeem store points.",
+            "appId": "lacosta",
+            "goTo": {
+              "name": "LaCosta",
+              "link": "demos/laCostaTequeria/"
+            },
+            "isInLcn": "demos/laCostaTequeria/",
             "gridImages": {
               "mobile": [
-                {
-                  "src": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-                  "col": "1/3",
-                  "row": "1/2"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80",
-                  "col": "2/3",
-                  "row": "2/4"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80",
-                  "col": "1/2",
-                  "row": "3/4"
-                }
-              ],
-              "desktop": [
                 {
                   "type": "image",
-                  "src": "",
-                  "col": "1/2",
-                  "row": "1/2"
-                }
-              ]
-            }
-          },
-          {
-            "title": "Atelier Noir",
-            "description": "Minimal portfolio for creative professionals. Single-page flow with elegant typography and considered whitespace.",
-            "gridImages": {
-              "mobile": [
-                {
-                  "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
-                  "col": "1/2",
+                  "src": "data/work/lacosta/main-image.png",
+                  "col": "1/4",
                   "row": "1/3"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80",
-                  "col": "2/3",
-                  "row": "2/4"
+                  "type": "text",
+                  "content": "La Costa is a colorful modern Mexican grill experience — fresh plates, loud brand energy, and a site built to feel as alive as the kitchen.",
+                  "col": "1/4",
+                  "row": "3/4",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/lacosta/s-1.png",
+                  "col": "1/3",
+                  "row": "4/6"
+                },
+                {
+                  "type": "text",
+                  "content": "Home navigation for Menú, Order, Galería, and Redeem Points — with live points balance in the header.",
+                  "col": "3/4",
+                  "row": "4/6",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/lacosta/poinst.png",
+                  "col": "2/4",
+                  "row": "6/8"
+                },
+                {
+                  "type": "text",
+                  "content": "Guests collect store points on every visit — earn per dollar, birthday bonuses, and referrals — then redeem at the counter.",
+                  "col": "1/2",
+                  "row": "6/8",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "top"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/lacosta/s-3.png",
+                  "col": "1/4",
+                  "row": "8/10"
+                },
+                {
+                  "type": "text",
+                  "content": "Featured specials like Birria Trio and Steak Quesadilla with one-tap Order Now CTAs.",
+                  "col": "1/4",
+                  "row": "10/11",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "center",
+                  "verticalAlign": "mid"
                 }
               ],
               "desktop": [
                 {
-                  "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
-                  "col": "1/4",
-                  "row": "1/2"
+                  "type": "text",
+                  "content": "Modern Mexican grill website with loyalty points built in — guests browse, order, and redeem rewards from one colorful experience.",
+                  "col": "1/3",
+                  "row": "1/3",
+                  "textStyle": "head",
+                  "textSize": "xl",
+                  "textAlign": "left",
+                  "verticalAlign": "top"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80",
-                  "col": "1/2",
-                  "row": "2/4"
+                  "type": "image",
+                  "src": "data/work/lacosta/main-image.png",
+                  "col": "3/6",
+                  "row": "1/3"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&q=80",
-                  "col": "2/4",
-                  "row": "2/5"
+                  "type": "image",
+                  "src": "data/work/lacosta/s-1.png",
+                  "col": "1/3",
+                  "row": "3/5"
+                },
+                {
+                  "type": "text",
+                  "content": "Desktop home with Menú, Order, Galería, and Redeem Points panels. Points balance stays pinned in the top bar so loyalty is always visible.",
+                  "col": "3/5",
+                  "row": "3/5",
+                  "textStyle": "body",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/lacosta/bar.png",
+                  "col": "1/6",
+                  "row": "5/6"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/lacosta/poinst.png",
+                  "col": "1/3",
+                  "row": "6/10"
+                },
+                {
+                  "type": "text",
+                  "content": "Store points system: +10 per $1 in-store, birthday bonuses, and referral rewards. Guests track balance and redeem codes at the counter.",
+                  "col": "3/6",
+                  "row": "6/8",
+                  "textStyle": "head",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/lacosta/s-3.png",
+                  "col": "3/6",
+                  "row": "8/11"
+                },
+                {
+                  "type": "text",
+                  "content": "Menu highlights section — seasonal specials with Order Now actions for PC and mobile.",
+                  "col": "1/3",
+                  "row": "10/11",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "left",
+                  "verticalAlign": "bot"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 10,
+              "mobile": 10
             }
           }
         ],
@@ -631,165 +1003,355 @@
         }
       },
       {
-        "id": "interactive",
-        "label": "Interactive",
+        "id": "pressure-washing",
+        "label": "Pressure Washing",
         "cards": [
           {
-            "title": "Kinetic Studio",
-            "description": "Motion-driven portfolio with scroll animations, page transitions, and interactive galleries. For brands that demand attention.",
+            "title": "JM's Pressure Washing",
+            "description": "A clean commercial pressure-washing company site with before/after proof, service pages, and a multi-step free quote funnel for residential and commercial jobs.",
+            "appId": "jmpw",
+            "goTo": {
+              "name": "JMPW",
+              "link": "demos/jmspw/"
+            },
+            "isInLcn": "demos/jmspw/",
             "gridImages": {
               "mobile": [
                 {
-                  "src": "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80",
-                  "col": "1/3",
-                  "row": "1/2"
+                  "type": "image",
+                  "src": "data/work/jmpw/s-2.png",
+                  "col": "1/4",
+                  "row": "1/3"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80",
-                  "col": "2/3",
-                  "row": "2/3"
+                  "type": "text",
+                  "content": "JM's Pressure Washing is a Bay Area demo site built for a real service business — commercial pages, proof of results, and a free quote flow that converts.",
+                  "col": "1/4",
+                  "row": "3/4",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-1.png",
+                  "col": "1/4",
+                  "row": "4/6"
+                },
+                {
+                  "type": "text",
+                  "content": "Interactive before/after slider — drag to see dirty brick driveways turn clean. Proof sells the service.",
+                  "col": "1/4",
+                  "row": "6/7",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-5.png",
+                  "col": "1/3",
+                  "row": "7/9"
+                },
+                {
+                  "type": "text",
+                  "content": "Free quote funnel starts with property type — residential, commercial, HOA, or fleet.",
+                  "col": "3/4",
+                  "row": "7/9",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-4.png",
+                  "col": "1/4",
+                  "row": "9/11"
+                },
+                {
+                  "type": "text",
+                  "content": "Step 2: pick services (driveway, roof, storefront…) and property size, then submit for an estimate.",
+                  "col": "1/4",
+                  "row": "11/12",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-3.png",
+                  "col": "1/4",
+                  "row": "12/13"
                 }
               ],
               "desktop": [
                 {
-                  "src": "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80",
-                  "col": "3/5",
-                  "row": "1/3"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80",
-                  "col": "5/6",
-                  "row": "1/2"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80",
+                  "type": "text",
+                  "content": "Pressure washing company website — commercial services, before/after proof, and a multi-step free quote funnel for Bay Area jobs.",
                   "col": "1/3",
-                  "row": "2/4"
+                  "row": "1/3",
+                  "textStyle": "head",
+                  "textSize": "xl",
+                  "textAlign": "left",
+                  "verticalAlign": "top"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-2.png",
+                  "col": "3/6",
+                  "row": "1/4"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-1.png",
+                  "col": "1/4",
+                  "row": "4/6"
+                },
+                {
+                  "type": "text",
+                  "content": "Before/after comparison slider shows the JM's Difference side by side — mossy brick vs. restored driveway.",
+                  "col": "4/6",
+                  "row": "4/6",
+                  "textStyle": "body",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-5.png",
+                  "col": "1/3",
+                  "row": "6/9"
+                },
+                {
+                  "type": "text",
+                  "content": "Free Quote flow: property type → services & size → contact info. Built to capture residential and commercial leads.",
+                  "col": "3/6",
+                  "row": "6/8",
+                  "textStyle": "head",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-4.png",
+                  "col": "3/6",
+                  "row": "8/11"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/jmpw/s-3.png",
+                  "col": "1/3",
+                  "row": "9/11"
+                },
+                {
+                  "type": "text",
+                  "content": "Footer with services, contact CTAs, and Bay Area service area — ready for calls, texts, and quotes.",
+                  "col": "1/6",
+                  "row": "11/12",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
                 }
               ]
-            }
-          },
-          {
-            "title": "Meridian Commerce",
-            "description": "E-commerce foundation with cart functionality, product filtering, and checkout flow. Stripe-ready, conversion-optimized.",
-            "gridImages": {
-              "mobile": [
-                {
-                  "src": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80",
-                  "col": "1/2",
-                  "row": "1/3"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80",
-                  "col": "2/3",
-                  "row": "2/4"
-                }
-              ],
-              "desktop": [
-                {
-                  "src": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80",
-                  "col": "1/2",
-                  "row": "1/3"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80",
-                  "col": "5/6",
-                  "row": "1/3"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80",
-                  "col": "2/4",
-                  "row": "2/4"
-                }
-              ]
+            },
+            "gridRows": {
+              "desktop": 12,
+              "mobile": 13
             }
           }
         ],
         "infoBlock": {
-          "Price": "$300–500",
-          "Pages": "5–10",
-          "Turnaround": "1–2 weeks"
+          "Price": "$100–150",
+          "Pages": "1–4",
+          "Turnaround": "3–4 days"
         }
       },
       {
-        "id": "app",
-        "label": "App",
+        "id": "barber-shop",
+        "label": "Barber Shop",
         "cards": [
           {
-            "title": "Nexus Dashboard",
-            "description": "Full-featured web application with authentication, real-time data, and complex state management. SaaS-ready architecture.",
+            "title": "Legacy Styles",
+            "description": "A Santa Rosa barbershop demo site — dark shop atmosphere, service menu, cut gallery with lightbox, and hours/location for walk-ins and bookings.",
+            "appId": "legacystyles",
+            "goTo": {
+              "name": "Legacy Styles",
+              "link": "demos/legacystyles/"
+            },
+            "isInLcn": "demos/legacystyles/",
             "gridImages": {
               "mobile": [
                 {
-                  "src": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
-                  "col": "1/3",
-                  "row": "1/2"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80",
-                  "col": "1/2",
-                  "row": "2/4"
-                }
-              ],
-              "desktop": [
-                {
-                  "src": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
+                  "type": "image",
+                  "src": "data/work/legacystyles/hero.png",
                   "col": "1/4",
-                  "row": "1/2"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80",
-                  "col": "1/2",
-                  "row": "2/5"
-                },
-                {
-                  "src": "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80",
-                  "col": "2/4",
-                  "row": "3/5"
-                }
-              ]
-            }
-          },
-          {
-            "title": "Pulse Analytics",
-            "description": "Data visualization platform with charts, reports, and exportable insights. Built for teams that need clarity from complexity.",
-            "gridImages": {
-              "mobile": [
-                {
-                  "src": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80",
-                  "col": "2/3",
                   "row": "1/3"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80",
-                  "col": "1/2",
-                  "row": "2/4"
+                  "type": "text",
+                  "content": "Legacy Styles is a demo website for a real Santa Rosa barbershop — clean cuts, good vibes, right by Tipsy Taco and Civilization Brewing.",
+                  "col": "1/4",
+                  "row": "3/4",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/legacystyles/menu.png",
+                  "col": "1/3",
+                  "row": "4/6"
+                },
+                {
+                  "type": "text",
+                  "content": "Full service menu — fades, drop fades, tapers, hot towel shaves, and more.",
+                  "col": "3/4",
+                  "row": "4/6",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/legacystyles/gallery.png",
+                  "col": "1/4",
+                  "row": "6/8"
+                },
+                {
+                  "type": "text",
+                  "content": "Gallery of real cuts with a lightbox to view work up close.",
+                  "col": "1/4",
+                  "row": "8/9",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/legacystyles/gallery-view.png",
+                  "col": "1/3",
+                  "row": "9/11"
+                },
+                {
+                  "type": "text",
+                  "content": "Lightbox view — swipe through finished fades and line-ups.",
+                  "col": "3/4",
+                  "row": "9/11",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/legacystyles/hours.png",
+                  "col": "1/4",
+                  "row": "11/13"
+                },
+                {
+                  "type": "text",
+                  "content": "Hours & location at 490 Mendocino Ave — call to book or walk in.",
+                  "col": "1/4",
+                  "row": "13/14",
+                  "textStyle": "body",
+                  "textSize": "sm",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
                 }
               ],
               "desktop": [
                 {
-                  "src": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
+                  "type": "text",
+                  "content": "Santa Rosa barbershop demo — dark shop energy, service menu, cut gallery, and hours built for walk-ins and call-to-book.",
                   "col": "1/3",
-                  "row": "1/3"
+                  "row": "1/3",
+                  "textStyle": "head",
+                  "textSize": "xl",
+                  "textAlign": "left",
+                  "verticalAlign": "top"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80",
-                  "col": "3/4",
-                  "row": "2/4"
+                  "type": "image",
+                  "src": "data/work/legacystyles/hero.png",
+                  "col": "3/6",
+                  "row": "1/4"
                 },
                 {
-                  "src": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80",
-                  "col": "4/6",
-                  "row": "3/5"
+                  "type": "image",
+                  "src": "data/work/legacystyles/menu.png",
+                  "col": "1/3",
+                  "row": "4/7"
+                },
+                {
+                  "type": "text",
+                  "content": "The Full Menu — fades, drop fades, tapers, and hot towel shaves with short descriptions that sell the cut.",
+                  "col": "3/6",
+                  "row": "4/6",
+                  "textStyle": "body",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/legacystyles/gallery.png",
+                  "col": "3/6",
+                  "row": "6/9"
+                },
+                {
+                  "type": "text",
+                  "content": "Gallery section with real shop work and a View All lightbox for finished fades and designs.",
+                  "col": "1/3",
+                  "row": "7/9",
+                  "textStyle": "head",
+                  "textSize": "lg",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/legacystyles/gallery-view.png",
+                  "col": "1/3",
+                  "row": "9/12"
+                },
+                {
+                  "type": "image",
+                  "src": "data/work/legacystyles/hours.png",
+                  "col": "3/6",
+                  "row": "9/12"
+                },
+                {
+                  "type": "text",
+                  "content": "Hours and location near Tipsy Taco & Civilization Brewing — phone CTA for bookings in Santa Rosa.",
+                  "col": "1/6",
+                  "row": "12/13",
+                  "textStyle": "body",
+                  "textSize": "md",
+                  "textAlign": "left",
+                  "verticalAlign": "mid"
                 }
               ]
+            },
+            "gridRows": {
+              "desktop": 13,
+              "mobile": 14
             }
           }
         ],
         "infoBlock": {
-          "Price": "$800–1500",
-          "Screens": "10+",
-          "Turnaround": "3–6 weeks"
+          "Price": "$100–150",
+          "Pages": "1–4",
+          "Turnaround": "3–4 days"
         }
       }
     ]
