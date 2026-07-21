@@ -59,6 +59,56 @@
             display: block;
         }
 
+        .cs-render-color {
+            border: 0;
+        }
+
+        .cs-render-timer {
+            border: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .cs-render-timer-label {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-weight: 700;
+            font-size: clamp(20px, 12vmin, 120px);
+            line-height: 1;
+            letter-spacing: 0.04em;
+            user-select: none;
+        }
+
+        .cs-render-embed-wrap {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+        }
+
+        .cs-render-embed-wrap > .cs-render-embed {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 132%;
+            height: 132%;
+            max-width: none;
+            transform: translate(-50%, -50%);
+            border: 0;
+            pointer-events: none;
+            background: #000;
+        }
+
+        .cs-render-embed {
+            border: 0;
+            pointer-events: none;
+            background: #000;
+        }
+
         .cs-fit-contain { object-fit: contain; }
         .cs-fit-cover { object-fit: cover; }
         .cs-fit-stretch { object-fit: fill; }
@@ -999,6 +1049,7 @@
 
             function warmMedia(media, nearTerm) {
                 if (!media) return;
+                if (media.kind === 'color' || media.kind === 'embed' || media.kind === 'timer') return;
                 var existing = mediaWarmers[media.id];
                 if (existing) {
                     // Upgrade a metadata-only video warmer to real preloading
