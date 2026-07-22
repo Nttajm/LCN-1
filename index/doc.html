@@ -20,11 +20,11 @@
         </div>
         <div class="doc-error" id="doc-error" style="display:none;">
             <span class="doc-error-text">Document not found.</span>
-            <a href="../index.html" class="doc-back">&larr; Back to home</a>
+            <a href="../index.html" class="doc-back" data-back>&larr; Back to home</a>
         </div>
         <article class="doc-article" id="doc-article" style="display:none;">
             <header class="doc-header">
-                <a href="../index.html" class="doc-back">&larr; Back</a>
+                <a href="../index.html" class="doc-back" data-back>&larr; Back</a>
                 <div class="doc-meta">
                     <span class="doc-cat" id="doc-cat"></span>
                     <span class="doc-subcat" id="doc-subcat"></span>
@@ -66,6 +66,16 @@
         var loadingEl = document.getElementById('doc-loading');
         var errorEl = document.getElementById('doc-error');
         var articleEl = document.getElementById('doc-article');
+
+        document.querySelectorAll('[data-back]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                var ref = document.referrer;
+                if (ref && ref.indexOf(window.location.origin) === 0) {
+                    e.preventDefault();
+                    window.history.back();
+                }
+            });
+        });
 
         if (!docId) {
             loadingEl.style.display = 'none';

@@ -100,8 +100,9 @@ service cloud.firestore {
     }
 
     // ---- Crossshare projects ----
-    // Owners manage full project docs. Public viewers may read a project when
-    // it has a non-expired projectCode (used by the standalone viewer).
+    // Owners manage full project docs. Members (by email) can read/edit content.
+    // Public viewers may read a project when it has a non-expired projectCode
+    // (used by the standalone viewer).
     function isCrossshareOwner() {
       return signedIn()
         && resource.data.ownerId == request.auth.uid;
@@ -110,6 +111,20 @@ service cloud.firestore {
     function isCrossshareOwnerCreate() {
       return signedIn()
         && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    function crossshareAuthEmail() {
+      return signedIn() && request.auth.token.email is string
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function isCrossshareMember() {
+      return signedIn()
+        && request.auth.token.email is string
+        && 'memberEmails' in resource.data
+        && resource.data.memberEmails is list
+        && crossshareAuthEmail() in resource.data.memberEmails;
     }
 
     function crossshareCodeValid() {
@@ -131,9 +146,30 @@ service cloud.firestore {
         && resource.data.tempCodeExpiresAt > request.time.toMillis();
     }
 
+    function crossshareOwnerFieldsUnchanged() {
+      return request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.ownerEmail == resource.data.ownerEmail;
+    }
+
+    function crossshareMembersUnchanged() {
+      return (
+        (
+          !('members' in resource.data) && !('members' in request.resource.data)
+        )
+        || request.resource.data.members == resource.data.members
+      )
+      && (
+        (
+          !('memberEmails' in resource.data) && !('memberEmails' in request.resource.data)
+        )
+        || request.resource.data.memberEmails == resource.data.memberEmails
+      );
+    }
+
     match /crossshare_projects/{projectId} {
       allow get: if isAdmin()
         || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || isCrossshareMember()
         || crossshareCodeValid()
         || crossshareTempCodeValid();
 
@@ -141,6 +177,7 @@ service cloud.firestore {
       // so expiry is enforced client-side and on subsequent gets.
       allow list: if isAdmin()
         || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || isCrossshareMember()
         || request.query.limit <= 1;
 
       allow create: if isCrossshareOwnerCreate()
@@ -151,6 +188,12 @@ service cloud.firestore {
         || (
           isCrossshareOwner()
           && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.id == projectId
+        )
+        || (
+          isCrossshareMember()
+          && crossshareOwnerFieldsUnchanged()
+          && crossshareMembersUnchanged()
           && request.resource.data.id == projectId
         );
 

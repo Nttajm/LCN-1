@@ -69,7 +69,7 @@ There is no `package.json` and no `node_modules`. Wrangler is fetched on demand 
 
 - Browser sends `Authorization: Bearer <Firebase ID token>`
 - Worker verifies the token against Firebase JWKS for project `lcn-apps`
-- Worker fetches only the `ownerId` field of the Firestore project (field mask) and verifies it before upload; positive checks are cached for 5 minutes per worker instance
+- Worker fetches only `ownerId` / `memberEmails` from the Firestore project (field mask) and verifies owner or member access before upload; positive checks are cached for 5 minutes per worker instance
 - Objects are stored under `users/{uid}/projects/{projectId}/...`
 - Deletes are allowed only for the caller's own key prefix
 

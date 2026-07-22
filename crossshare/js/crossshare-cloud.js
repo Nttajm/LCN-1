@@ -86,9 +86,126 @@ import {
         return out;
     }
 
+    function normalizeEmail(email) {
+        return String(email || '').trim().toLowerCase();
+    }
+
+    function isValidEmail(email) {
+        var value = normalizeEmail(email);
+        return !!value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function syncMemberEmails(project) {
+        if (!project) return project;
+        var emails = [];
+        var seen = Object.create(null);
+        var members = Array.isArray(project.members) ? project.members : [];
+        members.forEach(function (member) {
+            var email = normalizeEmail(member && member.email);
+            if (!email || seen[email]) return;
+            seen[email] = true;
+            emails.push(email);
+        });
+        project.memberEmails = emails;
+        return project;
+    }
+
+    function ensureProjectMembers(project) {
+        if (!project) return project;
+        if (!Array.isArray(project.members)) project.members = [];
+        project.members = project.members
+            .map(function (member) {
+                if (!member || typeof member !== 'object') return null;
+                var email = normalizeEmail(member.email);
+                if (!email) return null;
+                return {
+                    email: email,
+                    role: member.role === 'viewer' ? 'viewer' : 'editor',
+                    addedAt: member.addedAt || nowIso(),
+                    addedBy: member.addedBy || null
+                };
+            })
+            .filter(Boolean);
+        syncMemberEmails(project);
+        return project;
+    }
+
+    function isProjectOwner(project, user) {
+        if (!project || !user) return false;
+        if (project.ownerId && project.ownerId === user.uid) return true;
+        var ownerEmail = normalizeEmail(project.ownerEmail);
+        var userEmail = normalizeEmail(user.email);
+        return !!(ownerEmail && userEmail && ownerEmail === userEmail);
+    }
+
+    function isProjectMember(project, user) {
+        if (!project || !user) return false;
+        var email = normalizeEmail(user.email);
+        if (!email) return false;
+        ensureProjectMembers(project);
+        var list = project.memberEmails || [];
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] === email) return true;
+        }
+        return false;
+    }
+
+    function canAccessProject(project, user) {
+        return isProjectOwner(project, user) || isProjectMember(project, user);
+    }
+
+    function addProjectMember(project, email, options) {
+        options = options || {};
+        ensureProjectMembers(project);
+        var normalized = normalizeEmail(email);
+        if (!isValidEmail(normalized)) {
+            var invalid = new Error('Enter a valid email address');
+            invalid.code = 'invalid-email';
+            throw invalid;
+        }
+        var ownerEmail = normalizeEmail(project.ownerEmail);
+        if (ownerEmail && ownerEmail === normalized) {
+            var ownerErr = new Error('The owner is already on this project');
+            ownerErr.code = 'already-owner';
+            throw ownerErr;
+        }
+        for (var i = 0; i < project.members.length; i++) {
+            if (project.members[i].email === normalized) {
+                var dup = new Error('That account is already on this project');
+                dup.code = 'already-member';
+                throw dup;
+            }
+        }
+        project.members.push({
+            email: normalized,
+            role: options.role === 'viewer' ? 'viewer' : 'editor',
+            addedAt: nowIso(),
+            addedBy: options.addedBy || null
+        });
+        syncMemberEmails(project);
+        return project;
+    }
+
+    function removeProjectMember(project, email) {
+        ensureProjectMembers(project);
+        var normalized = normalizeEmail(email);
+        var ownerEmail = normalizeEmail(project.ownerEmail);
+        if (ownerEmail && ownerEmail === normalized) {
+            var ownerErr = new Error('The project owner cannot be removed');
+            ownerErr.code = 'cannot-remove-owner';
+            throw ownerErr;
+        }
+        project.members = project.members.filter(function (member) {
+            return member.email !== normalized;
+        });
+        syncMemberEmails(project);
+        return project;
+    }
+
     function projectToFirestore(project) {
         var copy = stripUndefined(JSON.parse(JSON.stringify(project || {})));
         delete copy._localOnly;
+        ensureProjectMembers(copy);
         copy.updatedAt = nowIso();
         return copy;
     }
@@ -97,6 +214,7 @@ import {
         if (!snapshot || !snapshot.exists()) return null;
         var data = snapshot.data() || {};
         data.id = data.id || snapshot.id;
+        ensureProjectMembers(data);
         return data;
     }
 
@@ -170,7 +288,7 @@ import {
         var id = options.id || createId();
         var name = options.name || 'Untitled Stream';
         var user = options.user || currentUser;
-        return {
+        var project = {
             id: id,
             name: name,
             pin: options.pin || null,
@@ -178,7 +296,9 @@ import {
             createdAt: options.createdAt || nowIso(),
             updatedAt: nowIso(),
             ownerId: user ? user.uid : null,
-            ownerEmail: user ? (user.email || null) : null,
+            ownerEmail: user ? normalizeEmail(user.email) || null : null,
+            members: Array.isArray(options.members) ? options.members.slice() : [],
+            memberEmails: Array.isArray(options.memberEmails) ? options.memberEmails.slice() : [],
             managerLink: 'manager.html?id=' + encodeURIComponent(id),
             customEmptyImage: !!options.customEmptyImage,
             emptyImageUrl: options.emptyImageUrl || null,
@@ -213,6 +333,7 @@ import {
                 ui: { view: 'list', scale: 0.45, currentFolderId: null, filter: '' }
             }
         };
+        return ensureProjectMembers(project);
     }
 
     function notifyAuth() {
@@ -306,6 +427,55 @@ import {
             });
             return list;
         }
+    }
+
+    async function listMemberProjects() {
+        var user = await requireUser();
+        var email = normalizeEmail(user.email);
+        if (!email) return [];
+        function sortByUpdated(list) {
+            list.sort(function (a, b) {
+                return String(b.updatedAt || b.created || '').localeCompare(String(a.updatedAt || a.created || ''));
+            });
+            return list;
+        }
+        try {
+            var q = query(
+                projectsRef(),
+                where('memberEmails', 'array-contains', email),
+                orderBy('updatedAt', 'desc')
+            );
+            var snap = await getDocs(q);
+            return snap.docs.map(projectFromFirestore).filter(Boolean).map(cacheProject);
+        } catch (err) {
+            console.warn('Member projects ordered query failed; falling back', err);
+            try {
+                var q2 = query(projectsRef(), where('memberEmails', 'array-contains', email));
+                var snap2 = await getDocs(q2);
+                return sortByUpdated(snap2.docs.map(projectFromFirestore).filter(Boolean).map(cacheProject));
+            } catch (err2) {
+                console.warn('Member projects query failed', err2);
+                return [];
+            }
+        }
+    }
+
+    async function listAccessibleProjects() {
+        var owned = await listOwnedProjects();
+        var shared = await listMemberProjects();
+        var byId = Object.create(null);
+        var list = [];
+        function pushUnique(project) {
+            if (!project || !project.id || byId[project.id]) return;
+            byId[project.id] = true;
+            list.push(project);
+        }
+        owned.forEach(pushUnique);
+        shared.forEach(pushUnique);
+        list.sort(function (a, b) {
+            return String(b.updatedAt || b.created || '').localeCompare(String(a.updatedAt || a.created || ''));
+        });
+        return list;
     }
 
     async function getProject(projectId, options) {
@@ -404,12 +574,36 @@ import {
         var user = await requireUser();
         if (!project || !project.id) throw new Error('Project id required');
         if (!project.ownerId) project.ownerId = user.uid;
-        if (!project.ownerEmail) project.ownerEmail = user.email || null;
-        if (project.ownerId !== user.uid) {
-            var err = new Error('Not project owner');
+        if (!project.ownerEmail) project.ownerEmail = normalizeEmail(user.email) || null;
+        else project.ownerEmail = normalizeEmail(project.ownerEmail) || project.ownerEmail;
+
+        ensureProjectMembers(project);
+
+        var owner = isProjectOwner(project, user);
+        var member = isProjectMember(project, user);
+        if (!owner && !member) {
+            var err = new Error('Not project owner or member');
             err.code = 'permission-denied';
             throw err;
         }
+
+        // Members may edit project content, but cannot change ownership or accounts.
+        if (!owner) {
+            var existing = await getProject(project.id, { preferCache: false });
+            if (!existing || !canAccessProject(existing, user)) {
+                var denied = new Error('Not project owner or member');
+                denied.code = 'permission-denied';
+                throw denied;
+            }
+            project.ownerId = existing.ownerId;
+            project.ownerEmail = existing.ownerEmail;
+            project.members = Array.isArray(existing.members) ? existing.members.slice() : [];
+            project.memberEmails = Array.isArray(existing.memberEmails)
+                ? existing.memberEmails.slice()
+                : [];
+            ensureProjectMembers(project);
+        }
+
         project.updatedAt = nowIso();
         if (!project.managerLink) {
             project.managerLink = 'manager.html?id=' + encodeURIComponent(project.id);
@@ -428,7 +622,13 @@ import {
     }
 
     async function deleteProject(projectId) {
-        await requireUser();
+        var user = await requireUser();
+        var existing = await getProject(projectId);
+        if (existing && !isProjectOwner(existing, user)) {
+            var err = new Error('Only the project owner can delete this project');
+            err.code = 'permission-denied';
+            throw err;
+        }
         await deleteDoc(projectDoc(projectId));
     }
 
@@ -953,6 +1153,8 @@ import {
         signOut: signOutUser,
         getIdToken: getIdToken,
         listOwnedProjects: listOwnedProjects,
+        listMemberProjects: listMemberProjects,
+        listAccessibleProjects: listAccessibleProjects,
         getProject: getProject,
         findProjectByCode: findProjectByCode,
         findOwnedProjectByName: findOwnedProjectByName,
@@ -961,6 +1163,14 @@ import {
         createProject: createProject,
         deleteProject: deleteProject,
         subscribeProject: subscribeProject,
+        normalizeEmail: normalizeEmail,
+        isValidEmail: isValidEmail,
+        ensureProjectMembers: ensureProjectMembers,
+        isProjectOwner: isProjectOwner,
+        isProjectMember: isProjectMember,
+        canAccessProject: canAccessProject,
+        addProjectMember: addProjectMember,
+        removeProjectMember: removeProjectMember,
         getLocalProjects: getLocalProjects,
         migrateLocalProjects: migrateLocalProjects,
         workerConfigured: workerConfigured,

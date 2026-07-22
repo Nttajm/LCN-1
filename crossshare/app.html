@@ -1083,7 +1083,11 @@
                     var kindCell = document.createElement('span');
                     kindCell.className = 'table-cell table-cell--muted';
                     var count = cloudUploadCount(stream);
-                    kindCell.textContent = (stream.pin ? 'Secured Stream' : 'Crossshare Stream') +
+                    var user = Cloud && Cloud.getUser ? Cloud.getUser() : null;
+                    var isOwner = user && Cloud.isProjectOwner
+                        ? Cloud.isProjectOwner(stream, user)
+                        : (user && stream.ownerId === user.uid);
+                    kindCell.textContent = (isOwner ? (stream.pin ? 'Secured Stream' : 'Crossshare Stream') : 'Shared Stream') +
                         ' · ' + count + ' upload' + (count === 1 ? '' : 's');
 
                     row.appendChild(nameCell);
@@ -1119,7 +1123,7 @@
                 if (!Cloud) return;
                 recentTableBody.innerHTML = '<div class="table-empty">Loading projects…</div>';
                 try {
-                    projectsCache = await Cloud.listOwnedProjects();
+                    projectsCache = await Cloud.listAccessibleProjects();
                     renderRecentList();
                     refreshMigrateBanner();
                     showBanner('');

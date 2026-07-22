@@ -3735,6 +3735,108 @@
             line-height: 1.4;
         }
 
+        .ad-accounts-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .ad-accounts-list {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #454545;
+            background: #1a1a1a;
+            max-height: 168px;
+            overflow: auto;
+        }
+
+        .ad-account-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 8px;
+            align-items: center;
+            min-height: 32px;
+            padding: 4px 8px;
+            border-bottom: 1px solid #323232;
+        }
+
+        .ad-account-row:last-child {
+            border-bottom: none;
+        }
+
+        .ad-account-email {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #ffffff;
+            font-size: 12px;
+        }
+
+        .ad-account-role {
+            color: #959595;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .ad-account-remove {
+            height: 22px;
+            padding: 0 8px;
+            border: 1px solid #454545;
+            border-radius: 999px;
+            background: transparent;
+            color: #e1e1e1;
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .ad-account-remove:hover:not(:disabled) {
+            border-color: #1473E6;
+            color: #ffffff;
+        }
+
+        .ad-account-remove:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .ad-account-add-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .ad-account-add-row .ad-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ad-account-add-btn {
+            height: 28px;
+            padding: 0 12px;
+            border: 1px solid #454545;
+            border-radius: 999px;
+            background: transparent;
+            color: #e1e1e1;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .ad-account-add-btn:hover:not(:disabled) {
+            border-color: #1473E6;
+            color: #ffffff;
+        }
+
+        .ad-account-add-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
         .ad-project-empty-image-field {
             display: flex;
             flex-direction: column;
@@ -5566,8 +5668,22 @@
 
                 project.updatedAt = new Date().toISOString();
                 if (Cloud && Cloud.getUser()) {
-                    if (!project.ownerId) project.ownerId = Cloud.getUser().uid;
-                    if (!project.ownerEmail) project.ownerEmail = Cloud.getUser().email || null;
+                    var cloudUser = Cloud.getUser();
+                    if (!project.ownerId) {
+                        project.ownerId = cloudUser.uid;
+                        if (!project.ownerEmail) {
+                            project.ownerEmail = Cloud.normalizeEmail
+                                ? (Cloud.normalizeEmail(cloudUser.email) || null)
+                                : (cloudUser.email || null);
+                        }
+                    } else if (!project.ownerEmail && project.ownerId === cloudUser.uid) {
+                        project.ownerEmail = Cloud.normalizeEmail
+                            ? (Cloud.normalizeEmail(cloudUser.email) || null)
+                            : (cloudUser.email || null);
+                    }
+                    if (typeof Cloud.ensureProjectMembers === 'function') {
+                        Cloud.ensureProjectMembers(project);
+                    }
                     if (project.id) {
                         project.managerLink = 'manager.html?id=' + encodeURIComponent(project.id);
                     }
@@ -7962,11 +8078,176 @@
                 storageWrap.appendChild(storageHint);
                 storageRow.appendChild(storageWrap);
 
+                var accountsFieldset = document.createElement('fieldset');
+                accountsFieldset.className = 'ad-fieldset';
+                accountsFieldset.innerHTML = '<legend>Accounts</legend>';
+
+                var accountsRow = document.createElement('div');
+                accountsRow.className = 'ad-form-row';
+                accountsRow.style.alignItems = 'start';
+                accountsRow.innerHTML = '<label class="ad-form-label">People</label>';
+                var accountsField = document.createElement('div');
+                accountsField.className = 'ad-accounts-field';
+
+                var accountsList = document.createElement('div');
+                accountsList.className = 'ad-accounts-list';
+                accountsList.setAttribute('role', 'list');
+
+                var addRow = document.createElement('div');
+                addRow.className = 'ad-account-add-row';
+                var emailInput = document.createElement('input');
+                emailInput.className = 'ad-input';
+                emailInput.type = 'email';
+                emailInput.placeholder = 'name@example.com';
+                emailInput.autocomplete = 'off';
+                emailInput.spellcheck = false;
+                var addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'ad-account-add-btn';
+                addBtn.textContent = 'Add';
+                addRow.appendChild(emailInput);
+                addRow.appendChild(addBtn);
+
+                var accountsHint = document.createElement('div');
+                accountsHint.className = 'ad-field-hint';
+
+                accountsField.appendChild(accountsList);
+                accountsField.appendChild(addRow);
+                accountsField.appendChild(accountsHint);
+                accountsRow.appendChild(accountsField);
+                accountsFieldset.appendChild(accountsRow);
+
                 fieldset.appendChild(nameRow);
                 fieldset.appendChild(pinRow);
                 fieldset.appendChild(imageRow);
                 fieldset.appendChild(storageRow);
                 body.appendChild(fieldset);
+                body.appendChild(accountsFieldset);
+
+                var currentUser = Cloud && Cloud.getUser ? Cloud.getUser() : null;
+                var isOwner = !!(Cloud && currentUser && Cloud.isProjectOwner(project, currentUser));
+                var draftMembers = [];
+                if (Cloud && typeof Cloud.ensureProjectMembers === 'function') {
+                    Cloud.ensureProjectMembers(project);
+                }
+                if (Array.isArray(project.members)) {
+                    draftMembers = project.members.map(function (member) {
+                        return {
+                            email: Cloud ? Cloud.normalizeEmail(member.email) : String(member.email || '').toLowerCase(),
+                            role: member.role === 'viewer' ? 'viewer' : 'editor',
+                            addedAt: member.addedAt || null,
+                            addedBy: member.addedBy || null
+                        };
+                    });
+                }
+
+                function ownerEmail() {
+                    return Cloud
+                        ? Cloud.normalizeEmail(project.ownerEmail || (isOwner && currentUser ? currentUser.email : ''))
+                        : String(project.ownerEmail || '').toLowerCase();
+                }
+
+                function renderAccountsList() {
+                    accountsList.innerHTML = '';
+
+                    var ownerRow = document.createElement('div');
+                    ownerRow.className = 'ad-account-row';
+                    ownerRow.setAttribute('role', 'listitem');
+                    var ownerEmailEl = document.createElement('span');
+                    ownerEmailEl.className = 'ad-account-email';
+                    ownerEmailEl.textContent = ownerEmail() || 'Owner';
+                    var ownerRole = document.createElement('span');
+                    ownerRole.className = 'ad-account-role';
+                    ownerRole.textContent = 'Owner';
+                    ownerRow.appendChild(ownerEmailEl);
+                    ownerRow.appendChild(ownerRole);
+                    accountsList.appendChild(ownerRow);
+
+                    draftMembers.forEach(function (member) {
+                        var row = document.createElement('div');
+                        row.className = 'ad-account-row';
+                        row.setAttribute('role', 'listitem');
+                        var emailEl = document.createElement('span');
+                        emailEl.className = 'ad-account-email';
+                        emailEl.textContent = member.email;
+                        var roleEl = document.createElement('span');
+                        roleEl.className = 'ad-account-role';
+                        roleEl.textContent = 'Editor';
+                        row.appendChild(emailEl);
+                        row.appendChild(roleEl);
+                        if (isOwner) {
+                            var removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.className = 'ad-account-remove';
+                            removeBtn.textContent = 'Remove';
+                            removeBtn.title = 'Remove ' + member.email;
+                            removeBtn.addEventListener('click', function () {
+                                draftMembers = draftMembers.filter(function (entry) {
+                                    return entry.email !== member.email;
+                                });
+                                renderAccountsList();
+                            });
+                            row.appendChild(removeBtn);
+                        }
+                        accountsList.appendChild(row);
+                    });
+
+                    if (!draftMembers.length && !isOwner) {
+                        accountsHint.textContent = 'Only the project owner can add or remove accounts.';
+                    } else if (isOwner) {
+                        accountsHint.textContent = 'Add people by email. You are the owner and cannot be removed.';
+                    } else {
+                        accountsHint.textContent = 'You can edit this project. Only the owner manages accounts.';
+                    }
+                }
+
+                function tryAddAccount() {
+                    if (!isOwner) return;
+                    var email = Cloud
+                        ? Cloud.normalizeEmail(emailInput.value)
+                        : String(emailInput.value || '').trim().toLowerCase();
+                    if (!email) {
+                        emailInput.focus();
+                        return;
+                    }
+                    if (Cloud && !Cloud.isValidEmail(email)) {
+                        window.alert('Enter a valid email address.');
+                        emailInput.focus();
+                        return;
+                    }
+                    if (email === ownerEmail()) {
+                        window.alert('The owner is already on this project.');
+                        emailInput.focus();
+                        return;
+                    }
+                    for (var i = 0; i < draftMembers.length; i++) {
+                        if (draftMembers[i].email === email) {
+                            window.alert('That account is already on this project.');
+                            emailInput.focus();
+                            return;
+                        }
+                    }
+                    draftMembers.push({
+                        email: email,
+                        role: 'editor',
+                        addedAt: new Date().toISOString(),
+                        addedBy: currentUser ? currentUser.uid : null
+                    });
+                    emailInput.value = '';
+                    renderAccountsList();
+                    emailInput.focus();
+                }
+
+                addBtn.disabled = !isOwner;
+                emailInput.disabled = !isOwner;
+                addBtn.addEventListener('click', tryAddAccount);
+                emailInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        tryAddAccount();
+                    }
+                });
+                renderAccountsList();
 
                 var pendingEmptyImageBlob = null;
                 var pendingEmptyImageUrl = null;
@@ -8054,6 +8335,17 @@
                     pinDigits: pinDigits,
                     getPendingEmptyImageBlob: function () { return pendingEmptyImageBlob; },
                     shouldRemoveEmptyImage: function () { return removeEmptyImage; },
+                    getMembers: function () {
+                        return draftMembers.map(function (member) {
+                            return {
+                                email: member.email,
+                                role: member.role || 'editor',
+                                addedAt: member.addedAt || null,
+                                addedBy: member.addedBy || null
+                            };
+                        });
+                    },
+                    canManageAccounts: isOwner,
                     cleanup: revokePendingEmptyImageUrl
                 };
             }
@@ -8085,6 +8377,8 @@
                 return {
                     name: name,
                     pin: pin,
+                    members: form.getMembers ? form.getMembers() : null,
+                    canManageAccounts: !!form.canManageAccounts,
                     pendingEmptyImageBlob: form.getPendingEmptyImageBlob(),
                     removeEmptyImage: form.shouldRemoveEmptyImage()
                 };
@@ -8125,6 +8419,20 @@
                         var oldName = match.name;
                         match.name = values.name;
                         match.pin = values.pin;
+                        if (values.canManageAccounts && Array.isArray(values.members)) {
+                            match.members = values.members.slice();
+                            if (Cloud && typeof Cloud.ensureProjectMembers === 'function') {
+                                Cloud.ensureProjectMembers(match);
+                            } else {
+                                match.memberEmails = values.members.map(function (member) {
+                                    return String(member.email || '').toLowerCase();
+                                }).filter(Boolean);
+                            }
+                        }
+                        if (Cloud && Cloud.getUser()) {
+                            if (!match.ownerId) match.ownerId = Cloud.getUser().uid;
+                            if (!match.ownerEmail) match.ownerEmail = Cloud.normalizeEmail(Cloud.getUser().email) || null;
+                        }
                         match.managerLink = match.id
                             ? ('manager.html?id=' + encodeURIComponent(match.id))
                             : ('manager.html?proj=' + encodeURIComponent(values.name));
