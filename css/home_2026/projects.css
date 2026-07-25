@@ -23,7 +23,7 @@
 .proj-item-img {
     flex-shrink: 0;
     width: 22rem;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
     border-radius: 0.58rem;
     overflow: hidden;
     background: rgba(255,255,255,0.04);

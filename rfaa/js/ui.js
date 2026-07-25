@@ -1,16 +1,28 @@
 const pageName = window.location.pathname.split("/").pop() || "index.html";
 const isMatchesPage = pageName === "matches.html" || pageName === "match-info.html";
 
-function getRfaaBase() {
+export function getRfaaBase() {
     const path = window.location.pathname.replace(/\\/g, "/");
     const marker = "/rfaa/";
     const idx = path.toLowerCase().indexOf(marker);
-    if (idx === -1) return "";
-    const rest = path.slice(idx + marker.length);
-    const lastSlash = rest.lastIndexOf("/");
-    const dir = lastSlash === -1 ? "" : rest.slice(0, lastSlash);
-    const depth = dir ? dir.split("/").filter(Boolean).length : 0;
-    return depth > 0 ? "../".repeat(depth) : "";
+    if (idx !== -1) {
+        const rest = path.slice(idx + marker.length);
+        const lastSlash = rest.lastIndexOf("/");
+        const dir = lastSlash === -1 ? "" : rest.slice(0, lastSlash);
+        const depth = dir ? dir.split("/").filter(Boolean).length : 0;
+        return depth > 0 ? "../".repeat(depth) : "";
+    }
+
+    const segments = path.split("/").filter(Boolean);
+    const aclStatsIdx = segments.findIndex((seg, i) =>
+        seg.toLowerCase() === "acl" && segments[i + 1]?.toLowerCase() === "stats"
+    );
+    if (aclStatsIdx !== -1) {
+        const depth = segments.length - aclStatsIdx - 1;
+        return depth > 0 ? "../".repeat(depth) : "";
+    }
+
+    return "";
 }
 
 const rfaaBase = getRfaaBase();
@@ -37,6 +49,9 @@ if (nav) {
             </div>
             <div class="option-elem">
                 <span><a href="${rfaaBase}table.html">Table</a></span>
+            </div>
+            <div class="option-elem">
+                <span><a href="${rfaaBase}rankings.html">Rankings</a></span>
             </div>
             <div class="option-elem" id="histab-parent">
                 <button type="button" class="nav-history-toggle" aria-expanded="false">

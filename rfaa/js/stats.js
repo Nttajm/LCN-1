@@ -1,8 +1,5 @@
-
 import { seasons } from './acl-index.js';
-import { getTopGoalScorers, getTopAssistProviders, getTopPOTM, getWinners, getPlayerTeams } from './aot-stats.js';
-import { getTeamById } from './acl-index.js';
-
+import { getTopGoalScorers, getTopAssistProviders, getTopPOTM, getWinners } from './aot-stats.js';
 
 // Current selection state
 let currentSeason = 'all';
@@ -286,21 +283,10 @@ function updateStatsTable() {
         const statRow = document.createElement('div');
         statRow.className = 'stat-row';
 
-        const playerTeams = getPlayerTeams(player.name) || [];
-        const teamImages = playerTeams.slice(0, 3).map(teamId => {
-            const team = getTeamById(teamId);
-            return team && team.img ? `<img src="/rfaa/${team.img}" alt="${team.name}" />` : '';
-        }).filter(img => img).join('');
-
         statRow.innerHTML = `
             <div class="title-item player">
                 <div class="rank">${String(index + 1).padStart(2, '0')}</div>
-                <div class="p-t-name">
-                    <span>${player.name}</span>
-                    <div class="p-clubs">
-                        ${teamImages}
-                    </div>
-                </div>
+                <div class="p-t-name">${player.name}</div>
             </div>
             <div class="title-item stat">${player.count}</div>
         `;
@@ -344,14 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Fix any relative image paths to absolute paths
-    document.querySelectorAll('img').forEach(img => {
-        const src = img.getAttribute('src');
-        if (src && !src.startsWith('/rfaa/') && !src.startsWith('http')) {
-            img.src = '/rfaa/' + src;
-        }
-    });
-    
     // Setup functionality
     populateSeasonSelectors();
     setupStatTypeSelectors();

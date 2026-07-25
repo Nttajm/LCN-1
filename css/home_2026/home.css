@@ -557,9 +557,9 @@ a.ritem {
 }
 
 .mi-sitem-img {
-    aspect-ratio: 1/1;
+    aspect-ratio: 16 / 9;
     width: 100%;
-    flex: 1;
+    flex: none;
     border-radius: 12px;
     overflow: hidden;
     min-height: 0;
@@ -716,8 +716,9 @@ button.s2.expanded {
 }
 
 .cge.normal {
-    aspect-ratio: 1/1;
-    width: 200px;
+    aspect-ratio: 16 / 9;
+    flex: 1;
+    min-width: 0;
 }
 
 .cge.medium {

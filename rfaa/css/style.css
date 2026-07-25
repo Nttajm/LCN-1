@@ -315,12 +315,66 @@ button {
     border-bottom: var(--border-3);
 }
 
+.preview-matches-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.preview-matches-wrap .preview-matches {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+}
+
+.preview-scroll-btn {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.18);
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.preview-scroll-btn:hover:not(:disabled) {
+    color: rgba(255, 255, 255, 0.72);
+    background: rgba(0, 0, 0, 0.32);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.preview-scroll-btn:disabled {
+    opacity: 0;
+    pointer-events: none;
+}
+
 .preview-matches {
-    color: white; 
+    color: white;
     font-family: roboto;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
     gap: 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.preview-matches::-webkit-scrollbar {
+    display: none;
+}
+
+.preview-matches .match {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
 }
 
 .match {
@@ -776,6 +830,123 @@ h3 {
     font-weight: 500;
 }
 
+/* Auto score cards — team logos on blue with highlights CTA */
+.hl-card--match {
+    aspect-ratio: 1 / 1;
+    background:
+        radial-gradient(circle at 50% 38%, rgba(80, 180, 255, 0.45) 0%, rgba(0, 120, 255, 0.2) 42%, transparent 68%),
+        linear-gradient(155deg, #2b7dff 0%, #0058e6 36%, #0046c8 68%, #0036a8 100%);
+    border: 1px solid rgba(120, 200, 255, 0.28);
+    box-shadow: 0 0.55rem 1.4rem rgba(0, 58, 180, 0.28);
+    color: #fff;
+}
+
+.hl-card--match:hover {
+    box-shadow: 0 0.85rem 1.8rem rgba(0, 58, 180, 0.38);
+    border-color: rgba(160, 220, 255, 0.42);
+}
+
+.hl-card--match .hl-card__matchface {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 1.25rem;
+    padding: 1.1rem 0.85rem 0.5rem;
+    min-height: 0;
+}
+
+.hl-card--match .hl-card__team-logo {
+    width: clamp(4.5rem, 42%, 6.75rem);
+    height: clamp(4.5rem, 42%, 6.75rem);
+    object-fit: contain;
+    filter: drop-shadow(0 0.45rem 1rem rgba(0, 20, 80, 0.35));
+}
+
+.hl-card--match .hl-card__body {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem 1.15rem;
+    background: linear-gradient(180deg, rgba(0, 72, 190, 0.22) 0%, rgba(0, 48, 140, 0.45) 100%);
+    border-top: 1px solid rgba(160, 220, 255, 0.22);
+}
+
+.hl-card--match .hl-card__cta {
+    font-size: clamp(0.92rem, 1.45vw, 1.05rem);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(232, 238, 248, 0.96);
+}
+
+.hl-card--match .hl-card__meta {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgba(200, 216, 248, 0.48);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+@media (max-width: 768px) {
+    .games-article {
+        min-height: 0;
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 16 / 10;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .games-article::before {
+        border-radius: 1rem;
+    }
+
+    .games-article .info {
+        padding: 1rem 1.1rem 1.15rem;
+        font-size: clamp(0.95rem, 4vw, 1.25rem);
+        line-height: 1.3;
+        border-radius: 1rem;
+    }
+
+    .display-teams-article {
+        padding: 1rem 0.75rem 4.25rem;
+        align-items: center;
+    }
+
+    .display-teams-article img {
+        width: 32%;
+        height: auto;
+        max-height: 4.75rem;
+        object-fit: contain;
+    }
+
+    .home-featured {
+        gap: 0.85rem;
+    }
+
+    .home-headlines {
+        padding: 1rem 1.1rem;
+    }
+
+    .home-headlines .headline-item {
+        grid-template-columns: 6.25rem minmax(0, 1fr);
+        gap: 0.7rem;
+        padding: 0.75rem 0;
+    }
+
+    .home-headlines .headline-thumb {
+        width: 6.25rem;
+        height: 3.75rem;
+    }
+
+    .home-headlines .headline-title {
+        font-size: 1.05rem;
+    }
+}
+
 @media (max-width: 980px) {
     .home-featured {
         grid-template-columns: 1fr;
@@ -797,13 +968,31 @@ h3 {
         gap: 0.85rem;
     }
 
-    .hl-card--feature,
+    .hl-card--feature {
+        grid-column: span 1;
+        aspect-ratio: 16 / 10;
+    }
+
     .hl-card--score {
         grid-column: span 1;
         aspect-ratio: 1 / 1;
     }
 
-    /* Score cards: full-bleed image with text floating over bottom */
+    .hl-card--match {
+        grid-column: span 1;
+        aspect-ratio: 16 / 10;
+    }
+
+    .hl-card--match .hl-card__matchface {
+        padding: 0.85rem 1rem 0.45rem;
+    }
+
+    .hl-card--match .hl-card__team-logo {
+        width: clamp(4rem, 36vw, 5.75rem);
+        height: clamp(4rem, 36vw, 5.75rem);
+    }
+
+    /* Score article cards: full-bleed image with text floating over bottom */
     .hl-card--score .hl-card__media {
         position: absolute;
         inset: 0;

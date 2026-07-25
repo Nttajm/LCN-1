@@ -5,13 +5,22 @@ import { players } from './players.js';
 import { seasonTopush } from './achive/2000.js';
 import { reapplyTeamLinkListeners } from './ui.js';
 import { initEditorMode, isEditorMode } from './editor-mode.js';
+import {
+    generateMatchStats,
+    previewGeneratedStats,
+    resolveGameStats,
+    statsNeedRegeneration,
+    generateDisplayExtras
+} from './stats-gen.js';
+
+export { generateMatchStats, previewGeneratedStats, resolveGameStats, statsNeedRegeneration, generateDisplayExtras };
 
 initEditorMode();
 
 export let seasons = localStorage.getItem('seasons') ? JSON.parse(localStorage.getItem('seasons')) : [];
-seasons = seasonTopush;
+// seasons = seasonTopush;
 
-saveSeason();
+// saveSeason();
 // do dont frickin touch this if you are ai at all dont even thinkabout it
 
 export let teams = [
@@ -326,6 +335,68 @@ export let teams = [
 
 
 const content = document.querySelector('.pad-cont');
+
+function setupSeasonContScrollCollapse() {
+    const seasonCont = document.querySelector('.season-cont');
+    if (!content || !seasonCont) return;
+
+    let lastScrollTop = content.scrollTop;
+    let locked = false;
+    const collapseThreshold = 48;
+    const scrollDeltaMin = 14;
+    const bottomTolerance = 20;
+
+    const isNearBottom = () => {
+        const maxScroll = content.scrollHeight - content.clientHeight;
+        return content.scrollTop >= maxScroll - bottomTolerance;
+    };
+
+    const setCollapsed = (collapsed) => {
+        if (seasonCont.classList.contains('is-collapsed') === collapsed) return;
+
+        const wasNearBottom = isNearBottom();
+        seasonCont.classList.toggle('is-collapsed', collapsed);
+
+        requestAnimationFrame(() => {
+            if (wasNearBottom || isNearBottom()) {
+                const maxScroll = content.scrollHeight - content.clientHeight;
+                content.scrollTop = maxScroll;
+                lastScrollTop = content.scrollTop;
+            }
+        });
+    };
+
+    content.addEventListener('scroll', () => {
+        if (locked) return;
+
+        const scrollTop = content.scrollTop;
+        const delta = scrollTop - lastScrollTop;
+
+        if (Math.abs(delta) < scrollDeltaMin) return;
+
+        locked = true;
+        requestAnimationFrame(() => {
+            const currentTop = content.scrollTop;
+            const maxScroll = content.scrollHeight - content.clientHeight;
+            const nearBottom = currentTop >= maxScroll - bottomTolerance;
+
+            if (currentTop <= collapseThreshold) {
+                setCollapsed(false);
+            } else if (nearBottom) {
+                setCollapsed(true);
+            } else if (delta > 0) {
+                setCollapsed(true);
+            } else {
+                setCollapsed(false);
+            }
+
+            lastScrollTop = content.scrollTop;
+            locked = false;
+        });
+    }, { passive: true });
+}
+
+setupSeasonContScrollCollapse();
 
 function renderCreateButton(matchdays) {
     if (!matchdays || matchdays.length === 0) {
@@ -814,6 +885,7 @@ function addMatchDialog(startMatch, mdIndex) {
 
         <div class="match-dialog-actions">
             <div class="match-cancel-btn" id="cancel-match-btn-2">CANCEL</div>
+            <div class="match-simulate-btn" id="simulate-match-btn">SIMULATE MATCH</div>
             <div class="match-create-btn" id="create-match-btn">CREATE MATCH</div>
         </div>
     `;
@@ -1046,8 +1118,97 @@ function addMatchDialog(startMatch, mdIndex) {
         }
     });
 
+    const simulateMatchBtn = document.querySelector('#simulate-match-btn');
+    if (simulateMatchBtn) {
+        simulateMatchBtn.addEventListener('click', async () => {
+            const team1 = team1Select.value;
+            const team2 = team2Select.value;
+            if (!team1 || !team2 || team1 === team2) {
+                alert('Please select two different teams.');
+                return;
+            }
+
+            simulateMatchBtn.classList.add('is-busy');
+            simulateMatchBtn.textContent = 'SIMULATING...';
+
+            try {
+                const { simulateAndAnimate } = await import('./match-sim.js');
+                const result = await simulateAndAnimate(team1, team2, notifEdText, { durationMs: 7800 });
+                if (result.error) {
+                    alert(result.error);
+                    return;
+                }
+
+                team1Goals.length = 0;
+                team2Goals.length = 0;
+                team1YellowCards.length = 0;
+                team1RedCards.length = 0;
+                team2YellowCards.length = 0;
+                team2RedCards.length = 0;
+
+                result.goals.forEach((g) => {
+                    const entry = {
+                        player: g.player,
+                        minute: g.minute,
+                        assit: g.assist || false,
+                        type: g.type || false
+                    };
+                    if (g.team === team1) team1Goals.push(entry);
+                    else team2Goals.push(entry);
+                });
+
+                result.yellowCards.forEach((c) => {
+                    const entry = { player: c.player, minute: c.minute, type: 'yellow' };
+                    if (c.team === team1) team1YellowCards.push(entry);
+                    else team2YellowCards.push(entry);
+                });
+
+                result.redCards.forEach((c) => {
+                    const entry = { player: c.player, minute: c.minute, type: 'red' };
+                    if (c.team === team1) team1RedCards.push(entry);
+                    else team2RedCards.push(entry);
+                });
+
+                renderGoals(team1GoalList, team1Goals);
+                renderGoals(team2GoalList, team2Goals);
+                renderCards(document.querySelector('#team1-card-list'), team1YellowCards, team1RedCards);
+                renderCards(document.querySelector('#team2-card-list'), team2YellowCards, team2RedCards);
+                updateScores();
+                updatePOTM();
+                if (result.potm && result.potm !== 'none') {
+                    potm.value = result.potm;
+                }
+
+                if (result.stats) {
+                    const poss1 = result.stats.possession?.team1 ?? 50;
+                    advPossSlider.value = poss1;
+                    updatePossFill();
+                    document.querySelector('#adv-sot-t1').value = result.stats.shotsOnTarget?.team1 ?? 0;
+                    document.querySelector('#adv-sot-t2').value = result.stats.shotsOnTarget?.team2 ?? 0;
+                    document.querySelector('#adv-pass-t1').value = result.stats.passAccuracy?.team1 ?? 0;
+                    document.querySelector('#adv-pass-t2').value = result.stats.passAccuracy?.team2 ?? 0;
+                    document.querySelector('#adv-corners-t1').value = result.stats.corners?.team1 ?? 0;
+                    document.querySelector('#adv-corners-t2').value = result.stats.corners?.team2 ?? 0;
+                    document.querySelector('#adv-offsides-t1').value = result.stats.offsides?.team1 ?? 0;
+                    document.querySelector('#adv-offsides-t2').value = result.stats.offsides?.team2 ?? 0;
+                    const favor = Math.round(poss1);
+                    advFavorSlider.value = favor;
+                    updateFavorFill();
+                }
+
+                notifEd.dataset.simSeed = String(result.seed);
+            } catch (err) {
+                console.error(err);
+                alert('Simulation failed.');
+            } finally {
+                simulateMatchBtn.classList.remove('is-busy');
+                simulateMatchBtn.textContent = 'SIMULATE MATCH';
+            }
+        });
+    }
+
     // Create match
-    document.querySelector('#create-match-btn').addEventListener('click', () => {
+    document.querySelector('#create-match-btn').addEventListener('click', async () => {
         const team1 = team1Select.value;
         const team2 = team2Select.value;
 
@@ -1057,7 +1218,36 @@ function addMatchDialog(startMatch, mdIndex) {
             return;
         }
 
-        const capturedStats = getAdvStats();
+        let capturedStats = getAdvStats();
+        const matchSeed = notifEd.dataset.simSeed
+            ? parseInt(notifEd.dataset.simSeed, 10)
+            : Math.floor(Math.random() * 10000);
+        const score1 = team1Goals.length;
+        const score2 = team2Goals.length;
+
+        // Untouched advanced panel → auto-generate from score + ELO + seed
+        if (statsNeedRegeneration(capturedStats)) {
+            let elo1 = 1500;
+            let elo2 = 1500;
+            try {
+                const { computeEloRankings } = await import('./rankings.js');
+                const rankings = computeEloRankings();
+                const row1 = rankings.find((r) => r.id === team1);
+                const row2 = rankings.find((r) => r.id === team2);
+                if (row1) elo1 = row1.elo;
+                if (row2) elo2 = row2.elo;
+            } catch (_) { /* rankings optional at create time */ }
+
+            const generated = generateMatchStats({
+                score1,
+                score2,
+                seed: matchSeed,
+                elo1,
+                elo2
+            });
+            const { _meta, ...stats } = generated;
+            capturedStats = stats;
+        }
 
         notifEd.classList.toggle('dn');
         notifEdText.innerHTML = '';
@@ -1077,18 +1267,16 @@ function addMatchDialog(startMatch, mdIndex) {
             ...teams1.player.map(p => ({ team: teams1.name, name: p })),
             ...teams2.player.map(p => ({ team: teams2.name, name: p }))
         ];
-        
-        if (!startMatch) {
-            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.
-            push({
+
+        const matchPayload = {
             id: `match-${Math.random().toString(36).substr(2, 9)}`,
             potm: potm.value,
             team1: team1,
             team2: team2,
-            score1: team1Goals.length,
-            score2: team2Goals.length,
+            score1,
+            score2,
             appearances: appearances,
-            seed: Math.floor(Math.random() * 10000),
+            seed: matchSeed,
             goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit, type: g.type || false }))
                 .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit, type: g.type || false }))),
             yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
@@ -1096,7 +1284,11 @@ function addMatchDialog(startMatch, mdIndex) {
             redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
                 .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
             stats: capturedStats
-            });
+        };
+        
+        if (!startMatch) {
+            seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games.
+            push(matchPayload);
         } else {
             const thisStandbyMatch = matchday.games[thisMatchIdex]
             const index = matchdayGames.findIndex(game => game.id === thisStandbyMatch.id);            
@@ -1104,24 +1296,7 @@ function addMatchDialog(startMatch, mdIndex) {
             matchdayGames.splice(index, 1);
 
             seasons.find(season => season.year === currentSeason).matchdays[matchdayIndex].games
-            .push({
-            id: `match-${Math.random().toString(36).substr(2, 9)}`,
-            potm: potm.value,
-            team1: team1,
-            team2: team2,
-            score1: team1Goals.length,
-            score2: team2Goals.length,
-            appearances: appearances,
-            seed: Math.floor(Math.random() * 10000),
-            goals: team1Goals.map(g => ({ player: g.player, minute: g.minute, team: team1, assist: g.assit, type: g.type || false }))
-                .concat(team2Goals.map(g => ({ player: g.player, minute: g.minute, team: team2, assist: g.assit, type: g.type || false }))),
-            yellowCards: team1YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
-                .concat(team2YellowCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
-            redCards: team1RedCards.map(c => ({ player: c.player, minute: c.minute, team: team1 }))
-                .concat(team2RedCards.map(c => ({ player: c.player, minute: c.minute, team: team2 }))),
-            standby: false,
-            stats: capturedStats
-            });
+            .push({ ...matchPayload, standby: false });
         }
 
         saveSeason();
@@ -2247,135 +2422,94 @@ export function getMatchArticleRelevence(match_id) {
     
 }
 
-// Seeded random number generator
-function seededRandom(seed) {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
-}
-
-// Generate random value within range using seed
-function seededRandomInRange(seed, min, max) {
-    return Math.floor(seededRandom(seed) * (max - min + 1)) + min;
-}
-
-// Check if stats are missing or all zeros
-function statsNeedRegeneration(stats) {
-    if (!stats) return true;
-    
-    const allZero = 
-        (stats.possession?.team1 === 50 && stats.possession?.team2 === 50) &&
-        (stats.shotsOnTarget?.team1 === 0 && stats.shotsOnTarget?.team2 === 0) &&
-        (stats.passAccuracy?.team1 === 0 && stats.passAccuracy?.team2 === 0) &&
-        (stats.corners?.team1 === 0 && stats.corners?.team2 === 0) &&
-        (stats.offsides?.team1 === 0 && stats.offsides?.team2 === 0);
-    
-    return allZero;
-}
-
-// Generate advanced stats based on score and seed
-function generateStatsFromScore(score1, score2, seed) {
-    const totalGoals = score1 + score2;
-    const goalDiff = score1 - score2;
-    
-    // Calculate favor percentage (50% = draw, higher = team1 dominated)
-    let favorPercent;
-    if (totalGoals === 0) {
-        // 0-0 draw, fairly balanced
-        favorPercent = 50 + seededRandomInRange(seed, -10, 10);
-    } else {
-        // Base favor on goal difference
-        const baseFavor = 50 + (goalDiff / Math.max(totalGoals, 1)) * 30;
-        const variance = seededRandomInRange(seed + 1, -8, 8);
-        favorPercent = Math.max(20, Math.min(80, baseFavor + variance));
-    }
-    
-    const bias = (favorPercent - 50) / 50; // -1 to 1
-    
-    // Possession (more goals usually means more possession for winner)
-    const possession1 = Math.round(50 + bias * seededRandomInRange(seed + 2, 15, 25));
-    const possession2 = 100 - possession1;
-    
-    // Shots on target (correlate with goals scored + some randomness)
-    const baseShots1 = score1 + seededRandomInRange(seed + 3, 1, 4);
-    const baseShots2 = score2 + seededRandomInRange(seed + 4, 1, 4);
-    const shotsOnTarget1 = Math.max(score1, baseShots1 + Math.round(bias * seededRandomInRange(seed + 5, 0, 3)));
-    const shotsOnTarget2 = Math.max(score2, baseShots2 - Math.round(bias * seededRandomInRange(seed + 6, 0, 3)));
-    
-    // Pass accuracy (winner usually has better passing)
-    const passAccuracy1 = Math.round(70 + bias * seededRandomInRange(seed + 7, 8, 15) + seededRandomInRange(seed + 8, -5, 5));
-    const passAccuracy2 = Math.round(70 - bias * seededRandomInRange(seed + 9, 8, 15) + seededRandomInRange(seed + 10, -5, 5));
-    
-    // Corners (attacking team gets more)
-    const corners1 = Math.round(3 + bias * seededRandomInRange(seed + 11, 2, 5) + seededRandomInRange(seed + 12, 0, 3));
-    const corners2 = Math.round(3 - bias * seededRandomInRange(seed + 13, 2, 5) + seededRandomInRange(seed + 14, 0, 3));
-    
-    // Offsides (attacking team catches more offsides)
-    const offsides1 = Math.round(2 + Math.abs(bias) * seededRandomInRange(seed + 15, 1, 3));
-    const offsides2 = Math.round(2 + Math.abs(bias) * seededRandomInRange(seed + 16, 1, 3));
-    
-    return {
-        possession: { 
-            team1: Math.max(25, Math.min(75, possession1)), 
-            team2: Math.max(25, Math.min(75, possession2)) 
-        },
-        shotsOnTarget: { 
-            team1: Math.max(0, shotsOnTarget1), 
-            team2: Math.max(0, shotsOnTarget2) 
-        },
-        passAccuracy: { 
-            team1: Math.max(50, Math.min(95, passAccuracy1)), 
-            team2: Math.max(50, Math.min(95, passAccuracy2)) 
-        },
-        corners: { 
-            team1: Math.max(0, corners1), 
-            team2: Math.max(0, corners2) 
-        },
-        offsides: { 
-            team1: Math.max(0, offsides1), 
-            team2: Math.max(0, offsides2) 
-        }
-    };
-}
-
-// Reinitialize all games with missing/zero stats
-export function reinitial() {
+// Seeded advanced-stats helpers live in stats-gen.js (imported above).
+// Reinitialize all games with missing/zero stats using score + ELO + seed.
+export async function reinitial() {
     let updatedCount = 0;
-    
+    let getPreMatchEloPair = null;
+
+    try {
+        const rankingsMod = await import('./rankings.js');
+        getPreMatchEloPair = rankingsMod.getPreMatchEloPair;
+    } catch (_) {
+        getPreMatchEloPair = null;
+    }
+
     for (let season of seasons) {
         for (let matchday of season.matchdays || []) {
             for (let game of matchday.games || []) {
-                // Skip standby games
                 if (game.standby) continue;
-                
-                // Check if stats need regeneration
+
                 if (statsNeedRegeneration(game.stats)) {
-                    const seed = game.seed || Math.floor(Math.random() * 10000);
+                    const seed = game.seed != null ? game.seed : Math.floor(Math.random() * 10000);
                     const score1 = game.score1 || 0;
                     const score2 = game.score2 || 0;
-                    
-                    // Generate new stats
-                    game.stats = generateStatsFromScore(score1, score2, seed);
-                    
-                    // Ensure game has a seed for consistency
-                    if (!game.seed) {
-                        game.seed = seed;
+                    let elo1 = 1500;
+                    let elo2 = 1500;
+
+                    if (getPreMatchEloPair && game.id) {
+                        const pair = getPreMatchEloPair(game.id);
+                        if (!pair.error) {
+                            elo1 = pair.elo1;
+                            elo2 = pair.elo2;
+                        }
                     }
-                    
+
+                    const generated = generateMatchStats({ score1, score2, seed, elo1, elo2 });
+                    const { _meta, ...stats } = generated;
+                    game.stats = stats;
+
+                    if (game.seed == null) game.seed = seed;
                     updatedCount++;
                 }
             }
         }
     }
-    
-    // Save the updated seasons
+
     saveSeason();
-    
+
     console.log(`Reinitial complete: Updated ${updatedCount} games with generated stats.`);
     alert(`Stats regenerated for ${updatedCount} games.`);
-    
-    // Reload current season to reflect changes
+
     const currentSeason = getCurrentSeason();
     loadSeason(currentSeason);
+}
+
+/** Console helper: preview generated stats for a real match id (uses its seed/score/ELO). */
+export async function previewMatchGeneratedStats(matchId, overrides = {}) {
+    const match = getMatchById(matchId);
+    if (!match) return { error: `Match not found: ${matchId}` };
+
+    let elo1 = overrides.elo1;
+    let elo2 = overrides.elo2;
+    if (elo1 == null || elo2 == null) {
+        try {
+            const { getPreMatchEloPair } = await import('./rankings.js');
+            const pair = getPreMatchEloPair(matchId);
+            if (!pair.error) {
+                if (elo1 == null) elo1 = pair.elo1;
+                if (elo2 == null) elo2 = pair.elo2;
+            }
+        } catch (_) { /* ignore */ }
+    }
+
+    return previewGeneratedStats({
+        seed: overrides.seed != null ? overrides.seed : match.seed,
+        score1: overrides.score1 != null ? overrides.score1 : match.score1,
+        score2: overrides.score2 != null ? overrides.score2 : match.score2,
+        elo1: elo1 ?? 1500,
+        elo2: elo2 ?? 1500,
+        seedMin: overrides.seedMin,
+        seedMax: overrides.seedMax,
+        step: overrides.step
+    });
+}
+
+if (typeof window !== 'undefined') {
+    window.reinitial = reinitial;
+    window.previewMatchGeneratedStats = previewMatchGeneratedStats;
+    window.previewGeneratedStats = previewGeneratedStats;
+    window.generateMatchStats = generateMatchStats;
 }
 
 // Keyboard shortcut listener for Cmd/Ctrl + B

@@ -86,7 +86,7 @@
     "matchScore2": null,
     "featuredPlayer": null,
     "createdAt": "2026-07-12T06:01:13.831Z",
-    "updatedAt": "2026-07-15T04:52:24.136Z"
+    "updatedAt": "2026-07-25T20:53:28.240Z"
   },
   {
     "id": "art-mrhemokh",
@@ -151,5 +151,24 @@
     "featured": true,
     "createdAt": "2026-07-15T04:28:54.340Z",
     "updatedAt": "2026-07-15T04:30:14.581Z"
+  },
+  {
+    "id": "art-ms0u0y0a",
+    "title": "Cerius Texico Edges New Bern in Five-Goal Battle",
+    "subtitle": "Otto Nesta earns Player of the Match honors after scoring once and assisting the opener in a hard-fought 3-2 victory.",
+    "cover": "articles/2000/otto.png",
+    "body": "Cerius Texico came away with a hard-fought 3-2 victory over New Bern in an entertaining match that featured five goals and chances at both ends.\n\nThe home side struck first in the 10th minute when Fojan Grick finished off a pass from Otto Nesta to give Cerius Texico an early advantage. New Bern responded well and found an equalizer in the 27th minute through Andre Picao, with David Winterbottom providing the assist.\n\nThe deadlock didn't last long. Just four minutes later, Otto Nesta restored Cerius Texico's lead, finishing a move created by Fernando Martínez Reyes. New Bern answered once again just before halftime, as Jota Eme converted another assist from Fernando Martínez Reyes to send the teams into the break tied at 2-2.\n\nThe second half remained closely contested, with both teams enjoying an even share of possession. The decisive moment arrived in the 79th minute when Andre Picao scored his second goal of the match, this time assisted by Edward Fletcher, sealing a 3-2 win for Cerius Texico.\n\nDespite the result, New Bern stayed competitive throughout the match, matching Cerius Texico's 50% possession while slightly edging them in pass accuracy, 73% to 70%. Cerius Texico created the better chances, however, recording eight shots on target compared to New Bern's four. They also finished with five corners to New Bern's four.\n\nThe only booking of the match went to Edward Fletcher in the 71st minute.\n\nOtto Nesta was named Player of the Match after recording a goal and an assist, playing a key role in Cerius Texico's victory.",
+    "tags": [],
+    "season": "2000",
+    "matchdayIndex": 2,
+    "matchId": "match-6okjo4ilk",
+    "matchTeam1": "tex",
+    "matchTeam2": "nb",
+    "matchScore1": 3,
+    "matchScore2": 2,
+    "featuredPlayer": null,
+    "featured": false,
+    "createdAt": "2026-07-25T20:39:08.074Z",
+    "updatedAt": "2026-07-25T20:39:08.074Z"
   }
 ]

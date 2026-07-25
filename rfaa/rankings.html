@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFAA Rankings</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/acl-styles.css">
+    <link rel="stylesheet" href="css/utils.css">
+    <link rel="stylesheet" href="css/screens.css">
+    <link rel="stylesheet" href="css/rankings.css">
+    <link rel="stylesheet" href="https://lcnjoel.com/css/standard.css">
+</head>
+<body>
+    <div class="league-nav">
+        <div class="rfaa-img">
+            <img src="images/rfaacom.png" alt="svg" class="logo_img">
+        </div>
+        <div class="leagues">
+            <div class="league">
+                <img src="images/leagues-small/tex-seria.png" alt="tx">
+            </div>
+            <div class="league">
+                <img src="images/leagues-small/acl-logo-small.png" alt="tx">
+            </div>
+        </div>
+    </div>
+    <div class="nav">
+        <a href="index.html">
+            <div class="imgel">
+                <img src="images/leagues/acl.png" alt="tx">
+            </div>
+        </a>
+        <div class="options">
+            <div class="option-elem">
+                <span><a href="matches.html">Matches</a></span>
+            </div>
+            <div class="option-elem">
+                <span><a href="table.html">Table</a></span>
+            </div>
+            <div class="option-elem" id="histab-parent">
+                <span><a href="#history">History ▼</a></span>
+                <div class="more-info" id="histab">
+                    <ul>
+                        <li><a href="seasons.html">Seasons</a></li>
+                        <li><a href="aot-stats.html">AOT</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="option-elem">
+                <span><a href="acl/stats/alltime.html">Stats</a></span>
+            </div>
+            <div class="option-elem">
+                <span><a href="#compare">Compare</a></span>
+            </div>
+        </div>
+    </div>
+
+    <section class="rk-page">
+        <header class="rk-hero">
+            <div class="rk-hero-copy">
+                <p class="rk-kicker">All competitions</p>
+                <h1 class="rk-title">RFAA Rankings</h1>
+                <p class="rk-sub">Elo ratings from every played match across seasons.</p>
+            </div>
+            <div class="rk-hero-meta">
+                <div class="rk-meta-block">
+                    <span class="rk-meta-label">Teams ranked</span>
+                    <span class="rk-meta-value" id="rk-count">0</span>
+                </div>
+                <div class="rk-meta-block">
+                    <span class="rk-meta-label">Top Elo</span>
+                    <span class="rk-meta-value" id="rk-top-elo">—</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="rk-table-wrap">
+            <table class="rk-table">
+                <thead>
+                    <tr>
+                        <th data-sort="rank">Rank <span class="rk-sort-ico"></span></th>
+                        <th data-sort="team">Team <span class="rk-sort-ico"></span></th>
+                        <th data-sort="form">Latest Results <span class="rk-sort-ico"></span></th>
+                        <th data-sort="last">Last Result <span class="rk-sort-ico"></span></th>
+                        <th data-sort="delta">Last Result +/- <span class="rk-sort-ico"></span></th>
+                        <th data-sort="points">Points <span class="rk-sort-ico"></span></th>
+                        <th>More</th>
+                    </tr>
+                </thead>
+                <tbody id="rankings-body"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <script src="js/ui.js" type="module"></script>
+    <script src="js/rankings.js" type="module"></script>
+</body>
+</html>

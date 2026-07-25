@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FootCombi</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a222c;
+      --text: #e8eef4;
+      --muted: #8b9aab;
+      --accent: #d4a017;
+      --accent-dim: #8a6a10;
+      --line: #2a3542;
+      --hit: #243041;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, #2a2410 0%, transparent 55%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 1.5rem 1.25rem 0.75rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+    header p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .filters {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .trophy {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 0.85rem;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .trophy:hover { border-color: var(--accent-dim); }
+    .trophy.active {
+      border-color: var(--accent);
+      background: var(--hit);
+    }
+    .trophy img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+    .trophy .meta { display: flex; flex-direction: column; gap: 0.15rem; }
+    .trophy .label { font-size: 0.85rem; font-weight: 600; }
+    .trophy .count-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .trophy button {
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 5px;
+      cursor: pointer;
+      line-height: 1;
+      font-size: 0.85rem;
+    }
+    .trophy button:hover { border-color: var(--accent); }
+    .trophy .min { min-width: 1.1rem; text-align: center; color: var(--accent); font-weight: 700; }
+
+    .status {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 1.25rem 0.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .list {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0.5rem 1.25rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .player {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.85rem;
+      align-items: center;
+      padding: 0.7rem 0.9rem;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .player .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--bg);
+      border: 1px solid var(--line);
+    }
+    .player .avatar.placeholder {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    .player .name { font-weight: 600; font-size: 0.95rem; }
+    .player .years { color: var(--muted); font-size: 0.78rem; margin-top: 0.15rem; }
+    .player .badges {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      align-items: flex-end;
+    }
+    .player .badge {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .player .badge img { width: 20px; height: 20px; object-fit: contain; }
+
+    .empty {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FootCombi</h1>
+    <p>Click trophies to filter players who have that combination.</p>
+  </header>
+
+  <div class="filters" id="filters"></div>
+  <div class="status" id="status">Loading…</div>
+  <div class="list" id="list"></div>
+
+  <script>
+    const state = {
+      data: null,
+      /** @type {Record<string, { on: boolean, min: number }>} */
+      filters: {},
+    };
+
+    async function load() {
+      const res = await fetch("js/data.json");
+      state.data = await res.json();
+      for (const id of Object.keys(state.data.meta.awards || {})) {
+        if (!state.filters[id]) state.filters[id] = { on: false, min: 1 };
+      }
+      // Default: show World Cup filter on if present, else Ballon d'Or
+      if (state.filters.worldCup) state.filters.worldCup.on = true;
+      else if (state.filters.ballonDor) state.filters.ballonDor.on = true;
+      renderFilters();
+      renderList();
+    }
+
+    function activeFilters() {
+      return Object.entries(state.filters).filter(([, f]) => f.on);
+    }
+
+    function matches(player) {
+      const active = activeFilters();
+      if (!active.length) return true;
+      return active.every(([id, f]) => (player.trophies[id] || 0) >= f.min);
+    }
+
+    function renderFilters() {
+      const awards = state.data.meta.awards;
+      document.getElementById("filters").innerHTML = Object.values(awards)
+        .map((award) => {
+          const f = state.filters[award.id];
+          return `
+            <div class="trophy ${f.on ? "active" : ""}" data-award="${award.id}" role="button" tabindex="0">
+              <img src="${award.icon}" alt="" />
+              <div class="meta">
+                <span class="label">${award.label}</span>
+                <div class="count-row">
+                  <button type="button" data-act="dec" aria-label="Fewer">−</button>
+                  <span class="min">×${f.min}</span>
+                  <button type="button" data-act="inc" aria-label="More">+</button>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      document.querySelectorAll(".trophy").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          const id = el.dataset.award;
+          const f = state.filters[id];
+          const act = e.target.closest("button")?.dataset.act;
+          if (act === "inc") {
+            f.min = Math.min(8, f.min + 1);
+            f.on = true;
+          } else if (act === "dec") {
+            f.min = Math.max(1, f.min - 1);
+            f.on = true;
+          } else {
+            f.on = !f.on;
+          }
+          renderFilters();
+          renderList();
+        });
+      });
+    }
+
+    function describeFilters() {
+      const active = activeFilters();
+      if (!active.length) return `All ${state.data.players.length} players`;
+      const parts = active.map(([id, f]) => {
+        const label = state.data.meta.awards[id].label;
+        return `≥${f.min} ${label}`;
+      });
+      return parts.join(" + ");
+    }
+
+    function renderList() {
+      const players = state.data.players.filter(matches);
+      document.getElementById("status").textContent =
+        `${players.length} player${players.length === 1 ? "" : "s"} — ${describeFilters()}`;
+
+      const list = document.getElementById("list");
+      if (!players.length) {
+        list.innerHTML = `<div class="empty">No players match.</div>`;
+        return;
+      }
+
+      const awards = state.data.meta.awards;
+      list.innerHTML = players
+        .map((p) => {
+          const yearBits = Object.entries(p.years || {})
+            .filter(([, ys]) => ys?.length)
+            .map(([id, ys]) => `${awards[id]?.label || id}: ${ys.join(", ")}`);
+          const badges = Object.entries(p.trophies || {})
+            .filter(([, n]) => n > 0)
+            .map(([id, n]) => {
+              const a = awards[id];
+              if (!a) return "";
+              return `<div class="badge"><img src="${a.icon}" alt="" />${n}</div>`;
+            })
+            .join("");
+          const avatar = p.image
+            ? `<img class="avatar" src="${p.image}?width=88" alt="" loading="lazy" />`
+            : `<div class="avatar placeholder">—</div>`;
+          return `
+            <article class="player">
+              ${avatar}
+              <div>
+                <div class="name">${escapeHtml(p.name)}</div>
+                <div class="years">${yearBits.map(escapeHtml).join(" · ") || ""}</div>
+              </div>
+              <div class="badges">${badges}</div>
+            </article>
+          `;
+        })
+        .join("");
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    load().catch((err) => {
+      document.getElementById("status").textContent = "Failed to load data.json";
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
