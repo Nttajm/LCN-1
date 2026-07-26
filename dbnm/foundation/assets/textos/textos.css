@@ -1,0 +1,56 @@
+.tx-dim { color: #7a7a7a; }
+.tx-ok { color: rgb(91, 202, 91); }
+.tx-tree { color: rgb(215, 179, 0); }
+.tx-scope { color: rgb(91, 202, 91); font-weight: bold; }
+
+.tx-ascii {
+    color: rgb(124, 182, 227);
+    line-height: 1.05;
+    font-size: 0.58rem;
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+    font-family: monospace;
+}
+
+.tx-banner {
+    border-left: 3px solid rgb(124, 182, 227);
+    padding: 0.55rem 0 0.55rem 0.85rem;
+    margin: 0.45rem 0;
+    background: linear-gradient(90deg, rgba(124, 182, 227, 0.08), transparent 65%);
+}
+
+.tx-panel {
+    border: 1px solid #333;
+    border-radius: 2px;
+    padding: 0.5rem 0.65rem;
+    margin: 0.35rem 0;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tx-choices .choice { cursor: pointer; }
+
+.tx-msg {
+    margin: 0.15rem 0;
+    font-family: monospace;
+}
+
+.tx-msg .tx-from {
+    color: rgb(124, 182, 227);
+    font-weight: bold;
+}
+
+.tx-msg .tx-time {
+    color: #7a7a7a;
+    font-size: 0.85em;
+}
+
+.tx-msg.sealed .tx-body {
+    color: #9a9a9a;
+    font-style: italic;
+}
+
+.tx-msg.locked .tx-body {
+    color: #666;
+    letter-spacing: 0.04em;
+}

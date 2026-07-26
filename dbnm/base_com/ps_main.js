@@ -7,7 +7,7 @@ const pkgContentsMap = {};
 let awaiting = false;
 let awaiting_cmd = null;
 let directory = null;
-let versionII = '1.3.2';
+let versionII = '1.4.0';
 const storedUserData = JSON.parse(localStorage.getItem('dbnm_userData'));
 let suggestionsEnabled = !!storedUserData?.suggestions;
 
@@ -26,6 +26,14 @@ let userData = storedUserData || {
     pakeger: {
         keys: [],
         clipPref: 'ask'
+    },
+    textos: {
+        deviceId: null,
+        deviceName: null,
+        boundDbId: null,
+        seeThroughKey: null,
+        activeRoomId: null,
+        setupShown: false
     }
 };
 
@@ -38,6 +46,16 @@ function ensureUserDataShape() {
     }
     if (!Array.isArray(userData.pakeger.keys)) userData.pakeger.keys = [];
     if (!userData.pakeger.clipPref) userData.pakeger.clipPref = 'ask';
+    if (!userData.textos || typeof userData.textos !== 'object') {
+        userData.textos = {
+            deviceId: null,
+            deviceName: null,
+            boundDbId: null,
+            seeThroughKey: null,
+            activeRoomId: null,
+            setupShown: false
+        };
+    }
 }
 
 function migrateLegacyStorage() {
@@ -160,8 +178,35 @@ const db_ui = {
 
 function getPromptText() {
     const name = (userData.username || '').trim();
+    const userPart = name || 'user';
+    if (directory) {
+        return `(${directory}): ${userPart} $`;
+    }
     return name ? `${name} $` : '> $';
 }
+
+function setDirectory(name) {
+    const key = String(name || '').trim();
+    if (!key) {
+        directory = null;
+        updatePromptDisplay();
+        return true;
+    }
+    if (!commandHandlers[key.toLowerCase()]) {
+        return false;
+    }
+    directory = key;
+    updatePromptDisplay();
+    return true;
+}
+
+function clearDirectory() {
+    directory = null;
+    updatePromptDisplay();
+}
+
+window.setDirectory = setDirectory;
+window.clearDirectory = clearDirectory;
 
 function updatePromptDisplay() {
     const promptElem = document.querySelector('.prompt');
@@ -344,7 +389,7 @@ function parseCommand(cmd) {
 
 // Handle Commands
 function handleCommand(cmd) {
-    if (cmd === 'cd..') directory = null;
+    if (cmd === 'cd..') clearDirectory();
 
     if (directory && (cmd !== 'cd..' || cmd !== '/' || cmd !== 'r')) {
         cmd = directory + ` ` + cmd;
@@ -696,17 +741,13 @@ _reg('hello', () => {
 _reg('cd', (_, cmd_split) => {
     if (cmd_split[1] === '') {
         print('specify a directory to change to.');
-    } else {
-        if (!commandHandlers[cmd_split[1].toLowerCase()]) {
-            e_print(`Cannot change to directory '${cmd_split[1]}': it's not a command`);
-        } else {
-            directory = cmd_split[1];
-        }
+    } else if (!setDirectory(cmd_split[1])) {
+        e_print(`Cannot change to directory '${cmd_split[1]}': it's not a command`);
     }
 });
 
 _reg('cd..', () => {
-    directory = null;
+    clearDirectory();
 });
 
 _reg('x dir', () => {
@@ -1861,10 +1902,18 @@ _reg('clear', () => {
     setTimeout(() => window.location.reload(), 300);
 });
 
-_reg('/', (_, cmd_split) => {
+_reg('/', async (_, cmd_split) => {
     if (cmd_split[1] === 'i') {
         if (cmd_split[2] === 'love') {
             print('you!');
+        } else if (cmd_split[2] === 'burl') {
+            const url = cmd_split.slice(3).join(' ');
+            if (!url) {
+                e_print('Usage: / i burl <url>');
+                tip_print('/ i burl example.com/test.js');
+                return;
+            }
+            await impBurl(url);
         } else if (cmd_split[2]) {
             imp(cmd_split[2], cmd_split[3]);
             print(`Imported: ${cmd_split[3]}`);
@@ -1998,13 +2047,62 @@ function containsKeyWord(input) {
 function registerPkgContents(name, manifest) {
     pkgContentsMap[name.toLowerCase()] = manifest;
 }
+window.registerPkgContents = registerPkgContents;
 
 function getUtilBasePath(util) {
     if (util.linkClass === '**' || util.linkClass === 'base') return 'public/base-modules/';
     if (util.linkClass === 'f' || util.linkClass === 'foundation') return 'foundation/';
     if (util.linkClass === '**svr') return 'servers/';
-    if (util.linkClass === 'reg') return null;
+    if (util.linkClass === 'reg' || util.linkClass === 'burl') return null;
     return null;
+}
+
+function normalizeBurl(raw) {
+    let url = String(raw || '').trim();
+    if (!url) return null;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    try {
+        return new URL(url).href;
+    } catch {
+        return null;
+    }
+}
+
+function linkNameFromBurl(url) {
+    try {
+        const base = new URL(url).pathname.split('/').pop() || 'remote';
+        const name = base.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-|-$/g, '');
+        return name || 'remote';
+    } catch {
+        return 'remote';
+    }
+}
+
+async function impBurl(urlRaw) {
+    const url = normalizeBurl(urlRaw);
+    if (!url) {
+        e_print('Usage: / i burl <url>');
+        tip_print('/ i burl example.com/test.js');
+        return;
+    }
+    const link = linkNameFromBurl(url);
+    const newUtil = {
+        linkClass: 'burl',
+        link,
+        downloadUrl: url,
+        index: nextUtilIndex()
+    };
+    userData.cmdUtil.push(newUtil);
+    saveData();
+    y_print(`fetching <span class="light-blue">${link}</span> <span class="db-dim">${url}</span>`);
+    await renderUtils();
+    const util = userData.cmdUtil.find(u => u.index === newUtil.index);
+    if (util?.loaded) {
+        g_print(`Imported: <span class="light-blue">${link}</span>`);
+    } else {
+        e_print(`Failed to load: ${url}`);
+        tip_print('remote host must allow CORS for script loads');
+    }
 }
 
 async function loadScriptFromUrl(url, util) {
@@ -2062,6 +2160,12 @@ function resolveUtilByIndex(indexStr) {
 function printPkgContents(util) {
     const manifest = pkgContentsMap[util.link.toLowerCase()];
     if (!manifest) {
+        if (util.linkClass === 'burl' && util.downloadUrl) {
+            print(`<br><span class="green b">${util.link}</span> <span class="db-dim">burl</span>`);
+            print(`<br><span class="light-blue">${util.downloadUrl}</span>`);
+            print(`<br><span class="muted-teal">loaded: ${util.loaded ? 'yes' : 'no'}</span>`);
+            return;
+        }
         e_print(`No contents registered for '${util.link}'.`);
         return;
     }
@@ -2119,6 +2223,17 @@ async function renderUtils() {
 
     const loadPromises = userData.cmdUtil.map(util => {
         return new Promise(async resolve => {
+            if (util.linkClass === 'burl') {
+                if (!util.downloadUrl) {
+                    resolve(null);
+                    return;
+                }
+                const ok = await loadScriptFromUrl(util.downloadUrl, util);
+                if (ok) filesLoaded++;
+                else filesFailed++;
+                resolve(ok);
+                return;
+            }
             if (util.linkClass === 'reg') {
                 if (!util.downloadUrl) {
                     resolve(null);

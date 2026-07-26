@@ -1278,16 +1278,17 @@ _reg('pak', handlePak);
 _reg('pakeger', handlePak);
 _reg('paKeger', handlePak);
 
-//info of file
+const registerPkg = typeof registerPkgContents === 'function'
+    ? registerPkgContents
+    : window.registerPkgContents;
 
-print(`<span class="pak-dim">file: ${__filename}</span>`);
-
-if (typeof registerPkgContents === 'function') {
-    registerPkgContents(PKG.name.toLowerCase(), {
+if (typeof registerPkg === 'function') {
+    const manifest = {
         version: PKG.version,
         desc: PKG.desc,
         files: [
-            { path: 'paKeger.js', type: 'module' }
+            { path: 'pakeger.js', type: 'module' }
         ]
-    });
+    };
+    PKG.tags.forEach((tag) => registerPkg(tag, manifest));
 }

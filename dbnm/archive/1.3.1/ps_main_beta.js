@@ -6,7 +6,7 @@ const commandHandlers = {};
 let awaiting = false;
 let awaiting_cmd = null;
 let directory = null;
-let versionII = '1.3.2';
+let versionII = '1.3.1';
 
 const module_meta = [
     {
