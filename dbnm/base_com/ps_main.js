@@ -7,7 +7,7 @@ const pkgContentsMap = {};
 let awaiting = false;
 let awaiting_cmd = null;
 let directory = null;
-let versionII = '1.4.0';
+let versionII = '1.4.2';
 const storedUserData = JSON.parse(localStorage.getItem('dbnm_userData'));
 let suggestionsEnabled = !!storedUserData?.suggestions;
 
@@ -213,6 +213,26 @@ function updatePromptDisplay() {
     if (promptElem) promptElem.textContent = getPromptText();
 }
 
+function scrollOutputToBottom() {
+    requestAnimationFrame(() => {
+        if (db_ui.input) {
+            db_ui.input.scrollIntoView({ block: 'end', behavior: 'auto' });
+            return;
+        }
+        const root = document.documentElement;
+        window.scrollTo({ top: root.scrollHeight, behavior: 'auto' });
+    });
+}
+
+function appendOutput(html) {
+    if (!db_ui.output) return;
+    db_ui.output.innerHTML += html;
+    scrollOutputToBottom();
+}
+
+window.scrollOutputToBottom = scrollOutputToBottom;
+window.appendOutput = appendOutput;
+
 // Initialize UI
 function initializeUI() {
     if (db_ui.input && db_ui.output) {
@@ -269,6 +289,7 @@ function makeLoader(index) {
     `;
     db_ui.loaders.push(loaderDiv);
     db_ui.output.appendChild(loaderDiv);
+    scrollOutputToBottom();
     if (index === 'rm') {
         const loaders = document.querySelectorAll('.loader');
         loaders.forEach(loader => {
@@ -285,43 +306,43 @@ function makeLoader(index) {
 function print(value) {
     let dir_space = directory ? directory : 'db';
     const val_html = `<div class="g-3"><span class="print_out">${dir_space}$</span> <span>${value}</span>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
 function warning(value) {
     const val_html = `<div class=" g-3">[<span class='red b'>!</span>] </code>${value}</code>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
 function g_print(value) {
     const val_html = `<div class=" g-3 green"><span> ${value}</span></div>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
 function e_print(value) {
     const val_html = `<div class=" g-3 red"><span> ${value}</span></div>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
 function y_print(value) {
     const val_html = `<div class=" g-3 yellow"><span> ${value}</span></div>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
 function c_print(value , custom) {
     const val_html = `<div class=" g-3"><span>${custom}</span> ${value}</div>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
 function u_print(value) {
     const val_html = `<div class=" g-3"><span class="prompt">${getPromptText()}</span> ${value}</div>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
@@ -338,13 +359,13 @@ function c_placeholder(value) {
 
 function qestion(value) {
     const val_html = `<div class=" g-3">[<span class='light-blue b'>?</span>] </code>${value}</code>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
 function tip_print(value) {
     const val_html = `<div class="g-3 tip-print">${value}</div>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
     return value;
 }
 
@@ -768,7 +789,7 @@ function timeLive() {
     const clockId = 'time-live-' + Date.now();
     const dir_space = directory ? directory : 'db';
     const val_html = `<div class="g-3" id="${clockId}"><span class="print_out">${dir_space}$</span> <span class="time-live-display">${new Date().toLocaleTimeString()}</span></div>`;
-    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    appendOutput(val_html);
 
     const display = document.querySelector(`#${clockId} .time-live-display`);
     if (display) {
@@ -1413,7 +1434,7 @@ function renderDbChoices(choices) {
     const html = choices.map((c, i) => {
         return `<div class="choice ${c.color || 'muted-teal'}" data-db-choice="${i}"> &gt; ${dbEscape(c.name)} <span class="db-dim">${dbEscape(c.flavor || '')}</span></div>`;
     }).join('');
-    db_ui.output.innerHTML += `<div class="choices db-choices" id="${listId}">${html}</div>`;
+    appendOutput(`<div class="choices db-choices" id="${listId}">${html}</div>`);
 
     let selected = 0;
     const root = () => document.getElementById(listId);
@@ -2311,7 +2332,7 @@ function setupInputListener() {
                 handleCommand(command);
                 db_ui.input.value = '';
                 db_ui.input.focus();
-                db_ui.input.scrollIntoView();
+                scrollOutputToBottom();
             }
         });
     }

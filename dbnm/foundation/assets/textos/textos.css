@@ -54,3 +54,43 @@
     color: #666;
     letter-spacing: 0.04em;
 }
+
+.tx-chat-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 0.25rem;
+}
+
+.tx-chat-prompt {
+    color: rgb(124, 182, 227);
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+.tx-chat-room {
+    color: rgb(81, 231, 211);
+    font-weight: bold;
+}
+
+.tx-chat-gt {
+    color: #7a7a7a;
+}
+
+.tx-chat-input {
+    outline: none;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: monospace;
+    font-size: 1rem;
+    width: 100%;
+    flex: 1;
+}
+
+.tx-chat-input::placeholder {
+    color: #555;
+}

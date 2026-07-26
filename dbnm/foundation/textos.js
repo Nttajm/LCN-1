@@ -53,6 +53,8 @@ let txDb = null;
 let txApp = null;
 let txUnsub = null;
 let txSession = null;
+let txChatBar = null;
+let txChatOnKey = null;
 let txLive = {
     roomId: null,
     roomName: null,
@@ -82,6 +84,16 @@ function txBox(lines) {
     print(`<div class="tx-panel">${rows}</div>`);
 }
 
+function txRaw(html) {
+    if (typeof appendOutput === 'function') {
+        appendOutput(`<div class="g-3">${html}</div>`);
+    } else if (db_ui.output) {
+        db_ui.output.innerHTML += `<div class="g-3">${html}</div>`;
+        if (typeof scrollOutputToBottom === 'function') scrollOutputToBottom();
+    }
+    return html;
+}
+
 function txHelp() {
     txBanner('session messaging · aes-256 sealed rooms');
     print('<span class="tx-dim">in textos shell — omit prefix on commands</span>');
@@ -94,8 +106,9 @@ function txHelp() {
     print('  <span class="light-blue">textos ls</span>                 list open rooms');
     print('  <span class="light-blue">textos leave</span>              disconnect');
     print('<span class="tx-dim">chat</span>');
-    print('  <span class="light-blue">textos send &lt;msg&gt;</span>         post to active room');
+    print('  <span class="light-blue">textos send &lt;msg&gt;</span>         post (or type in room › bar)');
     print('  <span class="light-blue">tx &lt;msg&gt;</span>                   shorthand send');
+    print('  <span class="tx-dim">in-room:</span> Enter sends · Esc|/leave exits · /key · /status');
     print('<span class="tx-dim">see-through</span>');
     print('  <span class="light-blue">textos key</span>                 set / clear local key');
     print('  <span class="light-blue">textos key &lt;secret|var&gt;</span>   set from text or global var');
@@ -112,9 +125,9 @@ function ensureTextosShape() {
     if (!t.deviceId) {
         t.deviceId = 'd' + Math.random().toString(36).slice(2, 10);
     }
-    if (!t.deviceName) {
-        t.deviceName = (userData.username || 'anon').trim() || 'anon';
-    }
+    const uname = (userData.username || '').trim();
+    if (uname) t.deviceName = uname;
+    else if (!t.deviceName) t.deviceName = 'anon';
     if (typeof t.setupShown !== 'boolean') t.setupShown = false;
     if (!t.boundDbId) t.boundDbId = null;
     if (t.seeThroughKey === undefined) t.seeThroughKey = null;
@@ -406,8 +419,10 @@ function renderTxChoices(choices) {
         return `<div class="choice ${c.color || 'muted-teal'}" data-tx-choice="${i}"> &gt; ${escapeHtml(c.name)} <span class="tx-dim">${escapeHtml(c.flavor || '')}</span></div>`;
     }).join('');
     db_ui.output.innerHTML += `<div class="choices tx-choices" id="${listId}">${html}</div>`;
+    if (typeof scrollOutputToBottom === 'function') scrollOutputToBottom();
 
     let selected = 0;
+    let armed = false;
     const root = () => document.getElementById(listId);
     const paint = () => {
         const el = root();
@@ -419,6 +434,11 @@ function renderTxChoices(choices) {
     paint();
 
     return new Promise((resolve) => {
+        const finish = (value) => {
+            document.removeEventListener('keydown', onChoice);
+            if (txSession) txSession.onChoice = null;
+            resolve(value);
+        };
         const onChoice = (e) => {
             const el = root();
             if (!el) return;
@@ -426,28 +446,37 @@ function renderTxChoices(choices) {
             if (!els.length) return;
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
+                e.stopPropagation();
                 selected = (selected + 1) % els.length;
                 paint();
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
+                e.stopPropagation();
                 selected = (selected - 1 + els.length) % els.length;
                 paint();
             } else if (e.key === 'Enter') {
+                if (!armed) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
                 e.preventDefault();
-                document.removeEventListener('keydown', onChoice);
-                if (txSession) txSession.onChoice = null;
-                resolve(choices[selected]);
+                e.stopPropagation();
+                finish(choices[selected]);
             } else if (e.key === 'Escape' || e.key === 'Backspace') {
                 e.preventDefault();
-                document.removeEventListener('keydown', onChoice);
-                if (txSession) txSession.onChoice = null;
-                resolve(null);
+                e.stopPropagation();
+                finish(null);
             }
         };
         if (txSession) txSession.onChoice = onChoice;
-        document.addEventListener('keydown', onChoice);
-        if (db_ui.input) db_ui.input.blur();
         warning('↑↓ move · Enter pick · Backspace/Esc bail');
+        if (db_ui.input) db_ui.input.blur();
+        // Defer attach + arm so the prior Enter (room name) cannot auto-pick.
+        setTimeout(() => {
+            document.addEventListener('keydown', onChoice);
+            setTimeout(() => { armed = true; }, 80);
+        }, 0);
     });
 }
 
@@ -461,6 +490,7 @@ function waitTxInput(label, placeholder) {
             }
             if (e.key !== 'Enter') return;
             e.preventDefault();
+            e.stopPropagation();
             const value = (db_ui.input?.value || '').trim();
             db_ui.input.value = '';
             db_ui.input.removeEventListener('keydown', onKey);
@@ -488,6 +518,7 @@ function showAscii(ascii) {
         : `<span class="red">asset not found: ${PKG.asciiPath}</span>`;
     if (db_ui.output) {
         db_ui.output.innerHTML += `<div class="tx-banner g-3">${body}</div>`;
+        if (typeof scrollOutputToBottom === 'function') scrollOutputToBottom();
     }
 }
 
@@ -577,6 +608,7 @@ function slugRoom(name) {
 }
 
 function stopLive() {
+    tearDownChatBar();
     if (txUnsub) {
         txUnsub();
         txUnsub = null;
@@ -589,8 +621,7 @@ function stopLive() {
 
 function printMessage(msg, opts) {
     const t = ensureTextosShape();
-    const mine = msg.fromId === t.deviceId;
-    const from = mine ? 'you' : (msg.from || 'anon');
+    const from = msg.from || t.deviceName || (userData.username || '').trim() || 'anon';
     const time = msg.ts
         ? new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
         : '--:--:--';
@@ -605,7 +636,7 @@ function printMessage(msg, opts) {
             cls += ' locked';
         }
     }
-    print(`<div class="${cls}"><span class="tx-time">${escapeHtml(time)}</span> <span class="tx-from">${escapeHtml(from)}</span> <span class="tx-body">${escapeHtml(body)}</span></div>`);
+    txRaw(`<div class="${cls}"><span class="tx-time">${escapeHtml(time)}</span> <span class="tx-from">${escapeHtml(from)}</span> <span class="tx-body">${escapeHtml(body)}</span></div>`);
 }
 
 async function decodeMessageBody(msg) {
@@ -622,11 +653,16 @@ async function decodeMessageBody(msg) {
 
 async function startLive(roomId, roomMeta) {
     await ensureTxFirebase();
-    stopLive();
+    // Tear subscription/chat without clearing the room we're about to enter.
+    tearDownChatBar();
+    if (txUnsub) {
+        txUnsub();
+        txUnsub = null;
+    }
+    txLive.seen = new Set();
     txLive.roomId = roomId;
     txLive.roomName = roomMeta?.name || roomId;
     txLive.sealed = !!roomMeta?.sealed;
-    txLive.seen = new Set();
 
     const t = ensureTextosShape();
     t.activeRoomId = roomId;
@@ -663,9 +699,10 @@ async function startLive(roomId, roomMeta) {
     g_print(`joined <span class="light-blue">${escapeHtml(txLive.roomName)}</span> <span class="tx-dim">${escapeHtml(roomId)}</span>`);
     if (txLive.sealed) {
         if (t.seeThroughKey) tip_print('see-through key loaded — sealed messages will decrypt');
-        else tip_print('room is sealed — set key with textos key');
+        else tip_print('room is sealed — set key with /key');
     }
-    tip_print('textos send &lt;msg&gt;  ·  tx &lt;msg&gt;  ·  textos leave');
+    tip_print('type to chat · /leave exits');
+    showChatBar();
 }
 
 async function createRoom(name, keyInfo) {
@@ -769,7 +806,7 @@ async function sendMessage(text) {
     let sealed = false;
     if (txLive.sealed) {
         if (!t.seeThroughKey) {
-            e_print('room sealed — set key first: textos key');
+            e_print('room sealed — set key first: /key');
             return;
         }
         body = await sealText(msg, t.seeThroughKey);
@@ -805,6 +842,102 @@ function leaveRoom() {
     t.activeRoomId = null;
     saveTextos();
     y_print(`left <span class="light-blue">${escapeHtml(name)}</span>`);
+    enterTextosShell(true);
+}
+
+function getShellCont() {
+    return document.querySelector('.js_cont');
+}
+
+function tearDownChatBar() {
+    if (txChatOnKey && txChatBar?.input) {
+        txChatBar.input.removeEventListener('keydown', txChatOnKey);
+    }
+    txChatOnKey = null;
+    if (txChatBar?.el && txChatBar.el.parentNode) {
+        txChatBar.el.parentNode.removeChild(txChatBar.el);
+    }
+    txChatBar = null;
+    const shell = getShellCont();
+    if (shell) shell.style.display = '';
+    if (db_ui.input) db_ui.input.focus();
+    if (typeof updatePromptDisplay === 'function') updatePromptDisplay();
+}
+
+async function handleChatSlash(raw) {
+    const parts = raw.slice(1).trim().split(/\s+/);
+    const cmd = (parts[0] || '').toLowerCase();
+    if (cmd === 'leave' || cmd === 'exit' || cmd === 'q') {
+        leaveRoom();
+        return;
+    }
+    if (cmd === 'status' || cmd === 'info') {
+        showStatus();
+        return;
+    }
+    if (cmd === 'key' || cmd === 'seal') {
+        const rest = parts.slice(1).join(' ').trim() || null;
+        const shell = getShellCont();
+        if (shell) shell.style.display = '';
+        if (txChatBar?.el) txChatBar.el.style.display = 'none';
+        await keyCommand(rest);
+        if (txLive.roomId) {
+            if (shell) shell.style.display = 'none';
+            if (txChatBar?.el) {
+                txChatBar.el.style.display = '';
+                txChatBar.input.focus();
+            } else {
+                showChatBar();
+            }
+        }
+        return;
+    }
+    tip_print('/leave · /status · /key');
+}
+
+function showChatBar() {
+    tearDownChatBar();
+    const shell = getShellCont();
+    if (shell) shell.style.display = 'none';
+
+    const roomLabel = txLive.roomName || txLive.roomId || 'room';
+    const el = document.createElement('div');
+    el.id = 'tx-chat-bar';
+    el.className = 'tx-chat-bar';
+    el.innerHTML = `
+        <span class="tx-chat-prompt"><span class="tx-chat-room">${escapeHtml(roomLabel)}</span> <span class="tx-chat-gt">›</span></span>
+        <input type="text" class="tx-chat-input" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="message · /leave" />
+    `;
+    document.body.appendChild(el);
+    const input = el.querySelector('.tx-chat-input');
+    txChatBar = { el, input };
+
+    const onKey = async (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            leaveRoom();
+            return;
+        }
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        e.stopPropagation();
+        const value = (input.value || '').trim();
+        input.value = '';
+        if (!value) return;
+        if (value.startsWith('/')) {
+            await handleChatSlash(value);
+            return;
+        }
+        try {
+            await sendMessage(value);
+        } catch (err) {
+            e_print(err.message || String(err));
+        }
+        if (txChatBar?.input) txChatBar.input.focus();
+    };
+    txChatOnKey = onKey;
+    input.addEventListener('keydown', onKey);
+    input.focus();
 }
 
 function showStatus() {
