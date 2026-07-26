@@ -1,7 +1,9 @@
 let ps_use = 'main'; // use in case using a different os.
 let last_selected = null;
+let timeLiveInterval = null;
 
 const commandHandlers = {};
+const pkgContentsMap = {};
 let awaiting = false;
 let awaiting_cmd = null;
 let directory = null;
@@ -18,10 +20,82 @@ let userData = storedUserData || {
     suggestions: suggestionsEnabled,
     OS_USE_ARRAY: [
         'dbnm.lcnjoel',
-    ]
+    ],
+    vars: {},
+    databases: null,
+    pakeger: {
+        keys: [],
+        clipPref: 'ask'
+    }
 };
 
 if (typeof userData.suggestions === 'undefined') userData.suggestions = suggestionsEnabled;
+
+function ensureUserDataShape() {
+    if (!userData.vars || typeof userData.vars !== 'object') userData.vars = {};
+    if (!userData.pakeger || typeof userData.pakeger !== 'object') {
+        userData.pakeger = { keys: [], clipPref: 'ask' };
+    }
+    if (!Array.isArray(userData.pakeger.keys)) userData.pakeger.keys = [];
+    if (!userData.pakeger.clipPref) userData.pakeger.clipPref = 'ask';
+}
+
+function migrateLegacyStorage() {
+    let changed = false;
+    const legacyVars = localStorage.getItem('dbnm_vars');
+    const legacyDb = localStorage.getItem('dbnm_databases');
+    const legacyPak = localStorage.getItem('dbnm_pakeger_keys');
+    const legacyClip = localStorage.getItem('dbnm_pakeger_clip_pref');
+
+    if (legacyVars) {
+        try {
+            const parsed = JSON.parse(legacyVars);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                userData.vars = { ...parsed, ...userData.vars };
+            }
+        } catch (_) { /* ignore */ }
+        localStorage.removeItem('dbnm_vars');
+        changed = true;
+    }
+    if (legacyDb) {
+        try {
+            const parsed = JSON.parse(legacyDb);
+            if (parsed && typeof parsed === 'object') userData.databases = parsed;
+        } catch (_) { /* ignore */ }
+        localStorage.removeItem('dbnm_databases');
+        changed = true;
+    }
+    if (legacyPak) {
+        try {
+            const parsed = JSON.parse(legacyPak);
+            if (Array.isArray(parsed) && !userData.pakeger.keys.length) {
+                userData.pakeger.keys = parsed;
+            }
+        } catch (_) { /* ignore */ }
+        localStorage.removeItem('dbnm_pakeger_keys');
+        changed = true;
+    }
+    if (legacyClip) {
+        userData.pakeger.clipPref = legacyClip;
+        localStorage.removeItem('dbnm_pakeger_clip_pref');
+        changed = true;
+    }
+    return changed;
+}
+
+function saveData() {
+    userData.suggestions = !!suggestionsEnabled;
+    localStorage.setItem('dbnm_userData', JSON.stringify(userData));
+}
+
+ensureUserDataShape();
+if (migrateLegacyStorage()) saveData();
+
+window.userData = userData;
+window.saveData = saveData;
+
+let dbnm_vars = userData.vars;
+window.dbnm_vars = dbnm_vars;
 
 let module_meta = [
     {
@@ -33,6 +107,9 @@ let module_meta = [
         systemFileName: 'Main directoy'
     }
 ];
+
+let gloabl_vars = {
+};
 
 const db_info = {
     v: versionII,
@@ -81,15 +158,22 @@ const db_ui = {
     loaders: [],
 };
 
+function getPromptText() {
+    const name = (userData.username || '').trim();
+    return name ? `${name} $` : '> $';
+}
+
+function updatePromptDisplay() {
+    const promptElem = document.querySelector('.prompt');
+    if (promptElem) promptElem.textContent = getPromptText();
+}
+
 // Initialize UI
 function initializeUI() {
     if (db_ui.input && db_ui.output) {
         renderInitialInfo();
-        serverInit()
-        const promptElem = document.querySelector('.prompt');
-        if (userData.username) {
-            promptElem.textContent = `${userData.username || ''} ~ $`;
-        }
+        serverInit();
+        updatePromptDisplay();
     } else {
         print('pre-x UI not available');
         return false;
@@ -113,6 +197,7 @@ function initSystemMeta() {
         userData.sessionId = generateSessionId();
         saveData();
     }
+    ensureUtilIndices();
 }
 
 function makeLoader(index) {
@@ -190,7 +275,7 @@ function c_print(value , custom) {
 }
 
 function u_print(value) {
-    const val_html = `<div class=" g-3"><span class="prompt">${userData.username || ''} ~ $</span> ${value}</div>`;
+    const val_html = `<div class=" g-3"><span class="prompt">${getPromptText()}</span> ${value}</div>`;
     if (db_ui.output) db_ui.output.innerHTML += val_html;
     return value;
 }
@@ -212,16 +297,30 @@ function qestion(value) {
     return value;
 }
 
+function tip_print(value) {
+    const val_html = `<div class="g-3 tip-print">${value}</div>`;
+    if (db_ui.output) db_ui.output.innerHTML += val_html;
+    return value;
+}
+
 // Parse Commands
+let unawaitTimer = null;
+
 function _await(value) {
+    if (unawaitTimer) {
+        clearTimeout(unawaitTimer);
+        unawaitTimer = null;
+    }
     awaiting = true;
     awaiting_cmd = value || null;
 }
 
 function unawait() {
-    setTimeout(() => {
+    if (unawaitTimer) clearTimeout(unawaitTimer);
+    unawaitTimer = setTimeout(() => {
         awaiting = false;
         awaiting_cmd = null;
+        unawaitTimer = null;
     }, 300);
 }
 
@@ -571,6 +670,10 @@ _reg('calc', (_, cmd_split) => {
 });
 
 _reg('x', () => {
+    if (timeLiveInterval) {
+        clearInterval(timeLiveInterval);
+        timeLiveInterval = null;
+    }
     if (db_ui.output) db_ui.output.innerHTML = '';
 });
 
@@ -586,7 +689,8 @@ _reg('exit', () => {
 });
 
 _reg('hello', () => {
-    if (db_ui.output) print('hello!');
+    g_print('hello!');
+    tip_print('more help → <a href="https://lcnjoel.com/dbnm/docs" target="_blank" rel="noopener noreferrer" class="light-blue u">lcnjoel.com/dbnm/docs</a>');
 });
 
 _reg('cd', (_, cmd_split) => {
@@ -614,12 +718,37 @@ _reg('r', () => {
     window.location.reload();
 });
 
+function timeLive() {
+    if (timeLiveInterval) {
+        clearInterval(timeLiveInterval);
+        timeLiveInterval = null;
+    }
+
+    const clockId = 'time-live-' + Date.now();
+    const dir_space = directory ? directory : 'db';
+    const val_html = `<div class="g-3" id="${clockId}"><span class="print_out">${dir_space}$</span> <span class="time-live-display">${new Date().toLocaleTimeString()}</span></div>`;
+    if (db_ui.output) db_ui.output.innerHTML += val_html;
+
+    const display = document.querySelector(`#${clockId} .time-live-display`);
+    if (display) {
+        timeLiveInterval = setInterval(() => {
+            display.textContent = new Date().toLocaleTimeString();
+        }, 1000);
+    }
+}
+
 _reg('time', (_, cmd_split) => {
     if (cmd_split[1] === 'full') {
         print(new Date().toLocaleString());
+    } else if (cmd_split[1] === 'live') {
+        timeLive();
     } else {
         print(new Date().toLocaleTimeString());
     }
+});
+
+_reg('time.live', () => {
+    timeLive();
 });
 
 _reg('url', (_, cmd_split) => {
@@ -643,10 +772,1008 @@ _reg('svr', (_, cmd_split) => {
     }
 });
 
+/* ── database manager ───────────────────────────────────────── */
+(function loadDatabaseStyles() {
+    if (document.getElementById('dbmgr-style')) return;
+    const style = document.createElement('style');
+    style.id = 'dbmgr-style';
+    style.textContent = `
+        .db-dim { color: #7a7a7a; }
+        .db-panel {
+            border: 1px solid #333;
+            border-radius: 2px;
+            padding: 0.5rem 0.65rem;
+            margin: 0.35rem 0;
+            background: rgba(255,255,255,0.02);
+        }
+        .db-choices .choice { cursor: pointer; }
+        .db-ok { color: rgb(91, 202, 91); }
+    `;
+    document.head.appendChild(style);
+})();
+
+const DB_EXTERNAL_PROVIDERS = {
+    firebase: {
+        type: 'firebase',
+        label: 'Firebase',
+        configKey: 'firebaseConfig',
+        keys: ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId', 'databaseURL'],
+        hint: 'Firebase console → project settings',
+        placeholder: '{ apiKey: "…", projectId: "…" }',
+        parseFail: 'expected apiKey, authDomain, projectId, …',
+        color: 'yellow',
+        flavor: 'Google BaaS · paste config snippet',
+        aliases: ['firebase', 'fb', 'paste', 'config']
+    },
+    supabase: {
+        type: 'supabase',
+        label: 'Supabase',
+        configKey: 'supabaseConfig',
+        keys: ['url', 'anonKey', 'supabaseUrl', 'supabaseKey', 'serviceRoleKey', 'projectUrl'],
+        hint: 'Supabase → Project Settings → API · URL + anon key',
+        placeholder: '{ url: "https://xxx.supabase.co", anonKey: "…" }',
+        parseFail: 'expected url (or supabaseUrl) and anonKey',
+        color: 'green',
+        flavor: 'Postgres BaaS · paste API keys',
+        aliases: ['supabase', 'sb']
+    },
+    mongodb: {
+        type: 'mongodb',
+        label: 'MongoDB Atlas',
+        configKey: 'mongodbConfig',
+        keys: ['connectionString', 'uri', 'mongodbUri', 'database', 'dbName'],
+        hint: 'Atlas → Connect → copy connection string',
+        placeholder: 'mongodb+srv://user:pass@cluster.mongodb.net/mydb',
+        parseFail: 'expected mongodb:// or mongodb+srv:// URI',
+        color: 'muted-teal',
+        flavor: 'document DB · paste connection URI',
+        aliases: ['mongodb', 'mongo', 'atlas']
+    },
+    appwrite: {
+        type: 'appwrite',
+        label: 'Appwrite',
+        configKey: 'appwriteConfig',
+        keys: ['endpoint', 'projectId', 'project', 'project_id', 'apiKey'],
+        hint: 'Appwrite console → project · endpoint + project ID',
+        placeholder: '{ endpoint: "https://cloud.appwrite.io/v1", projectId: "…" }',
+        parseFail: 'expected endpoint and projectId',
+        color: 'coral',
+        flavor: 'open-source BaaS · paste project config',
+        aliases: ['appwrite', 'aw']
+    }
+};
+const DB_EXTERNAL_BY_TYPE = Object.fromEntries(
+    Object.values(DB_EXTERNAL_PROVIDERS).map(p => [p.type, p])
+);
+const DB_DEFAULT_SERVER = {
+    type: 'foundation',
+    label: 'LCN Foundation Server',
+    desc: 'free to use · foundationServer.js'
+};
+
+function emptyServerBinding() {
+    return { type: 'none', label: 'Not connected' };
+}
+
+function isServerConnected(entry) {
+    return !!(entry?.server && entry.server.type && entry.server.type !== 'none');
+}
+
+let dbSession = null;
+
+function dbEscape(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function defaultDatabasesState() {
+    const id = 'default';
+    return {
+        active: id,
+        items: {
+            [id]: {
+                id,
+                name: 'default',
+                createdAt: Date.now(),
+                server: emptyServerBinding(),
+                vars: {}
+            }
+        }
+    };
+}
+
+function loadDatabases() {
+    try {
+        const raw = userData.databases;
+        if (raw && raw.items && typeof raw.items === 'object') {
+            if (!raw.active || !raw.items[raw.active]) {
+                const first = Object.keys(raw.items)[0];
+                raw.active = first || null;
+            }
+            return raw;
+        }
+    } catch (_) { /* fall through */ }
+    const def = defaultDatabasesState();
+    userData.databases = def;
+    return def;
+}
+
+let databases = loadDatabases();
+window.databases = databases;
+syncServerVars();
+
+function syncServerVars() {
+    const active = getActiveDatabase();
+    if (!active) {
+        window.server_vars = {};
+        return;
+    }
+    const out = { ...(active.vars || {}) };
+    if (active.server?.type === 'global_vars' && out.varKey) {
+        const globalStore = window.dbnm_vars || {};
+        const linked = globalStore[out.varKey];
+        out.linkedVar = out.varKey;
+        out.linkedValue = linked;
+        if (linked !== undefined && linked !== null && typeof linked === 'object' && !Array.isArray(linked)) {
+            out.firebaseConfig = linked;
+        }
+    }
+    window.server_vars = out;
+}
+
+function saveDatabases() {
+    userData.databases = databases;
+    window.databases = databases;
+    syncServerVars();
+    saveData();
+}
+
+function getActiveDatabase() {
+    if (!databases.active || !databases.items[databases.active]) return null;
+    return databases.items[databases.active];
+}
+
+function listDatabaseEntries() {
+    return Object.values(databases.items || {}).sort((a, b) =>
+        (a.createdAt || 0) - (b.createdAt || 0)
+    );
+}
+
+function resolveDatabaseRef(ref) {
+    if (ref === undefined || ref === null || ref === '') return null;
+    const raw = String(ref).trim();
+    if (!isNaN(raw) && raw !== '') {
+        const idx = parseInt(raw, 10);
+        const list = listDatabaseEntries();
+        return list[idx] || null;
+    }
+    const key = raw.toLowerCase();
+    return listDatabaseEntries().find(d =>
+        d.id === raw || d.name.toLowerCase() === key
+    ) || null;
+}
+
+function slugDatabaseName(name) {
+    const base = String(name || 'db')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'db';
+    let id = base;
+    let n = 2;
+    while (databases.items[id]) {
+        id = `${base}-${n++}`;
+    }
+    return id;
+}
+
+function formatVarValue(value) {
+    if (value !== null && typeof value === 'object') {
+        return `<span class="muted-teal">{object}</span> ${dbEscape(JSON.stringify(value))}`;
+    }
+    return dbEscape(String(value));
+}
+
+function dbBanner(subtitle) {
+    print('<br><span class="muted-teal b">database</span> <span class="db-dim">manager</span>');
+    if (subtitle) print(`<span class="db-dim">${subtitle}</span>`);
+    print('<span class="db-dim">────────────────────────────────</span>');
+}
+
+function dbHelp() {
+    dbBanner('global databases · server binding');
+    print('<span class="db-dim">select</span>');
+    print('  <span class="light-blue">database list</span>                 list databases');
+    print('  <span class="light-blue">database create &lt;name&gt;</span>         create and select');
+    print('  <span class="light-blue">database select &lt;name|index&gt;</span>   set active database');
+    print('  <span class="light-blue">database use &lt;name|index&gt;</span>      alias for select');
+    print('  <span class="light-blue">database status</span>               active database summary');
+    print('  <span class="light-blue">database rm &lt;name|index&gt;</span>       remove a database');
+    print('<span class="db-dim">server</span>');
+    print('  <span class="light-blue">database server</span>               choose server type');
+    print('  <span class="light-blue">database server info</span>          show bound server');
+    print('  <span class="light-blue">database server firebase</span>      paste Firebase config');
+    print('  <span class="light-blue">database server supabase</span>      paste Supabase URL + anon key');
+    print('  <span class="light-blue">database server mongodb</span>       paste MongoDB Atlas URI');
+    print('  <span class="light-blue">database server appwrite</span>      paste Appwrite endpoint + project');
+    print('  <span class="light-blue">database server global &lt;key&gt;</span>   link a dbnm var as server config');
+    print('  <span class="light-blue">database server default</span>       connect LCN foundation server · free');
+    print('  <span class="light-blue">database server foundation</span>    alias for default');
+    print('<span class="db-dim">server vars</span>');
+    print('  <span class="light-blue">database var</span>                  read linked server var');
+    print('  <span class="light-blue">database var &lt;key&gt; &lt;value&gt;</span>    set linked var (via var key)');
+    print('  <span class="light-blue">database var &lt;key&gt; delete</span>     remove linked var');
+    print('  <span class="db-dim">object values allowed (e.g. firebaseConfig)</span>');
+    tip_print('aliases: db · dbmgr');
+}
+
+function dbStatus() {
+    const active = getActiveDatabase();
+    const count = listDatabaseEntries().length;
+    dbBanner('status');
+    if (!active) {
+        print('<span class="db-dim">no active database</span>');
+        tip_print('database create &lt;name&gt;');
+        return;
+    }
+    const serverLabel = isServerConnected(active)
+        ? (active.server.label || active.server.type)
+        : 'not connected';
+    const rows = [
+        `<span class="muted-teal">│</span> <span class="db-dim">active</span>  <span class="light-blue b">${dbEscape(active.name)}</span>`,
+        `<span class="muted-teal">│</span> <span class="db-dim">id</span>      <span class="db-dim">${dbEscape(active.id)}</span>`,
+        `<span class="muted-teal">│</span> <span class="db-dim">server</span>  <span class="${isServerConnected(active) ? 'yellow' : 'db-dim'}">${dbEscape(serverLabel)}</span>`,
+        ...(isServerConnected(active) && active.server?.desc ? [`<span class="muted-teal">│</span> <span class="db-dim">note</span>    <span class="db-dim">${dbEscape(active.server.desc)}</span>`] : []),
+        `<span class="muted-teal">│</span> <span class="db-dim">vars</span>    <span class="muted-teal">${Object.keys(active.vars || {}).length}</span>`,
+        `<span class="muted-teal">│</span> <span class="db-dim">total</span>   <span class="muted-teal">${count} database${count === 1 ? '' : 's'}</span>`
+    ];
+    print(`<div class="db-panel"><div><span class="muted-teal">┌</span> session</div>${rows.map(r => `<div>${r}</div>`).join('')}<div><span class="muted-teal">└</span></div></div>`);
+    tip_print(isServerConnected(active) ? 'database server  ·  database var' : 'database server  — connect a server source');
+}
+
+function dbList() {
+    const list = listDatabaseEntries();
+    if (!list.length) {
+        print('No databases.');
+        tip_print('database create &lt;name&gt;');
+        return;
+    }
+    const pad = Math.max(...list.map(d => d.name.length));
+    let out = `<br><span class="muted-teal">${list.length} database${list.length === 1 ? '' : 's'}</span>`;
+    list.forEach((d, i) => {
+        const mark = d.id === databases.active
+            ? ' <span class="db-ok">●</span>'
+            : ' <span class="db-dim">○</span>';
+        const srv = isServerConnected(d)
+            ? (d.server.label || d.server.type)
+            : 'not connected';
+        out += `<br><span class="muted-teal">${i}.</span> <span class="light-blue">${dbEscape(d.name.padEnd(pad))}</span>${mark} <span class="db-dim">${dbEscape(srv)}</span>`;
+    });
+    print(out);
+    tip_print('database select &lt;name|index&gt;');
+}
+
+function dbCreate(name) {
+    if (!name) {
+        e_print('Usage: database create <name>');
+        return;
+    }
+    const id = slugDatabaseName(name);
+    databases.items[id] = {
+        id,
+        name: String(name).trim(),
+        createdAt: Date.now(),
+        server: emptyServerBinding(),
+        vars: {}
+    };
+    databases.active = id;
+    saveDatabases();
+    g_print(`created <span class="light-blue">${dbEscape(databases.items[id].name)}</span> <span class="db-dim">· selected</span>`);
+}
+
+function dbSelect(ref) {
+    const entry = resolveDatabaseRef(ref);
+    if (!entry) {
+        e_print(`Database not found: ${ref}`);
+        return;
+    }
+    databases.active = entry.id;
+    saveDatabases();
+    g_print(`selected <span class="light-blue">${dbEscape(entry.name)}</span>`);
+}
+
+function dbRemove(ref) {
+    const entry = resolveDatabaseRef(ref);
+    if (!entry) {
+        e_print(`Database not found: ${ref}`);
+        return;
+    }
+    if (Object.keys(databases.items).length === 1) {
+        e_print('Cannot remove the last database.');
+        return;
+    }
+    delete databases.items[entry.id];
+    if (databases.active === entry.id) {
+        databases.active = Object.keys(databases.items)[0];
+    }
+    saveDatabases();
+    y_print(`removed <span class="light-blue">${dbEscape(entry.name)}</span>`);
+    if (databases.active) {
+        tip_print(`active → ${databases.items[databases.active].name}`);
+    }
+}
+
+function resolveExternalProviderId(ref) {
+    const key = String(ref || '').toLowerCase();
+    if (DB_EXTERNAL_PROVIDERS[key]) return key;
+    for (const [id, def] of Object.entries(DB_EXTERNAL_PROVIDERS)) {
+        if (def.aliases.includes(key)) return id;
+    }
+    return null;
+}
+
+function pickConfigFields(obj, keys) {
+    const out = {};
+    keys.forEach((k) => {
+        if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
+            out[k] = String(obj[k]);
+        }
+    });
+    return out;
+}
+
+function parseConfigPairs(text, keys) {
+    const cfg = {};
+    const pairRe = /(?:["']?)([a-zA-Z][a-zA-Z0-9_]*)(?:["']?)\s*[:=]\s*(?:["']([^"']*)["']|([^\s,;}\n]+))/g;
+    let m;
+    while ((m = pairRe.exec(text)) !== null) {
+        const key = m[1];
+        const val = m[2] !== undefined ? m[2] : m[3];
+        if (keys.includes(key)) cfg[key] = val;
+    }
+    return cfg;
+}
+
+function normalizeExternalConfig(providerId, raw, text) {
+    const picked = pickConfigFields(raw, DB_EXTERNAL_PROVIDERS[providerId].keys);
+    if (providerId === 'firebase') {
+        return Object.keys(picked).length ? picked : null;
+    }
+    if (providerId === 'supabase') {
+        const url = picked.url || picked.supabaseUrl || picked.projectUrl || raw.url || raw.supabaseUrl;
+        const anonKey = picked.anonKey || picked.supabaseKey || raw.anonKey || raw.supabaseKey;
+        const out = {};
+        if (url) out.url = String(url);
+        if (anonKey) out.anonKey = String(anonKey);
+        if (picked.serviceRoleKey) out.serviceRoleKey = picked.serviceRoleKey;
+        return (out.url && out.anonKey) ? out : null;
+    }
+    if (providerId === 'mongodb') {
+        const trimmed = String(text || '').trim();
+        if (trimmed.startsWith('mongodb://') || trimmed.startsWith('mongodb+srv://')) {
+            return { connectionString: trimmed };
+        }
+        const cs = picked.connectionString || picked.uri || picked.mongodbUri || raw.connectionString || raw.uri;
+        if (!cs) return null;
+        const out = { connectionString: String(cs) };
+        const db = picked.database || picked.dbName || raw.database || raw.dbName;
+        if (db) out.database = String(db);
+        return out;
+    }
+    if (providerId === 'appwrite') {
+        const endpoint = picked.endpoint || raw.endpoint || raw.host;
+        const projectId = picked.projectId || picked.project || picked.project_id || raw.projectId || raw.project;
+        const out = {};
+        if (endpoint) out.endpoint = String(endpoint);
+        if (projectId) out.projectId = String(projectId);
+        if (picked.apiKey || raw.apiKey) out.apiKey = String(picked.apiKey || raw.apiKey);
+        return (out.endpoint && out.projectId) ? out : null;
+    }
+    return Object.keys(picked).length ? picked : null;
+}
+
+function parseExternalConfigText(raw, providerId) {
+    const def = DB_EXTERNAL_PROVIDERS[providerId];
+    if (!def) return null;
+    const text = String(raw || '').trim();
+    if (!text) return null;
+
+    if (providerId === 'mongodb' && (text.startsWith('mongodb://') || text.startsWith('mongodb+srv://'))) {
+        return normalizeExternalConfig(providerId, {}, text);
+    }
+
+    try {
+        const asJson = JSON.parse(text);
+        if (asJson && typeof asJson === 'object' && !Array.isArray(asJson)) {
+            const normalized = normalizeExternalConfig(providerId, asJson, text);
+            if (normalized) return normalized;
+        }
+    } catch (_) { /* continue */ }
+
+    const pairs = parseConfigPairs(text, def.keys);
+    return normalizeExternalConfig(providerId, pairs, text);
+}
+
+function printConfigTree(label, config) {
+    print(`<span class="db-dim">${dbEscape(label)}</span>`);
+    Object.keys(config).forEach((k, i, arr) => {
+        const branch = i === arr.length - 1 ? '└─' : '├─';
+        print(`<span class="yellow">${branch}</span> <span class="light-blue">${k}</span> <span class="db-dim">${dbEscape(config[k])}</span>`);
+    });
+}
+
+function setServerExternal(providerId, config) {
+    const def = DB_EXTERNAL_PROVIDERS[providerId];
+    if (!def) return;
+    if (!config || !Object.keys(config).length) {
+        e_print(`${def.label} requires a config. Use: database server ${providerId}`);
+        return;
+    }
+    applyServerBinding(def.type, def.label, {
+        provider: def.type,
+        [def.configKey]: config
+    });
+    const active = getActiveDatabase();
+    if (active) {
+        active.server.desc = def.hint;
+        saveDatabases();
+    }
+    printConfigTree(def.configKey, config);
+}
+
+function parseFirebaseConfigText(raw) {
+    return parseExternalConfigText(raw, 'firebase');
+}
+
+function endDbSession() {
+    if (dbSession?.onKey) {
+        db_ui.input.removeEventListener('keydown', dbSession.onKey);
+    }
+    if (dbSession?.onChoice) {
+        document.removeEventListener('keydown', dbSession.onChoice);
+    }
+    dbSession = null;
+    c_placeholder('');
+    unawait();
+}
+
+function applyServerBinding(type, label, extraVars) {
+    const active = getActiveDatabase();
+    if (!active) {
+        e_print('No active database. Create one first.');
+        return false;
+    }
+    active.server = { type, label };
+    if (type === DB_DEFAULT_SERVER.type) {
+        active.server.desc = DB_DEFAULT_SERVER.desc;
+    } else if (type === 'global_vars' && extraVars?.varKey) {
+        active.server.desc = `dbnm_vars.${extraVars.varKey}`;
+    } else if (type !== 'none') {
+        delete active.server.desc;
+    }
+    active.vars = active.vars || {};
+    if (extraVars && typeof extraVars === 'object') {
+        Object.keys(extraVars).forEach((k) => {
+            active.vars[k] = extraVars[k];
+        });
+    }
+    active.vars.__serverType = type;
+    saveDatabases();
+    g_print(`server → <span class="yellow">${dbEscape(label)}</span> <span class="db-dim">on</span> <span class="light-blue">${dbEscape(active.name)}</span>`);
+    return true;
+}
+
+function setServerFirebase(config) {
+    setServerExternal('firebase', config);
+}
+
+function setServerGlobalVars(varKey) {
+    const key = String(varKey || '').trim();
+    if (!key) {
+        e_print('Usage: database server global <varKey>');
+        return false;
+    }
+    applyServerBinding('global_vars', `Global vars · ${key}`, {
+        provider: 'global_vars',
+        link: 'dbnm_vars',
+        varKey: key
+    });
+    const linked = (window.dbnm_vars || {})[key];
+    if (linked !== undefined) {
+        print(`<span class="db-dim">linked</span>  <span class="light-blue">${dbEscape(key)}</span> ${formatVarValue(linked)}`);
+    } else {
+        tip_print(`var ${key} &lt;value&gt;  — create the linked var`);
+    }
+    return true;
+}
+
+function startGlobalVarPick() {
+    endDbSession();
+    _await('database');
+    dbSession = { step: 'globalVar' };
+    dbBanner('global vars · pick var key');
+    const keys = Object.keys(window.dbnm_vars || {});
+    if (keys.length) {
+        print(`<span class="db-dim">existing:</span> ${keys.map(k => `<span class="light-blue">${dbEscape(k)}</span>`).join(' · ')}`);
+    } else {
+        print('<span class="db-dim">no dbnm vars yet — name one to create when you set a value</span>');
+    }
+    print('<span class="db-dim">Enter var name · empty line cancels</span>');
+    qestion('var key');
+    c_placeholder('firebaseConfig');
+
+    const onKey = (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const value = (db_ui.input?.value || '').trim();
+        db_ui.input.value = '';
+        if (!value) {
+            y_print('cancelled');
+            endDbSession();
+            return;
+        }
+        setServerGlobalVars(value);
+        endDbSession();
+    };
+    dbSession.onKey = onKey;
+    db_ui.input.addEventListener('keydown', onKey);
+    if (db_ui.input) db_ui.input.focus();
+}
+
+async function loadFoundationServerFile() {
+    if (window.foundationServer) return window.foundationServer;
+    return new Promise((resolve) => {
+        const tag = document.createElement('script');
+        tag.src = 'foundation/foundationServer.js?v=' + Date.now();
+        tag.async = true;
+        tag.onload = () => resolve(window.foundationServer || null);
+        tag.onerror = () => resolve(null);
+        document.body.appendChild(tag);
+    });
+}
+
+async function applyFoundationServerBinding(bindingType, label) {
+    const fs = await loadFoundationServerFile();
+    if (!fs || !fs.server) {
+        e_print('LCN foundation server unavailable (foundation/foundationServer.js)');
+        return false;
+    }
+    const vars = { ...(fs.server.vars || {}) };
+    vars.provider = 'foundation';
+    vars.source = 'foundation/foundationServer.js';
+    vars.tier = 'free';
+    applyServerBinding(bindingType, label, vars);
+    const keys = Object.keys(vars);
+    print(`<span class="db-dim">${keys.length} server var${keys.length === 1 ? '' : 's'} written</span>`);
+    keys.forEach((k, i) => {
+        const branch = i === keys.length - 1 ? '└─' : '├─';
+        print(`<span class="yellow">${branch}</span> <span class="light-blue">${dbEscape(k)}</span> ${formatVarValue(vars[k])}`);
+    });
+    return true;
+}
+
+async function setServerDefault() {
+    y_print('loading LCN foundation server…');
+    const ok = await applyFoundationServerBinding(DB_DEFAULT_SERVER.type, DB_DEFAULT_SERVER.label);
+    if (ok) {
+        print(`<span class="db-dim">${DB_DEFAULT_SERVER.desc}</span>`);
+        tip_print('shared LCN foundation server · no setup required');
+    }
+}
+
+async function setServerFoundation() {
+    await setServerDefault();
+}
+
+function renderDbChoices(choices) {
+    const listId = `db-choices-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const html = choices.map((c, i) => {
+        return `<div class="choice ${c.color || 'muted-teal'}" data-db-choice="${i}"> &gt; ${dbEscape(c.name)} <span class="db-dim">${dbEscape(c.flavor || '')}</span></div>`;
+    }).join('');
+    db_ui.output.innerHTML += `<div class="choices db-choices" id="${listId}">${html}</div>`;
+
+    let selected = 0;
+    const root = () => document.getElementById(listId);
+    const paint = () => {
+        const el = root();
+        if (!el) return;
+        el.querySelectorAll('.choice').forEach((node, i) => {
+            node.classList.toggle('selected', i === selected);
+        });
+    };
+    paint();
+
+    return new Promise((resolve) => {
+        const onChoice = (e) => {
+            const el = root();
+            if (!el) return;
+            const els = el.querySelectorAll('.choice');
+            if (!els.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selected = (selected + 1) % els.length;
+                paint();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selected = (selected - 1 + els.length) % els.length;
+                paint();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                document.removeEventListener('keydown', onChoice);
+                if (dbSession) dbSession.onChoice = null;
+                resolve(choices[selected]);
+            } else if (e.key === 'Escape' || e.key === 'Backspace') {
+                e.preventDefault();
+                document.removeEventListener('keydown', onChoice);
+                if (dbSession) dbSession.onChoice = null;
+                resolve(null);
+            }
+        };
+        if (dbSession) dbSession.onChoice = onChoice;
+        document.addEventListener('keydown', onChoice);
+        if (db_ui.input) db_ui.input.blur();
+        warning('↑↓ move · Enter pick · Backspace/Esc bail');
+    });
+}
+
+async function dbServerWizard() {
+    if (!getActiveDatabase()) {
+        e_print('No active database. Create one first.');
+        tip_print('database create &lt;name&gt;');
+        return;
+    }
+    endDbSession();
+    _await('database');
+    dbSession = { step: 'pick' };
+
+    dbBanner('set server');
+    print('<span class="db-dim">bind the active database to a server source</span>');
+    if (!isServerConnected(getActiveDatabase())) {
+        print('<span class="db-dim">current state: not connected</span>');
+    }
+
+    const pick = await renderDbChoices([
+        { id: 'default', name: 'LCN Foundation Server', flavor: 'free to use · foundationServer.js', color: 'green' },
+        { id: 'firebase', name: DB_EXTERNAL_PROVIDERS.firebase.label, flavor: DB_EXTERNAL_PROVIDERS.firebase.flavor, color: DB_EXTERNAL_PROVIDERS.firebase.color },
+        { id: 'supabase', name: DB_EXTERNAL_PROVIDERS.supabase.label, flavor: DB_EXTERNAL_PROVIDERS.supabase.flavor, color: DB_EXTERNAL_PROVIDERS.supabase.color },
+        { id: 'mongodb', name: DB_EXTERNAL_PROVIDERS.mongodb.label, flavor: DB_EXTERNAL_PROVIDERS.mongodb.flavor, color: DB_EXTERNAL_PROVIDERS.mongodb.color },
+        { id: 'appwrite', name: DB_EXTERNAL_PROVIDERS.appwrite.label, flavor: DB_EXTERNAL_PROVIDERS.appwrite.flavor, color: DB_EXTERNAL_PROVIDERS.appwrite.color },
+        { id: 'global_vars', name: 'Global vars', flavor: 'pick a dbnm var key', color: 'light-blue' }
+    ]);
+
+    if (!pick) {
+        y_print('cancelled');
+        endDbSession();
+        return;
+    }
+
+    c_print(`<span class="green b">${dbEscape(pick.name)}</span> <span class="db-dim">${dbEscape(pick.flavor || '')}</span>`, '✓');
+
+    if (pick.id === 'firebase' || pick.id === 'supabase' || pick.id === 'mongodb' || pick.id === 'appwrite') {
+        startExternalPaste(pick.id);
+        return;
+    }
+    if (pick.id === 'global_vars') {
+        startGlobalVarPick();
+        return;
+    }
+    if (pick.id === 'default') {
+        await setServerDefault();
+        endDbSession();
+        return;
+    }
+    if (pick.id === 'foundation') {
+        await setServerFoundation();
+        endDbSession();
+        return;
+    }
+    endDbSession();
+}
+
+function startExternalPaste(providerId) {
+    const def = DB_EXTERNAL_PROVIDERS[providerId];
+    if (!def) return;
+    endDbSession();
+    _await('database');
+    dbSession = { step: 'paste', providerId };
+    dbBanner(def.label.toLowerCase());
+    print(`<span class="db-dim">${dbEscape(def.hint)}</span>`);
+    print('<span class="db-dim">Enter to save · empty line cancels</span>');
+    qestion(`${def.label.toLowerCase()} config`);
+    c_placeholder(def.placeholder);
+
+    const onKey = (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const text = (db_ui.input?.value || '').trim();
+        db_ui.input.value = '';
+        if (!text) {
+            y_print('cancelled');
+            endDbSession();
+            return;
+        }
+        const cfg = parseExternalConfigText(text, providerId);
+        if (!cfg || !Object.keys(cfg).length) {
+            e_print(`Could not parse ${def.label} config from input.`);
+            tip_print(def.parseFail);
+            endDbSession();
+            return;
+        }
+        setServerExternal(providerId, cfg);
+        endDbSession();
+    };
+    dbSession.onKey = onKey;
+    db_ui.input.addEventListener('keydown', onKey);
+    if (db_ui.input) db_ui.input.focus();
+}
+
+function startFirebasePaste() {
+    startExternalPaste('firebase');
+}
+
+function dbServerInfo() {
+    const active = getActiveDatabase();
+    if (!active) {
+        e_print('No active database.');
+        return;
+    }
+    dbBanner('server');
+    print(`<span class="db-dim">database</span>  <span class="light-blue">${dbEscape(active.name)}</span>`);
+    print(`<span class="db-dim">type</span>      <span class="yellow">${dbEscape(active.server?.type || 'none')}</span>`);
+    print(`<span class="db-dim">label</span>     <span class="muted-teal">${dbEscape(active.server?.label || 'Not connected')}</span>`);
+    if (!isServerConnected(active)) {
+        tip_print('database server  — connect a server source');
+        return;
+    }
+    if (active.server?.desc) {
+        print(`<span class="db-dim">note</span>      <span class="db-dim">${dbEscape(active.server.desc)}</span>`);
+    }
+    if (active.server?.type === 'global_vars' && active.vars?.varKey) {
+        const linked = (window.dbnm_vars || {})[active.vars.varKey];
+        print(`<span class="db-dim">var</span>       <span class="light-blue">${dbEscape(active.vars.varKey)}</span>`);
+        if (linked !== undefined) {
+            print(`<span class="db-dim">value</span>     ${formatVarValue(linked)}`);
+        } else {
+            print('<span class="db-dim">value</span>     <span class="red">not set</span>');
+            tip_print(`var ${active.vars.varKey} &lt;value&gt;`);
+        }
+        return;
+    }
+    const ext = DB_EXTERNAL_BY_TYPE[active.server?.type];
+    if (ext) {
+        const cfg = active.vars?.[ext.configKey];
+        if (cfg && typeof cfg === 'object') {
+            printConfigTree(ext.configKey, cfg);
+        }
+        return;
+    }
+    const cfg = active.vars?.firebaseConfig;
+    if (cfg && typeof cfg === 'object') {
+        print('<span class="db-dim">firebaseConfig</span>');
+        Object.keys(cfg).forEach((k, i, arr) => {
+            const branch = i === arr.length - 1 ? '└─' : '├─';
+            print(`<span class="yellow">${branch}</span> <span class="light-blue">${k}</span> <span class="db-dim">${dbEscape(cfg[k])}</span>`);
+        });
+    }
+}
+
+function dbVarCommand(cmd_split) {
+    const active = getActiveDatabase();
+    if (!active) {
+        e_print('No active database.');
+        tip_print('database create &lt;name&gt;');
+        return;
+    }
+    active.vars = active.vars || {};
+
+    const useGlobal = active.server?.type === 'global_vars';
+    const linkedKey = active.vars?.varKey;
+
+    if (useGlobal) {
+        if (!linkedKey) {
+            e_print('No var linked. Use: database server global <varKey>');
+            return;
+        }
+        const store = window.dbnm_vars || dbnm_vars;
+        const key = cmd_split[2];
+        const action = cmd_split[3];
+        const value = cmd_split.slice(3).join(' ');
+
+        if (!key) {
+            const linked = store[linkedKey];
+            print(`<span class="db-dim">linked var</span>  <span class="light-blue">${dbEscape(linkedKey)}</span>`);
+            if (linked !== undefined) {
+                print(`${formatVarValue(linked)}`);
+            } else {
+                print('<span class="db-dim">not set</span>');
+            }
+            tip_print(`var ${linkedKey} &lt;value&gt;  ·  database var ${linkedKey} &lt;value&gt;`);
+            return;
+        }
+
+        if (key !== linkedKey) {
+            e_print(`Linked var is <span class="light-blue">${dbEscape(linkedKey)}</span> — use var ${linkedKey} … for other keys`);
+            return;
+        }
+
+        if (action === 'delete') {
+            if (!(linkedKey in store)) {
+                e_print(`Var not found: ${linkedKey}`);
+                return;
+            }
+            delete store[linkedKey];
+            saveVars();
+            y_print(`deleted <span class="light-blue">${dbEscape(linkedKey)}</span>`);
+            return;
+        }
+
+        if (!value) {
+            if (linkedKey in store) {
+                print(`<span class="light-blue">${dbEscape(linkedKey)}</span><span class="muted-teal"> = </span>${formatVarValue(store[linkedKey])}`);
+            } else {
+                e_print(`Var not found: ${linkedKey}`);
+            }
+            return;
+        }
+
+        let stored = value;
+        if ((value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'))) {
+            try {
+                stored = JSON.parse(value);
+            } catch (_) {
+                stored = value;
+            }
+        }
+        store[linkedKey] = stored;
+        saveVars();
+        g_print(`<span class="light-blue">${dbEscape(linkedKey)}</span><span class="muted-teal"> = </span>${formatVarValue(stored)}`);
+        return;
+    }
+
+    const store = active.vars;
+    const persist = () => saveDatabases();
+
+    const key = cmd_split[2];
+    const action = cmd_split[3];
+    const value = cmd_split.slice(3).join(' ');
+    const keys = Object.keys(store);
+
+    if (!key) {
+        if (!keys.length) {
+            print('No server vars.');
+            tip_print('database var &lt;key&gt; &lt;value&gt;');
+            return;
+        }
+        const pad = Math.max(...keys.map(k => k.length));
+        let out = `<br><span class="muted-teal">${keys.length} server var${keys.length === 1 ? '' : 's'}</span> <span class="db-dim">· ${dbEscape(active.name)}</span>`;
+        keys.forEach((k, i) => {
+            out += `<br><span class="muted-teal">${i}.</span> <span class="light-blue">${dbEscape(k.padEnd(pad))}</span> <span class="muted-teal">=</span> ${formatVarValue(store[k])}`;
+        });
+        print(out);
+        tip_print('database var &lt;key&gt; delete');
+        return;
+    }
+
+    if (action === 'delete') {
+        if (!(key in store)) {
+            e_print(`Var not found: ${key}`);
+            return;
+        }
+        delete store[key];
+        persist();
+        y_print(`deleted <span class="light-blue">${dbEscape(key)}</span>`);
+        return;
+    }
+
+    if (!value) {
+        if (key in store) {
+            print(`<span class="light-blue">${dbEscape(key)}</span><span class="muted-teal"> = </span>${formatVarValue(store[key])}`);
+        } else {
+            e_print(`Var not found: ${key}`);
+        }
+        return;
+    }
+
+    let stored = value;
+    if ((value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'))) {
+        try {
+            stored = JSON.parse(value);
+        } catch (_) {
+            stored = value;
+        }
+    }
+    store[key] = stored;
+    persist();
+    g_print(`<span class="light-blue">${dbEscape(key)}</span><span class="muted-teal"> = </span>${formatVarValue(stored)}`);
+}
+
+async function handleDatabase(_, cmd_split) {
+    const action = (cmd_split[1] || '').toLowerCase();
+
+    if (!action || action === 'help' || action === '?') {
+        dbHelp();
+        return;
+    }
+    if (action === 'list' || action === 'ls') {
+        dbList();
+        return;
+    }
+    if (action === 'status' || action === 'info') {
+        dbStatus();
+        return;
+    }
+    if (action === 'create' || action === 'new' || action === 'add') {
+        dbCreate(cmd_split.slice(2).join(' '));
+        return;
+    }
+    if (action === 'select' || action === 'use' || action === 'set') {
+        if (!cmd_split[2]) {
+            e_print('Usage: database select <name|index>');
+            return;
+        }
+        dbSelect(cmd_split[2]);
+        return;
+    }
+    if (action === 'rm' || action === 'remove' || action === 'delete') {
+        if (!cmd_split[2]) {
+            e_print('Usage: database rm <name|index>');
+            return;
+        }
+        dbRemove(cmd_split[2]);
+        return;
+    }
+    if (action === 'var' || action === 'vars') {
+        dbVarCommand(cmd_split);
+        return;
+    }
+    if (action === 'server' || action === 'svr') {
+        const sub = (cmd_split[2] || '').toLowerCase();
+        if (!sub) {
+            await dbServerWizard();
+            return;
+        }
+        if (sub === 'info') {
+            dbServerInfo();
+            return;
+        }
+        const providerId = resolveExternalProviderId(sub);
+        if (providerId) {
+            startExternalPaste(providerId);
+            return;
+        }
+        if (sub === 'global' || sub === 'global_vars' || sub === 'vars') {
+            const varKey = cmd_split.slice(3).join(' ');
+            if (varKey) setServerGlobalVars(varKey);
+            else startGlobalVarPick();
+            return;
+        }
+        if (sub === 'default') {
+            await setServerDefault();
+            return;
+        }
+        if (sub === 'foundation' || sub === 'f' || sub === 'foundationconfig') {
+            await setServerFoundation();
+            return;
+        }
+        e_print('Usage: database server [info|firebase|supabase|mongodb|appwrite|global <key>|default|foundation]');
+        return;
+    }
+
+    e_print('Unknown database command.');
+    tip_print('database help');
+}
+
+_reg('database', handleDatabase);
+_reg('db', handleDatabase);
+_reg('dbmgr', handleDatabase);
+
 _reg('local', (_, cmd_split) => {
     if (cmd_split[1] === 'username') {
         userData.username = cmd_split[2];
         saveData();
+        updatePromptDisplay();
         print(`Username set to: ${cmd_split[2]}`);
     } else if (cmd_split[1] === 'u') {
         const username = userData.username;
@@ -654,12 +1781,86 @@ _reg('local', (_, cmd_split) => {
     }
 });
 
+function saveVars() {
+    userData.vars = dbnm_vars;
+    window.dbnm_vars = dbnm_vars;
+    syncServerVars();
+    saveData();
+}
+
+_reg('var', (_, cmd_split) => {
+    const key = cmd_split[1];
+    const action = cmd_split[2];
+    const value = cmd_split.slice(2).join(' ');
+    const keys = Object.keys(dbnm_vars);
+
+    if (key === 'vars') {
+        if (!keys.length) {
+            print('No vars set.');
+            tip_print('var &lt;key&gt; &lt;value&gt; to add one');
+            return;
+        }
+        const pad = Math.max(...keys.map(k => k.length));
+        let out = `<br><span class="muted-teal">${keys.length} var${keys.length === 1 ? '' : 's'}</span>`;
+        keys.forEach((k, i) => {
+            out += `<br><span class="muted-teal">${i}.</span> <span class="light-blue">${k.padEnd(pad)}</span> <span class="muted-teal">=</span> ${dbnm_vars[k]}`;
+        });
+        print(out);
+        tip_print('var &lt;index&gt; update &lt;value&gt;  ·  var &lt;index&gt; delete');
+        return;
+    }
+
+    if (!isNaN(key) && (action === 'update' || action === 'delete')) {
+        const idx = parseInt(key, 10);
+        const name = keys[idx];
+        if (!name) {
+            e_print(`Var not found at index ${idx}`);
+            return;
+        }
+        if (action === 'delete') {
+            delete dbnm_vars[name];
+            saveVars();
+            y_print(`deleted <span class="light-blue">${name}</span>`);
+            return;
+        }
+        const newValue = cmd_split.slice(3).join(' ');
+        if (!newValue) {
+            e_print('Usage: var <index> update <value>');
+            return;
+        }
+        dbnm_vars[name] = newValue;
+        saveVars();
+        g_print(`<span class="light-blue">${name}</span><span class="muted-teal"> = </span>${newValue}`);
+        return;
+    }
+
+    if (!key) {
+        e_print('Usage: var <key> <value> | var <key> | var vars | var <index> update <value> | var <index> delete');
+        return;
+    }
+    if (!value) {
+        if (key in dbnm_vars) {
+            print(`<span class="light-blue">${key}</span><span class="muted-teal"> = </span>${dbnm_vars[key]}`);
+        } else {
+            e_print(`Var not found: ${key}`);
+        }
+        return;
+    }
+    dbnm_vars[key] = value;
+    saveVars();
+    g_print(`<span class="light-blue">${key}</span><span class="muted-teal"> = </span>${value}`);
+});
+
 _reg('clear', () => {
     localStorage.removeItem('dbnm_userData');
+    localStorage.removeItem('dbnm_vars');
+    localStorage.removeItem('dbnm_databases');
+    localStorage.removeItem('dbnm_pakeger_keys');
+    localStorage.removeItem('dbnm_pakeger_clip_pref');
     print('Local storage cleared.');
     setTimeout(() => window.location.reload(), 300);
 });
-// / i 
+
 _reg('/', (_, cmd_split) => {
     if (cmd_split[1] === 'i') {
         if (cmd_split[2] === 'love') {
@@ -671,13 +1872,30 @@ _reg('/', (_, cmd_split) => {
             error(1);
         }
     } else if (cmd_split[1] === 'dir') {
+        if (cmd_split[2] === 'info') {
+            const indexArg = cmd_split[3];
+            if (indexArg === undefined) {
+                e_print('Usage: / dir info <index>');
+                return;
+            }
+            const util = resolveUtilByIndex(indexArg);
+            if (!util) {
+                e_print(`No package at index ${indexArg}`);
+                return;
+            }
+            printPkgContents(util);
+            return;
+        }
+
         if (userData.cmdUtil.length === 0) {
             print('No modules/files available.');
         } else {
-            let output = '';
-            userData.cmdUtil.forEach((util, index) => {
-                output += `<br> <span class=${util.loaded ? '' : 'red'}> ${index + 1}. ${util.link} </span>`;
+            ensureUtilIndices();
+            let output = '<br> Loaded packages:';
+            userData.cmdUtil.forEach((util) => {
+                output += `<br> <span class=${util.loaded ? '' : 'red'}> ${util.index}. ${util.link} </span>`;
             });
+            output += '<br><span class="muted-teal">/ dir info &lt;index&gt; to view contents</span>';
             print(output);
         }
     } else if (cmd_split[1] === 'user') {
@@ -685,6 +1903,7 @@ _reg('/', (_, cmd_split) => {
             const fullText = cmd_split.slice(3).join(' ');
             userData.username = fullText;
             saveData();
+            updatePromptDisplay();
             print(`Username set to: ${fullText}`);
         } else if (cmd_split[2] === 'get') {
             const username = userData.username;
@@ -776,8 +1995,113 @@ function containsKeyWord(input) {
     return keyWords.some(keyword => input.includes(keyword));
 }
 
+function registerPkgContents(name, manifest) {
+    pkgContentsMap[name.toLowerCase()] = manifest;
+}
+
+function getUtilBasePath(util) {
+    if (util.linkClass === '**' || util.linkClass === 'base') return 'public/base-modules/';
+    if (util.linkClass === 'f' || util.linkClass === 'foundation') return 'foundation/';
+    if (util.linkClass === '**svr') return 'servers/';
+    if (util.linkClass === 'reg') return null;
+    return null;
+}
+
+async function loadScriptFromUrl(url, util) {
+    return new Promise((resolve) => {
+        const scriptTag = document.createElement('script');
+        const bust = url.includes('?') ? '&' : '?';
+        scriptTag.src = url.includes('v=') ? url : (url + bust + 'v=' + Date.now());
+        scriptTag.async = true;
+        scriptTag.onload = () => {
+            util.loaded = true;
+            saveData();
+            resolve(true);
+        };
+        scriptTag.onerror = () => {
+            util.loaded = false;
+            saveData();
+            resolve(false);
+        };
+        document.body.appendChild(scriptTag);
+    });
+}
+
+function ensureUtilIndices() {
+    let maxIndex = -1;
+    userData.cmdUtil.forEach((util) => {
+        if (typeof util.index === 'number') {
+            maxIndex = Math.max(maxIndex, util.index);
+        }
+    });
+    if (typeof userData.nextUtilIndex !== 'number') {
+        userData.nextUtilIndex = maxIndex + 1;
+    }
+    let changed = false;
+    userData.cmdUtil.forEach((util) => {
+        if (typeof util.index !== 'number') {
+            util.index = userData.nextUtilIndex++;
+            changed = true;
+        }
+    });
+    if (changed) saveData();
+}
+
+function nextUtilIndex() {
+    ensureUtilIndices();
+    return userData.nextUtilIndex++;
+}
+
+function resolveUtilByIndex(indexStr) {
+    const idx = parseInt(indexStr, 10);
+    if (isNaN(idx)) return null;
+    ensureUtilIndices();
+    return userData.cmdUtil.find(u => u.index === idx) || null;
+}
+
+function printPkgContents(util) {
+    const manifest = pkgContentsMap[util.link.toLowerCase()];
+    if (!manifest) {
+        e_print(`No contents registered for '${util.link}'.`);
+        return;
+    }
+
+    const base = getUtilBasePath(util);
+    const version = manifest.version || '?';
+    let output = `<br><span class="green b">${util.link}@${version}</span>`;
+
+    if (manifest.desc) {
+        output += `<br><span class="muted-teal">${manifest.desc}</span>`;
+    }
+    if (base) {
+        output += `<br><span class="light-blue">${base}${util.link}/</span>`;
+    } else if (util.linkClass === 'reg') {
+        output += `<br><span class="light-blue">reg://${util.link}</span>`;
+        if (util.storagePath) {
+            output += `<br><span class="muted-teal">${util.storagePath}</span>`;
+        }
+    }
+
+    const files = manifest.files || [];
+    if (!files.length) {
+        output += '<br><span class="muted-teal">(empty package)</span>';
+        print(output);
+        return;
+    }
+
+    files.forEach((entry, i) => {
+        const path = typeof entry === 'string' ? entry : entry.path;
+        const type = typeof entry === 'string' ? '' : entry.type;
+        const branch = i === files.length - 1 ? '└──' : '├──';
+        const typeLabel = type ? ` <span class="muted-teal">${type}</span>` : '';
+        output += `<br><span class="yellow">${branch}</span> ${path}${typeLabel}`;
+    });
+
+    print(output);
+}
+
 function imp(linkClass, link) {
-    const newUtil = { linkClass, link };
+    const newUtil = { linkClass, link, index: nextUtilIndex() };
     userData.cmdUtil.push(newUtil);
     saveData();
     renderUtils();
@@ -794,14 +2118,40 @@ async function renderUtils() {
     let filesFailed = 0;
 
     const loadPromises = userData.cmdUtil.map(util => {
-        return new Promise(resolve => {
-            let adder = '';
-            if (util.linkClass === '**' || util.linkClass === 'base') {
-                adder = 'public/base-modules/';
-            } else if (util.linkClass === '**svr' && serverMaintain) {
-                adder = 'servers/';
+        return new Promise(async resolve => {
+            if (util.linkClass === 'reg') {
+                if (!util.downloadUrl) {
+                    resolve(null);
+                    return;
+                }
+                if (typeof window.__dbnmLoadRemoteUtil === 'function') {
+                    try {
+                        const ok = await window.__dbnmLoadRemoteUtil(util.link, util.downloadUrl);
+                        if (ok) filesLoaded++;
+                        else filesFailed++;
+                        resolve(ok);
+                    } catch {
+                        filesFailed++;
+                        resolve(false);
+                    }
+                    return;
+                }
+                const ok = await loadScriptFromUrl(util.downloadUrl, util);
+                if (ok) filesLoaded++;
+                else filesFailed++;
+                resolve(ok);
+                return;
+            }
+
+            let adder = getUtilBasePath(util);
+            if (util.linkClass === '**svr') {
+                if (!serverMaintain) {
+                    resolve(null);
+                    return;
+                }
                 serverMaintain = false;
-            } else {
+            }
+            if (!adder) {
                 resolve(null);
                 return;
             }
@@ -831,11 +2181,6 @@ async function renderUtils() {
     await Promise.all(loadPromises);
     if (filesLoaded > 0) y_print(`Files loaded: (${filesLoaded})`);
     if (filesFailed > 0) e_print(`Files failed to load: (${filesFailed})`);
-}
-
-function saveData() {
-    userData.suggestions = !!suggestionsEnabled;
-    localStorage.setItem('dbnm_userData', JSON.stringify(userData));
 }
 
 function serverInit() {}

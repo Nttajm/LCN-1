@@ -136,8 +136,8 @@ export let teams = [
     id: 'Uly',
     name: 'Ulimy',
     sub: `Ulimy`,
-    originC: 'jeski',
-    originL: 'quiser',
+    originC: 'Atalantia',
+    originL: 'AML',
     img: 'images/teams/Ulimy.png',
     player: getPlayersByTeam('Uly')
 },
@@ -181,8 +181,8 @@ export let teams = [
     id: 'PSL',
     name: 'Pacific Saint leon',
     sub: `PSL`,
-    originC: 'QUI',
-    originL: 'Quiser',
+    originC: 'Atalantia',
+    originL: 'AML',
     img: 'images/teams/psl.png',
     player: getPlayersByTeam('PSL')
 },
@@ -325,8 +325,8 @@ export let teams = [
     id: 'BB',
     name: 'Bardon FC',
     sub: `Visto`,
-    originC: 'Denvor',
-    originL: 'Quiser',
+    originC: 'Atalantia',
+    originL: 'AML',
     img: 'images/teams/Bardon.png',
     player: getPlayersByTeam('BB')
 },

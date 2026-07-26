@@ -1,0 +1,127 @@
+Setting Your Username in dbnm
+=============================
+
+dbnm is a browser-based shell. When you first open it, the prompt at the bottom
+just shows a plain "$". Setting a username personalizes that prompt and helps
+you tell sessions apart — especially if you use commands like /info or load
+server modules that log activity.
+
+
+What changes when you set a username?
+-------------------------------------
+
+Once set, your prompt updates from:
+
+  $
+
+to something like:
+
+  Joel ~ $
+
+Your name also appears in the output area next to each command you run, and
+shows up when you run /info alongside your session ID.
+
+
+How to set your username
+------------------------
+
+Open dbnm (index.html) and type a command at the input line. There are two
+supported ways to set your name.
+
+
+Option 1: local username (quick, single word)
+
+  local username Joel
+
+This is the fastest option. Type local, then username, then the name you want.
+Works best for a single word with no spaces.
+
+After you press Enter, dbnm confirms:
+
+  Username set to: Joel
+
+The prompt should update immediately to Joel ~ $.
+
+
+Option 2: /user set (supports spaces)
+
+  /user set Joel M
+
+Use this when your name has spaces or multiple parts. Everything after "set"
+becomes your username — you do not need quotes.
+
+Examples:
+
+  /user set Joel Mulonde
+  /user set joel m
+  /user set Team Alpha
+
+
+How to check your current username
+----------------------------------
+
+Either of these prints your saved name:
+
+  local u
+  /user get
+
+If you have not set a username yet, dbnm shows:
+
+  Username: user
+
+You can also run:
+
+  /info
+
+That prints system details plus your user line. If no username is set, it
+falls back to a generated label like user::4821 (using your session ID).
+
+
+Where your username is stored
+-----------------------------
+
+dbnm saves your username in the browser's local storage under the key
+dbnm_userData. It is stored together with other session info (session ID,
+loaded modules, settings, and so on).
+
+That means:
+
+- Your name persists after you refresh the page or close and reopen the tab.
+- It is local to this browser on this device — not synced to an account.
+- Clearing site data or running the clear command removes it.
+
+
+Resetting or clearing your username
+-----------------------------------
+
+To wipe all saved dbnm data (username included):
+
+  clear
+
+This removes dbnm_userData from local storage and reloads the page. After that,
+you are back to the default "$" prompt until you set a username again.
+
+To change your name without clearing everything, just run local username or
+/user set again with the new name.
+
+
+Tips
+----
+
+- Prefer /user set when your name contains spaces.
+- Usernames are not case-sensitive in behavior, but whatever you type is
+  stored and displayed exactly as entered.
+- Setting a username does not log you in anywhere — it is a local label for
+  your shell session.
+- If the prompt does not update after setting your name, refresh the page;
+  your saved name should still load on startup.
+
+
+Quick reference
+---------------
+
+  Set (one word):     local username YourName
+  Set (with spaces):  /user set Your Full Name
+  Check:              local u   or   /user get
+  View in /info:      /info
+  Reset everything:   clear

@@ -206,6 +206,26 @@ input {
     color: black;
 }
 
+.tip-print {
+    color: #666;
+    font-size: 0.82rem;
+    opacity: 0.75;
+    padding: 2px 0 4px;
+    border-bottom: 1px dotted rgba(255, 255, 255, 0.18);
+}
+
+.tip-print a,
+#output a {
+    color: rgb(124, 182, 227);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.tip-print a:hover,
+#output a:hover {
+    color: rgb(81, 231, 211);
+}
+
 .loader {
     display: flex;
     align-items: center;

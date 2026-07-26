@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dbnm registry — verify</title>
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --panel: #161616;
+            --line: #2a2a2a;
+            --text: #e8e8e8;
+            --muted: #8a8a8a;
+            --green: #5bca5b;
+            --red: #eb3939;
+            --blue: #7cb6e3;
+            --yellow: #d7b300;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at top, #1a1a1a, var(--bg));
+            color: var(--text);
+            font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+            padding: 2rem 1.25rem 3rem;
+        }
+        .wrap { max-width: 760px; margin: 0 auto; }
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin: 0 0 0.35rem;
+            letter-spacing: -0.02em;
+        }
+        .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 1rem 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        button {
+            font-family: inherit;
+            font-size: 0.85rem;
+            border: 1px solid var(--line);
+            background: #222;
+            color: var(--text);
+            padding: 0.45rem 0.85rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { border-color: #555; }
+        button.primary { background: #1e3a2f; border-color: #2f6b4f; color: var(--green); }
+        button.danger { background: #3a1e1e; border-color: #6b2f2f; color: var(--red); }
+        button:disabled { opacity: 0.45; cursor: not-allowed; }
+        .pill {
+            display: inline-block;
+            font-size: 0.72rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+        }
+        .pill.ok { color: var(--green); border-color: #2f6b4f; }
+        .pill.wait { color: var(--yellow); border-color: #6b5b1e; }
+        .pill.bad { color: var(--red); border-color: #6b2f2f; }
+        .user {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--line);
+        }
+        .user:last-child { border-bottom: none; }
+        .user img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #333;
+        }
+        .user .meta { flex: 1; min-width: 0; }
+        .user .name { font-size: 0.9rem; }
+        .user .email { color: var(--muted); font-size: 0.78rem; word-break: break-all; }
+        .actions { display: flex; gap: 0.4rem; }
+        .empty { color: var(--muted); padding: 1rem 0; font-size: 0.9rem; }
+        .err { color: var(--red); margin-top: 0.75rem; font-size: 0.85rem; }
+        .hidden { display: none !important; }
+        #gate, #admin { display: none; }
+        #gate.show, #admin.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>dbnm registry verify</h1>
+        <p class="sub">Approve publishers. Only <span style="color:var(--blue)">joelmulonde81@gmail.com</span> can use this panel.</p>
+
+        <div id="gate" class="card">
+            <div class="row">
+                <div>
+                    <div id="gateMsg">Sign in with Google to continue.</div>
+                    <div id="gateErr" class="err"></div>
+                </div>
+                <button id="btnLogin" class="primary">Google sign in</button>
+                <button id="btnLogoutGate" class="hidden">Sign out</button>
+            </div>
+        </div>
+
+        <div id="admin">
+            <div class="card row">
+                <div>
+                    <div id="adminWho"></div>
+                    <div class="sub" style="margin:0.25rem 0 0">Pending = waiting for your approval</div>
+                </div>
+                <div class="actions">
+                    <button id="btnRefresh">Refresh</button>
+                    <button id="btnLogout">Sign out</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="row" style="margin-bottom:0.5rem">
+                    <strong>Pending</strong>
+                    <span class="pill wait" id="pendingCount">0</span>
+                </div>
+                <div id="pendingList"></div>
+            </div>
+
+            <div class="card">
+                <div class="row" style="margin-bottom:0.5rem">
+                    <strong>Verified</strong>
+                    <span class="pill ok" id="verifiedCount">0</span>
+                </div>
+                <div id="verifiedList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            getDocs,
+            doc,
+            updateDoc,
+            serverTimestamp,
+            query,
+            orderBy
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const ADMIN_EMAIL = "joelmulonde81@gmail.com";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDS2IY0dLqq5ClToEg3DwIc493GC2v9epE",
+            authDomain: "dbnm-lcn.firebaseapp.com",
+            projectId: "dbnm-lcn",
+            storageBucket: "dbnm-lcn.firebasestorage.app",
+            messagingSenderId: "106102379329",
+            appId: "1:106102379329:web:58a1edefdfab66481007c0",
+            measurementId: "G-110K9JF2N0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        const gate = document.getElementById("gate");
+        const admin = document.getElementById("admin");
+        const gateMsg = document.getElementById("gateMsg");
+        const gateErr = document.getElementById("gateErr");
+        const btnLogin = document.getElementById("btnLogin");
+        const btnLogoutGate = document.getElementById("btnLogoutGate");
+        const btnLogout = document.getElementById("btnLogout");
+        const btnRefresh = document.getElementById("btnRefresh");
+        const adminWho = document.getElementById("adminWho");
+        const pendingList = document.getElementById("pendingList");
+        const verifiedList = document.getElementById("verifiedList");
+        const pendingCount = document.getElementById("pendingCount");
+        const verifiedCount = document.getElementById("verifiedCount");
+
+        function showGate(msg, err = "") {
+            gate.classList.add("show");
+            admin.classList.remove("show");
+            gateMsg.textContent = msg;
+            gateErr.textContent = err;
+        }
+
+        function showAdmin(user) {
+            gate.classList.remove("show");
+            admin.classList.add("show");
+            adminWho.textContent = `Signed in as ${user.email}`;
+            loadUsers();
+        }
+
+        async function loadUsers() {
+            pendingList.innerHTML = `<div class="empty">Loading…</div>`;
+            verifiedList.innerHTML = "";
+            try {
+                const snap = await getDocs(query(collection(db, "users"), orderBy("requestedAt", "desc")));
+                const pending = [];
+                const verified = [];
+                snap.forEach((d) => {
+                    const data = { id: d.id, ...d.data() };
+                    if (data.verified) verified.push(data);
+                    else pending.push(data);
+                });
+                pendingCount.textContent = String(pending.length);
+                verifiedCount.textContent = String(verified.length);
+                pendingList.innerHTML = pending.length
+                    ? pending.map(userRow).join("")
+                    : `<div class="empty">No pending publishers.</div>`;
+                verifiedList.innerHTML = verified.length
+                    ? verified.map(userRow).join("")
+                    : `<div class="empty">No verified publishers yet.</div>`;
+                bindActions();
+            } catch (e) {
+                pendingList.innerHTML = `<div class="err">${e.message}</div>`;
+            }
+        }
+
+        function userRow(u) {
+            const verified = !!u.verified;
+            const photo = u.photoURL
+                ? `<img src="${u.photoURL}" alt="">`
+                : `<img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">`;
+            const actions = verified
+                ? `<button class="danger" data-revoke="${u.id}">Revoke</button>`
+                : `<button class="primary" data-approve="${u.id}">Approve</button>`;
+            return `
+                <div class="user">
+                    ${photo}
+                    <div class="meta">
+                        <div class="name">${u.displayName || "—"} <span class="pill ${verified ? "ok" : "wait"}">${verified ? "verified" : "pending"}</span></div>
+                        <div class="email">${u.email || u.id}</div>
+                    </div>
+                    <div class="actions">${actions}</div>
+                </div>
+            `;
+        }
+
+        function bindActions() {
+            document.querySelectorAll("[data-approve]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    btn.disabled = true;
+                    try {
+                        await updateDoc(doc(db, "users", btn.dataset.approve), {
+                            verified: true,
+                            verifiedAt: serverTimestamp(),
+                            verifiedBy: ADMIN_EMAIL
+                        });
+                        await loadUsers();
+                    } catch (e) {
+                        alert(e.message);
+                        btn.disabled = false;
+                    }
+                });
+            });
+            document.querySelectorAll("[data-revoke]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    btn.disabled = true;
+                    try {
+                        await updateDoc(doc(db, "users", btn.dataset.revoke), {
+                            verified: false,
+                            verifiedAt: null,
+                            verifiedBy: null
+                        });
+                        await loadUsers();
+                    } catch (e) {
+                        alert(e.message);
+                        btn.disabled = false;
+                    }
+                });
+            });
+        }
+
+        btnLogin.addEventListener("click", async () => {
+            gateErr.textContent = "";
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (e) {
+                gateErr.textContent = e.message;
+            }
+        });
+
+        async function doLogout() {
+            await signOut(auth);
+        }
+        btnLogout.addEventListener("click", doLogout);
+        btnLogoutGate.addEventListener("click", doLogout);
+        btnRefresh.addEventListener("click", loadUsers);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                btnLogin.classList.remove("hidden");
+                btnLogoutGate.classList.add("hidden");
+                showGate("Sign in with Google to continue.");
+                return;
+            }
+            btnLogin.classList.add("hidden");
+            btnLogoutGate.classList.remove("hidden");
+            if (user.email !== ADMIN_EMAIL) {
+                showGate(
+                    `Signed in as ${user.email}`,
+                    "Access denied. Only joelmulonde81@gmail.com can approve publishers."
+                );
+                return;
+            }
+            showAdmin(user);
+        });
+    </script>
+</body>
+</html>

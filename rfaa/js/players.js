@@ -157,6 +157,7 @@ export let players = [
     "name": "Otto Nesta",
     "type": "active",
     "dob": "1976-01-01",
+    "country": "Texico",
     "teams": {
       "tex": {
         "years": playerYears([[1997, 2001]])
@@ -173,6 +174,7 @@ export let players = [
     "name": "Xan De Bar",
     "type": "active",
     "dob": "1976-01-01",
+    "country": "Palicano",
     "teams": {
       "hogn": {
         "years": playerYears([[1995, 1998]])
@@ -241,6 +243,7 @@ export let players = [
     "name": "João Marcos",
     "type": "active",
     "dob": "1979-01-01",
+    "country": "Dijon",
     "teams": {
       "bsti": {
         "years": playerYears([[1997, 2001]])
@@ -257,6 +260,7 @@ export let players = [
     "name": "Tipo Legante",
     "type": "active",
     "dob": "1975-01-01",
+    "country": "Dijon",
     "teams": {
       "bsti": {
         "years": playerYears([[1994, 1997]])
@@ -286,6 +290,7 @@ export let players = [
     "name": "Fisca Lapierre",
     "type": "active",
     "dob": "1976-01-01",
+    "country": "Atalantia",
     "teams": {
       "PSL": {
         "years": playerYears([[1996, 1999]])
@@ -370,6 +375,7 @@ export let players = [
     "name": "Denis Dapali",
     "type": "active",
     "dob": "1978-01-01",
+    "country": "Palicano",
     "teams": {
       "PSL": {
         "years": playerYears([[1996, 2001]])
@@ -386,6 +392,7 @@ export let players = [
     "name": "Ethan Bale",
     "type": "active",
     "dob": "1974-01-01",
+    "country": "Qui",
     "teams": {
       "lenico": {
         "years": playerYears([[1995, 1996]])
@@ -405,6 +412,7 @@ export let players = [
     "name": "Dante Paulo",
     "type": "active",
     "dob": "1973-01-01",
+    "country": "Denvor",
     "teams": {
       "athmak": {
         "years": playerYears([[1993, 1996]])
@@ -418,6 +426,7 @@ export let players = [
     "name": "Alvro Casmiero",
     "type": "active",
     "dob": "1981-01-01",
+    "country": "Texico",
     "teams": {
       "DelUnited": {
         "years": playerYears([[1997, 2001]])
@@ -463,6 +472,7 @@ export let players = [
     "name": "Marzo Dibla",
     "type": "active",
     "dob": "1974-01-01",
+    "country": "Dijon",
     "teams": {
       "Uly": {
         "years": playerYears([[1995, 2002]])
@@ -521,6 +531,7 @@ export let players = [
     "name": "James Falcao",
     "type": "active",
     "dob": "1979-01-01",
+    "country": "Texico",
     "teams": {
       "RS": {
         "years": playerYears([[1996, 2003]])
@@ -553,6 +564,7 @@ export let players = [
     "name": "Diaz Chesma",
     "type": "active",
     "dob": "1976-01-01",
+    "country": "Pennston",
     "teams": {
       "PSL": {
         "years": playerYears([[1996, 2000]])
@@ -582,6 +594,7 @@ export let players = [
     "name": "Hius Ruo",
     "type": "active",
     "dob": "1978-01-01",
+    "country": "Pennston",
     "teams": {
       "BCCR": {
         "years": playerYears([[1996, 2006]])
@@ -634,6 +647,7 @@ export let players = [
     "name": "Den Torch",
     "type": "active",
     "dob": "1977-01-01",
+    "country": "Pennston",
     "teams": {
       "serpo": {
         "years": playerYears([[1995, 2001], [2008, 2013]])
@@ -647,6 +661,7 @@ export let players = [
     "name": "Hona Piroka",
     "type": "active",
     "dob": "1976-01-01",
+    "country": "Texico",
     "teams": {
       "serpo": {
         "years": playerYears([[1993, 1999]])
@@ -663,6 +678,7 @@ export let players = [
     "name": "Pesotuti Son",
     "type": "active",
     "dob": "1980-01-01",
+    "country": "Qui",
     "teams": {
       "serpo": {
         "years": playerYears([[1997, 2003]])
@@ -676,6 +692,7 @@ export let players = [
     "name": "Mystio jelen",
     "type": "active",
     "dob": "1978-01-01",
+    "country": "Itsa",
     "teams": {
       "serpo": {
         "years": playerYears([[1996, 2001]])
@@ -702,6 +719,7 @@ export let players = [
     "name": "Nigel Estafano",
     "type": "active",
     "dob": "1976-01-01",
+    "country": "SanSiro",
     "teams": {
       "NDIJON": {
         "years": playerYears([[1994, 2004]])
@@ -731,6 +749,7 @@ export let players = [
     "name": "James Garcia",
     "type": "active",
     "dob": "1978-01-01",
+    "country": "Amensia",
     "teams": {
       "ocio": {
         "years": playerYears([[1996, 2011]])
@@ -741,6 +760,7 @@ export let players = [
     "name": "Riri Ruco",
     "type": "active",
     "dob": "1976-01-01",
+    "country": "Texico",
     "teams": {
       "ocio": {
         "years": playerYears([[1997, 2006]])
@@ -767,6 +787,7 @@ export let players = [
     "name": "Sudo Mane",
     "type": "active",
     "dob": "1978-01-01",
+    "country": "Mallorca",
     "teams": {
       "riofc": {
         "years": playerYears([[1997, 2006]])
