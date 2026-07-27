@@ -36,7 +36,6 @@
 }
 
 .tx-msg .tx-from {
-    color: rgb(124, 182, 227);
     font-weight: bold;
 }
 
@@ -93,4 +92,63 @@
 
 .tx-chat-input::placeholder {
     color: #555;
+}
+
+/* ── textos home screen ─────────────────────────────── */
+
+.tx-home-header {
+    font-family: monospace;
+    margin: 0.3rem 0 0.15rem;
+}
+
+.tx-home-title {
+    color: rgb(124, 182, 227);
+    font-weight: bold;
+    font-size: 1.05em;
+    letter-spacing: 0.04em;
+}
+
+.tx-home-sep {
+    color: #555;
+}
+
+.tx-home-section {
+    display: block;
+    margin: 0.4rem 0 0.15rem;
+    font-size: 0.85em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tx-home-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    line-height: 1.7;
+    font-family: monospace;
+}
+
+.tx-home-room {
+    color: rgb(81, 231, 211);
+    font-weight: bold;
+    min-width: 8ch;
+}
+
+.tx-home-id {
+    color: #7a7a7a;
+    font-size: 0.85em;
+}
+
+.tx-home-time {
+    font-size: 0.8em;
+    margin-left: auto;
+}
+
+.tx-badge-sealed {
+    color: rgb(215, 179, 0);
+    font-size: 0.78em;
+    border: 1px solid rgb(215, 179, 0);
+    border-radius: 2px;
+    padding: 0 3px;
+    line-height: 1.2;
 }

@@ -6,7 +6,8 @@ const PKG = {
     tags: ['textos', 'tx'],
     asciiPath: 'foundation/assets/textos/ascii.txt',
     stylePath: 'foundation/assets/textos/textos.css',
-    collection: 'textos_sessions'
+    collection: 'textos_sessions',
+    historyLimit: 20
 };
 
 const TX_CRYPTO = {
@@ -95,15 +96,19 @@ function txRaw(html) {
 }
 
 function txHelp() {
-    txBanner('session messaging · aes-256 sealed rooms');
-    print('<span class="tx-dim">in textos shell — omit prefix on commands</span>');
+    txBanner('commands · aes-256 sealed rooms');
+    print('<span class="tx-dim">in textos shell — omit prefix on commands · use <span class="light-blue">cd textos</span> to enter</span>');
+    print('<span class="tx-dim">home</span>');
+    print('  <span class="light-blue">textos</span>                    saved rooms · status');
     print('<span class="tx-dim">setup</span>');
     print('  <span class="light-blue">textos setup</span>              bind a saved database');
     print('  <span class="light-blue">textos status</span>             binding · room · key');
     print('<span class="tx-dim">rooms</span>');
     print('  <span class="light-blue">textos create [name]</span>      open a room');
     print('  <span class="light-blue">textos join [id]</span>         enter a room');
-    print('  <span class="light-blue">textos ls</span>                 list open rooms');
+    print('  <span class="light-blue">textos save [id]</span>         save room to home');
+    print('  <span class="light-blue">textos unsave [id|name]</span>  remove saved room');
+    print('  <span class="light-blue">textos ls</span>                 list remote rooms');
     print('  <span class="light-blue">textos leave</span>              disconnect');
     print('<span class="tx-dim">chat</span>');
     print('  <span class="light-blue">textos send &lt;msg&gt;</span>         post (or type in room › bar)');
@@ -113,7 +118,7 @@ function txHelp() {
     print('  <span class="light-blue">textos key</span>                 set / clear local key');
     print('  <span class="light-blue">textos key &lt;secret|var&gt;</span>   set from text or global var');
     tip_print('sealed rooms store ciphertext only — both sides need the same key');
-    tip_print('aliases: tx');
+    tip_print('aliases: tx · cd.. exits textos shell');
 }
 
 function ensureTextosShape() {
@@ -132,7 +137,62 @@ function ensureTextosShape() {
     if (!t.boundDbId) t.boundDbId = null;
     if (t.seeThroughKey === undefined) t.seeThroughKey = null;
     if (!t.activeRoomId) t.activeRoomId = null;
+    if ('inShell' in t) delete t.inShell;
+    if (!Array.isArray(t.savedRooms)) t.savedRooms = [];
+    if (!t.nameColor) t.nameColor = 'light-blue';
     return t;
+}
+
+const TX_NAME_COLORS = [
+    { id: 'light-blue', name: 'light blue' },
+    { id: 'green', name: 'green' },
+    { id: 'yellow', name: 'yellow' },
+    { id: 'coral', name: 'coral' },
+    { id: 'pink', name: 'pink' },
+    { id: 'muted-teal', name: 'muted teal' },
+    { id: 'muted-purple', name: 'muted purple' },
+    { id: 'muted-rose', name: 'muted rose' },
+    { id: 'muted-orange', name: 'muted orange' },
+    { id: 'red', name: 'red' }
+];
+
+function getTxNameColor(t) {
+    const key = (t || ensureTextosShape()).nameColor || 'light-blue';
+    return TX_NAME_COLORS.some((c) => c.id === key) ? key : 'light-blue';
+}
+
+function txNameColorLabel(colorId) {
+    return TX_NAME_COLORS.find((c) => c.id === colorId)?.name || colorId;
+}
+
+function buildTxHomeContent(t, entry, saved) {
+    let html = `<span class="tx-dim">${escapeHtml(PKG.version)}</span>`;
+    html += `<span class="tx-home-sep"> · </span><span class="${escapeHtml(getTxNameColor(t))}">${escapeHtml(t.deviceName)}</span>`;
+    html += entry
+        ? `<span class="tx-home-sep"> · </span><span class="muted-teal">${escapeHtml(entry.name)}</span>`
+        : '<span class="red"> · unbound</span>';
+    html += '<br><span class="tx-dim">────────────────────────────────────────────</span>';
+
+    if (saved.length) {
+        html += '<br><span class="tx-dim tx-home-section">saved rooms</span>';
+        saved.forEach((r, i) => {
+            const isLast = i === saved.length - 1;
+            const branch = isLast ? '└─' : '├─';
+            const sealBadge = r.sealed ? ' <span class="tx-badge-sealed">sealed</span>' : '';
+            const last = r.lastVisited ? relTime(r.lastVisited) : '';
+            const lastSpan = last ? ` <span class="tx-dim tx-home-time">${escapeHtml(last)}</span>` : '';
+            html += `<div class="tx-home-row">
+                <span class="tx-tree">${branch}</span>
+                <span class="tx-home-room">${escapeHtml(r.name)}</span>
+                <span class="tx-dim tx-home-id">${escapeHtml(r.id)}</span>
+                ${sealBadge}${lastSpan}
+            </div>`;
+        });
+    } else {
+        html += '<br><span class="tx-dim">  no saved rooms</span>';
+    }
+    html += '<br><span class="tx-dim">────────────────────────────────────────────</span>';
+    return html;
 }
 
 function saveTextos() {
@@ -160,9 +220,9 @@ function markSetupShown() {
 
 function shouldShowSetup() {
     const t = ensureTextosShape();
-    if (t.setupShown && t.boundDbId) return false;
+    if (t.setupShown) return false;
     const util = getTextosUtil();
-    if (util?.installShown && t.boundDbId) return false;
+    if (util?.installShown) return false;
     return true;
 }
 
@@ -388,16 +448,17 @@ function endTxDialogue(reason) {
     if (reason) y_print(reason);
 }
 
-function enterTextosShell(quiet) {
-    const setDir = typeof setDirectory === 'function'
-        ? setDirectory
-        : window.setDirectory;
-    if (typeof setDir !== 'function' || !setDir('textos')) return false;
-    if (!quiet) {
-        g_print('<span class="tx-dim">in</span> <span class="light-blue b">textos</span> <span class="tx-dim">· cd.. to leave</span>');
+function cleanupTextosOnCdUp() {
+    endTxDialogue();
+    if (txLive.roomId) {
+        stopLive();
     }
-    return true;
+    const t = ensureTextosShape();
+    t.activeRoomId = null;
+    saveTextos();
 }
+
+window.cleanupTextosOnCdUp = cleanupTextosOnCdUp;
 
 function askTx(label, placeholder) {
     qestion(label);
@@ -596,13 +657,22 @@ function messagesCol(roomId) {
     return txFb.collection(txDb, PKG.collection, roomId, 'messages');
 }
 
-function slugRoom(name) {
-    const base = String(name || 'room')
+function roomIdBase(name) {
+    return String(name || 'room')
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9_-]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .slice(0, 24) || 'room';
+}
+
+async function allocateRoomId(name) {
+    const base = roomIdBase(name);
+    for (let n = 1; n < 10000; n++) {
+        const roomId = `${base}-${n}`;
+        const snap = await txFb.getDoc(roomRef(roomId));
+        if (!snap.exists()) return roomId;
+    }
     const tag = Math.random().toString(36).slice(2, 6);
     return `${base}-${tag}`;
 }
@@ -619,9 +689,193 @@ function stopLive() {
     txLive.seen = new Set();
 }
 
+// ─── saved rooms ────────────────────────────────────────────────────────────
+
+function getSavedRooms() {
+    return ensureTextosShape().savedRooms || [];
+}
+
+function saveRoom(roomId, meta) {
+    const t = ensureTextosShape();
+    if (!Array.isArray(t.savedRooms)) t.savedRooms = [];
+    const existing = t.savedRooms.findIndex((r) => r.id === roomId);
+    const entry = {
+        id: roomId,
+        name: meta.name || roomId,
+        sealed: !!meta.sealed,
+        savedAt: Date.now(),
+        lastVisited: Date.now()
+    };
+    if (existing >= 0) t.savedRooms[existing] = { ...t.savedRooms[existing], ...entry };
+    else t.savedRooms.unshift(entry);
+    // Keep max 20
+    if (t.savedRooms.length > 20) t.savedRooms = t.savedRooms.slice(0, 20);
+    saveTextos();
+}
+
+function unsaveRoom(roomId) {
+    const t = ensureTextosShape();
+    t.savedRooms = (t.savedRooms || []).filter((r) => r.id !== roomId);
+    saveTextos();
+}
+
+function touchSavedRoom(roomId) {
+    const t = ensureTextosShape();
+    const entry = (t.savedRooms || []).find((r) => r.id === roomId);
+    if (entry) {
+        entry.lastVisited = Date.now();
+        saveTextos();
+    }
+}
+
+async function promptSaveRoom(roomId, meta) {
+    const t = ensureTextosShape();
+    const alreadySaved = (t.savedRooms || []).some((r) => r.id === roomId);
+    if (alreadySaved) {
+        touchSavedRoom(roomId);
+        return;
+    }
+    const name = meta.name || roomId;
+    const shell = getShellCont();
+    const barHidden = shell && shell.style.display === 'none';
+
+    // Temporarily show shell input for the y/n prompt if chat bar is up.
+    if (barHidden) {
+        if (txChatBar?.el) txChatBar.el.style.display = 'none';
+        if (shell) shell.style.display = '';
+    }
+    _await('textos-save');
+    qestion(`save <span class="light-blue">${escapeHtml(name)}</span> to rooms? <span class="tx-dim">y · n · ne (never ask)</span>`);
+    c_placeholder('y / n / ne');
+
+    await new Promise((resolve) => {
+        const onKey = (e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            e.stopPropagation();
+            const val = (db_ui.input?.value || '').trim().toLowerCase();
+            if (db_ui.input) db_ui.input.value = '';
+            db_ui.input.removeEventListener('keydown', onKey);
+            unawait();
+            c_placeholder('');
+            if (val === 'y' || val === 'yes') {
+                saveRoom(roomId, meta);
+                g_print(`<span class="tx-dim">saved</span> <span class="light-blue">${escapeHtml(name)}</span>`);
+            } else if (val === 'ne' || val === 'never') {
+                t.neverAskSave = true;
+                saveTextos();
+                y_print('<span class="tx-dim">never ask again — use textos save to save manually</span>');
+            }
+            resolve();
+        };
+        db_ui.input.addEventListener('keydown', onKey);
+        if (db_ui.input) db_ui.input.focus();
+    });
+
+    if (barHidden && txLive.roomId) {
+        if (shell) shell.style.display = 'none';
+        if (txChatBar?.el) {
+            txChatBar.el.style.display = '';
+            txChatBar.input.focus();
+        } else {
+            showChatBar();
+        }
+    }
+}
+
+// ─── textos home screen ──────────────────────────────────────────────────────
+
+async function txHome(initialTab) {
+    if (typeof renderCliTabs !== 'function') {
+        e_print('cli tabs unavailable — reload dbnm');
+        return;
+    }
+
+    const t = ensureTextosShape();
+    const entry = resolveBoundDatabase();
+    const saved = getSavedRooms();
+    const nameColor = getTxNameColor(t);
+
+    const tabs = [
+        {
+            id: 'home',
+            label: 'home',
+            content: buildTxHomeContent(t, entry, saved),
+            items: saved.map((r) => ({
+                id: r.id,
+                name: r.name,
+                flavor: r.id + (r.sealed ? ' · sealed' : ''),
+                color: r.sealed ? 'yellow' : 'light-blue',
+                room: r
+            }))
+        },
+        {
+            id: 'settings',
+            label: 'settings',
+            content: '<span class="tx-dim">pick a setting to change</span>',
+            items: [
+                {
+                    id: 'nameColor',
+                    name: 'username color',
+                    flavor: txNameColorLabel(nameColor),
+                    color: nameColor
+                }
+            ]
+        },
+        {
+            id: 'name-color',
+            label: 'username color',
+            content: `<span class="tx-dim">current</span>  <span class="${escapeHtml(nameColor)}">${escapeHtml(t.deviceName)}</span> <span class="tx-dim">· ${escapeHtml(txNameColorLabel(nameColor))}</span>`,
+            items: TX_NAME_COLORS.map((c) => ({
+                id: c.id,
+                name: c.name,
+                flavor: c.id === nameColor ? 'active' : 'set color',
+                color: c.id
+            }))
+        }
+    ];
+
+    const pick = await renderCliTabs(tabs, {
+        title: 'textos',
+        initial: initialTab || 'home'
+    });
+
+    if (!pick) return;
+
+    if (pick.tab.id === 'home' && pick.item?.id) {
+        await joinDialogue(pick.item.id);
+        return;
+    }
+
+    if (pick.tab.id === 'settings' && pick.item?.id === 'nameColor') {
+        await txHome('name-color');
+        return;
+    }
+
+    if (pick.tab.id === 'name-color' && pick.item?.id) {
+        t.nameColor = pick.item.id;
+        saveTextos();
+        g_print(`username color <span class="${escapeHtml(pick.item.id)}">${escapeHtml(txNameColorLabel(pick.item.id))}</span>`);
+    }
+}
+
+function relTime(ts) {
+    const diff = Date.now() - ts;
+    const s = Math.floor(diff / 1000);
+    if (s < 60) return 'just now';
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ago`;
+}
+
 function printMessage(msg, opts) {
     const t = ensureTextosShape();
     const from = msg.from || t.deviceName || (userData.username || '').trim() || 'anon';
+    const isSelf = msg.fromId === t.deviceId;
+    const fromColor = isSelf ? getTxNameColor(t) : 'light-blue';
     const time = msg.ts
         ? new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
         : '--:--:--';
@@ -636,7 +890,7 @@ function printMessage(msg, opts) {
             cls += ' locked';
         }
     }
-    txRaw(`<div class="${cls}"><span class="tx-time">${escapeHtml(time)}</span> <span class="tx-from">${escapeHtml(from)}</span> <span class="tx-body">${escapeHtml(body)}</span></div>`);
+    txRaw(`<div class="${cls}"><span class="tx-time">${escapeHtml(time)}</span> <span class="tx-from ${escapeHtml(fromColor)}">${escapeHtml(from)}</span> <span class="tx-body">${escapeHtml(body)}</span></div>`);
 }
 
 async function decodeMessageBody(msg) {
@@ -649,6 +903,33 @@ async function decodeMessageBody(msg) {
     } catch {
         return { plain: null, ok: false };
     }
+}
+
+function docToMessage(doc) {
+    const data = doc.data() || {};
+    return {
+        id: doc.id,
+        from: data.from || 'anon',
+        fromId: data.fromId || '',
+        body: data.body || '',
+        sealed: !!data.sealed,
+        ts: data.createdAt?.toMillis?.() || data.createdAt?.seconds * 1000 || Date.now()
+    };
+}
+
+async function loadRoomHistory(roomId) {
+    const q = txFb.query(
+        messagesCol(roomId),
+        txFb.orderBy('createdAt', 'desc'),
+        txFb.limit(PKG.historyLimit)
+    );
+    const snap = await txFb.getDocs(q);
+    return snap.docs.slice().reverse().map(docToMessage);
+}
+
+async function printRoomMessage(msg) {
+    const decoded = await decodeMessageBody(msg);
+    printMessage(msg, decoded.ok ? { plain: decoded.plain } : null);
 }
 
 async function startLive(roomId, roomMeta) {
@@ -668,33 +949,33 @@ async function startLive(roomId, roomMeta) {
     t.activeRoomId = roomId;
     saveTextos();
 
-    const q = txFb.query(messagesCol(roomId), txFb.orderBy('createdAt', 'asc'), txFb.limit(80));
-    let bootstrapped = false;
-
-    txUnsub = txFb.onSnapshot(q, async (snap) => {
-        for (const change of snap.docChanges()) {
-            if (change.type !== 'added') continue;
-            const id = change.doc.id;
-            if (txLive.seen.has(id)) continue;
-            txLive.seen.add(id);
-            const data = change.doc.data() || {};
-            const msg = {
-                id,
-                from: data.from || 'anon',
-                fromId: data.fromId || '',
-                body: data.body || '',
-                sealed: !!data.sealed,
-                ts: data.createdAt?.toMillis?.() || data.createdAt?.seconds * 1000 || Date.now()
-            };
-            if (!bootstrapped) continue;
-            if (msg.fromId === t.deviceId) continue;
-            const decoded = await decodeMessageBody(msg);
-            printMessage(msg, decoded.ok ? { plain: decoded.plain } : null);
+    const history = await loadRoomHistory(roomId);
+    if (history.length) {
+        txRaw('<span class="tx-dim">recent messages</span>');
+        for (const msg of history) {
+            txLive.seen.add(msg.id);
+            await printRoomMessage(msg);
         }
-        bootstrapped = true;
-    }, (err) => {
-        e_print(`live feed error: ${err.message}`);
-    });
+        txRaw('<span class="tx-dim">— live —</span>');
+    }
+
+    txUnsub = txFb.onSnapshot(
+        txFb.query(messagesCol(roomId), txFb.orderBy('createdAt', 'asc')),
+        async (snap) => {
+            for (const change of snap.docChanges()) {
+                if (change.type !== 'added') continue;
+                const id = change.doc.id;
+                if (txLive.seen.has(id)) continue;
+                txLive.seen.add(id);
+                const msg = docToMessage(change.doc);
+                if (msg.fromId === t.deviceId) continue;
+                await printRoomMessage(msg);
+            }
+        },
+        (err) => {
+            e_print(`live feed error: ${err.message}`);
+        }
+    );
 
     g_print(`joined <span class="light-blue">${escapeHtml(txLive.roomName)}</span> <span class="tx-dim">${escapeHtml(roomId)}</span>`);
     if (txLive.sealed) {
@@ -703,12 +984,21 @@ async function startLive(roomId, roomMeta) {
     }
     tip_print('type to chat · /leave exits');
     showChatBar();
+
+    // After chat bar is live, prompt to save (non-blocking).
+    if (!t.neverAskSave) {
+        setTimeout(() => {
+            promptSaveRoom(roomId, { name: txLive.roomName, sealed: txLive.sealed });
+        }, 600);
+    } else {
+        touchSavedRoom(roomId);
+    }
 }
 
 async function createRoom(name, keyInfo) {
     await ensureTxFirebase();
     const t = ensureTextosShape();
-    const roomId = slugRoom(name);
+    const roomId = await allocateRoomId(name);
     const sealed = !!(keyInfo && keyInfo.key);
     if (sealed) {
         t.seeThroughKey = keyInfo.key;
@@ -842,7 +1132,6 @@ function leaveRoom() {
     t.activeRoomId = null;
     saveTextos();
     y_print(`left <span class="light-blue">${escapeHtml(name)}</span>`);
-    enterTextosShell(true);
 }
 
 function getShellCont() {
@@ -945,7 +1234,7 @@ function showStatus() {
     const entry = resolveBoundDatabase();
     txBanner('status');
     txBox([
-        `<span class="tx-dim">device</span>  <span class="light-blue">${escapeHtml(t.deviceName)}</span> <span class="tx-dim">${escapeHtml(t.deviceId)}</span>`,
+        `<span class="tx-dim">device</span>  <span class="${escapeHtml(getTxNameColor(t))}">${escapeHtml(t.deviceName)}</span> <span class="tx-dim">${escapeHtml(t.deviceId)}</span>`,
         `<span class="tx-dim">db</span>      ${entry ? `<span class="light-blue">${escapeHtml(entry.name)}</span> <span class="tx-dim">${escapeHtml(entry.server?.label || entry.server?.type || '')}</span>` : '<span class="red">unbound</span>'}`,
         `<span class="tx-dim">room</span>    ${txLive.roomId ? `<span class="green b">${escapeHtml(txLive.roomName || txLive.roomId)}</span>` : '<span class="tx-dim">—</span>'}`,
         `<span class="tx-dim">sealed</span>  <span class="${txLive.sealed ? 'yellow' : 'tx-dim'}">${txLive.sealed ? 'yes' : 'no'}</span>`,
@@ -1061,36 +1350,10 @@ async function joinDialogue(presetId, keyToken) {
         await ensureTxFirebase();
         let roomId = presetId;
         if (!roomId) {
-            const rooms = await listRooms();
-            if (rooms.length) {
-                const choices = rooms.map((r) => ({
-                    id: r.id,
-                    name: r.id,
-                    flavor: (r.name || '') + (r.sealed ? ' · sealed' : ''),
-                    color: r.sealed ? 'yellow' : 'light-blue',
-                    sealed: !!r.sealed
-                }));
-                choices.push({ id: '__type__', name: 'type id…', flavor: 'manual', color: 'muted-teal' });
-                const pick = await renderTxChoices(choices);
-                if (!pick) {
-                    endTxDialogue('cancelled');
-                    return;
-                }
-                if (pick.id === '__type__') {
-                    roomId = await waitTxInput('room id', 'name-xxxx');
-                    if (!roomId) {
-                        endTxDialogue();
-                        return;
-                    }
-                } else {
-                    roomId = pick.id;
-                }
-            } else {
-                roomId = await waitTxInput('room id', 'name-xxxx');
-                if (!roomId) {
-                    endTxDialogue();
-                    return;
-                }
+            roomId = await waitTxInput('room id', 'room-1');
+            if (!roomId) {
+                endTxDialogue('cancelled');
+                return;
             }
         }
 
@@ -1157,12 +1420,10 @@ async function setupDialogue(opts) {
             { id: 'done', name: 'done', flavor: 'finish setup', color: 'tx-dim' }
         ]);
 
-        markSetupShown();
         endTxDialogue();
-        enterTextosShell();
 
         if (!next || next.id === 'done') {
-            tip_print('create · join · ls · send · cd.. to leave');
+            tip_print('<span class="light-blue">cd textos</span> to enter · <span class="light-blue">textos</span> for saved rooms');
             return;
         }
         if (next.id === 'create') {
@@ -1175,6 +1436,8 @@ async function setupDialogue(opts) {
     } catch (e) {
         endTxDialogue();
         e_print(e.message || String(e));
+    } finally {
+        markSetupShown();
     }
 }
 
@@ -1235,13 +1498,12 @@ async function keyCommand(token) {
 async function handleTextos(_, cmd_split) {
     ensureTextosShape();
     const action = (cmd_split[1] || '').toLowerCase();
-    const setupActions = ['setup', 'install', 'bind'];
 
-    if (!setupActions.includes(action) && !txSession) {
-        enterTextosShell(true);
+    if (!action || action === 'home' || action === 'textos') {
+        await txHome();
+        return;
     }
-
-    if (!action || action === 'help' || action === 'h' || action === '?') {
+    if (action === 'help' || action === 'h' || action === '?') {
         txHelp();
         return;
     }
@@ -1262,6 +1524,42 @@ async function handleTextos(_, cmd_split) {
         const id = cmd_split[2];
         const keyToken = cmd_split.slice(3).join(' ').trim() || null;
         await joinDialogue(id || null, keyToken);
+        return;
+    }
+    if (action === 'save') {
+        const idArg = cmd_split.slice(2).join(' ').trim();
+        const roomId = idArg || txLive.roomId;
+        if (!roomId) {
+            e_print('Usage: save [room-id]  — or be inside a room');
+            return;
+        }
+        const name = txLive.roomId === roomId ? (txLive.roomName || roomId) : roomId;
+        saveRoom(roomId, { name, sealed: txLive.roomId === roomId ? txLive.sealed : false });
+        g_print(`<span class="tx-dim">saved</span> <span class="light-blue">${escapeHtml(name)}</span>`);
+        return;
+    }
+    if (action === 'unsave' || action === 'forget') {
+        const arg = cmd_split.slice(2).join(' ').trim();
+        const t = ensureTextosShape();
+        if (!arg) {
+            const saved = getSavedRooms();
+            if (!saved.length) { print('<span class="tx-dim">no saved rooms</span>'); return; }
+            const choices = saved.map((r) => ({
+                id: r.id, name: r.name, flavor: r.id, color: 'tx-dim'
+            }));
+            _await('textos');
+            txSession = { step: 'unsave' };
+            const pick = await renderTxChoices(choices);
+            endTxDialogue();
+            if (!pick) return;
+            unsaveRoom(pick.id);
+            y_print(`<span class="tx-dim">removed</span> <span class="light-blue">${escapeHtml(pick.name)}</span>`);
+            return;
+        }
+        const match = (t.savedRooms || []).find((r) => r.id === arg || r.name.toLowerCase() === arg.toLowerCase());
+        if (!match) { e_print(`not saved: ${arg}`); return; }
+        unsaveRoom(match.id);
+        y_print(`<span class="tx-dim">removed</span> <span class="light-blue">${escapeHtml(match.name)}</span>`);
         return;
     }
     if (action === 'ls' || action === 'list' || action === 'rooms') {
@@ -1307,9 +1605,8 @@ async function handleTextos(_, cmd_split) {
 
 async function handleTx(_, cmd_split) {
     ensureTextosShape();
-    enterTextosShell(true);
     const action = (cmd_split[1] || '').toLowerCase();
-    const known = ['setup', 'install', 'bind', 'status', 'info', 'create', 'new', 'open', 'join', 'enter', 'ls', 'list', 'rooms', 'leave', 'exit', 'close', 'key', 'seal', 'send', 'say', 'msg', 'help', 'h', '?'];
+    const known = ['setup', 'install', 'bind', 'status', 'info', 'create', 'new', 'open', 'join', 'enter', 'ls', 'list', 'rooms', 'leave', 'exit', 'close', 'key', 'seal', 'send', 'say', 'msg', 'help', 'h', '?', 'save', 'unsave', 'forget'];
     if (!action || known.includes(action)) {
         await handleTextos(_, cmd_split);
         return;
@@ -1328,13 +1625,5 @@ _reg('tx', handleTx);
     ensureTextosShape();
     if (shouldShowSetup()) {
         await setupDialogue();
-        return;
     }
-    enterTextosShell();
-    g_print(`${PKG.name}@${PKG.version}`);
-    const entry = resolveBoundDatabase();
-    if (entry) {
-        print(`<span class="tx-dim">db</span>  <span class="light-blue">${escapeHtml(entry.name)}</span>`);
-    }
-    tip_print('create · join · ls · send · cd.. to leave');
 })();

@@ -307,3 +307,108 @@ input {
     animation-delay: 1.05s;
 }
 
+/* ── cli tabs display ───────────────────────────────────────── */
+.cli-tabs {
+    margin: 0.4rem 0 0.55rem;
+    border: 1px solid #2a2a2a;
+    background: rgba(255,255,255,0.015);
+    font-family: monospace;
+    max-width: 52rem;
+}
+
+.cli-tabs-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem 0.35rem;
+    padding: 0.35rem 0.55rem;
+    border-bottom: 1px solid #2a2a2a;
+    user-select: none;
+}
+
+.cli-tab {
+    color: #777;
+    padding: 0.1rem 0.35rem;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+}
+
+.cli-tab + .cli-tab::before {
+    content: '·';
+    color: #444;
+    margin-right: 0.45rem;
+    pointer-events: none;
+}
+
+.cli-tab.active {
+    color: rgb(124, 182, 227);
+    border-bottom-color: rgb(124, 182, 227);
+}
+
+.cli-tabs-bar.focus-tabs .cli-tab.active {
+    color: rgb(81, 231, 211);
+    border-bottom-color: rgb(81, 231, 211);
+    background: rgba(81, 231, 211, 0.08);
+}
+
+.cli-tabs-body {
+    padding: 0.45rem 0.65rem 0.55rem;
+    min-height: 2.2rem;
+}
+
+.cli-tabs-content {
+    color: #b0b0b0;
+    margin-bottom: 0.35rem;
+    white-space: pre-wrap;
+}
+
+.cli-tabs-content:empty {
+    display: none;
+}
+
+.cli-tabs-items {
+    margin-top: 0.15rem;
+}
+
+.cli-tabs-item {
+    padding: 0.12rem 0.35rem;
+    cursor: pointer;
+    color: #9a9a9a;
+}
+
+.cli-tabs-item .cli-tabs-mark {
+    display: inline-block;
+    width: 1.1rem;
+    color: transparent;
+}
+
+.cli-tabs-item.is-active .cli-tabs-mark {
+    color: rgb(81, 231, 211);
+}
+
+.cli-tabs-item.is-active {
+    color: #e8e8e8;
+}
+
+.cli-tabs.focus-items .cli-tabs-item.is-active {
+    background: rgb(101, 181, 255);
+    color: black !important;
+}
+
+.cli-tabs.focus-items .cli-tabs-item.is-active .cli-tabs-mark {
+    color: black;
+}
+
+.cli-tabs-item .cli-tabs-flavor {
+    color: #555;
+    margin-left: 0.45rem;
+}
+
+.cli-tabs.focus-items .cli-tabs-item.is-active .cli-tabs-flavor {
+    color: #222;
+}
+
+.cli-tabs-empty {
+    color: #555;
+    font-style: italic;
+}

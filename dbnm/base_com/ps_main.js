@@ -7,9 +7,10 @@ const pkgContentsMap = {};
 let awaiting = false;
 let awaiting_cmd = null;
 let directory = null;
-let versionII = '1.4.2';
+let versionII = '1.4.7';
 const storedUserData = JSON.parse(localStorage.getItem('dbnm_userData'));
 let suggestionsEnabled = !!storedUserData?.suggestions;
+let tipsEnabled = storedUserData?.tips !== undefined ? !!storedUserData.tips : true;
 
 
 // Single object for all user-related data
@@ -18,6 +19,7 @@ let userData = storedUserData || {
     cmdUtil: [],
     sessionId: null,
     suggestions: suggestionsEnabled,
+    tips: tipsEnabled,
     OS_USE_ARRAY: [
         'dbnm.lcnjoel',
     ],
@@ -33,11 +35,13 @@ let userData = storedUserData || {
         boundDbId: null,
         seeThroughKey: null,
         activeRoomId: null,
-        setupShown: false
+        setupShown: false,
+        nameColor: 'light-blue'
     }
 };
 
 if (typeof userData.suggestions === 'undefined') userData.suggestions = suggestionsEnabled;
+if (typeof userData.tips === 'undefined') userData.tips = tipsEnabled;
 
 function ensureUserDataShape() {
     if (!userData.vars || typeof userData.vars !== 'object') userData.vars = {};
@@ -53,9 +57,11 @@ function ensureUserDataShape() {
             boundDbId: null,
             seeThroughKey: null,
             activeRoomId: null,
-            setupShown: false
+            setupShown: false,
+            nameColor: 'light-blue'
         };
     }
+    if ('inShell' in userData.textos) delete userData.textos.inShell;
 }
 
 function migrateLegacyStorage() {
@@ -103,6 +109,7 @@ function migrateLegacyStorage() {
 
 function saveData() {
     userData.suggestions = !!suggestionsEnabled;
+    userData.tips = !!tipsEnabled;
     localStorage.setItem('dbnm_userData', JSON.stringify(userData));
 }
 
@@ -167,6 +174,10 @@ const dbnm_settings = [
         name: 'suggestions',
         func: toggleSuggestions,
         state: suggestionsEnabled
+    },
+    {
+        name: 'tips',
+        state: tipsEnabled
     }
 ]
 // UI Elements
@@ -364,10 +375,235 @@ function qestion(value) {
 }
 
 function tip_print(value) {
-    const val_html = `<div class="g-3 tip-print">${value}</div>`;
+    const hide = tipsEnabled ? '' : ' style="display:none"';
+    const val_html = `<div class="g-3 tip-print"><span${hide}>${value}</span></div>`;
     appendOutput(val_html);
     return value;
 }
+
+/* ── cli tabs display (Claude Code–style) ───────────────────── */
+let cliTabsSession = null;
+
+function cliEscape(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function resolveCliTabContent(tab) {
+    if (!tab) return '';
+    if (typeof tab.content === 'function') {
+        try { return tab.content(tab) || ''; } catch (_) { return ''; }
+    }
+    return tab.content || '';
+}
+
+function getCliTabItems(tab) {
+    if (!tab) return [];
+    if (typeof tab.items === 'function') {
+        try {
+            const list = tab.items(tab);
+            return Array.isArray(list) ? list : [];
+        } catch (_) { return []; }
+    }
+    return Array.isArray(tab.items) ? tab.items : [];
+}
+
+/**
+ * Claude Code–style tabbed CLI display.
+ * ← → switch tabs · ↓ enter item list · ↑↓ move · Enter pick · Esc bail
+ *
+ * @param {Array<{id, label, content?, items?}>} tabs
+ * @param {{ title?, initial?, awaitKey? }} [opts]
+ * @returns {Promise<{tab, item}|null>}
+ */
+function renderCliTabs(tabs, opts = {}) {
+    const list = (Array.isArray(tabs) ? tabs : []).filter(Boolean);
+    if (!list.length) return Promise.resolve(null);
+
+    if (cliTabsSession?.onKey) {
+        document.removeEventListener('keydown', cliTabsSession.onKey);
+        cliTabsSession = null;
+    }
+
+    const panelId = `cli-tabs-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    let tabIndex = Math.max(0, list.findIndex(t => t.id === opts.initial));
+    if (tabIndex < 0) tabIndex = 0;
+    let itemIndex = 0;
+    let focus = 'tabs'; // 'tabs' | 'items'
+    let closed = false;
+
+    if (opts.title) {
+        print(`<span class="muted-teal b">${cliEscape(opts.title)}</span>`);
+    }
+
+    appendOutput(`<div class="cli-tabs focus-tabs" id="${panelId}"></div>`);
+    const root = () => document.getElementById(panelId);
+
+    const paint = () => {
+        const el = root();
+        if (!el) return;
+        const tab = list[tabIndex];
+        const items = getCliTabItems(tab);
+        if (focus === 'items' && !items.length) focus = 'tabs';
+        if (itemIndex >= items.length) itemIndex = Math.max(0, items.length - 1);
+
+        el.className = `cli-tabs focus-${focus}`;
+
+        const tabHtml = list.map((t, i) => {
+            const active = i === tabIndex ? ' active' : '';
+            return `<span class="cli-tab${active}" data-cli-tab="${i}">${cliEscape(t.label || t.id || `tab ${i + 1}`)}</span>`;
+        }).join('');
+
+        const content = resolveCliTabContent(tab);
+        let itemsHtml = '';
+        if (items.length) {
+            itemsHtml = `<div class="cli-tabs-items">${items.map((it, i) => {
+                const active = i === itemIndex ? ' is-active' : '';
+                const color = it.color ? ` ${cliEscape(it.color)}` : '';
+                const flavor = it.flavor
+                    ? `<span class="cli-tabs-flavor">${cliEscape(it.flavor)}</span>`
+                    : '';
+                return `<div class="cli-tabs-item${active}${color}" data-cli-item="${i}"><span class="cli-tabs-mark">›</span>${cliEscape(it.name || it.id || `item ${i + 1}`)}${flavor}</div>`;
+            }).join('')}</div>`;
+        } else if (!content) {
+            itemsHtml = '<div class="cli-tabs-empty">no items</div>';
+        }
+
+        el.innerHTML = `
+            <div class="cli-tabs-bar focus-${focus}">
+                ${tabHtml}
+            </div>
+            <div class="cli-tabs-body">
+                <div class="cli-tabs-content">${content}</div>
+                ${itemsHtml}
+            </div>
+        `;
+        scrollOutputToBottom();
+    };
+
+    paint();
+
+    return new Promise((resolve) => {
+        const finish = (value) => {
+            if (closed) return;
+            closed = true;
+            document.removeEventListener('keydown', onKey);
+            if (cliTabsSession?.onKey === onKey) cliTabsSession = null;
+            unawait();
+            if (db_ui.input) db_ui.input.focus();
+            resolve(value);
+        };
+
+        const switchTab = (dir) => {
+            tabIndex = (tabIndex + dir + list.length) % list.length;
+            itemIndex = 0;
+            if (focus === 'items' && !getCliTabItems(list[tabIndex]).length) {
+                focus = 'tabs';
+            }
+            paint();
+        };
+
+        const onKey = (e) => {
+            if (closed || !root()) return;
+            const tab = list[tabIndex];
+            const items = getCliTabItems(tab);
+
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                e.stopPropagation();
+                switchTab(-1);
+                return;
+            }
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                e.stopPropagation();
+                switchTab(1);
+                return;
+            }
+            if (e.key === 'Escape' || (e.key === 'Backspace' && !(db_ui.input?.value))) {
+                e.preventDefault();
+                e.stopPropagation();
+                finish(null);
+                return;
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!items.length) return;
+                if (focus === 'tabs') {
+                    focus = 'items';
+                    itemIndex = 0;
+                } else {
+                    itemIndex = (itemIndex + 1) % items.length;
+                }
+                paint();
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (focus === 'items') {
+                    if (itemIndex <= 0) {
+                        focus = 'tabs';
+                        itemIndex = 0;
+                    } else {
+                        itemIndex -= 1;
+                    }
+                    paint();
+                }
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (focus === 'items' && items.length) {
+                    finish({ tab, item: items[itemIndex], tabIndex, itemIndex });
+                    return;
+                }
+                if (items.length) {
+                    focus = 'items';
+                    itemIndex = 0;
+                    paint();
+                    return;
+                }
+                finish({ tab, item: null, tabIndex, itemIndex: -1 });
+            }
+        };
+
+        const onClick = (e) => {
+            const el = root();
+            if (!el || closed) return;
+            const tabNode = e.target.closest('[data-cli-tab]');
+            if (tabNode && el.contains(tabNode)) {
+                tabIndex = Number(tabNode.getAttribute('data-cli-tab')) || 0;
+                itemIndex = 0;
+                focus = 'tabs';
+                paint();
+                return;
+            }
+            const itemNode = e.target.closest('[data-cli-item]');
+            if (itemNode && el.contains(itemNode)) {
+                focus = 'items';
+                itemIndex = Number(itemNode.getAttribute('data-cli-item')) || 0;
+                paint();
+                const items = getCliTabItems(list[tabIndex]);
+                finish({ tab: list[tabIndex], item: items[itemIndex], tabIndex, itemIndex });
+            }
+        };
+
+        cliTabsSession = { onKey, panelId };
+        _await(opts.awaitKey || 'cli-tabs');
+        document.addEventListener('keydown', onKey);
+        const el = root();
+        if (el) el.addEventListener('click', onClick);
+        if (db_ui.input) db_ui.input.blur();
+    });
+}
+
+window.renderCliTabs = renderCliTabs;
+window.cliTabs = renderCliTabs;
 
 // Parse Commands
 let unawaitTimer = null;
@@ -410,9 +646,18 @@ function parseCommand(cmd) {
 
 // Handle Commands
 function handleCommand(cmd) {
-    if (cmd === 'cd..') clearDirectory();
+    const rawCmd = String(cmd || '').trim();
+    const isCdUp = rawCmd.toLowerCase() === 'cd..';
 
-    if (directory && (cmd !== 'cd..' || cmd !== '/' || cmd !== 'r')) {
+    if (isCdUp) {
+        if (directory === 'textos' && typeof window.cleanupTextosOnCdUp === 'function') {
+            window.cleanupTextosOnCdUp();
+        }
+        clearDirectory();
+        return;
+    }
+
+    if (directory && rawCmd !== '/' && rawCmd !== 'r') {
         cmd = directory + ` ` + cmd;
     }
 
@@ -442,24 +687,59 @@ _reg('help', () => {
     print(output);
 });
 
-_reg('settings', (args, cmd_split) => {
+_reg('tabs', async () => {
+    const pick = await renderCliTabs([
+        {
+            id: 'status',
+            label: 'status',
+            content: `<span class="db-dim">session</span>  <span class="light-blue">${cliEscape(userData.sessionId || '—')}</span>\n<span class="db-dim">user</span>     <span class="light-blue">${cliEscape((userData.username || '').trim() || 'anon')}</span>\n<span class="db-dim">dir</span>      <span class="muted-teal">${cliEscape(directory || 'main')}</span>`,
+            items: [
+                { id: 'refresh', name: 'refresh', flavor: 'reload status view', color: 'muted-teal' },
+                { id: 'clear', name: 'clear', flavor: 'wipe output', color: 'yellow' }
+            ]
+        },
+        {
+            id: 'commands',
+            label: 'commands',
+            content: '<span class="db-dim">pick a command to run</span>',
+            items: Object.keys(commandHandlers)
+                .filter((c) => c !== 'tabs')
+                .slice(0, 12)
+                .map((c) => ({ id: c, name: c, flavor: 'run', color: 'light-blue' }))
+        },
+        {
+            id: 'about',
+            label: 'about',
+            content: `<span class="green b">dbnm</span> <span class="db-dim">${cliEscape(versionII)}</span>\nClaude Code–style ←→ tabs · ↓ item selector`
+        }
+    ], { title: 'cli display', initial: 'status' });
+
+    if (!pick) {
+        y_print('tabs cancelled');
+        return;
+    }
+    if (pick.item?.id === 'clear') {
+        if (db_ui.output) db_ui.output.innerHTML = '';
+        g_print('cleared');
+        return;
+    }
+    if (pick.tab?.id === 'commands' && pick.item?.id) {
+        g_print(`running <span class="light-blue">${cliEscape(pick.item.id)}</span>`);
+        handleCommand(pick.item.id);
+        return;
+    }
+    g_print(`picked <span class="light-blue">${cliEscape(pick.tab?.label || pick.tab?.id || '')}</span>${pick.item ? ` · <span class="muted-teal">${cliEscape(pick.item.name)}</span>` : ''}`);
+});
+
+_reg('settings', async (args, cmd_split) => {
     const action = cmd_split[0].toLowerCase();
     const name = (cmd_split[1] || '').toLowerCase();
     const value = (cmd_split[2] || '').toLowerCase();
 
-    const renderList = () => {
-        if (!dbnm_settings.length) {
-            print('No settings available.');
-            return;
-        }
-        let out = '<br> Settings:';
-        dbnm_settings.forEach((s, i) => {
-            const isOn = s.name === 'suggestions'
-                ? !!suggestionsEnabled
-                : !!s.state;
-            out += `<br> ${i + 1}. ${s.name}: ${isOn ? 'on' : 'off'}`;
-        });
-        print(out);
+    const getSettingState = (setting) => {
+        if (setting.name === 'suggestions') return !!suggestionsEnabled;
+        if (setting.name === 'tips') return !!tipsEnabled;
+        return !!setting.state;
     };
 
     const applySetting = (setting, desiredOn) => {
@@ -469,15 +749,77 @@ _reg('settings', (args, cmd_split) => {
             userData.suggestions = desiredOn;
             saveData();
             if (typeof toggleSuggestions === 'function') toggleSuggestions();
+        } else if (setting.name === 'tips') {
+            tipsEnabled = desiredOn;
+            setting.state = desiredOn;
+            userData.tips = desiredOn;
+            saveData();
         } else {
             setting.state = desiredOn;
         }
-        print(`Setting '${setting.name}' is now ${desiredOn ? 'on' : 'off'}`);
+        g_print(`<span class="light-blue">${cliEscape(setting.name)}</span> <span class="db-dim">·</span> <span class="${desiredOn ? 'green' : 'tx-dim'}">${desiredOn ? 'on' : 'off'}</span>`);
     };
 
-    // No args => list all settings
+    const openSettingsTabs = async () => {
+        if (!dbnm_settings.length) {
+            print('No settings available.');
+            return;
+        }
+
+        const tabs = [
+            {
+                id: 'all',
+                label: 'all',
+                content: '<span class="db-dim">toggle a setting · pick to flip on/off</span>',
+                items: dbnm_settings.map((s) => {
+                    const isOn = getSettingState(s);
+                    return {
+                        id: s.name,
+                        name: s.name,
+                        flavor: isOn ? 'on · click to turn off' : 'off · click to turn on',
+                        color: isOn ? 'green' : 'muted-teal',
+                        setting: s
+                    };
+                })
+            },
+            ...dbnm_settings.map((s) => {
+                const isOn = getSettingState(s);
+                return {
+                    id: s.name,
+                    label: s.name,
+                    content: `<span class="db-dim">current</span>  <span class="${isOn ? 'green' : 'tx-dim'}">${isOn ? 'on' : 'off'}</span>`,
+                    items: [
+                        { id: 'on', name: 'on', flavor: 'enable', color: 'green', setting: s },
+                        { id: 'off', name: 'off', flavor: 'disable', color: 'red', setting: s }
+                    ]
+                };
+            })
+        ];
+
+        const pick = await renderCliTabs(tabs, {
+            title: 'settings',
+            initial: 'all'
+        });
+
+        if (!pick?.item) {
+            if (pick === null) y_print('settings cancelled');
+            return;
+        }
+
+        if (pick.tab.id === 'all' && pick.item.setting) {
+            applySetting(pick.item.setting, !getSettingState(pick.item.setting));
+            return;
+        }
+
+        if (pick.item.id === 'on' || pick.item.id === 'off') {
+            const setting = pick.item.setting || dbnm_settings.find((s) => s.name === pick.tab.id);
+            if (setting) applySetting(setting, pick.item.id === 'on');
+        }
+    };
+
+    // No args => tabbed settings UI
     if (!name) {
-        renderList();
+        await openSettingsTabs();
         return;
     }
 
@@ -489,9 +831,7 @@ _reg('settings', (args, cmd_split) => {
 
     // Only name => show that one
     if (!value) {
-        const isOn = setting.name === 'suggestions'
-            ? !!suggestionsEnabled
-            : !!setting.state;
+        const isOn = getSettingState(setting);
         print(`${setting.name}: ${isOn ? 'on' : 'off'}`);
         return;
     }
