@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intercable</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Netflix+Sans:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="#" class="nav-link active">Home</a>
+            <a href="#" class="nav-link">TV Shows</a>
+            <a href="#" class="nav-link">Movies</a>
+            <a href="#" class="nav-link">New & Popular</a>
+            <a href="#" class="nav-link">My List</a>
+            <a href="#" class="nav-link">Browse by Languages</a>
+        </div>
+        <div class="nav-right">
+            <button class="nav-icon" aria-label="Search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+            </button>
+            <button class="nav-icon" aria-label="Notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </button>
+            <div class="profile-dropdown">
+                <div class="profile-icon"></div>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"></path>
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Featured Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-background">
+            <div class="hero-image-container">
+                <img src="" alt="" class="hero-image" id="heroImage">
+            </div>
+            <div class="hero-gradient"></div>
+        </div>
+        <div class="hero-content" id="heroContent">
+            <img src="" alt="" class="hero-logo" id="heroLogo">
+            <div class="hero-buttons">
+                <button class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"></path>
+                    </svg>
+                    Watch Now
+                </button>
+                <button class="btn btn-secondary">Preview</button>
+            </div>
+            <div class="hero-meta" id="heroMeta">
+                <span class="badge new">New</span>
+                <span class="meta-text" id="heroDuration">2hr 13min</span>
+                <span class="meta-text" id="heroYear">2024</span>
+                <span class="badge quality">4K</span>
+            </div>
+            <div class="hero-rating" id="heroRating">
+                <span class="badge rating">PG-E</span>
+            </div>
+        </div>
+        <!-- Hero Indicators -->
+        <div class="hero-indicators" id="heroIndicators"></div>
+    </section>
+
+    <!-- Movies Row Section -->
+    <section class="movies-section">
+        <h2 class="section-title">Hey Joel, you may like</h2>
+        <div class="movies-row" id="moviesRow">
+            <!-- Movies will be dynamically inserted here -->
+        </div>
+    </section>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

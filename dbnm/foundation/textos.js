@@ -17,6 +17,12 @@ const TX_CRYPTO = {
     keyLen: 256
 };
 
+const TX_PASSWORD = {
+    saltLen: 16,
+    iterations: 310000,
+    hashLen: 32
+};
+
 const TX_ALPHA =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
@@ -60,6 +66,7 @@ let txLive = {
     roomId: null,
     roomName: null,
     sealed: false,
+    passwordProtected: false,
     seen: new Set()
 };
 
@@ -105,7 +112,7 @@ function txHelp() {
     print('  <span class="light-blue">textos status</span>             binding · room · key');
     print('<span class="tx-dim">rooms</span>');
     print('  <span class="light-blue">textos create [name]</span>      open a room');
-    print('  <span class="light-blue">textos join [id]</span>         enter a room');
+    print('  <span class="light-blue">textos join [id] [key] [password]</span>  enter a room');
     print('  <span class="light-blue">textos save [id]</span>         save room to home');
     print('  <span class="light-blue">textos unsave [id|name]</span>  remove saved room');
     print('  <span class="light-blue">textos ls</span>                 list remote rooms');
@@ -179,13 +186,14 @@ function buildTxHomeContent(t, entry, saved) {
             const isLast = i === saved.length - 1;
             const branch = isLast ? '└─' : '├─';
             const sealBadge = r.sealed ? ' <span class="tx-badge-sealed">sealed</span>' : '';
+            const passwordBadge = r.passwordProtected ? ' <span class="muted-teal">password</span>' : '';
             const last = r.lastVisited ? relTime(r.lastVisited) : '';
             const lastSpan = last ? ` <span class="tx-dim tx-home-time">${escapeHtml(last)}</span>` : '';
             html += `<div class="tx-home-row">
                 <span class="tx-tree">${branch}</span>
                 <span class="tx-home-room">${escapeHtml(r.name)}</span>
                 <span class="tx-dim tx-home-id">${escapeHtml(r.id)}</span>
-                ${sealBadge}${lastSpan}
+                ${sealBadge}${passwordBadge}${lastSpan}
             </div>`;
         });
     } else {
@@ -284,7 +292,8 @@ function getDbnmVars() {
     }
 }
 
-function listVarChoices() {
+function listVarChoices(opts) {
+    const redact = !!opts?.redact;
     const vars = getDbnmVars();
     return Object.keys(vars)
         .filter((k) => {
@@ -294,9 +303,11 @@ function listVarChoices() {
         .map((k) => ({
             id: k,
             name: k,
-            flavor: String(vars[k]).length > 28
-                ? String(vars[k]).slice(0, 28) + '…'
-                : String(vars[k]),
+            flavor: redact
+                ? 'stored value'
+                : (String(vars[k]).length > 28
+                    ? String(vars[k]).slice(0, 28) + '…'
+                    : String(vars[k])),
             color: 'muted-teal',
             secret: String(vars[k])
         }));
@@ -402,6 +413,53 @@ async function deriveAesKey(passphrase, salt) {
         false,
         ['encrypt', 'decrypt']
     );
+}
+
+async function deriveRoomPasswordHash(password, salt) {
+    const subtle = requireSubtle();
+    const baseKey = await subtle.importKey(
+        'raw',
+        utf8Bytes(password),
+        'PBKDF2',
+        false,
+        ['deriveBits']
+    );
+    const bits = await subtle.deriveBits(
+        {
+            name: 'PBKDF2',
+            salt,
+            iterations: TX_PASSWORD.iterations,
+            hash: 'SHA-256'
+        },
+        baseKey,
+        TX_PASSWORD.hashLen * 8
+    );
+    return new Uint8Array(bits);
+}
+
+async function makeRoomPasswordVerifier(password) {
+    const salt = crypto.getRandomValues(new Uint8Array(TX_PASSWORD.saltLen));
+    const hash = await deriveRoomPasswordHash(password, salt);
+    const packed = new Uint8Array(salt.length + hash.length);
+    packed.set(salt, 0);
+    packed.set(hash, salt.length);
+    return bytesToAlpha(packed);
+}
+
+async function verifyRoomPassword(password, verifier) {
+    try {
+        const packed = alphaToBytes(verifier);
+        const expectedLength = TX_PASSWORD.saltLen + TX_PASSWORD.hashLen;
+        if (packed.length !== expectedLength) return false;
+        const salt = packed.slice(0, TX_PASSWORD.saltLen);
+        const expected = packed.slice(TX_PASSWORD.saltLen);
+        const actual = await deriveRoomPasswordHash(password, salt);
+        let difference = 0;
+        for (let i = 0; i < expected.length; i++) difference |= expected[i] ^ actual[i];
+        return difference === 0;
+    } catch {
+        return false;
+    }
 }
 
 async function sealText(text, key) {
@@ -686,6 +744,7 @@ function stopLive() {
     txLive.roomId = null;
     txLive.roomName = null;
     txLive.sealed = false;
+    txLive.passwordProtected = false;
     txLive.seen = new Set();
 }
 
@@ -703,6 +762,7 @@ function saveRoom(roomId, meta) {
         id: roomId,
         name: meta.name || roomId,
         sealed: !!meta.sealed,
+        passwordProtected: !!meta.passwordProtected,
         savedAt: Date.now(),
         lastVisited: Date.now()
     };
@@ -804,8 +864,8 @@ async function txHome(initialTab) {
             items: saved.map((r) => ({
                 id: r.id,
                 name: r.name,
-                flavor: r.id + (r.sealed ? ' · sealed' : ''),
-                color: r.sealed ? 'yellow' : 'light-blue',
+                flavor: r.id + (r.sealed ? ' · sealed' : '') + (r.passwordProtected ? ' · password' : ''),
+                color: r.sealed ? 'yellow' : (r.passwordProtected ? 'muted-teal' : 'light-blue'),
                 room: r
             }))
         },
@@ -944,6 +1004,7 @@ async function startLive(roomId, roomMeta) {
     txLive.roomId = roomId;
     txLive.roomName = roomMeta?.name || roomId;
     txLive.sealed = !!roomMeta?.sealed;
+    txLive.passwordProtected = !!roomMeta?.passwordProtected;
 
     const t = ensureTextosShape();
     t.activeRoomId = roomId;
@@ -988,18 +1049,23 @@ async function startLive(roomId, roomMeta) {
     // After chat bar is live, prompt to save (non-blocking).
     if (!t.neverAskSave) {
         setTimeout(() => {
-            promptSaveRoom(roomId, { name: txLive.roomName, sealed: txLive.sealed });
+            promptSaveRoom(roomId, {
+                name: txLive.roomName,
+                sealed: txLive.sealed,
+                passwordProtected: txLive.passwordProtected
+            });
         }, 600);
     } else {
         touchSavedRoom(roomId);
     }
 }
 
-async function createRoom(name, keyInfo) {
+async function createRoom(name, keyInfo, passwordInfo) {
     await ensureTxFirebase();
     const t = ensureTextosShape();
     const roomId = await allocateRoomId(name);
     const sealed = !!(keyInfo && keyInfo.key);
+    const passwordProtected = !!(passwordInfo && passwordInfo.key);
     if (sealed) {
         t.seeThroughKey = keyInfo.key;
         saveTextos();
@@ -1007,6 +1073,8 @@ async function createRoom(name, keyInfo) {
     await txFb.setDoc(roomRef(roomId), {
         name: name || roomId,
         sealed,
+        passwordProtected,
+        ...(passwordProtected ? { passwordVerifier: await makeRoomPasswordVerifier(passwordInfo.key) } : {}),
         hostId: t.deviceId,
         hostName: t.deviceName,
         createdAt: txFb.serverTimestamp(),
@@ -1024,15 +1092,16 @@ async function createRoom(name, keyInfo) {
         `<span class="tx-dim">room</span>    <span class="green b">${escapeHtml(name || roomId)}</span>`,
         `<span class="tx-dim">id</span>      <span class="light-blue">${escapeHtml(roomId)}</span>`,
         `<span class="tx-dim">sealed</span>  <span class="${sealed ? 'yellow' : 'tx-dim'}">${sealed ? 'yes · aes-256-gcm' : 'no'}</span>`,
+        `<span class="tx-dim">password</span> <span class="${passwordProtected ? 'muted-teal' : 'tx-dim'}">${passwordProtected ? `yes · ${escapeHtml(passwordInfo.source)}${passwordInfo.label && passwordInfo.source === 'var' ? ' · ' + escapeHtml(passwordInfo.label) : ''}` : 'no'}</span>`,
         sealed
             ? `<span class="tx-dim">key</span>     <span class="muted-teal">${escapeHtml(keyInfo.source)}</span>`
             : `<span class="tx-dim">key</span>     <span class="tx-dim">—</span>`
     ]);
-    await startLive(roomId, { name: name || roomId, sealed });
+    await startLive(roomId, { name: name || roomId, sealed, passwordProtected });
     return roomId;
 }
 
-async function joinRoom(roomId, keyToken) {
+async function joinRoom(roomId, keyToken, passwordToken) {
     await ensureTxFirebase();
     const snap = await txFb.getDoc(roomRef(roomId));
     if (!snap.exists()) {
@@ -1041,6 +1110,19 @@ async function joinRoom(roomId, keyToken) {
     }
     const meta = snap.data() || {};
     const t = ensureTextosShape();
+    const passwordProtected = !!(meta.passwordProtected || meta.passwordVerifier);
+    if (passwordProtected) {
+        const passwordInfo = resolveSeeThroughKey(passwordToken);
+        if (!passwordInfo?.key) {
+            e_print('room is password protected');
+            tip_print(`textos join ${escapeHtml(roomId)} [key] &lt;password|var&gt;`);
+            return;
+        }
+        if (!meta.passwordVerifier || !await verifyRoomPassword(passwordInfo.key, meta.passwordVerifier)) {
+            e_print('incorrect room password');
+            return;
+        }
+    }
     if (meta.sealed) {
         let keyInfo = null;
         if (keyToken) keyInfo = resolveSeeThroughKey(keyToken);
@@ -1055,7 +1137,11 @@ async function joinRoom(roomId, keyToken) {
         saveTextos();
     }
     await txFb.setDoc(roomRef(roomId), { lastActive: txFb.serverTimestamp() }, { merge: true });
-    await startLive(roomId, { name: meta.name || roomId, sealed: !!meta.sealed });
+    await startLive(roomId, {
+        name: meta.name || roomId,
+        sealed: !!meta.sealed,
+        passwordProtected
+    });
 }
 
 async function listRooms() {
@@ -1073,7 +1159,8 @@ async function listRooms() {
         rooms.push({ id: d.id, ...data });
         const branch = i === snap.docs.length - 1 ? '└─' : '├─';
         const seal = data.sealed ? ' <span class="yellow">sealed</span>' : '';
-        print(`<span class="tx-tree">${branch}</span> <span class="light-blue">${escapeHtml(d.id)}</span>  <span class="muted-teal">${escapeHtml(data.name || '')}</span>${seal}`);
+        const password = (data.passwordProtected || data.passwordVerifier) ? ' <span class="muted-teal">password</span>' : '';
+        print(`<span class="tx-tree">${branch}</span> <span class="light-blue">${escapeHtml(d.id)}</span>  <span class="muted-teal">${escapeHtml(data.name || '')}</span>${seal}${password}`);
     });
     tip_print('textos join &lt;id&gt;');
     return rooms;
@@ -1238,6 +1325,7 @@ function showStatus() {
         `<span class="tx-dim">db</span>      ${entry ? `<span class="light-blue">${escapeHtml(entry.name)}</span> <span class="tx-dim">${escapeHtml(entry.server?.label || entry.server?.type || '')}</span>` : '<span class="red">unbound</span>'}`,
         `<span class="tx-dim">room</span>    ${txLive.roomId ? `<span class="green b">${escapeHtml(txLive.roomName || txLive.roomId)}</span>` : '<span class="tx-dim">—</span>'}`,
         `<span class="tx-dim">sealed</span>  <span class="${txLive.sealed ? 'yellow' : 'tx-dim'}">${txLive.sealed ? 'yes' : 'no'}</span>`,
+        `<span class="tx-dim">password</span> <span class="${txLive.passwordProtected ? 'muted-teal' : 'tx-dim'}">${txLive.passwordProtected ? 'required' : 'none'}</span>`,
         `<span class="tx-dim">key</span>     ${t.seeThroughKey ? '<span class="muted-teal">loaded (local only)</span>' : '<span class="tx-dim">—</span>'}`
     ]);
 }
@@ -1320,6 +1408,40 @@ async function askSeeThroughKey(opts) {
     return { key: vPick.secret, source: 'var', label: vPick.name };
 }
 
+async function askRoomPassword(opts) {
+    const required = !!(opts && opts.required);
+    print('<span class="tx-dim">room password</span>');
+    const choices = [];
+    if (!required) {
+        choices.push({ id: 'none', name: 'none', flavor: 'anyone can enter', color: 'tx-dim' });
+    }
+    choices.push(
+        { id: 'manual', name: 'enter password', flavor: 'type a password', color: 'yellow' },
+        { id: 'var', name: 'global var', flavor: 'pick from dbnm vars', color: 'muted-teal' }
+    );
+    const pick = await renderTxChoices(choices);
+    if (!pick || pick.id === 'none') return null;
+
+    if (pick.id === 'manual') {
+        const secret = await waitTxInput('room password', 'password…');
+        if (!secret) return null;
+        return { key: secret, source: 'manual', label: 'manual' };
+    }
+
+    const vars = listVarChoices({ redact: true });
+    if (!vars.length) {
+        e_print('no string vars found');
+        tip_print('var &lt;name&gt; &lt;value&gt;  ·  or pak var &lt;id&gt;');
+        const secret = await waitTxInput('fall back — type password', 'password…');
+        if (!secret) return null;
+        return { key: secret, source: 'manual', label: 'manual' };
+    }
+    print('<span class="tx-dim">pick a global var</span>');
+    const vPick = await renderTxChoices(vars);
+    if (!vPick) return null;
+    return { key: vPick.secret, source: 'var', label: vPick.name };
+}
+
 async function createDialogue(presetName) {
     _await('textos');
     txSession = { step: 'create', data: {} };
@@ -1332,18 +1454,19 @@ async function createDialogue(presetName) {
             if (!name) name = 'room';
         }
         const keyInfo = await askSeeThroughKey();
+        const passwordInfo = await askRoomPassword();
         if (txSession === null && keyInfo === null && !presetName) {
             /* cancelled via backspace during key pick — ok */
         }
         endTxDialogue();
-        await createRoom(name, keyInfo);
+        await createRoom(name, keyInfo, passwordInfo);
     } catch (e) {
         endTxDialogue();
         e_print(e.message || String(e));
     }
 }
 
-async function joinDialogue(presetId, keyToken) {
+async function joinDialogue(presetId, keyToken, passwordToken) {
     _await('textos');
     txSession = { step: 'join', data: {} };
     try {
@@ -1364,6 +1487,21 @@ async function joinDialogue(presetId, keyToken) {
             return;
         }
         const meta = snap.data() || {};
+        const passwordProtected = !!(meta.passwordProtected || meta.passwordVerifier);
+        let password = passwordToken;
+        if (passwordProtected && !meta.sealed && !password && keyToken) {
+            password = keyToken;
+            keyToken = null;
+        }
+        if (passwordProtected && !password) {
+            const passwordInfo = await askRoomPassword({ required: true });
+            if (!passwordInfo?.key) {
+                endTxDialogue();
+                e_print('room password required');
+                return;
+            }
+            password = passwordInfo.key;
+        }
         let key = keyToken;
         if (meta.sealed && !key && !ensureTextosShape().seeThroughKey) {
             const keyInfo = await askSeeThroughKey({ required: true });
@@ -1377,7 +1515,7 @@ async function joinDialogue(presetId, keyToken) {
             key = keyInfo.key;
         }
         endTxDialogue();
-        await joinRoom(roomId, key);
+        await joinRoom(roomId, key, password);
     } catch (e) {
         endTxDialogue();
         e_print(e.message || String(e));
@@ -1522,8 +1660,9 @@ async function handleTextos(_, cmd_split) {
     }
     if (action === 'join' || action === 'enter') {
         const id = cmd_split[2];
-        const keyToken = cmd_split.slice(3).join(' ').trim() || null;
-        await joinDialogue(id || null, keyToken);
+        const keyToken = cmd_split[3] || null;
+        const passwordToken = cmd_split.slice(4).join(' ').trim() || null;
+        await joinDialogue(id || null, keyToken, passwordToken);
         return;
     }
     if (action === 'save') {
@@ -1534,7 +1673,11 @@ async function handleTextos(_, cmd_split) {
             return;
         }
         const name = txLive.roomId === roomId ? (txLive.roomName || roomId) : roomId;
-        saveRoom(roomId, { name, sealed: txLive.roomId === roomId ? txLive.sealed : false });
+        saveRoom(roomId, {
+            name,
+            sealed: txLive.roomId === roomId ? txLive.sealed : false,
+            passwordProtected: txLive.roomId === roomId ? txLive.passwordProtected : false
+        });
         g_print(`<span class="tx-dim">saved</span> <span class="light-blue">${escapeHtml(name)}</span>`);
         return;
     }

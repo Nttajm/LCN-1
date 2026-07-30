@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lane-Graph · Intersection Path Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d12;
+    --bg-2:#111721;
+    --panel:#131a24;
+    --panel-2:#0e141d;
+    --border:#232d3b;
+    --text:#e7edf5;
+    --text-dim:#8493a6;
+    --text-faint:#54607a;
+    --accent:#f2b134;
+    --accent-dim:#f2b13422;
+    --enter:#2ecc71;
+    --exit:#ef5555;
+    --node-label:#39ff14;
+    --straight:#3fa7ff;
+    --left-turn:#b98bff;
+    --right-turn:#ff9d4d;
+    --uturn:#ff5d9e;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 700px at 78% 15%, #16202e 0%, transparent 60%),
+      radial-gradient(900px 600px at 10% 90%, #131c26 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    display:flex;
+    min-height:100vh;
+  }
+
+  /* ---------- Panel ---------- */
+  .panel{
+    width:340px;
+    flex-shrink:0;
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border-right:1px solid var(--border);
+    padding:22px 20px 28px;
+    overflow-y:auto;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--accent);
+    text-transform:uppercase;
+    margin:0 0 6px;
+  }
+  h1{
+    font-size:20px;
+    font-weight:700;
+    margin:0 0 6px;
+    letter-spacing:-.01em;
+  }
+  .sub{
+    font-size:12.5px;
+    color:var(--text-dim);
+    line-height:1.5;
+    margin:0 0 22px;
+  }
+  .section-title{
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 0 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--border);
+  }
+  .section{ margin-bottom:22px; }
+
+  /* side-config plus-grid */
+  .side-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    grid-template-rows:auto auto auto;
+    gap:8px;
+  }
+  .side-grid .cell-top{grid-column:2;grid-row:1;}
+  .side-grid .cell-left{grid-column:1;grid-row:2;}
+  .side-grid .cell-center{grid-column:2;grid-row:2;display:flex;align-items:center;justify-content:center;}
+  .side-grid .cell-right{grid-column:3;grid-row:2;}
+  .side-grid .cell-bottom{grid-column:2;grid-row:3;}
+
+  .side-card{
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:8px 8px 9px;
+  }
+  .side-card .side-name{
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:6px;
+    text-align:center;
+  }
+  .compass-mark{
+    width:38px;height:38px;
+    border-radius:50%;
+    border:1px dashed var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    color:var(--text-faint);
+  }
+
+  .stepper-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:4px;
+    margin-top:4px;
+  }
+  .stepper-row:first-of-type{margin-top:0;}
+  .stepper-tag{
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:.03em;
+    width:24px;
+    flex-shrink:0;
+  }
+  .stepper-tag.in{color:var(--enter);}
+  .stepper-tag.out{color:var(--exit);}
+  .stepper{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    flex:1;
+    justify-content:flex-end;
+  }
+  .stepper button{
+    width:18px;height:18px;
+    border-radius:4px;
+    border:1px solid var(--border);
+    background:#1a2330;
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    padding:0;
+    transition:background .12s, border-color .12s;
+  }
+  .stepper button:hover{background:#243046;border-color:var(--accent);}
+  .stepper button:active{transform:translateY(1px);}
+  .stepper button:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+  .stepper .val{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    width:14px;
+    text-align:center;
+  }
+
+  /* segmented toggle */
+  .segmented{
+    display:flex;
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:3px;
+    gap:3px;
+  }
+  .segmented button{
+    flex:1;
+    padding:8px 6px;
+    border:none;
+    border-radius:6px;
+    background:transparent;
+    color:var(--text-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .segmented button.active{
+    background:var(--accent);
+    color:#1a1305;
+  }
+  .segmented button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .row-check{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:10px 12px;
+    font-size:12.5px;
+  }
+  .switch{
+    position:relative;
+    width:34px;height:19px;
+    flex-shrink:0;
+  }
+  .switch input{opacity:0;width:0;height:0;position:absolute;}
+  .switch .track{
+    position:absolute;inset:0;
+    background:#26313f;
+    border-radius:999px;
+    transition:background .15s;
+    cursor:pointer;
+  }
+  .switch .track::before{
+    content:"";
+    position:absolute;
+    width:14px;height:14px;
+    left:3px;top:2.5px;
+    background:#cfd7e2;
+    border-radius:50%;
+    transition:transform .15s, background .15s;
+  }
+  .switch input:checked + .track{background:var(--accent);}
+  .switch input:checked + .track::before{transform:translateX(15px);background:#1a1305;}
+
+  .btn-secondary{
+    width:100%;
+    padding:9px 10px;
+    border-radius:9px;
+    border:1px solid var(--border);
+    background:var(--bg-2);
+    color:var(--text-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .btn-secondary:hover{border-color:var(--accent);color:var(--text);}
+  .btn-secondary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* legend */
+  .legend-list{display:flex;flex-direction:column;gap:7px;}
+  .legend-item{
+    display:flex;align-items:center;gap:9px;
+    font-size:12px;color:var(--text-dim);
+  }
+  .swatch{width:16px;height:3px;border-radius:2px;flex-shrink:0;}
+  .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+  /* stats */
+  .stats{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:var(--text-dim);
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:10px 12px;
+    line-height:1.7;
+  }
+  .stats b{color:var(--text);}
+  .stats .isolated{color:var(--accent);}
+
+  /* ---------- Stage ---------- */
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    gap:14px;
+    min-width:0;
+  }
+  canvas{
+    max-width:100%;
+    height:auto;
+    border-radius:16px;
+    box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px var(--border);
+    cursor:default;
+  }
+  .hint{
+    font-size:12px;
+    color:var(--text-faint);
+    text-align:center;
+    max-width:520px;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:1px 5px;
+    color:var(--text-dim);
+  }
+
+  @media (max-width: 860px){
+    .app{flex-direction:column;}
+    .panel{width:100%;border-right:none;border-bottom:1px solid var(--border);}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="panel">
+    <p class="eyebrow">Lane-Graph Engine</p>
+    <h1>Intersection Path Planner</h1>
+    <p class="sub">A dynamic connector graph: every entering lane is joined to every valid exiting lane with a Bezier path fitted to real turning geometry — not a hardcoded map.</p>
+
+    <div class="section">
+      <p class="section-title">Lane counts</p>
+      <div class="side-grid">
+        <div class="cell-top"><div class="side-card" data-side-card="top">
+          <div class="side-name">Top</div>
+          <div class="stepper-row"><span class="stepper-tag in">IN</span><div class="stepper" data-side="top" data-field="in"></div></div>
+          <div class="stepper-row"><span class="stepper-tag out">OUT</span><div class="stepper" data-side="top" data-field="out"></div></div>
+        </div></div>
+        <div class="cell-left"><div class="side-card" data-side-card="left">
+          <div class="side-name">Left</div>
+          <div class="stepper-row"><span class="stepper-tag in">IN</span><div class="stepper" data-side="left" data-field="in"></div></div>
+          <div class="stepper-row"><span class="stepper-tag out">OUT</span><div class="stepper" data-side="left" data-field="out"></div></div>
+        </div></div>
+        <div class="cell-center"><div class="compass-mark">N=↑</div></div>
+        <div class="cell-right"><div class="side-card" data-side-card="right">
+          <div class="side-name">Right</div>
+          <div class="stepper-row"><span class="stepper-tag in">IN</span><div class="stepper" data-side="right" data-field="in"></div></div>
+          <div class="stepper-row"><span class="stepper-tag out">OUT</span><div class="stepper" data-side="right" data-field="out"></div></div>
+        </div></div>
+        <div class="cell-bottom"><div class="side-card" data-side-card="bottom">
+          <div class="side-name">Bottom</div>
+          <div class="stepper-row"><span class="stepper-tag in">IN</span><div class="stepper" data-side="bottom" data-field="in"></div></div>
+          <div class="stepper-row"><span class="stepper-tag out">OUT</span><div class="stepper" data-side="bottom" data-field="out"></div></div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Traffic convention</p>
+      <div class="segmented" id="trafficToggle">
+        <button data-mode="right" class="active">Drive right</button>
+        <button data-mode="left">Drive left</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Options</p>
+      <div class="row-check" style="margin-bottom:8px;">
+        <span>Include U-turns</span>
+        <label class="switch">
+          <input type="checkbox" id="uturnCheck">
+          <span class="track"></span>
+        </label>
+      </div>
+      <button class="btn-secondary" id="resetBtn">Reset to defaults</button>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Legend</p>
+      <div class="legend-list">
+        <div class="legend-item"><span class="swatch" style="background:var(--straight)"></span> Straight through</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--left-turn)"></span> Left turn</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--right-turn)"></span> Right turn</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--uturn)"></span> U-turn</div>
+        <div class="legend-item"><span class="dot" style="background:var(--enter)"></span> Entering lane node</div>
+        <div class="legend-item"><span class="dot" style="background:var(--exit)"></span> Exiting lane node</div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-bottom:0;">
+      <p class="section-title">Live stats</p>
+      <div class="stats" id="statsBox">—</div>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <canvas id="cv" width="800" height="800"></canvas>
+    <p class="hint">Click a numbered node to isolate the paths it can take. Click it again — or click empty space — to show every path at once.</p>
+  </main>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ============================================================
+  // GEOMETRY CONSTANTS
+  // ============================================================
+  const SIZE = 800;
+  const BOX = { left: 260, top: 260, right: 540, bottom: 540 };
+  const boxW = BOX.right - BOX.left;
+  const boxH = BOX.bottom - BOX.top;
+  const STUB = 90;           // length of the faint lane-stub strips
+  const LABEL_GAP = 18;      // extra distance beyond the stub for the id label
+
+  // Direction a car is travelling AT that node.
+  // "into" = heading toward/into the intersection (entering nodes)
+  // "out"  = heading away from the intersection (exiting nodes)
+  const intoBoxDir  = { left:[1,0],  top:[0,1],  right:[-1,0], bottom:[0,-1] };
+  const outOfBoxDir = { left:[-1,0], top:[0,-1], right:[1,0],  bottom:[0,1]  };
+
+  // Which lane-group (entering vs exiting) sits in the "first" half of a side,
+  // walking left/right edges top->bottom and top/bottom edges left->right.
+  // This one table is the single source of truth for the traffic convention.
+  const enterFirstTable = {
+    right: { left:false, right:true,  top:true,  bottom:false }, // drive-on-right
+    left:  { left:true,  right:false, top:false, bottom:true  }, // drive-on-left
+  };
+
+  function cssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  // ============================================================
+  // STATE
+  // ============================================================
+  const state = {
+    lanes: {
+      left:{in:1,out:1}, top:{in:1,out:1}, right:{in:1,out:1}, bottom:{in:1,out:1}
+    },
+    trafficMode: 'right',
+    includeUturns: false,
+    selectedId: null,
+    hoveredId: null,
+  };
+
+  let nodes = [];
+  let edges = [];
+
+  // ============================================================
+  // GRAPH BUILDING
+  // ============================================================
+  function buildSideNodes(side, nIn, nOut, mode){
+    const total = nIn + nOut;
+    const enterFirst = enterFirstTable[mode][side];
+    const list = [];
+    for (let i=0;i<total;i++){
+      const type = enterFirst ? (i<nIn ? 'in':'out') : (i<nOut ? 'out':'in');
+      const t0 = i/total, t1 = (i+1)/total, tc = (i+0.5)/total;
+      let x,y;
+      if (side==='left')  { x=BOX.left;  y=BOX.top + tc*boxH; }
+      if (side==='right') { x=BOX.right; y=BOX.top + tc*boxH; }
+      if (side==='top')   { x=BOX.left + tc*boxW; y=BOX.top; }
+      if (side==='bottom'){ x=BOX.left + tc*boxW; y=BOX.bottom; }
+      const dir = type==='in' ? intoBoxDir[side] : outOfBoxDir[side];
+      list.push({ side, slot:i, type, x, y, dir, t0, t1 });
+    }
+    return list;
+  }
+
+  // Global numbering: walk the perimeter clockwise, starting at the
+  // topmost node on the left edge. Purely positional (independent of
+  // which lanes are "entering" vs "exiting"), so it stays stable as
+  // you flip the traffic convention.
+  function buildAllNodes(lanes, mode){
+    const leftList   = buildSideNodes('left',   lanes.left.in,   lanes.left.out,   mode).sort((a,b)=>a.y-b.y);
+    const topList    = buildSideNodes('top',    lanes.top.in,    lanes.top.out,    mode).sort((a,b)=>a.x-b.x);
+    const rightList  = buildSideNodes('right',  lanes.right.in,  lanes.right.out,  mode).sort((a,b)=>a.y-b.y);
+    const bottomList = buildSideNodes('bottom', lanes.bottom.in, lanes.bottom.out, mode).sort((a,b)=>b.x-a.x);
+
+    const ordered = [ leftList[0], ...topList, ...rightList, ...bottomList, ...leftList.slice(1) ].filter(Boolean);
+    ordered.forEach((n,i)=> n.id = i+1);
+    return ordered;
+  }
+
+  // Classify a movement purely from its entry/exit travel direction —
+  // works identically regardless of the traffic-hand convention.
+  function classifyTurn(dirA, dirB){
+    const cross = dirA[0]*dirB[1] - dirA[1]*dirB[0];
+    const dot   = dirA[0]*dirB[0] + dirA[1]*dirB[1];
+    if (Math.abs(cross) < 0.15) return dot > 0 ? 'straight' : 'uturn';
+    return cross > 0 ? 'right' : 'left';
+  }
+
+  // Fit a cubic Bezier whose tangent at the start matches the entering
+  // node's direction of travel, and whose tangent at the end matches the
+  // exiting node's direction of travel. This is what makes every curve
+  // read as a physically plausible driving path rather than an arbitrary line.
+  function buildCurve(a, b){
+    const dx = b.x-a.x, dy = b.y-a.y;
+    const dist = Math.hypot(dx,dy);
+    const isUturn = a.side === b.side;
+    const handle = isUturn
+      ? Math.max(dist, Math.min(boxW,boxH)*0.32)   // swing wide into the box for a loop
+      : Math.max(dist*0.5, 26);                     // proportional handle = smooth turn
+    const c1 = { x:a.x + a.dir[0]*handle, y:a.y + a.dir[1]*handle };
+    const c2 = { x:b.x - b.dir[0]*handle, y:b.y - b.dir[1]*handle };
+    return { p0:{x:a.x,y:a.y}, c1, c2, p3:{x:b.x,y:b.y} };
+  }
+
+  function buildEdges(allNodes, includeUturns){
+    const enterNodes = allNodes.filter(n=>n.type==='in');
+    const exitNodes  = allNodes.filter(n=>n.type==='out');
+    const list = [];
+    for (const a of enterNodes){
+      for (const b of exitNodes){
+        if (a.side === b.side && !includeUturns) continue;
+        list.push({ from:a, to:b, turn:classifyTurn(a.dir,b.dir), curve:buildCurve(a,b) });
+      }
+    }
+    return list;
+  }
+
+  function recompute(){
+    nodes = buildAllNodes(state.lanes, state.trafficMode);
+    edges = buildEdges(nodes, state.includeUturns);
+  }
+
+  // ============================================================
+  // RENDERING
+  // ============================================================
+  const canvas = document.getElementById('cv');
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = SIZE*dpr; canvas.height = SIZE*dpr;
+  canvas.style.width = SIZE+'px'; canvas.style.height = SIZE+'px';
+  ctx.scale(dpr,dpr);
+
+  function labelPos(n){
+    if (n.side==='left')   return { x: BOX.left  - STUB - LABEL_GAP, y: n.y };
+    if (n.side==='right')  return { x: BOX.right + STUB + LABEL_GAP, y: n.y };
+    if (n.side==='top')    return { x: n.x, y: BOX.top    - STUB - LABEL_GAP + 4 };
+    if (n.side==='bottom') return { x: n.x, y: BOX.bottom + STUB + LABEL_GAP - 2 };
+  }
+
+  function drawStubs(){
+    for (const n of nodes){
+      const color = n.type==='in' ? 'rgba(46,204,113,0.11)' : 'rgba(239,85,85,0.11)';
+      ctx.fillStyle = color;
+      if (n.side==='left')   ctx.fillRect(BOX.left-STUB, BOX.top+n.t0*boxH, STUB, (n.t1-n.t0)*boxH);
+      if (n.side==='right')  ctx.fillRect(BOX.right, BOX.top+n.t0*boxH, STUB, (n.t1-n.t0)*boxH);
+      if (n.side==='top')    ctx.fillRect(BOX.left+n.t0*boxW, BOX.top-STUB, (n.t1-n.t0)*boxW, STUB);
+      if (n.side==='bottom') ctx.fillRect(BOX.left+n.t0*boxW, BOX.bottom, (n.t1-n.t0)*boxW, STUB);
+    }
+  }
+
+  function drawBoxOutline(){
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+    ctx.setLineDash([5,6]);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(BOX.left, BOX.top, boxW, boxH);
+    ctx.restore();
+  }
+
+  function activeNodeId(){
+    return state.selectedId != null ? state.selectedId : state.hoveredId;
+  }
+
+  function edgeIsActive(e, activeId){
+    if (activeId == null) return null; // no filter
+    if (e.from.id === activeId) return true;
+    if (e.to.id === activeId) return true;
+    return false;
+  }
+
+  function drawArrowhead(p, dir, color){
+    const len = 11, half = 5.5;
+    const ang = Math.atan2(dir[1], dir[0]);
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(ang);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(-len, half);
+    ctx.lineTo(-len, -half);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawEdges(){
+    const activeId = activeNodeId();
+    const colors = {
+      straight: cssVar('--straight'),
+      left: cssVar('--left-turn'),
+      right: cssVar('--right-turn'),
+      uturn: cssVar('--uturn'),
+    };
+
+    // draw dim/inactive first, active ones last so they render on top
+    const sorted = edges.slice().sort((e1,e2)=>{
+      const a1 = edgeIsActive(e1, activeId) ? 1 : 0;
+      const a2 = edgeIsActive(e2, activeId) ? 1 : 0;
+      return a1 - a2;
+    });
+
+    for (const e of sorted){
+      const active = edgeIsActive(e, activeId);
+      const isDimmed = activeId != null && active === false;
+      const c = e.curve;
+      const color = colors[e.turn];
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(c.p0.x, c.p0.y);
+      ctx.bezierCurveTo(c.c1.x, c.c1.y, c.c2.x, c.c2.y, c.p3.x, c.p3.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = active ? 2.6 : 1.5;
+      ctx.globalAlpha = isDimmed ? 0.08 : (active ? 0.95 : 0.42);
+      if (active){
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      if (active){
+        ctx.globalAlpha = 0.95;
+        drawArrowhead(c.p3, e.to.dir, color);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  function drawNodes(){
+    const activeId = activeNodeId();
+    for (const n of nodes){
+      const isActive = activeId === n.id;
+
+      // node dot
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, isActive ? 6 : 4.2, 0, Math.PI*2);
+      ctx.fillStyle = n.type==='in' ? cssVar('--enter') : cssVar('--exit');
+      ctx.globalAlpha = 1;
+      ctx.fill();
+      if (isActive){
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+      }
+
+      // number label — neon green, bordered
+      const lp = labelPos(n);
+      ctx.font = (isActive ? '700 ' : '600 ') + '12px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#04140a';
+      ctx.strokeText('n'+n.id, lp.x, lp.y);
+      ctx.fillStyle = cssVar('--node-label');
+      ctx.fillText('n'+n.id, lp.x, lp.y);
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,SIZE,SIZE);
+
+    const grad = ctx.createRadialGradient(SIZE*0.5, SIZE*0.42, 60, SIZE*0.5, SIZE*0.5, SIZE*0.75);
+    grad.addColorStop(0, '#141c28');
+    grad.addColorStop(1, '#0a0e14');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,SIZE,SIZE);
+
+    drawStubs();
+    drawBoxOutline();
+    drawEdges();
+    drawNodes();
+    updateStats();
+  }
+
+  // ============================================================
+  // STATS
+  // ============================================================
+  function updateStats(){
+    const box = document.getElementById('statsBox');
+    const activeId = activeNodeId();
+    const enterCount = nodes.filter(n=>n.type==='in').length;
+    const exitCount = nodes.filter(n=>n.type==='out').length;
+    const shown = activeId==null ? edges.length : edges.filter(e=>edgeIsActive(e,activeId)).length;
+    let isolatedLine = '';
+    if (state.selectedId != null){
+      const n = nodes.find(x=>x.id===state.selectedId);
+      if (n) isolatedLine = `<br><span class="isolated">Isolated: n${n.id} (${n.type==='in'?'entering':'exiting'}, ${n.side})</span>`;
+    }
+    box.innerHTML =
+      `Nodes: <b>${nodes.length}</b>  (in ${enterCount} / out ${exitCount})<br>` +
+      `Paths shown: <b>${shown}</b> / ${edges.length}` + isolatedLine;
+  }
+
+  // ============================================================
+  // INTERACTION
+  // ============================================================
+  function nodeAtEvent(evt){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = SIZE / rect.width, scaleY = SIZE / rect.height;
+    const mx = (evt.clientX - rect.left) * scaleX;
+    const my = (evt.clientY - rect.top) * scaleY;
+    let best = null, bestD = 14; // hit radius
+    for (const n of nodes){
+      const d = Math.hypot(n.x-mx, n.y-my);
+      if (d < bestD){ bestD = d; best = n; }
+    }
+    return best;
+  }
+
+  canvas.addEventListener('mousemove', (evt)=>{
+    const n = nodeAtEvent(evt);
+    const id = n ? n.id : null;
+    canvas.style.cursor = n ? 'pointer' : 'default';
+    if (id !== state.hoveredId){
+      state.hoveredId = id;
+      draw();
+    }
+  });
+  canvas.addEventListener('mouseleave', ()=>{
+    if (state.hoveredId != null){ state.hoveredId = null; draw(); }
+  });
+  canvas.addEventListener('click', (evt)=>{
+    const n = nodeAtEvent(evt);
+    if (!n){ state.selectedId = null; draw(); return; }
+    state.selectedId = (state.selectedId === n.id) ? null : n.id;
+    draw();
+  });
+
+  // ============================================================
+  // UI WIRING
+  // ============================================================
+  // 0 allowed so a side can be one-way (in-only or out-only), or fully closed.
+  const MIN_LANES = 0, MAX_LANES = 4;
+
+  function renderSteppers(){
+    document.querySelectorAll('.stepper').forEach(el=>{
+      const side = el.dataset.side, field = el.dataset.field;
+      const val = state.lanes[side][field];
+      el.innerHTML =
+        `<button data-act="dec" aria-label="decrease">–</button>` +
+        `<span class="val">${val}</span>` +
+        `<button data-act="inc" aria-label="increase">+</button>`;
+    });
+  }
+
+  document.querySelector('.side-grid').addEventListener('click', (evt)=>{
+    const btn = evt.target.closest('button[data-act]');
+    if (!btn) return;
+    const stepperEl = btn.closest('.stepper');
+    const side = stepperEl.dataset.side, field = stepperEl.dataset.field;
+    let val = state.lanes[side][field];
+    val += (btn.dataset.act === 'inc') ? 1 : -1;
+    val = Math.min(MAX_LANES, Math.max(MIN_LANES, val));
+    state.lanes[side][field] = val;
+    renderSteppers();
+    recompute();
+    state.selectedId = null;
+    draw();
+  });
+
+  document.getElementById('trafficToggle').addEventListener('click', (evt)=>{
+    const btn = evt.target.closest('button[data-mode]');
+    if (!btn) return;
+    state.trafficMode = btn.dataset.mode;
+    document.querySelectorAll('#trafficToggle button').forEach(b=>b.classList.toggle('active', b===btn));
+    recompute();
+    draw();
+  });
+
+  document.getElementById('uturnCheck').addEventListener('change', (evt)=>{
+    state.includeUturns = evt.target.checked;
+    recompute();
+    draw();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    state.lanes = { left:{in:1,out:1}, top:{in:1,out:1}, right:{in:1,out:1}, bottom:{in:1,out:1} };
+    state.trafficMode = 'right';
+    state.includeUturns = false;
+    state.selectedId = null;
+    document.getElementById('uturnCheck').checked = false;
+    document.querySelectorAll('#trafficToggle button').forEach(b=>b.classList.toggle('active', b.dataset.mode==='right'));
+    renderSteppers();
+    recompute();
+    draw();
+  });
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  renderSteppers();
+  recompute();
+  draw();
+})();
+</script>
+</body>
+</html>
