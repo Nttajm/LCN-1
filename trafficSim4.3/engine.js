@@ -922,10 +922,6 @@ let followedCar = null;
 let hoveredCar = null;
 let simPaused = false;
 let spawnersAllPaused = false; // master mute for spawners (cars still move)
-let spawnPinEl = null;
-let hoverMarkerEl = null;
-let previewRouteEls = [];
-let hoverRouteEls = [];
 let hoverRouteCar = null;
 let hoverHighlightTimer = 0;
 let driveMoveThrottle = 0;
@@ -1029,55 +1025,17 @@ function collectNearbyCars(x, y, radius) {
   return out;
 }
 
-function setSvgOpacity(el, value) {
-  if (el._op === value) return;
-  el._op = value;
-  el.setAttribute('opacity', value);
-}
+// Canvas 2D: transforms are applied at draw time — just cache pose/scale state.
+function setSvgOpacity(_el, _value) { /* no-op (compat) */ }
 
-function ensureCarSvgTransforms(car) {
-  if (car._tfTranslate) return true;
-  const root = car.el.ownerSVGElement;
-  if (!root || typeof root.createSVGTransform !== 'function') return false;
-  try {
-    car.el.transform.baseVal.clear();
-    car._tfTranslate = root.createSVGTransform();
-    car._tfRotate = root.createSVGTransform();
-    car._tfTranslate.setTranslate(car.x, car.y);
-    car._tfRotate.setRotate(car.heading * 180 / Math.PI, 0, 0);
-    car.el.transform.baseVal.appendItem(car._tfTranslate);
-    car.el.transform.baseVal.appendItem(car._tfRotate);
-    car._lx = car.x;
-    car._ly = car.y;
-    car._lh = car.heading;
-    return true;
-  } catch (_) {
-    car._tfTranslate = null;
-    return false;
-  }
-}
+function ensureCarSvgTransforms(_car) { return false; }
 
 function applyCarTransform(car, scale) {
-  if (scale != null && scale < 0.999) {
-    car.el.setAttribute('transform',
-      `translate(${car.x} ${car.y}) rotate(${car.heading * 180 / Math.PI}) scale(${scale})`);
-    car._tfDirty = true;
-    car._tfTranslate = null; // rebuild list next full pose
-    return;
-  }
-  if (!car._tfDirty && car._lx === car.x && car._ly === car.y && car._lh === car.heading) return;
+  if (!car) return;
+  car.despawnScale = (scale != null) ? scale : 1;
   car._lx = car.x;
   car._ly = car.y;
   car._lh = car.heading;
-  car._tfDirty = false;
-
-  if (ensureCarSvgTransforms(car)) {
-    car._tfTranslate.setTranslate(car.x, car.y);
-    car._tfRotate.setRotate(car.heading * 180 / Math.PI, 0, 0);
-    return;
-  }
-  car.el.setAttribute('transform',
-    `translate(${car.x} ${car.y}) rotate(${car.heading * 180 / Math.PI})`);
 }
 
 // Traffic spawners (advanced drive mode)
@@ -1089,66 +1047,24 @@ const SPAWNER_DEST_SAMPLES = [0.55, 0.9];
 const SPAWNER_MAX_ROUTES = 48;
 const SPAWNER_MAX_DEST_TRIES = 80;
 
-const driveLayer = document.createElementNS(svgNS, 'g');
-driveLayer.id = 'drive-layer';
-driveLayer.setAttribute('pointer-events', 'none');
-world.appendChild(driveLayer);
-const routeHighlightLayer = document.createElementNS(svgNS, 'g');
-routeHighlightLayer.id = 'route-highlight-layer';
-routeHighlightLayer.setAttribute('pointer-events', 'none');
-world.appendChild(routeHighlightLayer);
-const carLayer = document.createElementNS(svgNS, 'g');
-carLayer.id = 'car-layer';
-carLayer.setAttribute('pointer-events', 'none'); // cars picked geometrically; don't block junction dots
-carLayer.setAttribute('shape-rendering', 'optimizeSpeed');
-world.appendChild(carLayer);
-const debugLayer = document.createElementNS(svgNS, 'g');
-debugLayer.id = 'debug-rings-layer';
-debugLayer.setAttribute('pointer-events', 'none');
-world.appendChild(debugLayer);
-const laneChangeGraphLayer = document.createElementNS(svgNS, 'g');
-laneChangeGraphLayer.id = 'lanechange-graph-layer';
-laneChangeGraphLayer.setAttribute('pointer-events', 'none');
-world.appendChild(laneChangeGraphLayer);
+// Drive / route / overlay state (Canvas immediate-mode — no SVG layers)
+let spawnPin = null;           // { x, y } | null
+let driveHoverMarker = null;   // { x, y, opacity } | null
+let previewRoutePaths = [];    // [{ pts, stroke, opacity, width, gradStart?, gradEnd? }, ...]
+let hoverRoutePaths = [];
+let followRoutePaths = [];
+let followRouteCar = null;
 
 let followHighlightTimer = 0;
 let simTime = 0;
 let debugRingsOn = false;
-let debugOverlayEls = [];
 let laneChangeGraphVisible = false;
 
 // Draw every lane-change window edge currently in the graph — a toggle-able
 // view of exactly where (and only where) cars are allowed to change lanes,
 // like connecting the parallel lanes together at each window along the road.
 function rebuildLaneChangeGraphVisual() {
-  while (laneChangeGraphLayer.firstChild) laneChangeGraphLayer.removeChild(laneChangeGraphLayer.firstChild);
-  if (!laneChangeGraphVisible) return;
-  const STEPS = 10;
-  allieAtoms.forEach(atom => {
-    if (atom.kind !== 'lanechange') return;
-    let d = '';
-    for (let i = 0; i <= STEPS; i++) {
-      const p = atom.sampleAtT(i / STEPS);
-      d += (i === 0 ? 'M ' : 'L ') + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ' ';
-    }
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', d.trim());
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#7fffb0');
-    path.setAttribute('stroke-width', '0.5');
-    path.setAttribute('stroke-dasharray', '1.3 1');
-    path.setAttribute('opacity', '0.85');
-    laneChangeGraphLayer.appendChild(path);
-
-    const startP = atom.sampleAtT(0);
-    const dot = document.createElementNS(svgNS, 'circle');
-    dot.setAttribute('cx', String(startP.x));
-    dot.setAttribute('cy', String(startP.y));
-    dot.setAttribute('r', '0.85');
-    dot.setAttribute('fill', '#7fffb0');
-    dot.setAttribute('opacity', '0.9');
-    laneChangeGraphLayer.appendChild(dot);
-  });
+  // Canvas redraws from allieAtoms each frame when laneChangeGraphVisible.
 }
 
 function pickToleranceWorld() {
@@ -1257,16 +1173,15 @@ function findCarAtPoint(wx, wy) {
 }
 
 function updateCarHoverVisual(car) {
-  if (!car || !car.hoverRing) return;
-  const show = car === hoveredCar && !car.selected;
-  car.hoverRing.setAttribute('opacity', show ? '0.95' : '0');
+  if (!car) return;
+  car.hovered = (car === hoveredCar && !car.selected);
 }
 
 function setHoveredCar(car) {
   const prev = hoveredCar;
   if (prev === car) return;
-  if (prev) updateCarHoverVisual(prev);
   hoveredCar = car;
+  if (prev) updateCarHoverVisual(prev);
   if (hoveredCar) updateCarHoverVisual(hoveredCar);
   board.classList.toggle('drive-follow-hover', !!hoveredCar);
   updateHoverRouteHighlight(hoveredCar);
@@ -1283,7 +1198,7 @@ function handleDriveMouseMove(worldPt) {
   updateDrivePointerHover(worldPt);
 
   if (hoveredCar) {
-    if (hoverMarkerEl) hoverMarkerEl.setAttribute('opacity', '0');
+    if (driveHoverMarker) driveHoverMarker.opacity = 0;
     return;
   }
 
@@ -1348,45 +1263,27 @@ function handleDriveClick(event) {
 
 function setPendingSpawn(pick) {
   pendingSpawn = pick;
-  if (spawnPinEl) spawnPinEl.remove();
-  spawnPinEl = document.createElementNS(svgNS, 'circle');
-  spawnPinEl.setAttribute('cx', pick.x);
-  spawnPinEl.setAttribute('cy', pick.y);
-  spawnPinEl.setAttribute('r', '2.2');
-  spawnPinEl.setAttribute('fill', 'var(--enter)');
-  spawnPinEl.setAttribute('stroke', '#fff');
-  spawnPinEl.setAttribute('stroke-width', '0.6');
-  driveLayer.appendChild(spawnPinEl);
+  spawnPin = { x: pick.x, y: pick.y };
   updateDriveHudText();
 }
 
 function clearPendingSpawn() {
   pendingSpawn = null;
-  if (spawnPinEl) { spawnPinEl.remove(); spawnPinEl = null; }
+  spawnPin = null;
   clearPreviewRoute();
   updateDriveHudText();
 }
 
 function drawDriveHoverMarker(pick) {
   if (!pick) {
-    if (hoverMarkerEl) hoverMarkerEl.setAttribute('opacity', '0');
+    if (driveHoverMarker) driveHoverMarker.opacity = 0;
     return;
   }
-  if (!hoverMarkerEl) {
-    hoverMarkerEl = document.createElementNS(svgNS, 'circle');
-    hoverMarkerEl.setAttribute('r', '1.8');
-    hoverMarkerEl.setAttribute('fill', 'rgba(63,167,255,0.9)');
-    hoverMarkerEl.setAttribute('stroke', '#fff');
-    hoverMarkerEl.setAttribute('stroke-width', '0.5');
-    driveLayer.appendChild(hoverMarkerEl);
-  }
-  hoverMarkerEl.setAttribute('cx', pick.x);
-  hoverMarkerEl.setAttribute('cy', pick.y);
-  hoverMarkerEl.setAttribute('opacity', '0.9');
+  driveHoverMarker = { x: pick.x, y: pick.y, opacity: 0.9 };
 }
 
 function clearDriveHoverPreview() {
-  if (hoverMarkerEl) { hoverMarkerEl.remove(); hoverMarkerEl = null; }
+  driveHoverMarker = null;
   clearHoveredCar();
 }
 
@@ -1404,37 +1301,6 @@ const ROUTE_PATH_COLOR = '#52c8ff';
 const ROUTE_PATH_OPACITY = 0.88;
 const ROUTE_PATH_WIDTH = 4.2;
 const ROUTE_TAIL_FADE = 3; // only the last N units fade out
-
-let routeHighlightDefsReady = false;
-
-function ensureRouteHighlightDefs() {
-  if (routeHighlightDefsReady) return;
-  const svg = document.getElementById('canvas');
-  if (!svg) return;
-  let defs = svg.querySelector('defs#route-highlight-defs');
-  if (!defs) {
-    defs = document.createElementNS(svgNS, 'defs');
-    defs.setAttribute('id', 'route-highlight-defs');
-    svg.insertBefore(defs, svg.firstChild);
-    const grad = document.createElementNS(svgNS, 'linearGradient');
-    grad.setAttribute('id', 'route-blue-grad');
-    grad.setAttribute('gradientUnits', 'userSpaceOnUse');
-    grad.innerHTML =
-      '<stop offset="0%" stop-color="#6fd4ff" stop-opacity="0.9"/>' +
-      '<stop offset="100%" stop-color="#3fa7ff" stop-opacity="0.05"/>';
-    defs.appendChild(grad);
-  }
-  routeHighlightDefsReady = true;
-}
-
-function updateRouteGradient(start, end) {
-  const grad = document.getElementById('route-blue-grad');
-  if (!grad || !start || !end) return;
-  grad.setAttribute('x1', String(start.x));
-  grad.setAttribute('y1', String(start.y));
-  grad.setAttribute('x2', String(end.x));
-  grad.setAttribute('y2', String(end.y));
-}
 
 function sampleRouteLegs(legs) {
   if (!legs || !legs.length) return [];
@@ -1478,9 +1344,9 @@ function pointAtRouteDistance(pts, dist) {
   return { x: pts[pts.length - 1].x, y: pts[pts.length - 1].y };
 }
 
-function pathDFromRouteSamples(pts, s0, s1) {
-  if (!pts.length) return '';
-  let d = '';
+function ptsSliceFromRouteSamples(pts, s0, s1) {
+  if (!pts.length) return [];
+  const out = [];
   let started = false;
   for (let i = 0; i < pts.length; i++) {
     const pt = pts[i];
@@ -1488,57 +1354,59 @@ function pathDFromRouteSamples(pts, s0, s1) {
     if (pt.s > s1 + 0.02) break;
     if (!started) {
       const start = s0 <= pt.s ? pt : pointAtRouteDistance(pts, s0);
-      d += 'M ' + start.x.toFixed(2) + ' ' + start.y.toFixed(2);
+      out.push({ x: start.x, y: start.y });
       started = true;
     } else {
-      d += ' L ' + pt.x.toFixed(2) + ' ' + pt.y.toFixed(2);
+      out.push({ x: pt.x, y: pt.y });
     }
   }
   if (started && pts[pts.length - 1].s > s1 + 0.02) {
     const end = pointAtRouteDistance(pts, s1);
-    d += ' L ' + end.x.toFixed(2) + ' ' + end.y.toFixed(2);
+    out.push({ x: end.x, y: end.y });
   }
-  return d;
+  return out;
 }
 
-function appendRoutePathEl(d, stroke, strokeOpacity, width, targetEls) {
-  if (!d) return;
-  const path = document.createElementNS(svgNS, 'path');
-  path.setAttribute('d', d);
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', stroke);
-  if (strokeOpacity != null) path.setAttribute('stroke-opacity', String(strokeOpacity));
-  path.setAttribute('stroke-width', String(width));
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-  path.setAttribute('class', 'route-highlight-path');
-  routeHighlightLayer.appendChild(path);
-  targetEls.push(path);
-}
-
-function drawRouteHighlightPath(legs, gradStart, targetEls) {
+function buildRouteHighlightPaths(legs, gradStart) {
+  const result = [];
   const pts = sampleRouteLegs(legs);
-  if (!pts.length) return;
+  if (!pts.length) return result;
   const totalLen = pts[pts.length - 1].s;
-  if (totalLen < 0.08) return;
-
-  ensureRouteHighlightDefs();
+  if (totalLen < 0.08) return result;
 
   const fadeLen = Math.min(ROUTE_TAIL_FADE, totalLen);
   const splitAt = totalLen - fadeLen;
 
   if (splitAt > 0.05) {
-    const mainD = pathDFromRouteSamples(pts, 0, splitAt);
-    appendRoutePathEl(mainD, ROUTE_PATH_COLOR, ROUTE_PATH_OPACITY, ROUTE_PATH_WIDTH, targetEls);
+    const mainPts = ptsSliceFromRouteSamples(pts, 0, splitAt);
+    if (mainPts.length >= 2) {
+      result.push({
+        pts: mainPts,
+        stroke: ROUTE_PATH_COLOR,
+        opacity: ROUTE_PATH_OPACITY,
+        width: ROUTE_PATH_WIDTH,
+        gradStart: null,
+        gradEnd: null
+      });
+    }
   }
 
   if (fadeLen > 0.05) {
     const tailStart = pointAtRouteDistance(pts, splitAt);
     const tailEnd = pts[pts.length - 1];
-    const tailD = pathDFromRouteSamples(pts, splitAt, totalLen);
-    updateRouteGradient(gradStart && splitAt < 0.05 ? gradStart : tailStart, tailEnd);
-    appendRoutePathEl(tailD, 'url(#route-blue-grad)', null, ROUTE_PATH_WIDTH, targetEls);
+    const tailPts = ptsSliceFromRouteSamples(pts, splitAt, totalLen);
+    if (tailPts.length >= 2) {
+      result.push({
+        pts: tailPts,
+        stroke: ROUTE_PATH_COLOR,
+        opacity: ROUTE_PATH_OPACITY,
+        width: ROUTE_PATH_WIDTH,
+        gradStart: (gradStart && splitAt < 0.05) ? gradStart : tailStart,
+        gradEnd: { x: tailEnd.x, y: tailEnd.y }
+      });
+    }
   }
+  return result;
 }
 
 function remainingRouteLegs(car) {
@@ -1555,8 +1423,7 @@ function routeGradientStartFromCar(car) {
 }
 
 function clearHoverRouteHighlight() {
-  hoverRouteEls.forEach(el => el.remove());
-  hoverRouteEls = [];
+  hoverRoutePaths = [];
   hoverRouteCar = null;
 }
 
@@ -1564,12 +1431,15 @@ function updateHoverRouteHighlight(car) {
   clearHoverRouteHighlight();
   if (!driveMode || !car || car.selected || car.state === 'despawning') return;
   hoverRouteCar = car;
-  drawRouteHighlightPath(remainingRouteLegs(car), routeGradientStartFromCar(car), hoverRouteEls);
+  hoverRoutePaths = buildRouteHighlightPaths(remainingRouteLegs(car), routeGradientStartFromCar(car));
 }
 
 function clearRouteHighlightEls(car) {
-  (car.highlightEls || []).forEach(el => el.remove());
-  car.highlightEls = [];
+  if (followRouteCar === car) {
+    followRoutePaths = [];
+    followRouteCar = null;
+  }
+  if (car) car.routeHighlightPaths = [];
 }
 
 function currentLegFrac(car) {
@@ -1580,8 +1450,9 @@ function currentLegFrac(car) {
 }
 
 function updateRouteHighlight(car) {
-  clearRouteHighlightEls(car);
-  drawRouteHighlightPath(remainingRouteLegs(car), routeGradientStartFromCar(car), car.highlightEls);
+  followRouteCar = car;
+  followRoutePaths = buildRouteHighlightPaths(remainingRouteLegs(car), routeGradientStartFromCar(car));
+  car.routeHighlightPaths = followRoutePaths;
 }
 
 function drawPreviewRoute(route) {
@@ -1592,12 +1463,11 @@ function drawPreviewRoute(route) {
     tStart: leg.tStart,
     tEnd: leg.tEnd
   }));
-  drawRouteHighlightPath(legs, null, previewRouteEls);
+  previewRoutePaths = buildRouteHighlightPaths(legs, null);
 }
 
 function clearPreviewRoute() {
-  previewRouteEls.forEach(el => el.remove());
-  previewRouteEls = [];
+  previewRoutePaths = [];
 }
 
 // ---------------- Spawning ----------------
@@ -1615,132 +1485,7 @@ function spawnCarFromRoute(route, destPick, opts) {
   const first = legs[0];
   const start = first.atom.sampleAtT(first.tStart);
 
-  const g = document.createElementNS(svgNS, 'g');
-  g.setAttribute('data-car', 'true');
-
   const color = opts.color || CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)];
-  const L = ALLIE_CONFIG.CAR_LENGTH, W = ALLIE_CONFIG.CAR_WIDTH;
-  const rearX = -ALLIE_CONFIG.REAR_OVERHANG;
-
-  const body = document.createElementNS(svgNS, 'rect');
-  body.setAttribute('x', String(rearX));
-  body.setAttribute('y', String(-W / 2));
-  body.setAttribute('width', String(L));
-  body.setAttribute('height', String(W));
-  body.setAttribute('rx', '0.9');
-  body.setAttribute('fill', color);
-  body.setAttribute('stroke', 'rgba(0,0,0,0.55)');
-  body.setAttribute('stroke-width', '0.35');
-  g.appendChild(body);
-
-  const windshield = document.createElementNS(svgNS, 'rect');
-  windshield.setAttribute('x', String(ALLIE_CONFIG.WHEELBASE * 0.32));
-  windshield.setAttribute('y', String(-W / 2 + 0.35));
-  windshield.setAttribute('width', String(ALLIE_CONFIG.WHEELBASE * 0.42));
-  windshield.setAttribute('height', String(W - 0.7));
-  windshield.setAttribute('rx', '0.4');
-  windshield.setAttribute('fill', 'rgba(255,255,255,0.35)');
-  g.appendChild(windshield);
-
-  const lightEls = [-1, 1].map(side => {
-    const l = document.createElementNS(svgNS, 'rect');
-    l.setAttribute('x', String(rearX - 0.05));
-    l.setAttribute('y', String(side * (W / 2 - 0.55) - 0.3));
-    l.setAttribute('width', '0.55');
-    l.setAttribute('height', '0.6');
-    l.setAttribute('rx', '0.15');
-    l.setAttribute('fill', '#ff3b3b');
-    l.setAttribute('opacity', '0.15');
-    g.appendChild(l);
-    return l;
-  });
-
-  const frontX = rearX + L - 0.7;
-  const blinkerEls = {};
-  // Local +Y is driver's RIGHT after rotate(heading) in SVG (y-down).
-  ['left', 'right'].forEach(side => {
-    const sign = side === 'left' ? -1 : 1; // left = −Y, right = +Y
-    const el = document.createElementNS(svgNS, 'rect');
-    el.setAttribute('x', String(frontX));
-    el.setAttribute('y', String(sign * (W / 2 - 0.5) - 0.28));
-    el.setAttribute('width', '0.62');
-    el.setAttribute('height', '0.56');
-    el.setAttribute('rx', '0.14');
-    el.setAttribute('fill', '#ffb020');
-    el.setAttribute('stroke', '#cc7a00');
-    el.setAttribute('stroke-width', '0.12');
-    el.setAttribute('opacity', '0.08');
-    g.appendChild(el);
-    blinkerEls[side] = el;
-  });
-
-  // Roof arrows — chevron + stem, same blink cadence as corner lamps.
-  // Local +Y = right, −Y = left after rotate(heading).
-  const roofBlinkerEls = {};
-  const roofCx = rearX + L * 0.42;
-  ['left', 'right'].forEach(side => {
-    const sign = side === 'left' ? -1 : 1;
-    const tipY = sign * (W * 0.44);
-    const headBase = sign * (W * 0.18);
-    const stemEnd = sign * 0.12;
-    const hw = 0.22; // half stem width
-    const path = document.createElementNS(svgNS, 'path');
-    // Arrow pointing outward: triangle head + rectangular stem toward center
-    path.setAttribute('d', [
-      'M', roofCx.toFixed(2), tipY.toFixed(2),
-      'L', (roofCx - 0.62).toFixed(2), headBase.toFixed(2),
-      'L', (roofCx - hw).toFixed(2), headBase.toFixed(2),
-      'L', (roofCx - hw).toFixed(2), stemEnd.toFixed(2),
-      'L', (roofCx + hw).toFixed(2), stemEnd.toFixed(2),
-      'L', (roofCx + hw).toFixed(2), headBase.toFixed(2),
-      'L', (roofCx + 0.62).toFixed(2), headBase.toFixed(2),
-      'Z'
-    ].join(' '));
-    path.setAttribute('fill', '#ffb020');
-    path.setAttribute('stroke', '#cc7a00');
-    path.setAttribute('stroke-width', '0.1');
-    path.setAttribute('opacity', '0.12');
-    g.appendChild(path);
-    roofBlinkerEls[side] = path;
-  });
-
-  const hit = document.createElementNS(svgNS, 'rect');
-  hit.setAttribute('x', String(rearX - 1));
-  hit.setAttribute('y', String(-W / 2 - 1));
-  hit.setAttribute('width', String(L + 2));
-  hit.setAttribute('height', String(W + 2));
-  hit.setAttribute('fill', 'transparent');
-  hit.style.pointerEvents = 'none';
-  g.appendChild(hit);
-
-  const hoverRing = document.createElementNS(svgNS, 'rect');
-  hoverRing.setAttribute('x', String(rearX - 0.7));
-  hoverRing.setAttribute('y', String(-W / 2 - 0.7));
-  hoverRing.setAttribute('width', String(L + 1.4));
-  hoverRing.setAttribute('height', String(W + 1.4));
-  hoverRing.setAttribute('rx', '1.2');
-  hoverRing.setAttribute('fill', 'rgba(127,212,255,0.12)');
-  hoverRing.setAttribute('stroke', '#7fd4ff');
-  hoverRing.setAttribute('stroke-width', '0.65');
-  hoverRing.setAttribute('opacity', '0');
-  hoverRing.style.pointerEvents = 'none';
-  g.appendChild(hoverRing);
-
-  const selectRing = document.createElementNS(svgNS, 'rect');
-  selectRing.setAttribute('x', String(rearX - 0.55));
-  selectRing.setAttribute('y', String(-W / 2 - 0.55));
-  selectRing.setAttribute('width', String(L + 1.1));
-  selectRing.setAttribute('height', String(W + 1.1));
-  selectRing.setAttribute('rx', '1.1');
-  selectRing.setAttribute('fill', 'none');
-  selectRing.setAttribute('stroke', '#7fd4ff');
-  selectRing.setAttribute('stroke-width', '0.55');
-  selectRing.setAttribute('stroke-dasharray', '1.6 1.1');
-  selectRing.setAttribute('opacity', '0');
-  selectRing.style.pointerEvents = 'none';
-  g.appendChild(selectRing);
-
-  carLayer.appendChild(g);
 
   // Destination pick for post-lane-change route recompute
   let storedDest = destPick || null;
@@ -1754,13 +1499,20 @@ function spawnCarFromRoute(route, destPick, opts) {
 
   const car = {
     id: carIdCounter++,
-    el: g, lightEls, blinkerEls, roofBlinkerEls, hitEl: hit, hoverRing, selectRing,
     route: legs, legIndex: 0,
     totalLength, traveledLength: 0,
     x: start.x, y: start.y, heading: Math.atan2(start.ty, start.tx),
     speed: 0, braking: false, blinkerPhase: 0,
-    color, selected: false, state: 'driving', despawnT: 0,
-    highlightEls: [],
+    color,
+    brakeLit: false,
+    blinkerSide: null,
+    blinkerOn: false,
+    hovered: false,
+    selected: false,
+    despawnScale: 1,
+    despawnOpacity: 1,
+    routeHighlightPaths: [],
+    state: 'driving', despawnT: 0,
     // Signal decision latch: { turnLegIndex, choice:'commit'|'stop'|'ror', rorPhase }
     signalDecision: null,
     signalTimer: 0,
@@ -1799,18 +1551,212 @@ function spawnCarFromRoute(route, destPick, opts) {
     _parkDebug: null
   };
 
-  g.setAttribute('transform', `translate(${car.x} ${car.y}) rotate(${car.heading * 180 / Math.PI})`);
   car._lx = car.x;
   car._ly = car.y;
   car._lh = car.heading;
-  car._tfDirty = true;
   refreshCarPoseCache(car);
-  ensureCarSvgTransforms(car);
   evaluateParkingIntent(car);
 
   cars.push(car);
   updateCarCountUI();
   return car;
+}
+
+function drawCarCanvas(c, car) {
+  if (!car) return;
+  const L = ALLIE_CONFIG.CAR_LENGTH, W = ALLIE_CONFIG.CAR_WIDTH;
+  const rearX = -ALLIE_CONFIG.REAR_OVERHANG;
+  const scale = (car.despawnScale != null) ? car.despawnScale : 1;
+  const opacity = (car.despawnOpacity != null) ? car.despawnOpacity : 1;
+
+  c.save();
+  c.globalAlpha = opacity;
+  c.translate(car.x, car.y);
+  c.rotate(car.heading);
+  if (scale < 0.999) c.scale(scale, scale);
+
+  if (car.hovered && !car.selected) {
+    canvasRoundRect(c, rearX - 0.7, -W / 2 - 0.7, L + 1.4, W + 1.4, 1.2);
+    c.fillStyle = 'rgba(127,212,255,0.12)';
+    c.fill();
+    c.strokeStyle = '#7fd4ff';
+    c.lineWidth = 0.65;
+    c.globalAlpha = opacity * 0.95;
+    c.stroke();
+    c.globalAlpha = opacity;
+  }
+
+  if (car.selected) {
+    canvasRoundRect(c, rearX - 0.55, -W / 2 - 0.55, L + 1.1, W + 1.1, 1.1);
+    c.strokeStyle = '#7fd4ff';
+    c.lineWidth = 0.55;
+    c.setLineDash([1.6, 1.1]);
+    c.stroke();
+    c.setLineDash([]);
+  }
+
+  canvasRoundRect(c, rearX, -W / 2, L, W, 0.9);
+  c.fillStyle = car.color || '#888';
+  c.fill();
+  c.strokeStyle = 'rgba(0,0,0,0.55)';
+  c.lineWidth = 0.35;
+  c.stroke();
+
+  canvasRoundRect(c,
+    ALLIE_CONFIG.WHEELBASE * 0.32, -W / 2 + 0.35,
+    ALLIE_CONFIG.WHEELBASE * 0.42, W - 0.7, 0.4);
+  c.fillStyle = 'rgba(255,255,255,0.35)';
+  c.fill();
+
+  const brakeAlpha = car.brakeLit ? 0.95 : 0.15;
+  c.fillStyle = '#ff3b3b';
+  [-1, 1].forEach(side => {
+    c.globalAlpha = opacity * brakeAlpha;
+    canvasRoundRect(c, rearX - 0.05, side * (W / 2 - 0.55) - 0.3, 0.55, 0.6, 0.15);
+    c.fill();
+  });
+  c.globalAlpha = opacity;
+
+  const frontX = rearX + L - 0.7;
+  const leftBlink = car.blinkerSide === 'left' && car.blinkerOn;
+  const rightBlink = car.blinkerSide === 'right' && car.blinkerOn;
+  ['left', 'right'].forEach(side => {
+    const sign = side === 'left' ? -1 : 1;
+    const on = side === 'left' ? leftBlink : rightBlink;
+    c.globalAlpha = opacity * (on ? 0.98 : 0.08);
+    canvasRoundRect(c, frontX, sign * (W / 2 - 0.5) - 0.28, 0.62, 0.56, 0.14);
+    c.fillStyle = '#ffb020';
+    c.fill();
+    c.strokeStyle = '#cc7a00';
+    c.lineWidth = 0.12;
+    c.stroke();
+  });
+  c.globalAlpha = opacity;
+
+  const roofCx = rearX + L * 0.42;
+  ['left', 'right'].forEach(side => {
+    const sign = side === 'left' ? -1 : 1;
+    const on = side === 'left' ? leftBlink : rightBlink;
+    const tipY = sign * (W * 0.44);
+    const headBase = sign * (W * 0.18);
+    const stemEnd = sign * 0.12;
+    const hw = 0.22;
+    c.globalAlpha = opacity * (on ? 1 : 0.12);
+    c.beginPath();
+    c.moveTo(roofCx, tipY);
+    c.lineTo(roofCx - 0.62, headBase);
+    c.lineTo(roofCx - hw, headBase);
+    c.lineTo(roofCx - hw, stemEnd);
+    c.lineTo(roofCx + hw, stemEnd);
+    c.lineTo(roofCx + hw, headBase);
+    c.lineTo(roofCx + 0.62, headBase);
+    c.closePath();
+    c.fillStyle = '#ffb020';
+    c.fill();
+    c.strokeStyle = '#cc7a00';
+    c.lineWidth = 0.1;
+    c.stroke();
+  });
+
+  c.restore();
+}
+
+function drawCarsCanvas(c) {
+  for (let i = 0; i < cars.length; i++) drawCarCanvas(c, cars[i]);
+}
+
+function strokeRoutePathCanvas(c, path) {
+  if (!path || !path.pts || path.pts.length < 2) return;
+  c.save();
+  c.lineCap = 'round';
+  c.lineJoin = 'round';
+  c.lineWidth = path.width != null ? path.width : ROUTE_PATH_WIDTH;
+  c.beginPath();
+  c.moveTo(path.pts[0].x, path.pts[0].y);
+  for (let i = 1; i < path.pts.length; i++) c.lineTo(path.pts[i].x, path.pts[i].y);
+  if (path.gradStart && path.gradEnd) {
+    const g = c.createLinearGradient(
+      path.gradStart.x, path.gradStart.y,
+      path.gradEnd.x, path.gradEnd.y
+    );
+    g.addColorStop(0, 'rgba(111,212,255,0.9)');
+    g.addColorStop(1, 'rgba(63,167,255,0.05)');
+    c.strokeStyle = g;
+  } else {
+    c.globalAlpha = path.opacity != null ? path.opacity : ROUTE_PATH_OPACITY;
+    c.strokeStyle = path.stroke || ROUTE_PATH_COLOR;
+  }
+  c.stroke();
+  c.restore();
+}
+
+function drawRouteHighlightsCanvas(c) {
+  for (let i = 0; i < previewRoutePaths.length; i++) strokeRoutePathCanvas(c, previewRoutePaths[i]);
+  for (let i = 0; i < hoverRoutePaths.length; i++) strokeRoutePathCanvas(c, hoverRoutePaths[i]);
+  for (let i = 0; i < followRoutePaths.length; i++) strokeRoutePathCanvas(c, followRoutePaths[i]);
+}
+
+function drawDriveOverlaysCanvas(c) {
+  const enterColor = (typeof COLOR_ENTER !== 'undefined' && COLOR_ENTER) ? COLOR_ENTER : '#2ecc71';
+  if (spawnPin) {
+    canvasFillCircle(c, spawnPin.x, spawnPin.y, 2.2, enterColor, '#fff', 0.6);
+  }
+  if (driveHoverMarker && driveHoverMarker.opacity > 0.01) {
+    c.save();
+    c.globalAlpha = driveHoverMarker.opacity;
+    canvasFillCircle(c, driveHoverMarker.x, driveHoverMarker.y, 1.8, 'rgba(63,167,255,0.9)', '#fff', 0.5);
+    c.restore();
+  }
+  for (let i = 0; i < spawners.length; i++) {
+    const sp = spawners[i];
+    const m = sp.marker || { x: sp.x, y: sp.y };
+    const active = sp.running && !spawnersAllPaused && !simPaused;
+    c.save();
+    c.beginPath();
+    c.arc(m.x, m.y, 3.2, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(255, 160, 60, 0.18)';
+    c.fill();
+    c.strokeStyle = active ? '#ffb347' : '#888';
+    c.lineWidth = 0.65;
+    if (!active) c.setLineDash([1.2, 1]);
+    c.stroke();
+    c.setLineDash([]);
+    c.beginPath();
+    c.arc(m.x, m.y, 1.5, 0, Math.PI * 2);
+    c.fillStyle = active ? '#ffb347' : '#666';
+    c.fill();
+    c.restore();
+  }
+}
+
+function drawLaneChangeGraphCanvas(c) {
+  if (!laneChangeGraphVisible) return;
+  const STEPS = 10;
+  for (let a = 0; a < allieAtoms.length; a++) {
+    const atom = allieAtoms[a];
+    if (atom.kind !== 'lanechange') continue;
+    const pts = [];
+    for (let i = 0; i <= STEPS; i++) {
+      const p = atom.sampleAtT(i / STEPS);
+      pts.push({ x: p.x, y: p.y });
+    }
+    c.save();
+    c.globalAlpha = 0.85;
+    c.strokeStyle = '#7fffb0';
+    c.lineWidth = 0.5;
+    c.setLineDash([1.3, 1]);
+    c.beginPath();
+    c.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) c.lineTo(pts[i].x, pts[i].y);
+    c.stroke();
+    c.setLineDash([]);
+    c.globalAlpha = 0.9;
+    c.beginPath();
+    c.arc(pts[0].x, pts[0].y, 0.85, 0, Math.PI * 2);
+    c.fillStyle = '#7fffb0';
+    c.fill();
+    c.restore();
+  }
 }
 
 function removeCar(car) {
@@ -1828,7 +1774,6 @@ function removeCar(car) {
     }
   }
   clearRouteHighlightEls(car);
-  car.el.remove();
   const idx = cars.indexOf(car);
   if (idx >= 0) cars.splice(idx, 1);
   updateCarCountUI();
@@ -1924,7 +1869,6 @@ function selectCar(car) {
     view.scale = ALLIE_CONFIG.FOLLOW_MIN_SCALE;
   }
   updateCarHoverVisual(car);
-  if (car.selectRing) car.selectRing.setAttribute('opacity', '1');
   updateRouteHighlight(car);
   updateCarOverlayVisibility();
   updateDriveHudText();
@@ -1932,7 +1876,6 @@ function selectCar(car) {
 
 function deselectCarVisual(car) {
   car.selected = false;
-  if (car.selectRing) car.selectRing.setAttribute('opacity', '0');
   updateCarHoverVisual(car);
   clearRouteHighlightEls(car);
 }
@@ -2589,7 +2532,6 @@ function clearAllCars() {
   cars.forEach(c => {
     noteParkerInactive(c);
     clearRouteHighlightEls(c);
-    c.el.remove();
   });
   cars = [];
   activeParkersCount = 0;
@@ -2957,10 +2899,7 @@ function importTrafficState(data, onProgress) {
 
 // ---------------- Debug rings overlay ----------------
 
-function clearDebugOverlay() {
-  debugOverlayEls.forEach(el => el.remove());
-  debugOverlayEls = [];
-}
+function clearDebugOverlay() { /* canvas redraws from sensor state */ }
 
 // Cars route through mid-block lane-change windows when needed. This toggle
 // controls whether they may also hop lanes *inside* a junction (straight
@@ -2999,7 +2938,6 @@ function toggleDebugRings() {
   }
   updateCarOverlayVisibility();
   if (!debugRingsOn) clearDebugOverlay();
-  else updateDebugOverlay();
 }
 
 function toggleParkingSearch() {
@@ -3016,11 +2954,6 @@ function toggleParkingSearch() {
       clearParkingIntent(car);
     }
   }
-}
-
-function appendDebugEl(el) {
-  debugLayer.appendChild(el);
-  debugOverlayEls.push(el);
 }
 
 function heatColor(t, alpha) {
@@ -3130,28 +3063,49 @@ function gatherNearbyForDebug(car, radius) {
   return list;
 }
 
-function appendDebugOBB(obb, fill, stroke, strokeWidth, pad) {
-  pad = pad || 0;
-  const mark = document.createElementNS(svgNS, 'rect');
-  mark.setAttribute('x', String(-obb.hl - pad));
-  mark.setAttribute('y', String(-obb.hw - pad));
-  mark.setAttribute('width', String(obb.hl * 2 + pad * 2));
-  mark.setAttribute('height', String(obb.hw * 2 + pad * 2));
-  mark.setAttribute('fill', fill || 'none');
-  mark.setAttribute('stroke', stroke);
-  mark.setAttribute('stroke-width', String(strokeWidth));
-  mark.setAttribute('transform', `translate(${obb.cx} ${obb.cy}) rotate(${obb.heading * 180 / Math.PI})`);
-  appendDebugEl(mark);
+function canvasStrokePolyline(c, pts, stroke, width, dash, alpha) {
+  if (!pts || pts.length < 2) return;
+  c.save();
+  if (alpha != null) c.globalAlpha = alpha;
+  c.strokeStyle = stroke;
+  c.lineWidth = width;
+  c.lineCap = 'round';
+  c.lineJoin = 'round';
+  if (dash) c.setLineDash(dash);
+  c.beginPath();
+  c.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) c.lineTo(pts[i].x, pts[i].y);
+  c.stroke();
+  c.restore();
 }
 
-function drawDebugSensors(car, c, radius, nearby) {
+function drawDebugOBB(c, obb, fill, stroke, strokeWidth, pad) {
+  pad = pad || 0;
+  c.save();
+  c.translate(obb.cx, obb.cy);
+  c.rotate(obb.heading);
+  const x = -obb.hl - pad;
+  const y = -obb.hw - pad;
+  const w = obb.hl * 2 + pad * 2;
+  const h = obb.hw * 2 + pad * 2;
+  c.beginPath();
+  c.rect(x, y, w, h);
+  if (fill && fill !== 'none') { c.fillStyle = fill; c.fill(); }
+  if (stroke) {
+    c.strokeStyle = stroke;
+    c.lineWidth = strokeWidth;
+    c.stroke();
+  }
+  c.restore();
+}
+
+function drawDebugSensors(c, car, center, radius, nearby) {
   const halfCone = (ALLIE_CONFIG.SIDE_DETECT_CONE_DEG * Math.PI / 180) * 0.5;
   const headHalf = (ALLIE_CONFIG.HEAD_CONE_DEG * Math.PI / 180) * 0.5;
   const headFar = ALLIE_CONFIG.HEAD_RING_FAR;
   const headMid = ALLIE_CONFIG.HEAD_RING_MID;
   const headNear = ALLIE_CONFIG.HEAD_RING_NEAR;
 
-  // Driver-head FOV wedges — nested far / mid / near rings (cyan → amber → red)
   const headRings = [
     { r: headFar, fill: 'rgba(120,210,255,0.06)', stroke: 'rgba(120,210,255,0.45)' },
     { r: headMid, fill: 'rgba(255,190,70,0.08)', stroke: 'rgba(255,180,60,0.55)' },
@@ -3161,49 +3115,34 @@ function drawDebugSensors(car, c, radius, nearby) {
     const ring = headRings[i];
     const a0 = car.heading - headHalf;
     const a1 = car.heading + headHalf;
-    const x0 = c.x + Math.cos(a0) * ring.r;
-    const y0 = c.y + Math.sin(a0) * ring.r;
-    const x1 = c.x + Math.cos(a1) * ring.r;
-    const y1 = c.y + Math.sin(a1) * ring.r;
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d',
-      `M ${c.x.toFixed(2)} ${c.y.toFixed(2)} L ${x0.toFixed(2)} ${y0.toFixed(2)} ` +
-      `A ${ring.r.toFixed(2)} ${ring.r.toFixed(2)} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`);
-    path.setAttribute('fill', ring.fill);
-    path.setAttribute('stroke', ring.stroke);
-    path.setAttribute('stroke-width', '0.4');
-    appendDebugEl(path);
+    const x0 = center.x + Math.cos(a0) * ring.r;
+    const y0 = center.y + Math.sin(a0) * ring.r;
+    const x1 = center.x + Math.cos(a1) * ring.r;
+    const y1 = center.y + Math.sin(a1) * ring.r;
+    c.beginPath();
+    c.moveTo(center.x, center.y);
+    c.lineTo(x0, y0);
+    c.arc(center.x, center.y, ring.r, a0, a1, false);
+    c.closePath();
+    c.fillStyle = ring.fill;
+    c.fill();
+    c.strokeStyle = ring.stroke;
+    c.lineWidth = 0.4;
+    c.stroke();
   }
 
-  // Head FOV boundary rays (draw furthest)
   [-headHalf, headHalf].forEach(ang => {
     const ca = Math.cos(car.heading + ang);
     const sa = Math.sin(car.heading + ang);
-    const line = document.createElementNS(svgNS, 'line');
-    line.setAttribute('x1', String(c.x));
-    line.setAttribute('y1', String(c.y));
-    line.setAttribute('x2', String(c.x + ca * headFar));
-    line.setAttribute('y2', String(c.y + sa * headFar));
-    line.setAttribute('stroke', 'rgba(120,210,255,0.75)');
-    line.setAttribute('stroke-width', '0.55');
-    appendDebugEl(line);
+    canvasStrokeLine(c, center.x, center.y, center.x + ca * headFar, center.y + sa * headFar, 'rgba(120,210,255,0.75)', 0.55);
   });
 
-  // Side sensor FOV boundary lines (angle edges only — no full rings)
   [-halfCone, halfCone].forEach(ang => {
     const ca = Math.cos(car.heading + ang);
     const sa = Math.sin(car.heading + ang);
-    const line = document.createElementNS(svgNS, 'line');
-    line.setAttribute('x1', String(c.x));
-    line.setAttribute('y1', String(c.y));
-    line.setAttribute('x2', String(c.x + ca * radius));
-    line.setAttribute('y2', String(c.y + sa * radius));
-    line.setAttribute('stroke', 'rgba(255,180,60,0.45)');
-    line.setAttribute('stroke-width', '0.4');
-    appendDebugEl(line);
+    canvasStrokeLine(c, center.x, center.y, center.x + ca * radius, center.y + sa * radius, 'rgba(255,180,60,0.45)', 0.4);
   });
 
-  // Angular sensor wedges — heat by direction / closeness of nearby cars
   const SECTORS = 16;
   for (let s = 0; s < SECTORS; s++) {
     const a0 = -Math.PI + (s / SECTORS) * Math.PI * 2;
@@ -3222,59 +3161,106 @@ function drawDebugSensors(car, c, radius, nearby) {
     if (bestHeat < 0.08) continue;
     const inner = radius * 0.35;
     const outer = radius * (0.75 + bestHeat * 0.25);
-    const x0i = c.x + Math.cos(car.heading + a0) * inner;
-    const y0i = c.y + Math.sin(car.heading + a0) * inner;
-    const x1i = c.x + Math.cos(car.heading + a1) * inner;
-    const y1i = c.y + Math.sin(car.heading + a1) * inner;
-    const x0o = c.x + Math.cos(car.heading + a0) * outer;
-    const y0o = c.y + Math.sin(car.heading + a0) * outer;
-    const x1o = c.x + Math.cos(car.heading + a1) * outer;
-    const y1o = c.y + Math.sin(car.heading + a1) * outer;
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d',
-      `M ${x0i.toFixed(2)} ${y0i.toFixed(2)} L ${x0o.toFixed(2)} ${y0o.toFixed(2)} ` +
-      `L ${x1o.toFixed(2)} ${y1o.toFixed(2)} L ${x1i.toFixed(2)} ${y1i.toFixed(2)} Z`);
-    path.setAttribute('fill', heatColor(bestHeat, 0.14 + bestHeat * 0.32));
-    path.setAttribute('stroke', heatColor(bestHeat, 0.45));
-    path.setAttribute('stroke-width', '0.25');
-    appendDebugEl(path);
+    const x0i = center.x + Math.cos(car.heading + a0) * inner;
+    const y0i = center.y + Math.sin(car.heading + a0) * inner;
+    const x1i = center.x + Math.cos(car.heading + a1) * inner;
+    const y1i = center.y + Math.sin(car.heading + a1) * inner;
+    const x0o = center.x + Math.cos(car.heading + a0) * outer;
+    const y0o = center.y + Math.sin(car.heading + a0) * outer;
+    const x1o = center.x + Math.cos(car.heading + a1) * outer;
+    const y1o = center.y + Math.sin(car.heading + a1) * outer;
+    c.beginPath();
+    c.moveTo(x0i, y0i);
+    c.lineTo(x0o, y0o);
+    c.lineTo(x1o, y1o);
+    c.lineTo(x1i, y1i);
+    c.closePath();
+    c.fillStyle = heatColor(bestHeat, 0.14 + bestHeat * 0.32);
+    c.fill();
+    c.strokeStyle = heatColor(bestHeat, 0.45);
+    c.lineWidth = 0.25;
+    c.stroke();
   }
 
-  // Nearby cars as oriented rectangles (no connector lines)
   for (let i = 0; i < nearby.length; i++) {
     const n = nearby[i];
     const obb = carOBB(n.other);
-    appendDebugOBB(
-      obb,
-      heatColor(n.heat, 0.12 + n.heat * 0.28),
-      heatColor(n.heat, 0.9),
-      0.55,
-      0.15
-    );
+    drawDebugOBB(c, obb, heatColor(n.heat, 0.12 + n.heat * 0.28), heatColor(n.heat, 0.9), 0.55, 0.15);
   }
 
-  // Highlight intersection blocker if holding
   if (car._ixBlocker) {
-    appendDebugOBB(carOBB(car._ixBlocker), 'rgba(255,60,60,0.2)', '#ff3333', 0.9, 0.4);
+    drawDebugOBB(c, carOBB(car._ixBlocker), 'rgba(255,60,60,0.2)', '#ff3333', 0.9, 0.4);
   }
 }
 
-function drawDebugForCar(car) {
+function drawDebugParking(c, car) {
+  const plan = car._parkPlan;
+  if (!plan) return;
+
+  if (typeof parkingBayCorners === 'function' && plan.bay) {
+    const corners = parkingBayCorners(plan.bay, plan.stallIndex);
+    if (corners && corners.length) {
+      c.beginPath();
+      c.moveTo(corners[0].x, corners[0].y);
+      for (let i = 1; i < corners.length; i++) c.lineTo(corners[i].x, corners[i].y);
+      c.closePath();
+      c.fillStyle = 'rgba(127, 212, 255, 0.18)';
+      c.fill();
+      c.strokeStyle = '#7fd4ff';
+      c.lineWidth = 0.7;
+      c.setLineDash([1.5, 1]);
+      c.stroke();
+      c.setLineDash([]);
+    }
+  }
+
+  if (plan.stagePoint) {
+    canvasFillCircle(c, plan.stagePoint.x, plan.stagePoint.y, 1.3, '#ffb020', '#fff', 0.3);
+  }
+
+  function drawArc(arc, color) {
+    if (!arc) return;
+    const STEPS = 14;
+    const pts = [];
+    for (let i = 0; i <= STEPS; i++) {
+      const p = arc.sampleAtS((i / STEPS) * arc.length);
+      pts.push({ x: p.x, y: p.y });
+    }
+    canvasStrokePolyline(c, pts, color, 1.15, [2, 1.1], 0.95);
+  }
+  drawArc(plan.arc1, '#ff9d4d');
+  drawArc(plan.arc2, '#7CFF9A');
+
+  if (car._parkYieldOther) {
+    const a = carCenter(car);
+    const b = carCenter(car._parkYieldOther);
+    c.save();
+    c.globalAlpha = 0.9;
+    c.strokeStyle = '#7fd4ff';
+    c.lineWidth = 0.9;
+    c.setLineDash([2, 1.5]);
+    c.beginPath();
+    c.moveTo(a.x, a.y);
+    c.lineTo(b.x, b.y);
+    c.stroke();
+    c.restore();
+  }
+}
+
+function drawDebugForCar(c, car) {
   if (!car || car.state === 'despawning') return;
-  const c = carCenter(car);
+  const center = carCenter(car);
   const radius = Math.max(ALLIE_CONFIG.SIDE_DETECT_RADIUS, ALLIE_CONFIG.HEAD_RING_FAR);
   const nearby = gatherNearbyForDebug(car, radius);
 
   if (car.state !== 'parked' && car.state !== 'parking') {
-    drawDebugSensors(car, c, ALLIE_CONFIG.SIDE_DETECT_RADIUS, nearby);
+    drawDebugSensors(c, car, center, ALLIE_CONFIG.SIDE_DETECT_RADIUS, nearby);
   }
 
-  // Hard-safety flash on ego
   if (car._hardSafetyHit) {
-    appendDebugOBB(carOBB(car), 'none', '#ff2222', 0.9, 0.35);
+    drawDebugOBB(c, carOBB(car), 'none', '#ff2222', 0.9, 0.35);
   }
 
-  // Lane-change thinking: draw the blend path + blinker side cue
   const lcd = car._laneChangeDebug;
   const found = (car.state === 'driving') ? findUpcomingLaneChangeLeg(car) : null;
   let lcAtom = found ? found.leg.atom : null;
@@ -3286,71 +3272,51 @@ function drawDebugForCar(car) {
   }
   if (lcAtom) {
     const STEPS = 12;
-    let d = '';
+    const pts = [];
     for (let i = 0; i <= STEPS; i++) {
       const p = lcAtom.sampleAtT(i / STEPS);
-      d += (i === 0 ? 'M ' : 'L ') + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ' ';
+      pts.push({ x: p.x, y: p.y });
     }
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', d.trim());
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', lcd && lcd.gapOk === false ? '#ff6b6b' : '#ffb020');
-    path.setAttribute('stroke-width', '1.1');
-    path.setAttribute('stroke-dasharray', '2 1.2');
-    path.setAttribute('opacity', '0.95');
-    appendDebugEl(path);
+    canvasStrokePolyline(c, pts, lcd && lcd.gapOk === false ? '#ff6b6b' : '#ffb020', 1.1, [2, 1.2], 0.95);
 
     const target = lcAtom.sampleAtT(1);
     const blinker = blinkerSideForLaneChange(car, lcAtom);
-    const sideDot = document.createElementNS(svgNS, 'circle');
-    sideDot.setAttribute('cx', String(target.x));
-    sideDot.setAttribute('cy', String(target.y));
-    sideDot.setAttribute('r', '1.4');
-    sideDot.setAttribute('fill', blinker === 'left' ? '#7fd4ff' : '#ff9d4d');
-    sideDot.setAttribute('stroke', '#fff');
-    sideDot.setAttribute('stroke-width', '0.35');
-    appendDebugEl(sideDot);
+    canvasFillCircle(c, target.x, target.y, 1.4, blinker === 'left' ? '#7fd4ff' : '#ff9d4d', '#fff', 0.35);
 
-    // Short tick on the car toward the blinker side
     if (blinker) {
       const side = blinker === 'right' ? 1 : -1;
       const rx = -Math.sin(car.heading) * side * 5;
       const ry = Math.cos(car.heading) * side * 5;
-      const tick = document.createElementNS(svgNS, 'line');
-      tick.setAttribute('x1', String(c.x));
-      tick.setAttribute('y1', String(c.y));
-      tick.setAttribute('x2', String(c.x + rx));
-      tick.setAttribute('y2', String(c.y + ry));
-      tick.setAttribute('stroke', blinker === 'left' ? '#7fd4ff' : '#ff9d4d');
-      tick.setAttribute('stroke-width', '1.2');
-      tick.setAttribute('opacity', '0.95');
-      appendDebugEl(tick);
+      canvasStrokeLine(c, center.x, center.y, center.x + rx, center.y + ry,
+        blinker === 'left' ? '#7fd4ff' : '#ff9d4d', 1.2, 0.95);
     }
   }
 
-  drawDebugParking(car);
+  drawDebugParking(c, car);
   if (car._parkYieldOther && !car._parkPlan) {
     const a = carCenter(car);
     const b = carCenter(car._parkYieldOther);
-    const line = document.createElementNS(svgNS, 'line');
-    line.setAttribute('x1', String(a.x));
-    line.setAttribute('y1', String(a.y));
-    line.setAttribute('x2', String(b.x));
-    line.setAttribute('y2', String(b.y));
-    line.setAttribute('stroke', '#7fd4ff');
-    line.setAttribute('stroke-width', '0.9');
-    line.setAttribute('stroke-dasharray', '2 1.5');
-    line.setAttribute('opacity', '0.9');
-    appendDebugEl(line);
+    c.save();
+    c.globalAlpha = 0.9;
+    c.strokeStyle = '#7fd4ff';
+    c.lineWidth = 0.9;
+    c.setLineDash([2, 1.5]);
+    c.beginPath();
+    c.moveTo(a.x, a.y);
+    c.lineTo(b.x, b.y);
+    c.stroke();
+    c.restore();
   }
 }
 
 function updateDebugOverlay() {
-  clearDebugOverlay();
+  // Drawing happens in drawDebugOverlayCanvas each frame.
+}
+
+function drawDebugOverlayCanvas(c) {
   if (!debugRingsOn) return;
-  // Prefer hover target so "hover in debug mode" always shows that car's heatmap
   const target = hoveredCar || followedCar;
-  if (target) drawDebugForCar(target);
+  if (target) drawDebugForCar(c, target);
 }
 
 // ---------------- Per-frame update: speed profile + bicycle model + pure pursuit ----------------
@@ -3937,27 +3903,16 @@ function updateCarBlinkers(car, dt) {
   }
   const signal = car._blinkerSignal;
   if (!signal) {
-    // Idle lamps — write once, then skip
     if (car._blinkerIdle) return;
     car._blinkerIdle = true;
-    setSvgOpacity(car.blinkerEls.left, '0.08');
-    setSvgOpacity(car.blinkerEls.right, '0.08');
-    if (car.roofBlinkerEls) {
-      setSvgOpacity(car.roofBlinkerEls.left, '0.12');
-      setSvgOpacity(car.roofBlinkerEls.right, '0.12');
-    }
+    car.blinkerSide = null;
+    car.blinkerOn = false;
     return;
   }
   car._blinkerIdle = false;
   const on = (car.blinkerPhase % ALLIE_CONFIG.BLINKER_PERIOD) < ALLIE_CONFIG.BLINKER_PERIOD * 0.52;
-  const leftOn = signal === 'left' && on;
-  const rightOn = signal === 'right' && on;
-  setSvgOpacity(car.blinkerEls.left, leftOn ? '0.98' : '0.08');
-  setSvgOpacity(car.blinkerEls.right, rightOn ? '0.98' : '0.08');
-  if (car.roofBlinkerEls) {
-    setSvgOpacity(car.roofBlinkerEls.left, leftOn ? '1' : '0.12');
-    setSvgOpacity(car.roofBlinkerEls.right, rightOn ? '1' : '0.12');
-  }
+  car.blinkerSide = signal;
+  car.blinkerOn = !!on;
 }
 
 // The "RH" speed profile: cruise, brake ahead of turns (harder for sharp
@@ -6067,8 +6022,7 @@ function updateParkingMotion(car, dt) {
 
   refreshCarPoseCache(car);
   applyCarTransform(car);
-  const lightOpacity = car.braking ? '0.95' : '0.15';
-  for (let i = 0; i < car.lightEls.length; i++) setSvgOpacity(car.lightEls[i], lightOpacity);
+  car.brakeLit = !!car.braking;
   updateCarBlinkers(car, dt);
 
   if (car.selected) {
@@ -6077,77 +6031,12 @@ function updateParkingMotion(car, dt) {
   }
 }
 
-function drawDebugParking(car) {
-  const plan = car._parkPlan;
-  if (!plan) return;
-
-  // Stall outline
-  if (typeof parkingBayCorners === 'function' && plan.bay) {
-    const corners = parkingBayCorners(plan.bay, plan.stallIndex);
-    const poly = document.createElementNS(svgNS, 'polygon');
-    poly.setAttribute('points', corners.map(p => p.x + ',' + p.y).join(' '));
-    poly.setAttribute('fill', 'rgba(127, 212, 255, 0.18)');
-    poly.setAttribute('stroke', '#7fd4ff');
-    poly.setAttribute('stroke-width', '0.7');
-    poly.setAttribute('stroke-dasharray', '1.5 1');
-    appendDebugEl(poly);
-  }
-
-  // Stage point
-  if (plan.stagePoint) {
-    const c = document.createElementNS(svgNS, 'circle');
-    c.setAttribute('cx', String(plan.stagePoint.x));
-    c.setAttribute('cy', String(plan.stagePoint.y));
-    c.setAttribute('r', '1.3');
-    c.setAttribute('fill', '#ffb020');
-    c.setAttribute('stroke', '#fff');
-    c.setAttribute('stroke-width', '0.3');
-    appendDebugEl(c);
-  }
-
-  // Two arcs as polylines
-  function drawArc(arc, color) {
-    if (!arc) return;
-    const STEPS = 14;
-    let d = '';
-    for (let i = 0; i <= STEPS; i++) {
-      const p = arc.sampleAtS((i / STEPS) * arc.length);
-      d += (i === 0 ? 'M ' : 'L ') + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ' ';
-    }
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', d.trim());
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', '1.15');
-    path.setAttribute('stroke-dasharray', '2 1.1');
-    path.setAttribute('opacity', '0.95');
-    appendDebugEl(path);
-  }
-  drawArc(plan.arc1, '#ff9d4d');
-  drawArc(plan.arc2, '#7CFF9A');
-
-  if (car._parkYieldOther) {
-    const a = carCenter(car);
-    const b = carCenter(car._parkYieldOther);
-    const line = document.createElementNS(svgNS, 'line');
-    line.setAttribute('x1', String(a.x));
-    line.setAttribute('y1', String(a.y));
-    line.setAttribute('x2', String(b.x));
-    line.setAttribute('y2', String(b.y));
-    line.setAttribute('stroke', '#7fd4ff');
-    line.setAttribute('stroke-width', '0.9');
-    line.setAttribute('stroke-dasharray', '2 1.5');
-    line.setAttribute('opacity', '0.9');
-    appendDebugEl(line);
-  }
-}
-
 function updateCar(car, dt) {
   if (car.state === 'despawning') {
     car.despawnT += dt;
     const p = Math.min(1, car.despawnT / ALLIE_CONFIG.DESPAWN_DURATION);
     applyCarTransform(car, 1 - p);
-    setSvgOpacity(car.el, String(1 - p));
+    car.despawnOpacity = 1 - p;
     if (p >= 1) removeCar(car);
     return;
   }
@@ -6161,8 +6050,7 @@ function updateCar(car, dt) {
   if (tryUnstickWinner(car, dt)) {
     advanceCarLeg(car);
     applyCarTransform(car);
-    const lightOpacity = '0.15';
-    for (let i = 0; i < car.lightEls.length; i++) setSvgOpacity(car.lightEls[i], lightOpacity);
+    car.brakeLit = false;
     updateCarBlinkers(car, dt);
     return;
   }
@@ -6271,8 +6159,7 @@ function updateCar(car, dt) {
   }
 
   applyCarTransform(car);
-  const lightOpacity = car.braking ? '0.95' : '0.15';
-  for (let i = 0; i < car.lightEls.length; i++) setSvgOpacity(car.lightEls[i], lightOpacity);
+  car.brakeLit = !!car.braking;
   updateCarBlinkers(car, dt);
 
   updateIdleCarWatchdog(car, dt);
@@ -6459,27 +6346,7 @@ function refreshAllSpawnerDestCaches() {
 }
 
 function drawSpawnerMarker(spawner) {
-  if (spawner.el) spawner.el.remove();
-  const g = document.createElementNS(svgNS, 'g');
-  g.setAttribute('data-spawner', String(spawner.id));
-  const active = spawner.running && !spawnersAllPaused && !simPaused;
-  const ring = document.createElementNS(svgNS, 'circle');
-  ring.setAttribute('cx', String(spawner.x));
-  ring.setAttribute('cy', String(spawner.y));
-  ring.setAttribute('r', '3.2');
-  ring.setAttribute('fill', 'rgba(255, 160, 60, 0.18)');
-  ring.setAttribute('stroke', active ? '#ffb347' : '#888');
-  ring.setAttribute('stroke-width', '0.65');
-  ring.setAttribute('stroke-dasharray', active ? 'none' : '1.2 1');
-  g.appendChild(ring);
-  const dot = document.createElementNS(svgNS, 'circle');
-  dot.setAttribute('cx', String(spawner.x));
-  dot.setAttribute('cy', String(spawner.y));
-  dot.setAttribute('r', '1.5');
-  dot.setAttribute('fill', active ? '#ffb347' : '#666');
-  g.appendChild(dot);
-  driveLayer.appendChild(g);
-  spawner.el = g;
+  spawner.marker = { x: spawner.x, y: spawner.y };
 }
 
 function updateSpawnerPauseAllButton() {
@@ -6566,7 +6433,7 @@ function placeSpawner(pick) {
     destCache: [],
     routeCache: [],
     destCount: 0,
-    el: null
+    marker: { x: pick.x, y: pick.y }
   };
   refreshSpawnerDestCache(spawner);
   if (!spawner.routeCache.length) {
@@ -6583,7 +6450,6 @@ function removeSpawner(id) {
   id = Number(id);
   const idx = spawners.findIndex(s => s.id === id);
   if (idx < 0) return;
-  if (spawners[idx].el) spawners[idx].el.remove();
   spawners.splice(idx, 1);
   updateSpawnerListUI();
 }
@@ -6621,7 +6487,6 @@ function pauseAllSpawners() {
 }
 
 function clearAllSpawners() {
-  spawners.forEach(sp => { if (sp.el) sp.el.remove(); });
   spawners = [];
   spawnerIdCounter = 1;
   spawnersAllPaused = false;
@@ -6661,7 +6526,7 @@ function importMapSpawners(data) {
       destCache: [],
       routeCache: [],
       destCount: 0,
-      el: null
+      marker: { x: item.x, y: item.y }
     };
     if (spawner.id >= spawnerIdCounter) spawnerIdCounter = spawner.id + 1;
     refreshSpawnerDestCache(spawner);
@@ -6792,7 +6657,11 @@ function tick(ts) {
   requestAnimationFrame(tick);
 
   // Stay close to display refresh; only drop ultra-early frames
-  if (lastTick != null && ts - lastTick < FRAME_MS * 0.55) return;
+  if (lastTick != null && ts - lastTick < FRAME_MS * 0.55) {
+    // Still paint so pan/zoom/car poses stay smooth when sim step is skipped
+    if (typeof renderFrame === 'function') renderFrame();
+    return;
+  }
 
   tickFrame++;
   let dt = lastTick == null ? FIXED_DT : (ts - lastTick) / 1000;
@@ -6842,24 +6711,15 @@ function tick(ts) {
     hoverHighlightTimer = 0;
   }
 
-  if (debugRingsOn && (tickFrame & 1) === 0) updateDebugOverlay();
-
   // HUD overlay is not frame-critical
   if ((tickFrame & 7) === 0) {
     const overlayCar = carOverlayTarget();
     if (overlayCar) updateCarOverlayContent(overlayCar);
   }
 
-  // Keep drive/car layers above roads without forcing a reparent every frame
-  if ((tickFrame & 63) === 0) {
-    world.appendChild(laneChangeGraphLayer);
-    world.appendChild(routeHighlightLayer);
-    world.appendChild(driveLayer);
-    world.appendChild(debugLayer);
-    world.appendChild(carLayer);
-  }
-
   if (followedCar) updateCameraFollow(followedCar, dt);
+
+  if (typeof renderFrame === 'function') renderFrame();
 }
 
 rebuildAllieGraph();

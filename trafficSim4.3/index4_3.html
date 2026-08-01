@@ -37,14 +37,6 @@
     .board.node-dragging * { cursor: grabbing !important; }
     .board.approach-dragging { cursor: ns-resize !important; }
     .board.approach-dragging * { cursor: ns-resize !important; }
-    .approach-handle {
-      pointer-events: auto;
-      cursor: ns-resize;
-    }
-    .approach-handle:hover .approach-handle-bar {
-      stroke: rgba(255, 224, 102, 0.95);
-      stroke-width: 1.6;
-    }
     .board.building {
       cursor: crosshair;
       box-shadow: inset 0 0 0 3px rgba(46, 204, 113, 0.55);
@@ -185,19 +177,14 @@
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.45; transform: scale(0.85); }
     }
-    svg#canvas {
+    canvas#canvas {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
-      overflow: visible;
       z-index: 1;
-      shape-rendering: optimizeSpeed;
-    }
-    #car-layer, #drive-layer, #route-highlight-layer, #debug-layer {
-      shape-rendering: optimizeSpeed;
     }
     #ref-map-world {
       position: absolute;
@@ -576,41 +563,6 @@
     }
 
     /* ---------------- Map reference overlay + picker ---------------- */
-    #ref-overlay-layer {
-      pointer-events: none;
-    }
-    #ref-overlay-layer.editing {
-      pointer-events: auto;
-    }
-    #ref-overlay-layer .ref-hit {
-      fill: rgba(63, 167, 255, 0.06);
-      stroke: rgba(63, 167, 255, 0.85);
-      stroke-width: 1.2;
-      stroke-dasharray: 4 3;
-      cursor: move;
-      vector-effect: non-scaling-stroke;
-    }
-    #ref-overlay-layer .ref-handle {
-      fill: #1a1a24;
-      stroke: #3fa7ff;
-      stroke-width: 1.5;
-      cursor: nwse-resize;
-      vector-effect: non-scaling-stroke;
-    }
-    #ref-overlay-layer .ref-handle[data-handle="ne"],
-    #ref-overlay-layer .ref-handle[data-handle="sw"] { cursor: nesw-resize; }
-    #ref-overlay-layer .ref-handle[data-handle="rot"] {
-      fill: #1a1a24;
-      stroke: #ffe066;
-      cursor: grab;
-    }
-    #ref-overlay-layer .ref-rot-line {
-      stroke: rgba(255, 224, 102, 0.85);
-      stroke-width: 1.2;
-      fill: none;
-      pointer-events: none;
-      vector-effect: non-scaling-stroke;
-    }
     #ref-overlay-hud {
       position: fixed;
       top: 18px;
@@ -1310,11 +1262,7 @@
         </div>
       </div>
     </div>
-    <svg id="canvas">
-      <g id="world">
-        <g id="ref-overlay-layer"></g>
-      </g>
-    </svg>
+    <canvas id="canvas"></canvas>
   </div>
 
   <div id="legend-panel">
@@ -1670,14 +1618,21 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.getElementById('canvas');
-    const world = document.getElementById('world');
+    // ============================================================
+    // CANVAS 2D RENDERER (replaces SVG DOM)
+    // ============================================================
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
     const board = document.getElementById('board');
-    const refOverlayLayer = document.getElementById('ref-overlay-layer');
+    // Compat shims — some older helpers still reference these names
+    const svg = canvas;
+    const world = { appendChild() {}, removeChild() {} };
+    const svgNS = null;
+    const refOverlayLayer = null;
+    const ghostLayer = { appendChild() {}, removeChild() {}, firstChild: null };
 
     let firstPoint = null;
-    let startMarker = null;
+    let startMarker = null; // { x, y } world coords while building
     let segments = [];
     let segmentCounter = 1;
     let nodes = new Map();
@@ -1709,13 +1664,541 @@
     const ONEWAY_SIGN_W = NODE_R * 0.78;
     const ONEWAY_SIGN_H = NODE_R * 0.26;
 
-    // Ghost road preview while placing
-    const ghostLayer = document.createElementNS(svgNS, 'g');
-    ghostLayer.setAttribute('id', 'ghost-layer');
-    ghostLayer.setAttribute('pointer-events', 'none');
-    world.appendChild(ghostLayer);
-    let cursorSnap = null;
+    // Resolve CSS custom properties once for canvas fillStyle
+    const _rootStyle = getComputedStyle(document.documentElement);
+    const COLOR_ENTER = _rootStyle.getPropertyValue('--enter').trim() || '#2ecc71';
+    const COLOR_EXIT = _rootStyle.getPropertyValue('--exit').trim() || '#ef5555';
+    const COLOR_STRAIGHT = _rootStyle.getPropertyValue('--straight').trim() || '#3fa7ff';
+    const COLOR_LEFT = _rootStyle.getPropertyValue('--left-turn').trim() || '#b98bff';
+    const COLOR_RIGHT = _rootStyle.getPropertyValue('--right-turn').trim() || '#ff9d4d';
+    const COLOR_UTURN = _rootStyle.getPropertyValue('--uturn').trim() || '#ff5d9e';
+    const COLOR_NODE_LABEL = _rootStyle.getPropertyValue('--node-label').trim() || '#39ff14';
+
+    // Preload road-sign images
+    const SIGN_IMAGES = {};
+    [
+      'signs/oneway.png',
+      'signs/turn/straight.png',
+      'signs/turn/left.png',
+      'signs/turn/right.png',
+      'signs/turn/left_straight.png',
+      'signs/turn/right_straight.png',
+      'signs/turn/no-uturn.png'
+    ].forEach(src => {
+      const img = new Image();
+      img.src = src;
+      SIGN_IMAGES[src] = img;
+    });
+
+    // Transient overlay state (ghost previews, cursor snap, hover highlights)
+    let cursorSnap = null; // { x, y, visible, fill }
     let lastPreviewEnd = null;
+    let ghostPreview = null; // build/delete/upgrade preview payload
+    let approachHandleHover = null; // { nodeKey, segId } when hovering a handle
+    let hoveredLaneNode = null; // { nodeKey, id } from geometric hit-test
+    let canvasW = 0, canvasH = 0, canvasDpr = 1;
+
+    function resizeSimCanvas() {
+      const rect = board.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(1, Math.round(rect.width));
+      const h = Math.max(1, Math.round(rect.height));
+      if (w === canvasW && h === canvasH && dpr === canvasDpr) return;
+      canvasW = w; canvasH = h; canvasDpr = dpr;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
+
+    function requestRedraw() { /* tick() always redraws */ }
+
+    // ---- Canvas drawing helpers ----
+    function canvasRoundRect(c, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      c.beginPath();
+      c.moveTo(x + rr, y);
+      c.arcTo(x + w, y, x + w, y + h, rr);
+      c.arcTo(x + w, y + h, x, y + h, rr);
+      c.arcTo(x, y + h, x, y, rr);
+      c.arcTo(x, y, x + w, y, rr);
+      c.closePath();
+    }
+
+    function canvasStrokeLine(c, x1, y1, x2, y2, color, width, alpha) {
+      c.save();
+      if (alpha != null) c.globalAlpha = alpha;
+      c.strokeStyle = color;
+      c.lineWidth = width;
+      c.lineCap = 'round';
+      c.beginPath();
+      c.moveTo(x1, y1);
+      c.lineTo(x2, y2);
+      c.stroke();
+      c.restore();
+    }
+
+    function canvasFillCircle(c, x, y, r, fill, stroke, sw) {
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      if (fill) { c.fillStyle = fill; c.fill(); }
+      if (stroke) { c.strokeStyle = stroke; c.lineWidth = sw || 1; c.stroke(); }
+    }
+
+    function canvasDrawImageRotated(c, img, cx, cy, w, h, angleDeg, alpha) {
+      if (!img || !img.complete || !img.naturalWidth) return;
+      c.save();
+      if (alpha != null) c.globalAlpha = alpha;
+      c.translate(cx, cy);
+      c.rotate(angleDeg * Math.PI / 180);
+      c.drawImage(img, -w / 2, -h / 2, w, h);
+      c.restore();
+    }
+
+    function canvasCubic(c, x1, y1, c1x, c1y, c2x, c2y, x2, y2) {
+      c.beginPath();
+      c.moveTo(x1, y1);
+      c.bezierCurveTo(c1x, c1y, c2x, c2y, x2, y2);
+    }
+
+    // ---- Master canvas frame + road/junction/ghost/ref drawing ----
+    function drawLaneArrowsCanvas(c, x1, y1, x2, y2, ux, uy, perpX, perpY, offset, forward, color, arrowLen, arrowAngle, spacing, alpha) {
+      const dx = x2 - x1, dy = y2 - y1;
+      const segLen = Math.hypot(dx, dy);
+      if (segLen < 0.01) return;
+      const tux = forward ? ux : -ux;
+      const tuy = forward ? uy : -uy;
+      const numArrows = Math.max(1, Math.floor(segLen / spacing));
+      const step = segLen / numArrows;
+      c.save();
+      c.strokeStyle = color;
+      c.lineWidth = 1;
+      c.globalAlpha = alpha;
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      for (let a = 0; a < numArrows; a++) {
+        const t = (a + 0.5) * step;
+        const ax = (forward ? x1 + tux * t : x2 + tux * t) + perpX * offset;
+        const ay = (forward ? y1 + tuy * t : y2 + tuy * t) + perpY * offset;
+        const tipX = ax + tux * arrowLen * 0.5;
+        const tipY = ay + tuy * arrowLen * 0.5;
+        const arm1X = tipX - tux * arrowLen * Math.cos(arrowAngle) + tuy * arrowLen * Math.sin(arrowAngle);
+        const arm1Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) - tux * arrowLen * Math.sin(arrowAngle);
+        const arm2X = tipX - tux * arrowLen * Math.cos(arrowAngle) - tuy * arrowLen * Math.sin(arrowAngle);
+        const arm2Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) + tux * arrowLen * Math.sin(arrowAngle);
+        c.beginPath();
+        c.moveTo(arm1X, arm1Y);
+        c.lineTo(tipX, tipY);
+        c.lineTo(arm2X, arm2Y);
+        c.stroke();
+      }
+      c.restore();
+    }
+
+    function drawSegmentGeometryCanvas(c, x1, y1, x2, y2, lanesIn, lanesOut, laneAlpha, arrowAlpha, dash) {
+      const specs = getLaneSpecs(lanesIn, lanesOut);
+      const dx = x2 - x1, dy = y2 - y1;
+      const segLen = Math.hypot(dx, dy);
+      if (segLen < 0.01 || !specs.length) return;
+      const ux = dx / segLen, uy = dy / segLen;
+      const perpX = -uy, perpY = ux;
+      const arrowLen = dash ? 5 : 6;
+      const arrowAngle = 0.45;
+      const spacing = 25;
+      specs.forEach(spec => {
+        const color = laneColorFor(spec, lanesIn, lanesOut);
+        const lx1 = x1 + perpX * spec.offset;
+        const ly1 = y1 + perpY * spec.offset;
+        const lx2 = x2 + perpX * spec.offset;
+        const ly2 = y2 + perpY * spec.offset;
+        c.save();
+        c.strokeStyle = color;
+        c.lineWidth = dash ? 1.5 : 1.5;
+        c.globalAlpha = laneAlpha;
+        c.lineCap = 'round';
+        if (dash) c.setLineDash([4, 3]);
+        c.beginPath();
+        c.moveTo(lx1, ly1);
+        c.lineTo(lx2, ly2);
+        c.stroke();
+        c.setLineDash([]);
+        c.restore();
+        drawLaneArrowsCanvas(c, x1, y1, x2, y2, ux, uy, perpX, perpY, spec.offset, spec.forward, color, arrowLen, arrowAngle, spacing, arrowAlpha);
+      });
+    }
+
+    function drawAllSegmentsCanvas(c) {
+      segments.forEach(segment => {
+        const { lanesIn, lanesOut } = getRoadDirs(segment);
+        const short = shortenSegment(segment);
+        drawSegmentGeometryCanvas(
+          c, short.x1, short.y1, short.x2, short.y2,
+          lanesIn, lanesOut, ROAD_LANE_OPACITY, ROAD_ARROW_OPACITY, false
+        );
+      });
+    }
+
+    function drawAllJunctionsCanvas(c) {
+      nodes.forEach((nd, nodeKey) => {
+        if (!nd || nd.count < 2) return;
+        const [nx, ny] = nodeKey.split(',').map(Number);
+        const marker = nd.marker;
+        if (marker) {
+          c.save();
+          if (marker.count === 2) {
+            c.fillStyle = 'rgba(255,255,255,0.03)';
+            c.strokeStyle = 'rgba(20,20,30,0.25)';
+            c.lineWidth = 0.65;
+            c.setLineDash([2, 3]);
+            c.beginPath();
+            c.arc(marker.x, marker.y, NODE_R, 0, Math.PI * 2);
+            c.fill();
+            c.stroke();
+          } else {
+            c.fillStyle = 'rgba(255,255,255,0.02)';
+            c.strokeStyle = 'rgba(20,20,30,0.22)';
+            c.lineWidth = 0.65;
+            c.setLineDash([3, 3]);
+            c.strokeRect(marker.x - NODE_R, marker.y - NODE_R, NODE_R * 2, NODE_R * 2);
+            c.fillRect(marker.x - NODE_R, marker.y - NODE_R, NODE_R * 2, NODE_R * 2);
+          }
+          c.setLineDash([]);
+          c.restore();
+        }
+
+        const inter = nd.interaction || { selectedId: null, hoveredId: null };
+        const activeId = inter.selectedId != null ? inter.selectedId : inter.hoveredId;
+
+        (nd.edges || []).forEach(edge => {
+          const curve = edge.curve;
+          if (!curve) return;
+          let width = LANE_EDGE_WIDTH;
+          let opacity = 0.32;
+          if (activeId != null) {
+            const active = edge.from.id === activeId || edge.to.id === activeId;
+            width = active ? LANE_EDGE_WIDTH_ACTIVE : LANE_EDGE_WIDTH;
+            opacity = active ? 0.95 : 0.06;
+          }
+          c.save();
+          c.strokeStyle = ({
+            straight: COLOR_STRAIGHT,
+            left: COLOR_LEFT,
+            right: COLOR_RIGHT,
+            uturn: COLOR_UTURN
+          })[edge.turn] || COLOR_STRAIGHT;
+          c.lineWidth = width;
+          c.globalAlpha = opacity;
+          c.lineCap = 'round';
+          canvasCubic(c, curve.x1, curve.y1, curve.c1x, curve.c1y, curve.c2x, curve.c2y, curve.x2, curve.y2);
+          c.stroke();
+          c.restore();
+        });
+
+        (nd.laneNodes || []).forEach(ln => {
+          const isActive = activeId != null && ln.id === activeId;
+          const r = isActive ? LANE_DOT_R_ACTIVE : LANE_DOT_R;
+          const opacity = activeId == null ? 0.35 : (isActive ? 1 : 0.2);
+          c.save();
+          c.globalAlpha = opacity;
+          canvasFillCircle(
+            c, ln.x, ln.y, r,
+            ln.type === 'in' ? COLOR_ENTER : COLOR_EXIT,
+            isActive ? '#ffffff' : '#0a0d12',
+            isActive ? 0.9 : 0.45
+          );
+          c.restore();
+
+          if (isActive) {
+            const dx = ln.x - nx, dy = ln.y - ny;
+            const len = Math.hypot(dx, dy) || 1;
+            const lx = ln.x + (dx / len) * LANE_LABEL_OFFSET;
+            const ly = ln.y + (dy / len) * LANE_LABEL_OFFSET;
+            c.save();
+            c.font = '700 ' + LANE_LABEL_SIZE_ACTIVE + 'px monospace';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.lineWidth = 1;
+            c.strokeStyle = '#000';
+            c.fillStyle = COLOR_NODE_LABEL;
+            c.strokeText(String(ln.id), lx, ly);
+            c.fillText(String(ln.id), lx, ly);
+            c.restore();
+          }
+        });
+
+        (nd.signs || []).forEach(sign => {
+          if (sign.letter) {
+            c.save();
+            c.font = '800 ' + (sign.h * 1.15) + 'px monospace';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.lineWidth = 1.2;
+            c.strokeStyle = '#0a0d12';
+            c.fillStyle = '#ffe066';
+            c.translate(sign.cx, sign.cy);
+            c.rotate((sign.angleDeg || 0) * Math.PI / 180);
+            c.strokeText(sign.letter, 0, 0);
+            c.fillText(sign.letter, 0, 0);
+            c.restore();
+          } else if (sign.href) {
+            canvasDrawImageRotated(
+              c, SIGN_IMAGES[sign.href],
+              sign.cx, sign.cy, sign.w, sign.h,
+              sign.angleDeg || 0,
+              sign.opacity != null ? sign.opacity : SIGN_OPACITY
+            );
+          }
+        });
+
+        if (approachInsetEdit) {
+          (nd.approachHandles || []).forEach(h => {
+            const hover = approachHandleHover
+              && approachHandleHover.nodeKey === nodeKey
+              && approachHandleHover.segId === h.seg.id;
+            const barAlpha = hover ? 0.95 : 0.55;
+            const tickAlpha = hover ? 0.95 : 0.7;
+            canvasStrokeLine(c, h.ax, h.ay, h.bx, h.by, 'rgba(255, 224, 102,' + barAlpha + ')', 1.15);
+            const tick = 2.4;
+            canvasStrokeLine(
+              c,
+              h.stubX - h.ux * tick, h.stubY - h.uy * tick,
+              h.stubX + h.ux * tick, h.stubY + h.uy * tick,
+              'rgba(255, 224, 102,' + tickAlpha + ')', 1.05
+            );
+          });
+        }
+      });
+    }
+
+    function drawGhostPreviewCanvas(c) {
+      if (startMarker) {
+        canvasFillCircle(c, startMarker.x, startMarker.y, PLACE_NODE_R, '#2ecc71', '#fff', 0.7);
+      }
+
+      if (cursorSnap && cursorSnap.visible) {
+        canvasFillCircle(c, cursorSnap.x, cursorSnap.y, PLACE_NODE_R, cursorSnap.fill || 'rgba(80,80,90,0.55)', null, 0);
+      }
+
+      const gp = ghostPreview;
+      if (!gp) return;
+
+      if (gp.kind === 'build') {
+        const start = gp.start, end = gp.end;
+        canvasFillCircle(c, start.x, start.y, PLACE_NODE_R + 0.6, '#2ecc71', '#fff', 0.7);
+        if (gp.same) return;
+        const dx = end.x - start.x, dy = end.y - start.y;
+        const segLen = Math.hypot(dx, dy);
+        if (segLen < 0.01) return;
+        const specs = getLaneSpecs(gp.lanesIn, gp.lanesOut);
+        if (!specs.length) return;
+        const bedHalf = (Math.max(...specs.map(s => Math.abs(s.offset))) + 2.5);
+        canvasStrokeLine(c, start.x, start.y, end.x, end.y, 'rgba(30,30,40,0.18)', bedHalf * 2);
+        drawSegmentGeometryCanvas(c, start.x, start.y, end.x, end.y, gp.lanesIn, gp.lanesOut, 0.42, 0.4, true);
+        c.save();
+        c.fillStyle = '#1a1a22';
+        c.globalAlpha = 0.75;
+        c.font = '700 4.5px monospace';
+        c.textAlign = 'left';
+        c.textBaseline = 'bottom';
+        c.fillText(Math.round(segLen) + ' px', end.x + 6, end.y - 6);
+        c.restore();
+        (gp.crossings || []).forEach(cr => {
+          c.save();
+          c.fillStyle = 'rgba(255, 224, 102, 0.35)';
+          c.strokeStyle = 'rgba(255, 224, 102, 0.95)';
+          c.lineWidth = 0.8;
+          c.setLineDash([1.5, 1]);
+          c.fillRect(cr.x - 3, cr.y - 3, 6, 6);
+          c.strokeRect(cr.x - 3, cr.y - 3, 6, 6);
+          c.setLineDash([]);
+          c.restore();
+        });
+        return;
+      }
+
+      if (gp.kind === 'delete' && gp.seg) {
+        const seg = gp.seg;
+        const x1 = seg.startNode.x, y1 = seg.startNode.y;
+        const x2 = seg.endNode.x, y2 = seg.endNode.y;
+        canvasStrokeLine(c, x1, y1, x2, y2, 'rgba(231,76,60,0.35)', 10);
+        const { lanesIn, lanesOut } = getRoadDirs(seg);
+        const dx = x2 - x1, dy = y2 - y1;
+        const len = Math.hypot(dx, dy) || 1;
+        const perpX = -dy / len, perpY = dx / len;
+        getLaneSpecs(lanesIn, lanesOut).forEach(spec => {
+          canvasStrokeLine(
+            c,
+            x1 + perpX * spec.offset, y1 + perpY * spec.offset,
+            x2 + perpX * spec.offset, y2 + perpY * spec.offset,
+            '#e74c3c', 2.4, 0.95
+          );
+        });
+        return;
+      }
+
+      if (gp.kind === 'upgrade' && gp.seg) {
+        const seg = gp.seg;
+        const x1 = seg.startNode.x, y1 = seg.startNode.y;
+        const x2 = seg.endNode.x, y2 = seg.endNode.y;
+        canvasStrokeLine(c, x1, y1, x2, y2, 'rgba(241,196,15,0.28)', 10);
+        const dx = x2 - x1, dy = y2 - y1;
+        const len = Math.hypot(dx, dy) || 1;
+        const perpX = -dy / len, perpY = dx / len;
+        getLaneSpecs(gp.lanesIn, gp.lanesOut).forEach(spec => {
+          const color = laneColorFor(spec, gp.lanesIn, gp.lanesOut);
+          canvasStrokeLine(
+            c,
+            x1 + perpX * spec.offset, y1 + perpY * spec.offset,
+            x2 + perpX * spec.offset, y2 + perpY * spec.offset,
+            color, 2.8, 0.92
+          );
+        });
+      }
+    }
+
+    function drawRefOverlayChromeCanvas(c) {
+      const show = refOverlay.editing && !refOverlay.locked && refOverlay.active && refOverlay.visible;
+      if (!show) return;
+      const cx = refOverlay.x + refOverlay.w / 2;
+      const cy = refOverlay.y + refOverlay.h / 2;
+      const rot = (refOverlay.rotation || 0) * Math.PI / 180;
+      const sw = 1.2 / Math.max(0.01, view.scale);
+      const hs = Math.max(6, 10 / view.scale);
+      const rotDist = Math.max(18, 28 / view.scale);
+      const topMidX = refOverlay.x + refOverlay.w / 2;
+      const topMidY = refOverlay.y;
+      const rotY = topMidY - rotDist;
+      const rr = Math.max(4, 6 / view.scale);
+
+      c.save();
+      c.translate(cx, cy);
+      c.rotate(rot);
+      c.translate(-cx, -cy);
+
+      c.fillStyle = 'rgba(63,167,255,0.04)';
+      c.strokeStyle = 'rgba(63,167,255,0.9)';
+      c.lineWidth = sw;
+      c.setLineDash([4 / view.scale, 3 / view.scale]);
+      c.strokeRect(refOverlay.x, refOverlay.y, refOverlay.w, refOverlay.h);
+      c.fillRect(refOverlay.x, refOverlay.y, refOverlay.w, refOverlay.h);
+      c.setLineDash([]);
+
+      const corners = {
+        nw: [refOverlay.x, refOverlay.y],
+        ne: [refOverlay.x + refOverlay.w, refOverlay.y],
+        se: [refOverlay.x + refOverlay.w, refOverlay.y + refOverlay.h],
+        sw: [refOverlay.x, refOverlay.y + refOverlay.h]
+      };
+      c.fillStyle = 'rgba(63,167,255,0.95)';
+      c.strokeStyle = '#fff';
+      c.lineWidth = sw;
+      Object.keys(corners).forEach(name => {
+        const [hx, hy] = corners[name];
+        c.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+        c.strokeRect(hx - hs / 2, hy - hs / 2, hs, hs);
+      });
+
+      canvasStrokeLine(c, topMidX, topMidY, topMidX, rotY, 'rgba(63,167,255,0.85)', sw);
+      canvasFillCircle(c, topMidX, rotY, rr, 'rgba(63,167,255,0.95)', '#fff', sw);
+      c.restore();
+    }
+
+    function renderFrame() {
+      resizeSimCanvas();
+      const dpr = canvasDpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      ctx.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.x * dpr, view.y * dpr);
+      drawAllSegmentsCanvas(ctx);
+      drawAllJunctionsCanvas(ctx);
+      if (typeof drawAllSignalsCanvas === 'function') drawAllSignalsCanvas(ctx);
+      if (typeof drawZonesCanvas === 'function') drawZonesCanvas(ctx);
+      if (typeof drawParkingCanvas === 'function') drawParkingCanvas(ctx);
+      drawGhostPreviewCanvas(ctx);
+      if (typeof drawLaneChangeGraphCanvas === 'function') drawLaneChangeGraphCanvas(ctx);
+      if (typeof drawRouteHighlightsCanvas === 'function') drawRouteHighlightsCanvas(ctx);
+      if (typeof drawDriveOverlaysCanvas === 'function') drawDriveOverlaysCanvas(ctx);
+      if (typeof drawDebugOverlayCanvas === 'function') drawDebugOverlayCanvas(ctx);
+      if (typeof drawCarsCanvas === 'function') drawCarsCanvas(ctx);
+      drawRefOverlayChromeCanvas(ctx);
+    }
+
+    function distPointToSegment(px, py, ax, ay, bx, by) {
+      const dx = bx - ax, dy = by - ay;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq < 1e-8) return Math.hypot(px - ax, py - ay);
+      let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+    }
+
+    function hitTestJunctionNode(wx, wy) {
+      const tol = Math.max(NODE_R, 10 / Math.max(0.01, view.scale));
+      let best = null, bestD = tol;
+      nodes.forEach((nd, key) => {
+        if (!nd || nd.count < 2) return;
+        const [nx, ny] = key.split(',').map(Number);
+        const d = Math.hypot(wx - nx, wy - ny);
+        if (d <= bestD) { bestD = d; best = key; }
+      });
+      return best;
+    }
+
+    function hitTestApproachHandle(wx, wy) {
+      if (!approachInsetEdit) return null;
+      if (typeof driveMode !== 'undefined' && driveMode) return null;
+      if (buildMode || deleteMode || upgradeMode) return null;
+      let best = null, bestD = Infinity;
+      nodes.forEach((nd, nodeKey) => {
+        if (!nd || !nd.approachHandles) return;
+        nd.approachHandles.forEach(h => {
+          const halfW = h.halfW != null ? h.halfW : Math.hypot(h.bx - h.ax, h.by - h.ay) * 0.5;
+          const hitPad = 3.2;
+          const d = distPointToSegment(
+            wx, wy,
+            h.ax - h.ux * hitPad, h.ay - h.uy * hitPad,
+            h.bx - h.ux * hitPad, h.by - h.uy * hitPad
+          );
+          const maxD = halfW * 0.45 + 3.5;
+          if (d <= maxD && d < bestD) {
+            bestD = d;
+            best = { nodeKey, seg: h.seg, isStart: h.isStart, ux: h.ux, uy: h.uy, segId: h.seg.id };
+          }
+        });
+      });
+      return best;
+    }
+
+    function hitTestLaneNode(wx, wy) {
+      if (typeof driveMode !== 'undefined' && driveMode) return null;
+      const tol = LANE_HIT_R;
+      let best = null, bestD = tol;
+      nodes.forEach((nd, nodeKey) => {
+        if (!nd || nd.count < 2) return;
+        (nd.laneNodes || []).forEach(ln => {
+          const d = Math.hypot(wx - ln.x, wy - ln.y);
+          if (d <= bestD) {
+            bestD = d;
+            best = { nodeKey, id: ln.id };
+          }
+        });
+      });
+      return best;
+    }
+
+    function clearJunctionVisualData(nd) {
+      if (!nd) return;
+      nd.marker = null;
+      nd.signs = [];
+      nd.approachHandles = [];
+      (nd.edges || []).forEach(e => { e.el = null; e.curve = null; });
+      (nd.laneNodes || []).forEach(ln => {
+        ln.hitEl = null;
+        ln.dotEl = null;
+        ln.labelEl = null;
+        ln.signEl = null;
+      });
+    }
 
     // Viewport: pan (px) + zoom. Drawing coords live in world space.
     const view = { x: 0, y: 0, scale: 1 };
@@ -1774,9 +2257,7 @@
     let deleteMode = false;
     let upgradeMode = false;
     let deleteHoverSeg = null;
-    let deleteHoverEls = [];
     let upgradeHoverSeg = null;
-    let upgradeHoverEls = [];
 
     function updateRoadToolbar() {
       const buildBtn = document.getElementById('btn-build-mode');
@@ -1842,10 +2323,13 @@
       _boardClientRectT = now;
       return _boardClientRect;
     }
-    window.addEventListener('resize', () => { _boardClientRect = null; }, { passive: true });
+    window.addEventListener('resize', () => {
+      _boardClientRect = null;
+      resizeSimCanvas();
+    }, { passive: true });
 
     function applyView() {
-      world.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.scale})`);
+      // Pan/zoom is applied via ctx.setTransform inside renderFrame — no DOM transform.
 
       // Grid CSS updates are expensive during follow-cam; throttle them.
       const now = performance.now();
@@ -1862,8 +2346,7 @@
         board.style.backgroundPosition = `${view.x}px ${view.y}px`;
       }
 
-      // Keep the live map glued to the SVG world every frame (follow cam included).
-      // Throttling this was what made the map stutter/glitch while following.
+      // Keep the live map glued to the world every frame (follow cam included).
       syncRefMapCameraTransform();
       scheduleRefTileRefresh();
     }
@@ -1887,6 +2370,7 @@
       view.y = sy - (sy - view.y) * (next / view.scale);
       view.scale = next;
       applyView();
+      if (typeof renderFrame === 'function') renderFrame();
     }
 
     function startPan(clientX, clientY) {
@@ -1905,6 +2389,7 @@
       view.y += dy;
       panLast = { x: clientX, y: clientY };
       applyView();
+      if (typeof renderFrame === 'function') renderFrame();
     }
 
     function endPan() {
@@ -2103,50 +2588,19 @@
     }
 
     function clearDeleteHover() {
-      deleteHoverEls.forEach(el => el.remove());
-      deleteHoverEls = [];
       deleteHoverSeg = null;
+      if (ghostPreview && ghostPreview.kind === 'delete') ghostPreview = null;
     }
 
     function drawDeleteHover(seg) {
       if (deleteHoverSeg === seg) return;
       clearUpgradeHover();
-      clearDeleteHover();
       deleteHoverSeg = seg;
-      if (!seg) return;
-      const x1 = seg.startNode.x, y1 = seg.startNode.y;
-      const x2 = seg.endNode.x, y2 = seg.endNode.y;
-      const bed = document.createElementNS(svgNS, 'line');
-      bed.setAttribute('x1', x1);
-      bed.setAttribute('y1', y1);
-      bed.setAttribute('x2', x2);
-      bed.setAttribute('y2', y2);
-      bed.setAttribute('stroke', 'rgba(231,76,60,0.35)');
-      bed.setAttribute('stroke-width', '10');
-      bed.setAttribute('stroke-linecap', 'round');
-      bed.setAttribute('pointer-events', 'none');
-      ghostLayer.appendChild(bed);
-      deleteHoverEls.push(bed);
-      const { lanesIn, lanesOut } = getRoadDirs(seg);
-      getLaneSpecs(lanesIn, lanesOut).forEach(spec => {
-        const dx = x2 - x1, dy = y2 - y1;
-        const len = Math.hypot(dx, dy) || 1;
-        const perpX = -dy / len, perpY = dx / len;
-        const lx1 = x1 + perpX * spec.offset, ly1 = y1 + perpY * spec.offset;
-        const lx2 = x2 + perpX * spec.offset, ly2 = y2 + perpY * spec.offset;
-        const line = document.createElementNS(svgNS, 'line');
-        line.setAttribute('x1', lx1);
-        line.setAttribute('y1', ly1);
-        line.setAttribute('x2', lx2);
-        line.setAttribute('y2', ly2);
-        line.setAttribute('stroke', '#e74c3c');
-        line.setAttribute('stroke-width', '2.4');
-        line.setAttribute('stroke-opacity', '0.95');
-        line.setAttribute('pointer-events', 'none');
-        ghostLayer.appendChild(line);
-        deleteHoverEls.push(line);
-      });
-      world.appendChild(ghostLayer);
+      if (!seg) {
+        if (ghostPreview && ghostPreview.kind === 'delete') ghostPreview = null;
+        return;
+      }
+      ghostPreview = { kind: 'delete', seg };
     }
 
     function setDeleteMode(on) {
@@ -2174,55 +2628,22 @@
     }
 
     function clearUpgradeHover() {
-      upgradeHoverEls.forEach(el => el.remove());
-      upgradeHoverEls = [];
       const hadHover = upgradeHoverSeg != null;
       upgradeHoverSeg = null;
+      if (ghostPreview && ghostPreview.kind === 'upgrade') ghostPreview = null;
       if (hadHover && upgradeMode) updateRoadToolbar();
     }
 
     function drawUpgradeHover(seg, force) {
       clearDeleteHover();
       if (!force && upgradeHoverSeg === seg) return;
-      clearUpgradeHover();
       upgradeHoverSeg = seg;
       updateRoadToolbar();
-      if (!seg) return;
-      const x1 = seg.startNode.x, y1 = seg.startNode.y;
-      const x2 = seg.endNode.x, y2 = seg.endNode.y;
-      const bed = document.createElementNS(svgNS, 'line');
-      bed.setAttribute('x1', x1);
-      bed.setAttribute('y1', y1);
-      bed.setAttribute('x2', x2);
-      bed.setAttribute('y2', y2);
-      bed.setAttribute('stroke', 'rgba(241,196,15,0.28)');
-      bed.setAttribute('stroke-width', '10');
-      bed.setAttribute('stroke-linecap', 'round');
-      bed.setAttribute('pointer-events', 'none');
-      ghostLayer.appendChild(bed);
-      upgradeHoverEls.push(bed);
-      const previewIn = currentLanesIn;
-      const previewOut = currentLanesOut;
-      getLaneSpecs(previewIn, previewOut).forEach(spec => {
-        const dx = x2 - x1, dy = y2 - y1;
-        const len = Math.hypot(dx, dy) || 1;
-        const perpX = -dy / len, perpY = dx / len;
-        const lx1 = x1 + perpX * spec.offset, ly1 = y1 + perpY * spec.offset;
-        const lx2 = x2 + perpX * spec.offset, ly2 = y2 + perpY * spec.offset;
-        const color = laneColorFor(spec, previewIn, previewOut);
-        const line = document.createElementNS(svgNS, 'line');
-        line.setAttribute('x1', lx1);
-        line.setAttribute('y1', ly1);
-        line.setAttribute('x2', lx2);
-        line.setAttribute('y2', ly2);
-        line.setAttribute('stroke', color);
-        line.setAttribute('stroke-width', '2.8');
-        line.setAttribute('stroke-opacity', '0.92');
-        line.setAttribute('pointer-events', 'none');
-        ghostLayer.appendChild(line);
-        upgradeHoverEls.push(line);
-      });
-      world.appendChild(ghostLayer);
+      if (!seg) {
+        if (ghostPreview && ghostPreview.kind === 'upgrade') ghostPreview = null;
+        return;
+      }
+      ghostPreview = { kind: 'upgrade', seg, lanesIn: currentLanesIn, lanesOut: currentLanesOut };
     }
 
     function setUpgradeMode(on) {
@@ -2263,157 +2684,36 @@
     }
 
     function clearGhost() {
-      while (ghostLayer.firstChild) ghostLayer.removeChild(ghostLayer.firstChild);
-    }
-
-    function ensureCursorSnap() {
-      if (cursorSnap) return cursorSnap;
-      cursorSnap = document.createElementNS(svgNS, 'circle');
-      cursorSnap.setAttribute('r', String(PLACE_NODE_R));
-      cursorSnap.setAttribute('fill', 'rgba(46,204,113,0.85)');
-      cursorSnap.setAttribute('stroke', '#fff');
-      cursorSnap.setAttribute('stroke-width', '0.6');
-      cursorSnap.setAttribute('opacity', '0');
-      ghostLayer.appendChild(cursorSnap);
-      return cursorSnap;
+      if (ghostPreview && ghostPreview.kind === 'build') ghostPreview = null;
     }
 
     function setCursorSnap(x, y, visible) {
-      const el = ensureCursorSnap();
-      el.setAttribute('cx', x);
-      el.setAttribute('cy', y);
-      el.setAttribute('opacity', visible ? '0.9' : '0');
-      el.setAttribute('fill', isBuilding() ? 'rgba(46,204,113,0.95)' : 'rgba(80,80,90,0.55)');
+      cursorSnap = {
+        x, y,
+        visible: !!visible,
+        fill: isBuilding() ? 'rgba(46,204,113,0.95)' : 'rgba(80,80,90,0.55)'
+      };
     }
 
     function drawBuildPreview(start, end) {
-      clearGhost();
-      cursorSnap = null;
-      // Keep ghost above committed roads/junctions
-      world.appendChild(ghostLayer);
-
       const same = start.x === end.x && start.y === end.y;
       setCursorSnap(end.x, end.y, true);
-
-      // Anchor marker at the committed start
-      const anchor = document.createElementNS(svgNS, 'circle');
-      anchor.setAttribute('cx', start.x);
-      anchor.setAttribute('cy', start.y);
-      anchor.setAttribute('r', String(PLACE_NODE_R + 0.6));
-      anchor.setAttribute('fill', '#2ecc71');
-      anchor.setAttribute('stroke', '#fff');
-      anchor.setAttribute('stroke-width', '0.7');
-      ghostLayer.appendChild(anchor);
-
-      if (same) return;
-
-      const dx = end.x - start.x;
-      const dy = end.y - start.y;
-      const segLen = Math.sqrt(dx * dx + dy * dy);
-      if (segLen === 0) return;
-
-      const ux = dx / segLen;
-      const uy = dy / segLen;
-      const perpX = -uy;
-      const perpY = ux;
-      const specs = getLaneSpecs(currentLanesIn, currentLanesOut);
-      if (specs.length === 0) return;
-
-      // Soft road bed under the lanes
-      const bedHalf = (Math.max(...specs.map(s => Math.abs(s.offset))) + 2.5);
-      const bed = document.createElementNS(svgNS, 'line');
-      bed.setAttribute('x1', start.x);
-      bed.setAttribute('y1', start.y);
-      bed.setAttribute('x2', end.x);
-      bed.setAttribute('y2', end.y);
-      bed.setAttribute('stroke', 'rgba(30,30,40,0.18)');
-      bed.setAttribute('stroke-width', String(bedHalf * 2));
-      bed.setAttribute('stroke-linecap', 'round');
-      ghostLayer.insertBefore(bed, ghostLayer.firstChild);
-
-      specs.forEach(spec => {
-        const color = laneColorFor(spec, currentLanesIn, currentLanesOut);
-        const offset = spec.offset;
-        const lx1 = start.x + perpX * offset;
-        const ly1 = start.y + perpY * offset;
-        const lx2 = end.x + perpX * offset;
-        const ly2 = end.y + perpY * offset;
-
-        const line = document.createElementNS(svgNS, 'line');
-        line.setAttribute('x1', lx1);
-        line.setAttribute('y1', ly1);
-        line.setAttribute('x2', lx2);
-        line.setAttribute('y2', ly2);
-        line.setAttribute('stroke', color);
-        line.setAttribute('stroke-width', '1.5');
-        line.setAttribute('stroke-opacity', '0.42');
-        line.setAttribute('stroke-dasharray', '4 3');
-        ghostLayer.appendChild(line);
-
-        const forward = spec.forward;
-        const tux = forward ? ux : -ux;
-        const tuy = forward ? uy : -uy;
-        const arrowLen = 5;
-        const arrowAngle = 0.45;
-        const spacing = 25;
-        const numArrows = Math.max(1, Math.floor(segLen / spacing));
-        const step = segLen / numArrows;
-
-        for (let a = 0; a < numArrows; a++) {
-          const t = (a + 0.5) * step;
-          const ax = (forward ? start.x + tux * t : end.x + tux * t) + perpX * offset;
-          const ay = (forward ? start.y + tuy * t : end.y + tuy * t) + perpY * offset;
-          const tipX = ax + tux * arrowLen * 0.5;
-          const tipY = ay + tuy * arrowLen * 0.5;
-          const arm1X = tipX - tux * arrowLen * Math.cos(arrowAngle) + tuy * arrowLen * Math.sin(arrowAngle);
-          const arm1Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) - tux * arrowLen * Math.sin(arrowAngle);
-          const arm2X = tipX - tux * arrowLen * Math.cos(arrowAngle) - tuy * arrowLen * Math.sin(arrowAngle);
-          const arm2Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) + tux * arrowLen * Math.sin(arrowAngle);
-
-          const arrow = document.createElementNS(svgNS, 'polyline');
-          arrow.setAttribute('points', `${arm1X},${arm1Y} ${tipX},${tipY} ${arm2X},${arm2Y}`);
-          arrow.setAttribute('fill', 'none');
-          arrow.setAttribute('stroke', color);
-          arrow.setAttribute('stroke-width', '1');
-          arrow.setAttribute('stroke-opacity', '0.4');
-          ghostLayer.appendChild(arrow);
-        }
-      });
-
-      // Length readout near the cursor tip
-      const label = document.createElementNS(svgNS, 'text');
-      label.setAttribute('x', end.x + 6);
-      label.setAttribute('y', end.y - 6);
-      label.setAttribute('fill', '#1a1a22');
-      label.setAttribute('font-family', 'monospace');
-      label.setAttribute('font-size', '4.5');
-      label.setAttribute('font-weight', '700');
-      label.setAttribute('opacity', '0.75');
-      label.textContent = Math.round(segLen) + ' px';
-      ghostLayer.appendChild(label);
-
-      // Preview crossings that will become junctions on place
-      findCrossingPoints(start.x, start.y, end.x, end.y).forEach(c => {
-        const mark = document.createElementNS(svgNS, 'rect');
-        mark.setAttribute('x', c.x - 3);
-        mark.setAttribute('y', c.y - 3);
-        mark.setAttribute('width', '6');
-        mark.setAttribute('height', '6');
-        mark.setAttribute('fill', 'rgba(255, 224, 102, 0.35)');
-        mark.setAttribute('stroke', 'rgba(255, 224, 102, 0.95)');
-        mark.setAttribute('stroke-width', '0.8');
-        mark.setAttribute('stroke-dasharray', '1.5 1');
-        ghostLayer.appendChild(mark);
-      });
+      const crossings = same ? [] : findCrossingPoints(start.x, start.y, end.x, end.y);
+      ghostPreview = {
+        kind: 'build',
+        start: { x: start.x, y: start.y },
+        end: { x: end.x, y: end.y },
+        same,
+        lanesIn: currentLanesIn,
+        lanesOut: currentLanesOut,
+        crossings
+      };
     }
 
     function cancelBuild() {
       firstPoint = null;
       lastPreviewEnd = null;
-      if (startMarker) {
-        startMarker.remove();
-        startMarker = null;
-      }
+      startMarker = null;
       clearGhost();
       cursorSnap = null;
       updateRoadToolbar();
@@ -2421,15 +2721,7 @@
 
     function beginBuild(x, y) {
       firstPoint = { x, y };
-      if (startMarker) startMarker.remove();
-      startMarker = document.createElementNS(svgNS, 'circle');
-      startMarker.setAttribute('cx', x);
-      startMarker.setAttribute('cy', y);
-      startMarker.setAttribute('r', String(PLACE_NODE_R));
-      startMarker.setAttribute('fill', '#2ecc71');
-      startMarker.setAttribute('stroke', '#fff');
-      startMarker.setAttribute('stroke-width', '0.7');
-      world.appendChild(startMarker);
+      startMarker = { x, y };
       lastPreviewEnd = { x, y };
       updateRoadToolbar();
       drawBuildPreview(firstPoint, lastPreviewEnd);
@@ -2675,7 +2967,6 @@
       const nd = nodes.get(nodeKey);
       if (!nd) return;
       if (nd.count < 3 && nd.signal) {
-        svg.querySelectorAll(`[data-signal-node="${nodeKey}"]`).forEach(el => el.remove());
         delete nd.signal;
         if (typeof selectedSignalNodeKey !== 'undefined' && selectedSignalNodeKey === nodeKey
             && typeof clearSignalSelection === 'function') {
@@ -2683,7 +2974,7 @@
         }
       }
       if (nd.count <= 0) {
-        svg.querySelectorAll(`[data-node="${nodeKey}"], [data-junction="${nodeKey}"]`).forEach(el => el.remove());
+        clearJunctionVisualData(nd);
         nodes.delete(nodeKey);
         return;
       }
@@ -2694,7 +2985,7 @@
       const startKey = getNodeKey(seg.startNode.x, seg.startNode.y);
       const endKey = getNodeKey(seg.endNode.x, seg.endNode.y);
 
-      if (seg.lineElements) seg.lineElements.forEach(el => el.remove());
+      if (seg.lineElements) seg.lineElements = [];
       segments = segments.filter(s => s.id !== seg.id);
 
       [startKey, endKey].forEach(key => {
@@ -2730,7 +3021,7 @@
       nodes.get(endKey).count--;
 
       // Erase visuals of original segment
-      if (seg.lineElements) seg.lineElements.forEach(el => el.remove());
+      if (seg.lineElements) seg.lineElements = [];
       segments = segments.filter(s => s.id !== seg.id);
 
       // Register the split node
@@ -2772,34 +3063,10 @@
     // JUNCTION MARKER (the dashed footprint outline)
     // ============================================================
     function drawJunctionMarker(x, y, segmentCount, nodeKey) {
-      let el;
-      if (segmentCount === 2) {
-        el = document.createElementNS(svgNS, 'circle');
-        el.setAttribute('cx', x);
-        el.setAttribute('cy', y);
-        el.setAttribute('r', String(NODE_R));
-        el.setAttribute('fill', 'rgba(255,255,255,0.03)');
-        el.setAttribute('stroke', 'rgba(20,20,30,0.25)');
-        el.setAttribute('stroke-width', '0.65');
-        el.setAttribute('stroke-dasharray', '2,3');
-      } else {
-        el = document.createElementNS(svgNS, 'rect');
-        el.setAttribute('x', x - NODE_R);
-        el.setAttribute('y', y - NODE_R);
-        el.setAttribute('width', String(NODE_R * 2));
-        el.setAttribute('height', String(NODE_R * 2));
-        el.setAttribute('fill', 'rgba(255,255,255,0.02)');
-        el.setAttribute('stroke', 'rgba(20,20,30,0.22)');
-        el.setAttribute('stroke-width', '0.65');
-        el.setAttribute('stroke-dasharray', '3,3');
-      }
-      world.appendChild(el);
-      if (nodeKey) {
-        el.style.pointerEvents = 'auto';
-        el.style.cursor = 'grab';
-        el.addEventListener('mousedown', (e) => beginNodeDrag(nodeKey, e));
-      }
-      return el;
+      const nd = nodeKey ? nodes.get(nodeKey) : null;
+      const marker = { x, y, count: segmentCount };
+      if (nd) nd.marker = marker;
+      return marker;
     }
 
     // ============================================================
@@ -2843,10 +3110,8 @@
         }
       });
 
-      // Wipe visuals tagged with the old key before re-keying the node —
-      // they'll be redrawn under the new key below.
-      svg.querySelectorAll(`[data-node="${oldKey}"], [data-junction="${oldKey}"], [data-signal-node="${oldKey}"]`)
-        .forEach(el => el.remove());
+      // Clear visual caches; they'll be rebuilt under the new key below.
+      clearJunctionVisualData(nd);
 
       nodes.delete(oldKey);
       nodes.set(newKey, nd);
@@ -2933,6 +3198,9 @@
     // One draggable bar per road approach at a junction — drag along the
     // road to change how far that side sits from the intersection.
     function drawApproachInsetHandles(nodeKey, nodeX, nodeY, directions) {
+      const nd = nodes.get(nodeKey);
+      if (!nd) return;
+      nd.approachHandles = [];
       if (!approachInsetEdit) return;
       const editing = (typeof driveMode === 'undefined' || !driveMode)
         && !buildMode && !deleteMode && !upgradeMode;
@@ -2947,67 +3215,15 @@
         const px = dir.perpX, py = dir.perpY;
         const ax = stubX - px * halfW, ay = stubY - py * halfW;
         const bx = stubX + px * halfW, by = stubY + py * halfW;
-
-        const g = document.createElementNS(svgNS, 'g');
-        g.setAttribute('class', 'approach-handle');
-        g.setAttribute('data-junction', nodeKey);
-        g.setAttribute('data-approach-seg', String(dir.segment.id));
-
-        // Invisible fat hit target along the bar (and a little along-road)
-        const hitPad = 3.2;
-        const hit = document.createElementNS(svgNS, 'line');
-        hit.setAttribute('x1', String(ax - dir.dx * hitPad));
-        hit.setAttribute('y1', String(ay - dir.dy * hitPad));
-        hit.setAttribute('x2', String(bx - dir.dx * hitPad));
-        hit.setAttribute('y2', String(by - dir.dy * hitPad));
-        hit.setAttribute('stroke', 'transparent');
-        hit.setAttribute('stroke-width', String(halfW * 0.9 + 6));
-        hit.setAttribute('stroke-linecap', 'round');
-        g.appendChild(hit);
-
-        // Visible bar across the road end
-        const bar = document.createElementNS(svgNS, 'line');
-        bar.setAttribute('class', 'approach-handle-bar');
-        bar.setAttribute('x1', String(ax));
-        bar.setAttribute('y1', String(ay));
-        bar.setAttribute('x2', String(bx));
-        bar.setAttribute('y2', String(by));
-        bar.setAttribute('stroke', 'rgba(255, 224, 102, 0.55)');
-        bar.setAttribute('stroke-width', '1.15');
-        bar.setAttribute('stroke-linecap', 'round');
-        bar.setAttribute('pointer-events', 'none');
-        g.appendChild(bar);
-
-        // Tiny chevrons along the road axis (hint: drag in/out)
-        const tick = 2.4;
-        const tickLine = document.createElementNS(svgNS, 'line');
-        tickLine.setAttribute('x1', String(stubX - dir.dx * tick));
-        tickLine.setAttribute('y1', String(stubY - dir.dy * tick));
-        tickLine.setAttribute('x2', String(stubX + dir.dx * tick));
-        tickLine.setAttribute('y2', String(stubY + dir.dy * tick));
-        tickLine.setAttribute('stroke', 'rgba(255, 224, 102, 0.7)');
-        tickLine.setAttribute('stroke-width', '1.05');
-        tickLine.setAttribute('stroke-linecap', 'round');
-        tickLine.setAttribute('pointer-events', 'none');
-        g.appendChild(tickLine);
-
-        // Angle-aware resize cursor: project road angle to CSS resize directions
-        const ang = Math.atan2(dir.dy, dir.dx) * 180 / Math.PI;
-        const a = ((ang % 180) + 180) % 180;
-        let cursor = 'ns-resize';
-        if (a > 22.5 && a < 67.5) cursor = 'nwse-resize';
-        else if (a >= 67.5 && a < 112.5) cursor = 'ew-resize';
-        else if (a >= 112.5 && a < 157.5) cursor = 'nesw-resize';
-        g.style.cursor = cursor;
-
-        g.addEventListener('mousedown', (e) => {
-          beginApproachInsetDrag(nodeKey, dir.segment, dir.isStart, dir.dx, dir.dy, e);
+        nd.approachHandles.push({
+          seg: dir.segment,
+          isStart: dir.isStart,
+          ax, ay, bx, by,
+          stubX, stubY,
+          ux: dir.dx, uy: dir.dy,
+          halfW,
+          perpX: px, perpY: py
         });
-        g.addEventListener('click', (e) => {
-          e.stopPropagation();
-        });
-
-        world.appendChild(g);
       });
     }
 
@@ -3015,12 +3231,12 @@
     // (data-node) plus its lane graph (data-junction). Safe to call on any
     // node — nodes with fewer than 2 segments simply end up with nothing drawn.
     function refreshJunctionVisuals(nodeKey) {
-      svg.querySelectorAll(`[data-node="${nodeKey}"], [data-junction="${nodeKey}"]`).forEach(el => el.remove());
       const nd = nodes.get(nodeKey);
-      if (!nd || nd.count < 2) return;
+      if (!nd) return;
+      clearJunctionVisualData(nd);
+      if (nd.count < 2) return;
       const [nx, ny] = nodeKey.split(',').map(Number);
-      const marker = drawJunctionMarker(nx, ny, nd.count, nodeKey);
-      marker.setAttribute('data-node', nodeKey);
+      drawJunctionMarker(nx, ny, nd.count, nodeKey);
       calculateCurves(nx, ny);
     }
 
@@ -3251,20 +3467,19 @@
       return pickTurnSignFromMode(modeFromTurns(turns));
     }
 
-    function appendRoadSign(nodeKey, href, cx, cy, w, h, angleDeg) {
-      const img = document.createElementNS(svgNS, 'image');
-      img.setAttribute('href', href);
-      img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', href);
-      img.setAttribute('x', String(cx - w / 2));
-      img.setAttribute('y', String(cy - h / 2));
-      img.setAttribute('width', String(w));
-      img.setAttribute('height', String(h));
-      img.setAttribute('opacity', String(SIGN_OPACITY));
-      img.setAttribute('transform', `rotate(${angleDeg} ${cx} ${cy})`);
-      img.setAttribute('data-junction', nodeKey);
-      img.setAttribute('pointer-events', 'none');
-      world.appendChild(img);
-      return img;
+    function appendRoadSign(nodeKey, href, cx, cy, w, h, angleDeg, opts) {
+      const nd = nodes.get(nodeKey);
+      if (!nd) return null;
+      if (!nd.signs) nd.signs = [];
+      const entry = {
+        href: href || null,
+        cx, cy, w, h,
+        angleDeg: angleDeg || 0,
+        opacity: (opts && opts.opacity != null) ? opts.opacity : SIGN_OPACITY,
+        letter: (opts && opts.letter) || null
+      };
+      nd.signs.push(entry);
+      return entry;
     }
 
     // Place a sign just behind a lane stub (further from the junction center).
@@ -3282,13 +3497,12 @@
     function drawEnteringLaneTurnSigns(nodeKey, nodeX, nodeY, laneNodes) {
       const nd = nodes.get(nodeKey);
       const selectedId = nd && nd.interaction ? nd.interaction.selectedId : null;
+      if (!nd) return;
+      // Caller owns clearing nd.signs when rebuilding the full sign list.
 
       (laneNodes || []).forEach(ln => {
         if (ln.type !== 'in') return;
-        if (ln.signEl) {
-          ln.signEl.remove();
-          ln.signEl = null;
-        }
+        ln.signEl = null;
         const mode = getEffectiveLaneTurnMode(nd, ln, nodeKey);
         const selected = selectedId === ln.id;
         const { cx, cy } = signBehindLaneNode(nodeX, nodeY, ln);
@@ -3297,41 +3511,22 @@
         const w = TURN_SIGN_W * scale;
         const h = TURN_SIGN_H * scale;
         ln.signMeta = { cx, cy, w: TURN_SIGN_W, h: TURN_SIGN_H, angleDeg, mode };
-        ln.signEl = null;
 
         if (mode === 'all') {
           if (!selected) return;
-          const label = document.createElementNS(svgNS, 'text');
-          label.setAttribute('x', String(cx));
-          label.setAttribute('y', String(cy));
-          label.setAttribute('text-anchor', 'middle');
-          label.setAttribute('dominant-baseline', 'middle');
-          label.setAttribute('font-family', 'monospace');
-          label.setAttribute('font-size', String(TURN_SIGN_H * scale * 1.15));
-          label.setAttribute('font-weight', '800');
-          label.setAttribute('fill', '#ffe066');
-          label.setAttribute('stroke', '#0a0d12');
-          label.setAttribute('stroke-width', '1.2');
-          label.setAttribute('paint-order', 'stroke');
-          label.setAttribute('data-junction', nodeKey);
-          label.setAttribute('data-lane-sign', String(ln.id));
-          label.setAttribute('pointer-events', 'none');
-          label.textContent = 'A';
-          world.appendChild(label);
-          ln.signEl = label;
+          appendRoadSign(nodeKey, null, cx, cy, w, h, 0, { letter: 'A', opacity: 1 });
           return;
         }
 
         const href = pickTurnSignFromMode(mode);
         if (!href) return;
-        const img = appendRoadSign(nodeKey, href, cx, cy, w, h, angleDeg);
-        img.setAttribute('data-lane-sign', String(ln.id));
-        if (selected) img.setAttribute('opacity', '1');
-        ln.signEl = img;
+        appendRoadSign(nodeKey, href, cx, cy, w, h, angleDeg, { opacity: selected ? 1 : SIGN_OPACITY });
       });
     }
 
     function drawJunctionSigns(nodeKey, nodeX, nodeY, directions, edges, laneNodes) {
+      const nd = nodes.get(nodeKey);
+      if (nd) nd.signs = [];
       drawEnteringLaneTurnSigns(nodeKey, nodeX, nodeY, laneNodes);
 
       // One-way signs — one per exiting lane on a pure one-way approach
@@ -3350,7 +3545,6 @@
 
     function calculateCurves(nodeX, nodeY) {
       const nodeKey = getNodeKey(nodeX, nodeY);
-      svg.querySelectorAll(`[data-junction="${nodeKey}"]`).forEach(el => el.remove());
 
       const nodeData = nodes.get(nodeKey);
       if (!nodeData || nodeData.count < 2) return;
@@ -3449,97 +3643,23 @@
 
     function drawJunctionEdges(nodeKey, edges) {
       edges.forEach(edge => {
-        const c = buildLaneCurve(edge.from, edge.to);
-        const path = document.createElementNS(svgNS, 'path');
-        path.setAttribute('d', `M ${c.x1} ${c.y1} C ${c.c1x} ${c.c1y}, ${c.c2x} ${c.c2y}, ${c.x2} ${c.y2}`);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', TURN_COLORS[edge.turn]);
-        path.setAttribute('stroke-width', String(LANE_EDGE_WIDTH));
-        path.setAttribute('opacity', '0.32');
-        path.setAttribute('data-junction', nodeKey);
-        path.setAttribute('data-from-segment', edge.from.segId);
-        path.setAttribute('data-to-segment', edge.to.segId);
-        path.setAttribute('data-turn', edge.turn);
-        world.appendChild(path);
-        edge.el = path;
+        edge.curve = buildLaneCurve(edge.from, edge.to);
+        edge.el = null;
       });
     }
 
     function drawJunctionLaneNodes(nodeKey, nodeX, nodeY, laneNodes) {
-      laneNodes.forEach(ln => {
-        // Larger invisible hit target — the visible dot alone is too small to
-        // reliably hover/click, so interaction is bound to this instead.
-        const hit = document.createElementNS(svgNS, 'circle');
-        hit.setAttribute('cx', ln.x);
-        hit.setAttribute('cy', ln.y);
-        hit.setAttribute('r', String(LANE_HIT_R));
-        hit.setAttribute('fill', 'transparent');
-        hit.setAttribute('data-junction', nodeKey);
-        hit.style.pointerEvents = (typeof driveMode !== 'undefined' && driveMode) ? 'none' : 'auto';
-        hit.style.cursor = 'pointer';
-        hit.addEventListener('mouseenter', () => {
-          if (typeof driveMode !== 'undefined' && driveMode) return;
-          setHover(nodeKey, ln.id);
-        });
-        hit.addEventListener('mouseleave', () => {
-          if (typeof driveMode !== 'undefined' && driveMode) return;
-          setHover(nodeKey, null);
-        });
-        hit.addEventListener('click', (e) => {
-          if (typeof driveMode !== 'undefined' && driveMode) return;
-          if (typeof buildMode !== 'undefined' && buildMode) return;
-          if (typeof deleteMode !== 'undefined' && deleteMode) return;
-          if (typeof upgradeMode !== 'undefined' && upgradeMode) return;
-          e.stopPropagation();
-          handleLaneNodeClick(nodeKey, ln.id);
-        });
-        world.appendChild(hit);
-        ln.hitEl = hit;
-
-        const dot = document.createElementNS(svgNS, 'circle');
-        dot.setAttribute('cx', ln.x);
-        dot.setAttribute('cy', ln.y);
-        dot.setAttribute('r', String(LANE_DOT_R));
-        dot.setAttribute('fill', ln.type === 'in' ? 'var(--enter)' : 'var(--exit)');
-        dot.setAttribute('stroke', '#0a0d12');
-        dot.setAttribute('stroke-width', '0.5');
-        dot.setAttribute('data-junction', nodeKey);
-        world.appendChild(dot);
-        ln.dotEl = dot;
-
-        const dx = ln.x - nodeX, dy = ln.y - nodeY;
-        const len = Math.sqrt(dx * dx + dy * dy) || 1;
-        const lx = ln.x + (dx / len) * LANE_LABEL_OFFSET;
-        const ly = ln.y + (dy / len) * LANE_LABEL_OFFSET;
-        const label = document.createElementNS(svgNS, 'text');
-        label.setAttribute('x', lx);
-        label.setAttribute('y', ly);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('dominant-baseline', 'middle');
-        label.setAttribute('font-family', 'monospace');
-        label.setAttribute('font-size', String(LANE_LABEL_SIZE));
-        label.setAttribute('font-weight', '700');
-        label.setAttribute('fill', 'var(--node-label)');
-        label.setAttribute('stroke', '#000');
-        label.setAttribute('stroke-width', '1');
-        label.setAttribute('paint-order', 'stroke');
-        label.setAttribute('data-junction', nodeKey);
-        label.setAttribute('opacity', '0');
-        label.textContent = ln.id;
-        world.appendChild(label);
-        ln.labelEl = label;
+      (laneNodes || []).forEach(ln => {
+        ln.hitEl = null;
+        ln.dotEl = null;
+        ln.labelEl = null;
       });
       syncJunctionHitPointerEvents();
     }
 
     // ---------- Hover / click isolation ----------
     function syncJunctionHitPointerEvents() {
-      const pe = (typeof driveMode !== 'undefined' && driveMode) ? 'none' : 'auto';
-      nodes.forEach(nd => {
-        (nd.laneNodes || []).forEach(ln => {
-          if (ln.hitEl) ln.hitEl.style.pointerEvents = pe;
-        });
-      });
+      // Hit-testing is geometric; no SVG pointer-events to sync.
     }
 
     function setHover(nodeKey, laneId) {
@@ -3628,46 +3748,28 @@
       const nd = nodes.get(nodeKey);
       if (!nd || nd.count < 2) return;
       const [nx, ny] = nodeKey.split(',').map(Number);
-      drawEnteringLaneTurnSigns(nodeKey, nx, ny, nd.laneNodes || []);
+      // Rebuild full sign list (turn glyphs + oneway) from current selection/mode
+      const directions = [];
+      nd.segments.forEach(segment => {
+        const isStart = segment.startNode.x === nx && segment.startNode.y === ny;
+        const otherX = isStart ? segment.endNode.x : segment.startNode.x;
+        const otherY = isStart ? segment.endNode.y : segment.startNode.y;
+        const dx = otherX - nx, dy = otherY - ny;
+        const length = Math.hypot(dx, dy);
+        if (length === 0) return;
+        directions.push({
+          segment, isStart,
+          dx: dx / length, dy: dy / length,
+          perpX: -dy / length, perpY: dx / length,
+          ...getRoadDirs(segment)
+        });
+      });
+      drawJunctionSigns(nodeKey, nx, ny, directions, nd.edges || [], nd.laneNodes || []);
     }
 
     function refreshEmphasis(nodeKey) {
-      const nd = nodes.get(nodeKey);
-      if (!nd || !nd.interaction) return;
-      const activeId = nd.interaction.selectedId != null ? nd.interaction.selectedId : nd.interaction.hoveredId;
-
-      (nd.edges || []).forEach(edge => {
-        if (!edge.el) return;
-        if (activeId == null) {
-          edge.el.setAttribute('stroke-width', String(LANE_EDGE_WIDTH));
-          edge.el.setAttribute('opacity', '0.32');
-        } else {
-          const active = edge.from.id === activeId || edge.to.id === activeId;
-          edge.el.setAttribute('stroke-width', active ? String(LANE_EDGE_WIDTH_ACTIVE) : String(LANE_EDGE_WIDTH));
-          edge.el.setAttribute('opacity', active ? '0.95' : '0.06');
-          if (active) world.appendChild(edge.el);
-        }
-      });
-
-      (nd.laneNodes || []).forEach(ln => {
-        const isActive = activeId != null && ln.id === activeId;
-        if (ln.dotEl) {
-          ln.dotEl.setAttribute('r', isActive ? String(LANE_DOT_R_ACTIVE) : String(LANE_DOT_R));
-          ln.dotEl.setAttribute('stroke', isActive ? '#ffffff' : '#0a0d12');
-          ln.dotEl.setAttribute('stroke-width', isActive ? '0.9' : '0.45');
-          ln.dotEl.setAttribute('opacity', activeId == null ? '0.35' : (isActive ? '1' : '0.2'));
-          if (isActive) world.appendChild(ln.dotEl);
-        }
-        if (ln.labelEl) {
-          ln.labelEl.setAttribute('font-size', isActive ? String(LANE_LABEL_SIZE_ACTIVE) : String(LANE_LABEL_SIZE));
-          ln.labelEl.setAttribute('opacity', isActive ? '1' : '0');
-          if (isActive) world.appendChild(ln.labelEl);
-        }
-        // Selected entering-lane turn sign sits above everything else
-        if (ln.signEl && isActive && ln.type === 'in') {
-          world.appendChild(ln.signEl);
-        }
-      });
+      // Interaction flags live on nd.interaction; canvas draw reads selectedId/hoveredId.
+      void nodeKey;
     }
 
     function clearLaneNodeSelections() {
@@ -3687,94 +3789,8 @@
     // ROAD SEGMENT RENDERING
     // ============================================================
     function redrawSegment(segment) {
-      const { lanesIn, lanesOut } = getRoadDirs(segment);
-      const specs = getLaneSpecs(lanesIn, lanesOut);
-      // Remove old line elements
-      if (segment.lineElements) segment.lineElements.forEach(el => el.remove());
-      segment.lineElements = [];
-
-      // Shorten painted ends at junctions (honors per-end stub insets)
-      const shortened = shortenSegment(segment);
-      let x1 = shortened.x1;
-      let y1 = shortened.y1;
-      let x2 = shortened.x2;
-      let y2 = shortened.y2;
-
-      const dx = x2 - x1;
-      const dy = y2 - y1;
-      const segLen = Math.sqrt(dx * dx + dy * dy);
-      if (segLen === 0 || specs.length === 0) return;
-
-      const ux = dx / segLen; // unit vector along segment
-      const uy = dy / segLen;
-      const perpX = -uy;     // perpendicular unit vector
-      const perpY = ux;
-
-      // Arrow size & spacing
-      const arrowLen = 6;       // length of arrow head arms
-      const arrowAngle = 0.45;  // radians, ~25°
-      const spacing = 25;       // one arrow every 25px (matches grid)
-      const numArrows = Math.max(1, Math.floor(segLen / spacing));
-      const step = segLen / numArrows;
-
-      specs.forEach(spec => {
-        const color = laneColorFor(spec, lanesIn, lanesOut);
-        const offset = spec.offset;
-
-        // Lane line
-        const lx1 = x1 + perpX * offset;
-        const ly1 = y1 + perpY * offset;
-        const lx2 = x2 + perpX * offset;
-        const ly2 = y2 + perpY * offset;
-
-        const line = document.createElementNS(svgNS, 'line');
-        line.setAttribute('x1', lx1);
-        line.setAttribute('y1', ly1);
-        line.setAttribute('x2', lx2);
-        line.setAttribute('y2', ly2);
-        line.setAttribute('stroke', color);
-        line.setAttribute('stroke-width', '1.5');
-        line.setAttribute('stroke-opacity', String(ROAD_LANE_OPACITY));
-        line.setAttribute('data-segment', segment.id);
-        line.setAttribute('data-lane', spec.idx);
-        world.appendChild(line);
-        segment.lineElements.push(line);
-
-        const forward = spec.forward;
-        // Direction of travel along this lane
-        const tux = forward ? ux : -ux;
-        const tuy = forward ? uy : -uy;
-
-        // Place arrows evenly spaced, centered in the segment
-        for (let a = 0; a < numArrows; a++) {
-          // Center of this arrow along the segment, offset half a step from each end
-          const t = (a + 0.5) * step;
-          // Base point of arrow along segment, projected onto the lane
-          const ax = (forward ? x1 + tux * t : x2 + tux * t) + perpX * offset;
-          const ay = (forward ? y1 + tuy * t : y2 + tuy * t) + perpY * offset;
-
-          // Arrowhead tip
-          const tipX = ax + tux * arrowLen * 0.5;
-          const tipY = ay + tuy * arrowLen * 0.5;
-
-          // Two arms going back from tip
-          const arm1X = tipX - tux * arrowLen * Math.cos(arrowAngle) + tuy * arrowLen * Math.sin(arrowAngle);
-          const arm1Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) - tux * arrowLen * Math.sin(arrowAngle);
-          const arm2X = tipX - tux * arrowLen * Math.cos(arrowAngle) - tuy * arrowLen * Math.sin(arrowAngle);
-          const arm2Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) + tux * arrowLen * Math.sin(arrowAngle);
-
-          const arrow = document.createElementNS(svgNS, 'polyline');
-          arrow.setAttribute('points', `${arm1X},${arm1Y} ${tipX},${tipY} ${arm2X},${arm2Y}`);
-          arrow.setAttribute('fill', 'none');
-          arrow.setAttribute('stroke', color);
-          arrow.setAttribute('stroke-width', '1');
-          arrow.setAttribute('stroke-opacity', String(ROAD_ARROW_OPACITY));
-          arrow.setAttribute('data-segment', segment.id);
-          arrow.setAttribute('data-lane', spec.idx);
-          world.appendChild(arrow);
-          segment.lineElements.push(arrow);
-        }
-      });
+      // Geometry is painted each frame from shortenSegment + getLaneSpecs.
+      if (segment) segment.lineElements = [];
     }
 
     // ============================================================
@@ -3803,6 +3819,31 @@
       if (e.button === 0 && tryStartRefOverlayDrag(e)) {
         e.preventDefault();
         e.stopPropagation();
+        return;
+      }
+      if (e.button === 0 && !spaceHeld
+          && !buildMode && !deleteMode && !upgradeMode
+          && !(typeof driveMode !== 'undefined' && driveMode)) {
+        const wp = screenToWorld(e.clientX, e.clientY);
+        const ah = hitTestApproachHandle(wp.x, wp.y);
+        if (ah) {
+          beginApproachInsetDrag(ah.nodeKey, ah.seg, ah.isStart, ah.ux, ah.uy, e);
+          return;
+        }
+        const jk = hitTestJunctionNode(wp.x, wp.y);
+        if (jk) {
+          beginNodeDrag(jk, e);
+          return;
+        }
+        if (typeof hitTestSignalAt === 'function') {
+          const sig = hitTestSignalAt(wp.x, wp.y);
+          if (sig && typeof selectSignalJunction === 'function') {
+            selectSignalJunction(sig.nodeKey, sig.headKey);
+            suppressClick = true;
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
       }
     });
 
@@ -3851,7 +3892,23 @@
         drawUpgradeHover(findSegmentNearPoint(worldPt.x, worldPt.y, pickDist));
         return;
       }
-      if (!buildMode) return;
+      if (!buildMode) {
+        // View-mode hover: lane nodes + approach handles
+        const laneHit = hitTestLaneNode(worldPt.x, worldPt.y);
+        if (laneHit) {
+          if (!hoveredLaneNode || hoveredLaneNode.nodeKey !== laneHit.nodeKey || hoveredLaneNode.id !== laneHit.id) {
+            if (hoveredLaneNode) setHover(hoveredLaneNode.nodeKey, null);
+            hoveredLaneNode = laneHit;
+            setHover(laneHit.nodeKey, laneHit.id);
+          }
+        } else if (hoveredLaneNode) {
+          setHover(hoveredLaneNode.nodeKey, null);
+          hoveredLaneNode = null;
+        }
+        const ah = hitTestApproachHandle(worldPt.x, worldPt.y);
+        approachHandleHover = ah ? { nodeKey: ah.nodeKey, segId: ah.segId } : null;
+        return;
+      }
       const snapped = snapBuildPoint(worldPt.x, worldPt.y);
       const x = snapped.x;
       const y = snapped.y;
@@ -3861,7 +3918,6 @@
       } else {
         clearGhost();
         cursorSnap = null;
-        world.appendChild(ghostLayer);
         setCursorSnap(x, y, true);
       }
     });
@@ -4128,8 +4184,21 @@
         return;
       }
 
-      // View mode — empty click clears junction / signal selection only
+      // View mode — lane nodes / signals / empty deselect
       if (!buildMode) {
+        const worldPt = screenToWorld(event.clientX, event.clientY);
+        const laneHit = hitTestLaneNode(worldPt.x, worldPt.y);
+        if (laneHit) {
+          handleLaneNodeClick(laneHit.nodeKey, laneHit.id);
+          return;
+        }
+        if (typeof hitTestSignalAt === 'function') {
+          const sig = hitTestSignalAt(worldPt.x, worldPt.y);
+          if (sig && typeof selectSignalJunction === 'function') {
+            selectSignalJunction(sig.nodeKey, sig.headKey);
+            return;
+          }
+        }
         clearLaneNodeSelections();
         if (typeof clearSignalSelection === 'function') clearSignalSelection();
         return;
@@ -4156,7 +4225,7 @@
         return;
       } else {
         placeSegment(x, y);
-        if (startMarker) startMarker.remove();
+        startMarker = null;
         beginBuild(x, y);
       }
     }
@@ -4486,48 +4555,7 @@
     }
 
     function ensureRefOverlayStructure() {
-      if (!refOverlayLayer) return;
-      ensureRefOverlayBehind();
-      if (!document.getElementById('ref-chrome-g')) {
-        refOverlayLayer.innerHTML = '';
-        const g = document.createElementNS(svgNS, 'g');
-        g.setAttribute('id', 'ref-chrome-g');
-        refOverlayLayer.appendChild(g);
-
-        const hit = document.createElementNS(svgNS, 'rect');
-        hit.setAttribute('id', 'ref-hit-rect');
-        hit.setAttribute('class', 'ref-hit');
-        hit.setAttribute('data-ref-role', 'move');
-        hit.setAttribute('pointer-events', 'auto');
-        hit.style.display = 'none';
-        g.appendChild(hit);
-
-        const rotLine = document.createElementNS(svgNS, 'line');
-        rotLine.setAttribute('id', 'ref-rot-line');
-        rotLine.setAttribute('class', 'ref-rot-line');
-        rotLine.style.display = 'none';
-        g.appendChild(rotLine);
-
-        ['nw', 'ne', 'se', 'sw'].forEach(name => {
-          const h = document.createElementNS(svgNS, 'rect');
-          h.setAttribute('class', 'ref-handle');
-          h.setAttribute('data-ref-role', 'scale');
-          h.setAttribute('data-handle', name);
-          h.setAttribute('id', 'ref-handle-' + name);
-          h.setAttribute('pointer-events', 'auto');
-          h.style.display = 'none';
-          g.appendChild(h);
-        });
-
-        const rot = document.createElementNS(svgNS, 'circle');
-        rot.setAttribute('class', 'ref-handle');
-        rot.setAttribute('data-ref-role', 'rotate');
-        rot.setAttribute('data-handle', 'rot');
-        rot.setAttribute('id', 'ref-handle-rot');
-        rot.setAttribute('pointer-events', 'auto');
-        rot.style.display = 'none';
-        g.appendChild(rot);
-      }
+      // Canvas chrome is drawn by drawRefOverlayChromeCanvas — no DOM.
     }
 
     function refOverlayCenter() {
@@ -4549,66 +4577,6 @@
     }
 
     function updateRefOverlayChrome() {
-      ensureRefOverlayStructure();
-      const showHandles = refOverlay.editing && !refOverlay.locked && refOverlay.active && refOverlay.visible;
-      const c = refOverlayCenter();
-      const chrome = document.getElementById('ref-chrome-g');
-      if (chrome) {
-        chrome.setAttribute(
-          'transform',
-          'rotate(' + refOverlay.rotation + ' ' + c.x + ' ' + c.y + ')'
-        );
-      }
-
-      const hit = document.getElementById('ref-hit-rect');
-      if (hit) {
-        hit.style.display = showHandles ? '' : 'none';
-        hit.setAttribute('x', refOverlay.x);
-        hit.setAttribute('y', refOverlay.y);
-        hit.setAttribute('width', refOverlay.w);
-        hit.setAttribute('height', refOverlay.h);
-        hit.setAttribute('fill', 'rgba(63,167,255,0.04)');
-        hit.setAttribute('stroke', 'rgba(63,167,255,0.9)');
-        hit.setAttribute('stroke-width', String(1.2 / Math.max(0.01, view.scale)));
-        hit.setAttribute('stroke-dasharray', (4 / view.scale) + ' ' + (3 / view.scale));
-      }
-      const hs = Math.max(6, 10 / view.scale);
-      const corners = {
-        nw: [refOverlay.x, refOverlay.y],
-        ne: [refOverlay.x + refOverlay.w, refOverlay.y],
-        se: [refOverlay.x + refOverlay.w, refOverlay.y + refOverlay.h],
-        sw: [refOverlay.x, refOverlay.y + refOverlay.h]
-      };
-      Object.keys(corners).forEach(name => {
-        const h = document.getElementById('ref-handle-' + name);
-        if (!h) return;
-        h.style.display = showHandles ? '' : 'none';
-        const [cx, cy] = corners[name];
-        h.setAttribute('x', cx - hs / 2);
-        h.setAttribute('y', cy - hs / 2);
-        h.setAttribute('width', hs);
-        h.setAttribute('height', hs);
-      });
-
-      const rotDist = Math.max(18, 28 / view.scale);
-      const rotHandle = document.getElementById('ref-handle-rot');
-      const rotLine = document.getElementById('ref-rot-line');
-      const topMidX = refOverlay.x + refOverlay.w / 2;
-      const topMidY = refOverlay.y;
-      const rotY = topMidY - rotDist;
-      if (rotHandle) {
-        rotHandle.style.display = showHandles ? '' : 'none';
-        rotHandle.setAttribute('cx', topMidX);
-        rotHandle.setAttribute('cy', rotY);
-        rotHandle.setAttribute('r', Math.max(4, 6 / view.scale));
-      }
-      if (rotLine) {
-        rotLine.style.display = showHandles ? '' : 'none';
-        rotLine.setAttribute('x1', topMidX);
-        rotLine.setAttribute('y1', topMidY);
-        rotLine.setAttribute('x2', topMidX);
-        rotLine.setAttribute('y2', rotY);
-      }
       updateRefOverlayUI();
     }
 
@@ -4620,11 +4588,9 @@
     function renderRefOverlay() {
       if (!refOverlay.active || !refOverlay.visible) {
         destroyRefLiveMap();
-        if (refOverlayLayer) refOverlayLayer.innerHTML = '';
         updateRefOverlayUI();
         return;
       }
-      ensureRefOverlayStructure();
       syncRefLiveMap(true);
       updateRefOverlayChrome();
     }
@@ -4749,7 +4715,6 @@
       refOverlay.scaleMul = 1;
       refOverlayDrag = null;
       destroyRefLiveMap();
-      if (refOverlayLayer) refOverlayLayer.innerHTML = '';
       updateRefOverlayUI();
       setTraceStatus('Overlay cleared');
     }
@@ -4873,6 +4838,7 @@
       }
       syncRefLiveMap(refOverlayDrag.mode === 'scale');
       updateRefOverlayChrome();
+      if (typeof renderFrame === 'function') renderFrame();
     }
 
     function endRefOverlayDrag() {
@@ -5206,10 +5172,14 @@
       if (upgradeMode) setUpgradeMode(false);
       if (typeof driveMode !== 'undefined' && driveMode && typeof toggleDriveMode === 'function') toggleDriveMode();
       if (typeof resetSimulationForMapLoad === 'function') resetSimulationForMapLoad();
-      svg.querySelectorAll('[data-segment], [data-node], [data-junction], [data-signal-node]').forEach(el => el.remove());
       segments = [];
       nodes = new Map();
       segmentCounter = 1;
+      ghostPreview = null;
+      cursorSnap = null;
+      startMarker = null;
+      approachHandleHover = null;
+      hoveredLaneNode = null;
       if (typeof clearSignalSelection === 'function') clearSignalSelection();
     }
 
@@ -5674,6 +5644,8 @@
         if (nameInput) nameInput.value = store.lastLoaded;
       }
     })();
+
+    resizeSimCanvas();
   </script>
 </body>
 </html>

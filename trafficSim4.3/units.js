@@ -38,9 +38,8 @@ let zonePanelOpen = false;
 let zones = [];
 let zoneCounter = 1;
 let zoneDraft = null;
-let zoneLayer = null;
-let zoneGhostLayer = null;
-let zoneCursorEl = null;
+let zoneCursor = { x: 0, y: 0, fill: '', visible: false };
+let zoneDraftPreview = { points: [], closed: false, valid: true };
 
 (function injectZoneStyles() {
   if (document.getElementById('zone-tool-styles')) return;
@@ -169,52 +168,21 @@ let zoneCursorEl = null;
   document.head.appendChild(style);
 })();
 
-function ensureZoneLayers() {
-  if (!world) return;
-  if (!zoneLayer) {
-    zoneLayer = document.createElementNS(svgNS, 'g');
-    zoneLayer.setAttribute('id', 'zone-layer');
-    zoneLayer.setAttribute('pointer-events', 'none');
-    const ref = document.getElementById('ref-overlay-layer');
-    if (ref && ref.parentNode === world) {
-      if (ref.nextSibling) world.insertBefore(zoneLayer, ref.nextSibling);
-      else world.appendChild(zoneLayer);
-    } else {
-      world.insertBefore(zoneLayer, world.firstChild);
-    }
-  }
-  if (!zoneGhostLayer) {
-    zoneGhostLayer = document.createElementNS(svgNS, 'g');
-    zoneGhostLayer.setAttribute('id', 'zone-ghost-layer');
-    zoneGhostLayer.setAttribute('pointer-events', 'none');
-    world.appendChild(zoneGhostLayer);
-  }
-}
-
 function zoneTypeInfo(type) {
   return ZONE_TYPES[type] || ZONE_TYPES.residential;
 }
 
 function clearZoneGhost() {
-  if (!zoneGhostLayer) return;
-  while (zoneGhostLayer.firstChild) zoneGhostLayer.removeChild(zoneGhostLayer.firstChild);
-  zoneCursorEl = null;
+  zoneDraftPreview = { points: [], closed: false, valid: true };
+  zoneCursor.visible = false;
 }
 
 function setZoneCursor(x, y, valid, type) {
-  ensureZoneLayers();
   const info = zoneTypeInfo(type || zoneType);
-  if (!zoneCursorEl) {
-    zoneCursorEl = document.createElementNS(svgNS, 'circle');
-    zoneCursorEl.setAttribute('r', '2.2');
-    zoneCursorEl.setAttribute('stroke', '#fff');
-    zoneCursorEl.setAttribute('stroke-width', '0.55');
-    zoneGhostLayer.appendChild(zoneCursorEl);
-  }
-  zoneCursorEl.setAttribute('cx', x);
-  zoneCursorEl.setAttribute('cy', y);
-  zoneCursorEl.setAttribute('fill', valid ? info.stroke : 'rgba(231,76,60,0.9)');
-  zoneCursorEl.setAttribute('opacity', valid ? '0.95' : '0.75');
+  zoneCursor.x = x;
+  zoneCursor.y = y;
+  zoneCursor.fill = valid ? info.stroke : 'rgba(231,76,60,0.9)';
+  zoneCursor.visible = true;
 }
 
 function edgeCrossesRoad(ax, ay, bx, by) {
@@ -329,14 +297,12 @@ function canCloseZoneDraft() {
 }
 
 function drawZoneDraftPreview(cursor) {
-  ensureZoneLayers();
   clearZoneGhost();
   if (!zoneDraft || !zoneDraft.points.length) {
     if (cursor) setZoneCursor(cursor.x, cursor.y, !!cursor.valid, zoneType);
     return;
   }
 
-  const info = zoneTypeInfo(zoneDraft.type);
   const pts = zoneDraft.points.slice();
   let previewOk = true;
   if (cursor && cursor.valid) {
@@ -345,87 +311,122 @@ function drawZoneDraftPreview(cursor) {
     if (previewOk) pts.push({ x: cursor.x, y: cursor.y });
   }
 
-  const closing = cursor && cursor.close && canCloseZoneDraft();
+  const closing = !!(cursor && cursor.close && canCloseZoneDraft());
   const polyPts = closing ? zoneDraft.points : pts;
-  if (polyPts.length >= 2) {
-    const poly = document.createElementNS(svgNS, 'polyline');
-    poly.setAttribute('points', polyPts.map(p => p.x + ',' + p.y).join(' '));
-    poly.setAttribute('fill', 'none');
-    poly.setAttribute('stroke', previewOk || closing ? info.stroke : '#e74c3c');
-    poly.setAttribute('stroke-width', '1.4');
-    poly.setAttribute('stroke-opacity', '0.95');
-    poly.setAttribute('stroke-dasharray', '3 2');
-    zoneGhostLayer.appendChild(poly);
-  }
-
-  if (closing && zoneDraft.points.length >= 3) {
-    const fill = document.createElementNS(svgNS, 'polygon');
-    fill.setAttribute('points', zoneDraft.points.map(p => p.x + ',' + p.y).join(' '));
-    fill.setAttribute('fill', info.fill);
-    fill.setAttribute('stroke', info.stroke);
-    fill.setAttribute('stroke-width', '1.2');
-    fill.setAttribute('stroke-dasharray', '3 2');
-    zoneGhostLayer.appendChild(fill);
-  }
-
-  zoneDraft.points.forEach((p, i) => {
-    const c = document.createElementNS(svgNS, 'circle');
-    c.setAttribute('cx', p.x);
-    c.setAttribute('cy', p.y);
-    c.setAttribute('r', i === 0 ? '2.6' : '1.8');
-    c.setAttribute('fill', info.stroke);
-    c.setAttribute('stroke', '#fff');
-    c.setAttribute('stroke-width', '0.5');
-    zoneGhostLayer.appendChild(c);
-  });
+  zoneDraftPreview = {
+    points: polyPts.map(p => ({ x: p.x, y: p.y })),
+    closed: closing && zoneDraft.points.length >= 3,
+    valid: previewOk || closing
+  };
 
   if (cursor) {
     setZoneCursor(cursor.x, cursor.y, !!(cursor.valid || cursor.close), zoneDraft.type);
   }
 }
 
-function renderZone(zone) {
-  ensureZoneLayers();
-  if (zone.el && zone.el.parentNode) zone.el.parentNode.removeChild(zone.el);
-  const info = zoneTypeInfo(zone.type);
-  const g = document.createElementNS(svgNS, 'g');
-  g.setAttribute('data-zone', String(zone.id));
-  const poly = document.createElementNS(svgNS, 'polygon');
-  poly.setAttribute('points', zone.points.map(p => p.x + ',' + p.y).join(' '));
-  poly.setAttribute('fill', info.fill);
-  poly.setAttribute('stroke', info.stroke);
-  poly.setAttribute('stroke-width', '1.1');
-  poly.setAttribute('stroke-opacity', '0.9');
-  g.appendChild(poly);
-
-  let cx = 0, cy = 0;
-  zone.points.forEach(p => { cx += p.x; cy += p.y; });
-  cx /= zone.points.length;
-  cy /= zone.points.length;
-  const label = document.createElementNS(svgNS, 'text');
-  label.setAttribute('x', cx);
-  label.setAttribute('y', cy);
-  label.setAttribute('text-anchor', 'middle');
-  label.setAttribute('dominant-baseline', 'middle');
-  label.setAttribute('fill', info.stroke);
-  label.setAttribute('font-size', '4.5');
-  label.setAttribute('font-family', 'monospace');
-  label.setAttribute('opacity', '0.85');
-  label.setAttribute('pointer-events', 'none');
-  label.textContent = info.label;
-  g.appendChild(label);
-
-  zone.el = g;
-  zoneLayer.appendChild(g);
+function renderZone(/* zone */) {
+  // Canvas: committed zones live in `zones` and are drawn by drawZonesCanvas.
 }
 
 function redrawAllZones() {
-  ensureZoneLayers();
-  while (zoneLayer.firstChild) zoneLayer.removeChild(zoneLayer.firstChild);
-  zones.forEach(z => {
-    z.el = null;
-    renderZone(z);
-  });
+  // Canvas: no DOM rebuild; drawZonesCanvas reads `zones` each frame.
+}
+
+function drawZonesCanvas(ctx) {
+  if (!ctx) return;
+
+  for (let i = 0; i < zones.length; i++) {
+    const zone = zones[i];
+    if (!zone.points || zone.points.length < 3) continue;
+    const info = zoneTypeInfo(zone.type);
+
+    ctx.beginPath();
+    ctx.moveTo(zone.points[0].x, zone.points[0].y);
+    for (let j = 1; j < zone.points.length; j++) {
+      ctx.lineTo(zone.points[j].x, zone.points[j].y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = info.fill;
+    ctx.fill();
+    ctx.strokeStyle = info.stroke;
+    ctx.lineWidth = 1.1;
+    ctx.globalAlpha = 0.9;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    let cx = 0, cy = 0;
+    for (let j = 0; j < zone.points.length; j++) {
+      cx += zone.points[j].x;
+      cy += zone.points[j].y;
+    }
+    cx /= zone.points.length;
+    cy /= zone.points.length;
+    ctx.font = '4.5px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = info.stroke;
+    ctx.globalAlpha = 0.85;
+    ctx.fillText(info.label, cx, cy);
+    ctx.globalAlpha = 1;
+  }
+
+  const preview = zoneDraftPreview;
+  const draftInfo = zoneTypeInfo(zoneDraft ? zoneDraft.type : zoneType);
+  if (preview && preview.points && preview.points.length) {
+    if (preview.closed && preview.points.length >= 3) {
+      ctx.beginPath();
+      ctx.moveTo(preview.points[0].x, preview.points[0].y);
+      for (let j = 1; j < preview.points.length; j++) {
+        ctx.lineTo(preview.points[j].x, preview.points[j].y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = draftInfo.fill;
+      ctx.fill();
+      ctx.strokeStyle = draftInfo.stroke;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([3, 2]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else if (preview.points.length >= 2) {
+      ctx.beginPath();
+      ctx.moveTo(preview.points[0].x, preview.points[0].y);
+      for (let j = 1; j < preview.points.length; j++) {
+        ctx.lineTo(preview.points[j].x, preview.points[j].y);
+      }
+      ctx.strokeStyle = preview.valid ? draftInfo.stroke : '#e74c3c';
+      ctx.lineWidth = 1.4;
+      ctx.globalAlpha = 0.95;
+      ctx.setLineDash([3, 2]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  if (zoneDraft && zoneDraft.points && zoneDraft.points.length) {
+    for (let j = 0; j < zoneDraft.points.length; j++) {
+      const p = zoneDraft.points[j];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, j === 0 ? 2.6 : 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = draftInfo.stroke;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+  }
+
+  if (zoneCursor.visible) {
+    ctx.beginPath();
+    ctx.arc(zoneCursor.x, zoneCursor.y, 2.2, 0, Math.PI * 2);
+    ctx.fillStyle = zoneCursor.fill;
+    ctx.globalAlpha = zoneCursor.fill.indexOf('231,76,60') >= 0 ? 0.75 : 0.95;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 0.55;
+    ctx.stroke();
+  }
 }
 
 function cancelZoneDraft() {
@@ -440,8 +441,7 @@ function commitZoneDraft() {
   const zone = {
     id: zoneCounter++,
     type: zoneDraft.type,
-    points: zoneDraft.points.map(p => ({ x: p.x, y: p.y })),
-    el: null
+    points: zoneDraft.points.map(p => ({ x: p.x, y: p.y }))
   };
   zones.push(zone);
   renderZone(zone);
@@ -593,7 +593,6 @@ function setZoneMode(on) {
       toggleDriveMode();
     }
     if (typeof clearSignalSelection === 'function') clearSignalSelection();
-    ensureZoneLayers();
   } else {
     cancelZoneDraft();
     setZonePanelOpen(false);
@@ -644,8 +643,7 @@ function loadZones(saved) {
       points: z.points.map(p => ({
         x: quantizeCoord(p.x),
         y: quantizeCoord(p.y)
-      })),
-      el: null
+      }))
     };
     zones.push(zone);
   });
@@ -655,14 +653,9 @@ function loadZones(saved) {
 
 function clearZones(updateUi) {
   cancelZoneDraft();
-  zones.forEach(z => {
-    if (z.el && z.el.parentNode) z.el.parentNode.removeChild(z.el);
-  });
   zones = [];
   zoneCounter = 1;
-  if (zoneLayer) {
-    while (zoneLayer.firstChild) zoneLayer.removeChild(zoneLayer.firstChild);
-  }
+  clearZoneGhost();
   if (updateUi !== false) {
     updateZoneHud();
   }
@@ -879,7 +872,6 @@ function installZoneInputHooks() {
 }
 
 function initUnitsZoning() {
-  ensureZoneLayers();
   installZoneToolbar();
   patchZoneModeExclusivity();
   installZoneInputHooks();

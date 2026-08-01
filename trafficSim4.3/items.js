@@ -11,8 +11,7 @@ const PARK_ACCENT = '#7f8c9a';
 let parkingMode = false;
 let parkingBays = [];
 let parkingCounter = 1;
-let parkingLayer = null;
-let parkingGhostLayer = null;
+let parkingGhostBay = null;
 let parkingDraft = null;
 let parkingHover = null;
 let parkingDragging = false;
@@ -127,26 +126,6 @@ function parkSpotDepth() {
   document.head.appendChild(style);
 })();
 
-function ensureParkingLayers() {
-  if (!world) return;
-  if (!parkingLayer) {
-    parkingLayer = document.createElementNS(svgNS, 'g');
-    parkingLayer.setAttribute('id', 'parking-layer');
-    parkingLayer.setAttribute('pointer-events', 'none');
-    world.appendChild(parkingLayer);
-  } else if (parkingLayer.parentNode !== world) {
-    world.appendChild(parkingLayer);
-  }
-  if (!parkingGhostLayer) {
-    parkingGhostLayer = document.createElementNS(svgNS, 'g');
-    parkingGhostLayer.setAttribute('id', 'parking-ghost-layer');
-    parkingGhostLayer.setAttribute('pointer-events', 'none');
-    world.appendChild(parkingGhostLayer);
-  } else if (parkingGhostLayer.parentNode !== world) {
-    world.appendChild(parkingGhostLayer);
-  }
-}
-
 function roadBedHalfWidth(seg) {
   if (typeof getLaneSpecsFor === 'function') {
     const specs = getLaneSpecsFor(seg);
@@ -185,8 +164,7 @@ function parkingCurbPoint(seg, along, side) {
 }
 
 function clearParkingGhost() {
-  if (!parkingGhostLayer) return;
-  while (parkingGhostLayer.firstChild) parkingGhostLayer.removeChild(parkingGhostLayer.firstChild);
+  parkingGhostBay = null;
 }
 
 function parkingBayCorners(bay, index) {
@@ -207,58 +185,63 @@ function parkingBayCorners(bay, index) {
   ];
 }
 
-function appendStallMark(parent, corners, fill, stroke, dash) {
-  const pad = document.createElementNS(svgNS, 'polygon');
-  pad.setAttribute('points', corners.map(p => p.x + ',' + p.y).join(' '));
-  pad.setAttribute('fill', fill);
-  pad.setAttribute('stroke', 'none');
-  parent.appendChild(pad);
+function appendStallMark(ctx, corners, fill, stroke, dash) {
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < corners.length; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
 
-  const open = document.createElementNS(svgNS, 'polyline');
-  open.setAttribute('points', [
-    corners[0],
-    corners[3],
-    corners[2],
-    corners[1]
-  ].map(p => p.x + ',' + p.y).join(' '));
-  open.setAttribute('fill', 'none');
-  open.setAttribute('stroke', stroke);
-  open.setAttribute('stroke-width', dash ? '0.85' : '0.7');
-  open.setAttribute('stroke-linejoin', 'miter');
-  open.setAttribute('stroke-linecap', 'butt');
-  if (dash) open.setAttribute('stroke-dasharray', dash);
-  parent.appendChild(open);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  ctx.lineTo(corners[3].x, corners[3].y);
+  ctx.lineTo(corners[2].x, corners[2].y);
+  ctx.lineTo(corners[1].x, corners[1].y);
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = dash ? 0.85 : 0.7;
+  ctx.lineJoin = 'miter';
+  ctx.lineCap = 'butt';
+  if (dash) ctx.setLineDash([2, 1.5]);
+  else ctx.setLineDash([]);
+  ctx.stroke();
+  if (dash) ctx.setLineDash([]);
 }
 
 function renderParkingBay(bay, ghost) {
-  ensureParkingLayers();
-  if (!ghost && parkingLayer && world) world.appendChild(parkingLayer);
-  if (ghost && parkingGhostLayer && world) world.appendChild(parkingGhostLayer);
-  const parent = ghost ? parkingGhostLayer : parkingLayer;
-  const g = document.createElementNS(svgNS, 'g');
-  if (!ghost) g.setAttribute('data-parking', String(bay.id));
-  const fill = ghost ? PARK_GHOST_FILL : PARK_FILL;
-  const stroke = ghost ? PARK_GHOST_STROKE : PARK_STROKE;
-  const dash = ghost ? '2 1.5' : null;
-  for (let i = 0; i < bay.count; i++) {
-    appendStallMark(g, parkingBayCorners(bay, i), fill, stroke, dash);
-  }
-  if (!ghost) {
-    if (bay.el && bay.el.parentNode) bay.el.parentNode.removeChild(bay.el);
-    bay.el = g;
-  }
-  parent.appendChild(g);
-  return g;
+  if (!bay) return;
+  if (ghost) parkingGhostBay = bay;
+  // Committed bays live in parkingBays; canvas redraws them each frame.
 }
 
 function redrawAllParking() {
-  ensureParkingLayers();
-  while (parkingLayer.firstChild) parkingLayer.removeChild(parkingLayer.firstChild);
-  parkingBays.forEach(bay => {
-    bay.el = null;
-    renderParkingBay(bay, false);
-  });
   if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
+}
+
+function drawParkingCanvas(ctx) {
+  if (!ctx) return;
+  ctx.save();
+  for (let b = 0; b < parkingBays.length; b++) {
+    const bay = parkingBays[b];
+    if (!bay || bay.count < 1) continue;
+    for (let i = 0; i < bay.count; i++) {
+      appendStallMark(ctx, parkingBayCorners(bay, i), PARK_FILL, PARK_STROKE, false);
+    }
+  }
+  if (parkingGhostBay && parkingGhostBay.count > 0) {
+    for (let i = 0; i < parkingGhostBay.count; i++) {
+      appendStallMark(
+        ctx,
+        parkingBayCorners(parkingGhostBay, i),
+        PARK_GHOST_FILL,
+        PARK_GHOST_STROKE,
+        true
+      );
+    }
+  }
+  ctx.restore();
 }
 
 function distPointToSeg(px, py, ax, ay, bx, by) {
@@ -319,8 +302,7 @@ function bayFromSpotRange(bay, i0, i1) {
     spotLength: bay.spotLength,
     spotDepth: bay.spotDepth,
     segId: bay.segId,
-    side: bay.side,
-    el: null
+    side: bay.side
   };
 }
 
@@ -381,7 +363,6 @@ function cutParkingByRoad(ax, ay, bx, by, halfW) {
       continue;
     }
     changed = true;
-    if (bay.el && bay.el.parentNode) bay.el.parentNode.removeChild(bay.el);
     for (let p = 0; p < pieces.length; p++) next.push(pieces[p]);
   }
   if (!changed) return false;
@@ -412,8 +393,7 @@ function buildParkingBayFromPick(pick, count) {
     spotLength: L,
     spotDepth: parkSpotDepth(),
     segId: pick.seg ? pick.seg.id : null,
-    side: pick.side,
-    el: null
+    side: pick.side
   };
 }
 
@@ -620,14 +600,11 @@ function resolveParkingPick(wx, wy) {
 }
 
 function drawParkingPreview(pick, count) {
-  ensureParkingLayers();
   clearParkingGhost();
-  if (parkingGhostLayer && world) world.appendChild(parkingGhostLayer);
   if (!pick) return;
   const n = Math.max(0, count | 0);
   if (n < 1) return;
-  const bay = buildParkingBayFromPick(pick, n);
-  renderParkingBay(bay, true);
+  parkingGhostBay = buildParkingBayFromPick(pick, n);
 }
 
 function commitParkingDraft() {
@@ -659,11 +636,9 @@ function commitParkingDraft() {
     spotLength: parkingDraft.spotLength,
     spotDepth: parkingDraft.spotDepth,
     segId: parkingDraft.segId,
-    side: parkingDraft.side,
-    el: null
+    side: parkingDraft.side
   };
   parkingBays.push(bay);
-  renderParkingBay(bay, false);
   parkingDraft = null;
   parkingDragging = false;
   parkingPointerDown = false;
@@ -701,7 +676,6 @@ function removeParkingForSegment(segId) {
   for (let i = 0; i < parkingBays.length; i++) {
     const bay = parkingBays[i];
     if (bay.segId === segId) {
-      if (bay.el && bay.el.parentNode) bay.el.parentNode.removeChild(bay.el);
       changed = true;
     } else {
       next.push(bay);
@@ -729,11 +703,9 @@ function commitAutoParkingBay(draft) {
     spotLength: draft.spotLength,
     spotDepth: draft.spotDepth,
     segId: draft.segId,
-    side: draft.side,
-    el: null
+    side: draft.side
   };
   parkingBays.push(bay);
-  renderParkingBay(bay, false);
   if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
   return bay;
 }
@@ -863,7 +835,6 @@ function autoParkAlongSegment(seg) {
 }
 
 async function applyParkingToAllRoads(onProgress) {
-  ensureParkingLayers();
   const list = (typeof segments !== 'undefined' && segments) ? segments.slice() : [];
   // Longer roads first so short stubs lose less to corner overlap checks
   list.sort((a, b) => {
@@ -984,7 +955,6 @@ function setParkingMode(on) {
       toggleDriveMode();
     }
     if (typeof clearSignalSelection === 'function') clearSignalSelection();
-    ensureParkingLayers();
   } else {
     cancelParkingDraft();
     parkingHover = null;
@@ -1174,8 +1144,7 @@ function loadParking(saved) {
       spotLength: Number(raw.spotLength) || parkSpotLength(),
       spotDepth: Number(raw.spotDepth) || parkSpotDepth(),
       segId: raw.segId != null ? raw.segId : null,
-      side: raw.side != null ? raw.side : 1,
-      el: null
+      side: raw.side != null ? raw.side : 1
     };
     if (!isFinite(bay.x1) || !isFinite(bay.y1) || !isFinite(bay.ux) || !isFinite(bay.uy)) return;
     const ulen = Math.hypot(bay.ux, bay.uy);
@@ -1195,14 +1164,9 @@ function loadParking(saved) {
 
 function clearParking(updateUi) {
   cancelParkingDraft();
-  parkingBays.forEach(b => {
-    if (b.el && b.el.parentNode) b.el.parentNode.removeChild(b.el);
-  });
   parkingBays = [];
   parkingCounter = 1;
-  if (parkingLayer) {
-    while (parkingLayer.firstChild) parkingLayer.removeChild(parkingLayer.firstChild);
-  }
+  parkingGhostBay = null;
   if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
   if (updateUi !== false) updateParkingHud();
 }
@@ -1460,7 +1424,6 @@ function installParkingInputHooks() {
 }
 
 function initParkingItems() {
-  ensureParkingLayers();
   installParkingToolbar();
   patchParkingModeExclusivity();
   installParkingInputHooks();

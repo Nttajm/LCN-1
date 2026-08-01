@@ -134,8 +134,7 @@ function syncJunctionSignals(nodeKey, nodeX, nodeY, directions, laneNodes, edges
         groupIndex: -1,
         x: nx, y: ny,
         angleDeg,
-        tdx, tdy,
-        els: null
+        tdx, tdy
       });
       i = j;
     }
@@ -161,8 +160,7 @@ function syncJunctionSignals(nodeKey, nodeX, nodeY, directions, laneNodes, edges
       x: sample.x - tdx * SIGNAL_OUT_NUDGE,
       y: sample.y - tdy * SIGNAL_OUT_NUDGE,
       angleDeg: Math.atan2(tdy, tdx) * 180 / Math.PI + 90,
-      tdx, tdy,
-      els: null
+      tdx, tdy
     });
   });
 
@@ -316,7 +314,7 @@ function updateSignals(dt) {
       sig.phaseT -= phase.duration;
       sig.phaseIndex = (sig.phaseIndex + 1) % sig.phases.length;
     }
-    // Lamps only change on phase transitions — skip DOM thrash every frame
+    // Lamps only change on phase transitions — skip repaint when unchanged
     const paintKey = 'g:' + sig.phaseIndex;
     if (sig.phaseIndex !== prevIndex || sig._paintKey !== paintKey) {
       paintSignalLamps(sig, false);
@@ -378,119 +376,67 @@ function headOverrideKey(segId, laneIdxs) {
   return segId + ':' + laneIdxs.slice().sort((a, b) => a - b).join(',');
 }
 
-// ---------------- Rendering ----------------
+// ---------------- Rendering (Canvas 2D data model) ----------------
 
 function drawSignalHeads(nodeKey, nodeX, nodeY, sig) {
-  // Remove any previous signal visuals for this node (calculateCurves already
-  // wiped data-junction, but be safe if called standalone).
-  svg.querySelectorAll(`[data-signal-node="${nodeKey}"]`).forEach(el => el.remove());
+  // Store drawable geometry on the signal / heads — no DOM.
+  delete sig.centerHitEl;
+  sig.nodeKey = nodeKey;
+  sig.nodeX = nodeX;
+  sig.nodeY = nodeY;
+  sig.centerHitR = (typeof NODE_R !== 'undefined' ? NODE_R : 7) * 0.55;
+  if (sig.opacity == null) sig.opacity = getSignalIdleOpacity();
 
-  const gRoot = document.createElementNS(svgNS, 'g');
-  gRoot.setAttribute('data-junction', nodeKey);
-  gRoot.setAttribute('data-signal-node', nodeKey);
-  gRoot.setAttribute('class', 'signal-root');
-  world.appendChild(gRoot);
-
-  // Center hit target for selecting the intersection
-  const hitR = NODE_R * 0.55;
-  const centerHit = document.createElementNS(svgNS, 'circle');
-  centerHit.setAttribute('cx', nodeX);
-  centerHit.setAttribute('cy', nodeY);
-  centerHit.setAttribute('r', String(hitR));
-  centerHit.setAttribute('fill', 'rgba(255,224,102,0.08)');
-  centerHit.setAttribute('stroke', 'rgba(255,224,102,0.35)');
-  centerHit.setAttribute('stroke-width', '0.5');
-  centerHit.setAttribute('stroke-dasharray', '1.5 1.2');
-  centerHit.setAttribute('data-junction', nodeKey);
-  centerHit.setAttribute('data-signal-node', nodeKey);
-  centerHit.style.pointerEvents = 'auto';
-  centerHit.style.cursor = 'grab';
-  centerHit.addEventListener('mousedown', (e) => {
-    if (typeof beginNodeDrag === 'function') beginNodeDrag(nodeKey, e);
-  });
-  centerHit.addEventListener('click', (e) => {
-    if (typeof driveMode !== 'undefined' && driveMode) return;
-    if (typeof buildMode !== 'undefined' && buildMode) return;
-    if (typeof deleteMode !== 'undefined' && deleteMode) return;
-    if (typeof upgradeMode !== 'undefined' && upgradeMode) return;
-    e.stopPropagation();
-    selectSignalJunction(nodeKey, null);
-  });
-  gRoot.appendChild(centerHit);
-  sig.centerHitEl = centerHit;
+  const hw = SIGNAL_HOUSING_W;
+  const hh = SIGNAL_HOUSING_H;
+  const lampYs = [-hh / 3.2, 0, hh / 3.2];
+  const lampKeys = ['red', 'yellow', 'green'];
 
   sig.heads.forEach(head => {
-    const g = document.createElementNS(svgNS, 'g');
-    g.setAttribute('data-junction', nodeKey);
-    g.setAttribute('data-signal-node', nodeKey);
-    g.setAttribute('data-signal-head', head.key);
-    g.setAttribute('transform', `translate(${head.x} ${head.y}) rotate(${head.angleDeg})`);
-
-    // Housing: vertical stack of 3 lamps, long axis perpendicular to travel
+    delete head.els;
+    // Housing: vertical stack of 3 lamps, long axis perpendicular to travel.
     // After rotate(+90 from travel), local +Y is "up the pole" / across roadway.
-    const hw = SIGNAL_HOUSING_W;
-    const hh = SIGNAL_HOUSING_H;
-    const housing = document.createElementNS(svgNS, 'rect');
-    housing.setAttribute('x', String(-hw / 2));
-    housing.setAttribute('y', String(-hh / 2));
-    housing.setAttribute('width', String(hw));
-    housing.setAttribute('height', String(hh));
-    housing.setAttribute('rx', '0.55');
-    housing.setAttribute('fill', '#1a1c22');
-    housing.setAttribute('stroke', '#0a0b0e');
-    housing.setAttribute('stroke-width', '0.35');
-    g.appendChild(housing);
+    head.housing = {
+      x: -hw / 2,
+      y: -hh / 2,
+      w: hw,
+      h: hh,
+      rx: 0.55,
+      fill: '#1a1c22',
+      stroke: '#0a0b0e',
+      strokeWidth: 0.35
+    };
+    head.hitRect = {
+      x: -hw / 2 - 0.6,
+      y: -hh / 2 - 0.6,
+      w: hw + 1.2,
+      h: hh + 1.2
+    };
 
-    // Hit rect for editor selection
-    const hit = document.createElementNS(svgNS, 'rect');
-    hit.setAttribute('x', String(-hw / 2 - 0.6));
-    hit.setAttribute('y', String(-hh / 2 - 0.6));
-    hit.setAttribute('width', String(hw + 1.2));
-    hit.setAttribute('height', String(hh + 1.2));
-    hit.setAttribute('fill', 'transparent');
-    hit.style.pointerEvents = 'auto';
-    hit.style.cursor = 'pointer';
-    hit.addEventListener('click', (e) => {
-      if (typeof driveMode !== 'undefined' && driveMode) return;
-      if (typeof buildMode !== 'undefined' && buildMode) return;
-      if (typeof deleteMode !== 'undefined' && deleteMode) return;
-    if (typeof upgradeMode !== 'undefined' && upgradeMode) return;
-      e.stopPropagation();
-      selectSignalJunction(nodeKey, head.key);
-    });
-    g.appendChild(hit);
-
-    // Three lamps: red (top / -Y), yellow (mid), green (bottom / +Y)
-    // In American signals facing the driver: red on top.
-    // Balls always; arrow glyphs drawn inside when movements are turns / combined.
-    const lampYs = [-hh / 3.2, 0, hh / 3.2];
-    const lampKeys = ['red', 'yellow', 'green'];
-    const lamps = {};
-    const arrowEls = {};
     const showArrows = headNeedsArrows(head);
+    head.showArrows = showArrows;
+    head.arrowPaths = showArrows
+      ? buildMovementArrowPaths(head.movements, SIGNAL_LAMP_R * 0.78)
+      : [];
+
+    const lamps = {};
     lampKeys.forEach((color, i) => {
-      const c = document.createElementNS(svgNS, 'circle');
-      c.setAttribute('cx', '0');
-      c.setAttribute('cy', String(lampYs[i]));
-      c.setAttribute('r', String(SIGNAL_LAMP_R));
-      c.setAttribute('fill', SIGNAL_COLORS.off);
-      c.setAttribute('stroke', '#0a0b0e');
-      c.setAttribute('stroke-width', '0.2');
-      g.appendChild(c);
-      lamps[color] = c;
-
-      if (showArrows) {
-        const ag = document.createElementNS(svgNS, 'g');
-        ag.setAttribute('transform', `translate(0 ${lampYs[i]})`);
-        ag.setAttribute('pointer-events', 'none');
-        drawMovementArrows(ag, head.movements, SIGNAL_LAMP_R * 0.78);
-        g.appendChild(ag);
-        arrowEls[color] = ag;
-      }
+      lamps[color] = {
+        cx: 0,
+        cy: lampYs[i],
+        r: SIGNAL_LAMP_R,
+        fill: SIGNAL_COLORS.off,
+        opacity: 0.55,
+        stroke: '#0a0b0e',
+        strokeWidth: 0.2,
+        arrowFill: '#4a4e5a',
+        arrowOpacity: 0.7,
+        arrowGroupOpacity: 0.85
+      };
     });
-
-    gRoot.appendChild(g);
-    head.els = { g, housing, lamps, arrowEls, hit };
+    head.lamps = lamps;
+    head._lit = undefined;
+    head._litForced = undefined;
   });
 
   paintSignalLamps(sig, !sig.enabled || !signalsEnabled);
@@ -506,91 +452,85 @@ function headNeedsArrows(head) {
 }
 
 /**
- * Draw movement arrow glyphs inside a lamp.
- * Local coords: -Y = straight (up for the driver), -X = left, +X = right.
+ * Build movement arrow glyph polygons (arrays of [x,y] points) in lamp-local
+ * coords: -Y = straight (up for the driver), -X = left, +X = right.
  */
-function drawMovementArrows(parent, movements, scale) {
+function buildMovementArrowPaths(movements, scale) {
   const hasL = movements.includes('left');
   const hasS = movements.includes('straight');
   const hasR = movements.includes('right');
   const n = (hasL ? 1 : 0) + (hasS ? 1 : 0) + (hasR ? 1 : 0);
   const s = scale;
+  const paths = [];
+
+  const push = (kind, ox, oy, sc) => {
+    paths.push(arrowGlyphPoints(kind, ox, oy, sc));
+  };
 
   // Combined layouts squeeze arrows side-by-side; single fills the lamp.
   if (n === 1) {
-    if (hasL) appendArrowPath(parent, 'left', 0, 0, s);
-    else if (hasR) appendArrowPath(parent, 'right', 0, 0, s);
-    else appendArrowPath(parent, 'straight', 0, 0, s);
-    return;
+    if (hasL) push('left', 0, 0, s);
+    else if (hasR) push('right', 0, 0, s);
+    else push('straight', 0, 0, s);
+    return paths;
   }
   if (hasL && hasS && !hasR) {
-    appendArrowPath(parent, 'left', -s * 0.28, 0, s * 0.72);
-    appendArrowPath(parent, 'straight', s * 0.32, 0, s * 0.72);
-    return;
+    push('left', -s * 0.28, 0, s * 0.72);
+    push('straight', s * 0.32, 0, s * 0.72);
+    return paths;
   }
   if (hasR && hasS && !hasL) {
-    appendArrowPath(parent, 'straight', -s * 0.32, 0, s * 0.72);
-    appendArrowPath(parent, 'right', s * 0.28, 0, s * 0.72);
-    return;
+    push('straight', -s * 0.32, 0, s * 0.72);
+    push('right', s * 0.28, 0, s * 0.72);
+    return paths;
   }
   if (hasL && hasR && !hasS) {
-    appendArrowPath(parent, 'left', -s * 0.32, 0, s * 0.7);
-    appendArrowPath(parent, 'right', s * 0.32, 0, s * 0.7);
-    return;
+    push('left', -s * 0.32, 0, s * 0.7);
+    push('right', s * 0.32, 0, s * 0.7);
+    return paths;
   }
   // All three (or fallback): compact triad
-  appendArrowPath(parent, 'left', -s * 0.38, s * 0.05, s * 0.55);
-  appendArrowPath(parent, 'straight', 0, -s * 0.08, s * 0.55);
-  appendArrowPath(parent, 'right', s * 0.38, s * 0.05, s * 0.55);
+  push('left', -s * 0.38, s * 0.05, s * 0.55);
+  push('straight', 0, -s * 0.08, s * 0.55);
+  push('right', s * 0.38, s * 0.05, s * 0.55);
+  return paths;
 }
 
-function appendArrowPath(parent, kind, ox, oy, s) {
-  const path = document.createElementNS(svgNS, 'path');
-  let d;
+function arrowGlyphPoints(kind, ox, oy, s) {
   if (kind === 'straight') {
     // Shaft + head pointing -Y (up toward destination for the driver)
     const w = s * 0.2;
-    d = [
-      `M ${ox - w} ${oy + s * 0.72}`,
-      `L ${ox + w} ${oy + s * 0.72}`,
-      `L ${ox + w} ${oy - s * 0.08}`,
-      `L ${ox + s * 0.45} ${oy - s * 0.08}`,
-      `L ${ox} ${oy - s * 0.88}`,
-      `L ${ox - s * 0.45} ${oy - s * 0.08}`,
-      `L ${ox - w} ${oy - s * 0.08}`,
-      'Z'
-    ].join(' ');
-  } else if (kind === 'left') {
-    d = arrowTurnPath(ox, oy, s, -1);
-  } else {
-    d = arrowTurnPath(ox, oy, s, 1);
+    return [
+      [ox - w, oy + s * 0.72],
+      [ox + w, oy + s * 0.72],
+      [ox + w, oy - s * 0.08],
+      [ox + s * 0.45, oy - s * 0.08],
+      [ox, oy - s * 0.88],
+      [ox - s * 0.45, oy - s * 0.08],
+      [ox - w, oy - s * 0.08]
+    ];
   }
-  path.setAttribute('d', d);
-  path.setAttribute('fill', '#3a3d48');
-  path.setAttribute('stroke', 'none');
-  path.setAttribute('class', 'signal-arrow-glyph');
-  parent.appendChild(path);
+  return arrowTurnPoints(ox, oy, s, kind === 'left' ? -1 : 1);
 }
 
 /** Horizontal turn arrow: sign -1 = left (−X), +1 = right (+X). */
-function arrowTurnPath(ox, oy, s, sign) {
+function arrowTurnPoints(ox, oy, s, sign) {
   // Stem rises, then bends sideways into a chevron tip
   const tip = ox + sign * s * 0.88;
   const elbow = ox + sign * s * 0.08;
   const back = ox - sign * s * 0.42;
   const w = s * 0.18;
   return [
-    `M ${back} ${oy + s * 0.7}`,
-    `L ${elbow} ${oy + s * 0.7}`,
-    `L ${elbow} ${oy + w}`,
-    `L ${ox + sign * s * 0.22} ${oy + w}`,
-    `L ${ox + sign * s * 0.22} ${oy + s * 0.42}`,
-    `L ${tip} ${oy}`,
-    `L ${ox + sign * s * 0.22} ${oy - s * 0.42}`,
-    `L ${ox + sign * s * 0.22} ${oy - w}`,
-    `L ${back} ${oy - w}`,
-    'Z'
-  ].join(' ');
+    [back, oy + s * 0.7],
+    [elbow, oy + s * 0.7],
+    [elbow, oy + w],
+    [ox + sign * s * 0.22, oy + w],
+    [ox + sign * s * 0.22, oy + s * 0.42],
+    [tip, oy],
+    [ox + sign * s * 0.22, oy - s * 0.42],
+    [ox + sign * s * 0.22, oy - w],
+    [back, oy - w]
+  ];
 }
 
 function paintSignalLamps(sig, forceOff) {
@@ -599,7 +539,7 @@ function paintSignalLamps(sig, forceOff) {
 
   for (let hi = 0; hi < heads.length; hi++) {
     const head = heads[hi];
-    if (!head.els || !head.els.lamps) continue;
+    if (!head.lamps) continue;
     // Determine which color this head should show
     let lit = null; // 'red'|'yellow'|'green'|null
     if (phase) {
@@ -619,7 +559,7 @@ function paintSignalLamps(sig, forceOff) {
       }
     }
 
-    // Skip DOM writes when this head's lit color is unchanged
+    // Skip when this head's lit color is unchanged
     if (head._lit === lit && head._litForced === !!forceOff) continue;
     head._lit = lit;
     head._litForced = !!forceOff;
@@ -627,57 +567,219 @@ function paintSignalLamps(sig, forceOff) {
     const lampColors = ['red', 'yellow', 'green'];
     for (let ci = 0; ci < 3; ci++) {
       const color = lampColors[ci];
-      const el = head.els.lamps[color];
-      if (!el) continue;
+      const lamp = head.lamps[color];
+      if (!lamp) continue;
       const on = lit === color;
-      el.setAttribute('fill', on ? SIGNAL_COLORS[color] : SIGNAL_COLORS.off);
-      el.setAttribute('opacity', on ? '1' : '0.55');
+      lamp.fill = on ? SIGNAL_COLORS[color] : SIGNAL_COLORS.off;
+      lamp.opacity = on ? 1 : 0.55;
       if (on) {
-        el.setAttribute('stroke', SIGNAL_COLORS[color]);
-        el.setAttribute('stroke-width', '0.35');
+        lamp.stroke = SIGNAL_COLORS[color];
+        lamp.strokeWidth = 0.35;
       } else {
-        el.setAttribute('stroke', '#0a0b0e');
-        el.setAttribute('stroke-width', '0.2');
+        lamp.stroke = '#0a0b0e';
+        lamp.strokeWidth = 0.2;
       }
       // Arrow glyphs: bright when lit, dark when off
-      const ag = head.els.arrowEls && head.els.arrowEls[color];
-      if (ag) {
-        const glyphFill = on ? '#0a0b0e' : '#4a4e5a';
-        const glyphOpacity = on ? '0.92' : '0.7';
-        const glyphs = ag._glyphCache || (ag._glyphCache = ag.querySelectorAll('.signal-arrow-glyph'));
-        for (let gi = 0; gi < glyphs.length; gi++) {
-          glyphs[gi].setAttribute('fill', glyphFill);
-          glyphs[gi].setAttribute('opacity', glyphOpacity);
-        }
-        ag.setAttribute('opacity', on ? '1' : '0.85');
-      }
+      lamp.arrowFill = on ? '#0a0b0e' : '#4a4e5a';
+      lamp.arrowOpacity = on ? 0.92 : 0.7;
+      lamp.arrowGroupOpacity = on ? 1 : 0.85;
     }
   }
 }
 
 function updateSignalOpacity(nodeKey) {
+  const nd = nodes.get(nodeKey);
+  if (!nd || !nd.signal) return;
   const selected = selectedSignalNodeKey === nodeKey;
   const inEditor = (typeof driveMode === 'undefined' || !driveMode)
     && (typeof buildMode === 'undefined' || !buildMode)
     && (typeof deleteMode === 'undefined' || !deleteMode)
     && (typeof upgradeMode === 'undefined' || !upgradeMode);
   const idle = getSignalIdleOpacity();
-  const opacity = (selected && inEditor) ? '1' : String(idle);
-  svg.querySelectorAll(`[data-signal-node="${nodeKey}"]`).forEach(el => {
-    // Only set opacity on the root groups, not nested (nested inherit)
-    if (el.getAttribute('class') === 'signal-root' || el.parentNode === world) {
-      el.setAttribute('opacity', opacity);
+  nd.signal.opacity = (selected && inEditor) ? 1 : idle;
+}
+
+/**
+ * Immediate-mode Canvas draw of all signalized junctions.
+ * Call from renderFrame() after the world transform is set.
+ */
+function drawAllSignalsCanvas(c) {
+  if (!c || typeof nodes === 'undefined') return;
+
+  const entries = [];
+  nodes.forEach((nd, nodeKey) => {
+    if (nd.signal && nd.signal.heads && nd.signal.heads.length) {
+      entries.push([nodeKey, nd]);
     }
   });
-  // Also bump the root specifically
-  const roots = svg.querySelectorAll(`g.signal-root[data-signal-node="${nodeKey}"]`);
-  roots.forEach(r => {
-    r.setAttribute('opacity', opacity);
-    // Selected signal editor: raise lights above roads, signs, lane graphs, etc.
-    if (selected && inEditor && typeof world !== 'undefined' && world) {
-      world.appendChild(r);
-    }
+  // Selected junction last so it paints above neighbors (SVG used appendChild).
+  entries.sort((a, b) => {
+    const aSel = a[0] === selectedSignalNodeKey ? 1 : 0;
+    const bSel = b[0] === selectedSignalNodeKey ? 1 : 0;
+    return aSel - bSel;
   });
+
+  for (let ei = 0; ei < entries.length; ei++) {
+    const nodeKey = entries[ei][0];
+    const nd = entries[ei][1];
+    const sig = nd.signal;
+    const opacity = sig.opacity != null ? sig.opacity : getSignalIdleOpacity();
+    if (opacity <= 0) continue;
+
+    c.save();
+    c.globalAlpha = opacity;
+
+    const nx = sig.nodeX != null ? sig.nodeX : Number(String(nodeKey).split(',')[0]);
+    const ny = sig.nodeY != null ? sig.nodeY : Number(String(nodeKey).split(',')[1]);
+    const hitR = sig.centerHitR != null
+      ? sig.centerHitR
+      : (typeof NODE_R !== 'undefined' ? NODE_R : 7) * 0.55;
+
+    // Center hit circle (dashed yellow) — visual cue / grab target
+    c.beginPath();
+    c.arc(nx, ny, hitR, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(255,224,102,0.08)';
+    c.fill();
+    c.strokeStyle = 'rgba(255,224,102,0.35)';
+    c.lineWidth = 0.5;
+    c.setLineDash([1.5, 1.2]);
+    c.stroke();
+    c.setLineDash([]);
+
+    const heads = sig.heads;
+    for (let hi = 0; hi < heads.length; hi++) {
+      drawSignalHeadCanvas(c, heads[hi]);
+    }
+
+    c.restore();
+  }
+}
+
+function drawSignalHeadCanvas(c, head) {
+  if (!head) return;
+  const housing = head.housing;
+  const lamps = head.lamps;
+  if (!housing || !lamps) return;
+
+  c.save();
+  c.translate(head.x, head.y);
+  c.rotate((head.angleDeg || 0) * Math.PI / 180);
+
+  // Housing roundRect
+  signalRoundRectPath(c, housing.x, housing.y, housing.w, housing.h, housing.rx || 0.55);
+  c.fillStyle = housing.fill || '#1a1c22';
+  c.fill();
+  c.strokeStyle = housing.stroke || '#0a0b0e';
+  c.lineWidth = housing.strokeWidth != null ? housing.strokeWidth : 0.35;
+  c.stroke();
+
+  const lampKeys = ['red', 'yellow', 'green'];
+  const arrowPaths = head.showArrows ? (head.arrowPaths || []) : [];
+  for (let ci = 0; ci < 3; ci++) {
+    const color = lampKeys[ci];
+    const lamp = lamps[color];
+    if (!lamp) continue;
+
+    c.save();
+    c.globalAlpha *= (lamp.opacity != null ? lamp.opacity : 1);
+    c.beginPath();
+    c.arc(lamp.cx || 0, lamp.cy || 0, lamp.r != null ? lamp.r : SIGNAL_LAMP_R, 0, Math.PI * 2);
+    c.fillStyle = lamp.fill || SIGNAL_COLORS.off;
+    c.fill();
+    c.strokeStyle = lamp.stroke || '#0a0b0e';
+    c.lineWidth = lamp.strokeWidth != null ? lamp.strokeWidth : 0.2;
+    c.stroke();
+    c.restore();
+
+    if (arrowPaths.length) {
+      c.save();
+      c.translate(lamp.cx || 0, lamp.cy || 0);
+      c.globalAlpha *= (lamp.arrowGroupOpacity != null ? lamp.arrowGroupOpacity : 1)
+        * (lamp.arrowOpacity != null ? lamp.arrowOpacity : 1);
+      c.fillStyle = lamp.arrowFill || '#4a4e5a';
+      for (let pi = 0; pi < arrowPaths.length; pi++) {
+        fillPolygonPoints(c, arrowPaths[pi]);
+      }
+      c.restore();
+    }
+  }
+
+  c.restore();
+}
+
+function signalRoundRectPath(c, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  if (typeof c.roundRect === 'function') {
+    c.beginPath();
+    c.roundRect(x, y, w, h, rr);
+    return;
+  }
+  c.beginPath();
+  c.moveTo(x + rr, y);
+  c.arcTo(x + w, y, x + w, y + h, rr);
+  c.arcTo(x + w, y + h, x, y + h, rr);
+  c.arcTo(x, y + h, x, y, rr);
+  c.arcTo(x, y, x + w, y, rr);
+  c.closePath();
+}
+
+function fillPolygonPoints(c, pts) {
+  if (!pts || pts.length < 3) return;
+  c.beginPath();
+  c.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+  c.closePath();
+  c.fill();
+}
+
+/**
+ * Hit-test signal geometry in world space.
+ * Returns { nodeKey, headKey } (headKey null for center) or null.
+ */
+function hitTestSignalAt(worldX, worldY) {
+  if (typeof nodes === 'undefined') return null;
+  let centerHit = null;
+
+  for (const [nodeKey, nd] of nodes) {
+    const sig = nd.signal;
+    if (!sig || !sig.heads || !sig.heads.length) continue;
+
+    for (let hi = 0; hi < sig.heads.length; hi++) {
+      const head = sig.heads[hi];
+      const hr = head.hitRect || {
+        x: -SIGNAL_HOUSING_W / 2 - 0.6,
+        y: -SIGNAL_HOUSING_H / 2 - 0.6,
+        w: SIGNAL_HOUSING_W + 1.2,
+        h: SIGNAL_HOUSING_H + 1.2
+      };
+      if (pointInRotatedRect(worldX, worldY, head.x, head.y, head.angleDeg || 0, hr)) {
+        return { nodeKey, headKey: head.key };
+      }
+    }
+
+    const nx = sig.nodeX != null ? sig.nodeX : Number(String(nodeKey).split(',')[0]);
+    const ny = sig.nodeY != null ? sig.nodeY : Number(String(nodeKey).split(',')[1]);
+    const r = sig.centerHitR != null
+      ? sig.centerHitR
+      : (typeof NODE_R !== 'undefined' ? NODE_R : 7) * 0.55;
+    if (Math.hypot(worldX - nx, worldY - ny) <= r) {
+      if (!centerHit) centerHit = { nodeKey, headKey: null };
+    }
+  }
+  return centerHit;
+}
+
+/** Inverse of Canvas/SVG translate(ox,oy) rotate(angleDeg); test axis-aligned local rect. */
+function pointInRotatedRect(wx, wy, ox, oy, angleDeg, rect) {
+  const rad = angleDeg * Math.PI / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const dx = wx - ox;
+  const dy = wy - oy;
+  const lx = dx * cos + dy * sin;
+  const ly = -dx * sin + dy * cos;
+  return lx >= rect.x && lx <= rect.x + rect.w
+      && ly >= rect.y && ly <= rect.y + rect.h;
 }
 
 function refreshAllSignalOpacities() {
