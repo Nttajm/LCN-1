@@ -207,7 +207,7 @@ function parkingBayCorners(bay, index) {
   ];
 }
 
-function appendStallMark(parent, corners, fill, stroke, labelFill, dash, heading) {
+function appendStallMark(parent, corners, fill, stroke, dash) {
   const pad = document.createElementNS(svgNS, 'polygon');
   pad.setAttribute('points', corners.map(p => p.x + ',' + p.y).join(' '));
   pad.setAttribute('fill', fill);
@@ -223,33 +223,11 @@ function appendStallMark(parent, corners, fill, stroke, labelFill, dash, heading
   ].map(p => p.x + ',' + p.y).join(' '));
   open.setAttribute('fill', 'none');
   open.setAttribute('stroke', stroke);
-  open.setAttribute('stroke-width', dash ? '0.7' : '0.55');
+  open.setAttribute('stroke-width', dash ? '0.85' : '0.7');
   open.setAttribute('stroke-linejoin', 'miter');
   open.setAttribute('stroke-linecap', 'butt');
   if (dash) open.setAttribute('stroke-dasharray', dash);
   parent.appendChild(open);
-
-  let cx = 0, cy = 0;
-  for (let i = 0; i < corners.length; i++) {
-    cx += corners[i].x;
-    cy += corners[i].y;
-  }
-  cx /= corners.length;
-  cy /= corners.length;
-  const ang = (heading != null ? heading : 0) * 180 / Math.PI;
-  const label = document.createElementNS(svgNS, 'text');
-  label.setAttribute('x', '0');
-  label.setAttribute('y', '0');
-  label.setAttribute('transform', `translate(${cx},${cy}) rotate(${ang})`);
-  label.setAttribute('text-anchor', 'middle');
-  label.setAttribute('dominant-baseline', 'central');
-  label.setAttribute('fill', labelFill);
-  label.setAttribute('font-size', '2.1');
-  label.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
-  label.setAttribute('font-weight', '700');
-  label.setAttribute('pointer-events', 'none');
-  label.textContent = 'P';
-  parent.appendChild(label);
 }
 
 function renderParkingBay(bay, ghost) {
@@ -261,11 +239,9 @@ function renderParkingBay(bay, ghost) {
   if (!ghost) g.setAttribute('data-parking', String(bay.id));
   const fill = ghost ? PARK_GHOST_FILL : PARK_FILL;
   const stroke = ghost ? PARK_GHOST_STROKE : PARK_STROKE;
-  const labelFill = ghost ? PARK_GHOST_LABEL : PARK_LABEL;
   const dash = ghost ? '2 1.5' : null;
-  const heading = Math.atan2(bay.uy, bay.ux);
   for (let i = 0; i < bay.count; i++) {
-    appendStallMark(g, parkingBayCorners(bay, i), fill, stroke, labelFill, dash, heading);
+    appendStallMark(g, parkingBayCorners(bay, i), fill, stroke, dash);
   }
   if (!ghost) {
     if (bay.el && bay.el.parentNode) bay.el.parentNode.removeChild(bay.el);
@@ -282,6 +258,7 @@ function redrawAllParking() {
     bay.el = null;
     renderParkingBay(bay, false);
   });
+  if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
 }
 
 function distPointToSeg(px, py, ax, ay, bx, by) {
@@ -694,9 +671,242 @@ function commitParkingDraft() {
   parkingIgnoreClick = true;
   parkingHover = null;
   clearParkingGhost();
+  if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
   updateParkingHud();
   if (typeof updateRoadToolbar === 'function') updateRoadToolbar();
   return true;
+}
+
+/** Eligible: under 3 lanes, or asymmetrical roads with 3+ lanes (e.g. 1+2, 0+3). */
+function segmentEligibleForAutoParking(seg) {
+  if (!seg) return false;
+  const dirs = typeof getRoadDirs === 'function'
+    ? getRoadDirs(seg)
+    : {
+      lanesIn: Math.max(0, seg.lanesIn || 0),
+      lanesOut: Math.max(0, seg.lanesOut || 0)
+    };
+  const li = dirs.lanesIn | 0;
+  const lo = dirs.lanesOut | 0;
+  const total = li + lo;
+  if (total < 1) return false;
+  if (total < 3) return true;
+  return li !== lo;
+}
+
+function removeParkingForSegment(segId) {
+  if (segId == null || !parkingBays.length) return false;
+  let changed = false;
+  const next = [];
+  for (let i = 0; i < parkingBays.length; i++) {
+    const bay = parkingBays[i];
+    if (bay.segId === segId) {
+      if (bay.el && bay.el.parentNode) bay.el.parentNode.removeChild(bay.el);
+      changed = true;
+    } else {
+      next.push(bay);
+    }
+  }
+  if (changed) parkingBays = next;
+  if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
+  return changed;
+}
+
+function commitAutoParkingBay(draft) {
+  if (!draft || draft.count < 1) return null;
+  const bay = {
+    id: parkingCounter++,
+    kind: 'parallel',
+    x1: draft.x1,
+    y1: draft.y1,
+    x2: draft.x2,
+    y2: draft.y2,
+    ux: draft.ux,
+    uy: draft.uy,
+    nx: draft.nx,
+    ny: draft.ny,
+    count: draft.count,
+    spotLength: draft.spotLength,
+    spotDepth: draft.spotDepth,
+    segId: draft.segId,
+    side: draft.side,
+    el: null
+  };
+  parkingBays.push(bay);
+  renderParkingBay(bay, false);
+  if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
+  return bay;
+}
+
+/** Softer junction insets so short blocks between nodes can still fit stalls. */
+function parkingClearRangeAuto(seg) {
+  const x1 = seg.startNode.x, y1 = seg.startNode.y;
+  const x2 = seg.endNode.x, y2 = seg.endNode.y;
+  const len = Math.hypot(x2 - x1, y2 - y1);
+  const spotL = parkSpotLength();
+  let minA = 0;
+  let maxA = len;
+  const hardPad = typeof STUB_R !== 'undefined' ? STUB_R : 13;
+  const softPad = Math.max(
+    typeof NODE_R !== 'undefined' ? NODE_R * 1.15 : 8,
+    hardPad * 0.45
+  );
+  if (typeof nodes !== 'undefined' && typeof getNodeKey === 'function') {
+    const sn = nodes.get(getNodeKey(x1, y1));
+    const en = nodes.get(getNodeKey(x2, y2));
+    if (sn && sn.count > 1) {
+      let inset = typeof getStubInset === 'function' ? getStubInset(seg, 'start') : hardPad;
+      inset = Math.min(inset, softPad);
+      minA = Math.max(minA, inset);
+    }
+    if (en && en.count > 1) {
+      let inset = typeof getStubInset === 'function' ? getStubInset(seg, 'end') : hardPad;
+      inset = Math.min(inset, softPad);
+      maxA = Math.min(maxA, len - inset);
+    }
+  }
+  // If still too tight for one stall but the road is long enough, relax further
+  if (maxA - minA < spotL * 0.9 && len >= spotL * 1.05) {
+    const target = Math.min(len, spotL * 1.05);
+    const mid = len * 0.5;
+    minA = Math.max(0, mid - target * 0.5);
+    maxA = Math.min(len, mid + target * 0.5);
+  }
+  if (maxA < minA) return { minA: 0, maxA: 0, len };
+  return { minA, maxA, len };
+}
+
+function maxParkingSpotsInClear(pick, dragSign, clear) {
+  if (!pick || !pick.seg) return 0;
+  const spotL = parkSpotLength();
+  if (!clear || clear.maxA - clear.minA < spotL * 0.5) return 0;
+  const start = pick.along;
+  if (start < clear.minA - 0.05 || start > clear.maxA + 0.05) return 0;
+
+  let limit = dragSign >= 0 ? clear.maxA : clear.minA;
+  for (let i = 0; i < parkingBays.length; i++) {
+    const bay = parkingBays[i];
+    if (bay.segId !== pick.seg.id || bay.side !== pick.side) continue;
+    const iv = bayAlongInterval(bay, pick.seg);
+    if (!iv) continue;
+    if (dragSign >= 0) {
+      if (iv.a1 <= start + 0.05) continue;
+      limit = Math.min(limit, iv.a0);
+    } else {
+      if (iv.a0 >= start - 0.05) continue;
+      limit = Math.max(limit, iv.a1);
+    }
+  }
+
+  let avail = dragSign >= 0 ? (limit - start) : (start - limit);
+  let n = Math.floor(avail / spotL + 1e-9);
+  if (n < 1) return 0;
+
+  while (n >= 1) {
+    const bay = buildParkingBayFromPick(Object.assign({}, pick, { dragSign }), n);
+    const iv = bayAlongInterval(bay, pick.seg);
+    const inClear = iv && iv.a0 >= clear.minA - 0.4 && iv.a1 <= clear.maxA + 0.4;
+    if (inClear && !bayOverlapsExisting(bay)) return n;
+    n--;
+  }
+  return 0;
+}
+
+function autoParkAlongSide(seg, side) {
+  if (!seg) return 0;
+  const spotL = parkSpotLength();
+  const clear = parkingClearRangeAuto(seg);
+  if (clear.maxA - clear.minA < spotL * 0.55) return 0;
+
+  let along = clear.minA;
+  let added = 0;
+  let guard = 0;
+  const step = spotL * 0.28;
+
+  while (along + spotL * 0.55 <= clear.maxA + 1e-6 && guard++ < 80) {
+    const curb = parkingCurbPoint(seg, along, side);
+    const pick = {
+      seg,
+      side,
+      ux: curb.ux,
+      uy: curb.uy,
+      nx: curb.nx,
+      ny: curb.ny,
+      half: curb.half,
+      len: curb.len,
+      along: curb.along,
+      cx: curb.x,
+      cy: curb.y,
+      dragSign: 1
+    };
+    const n = maxParkingSpotsInClear(pick, 1, clear);
+    if (n < 1) {
+      along += step;
+      continue;
+    }
+    const draft = buildParkingBayFromPick(pick, n);
+    if (bayOverlapsExisting(draft)) {
+      along += step;
+      continue;
+    }
+    commitAutoParkingBay(draft);
+    added += n;
+    const iv = bayAlongInterval(draft, seg);
+    along = (iv ? iv.a1 : along + n * spotL) + 0.08;
+  }
+  return added;
+}
+
+function autoParkAlongSegment(seg) {
+  if (!segmentEligibleForAutoParking(seg)) return 0;
+  return autoParkAlongSide(seg, 1) + autoParkAlongSide(seg, -1);
+}
+
+async function applyParkingToAllRoads(onProgress) {
+  ensureParkingLayers();
+  const list = (typeof segments !== 'undefined' && segments) ? segments.slice() : [];
+  // Longer roads first so short stubs lose less to corner overlap checks
+  list.sort((a, b) => {
+    const la = Math.hypot(a.endNode.x - a.startNode.x, a.endNode.y - a.startNode.y);
+    const lb = Math.hypot(b.endNode.x - b.startNode.x, b.endNode.y - b.startNode.y);
+    return lb - la;
+  });
+  const total = Math.max(1, list.length);
+  let spots = 0;
+  let roads = 0;
+  let cleared = 0;
+  let eligible = 0;
+
+  // Strip existing parking on eligible roads (and orphans on those ids) up front
+  for (let i = 0; i < list.length; i++) {
+    if (!segmentEligibleForAutoParking(list[i])) continue;
+    eligible++;
+    if (removeParkingForSegment(list[i].id)) cleared++;
+  }
+
+  for (let i = 0; i < list.length; i++) {
+    const seg = list[i];
+    if (typeof onProgress === 'function') {
+      onProgress((i + 0.15) / total, 'Optimizing road ' + (i + 1) + ' / ' + list.length + '…');
+    }
+    if (segmentEligibleForAutoParking(seg)) {
+      const n = autoParkAlongSegment(seg);
+      if (n > 0) {
+        spots += n;
+        roads++;
+      }
+    }
+    if (i % 2 === 0) {
+      await new Promise(r => requestAnimationFrame(r));
+    }
+  }
+
+  redrawAllParking();
+  updateParkingHud();
+  if (typeof onProgress === 'function') {
+    onProgress(1, 'Done · ' + spots + ' spots on ' + roads + ' / ' + eligible + ' roads');
+  }
+  return { spots, roads, cleared, total: list.length, eligible };
 }
 
 function cancelParkingDraft() {
@@ -993,6 +1203,7 @@ function clearParking(updateUi) {
   if (parkingLayer) {
     while (parkingLayer.firstChild) parkingLayer.removeChild(parkingLayer.firstChild);
   }
+  if (typeof invalidateParkingBayIndex === 'function') invalidateParkingBayIndex();
   if (updateUi !== false) updateParkingHud();
 }
 
@@ -1178,10 +1389,13 @@ function patchParkingModeExclusivity() {
       const before = segments ? segments.length : 0;
       const result = orig(ax, ay, bx, by);
       let half = roadHalfWidthForCut(null);
+      let newSeg = null;
       if (segments && segments.length > before) {
-        half = roadHalfWidthForCut(segments[segments.length - 1]);
+        newSeg = segments[segments.length - 1];
+        half = roadHalfWidthForCut(newSeg);
       }
       cutParkingByRoad(ax, ay, bx, by, half);
+      if (newSeg) autoParkAlongSegment(newSeg);
       return result;
     }
     wrappedAddSegmentBetween._parkingPatched = true;

@@ -859,7 +859,7 @@ const PARKING_CONFIG = {
   STAGE_POS_TOL: 1.1,
   STAGE_HEAD_TOL: 0.22,       // radians
   SETTLE_TIME: 0.35,
-  SEARCH_INTERVAL: 0.25,
+  SEARCH_INTERVAL: 0.45,      // was 0.25 — less bay scanning under load
   YIELD_LOOKAHEAD: 42,
   YIELD_GAP: 5.6 * 1.6,       // ~CAR_LENGTH * 1.6
   YIELD_LATERAL: 5.5,
@@ -870,6 +870,49 @@ const PARKING_CONFIG = {
 const CAR_COLORS = ['#e74c3c', '#3498db', '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22', '#ecf0f1', '#34495e', '#2ecc71', '#ff6fae'];
 
 let parkingSearchEnabled = true;
+let activeParkersCount = 0; // cars staging / reversing into stalls
+const parkingBaysBySeg = new Map();
+let parkingBaysIndexLen = -1;
+
+function invalidateParkingBayIndex() {
+  parkingBaysIndexLen = -1;
+}
+
+function ensureParkingBayIndex() {
+  if (!parkingBaysAvailable()) {
+    if (parkingBaysIndexLen !== 0) {
+      parkingBaysBySeg.clear();
+      parkingBaysIndexLen = 0;
+    }
+    return parkingBaysBySeg;
+  }
+  if (parkingBaysIndexLen === parkingBays.length) return parkingBaysBySeg;
+  parkingBaysBySeg.clear();
+  for (let i = 0; i < parkingBays.length; i++) {
+    const bay = parkingBays[i];
+    if (!bay || bay.segId == null) continue;
+    let list = parkingBaysBySeg.get(bay.segId);
+    if (!list) {
+      list = [];
+      parkingBaysBySeg.set(bay.segId, list);
+    }
+    list.push(bay);
+  }
+  parkingBaysIndexLen = parkingBays.length;
+  return parkingBaysBySeg;
+}
+
+function noteParkerActive(car) {
+  if (!car || car._parkerCounted) return;
+  car._parkerCounted = true;
+  activeParkersCount++;
+}
+
+function noteParkerInactive(car) {
+  if (!car || !car._parkerCounted) return;
+  car._parkerCounted = false;
+  activeParkersCount = Math.max(0, activeParkersCount - 1);
+}
 
 let driveMode = false;
 let pendingSpawn = null;
@@ -927,6 +970,11 @@ function rebuildCarIndexes() {
   for (let i = 0; i < cars.length; i++) {
     const car = cars[i];
     if (car.state === 'despawning' || car.isProbe) continue;
+    // Parked curb cars stay out of traffic spatial queries (huge win with auto-parking)
+    if (car.state === 'parked') {
+      car._segPos = null;
+      continue;
+    }
     refreshCarPoseCache(car);
     const ix = Math.floor(car._cx / SPATIAL_CELL);
     const iy = Math.floor(car._cy / SPATIAL_CELL);
@@ -939,7 +987,7 @@ function rebuildCarIndexes() {
     }
     bucket.push(car);
 
-    if (car.state === 'parked' || car.state === 'parking') {
+    if (car.state === 'parking') {
       car._segPos = null;
       continue;
     }
@@ -1770,6 +1818,7 @@ function removeCar(car) {
   if (followedCar === car) unfollowCar();
   if (hoveredCar === car) clearHoveredCar();
   if (hoverRouteCar === car) clearHoverRouteHighlight();
+  noteParkerInactive(car);
   // Free reserved/occupied stall if this car held one
   if (car._parkPlan && car._parkPlan.bay && car._parkPlan.stallIndex != null) {
     const bay = car._parkPlan.bay;
@@ -1802,6 +1851,16 @@ function beginDespawn(car) {
   if (car.state === 'despawning') return;
   car.state = 'despawning';
   car.despawnT = 0;
+}
+
+function beginOuttaHere(car) {
+  if (!car || car.state === 'despawning' || car.state === 'parked' || car.state === 'parking') return;
+  if (typeof clearParkingIntent === 'function') clearParkingIntent(car);
+  car._outtaHere = true;
+  car.parkPhase = 'outta';
+  car._signalStatus = 'is outta here';
+  car._parkDebug = { phase: 'outta', spot: 'none', blinker: null, dist: null };
+  beginDespawn(car);
 }
 
 // ---------------- Selection / follow camera ----------------
@@ -2409,7 +2468,8 @@ function updateCameraFollow(car, dt) {
 function updateCarOverlayContent(car) {
   const remaining = Math.max(0, car.totalLength - car.traveledLength);
   const eta = estimateTimeRemaining(car);
-  const status = car.state === 'despawning' ? 'Arrived'
+  const status = car.state === 'despawning'
+    ? (car._outtaHere ? 'is outta here' : 'Arrived')
     : (car.state === 'parked' ? 'Parked'
       : (car.state === 'parking' ? ('Parking · ' + (car.parkPhase || 'reverse'))
         : (car._signalStatus ? car._signalStatus
@@ -2526,8 +2586,13 @@ function updateCarOverlayContent(car) {
 function clearAllCars() {
   if (controlledCar) exitCarControl();
   if (followedCar) unfollowCar();
-  cars.forEach(c => { clearRouteHighlightEls(c); c.el.remove(); });
+  cars.forEach(c => {
+    noteParkerInactive(c);
+    clearRouteHighlightEls(c);
+    c.el.remove();
+  });
   cars = [];
+  activeParkersCount = 0;
   clearAllParkingStalls();
   clearDebugOverlay();
   updateCarCountUI();
@@ -3004,6 +3069,7 @@ function describeCarAction(car) {
   else if (car.state === 'parking') tags.push({ text: 'Parking · ' + (car.parkPhase || ''), color: '#ffb020' });
   else if (car.parkPhase === 'staging') tags.push({ text: 'Staging to park', color: '#ffb020' });
   else if (car.parkPhase === 'searching') tags.push({ text: 'Looking for parking', color: '#7fd4ff' });
+  else if (car._outtaHere || car.parkPhase === 'outta') tags.push({ text: 'is outta here', color: '#FF8A65' });
 
   const lcd = car._laneChangeDebug;
   if (lcd && lcd.phase && lcd.phase !== 'none') {
@@ -5443,6 +5509,7 @@ function clearAllParkingStalls() {
 function clearParkingIntent(car) {
   if (!car) return;
   releaseStallReservation(car);
+  noteParkerInactive(car);
   car.parkingIntent = null;
   car.parkPhase = null;
   car._parkPlan = null;
@@ -5453,15 +5520,16 @@ function clearParkingIntent(car) {
   car._parkSearchT = 0;
   car._parkSettleT = 0;
   car._parkDebug = null;
+  car._cachedParkYield = null;
 }
 
 function segmentHasParkingForLane(seg, laneOffsetSign) {
   if (!seg || !parkingBaysAvailable()) return false;
-  for (let i = 0; i < parkingBays.length; i++) {
-    const bay = parkingBays[i];
-    if (bay.segId !== seg.id) continue;
-    if (laneOffsetSign === 0 || laneOffsetSign == null) return true;
-    if (bay.side === laneOffsetSign) return true;
+  const list = ensureParkingBayIndex().get(seg.id);
+  if (!list || !list.length) return false;
+  if (laneOffsetSign === 0 || laneOffsetSign == null) return true;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].side === laneOffsetSign) return true;
   }
   return false;
 }
@@ -5488,7 +5556,8 @@ function evaluateParkingIntent(car) {
   if (car.parkPhase === 'staging' || car.parkPhase === 'reverse1'
       || car.parkPhase === 'reverse2' || car.parkPhase === 'settle') return;
   clearParkingIntent(car);
-  if (!parkingSearchEnabled || !parkingBaysAvailable()) return;
+  if (!parkingSearchEnabled) return;
+  if (!parkingBaysAvailable()) return;
   const dest = car.destPick;
   if (!dest || !dest.atom || dest.atom.kind !== 'lane') return;
   const seg = findSegmentById(dest.atom.segId);
@@ -5732,9 +5801,10 @@ function findParkingCandidate(car) {
     : 0;
 
   let best = null;
-  for (let b = 0; b < parkingBays.length; b++) {
-    const bay = parkingBays[b];
-    if (bay.segId !== segId) continue;
+  const bayList = ensureParkingBayIndex().get(segId);
+  if (!bayList || !bayList.length) return null;
+  for (let b = 0; b < bayList.length; b++) {
+    const bay = bayList[b];
     if (side !== 0 && bay.side !== side) continue;
     // Bay travel vs car travel: stall must be ahead
     const bayDot = bay.ux * approachUx + bay.uy * approachUy;
@@ -5775,6 +5845,7 @@ function beginParkingStaging(car, candidate) {
   car.parkPhase = 'staging';
   car._parkArcS = 0;
   car._parkSettleT = 0;
+  noteParkerActive(car);
   car._parkDebug = {
     phase: 'staging',
     spot: 'bay#' + candidate.bay.id + '[' + candidate.stallIndex + ']',
@@ -5831,10 +5902,10 @@ function updateParkingSearch(car, dt) {
     return;
   }
 
-  // Running out of road on this destination leg with no stall
+  // Running out of road on this destination leg with no stall → leave
   const remainingOnSeg = Math.max(0, curLeg.cumEnd - car.traveledLength);
   if (remainingOnSeg < ALLIE_CONFIG.CAR_LENGTH * 1.2) {
-    clearParkingIntent(car);
+    beginOuttaHere(car);
   } else if (car._parkDebug) {
     car._parkDebug = { phase: 'searching', spot: 'none free', blinker: null, dist: null };
   }
@@ -5858,9 +5929,14 @@ function parkingApproachConstraintFor(car) {
 
 function parkingYieldConstraintFor(car) {
   car._parkYieldOther = null;
+  if (activeParkersCount <= 0) return null;
   if (car.state === 'parking' || car.state === 'parked') return null;
   if (car.parkPhase === 'staging') return null;
   if (car.isProbe) return null;
+  // Stagger soft yield scans — reuse last result on off frames
+  if (((car.id + tickFrame) & 1) === 1) {
+    return car._cachedParkYield || null;
+  }
 
   const egoX = car._cx != null ? car._cx : car.x;
   const egoY = car._cy != null ? car._cy : car.y;
@@ -5886,7 +5962,10 @@ function parkingYieldConstraintFor(car) {
     const gap = fwd - ALLIE_CONFIG.CAR_LENGTH;
     if (!best || gap < best.gap) best = { other, gap };
   }
-  if (!best) return null;
+  if (!best) {
+    car._cachedParkYield = null;
+    return null;
+  }
   car._parkYieldOther = best.other;
   const holdGap = PARKING_CONFIG.YIELD_GAP;
   const closing = Math.max(0, best.gap - holdGap);
@@ -5894,17 +5973,18 @@ function parkingYieldConstraintFor(car) {
   const desired = best.gap <= holdGap
     ? 0
     : Math.sqrt(Math.max(0, 2 * rate * closing));
-  return {
+  const result = {
     desired: Math.min(desired, ALLIE_CONFIG.CRUISE_SPEED * 0.5),
     decelRate: rate,
     status: 'Waiting for parking'
   };
+  car._cachedParkYield = result;
+  return result;
 }
 
 function updateParkingMotion(car, dt) {
   if (car.state === 'parked') {
     car.speed = 0;
-    applyCarTransform(car);
     return;
   }
   if (car.state !== 'parking') return;
@@ -5935,14 +6015,11 @@ function updateParkingMotion(car, dt) {
       car.parkPhase = 'parked';
       car._parkBlinker = null;
       car.speed = 0;
+      noteParkerInactive(car);
       occupyStall(plan.bay, plan.stallIndex, car);
       if (car._parkDebug) car._parkDebug.phase = 'parked';
       refreshCarPoseCache(car);
       applyCarTransform(car);
-    }
-    if (car.selected) {
-      updateFollowedCarInfo(car);
-      updateFollowTagPosition(car);
     }
     return;
   }
@@ -6087,10 +6164,6 @@ function updateCar(car, dt) {
     const lightOpacity = '0.15';
     for (let i = 0; i < car.lightEls.length; i++) setSvgOpacity(car.lightEls[i], lightOpacity);
     updateCarBlinkers(car, dt);
-    if (car.selected) {
-      updateFollowedCarInfo(car);
-      updateFollowTagPosition(car);
-    }
     return;
   }
 
@@ -6171,7 +6244,17 @@ function updateCar(car, dt) {
     advanceCarLeg(car);
 
     if (car.traveledLength >= car.totalLength - 0.05 && car.speed <= 0.5) {
-      beginDespawn(car);
+      if (parkingSearchEnabled && car.state === 'driving') {
+        // Last chance at destination; otherwise leave
+        let staged = false;
+        if (car.parkingIntent) {
+          const candidate = findParkingCandidate(car);
+          if (candidate) staged = beginParkingStaging(car, candidate);
+        }
+        if (!staged) beginOuttaHere(car);
+      } else if (car.state === 'driving') {
+        beginDespawn(car);
+      }
     }
   } else {
     // Still advance legs slowly so we don't look "stuck" on HUD remaining,
@@ -6183,10 +6266,6 @@ function updateCar(car, dt) {
     if (car.state === 'parking') {
       applyCarTransform(car);
       updateCarBlinkers(car, dt);
-      if (car.selected) {
-        updateFollowedCarInfo(car);
-        updateFollowTagPosition(car);
-      }
       return;
     }
   }
@@ -6195,11 +6274,6 @@ function updateCar(car, dt) {
   const lightOpacity = car.braking ? '0.95' : '0.15';
   for (let i = 0; i < car.lightEls.length; i++) setSvgOpacity(car.lightEls[i], lightOpacity);
   updateCarBlinkers(car, dt);
-
-  if (car.selected) {
-    updateFollowedCarInfo(car);
-    updateFollowTagPosition(car);
-  }
 
   updateIdleCarWatchdog(car, dt);
 }
@@ -6692,10 +6766,10 @@ function updateSpawners(dt) {
 
 // ---------------- Main loop ----------------
 
-const TARGET_FPS = 45;
+const TARGET_FPS = 60;
 const FRAME_MS = 1000 / TARGET_FPS;
 const FIXED_DT = 1 / TARGET_FPS;
-const MAX_DT = 1 / 20; // absorb hitches without huge sim jumps
+const MAX_DT = 1 / 30; // keep steps even when a hitch occurs
 
 let tickFrame = 0;
 let lastTick = null;
@@ -6717,13 +6791,15 @@ if (typeof window !== 'undefined') {
 function tick(ts) {
   requestAnimationFrame(tick);
 
-  // Target ~60fps; skip only if we're ahead of the display budget.
-  if (lastTick != null && ts - lastTick < FRAME_MS * 0.85) return;
+  // Stay close to display refresh; only drop ultra-early frames
+  if (lastTick != null && ts - lastTick < FRAME_MS * 0.55) return;
 
   tickFrame++;
   let dt = lastTick == null ? FIXED_DT : (ts - lastTick) / 1000;
   lastTick = ts;
-  dt = Math.min(Math.max(dt, FIXED_DT * 0.5), MAX_DT);
+  // Prefer steady steps — avoid large catch-up jumps that feel choppy
+  if (dt > MAX_DT) dt = FIXED_DT;
+  else dt = Math.min(Math.max(dt, FIXED_DT * 0.75), MAX_DT);
 
   // Re-check hover every few frames — cars move and the follow camera pans under a
   // stationary cursor, so mousemove alone isn't enough.

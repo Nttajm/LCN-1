@@ -1350,6 +1350,7 @@
           <button class="lane-btn" onclick="newBlankMap()">New blank</button>
           <button class="lane-btn" onclick="exportMapFile()">Export</button>
           <button class="lane-btn" onclick="document.getElementById('map-file-input').click()">Import</button>
+          <button class="lane-btn wide-col" onclick="applyParkingToMap()" title="Add curb parking to roads under 3 lanes, plus asymmetrical 3+ lane roads">Apply parking</button>
         </div>
         <input type="file" id="map-file-input" accept=".json,application/json" hidden onchange="importMapFile(event)">
         <div class="maps-status" id="maps-status"></div>
@@ -1406,7 +1407,7 @@
 
   <div id="traffic-load-screen" aria-live="polite">
     <div class="tls-inner">
-      <div class="tls-title">TRAFFIC STATE</div>
+      <div class="tls-title" id="tls-title">TRAFFIC STATE</div>
       <div class="tls-info" id="tls-info">Preparing…</div>
       <div class="tls-bar"><div class="tls-fill" id="tls-fill"></div></div>
       <div class="tls-pct" id="tls-pct">0%</div>
@@ -5473,22 +5474,55 @@
       if (nameInput && !nameInput.value && pick) nameInput.value = pick;
     }
 
-    function showTrafficLoadScreen(pct, info) {
+    function showTrafficLoadScreen(pct, info, title) {
       const screen = document.getElementById('traffic-load-screen');
       const fill = document.getElementById('tls-fill');
       const infoEl = document.getElementById('tls-info');
       const pctEl = document.getElementById('tls-pct');
+      const titleEl = document.getElementById('tls-title');
       if (!screen) return;
       screen.classList.add('visible');
       const p = Math.max(0, Math.min(1, pct || 0));
       if (fill) fill.style.width = (p * 100).toFixed(1) + '%';
       if (infoEl && info) infoEl.textContent = info;
       if (pctEl) pctEl.textContent = Math.round(p * 100) + '%';
+      if (titleEl && title) titleEl.textContent = title;
     }
 
     function hideTrafficLoadScreen() {
       const screen = document.getElementById('traffic-load-screen');
       if (screen) screen.classList.remove('visible');
+    }
+
+    let applyParkingBusy = false;
+    async function applyParkingToMap() {
+      if (applyParkingBusy) return;
+      if (typeof applyParkingToAllRoads !== 'function') {
+        setMapsStatus('Parking tool not ready');
+        return;
+      }
+      if (!segments || !segments.length) {
+        setMapsStatus('No roads to park');
+        return;
+      }
+      applyParkingBusy = true;
+      showTrafficLoadScreen(0, 'Starting optimization…', 'APPLY PARKING');
+      try {
+        const result = await applyParkingToAllRoads((pct, info) => {
+          showTrafficLoadScreen(pct, info, 'APPLY PARKING');
+        });
+        showTrafficLoadScreen(1, 'Ready · ' + result.spots + ' spots on ' + result.roads + ' roads', 'APPLY PARKING');
+        await new Promise(r => setTimeout(r, 280));
+        hideTrafficLoadScreen();
+        setMapsStatus('Parking applied · ' + result.spots + ' spots · ' + result.roads
+          + (result.eligible != null ? ' / ' + result.eligible : '') + ' roads'
+          + (result.total ? ' · ' + result.total + ' checked' : ''));
+      } catch (err) {
+        hideTrafficLoadScreen();
+        setMapsStatus('Parking failed — ' + (err && err.message ? err.message : 'error'));
+      } finally {
+        applyParkingBusy = false;
+      }
     }
 
     function saveCurrentTrafficState() {
@@ -5524,14 +5558,14 @@
         setTrafficStateStatus('Engine not ready');
         return false;
       }
-      showTrafficLoadScreen(0, 'Starting load…');
+      showTrafficLoadScreen(0, 'Starting load…', 'TRAFFIC STATE');
       try {
         const result = await importTrafficState(data, (pct, info) => {
-          showTrafficLoadScreen(pct, info);
+          showTrafficLoadScreen(pct, info, 'TRAFFIC STATE');
         });
         // Brief hold on "Ready" so the bar reads complete
         showTrafficLoadScreen(1, 'Ready · ' + result.cars + ' cars loaded'
-          + (result.skipped ? ' · ' + result.skipped + ' skipped' : ''));
+          + (result.skipped ? ' · ' + result.skipped + ' skipped' : ''), 'TRAFFIC STATE');
         await new Promise(r => setTimeout(r, 280));
         hideTrafficLoadScreen();
         setTrafficStateStatus('Loaded' + (label ? ' · ' + label : '') + ' · '
