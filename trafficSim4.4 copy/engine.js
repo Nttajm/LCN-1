@@ -891,12 +891,12 @@ const ALLIE_CONFIG = {
 
 // Parallel-parking RH maneuver — reverse two-arc S-curve sized from each stall.
 const PARKING_CONFIG = {
-  SWEEP_DEG: 52,              // base arc sweep per half — tighter S-curve (was 38)
-  SWEEP_MIN_DEG: 38,          // don't flatten toward a straight reverse
-  STAGE_EXTRA: 0.35,          // stage closer to the stall (was 1.4)
-  REVERSE_SPEED: 4.2,         // slower reverse so curves + holds read better
-  REVERSE_ACCEL: 8,
-  REVERSE_DECEL: 16,
+  SWEEP_DEG: 38,              // base arc sweep per half of the S-curve
+  SWEEP_MIN_DEG: 22,          // shrink toward this if neighbor collision
+  STAGE_EXTRA: 1.4,           // extra meters past geometric stage point
+  REVERSE_SPEED: 6.5,
+  REVERSE_ACCEL: 10,
+  REVERSE_DECEL: 14,
   APPROACH_DECEL: 28,
   STAGE_POS_TOL: 1.6,         // was 1.1 — a little more forgiving
   STAGE_HEAD_TOL: 0.30,       // was 0.22 — allow slightly wider angle
@@ -906,8 +906,8 @@ const PARKING_CONFIG = {
   SETTLE_TIME: 0.35,
   SEARCH_INTERVAL: 0.45,
   ROAM_MAX_ATTEMPTS: 6,       // failed roam/reroutes before giving up
-  YIELD_LOOKAHEAD: 56,
-  YIELD_GAP: 5.6 * 1.85,
+  YIELD_LOOKAHEAD: 48,
+  YIELD_GAP: 5.6 * 1.6,
   YIELD_LATERAL: 7.5,         // lane + curb swing during reverse
   YIELD_LATERAL_REVERSE: 11,  // stage-point hold while body is in the stall
   NEIGHBOR_SAMPLES: 10,
@@ -972,7 +972,6 @@ let simSpeed = 1;              // realtime playback multiplier (1 / 2 / 4 / 8)
 let simFastForwarding = false; // true while batch-skipping under the loader
 let simBatchMode = false;      // true during skip-draw FF: larger steps, skip render-only work
 let _batchRebuildSkip = 0;     // throttle rebuildCarIndexes while simBatchMode
-let tickFrame = 0;             // advanced per physics step (and used for stagger caches)
 let ffSkipSeconds = 3;         // selected skip interval (real sim seconds)
 let ffSkipDraw = false;        // true = loader + no mid-skip render (faster)
 let spawnersAllPaused = false; // master mute for spawners (cars still move)
@@ -2780,12 +2779,11 @@ function toggleFfSkipDraw() {
 /** Advance the sim by one physics step (no render). */
 function stepSim(dt) {
   if (!(dt > 0)) return;
-  tickFrame++;
   simTime += dt;
   if (typeof updateSignals === 'function') updateSignals(dt);
   updateSpawners(dt);
-  // Batch skip: rebuild spatial/lane indexes every 6th step (~0.75s stale at 1/8 dt)
-  if (!simBatchMode || (_batchRebuildSkip++ % 6 === 0)) rebuildCarIndexes();
+  // Batch skip: rebuild spatial/lane indexes every 3rd step (~0.25s stale at 1/8 dt)
+  if (!simBatchMode || (_batchRebuildSkip++ % 3 === 0)) rebuildCarIndexes();
   for (let i = cars.length - 1; i >= 0; i--) updateCar(cars[i], dt);
 }
 
@@ -5097,7 +5095,7 @@ function findNearestObstruction(car) {
 
   // Parking stage hold: reversing cars leave the lane corridor, so also treat
   // their fixed stage point as a stopped on-path lead until they finish.
-  {
+  if (activeParkersCount > 0) {
     const stageHalf = Math.max(corridorHalf, PARKING_CONFIG.YIELD_LATERAL);
     const stageHalfSq = stageHalf * stageHalf;
     for (let i = 0; i < nearby.length; i++) {
@@ -5190,14 +5188,14 @@ function scanDriverHead(car) {
 
   let caution = 0;
   let nearThreat = null, midThreat = null, farThreat = null;
-  let criticalThreat = null;
-  let criticalGap = Infinity;
   let nearestDist = Infinity;
 
   const nearby = collectNearbyCars(egoX, egoY, FAR + ALLIE_CONFIG.CAR_LENGTH);
   for (let i = 0; i < nearby.length; i++) {
     const other = nearby[i];
     if (other === car || other.isProbe || other.state === 'despawning') continue;
+    // Exact on-path lead is owned by findNearestObstruction / trafficConstraint
+    if (pathHazard && pathHazard.other === other) continue;
 
     const dx = other._cx - egoX, dy = other._cy - egoY;
     const distSq = dx * dx + dy * dy;
@@ -5206,22 +5204,8 @@ function scanDriverHead(car) {
     if (dist > FAR) continue;
 
     const fwd = dx * cosH + dy * sinH;
-    if (fwd < -ALLIE_CONFIG.CAR_LENGTH * 0.7) continue;
+    if (fwd < ALLIE_CONFIG.CAR_LENGTH * 0.25) continue;
     const lat = -dx * sinH + dy * cosH;
-
-    // Critical forward sensor: anything occupying the lane-sized "head" zone
-    // gets a hard yield, regardless of why it is there (traffic, parking, merge).
-    const criticalLat = Math.max(ALLIE_CONFIG.CAR_WIDTH * 2.0, corridorHalf * 2.2);
-    const bumperGap = fwd - ALLIE_CONFIG.CAR_LENGTH;
-    if (fwd <= NEAR + ALLIE_CONFIG.CAR_LENGTH && Math.abs(lat) <= criticalLat) {
-      if (!criticalThreat || bumperGap < criticalGap) {
-        criticalThreat = other;
-        criticalGap = bumperGap;
-      }
-    }
-
-    // Exact on-path lead is owned by findNearestObstruction / trafficConstraint
-    if (pathHazard && pathHazard.other === other) continue;
     // Skip pure same-lane corridor (traffic constraint already owns these)
     if (Math.abs(lat) < corridorHalf * 0.85 && fwd > 0) continue;
 
@@ -5259,8 +5243,6 @@ function scanDriverHead(car) {
   return {
     caution: clampNum(caution, 0, 1),
     nearThreat, midThreat, farThreat,
-    criticalThreat,
-    criticalGap,
     nearestDist
   };
 }
@@ -5272,24 +5254,9 @@ function headAwarenessConstraintFor(car) {
     head = scanDriverHead(car);
     car._headScan = head;
   } else {
-    head = car._headScan || { caution: 0, nearThreat: null, criticalThreat: null, criticalGap: Infinity, nearestDist: Infinity };
+    head = car._headScan || { caution: 0, nearThreat: null, nearestDist: Infinity };
   }
   car._headCaution = head.caution || 0;
-
-  if (head.criticalThreat) {
-    const leadV = Math.max(0, head.criticalThreat.speed || 0);
-    const holdGap = Math.max(ALLIE_CONFIG.DETECT_FOLLOW_GAP, ALLIE_CONFIG.CAR_LENGTH * 0.9);
-    const gap = isFinite(head.criticalGap) ? head.criticalGap : 0;
-    const closing = Math.max(0, gap - holdGap);
-    let desired = Math.sqrt(Math.max(0, leadV * leadV + 2 * ALLIE_CONFIG.DECEL_SHARP * closing));
-    if (gap <= holdGap || leadV < 1.2) desired = 0;
-    return {
-      desired: Math.max(0, Math.min(desired, ALLIE_CONFIG.HEAD_NEAR_SPEED_CAP)),
-      decelRate: ALLIE_CONFIG.DECEL_SHARP,
-      status: desired <= 0.2 ? 'Sensor stop' : 'Sensor yield'
-    };
-  }
-
   if (!head.caution || head.caution < 0.05) return null;
 
   const cruise = ALLIE_CONFIG.CRUISE_SPEED;
@@ -6377,119 +6344,6 @@ function computeDesiredSpeed(car) {
   return { desired, decelRate };
 }
 
-/**
- * Slim desired-speed for skip-draw batch FF.
- * Keeps signals / stop-yield / same-lane traffic / turns / parking approach.
- * Drops soft awareness, intersection box clearance, courtesy/scootch, head cone.
- */
-function computeDesiredSpeedBatch(car) {
-  const route = car.route;
-
-  if (car._emergencyLaneChange && car._emergencyLaneChangeStarted) {
-    const legNow = route[car.legIndex];
-    if (!legNow || legNow.atom.kind !== 'lanechange') {
-      car._emergencyLaneChange = false;
-      car._emergencyLaneChangeStarted = false;
-      car._postMergeEaseT = ALLIE_CONFIG.EMERGENCY_POST_MERGE_EASE_TIME;
-    }
-  }
-
-  const laneApproach = laneChangeApproachConstraintFor(car);
-  let desired = (laneApproach && laneApproach.boost) ? laneApproach.desired : ALLIE_CONFIG.CRUISE_SPEED;
-  let decelRate = ALLIE_CONFIG.DECEL_NORMAL;
-  let signalStatus = (laneApproach && laneApproach.boost) ? laneApproach.status : null;
-
-  const curLeg = route[car.legIndex];
-  if (curLeg && curLeg.atom.kind === 'turn' && curLeg.atom.targetSpeed < desired) {
-    desired = curLeg.atom.targetSpeed;
-    decelRate = curLeg.atom.sharp ? ALLIE_CONFIG.DECEL_SHARP : ALLIE_CONFIG.DECEL_NORMAL;
-  }
-  if (curLeg && curLeg.atom.kind === 'lanechange' && car._emergencyLaneChange) {
-    desired = Math.min(desired, ALLIE_CONFIG.EMERGENCY_LANE_CHANGE_SPEED);
-    decelRate = ALLIE_CONFIG.DECEL_NORMAL;
-    signalStatus = 'Forcing jam escape';
-  } else if (curLeg && curLeg.atom.kind === 'lanechange' && desired > ALLIE_CONFIG.CRUISE_SPEED * 0.94) {
-    desired = ALLIE_CONFIG.CRUISE_SPEED * 0.94;
-  }
-
-  for (let i = car.legIndex; i < route.length; i++) {
-    const leg = route[i];
-    const distToLegStart = Math.max(0, leg.cumStart - car.traveledLength);
-    if (distToLegStart > ALLIE_CONFIG.PLANNING_LOOKAHEAD) break;
-    if (leg.atom.kind === 'turn') {
-      const targetSpeed = leg.atom.targetSpeed;
-      const rate = leg.atom.sharp ? ALLIE_CONFIG.DECEL_SHARP : ALLIE_CONFIG.DECEL_NORMAL;
-      const brakingDist = Math.max(0, (car.speed * car.speed - targetSpeed * targetSpeed) / (2 * rate));
-      if (distToLegStart <= brakingDist + 0.001 && targetSpeed < desired) {
-        desired = targetSpeed;
-        decelRate = rate;
-      }
-    }
-  }
-
-  const remaining = Math.max(0, car.totalLength - car.traveledLength);
-  const arrivalBrakingDist = Math.max(ALLIE_CONFIG.ARRIVAL_MIN_DIST, (car.speed * car.speed) / (2 * ALLIE_CONFIG.ARRIVAL_DECEL));
-  if (remaining <= arrivalBrakingDist) {
-    const arrivalTarget = remaining <= 0.5 ? 0 : ALLIE_CONFIG.CRUISE_SPEED * (remaining / arrivalBrakingDist);
-    if (arrivalTarget < desired) { desired = Math.max(0, arrivalTarget); decelRate = ALLIE_CONFIG.ARRIVAL_DECEL; }
-  }
-
-  const sig = signalConstraintFor(car) || signedJunctionConstraintFor(car) || unsignalizedJunctionConstraintFor(car);
-  if (sig && sig.desired < desired) {
-    desired = sig.desired;
-    decelRate = sig.decelRate;
-    signalStatus = sig.status;
-  }
-
-  if (!signalStatus && car.rorPhase && car.rorPhase !== 'cleared') {
-    signalStatus = 'Right on red';
-  }
-
-  const traffic = trafficConstraintFor(car);
-  if (traffic && traffic.desired < desired) {
-    desired = traffic.desired;
-    decelRate = Math.max(decelRate, traffic.decelRate);
-    if (!signalStatus) signalStatus = traffic.status;
-  } else if (!signalStatus && car._trafficStatus) {
-    signalStatus = car._trafficStatus;
-  }
-
-  // Same as full path: every car must hold behind an active parker, not only
-  // cars that themselves have a parkingIntent.
-  const parkYield = parkingYieldConstraintFor(car);
-  if (parkYield && parkYield.desired < desired) {
-    desired = parkYield.desired;
-    decelRate = Math.max(decelRate, parkYield.decelRate);
-    signalStatus = parkYield.status;
-  }
-  const parkApproach = parkingApproachConstraintFor(car);
-  if (parkApproach && parkApproach.desired < desired) {
-    desired = parkApproach.desired;
-    decelRate = Math.max(decelRate, parkApproach.decelRate);
-    signalStatus = parkApproach.status;
-  }
-
-  if (laneApproach && !laneApproach.boost && laneApproach.desired < desired) {
-    desired = laneApproach.desired;
-    decelRate = Math.max(decelRate, laneApproach.decelRate);
-    signalStatus = laneApproach.status;
-  }
-
-  const head = headAwarenessConstraintFor(car);
-  if (head && head.desired < desired) {
-    desired = head.desired;
-    decelRate = Math.max(decelRate, head.decelRate);
-    if (!signalStatus || signalStatus === 'Caution') signalStatus = head.status;
-  }
-
-  if (curLeg && curLeg.atom.kind === 'lanechange') {
-    signalStatus = 'Changing lanes';
-  }
-
-  car._signalStatus = signalStatus;
-  return { desired, decelRate };
-}
-
 // ================================================================
 // PARALLEL PARKING — destination-triggered reverse RH maneuver
 //
@@ -6795,7 +6649,6 @@ function evaluateParkingIntent(car) {
       || car.parkPhase === 'reverse2' || car.parkPhase === 'settle') return;
   clearParkingIntent(car);
   car._parkRoamAttempts = 0;
-  car._parkRoamRejected = null;
   if (!parkingSearchEnabled) return;
   if (!parkingBaysAvailable()) return;
   const dest = car.destPick;
@@ -6874,35 +6727,6 @@ function stallQuadAsOBB(corners) {
   };
 }
 
-/**
- * Live OBB probe while reversing into a stall.
- * Same winner/loser rule as wouldCollideAt — only blocks the parker when it
- * would be the hard-safety LOSER of the overlap, so a stuck pair still has
- * exactly one car declared free to creep clear instead of both freezing forever.
- * Parked cars are not in the spatial hash — skip them here (neighbor stalls were
- * already checked when the plan was built).
- */
-function parkReverseBlockedBy(car, x, y, heading) {
-  const probe = { x, y, heading, id: car.id };
-  refreshCarPoseCache(probe);
-  const a = carOBB(probe);
-  const margin = ALLIE_CONFIG.HARD_SAFETY_MARGIN + 0.1;
-  const reach = ALLIE_CONFIG.CAR_LENGTH + ALLIE_CONFIG.CAR_WIDTH + margin * 2 + 2;
-  const nearby = collectNearbyCars(probe._cx, probe._cy, reach);
-  let worst = null;
-  for (let i = 0; i < nearby.length; i++) {
-    const other = nearby[i];
-    if (other === car || other.isProbe || other.state === 'despawning') continue;
-    if (other.state === 'parked') continue;
-    if (!obbOverlap(a, carOBB(other), margin)) continue;
-    const probeCar = { id: car.id, x, y, heading, _cx: probe._cx, _cy: probe._cy, _cosH: probe._cosH, _sinH: probe._sinH };
-    if (hardSafetyLoser(probeCar, other) !== probeCar) continue; // we win — keep reversing
-    if (!worst) worst = other;
-  }
-  return worst;
-}
-
-
 function parkingManeuverClearOfNeighbors(plan, bay, stallIndex) {
   if (typeof parkingBayCorners !== 'function') return true;
   const neighbors = [];
@@ -6965,8 +6789,7 @@ function computeParkingManeuver(bay, stallIndex, approachUx, approachUy, laneX, 
     // Typical: from outermost lane center (~half - 0.75) out to stall mid-depth
     D = Math.max(1.8, half * 0.55 + bay.spotDepth * 0.45);
   }
-  // Prefer a slightly smaller lateral for a snugger curb approach when geometry allows
-  D = clampNum(D * 0.92, 1.35, 10);
+  D = clampNum(D, 1.5, 12);
 
   // Blinker: curb on driver's right if n cross heading > 0 in SVG local-right frame
   // local right = (-ty, tx); curb is "right" if n · right > 0
@@ -6979,7 +6802,6 @@ function computeParkingManeuver(bay, stallIndex, approachUx, approachUy, laneX, 
     const theta = sweepDeg * Math.PI / 180;
     const cosT = Math.cos(theta);
     const sinT = Math.sin(theta);
-    // Larger sweep → smaller R → tighter S-curve into the stall
     const R = D / (2 * Math.max(1e-4, 1 - cosT));
     const L = 2 * R * sinT + PARKING_CONFIG.STAGE_EXTRA;
 
@@ -7282,16 +7104,11 @@ function updateParkingSearch(car, dt) {
       return;
     }
 
-    if (!car._parkRoamRejected) car._parkRoamRejected = new Set();
-    const rejected = car._parkRoamRejected;
-
-    // Closest free stall — reserve immediately so parallel roamers don't collide.
-    // Skip stalls this car already failed to path to (avoids infinite same-stall loops).
+    // Closest free stall — reserve immediately so parallel roamers don't collide
     let bestBay = null, bestStall = -1, bestDist = Infinity;
     for (let i = 0; i < parkingBays.length; i++) {
       const bay = parkingBays[i];
       for (let s = 0; s < bay.count; s++) {
-        if (rejected.has(bay.id + ':' + s)) continue;
         if (!stallIsFree(bay, s, car)) continue;
         const sc = stallCenterWorld(bay, s);
         const d = Math.hypot(sc.x - car.x, sc.y - car.y);
@@ -7299,7 +7116,7 @@ function updateParkingSearch(car, dt) {
       }
     }
     if (!bestBay) {
-      // Race / all free stalls already rejected — next interval still counts toward give-up
+      // Race: stalls vanished between the exists-check and the scan — try again
       return;
     }
 
@@ -7311,10 +7128,9 @@ function updateParkingSearch(car, dt) {
 
     const seg = findSegmentById(bestBay.segId);
     if (!seg) {
-      rejected.add(bestBay.id + ':' + bestStall);
       releaseStallReservation(car);
       car._parkPlan = null;
-      car.parkingIntent = { segId: null, roaming: true };
+      resumeParkingRoam(car);
       return;
     }
     car.parkingIntent = {
@@ -7329,28 +7145,25 @@ function updateParkingSearch(car, dt) {
 
     const origin = findNearestAtomPoint(car.x, car.y, 40, true);
     if (!origin) {
-      rejected.add(bestBay.id + ':' + bestStall);
       releaseStallReservation(car);
       car._parkPlan = null;
-      car.parkingIntent = { segId: null, roaming: true };
+      resumeParkingRoam(car);
       return;
     }
     const destPick = findLanePickForParkingBay(bestBay, bestStall);
     if (!destPick) {
-      rejected.add(bestBay.id + ':' + bestStall);
       releaseStallReservation(car);
       car._parkPlan = null;
       car.parkingIntent = { segId: null, roaming: true };
-      // Keep _parkRoamAttempts — do not undo; otherwise we loop forever on the same stall
+      car._parkRoamAttempts = Math.max(0, (car._parkRoamAttempts || 1) - 1);
       return;
     }
     const raw = allieFindPath(origin, destPick);
     if (!raw || !raw.length) {
-      rejected.add(bestBay.id + ':' + bestStall);
       releaseStallReservation(car);
       car._parkPlan = null;
       car.parkingIntent = { segId: null, roaming: true };
-      // Keep _parkRoamAttempts — do not undo; otherwise we loop forever on the same stall
+      car._parkRoamAttempts = Math.max(0, (car._parkRoamAttempts || 1) - 1);
       return;
     }
     // Keep the claim — evaluateParkingIntent would wipe it
@@ -7418,15 +7231,13 @@ function parkingApproachConstraintFor(car) {
 
 function parkingYieldConstraintFor(car) {
   car._parkYieldOther = null;
+  if (activeParkersCount <= 0) return null;
   if (car.state === 'parking' || car.state === 'parked') return null;
   if (car.parkPhase === 'staging') return null;
   if (car.isProbe) return null;
-  // Stagger soft yield scans — reuse last result on off frames.
-  // Skip stagger once we're already in an imminent hold so reaction stays fresh.
-  const cachedYield = car._cachedParkYield;
-  const imminentHold = !!(cachedYield && cachedYield.desired <= 1.0);
-  if (!imminentHold && ((car.id + tickFrame) & 1) === 1) {
-    return cachedYield || null;
+  // Stagger soft yield scans — reuse last result on off frames
+  if (((car.id + tickFrame) & 1) === 1) {
+    return car._cachedParkYield || null;
   }
 
   const egoX = car._cx != null ? car._cx : car.x;
@@ -7460,10 +7271,8 @@ function parkingYieldConstraintFor(car) {
       const anchor = anchors[a];
       const dx = anchor.x - egoX, dy = anchor.y - egoY;
       const fwd = dx * cosH + dy * sinH;
-      // Parking vehicles can move partly out of the lane while their stage point
-      // remains the "blocked lane" marker. Hold even if we have crept slightly
-      // past that marker; otherwise followers squeeze through the reverse path.
-      const minFwd = (reversing || staging || anchor.stage) ? -ALLIE_CONFIG.CAR_LENGTH * 0.8 : 1.2;
+      // Reversing: allow slightly "past" the stage so cars beside the swing still wait
+      const minFwd = (reversing && anchor.stage) ? -2.5 : 1.2;
       if (fwd < minFwd || fwd > look) continue;
       const lat = Math.abs(-dx * sinH + dy * cosH);
       const latLimit = (reversing || anchor.stage)
@@ -7530,19 +7339,18 @@ function updateParkingMotion(car, dt) {
   if (car.parkPhase === 'settle') {
     car.speed = 0;
     car._parkSettleT = (car._parkSettleT || 0) + dt;
-    // Snap gently to final pose (shortest-angle heading — ±π vs π must not spin 360°)
+    // Snap gently to final pose
     const fp = plan.finalPose;
-    const k = Math.min(1, dt * 6);
-    car.x += (fp.x - car.x) * k;
-    car.y += (fp.y - car.y) * k;
-    car.heading = wrapAngle(car.heading + wrapAngle(fp.heading - car.heading) * k);
+    car.x += (fp.x - car.x) * Math.min(1, dt * 6);
+    car.y += (fp.y - car.y) * Math.min(1, dt * 6);
+    car.heading += (fp.heading - car.heading) * Math.min(1, dt * 6);
     refreshCarPoseCache(car);
     applyCarTransform(car);
     updateCarBlinkers(car, dt);
     if (car._parkSettleT >= PARKING_CONFIG.SETTLE_TIME) {
       car.x = fp.x;
       car.y = fp.y;
-      car.heading = wrapAngle(fp.heading);
+      car.heading = fp.heading;
       car.state = 'parked';
       car.parkPhase = 'parked';
       car._parkBlinker = null;
@@ -7579,39 +7387,14 @@ function updateParkingMotion(car, dt) {
     car.speed = Math.min(car.speed, Math.sqrt(Math.max(0, 2 * PARKING_CONFIG.REVERSE_DECEL * Math.max(remaining, 0))));
   }
 
-  // Probe next pose along the reverse arc — hold if we'd drive through someone
-  const step = car.speed * dt;
-  const nextS = Math.min(arcLen, (car._parkArcS || 0) + Math.max(step, 0.08));
-  const nextPose = arc.sampleAtS(nextS);
-  if (nextPose) {
-    const nextH = Math.atan2(nextPose.ty, nextPose.tx);
-    const blocked = parkReverseBlockedBy(car, nextPose.x, nextPose.y, nextH);
-    if (blocked) {
-      car.speed = 0;
-      car.braking = true;
-      refreshCarPoseCache(car);
-      applyCarTransform(car);
-      car.brakeLit = true;
-      updateCarBlinkers(car, dt);
-      if (car._parkDebug) car._parkDebug.phase = (car.parkPhase || 'reverse') + ' · waiting';
-      if (car.selected) {
-        updateFollowedCarInfo(car);
-        updateFollowTagPosition(car);
-      }
-      return;
-    }
-  }
-
-  car._parkArcS = (car._parkArcS || 0) + step;
+  car._parkArcS = (car._parkArcS || 0) + car.speed * dt;
   car.braking = remaining < 1.2;
 
   if (car._parkArcS >= arcLen - 0.02) {
     const end = arc.sampleAtS(arcLen);
     car.x = end.x;
     car.y = end.y;
-    // Keep continuous heading across arc1→arc2 / reverse→settle (avoid ±π flip)
-    const endH = Math.atan2(end.ty, end.tx);
-    car.heading = wrapAngle(car.heading + wrapAngle(endH - car.heading));
+    car.heading = Math.atan2(end.ty, end.tx);
     car._parkArcS = 0;
     if (car.parkPhase === 'reverse1') {
       car.parkPhase = 'reverse2';
@@ -7626,8 +7409,7 @@ function updateParkingMotion(car, dt) {
     const p = arc.sampleAtS(car._parkArcS);
     car.x = p.x;
     car.y = p.y;
-    const h = Math.atan2(p.ty, p.tx);
-    car.heading = wrapAngle(car.heading + wrapAngle(h - car.heading));
+    car.heading = Math.atan2(p.ty, p.tx);
   }
 
   refreshCarPoseCache(car);
@@ -7639,129 +7421,6 @@ function updateParkingMotion(car, dt) {
     updateFollowedCarInfo(car);
     updateFollowTagPosition(car);
   }
-}
-
-/**
- * Coarse route integrator for skip-draw batch FF.
- * Snaps pose along the route; no Pure Pursuit / soft awareness / LC systems.
- * Still applies parking yield + a cheap OBB hard-stop so cars cannot drive through each other.
- */
-function updateCarBatch(car, dt) {
-  // Staging arrival needs frequent checks; roam/search bay scans are expensive — throttle those.
-  if (car.parkingIntent) {
-    if (car.parkPhase === 'staging') {
-      updateParkingSearch(car, dt);
-    } else {
-      car._batchParkSearchT = (car._batchParkSearchT || 0) + dt;
-      if (car._batchParkSearchT >= 2) {
-        car._batchParkSearchT = 0;
-        updateParkingSearch(car, dt);
-      }
-    }
-    if (car.state === 'parking' || car.state === 'parked') {
-      updateParkingMotion(car, dt);
-      return;
-    }
-  }
-
-  const prevSpeed = car.speed;
-  const { desired, decelRate } = computeDesiredSpeedBatch(car);
-  car._debugDesired = desired;
-  let accelRate = ALLIE_CONFIG.ACCEL;
-  if (car._postMergeEaseT > 0) {
-    accelRate = ALLIE_CONFIG.ACCEL * ALLIE_CONFIG.EMERGENCY_POST_MERGE_ACCEL_MULT;
-    car._postMergeEaseT = Math.max(0, car._postMergeEaseT - dt);
-  }
-  if (car.speed < desired - 0.01) {
-    car.speed = Math.min(desired, car.speed + accelRate * dt);
-  } else if (car.speed > desired + 0.01) {
-    car.speed = Math.max(desired, car.speed - decelRate * dt);
-  }
-  car._debugAccel = dt > 0.0001 ? (car.speed - prevSpeed) / dt : 0;
-  car.braking = car.speed < prevSpeed - 0.01;
-
-  advanceRightOnRed(car, dt);
-
-  const oldX = car.x, oldY = car.y, oldH = car.heading, oldTL = car.traveledLength;
-
-  if (car.parkPhase === 'staging' && car._parkStagePoint) {
-    // Creep toward stage point without Pure Pursuit / OBB
-    const sp = car._parkStagePoint;
-    const dx = sp.x - car.x, dy = sp.y - car.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist > 0.05 && car.speed > 0.02) {
-      const step = Math.min(dist, car.speed * dt);
-      car.x += (dx / dist) * step;
-      car.y += (dy / dist) * step;
-      if (car._parkStageHeading != null) car.heading = car._parkStageHeading;
-    }
-    car.traveledLength = Math.min(car.totalLength, car.traveledLength + car.speed * dt * 0.15);
-    advanceCarLeg(car);
-    refreshCarPoseCache(car);
-    updateParkingSearch(car, 0);
-    if (car.state === 'parking') {
-      applyCarTransform(car);
-      car.brakeLit = !!car.braking;
-      return;
-    }
-  } else {
-    car.traveledLength = Math.min(car.totalLength, car.traveledLength + car.speed * dt);
-    advanceCarLeg(car);
-    const pose = sampleRouteAtDistance(car, car.traveledLength);
-    if (pose) {
-      car.x = pose.x;
-      car.y = pose.y;
-      car.heading = Math.atan2(pose.ty, pose.tx);
-    }
-    refreshCarPoseCache(car);
-
-    if (car.traveledLength >= car.totalLength - 0.05 && car.speed <= 0.5) {
-      if (parkingSearchEnabled && car.state === 'driving') {
-        let staged = false;
-        if (car.parkingIntent && !car.parkingIntent.roaming) {
-          const candidate = findParkingCandidate(car);
-          if (candidate) staged = beginParkingStaging(car, candidate);
-        }
-        if (!staged) {
-          if (car.parkingIntent && car.parkingIntent.roaming) {
-            // leave throttled updateParkingSearch to reroute
-          } else if (car.parkingIntent) {
-            resumeParkingRoam(car);
-          } else {
-            beginOuttaHere(car);
-          }
-        }
-      } else if (car.state === 'driving') {
-        beginDespawn(car);
-      }
-    }
-  }
-
-  // Cheap hard-stop: only when near an active parker or a tight lead — restores
-  // "cannot drive through" during batch FF without full per-frame OBB for every car.
-  if (car.speed > 0.02 && cars.length > 1) {
-    const obs = car._lastObstruction;
-    const nearParkHold = !!car._parkYieldOther
-      || (car._cachedParkYield && car._cachedParkYield.desired < ALLIE_CONFIG.CRUISE_SPEED * 0.5)
-      || (activeParkersCount > 0 && obs && obs.gap < PARKING_CONFIG.YIELD_LOOKAHEAD);
-    const tightLead = obs && obs.gap < ALLIE_CONFIG.DETECT_RING_INNER;
-    if (nearParkHold || tightLead) {
-      const hit = wouldCollideAt(car, car.x, car.y, car.heading);
-      if (hit) {
-        car.x = oldX;
-        car.y = oldY;
-        car.heading = oldH;
-        car.traveledLength = oldTL;
-        car.speed = 0;
-        car.braking = true;
-        refreshCarPoseCache(car);
-        if (!car._signalStatus) car._signalStatus = 'Blocked';
-      }
-    }
-  }
-
-  applyCarTransform(car);
-  car.brakeLit = !!car.braking;
 }
 
 function updateCar(car, dt) {
@@ -7776,12 +7435,6 @@ function updateCar(car, dt) {
 
   if (car.state === 'parked' || car.state === 'parking') {
     updateParkingMotion(car, dt);
-    return;
-  }
-
-  // Skip-draw FF: coarse route snap (no PP / OBB / soft awareness / LC systems)
-  if (simBatchMode) {
-    updateCarBatch(car, dt);
     return;
   }
 
@@ -7864,17 +7517,8 @@ function updateCar(car, dt) {
   }
 
   if (car.speed > 0.02 && cars.length > 1) {
-    // Stagger full OBB checks across frames when not recently blocked —
-    // but always run near an active parking maneuver so we can't skip a frame
-    // and plow into a staging / reversing car.
-    let forceObb = !!car._hardSafetyHit;
-    if (!forceObb && car._parkYieldOther) {
-      forceObb = true;
-    } else if (!forceObb && activeParkersCount > 0) {
-      const obs = car._lastObstruction;
-      if (obs && obs.gap < PARKING_CONFIG.YIELD_LOOKAHEAD) forceObb = true;
-    }
-    if (forceObb || ((car.id + tickFrame) & 1) === 0) {
+    // Stagger full OBB checks across frames when not recently blocked
+    if (car._hardSafetyHit || ((car.id + tickFrame) & 1) === 0) {
       const resolved = resolveHardSafety(car, nextX, nextY, nextHeading, steer, dt);
       nextX = resolved.x;
       nextY = resolved.y;
@@ -8128,20 +7772,6 @@ function updateSpawnerPauseAllButton() {
   btn.classList.toggle('active', spawnersAllPaused);
 }
 
-function formatSpawnerRowTitle(sp) {
-  const dests = sp.destCount != null
-    ? sp.destCount
-    : (sp.routeCache ? sp.routeCache.length : (sp.destCache ? sp.destCache.length : 0));
-  const routes = sp.routeCache ? sp.routeCache.length : dests;
-  const timeLeft = sp.indefinite ? '∞' : Math.max(0, Math.ceil((sp.durationSec || 0) - sp.elapsed)) + 's';
-  let status;
-  if (simPaused) status = 'sim paused';
-  else if (spawnersAllPaused) status = 'all paused';
-  else if (!sp.running) status = 'paused';
-  else status = 'on · ' + timeLeft;
-  return '#' + sp.id + ' · every ' + sp.intervalSec + 's · ' + routes + ' routes · ' + status;
-}
-
 function updateSpawnerListUI() {
   updateSpawnerPauseAllButton();
   const list = document.getElementById('spawner-list');
@@ -8149,43 +7779,51 @@ function updateSpawnerListUI() {
   if (!spawners.length) {
     if (list._spawnerEmpty) return;
     list._spawnerEmpty = true;
-    list._spawnerTitleById = null;
     list.innerHTML = '<div class="spawner-empty">No spawners placed</div>';
     return;
   }
   list._spawnerEmpty = false;
   list.innerHTML = spawners.map(sp => {
-    const title = formatSpawnerRowTitle(sp);
+    const dests = sp.destCount != null
+      ? sp.destCount
+      : (sp.routeCache ? sp.routeCache.length : (sp.destCache ? sp.destCache.length : 0));
+    const routes = sp.routeCache ? sp.routeCache.length : dests;
+    const timeLeft = sp.indefinite ? '∞' : Math.max(0, Math.ceil((sp.durationSec || 0) - sp.elapsed)) + 's';
+    let status;
+    if (simPaused) status = 'sim paused';
+    else if (spawnersAllPaused) status = 'all paused';
+    else if (!sp.running) status = 'paused';
+    else status = 'on · ' + timeLeft;
     return '<div class="spawner-row" data-spawner-id="' + sp.id + '">' +
-      '<div class="spawner-row-title">' + title + '</div>' +
+      '<div class="spawner-row-title">#' + sp.id + ' · every ' + sp.intervalSec + 's · ' + routes + ' routes · ' + status + '</div>' +
       '<div class="spawner-row-actions">' +
       '<button type="button" class="lane-btn sig-mini" data-spawner-action="toggle">' + (sp.running ? 'Pause' : 'Start') + '</button>' +
       '<button type="button" class="lane-btn sig-mini" data-spawner-action="remove">Del</button>' +
       '</div></div>';
   }).join('');
-  // Cache row-title nodes once; per-second refresh avoids repeated querySelector scans.
-  const titleById = Object.create(null);
-  const rows = list.querySelectorAll('[data-spawner-id]');
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const id = Number(row.getAttribute('data-spawner-id'));
-    const title = row.querySelector('.spawner-row-title');
-    if (!Number.isFinite(id) || !title) continue;
-    titleById[id] = title;
-  }
-  list._spawnerTitleById = titleById;
 }
 
 /** Light countdown refresh — textContent only, no list rebuild / layout thrash. */
 function refreshSpawnerCountdowns() {
   const list = document.getElementById('spawner-list');
   if (!list || !spawners.length) return;
-  const titleById = list._spawnerTitleById || null;
   for (let i = 0; i < spawners.length; i++) {
     const sp = spawners[i];
-    const title = titleById ? titleById[sp.id] : null;
+    const row = list.querySelector('[data-spawner-id="' + sp.id + '"]');
+    if (!row) continue;
+    const title = row.querySelector('.spawner-row-title');
     if (!title) continue;
-    const next = formatSpawnerRowTitle(sp);
+    const dests = sp.destCount != null
+      ? sp.destCount
+      : (sp.routeCache ? sp.routeCache.length : (sp.destCache ? sp.destCache.length : 0));
+    const routes = sp.routeCache ? sp.routeCache.length : dests;
+    const timeLeft = sp.indefinite ? '∞' : Math.max(0, Math.ceil((sp.durationSec || 0) - sp.elapsed)) + 's';
+    let status;
+    if (simPaused) status = 'sim paused';
+    else if (spawnersAllPaused) status = 'all paused';
+    else if (!sp.running) status = 'paused';
+    else status = 'on · ' + timeLeft;
+    const next = '#' + sp.id + ' · every ' + sp.intervalSec + 's · ' + routes + ' routes · ' + status;
     if (title._spText !== next) {
       title._spText = next;
       title.textContent = next;
@@ -8453,6 +8091,7 @@ const FRAME_MS = 1000 / TARGET_FPS;
 const FIXED_DT = 1 / TARGET_FPS;
 const MAX_DT = 1 / 30; // keep steps even when a hitch occurs
 
+let tickFrame = 0;
 let lastTick = null;
 let _boardRectCache = null;
 let _boardRectCacheT = 0;
@@ -8478,6 +8117,7 @@ function tick(ts) {
     return;
   }
 
+  tickFrame++;
   let dt = lastTick == null ? FIXED_DT : (ts - lastTick) / 1000;
   lastTick = ts;
   // Prefer steady steps — avoid large catch-up jumps that feel choppy
@@ -8495,7 +8135,6 @@ function tick(ts) {
 
   if (!simPaused) {
     // Speed chevrons: run multiple fixed steps when simSpeed > 1
-    // tickFrame advances inside each stepSim for stagger/caches
     let budget = dt * (simSpeed > 0 ? simSpeed : 1);
     while (budget > 1e-8) {
       const step = Math.min(budget, MAX_DT);
@@ -8503,7 +8142,6 @@ function tick(ts) {
       budget -= step;
     }
   } else {
-    tickFrame++; // keep stagger clocks moving while paused (no stepSim)
     // Keep spatial indexes warm for hover/debug while paused
     if (cars.length) rebuildCarIndexes();
     if (typeof updateSignals === 'function') {

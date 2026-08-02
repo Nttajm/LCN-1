@@ -277,11 +277,8 @@ function rebuildPhaseRing(sig) {
 }
 
 function updateSignals(dt) {
-  // Batch FF covers the screen — advance phase timers only, paint on final renderFrame
-  const batchSkipPaint = (typeof simBatchMode !== 'undefined' && simBatchMode);
   if (!signalsEnabled) {
     // Still repaint so lamps go dark when master-off (once until re-enabled)
-    if (batchSkipPaint) return;
     nodes.forEach((nd, key) => {
       if (nd.signal && nd.signal.heads && nd.signal.heads.length) {
         if (nd.signal._paintKey !== 'off') {
@@ -296,7 +293,7 @@ function updateSignals(dt) {
     const sig = nd.signal;
     if (!sig || !sig.heads || sig.heads.length === 0) return;
     if (!sig.enabled) {
-      if (!batchSkipPaint && sig._paintKey !== 'disabled') {
+      if (sig._paintKey !== 'disabled') {
         paintSignalLamps(sig, true);
         sig._paintKey = 'disabled';
       }
@@ -304,12 +301,10 @@ function updateSignals(dt) {
     }
     if (!sig.phases || sig.phases.length === 0) rebuildPhaseRing(sig);
     if (typeof simPaused !== 'undefined' && simPaused) {
-      if (!batchSkipPaint) {
-        const keyPaused = 'p:' + sig.phaseIndex;
-        if (sig._paintKey !== keyPaused) {
-          paintSignalLamps(sig, false);
-          sig._paintKey = keyPaused;
-        }
+      const keyPaused = 'p:' + sig.phaseIndex;
+      if (sig._paintKey !== keyPaused) {
+        paintSignalLamps(sig, false);
+        sig._paintKey = keyPaused;
       }
       return;
     }
@@ -325,10 +320,6 @@ function updateSignals(dt) {
       sig.phaseIndex = (sig.phaseIndex + 1) % sig.phases.length;
     }
     // Lamps only change on phase transitions — skip repaint when unchanged
-    if (batchSkipPaint) {
-      if (sig.phaseIndex !== prevIndex) sig._paintKey = null; // force paint after FF
-      return;
-    }
     const paintKey = 'g:' + sig.phaseIndex;
     if (sig.phaseIndex !== prevIndex || sig._paintKey !== paintKey) {
       paintSignalLamps(sig, false);

@@ -283,31 +283,7 @@ FF panel gains a **Skip drawing** toggle (default **Off**).
 - **Off** — same as before: skip scrubs on-canvas at ~10–100× with live `renderFrame`.
 - **On** — skip uses the same black `traffic-load-screen` loader as Apply parking; physics batches as fast as the CPU allows (no mid-skip draw), then paints once at the end. Better for long minute jumps.
 
-- Batch path also uses larger steps (`1/8` s), skips blinker + spawner DOM work (`simBatchMode`), and rebuilds car spatial indexes every 6th step so long skips run much faster.
-- **Coarse batch integrator** (`updateCarBatch`): while Skip drawing is On, cars snap along routes with signals + same-lane lead gaps only — no Pure Pursuit, OBB hard-safety, soft awareness, discretionary lane changes, or stuck/parking Dijkstra thrash. Final `renderFrame` shows the result.
-
-
-
-## 4.4.11 — Parking yield + roam stuck fixes
-
-Cars no longer plow through a vehicle that is staging / reversing into a stall, and roamers no longer loop forever on an unreachable stall.
-
-- **Batch FF parking yield:** `computeDesiredSpeedBatch` now applies `parkingYieldConstraintFor` / `parkingApproachConstraintFor` for *every* car (same as the full path), not only cars with `parkingIntent`.
-- **Batch collision guard:** `updateCarBatch` hard-stops (reverts pose, speed 0) when a snapped pose would OBB-overlap another car near an active parker or tight lead.
-- **Normal-play hardening:** parking yield and hard-safety OBB no longer skip a frame when a hold is imminent / near an active parker; slightly longer `YIELD_LOOKAHEAD` / `YIELD_GAP`.
-- **Roam stuck:** failed path/pick stalls are blacklisted per car (`_parkRoamRejected`) so the next interval tries a different stall; roam attempts are no longer decremented on failure, so `ROAM_MAX_ATTEMPTS` can actually fire and send the car outta-here.
-
-
-
-## 4.4.12 — Tighter parallel-park reverse + no back-through
-
-Parallel park reverse S-curves are tighter / closer, and reversing cars hold instead of driving through traffic on the path.
-
-- Higher base sweep (`52°`, min `38°`), less stage overrun, slightly snugger lateral, slower reverse speed — more curved, less “straight back into the stall.”
-- `parkReverseBlockedBy` + hold in `updateParkingMotion`: if the next reverse pose would OBB-overlap another (non-parked) car, speed goes to 0 until clear (or the parking timeout aborts).
-- Fixed a stuck-forever regression: the block above used to freeze on *any* overlap with no priority rule, so two overlapping cars could both sit dead with nothing resolving it. `parkReverseBlockedBy` now uses the same `hardSafetyLoser` winner/loser rule as normal traffic — only the loser stops, the winner keeps reversing clear.
-- Parking yield no longer depends on the global active-parker counter being correct. Followers scan nearby staging/reversing cars directly, hold a wider "blocked lane" zone around the stage point, and force an OBB safety check once a parking-yield target is detected.
-- Driver-head sensors now have a hard **critical zone**: any car occupying the forward lane-sized sensor box forces `Sensor stop` / `Sensor yield`, even if normal route/parking hierarchy missed it. Batch fast-forward uses the same critical head check.
+- Batch path also uses larger steps (`1/8` s), skips blinker + spawner DOM work (`simBatchMode`), and rebuilds car spatial indexes every 3rd step so long skips run much faster.
 
 
 
