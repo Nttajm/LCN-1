@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinematic Parallel Parking Simulation</title>
+  <style>
+    :root {
+      --bg-color: #1e1e24;
+      --panel-bg: #2b2b36;
+      --text-color: #f0f0f5;
+      --accent: #00e5ff;
+    }
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+    .canvas-container {
+      position: relative;
+      border: 2px solid #444;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      background: #333;
+    }
+    canvas {
+      display: block;
+      background-color: #2a2d34;
+    }
+    .controls {
+      margin-top: 15px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    button {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .telemetry {
+      display: flex;
+      gap: 20px;
+      background: var(--panel-bg);
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Kinematic Bicycle Model: Parallel Parking</h1>
+
+  <div class="canvas-container">
+    <canvas id="simCanvas" width="850" height="400"></canvas>
+  </div>
+
+  <div class="controls">
+    <button id="restartBtn">Restart Simulation</button>
+    <div class="telemetry">
+      <div>Phase: <span id="phaseLabel">0: Approaching</span></div>
+      <div>Speed (v): <span id="speedLabel">0.00</span> px/frame</div>
+      <div>Steering (δ): <span id="steerLabel">0.0°</span></div>
+      <div>Heading (θ): <span id="headingLabel">0.0°</span></div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI elements
+    const phaseLabel = document.getElementById('phaseLabel');
+    const speedLabel = document.getElementById('speedLabel');
+    const steerLabel = document.getElementById('steerLabel');
+    const headingLabel = document.getElementById('headingLabel');
+
+    // --- PARKING LOT GEOMETRY ---
+    const LANE_Y = 160;       // Y-position of traffic lane
+    const PARKING_Y = 275;    // Y-position of parking lane
+    const SPOT_WIDTH = 150;
+    const SPOT_HEIGHT = 60;
+
+    // Parked car layout (Spot 1 = Front, Spot 2 = Empty, Spot 3 = Rear, Spot 4 = Far Rear)
+    const parkedCars = [
+      { x: 620, y: PARKING_Y, color: '#e76f51', label: 'Car 1' },
+      // Empty spot at x = 440
+      { x: 260, y: PARKING_Y, color: '#f4a261', label: 'Car 2' },
+      { x: 80,  y: PARKING_Y, color: '#e9c46a', label: 'Car 3' }
+    ];
+
+    // --- CAR KINEMATIC PROPERTIES ---
+    const CAR_LENGTH = 85;
+    const CAR_WIDTH = 42;
+    const WHEELBASE = 55;        // Distance between front and rear axle
+    const REAR_OVERHANG = 15;    // Distance from rear bumper to rear axle
+    const MAX_STEER = 0.58;      // ~33 degrees in radians
+
+    // Car State (x, y coordinate represents the REAR AXLE center)
+    let car = {
+      x: 100,
+      y: LANE_Y,
+      theta: 0,                  // Heading angle in radians
+      delta: 0,                  // Steering angle in radians
+      v: 0,                      // Velocity (px per frame)
+      blinkerOn: false,
+      blinkerTimer: 0,
+      phase: 0                   // Navigation phase
+    };
+
+    function resetCar() {
+      car.x = 120;
+      car.y = LANE_Y;
+      car.theta = 0;
+      car.delta = 0;
+      car.v = 2.2;
+      car.blinkerOn = true;
+      car.blinkerTimer = 0;
+      car.phase = 0;
+    }
+
+    // --- AUTOMATED PARKING LOGIC ---
+    function updateController() {
+      switch (car.phase) {
+        // Phase 0: Drive forward until rear axle is aligned with front parked car
+        case 0:
+          phaseLabel.textContent = "0: Approaching Spot";
+          car.v = 2.2;
+          car.delta = 0;
+          if (car.x >= 635) {
+            car.phase = 1;
+          }
+          break;
+
+        // Phase 1: Steer right and begin reversing into the spot
+        case 1:
+          phaseLabel.textContent = "1: Reversing & Steering Right";
+          car.v = -1.3;
+          car.delta = MAX_STEER; // Turn wheels toward curb
+          // Reverse until vehicle reaches ~38° entry angle
+          if (car.theta <= -0.66) {
+            car.phase = 2;
+          }
+          break;
+
+        // Phase 2: Counter-steer left while reversing to straighten out
+        case 2:
+          phaseLabel.textContent = "2: Counter-Steering Left";
+          car.v = -1.1;
+          car.delta = -MAX_STEER; // Counter-steer left
+          // Reverse until vehicle is parallel with curb (theta >= 0)
+          if (car.theta >= 0.0 || car.y >= PARKING_Y) {
+            car.phase = 3;
+          }
+          break;
+
+        // Phase 3: Straighten wheels and pull forward to center
+        case 3:
+          phaseLabel.textContent = "3: Centering in Space";
+          car.delta = 0;
+          if (car.x < 440) {
+            car.v = 0.8;
+          } else {
+            car.v = 0;
+            car.blinkerOn = false;
+            phaseLabel.textContent = "Parked Successfully!";
+          }
+          break;
+      }
+    }
+
+    // --- KINEMATIC BICYCLE DIFFERENTIAL EQUATIONS ---
+    function updatePhysics() {
+      // Bicycle model ODEs
+      const dx = car.v * Math.cos(car.theta);
+      const dy = car.v * Math.sin(car.theta);
+      const dTheta = (car.v / WHEELBASE) * Math.tan(car.delta);
+
+      car.x += dx;
+      car.y += dy;
+      car.theta += dTheta;
+
+      // Update blinker flash timer
+      car.blinkerTimer = (car.blinkerTimer + 1) % 30;
+
+      // Update telemetry UI
+      speedLabel.textContent = car.v.toFixed(2);
+      steerLabel.textContent = (car.delta * (180 / Math.PI)).toFixed(1) + '°';
+      headingLabel.textContent = (car.theta * (180 / Math.PI)).toFixed(1) + '°';
+    }
+
+    // --- DRAWING METHODS ---
+    function drawEnvironment() {
+      // Road asphalt
+      ctx.fillStyle = '#2d3139';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Curb line
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, PARKING_Y + CAR_WIDTH / 2 + 15);
+      ctx.lineTo(canvas.width, PARKING_Y + CAR_WIDTH / 2 + 15);
+      ctx.stroke();
+
+      // Parking lane markings
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 15]);
+      ctx.beginPath();
+      ctx.moveTo(0, PARKING_Y - CAR_WIDTH / 2 - 15);
+      ctx.lineTo(canvas.width, PARKING_Y - CAR_WIDTH / 2 - 15);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw parked cars
+      parkedCars.forEach(pCar => {
+        drawVehicle(pCar.x, pCar.y, 0, 0, pCar.color, pCar.label, false);
+      });
+    }
+
+    function drawVehicle(rearAxleX, rearAxleY, theta, steerAngle, bodyColor, label, isPlayer) {
+      ctx.save();
+      ctx.translate(rearAxleX, rearAxleY);
+      ctx.rotate(theta);
+
+      // Body geometry centered relative to rear axle
+      const bodyCenterX = (CAR_LENGTH / 2) - REAR_OVERHANG;
+      const bodyCenterY = 0;
+
+      // Draw shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(bodyCenterX - CAR_LENGTH / 2 + 4, -CAR_WIDTH / 2 + 4, CAR_LENGTH, CAR_WIDTH);
+
+      // Draw car chassis
+      ctx.fillStyle = bodyColor;
+      ctx.beginPath();
+      ctx.roundRect(bodyCenterX - CAR_LENGTH / 2, -CAR_WIDTH / 2, CAR_LENGTH, CAR_WIDTH, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#111';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw windshield and windows
+      ctx.fillStyle = '#1b263b';
+      ctx.fillRect(bodyCenterX - 8, -CAR_WIDTH / 2 + 5, 22, CAR_WIDTH - 10);
+      ctx.fillRect(bodyCenterX - CAR_LENGTH / 2 + 12, -CAR_WIDTH / 2 + 7, 18, CAR_WIDTH - 14);
+
+      // Draw wheels
+      const wheelW = 16;
+      const wheelH = 8;
+      const frontX = WHEELBASE;
+      const rearX = 0;
+      const halfTrack = CAR_WIDTH / 2 - 3;
+
+      // Rear wheels (fixed orientation aligned with vehicle chassis)
+      drawWheel(rearX, -halfTrack, 0, wheelW, wheelH);
+      drawWheel(rearX, halfTrack, 0, wheelW, wheelH);
+
+      // Front wheels (rotate by steering angle δ)
+      drawWheel(frontX, -halfTrack, steerAngle, wheelW, wheelH);
+      drawWheel(frontX, halfTrack, steerAngle, wheelW, wheelH);
+
+      // Draw rear-axle pivot marker (shows the mathematical center of rotation)
+      if (isPlayer) {
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Right blinker lights (front-right and rear-right corners in canvas +Y coordinate)
+        if (car.blinkerOn && car.blinkerTimer < 15) {
+          ctx.fillStyle = '#ffb703';
+          ctx.beginPath();
+          ctx.arc(bodyCenterX + CAR_LENGTH / 2 - 4, CAR_WIDTH / 2 - 4, 4, 0, Math.PI * 2);
+          ctx.arc(bodyCenterX - CAR_LENGTH / 2 + 4, CAR_WIDTH / 2 - 4, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Roof label
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, bodyCenterX, 0);
+
+      ctx.restore();
+    }
+
+    function drawWheel(x, y, angle, width, height) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.fillStyle = '#111';
+      ctx.fillRect(-width / 2, -height / 2, width, height);
+      ctx.restore();
+    }
+
+    // --- MAIN ANIMATION LOOP ---
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      updateController();
+      updatePhysics();
+
+      drawEnvironment();
+      // Draw active parking car
+      drawVehicle(car.x, car.y, car.theta, car.delta, '#00b4d8', 'You', true);
+
+      requestAnimationFrame(animate);
+    }
+
+    document.getElementById('restartBtn').addEventListener('click', resetCar);
+
+    // Initialize and start loop
+    resetCar();
+    animate();
+  </script>
+</body>
+</html>
