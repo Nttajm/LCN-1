@@ -110,7 +110,7 @@
         },
         {
           "type": "image",
-          "src": "https://lcnjoel.com/a_home_assets/content/fnat_poster_web.jpg",
+          "src": "data/work/fnat/fnat_poster_web.jpg",
           "title": "FNAT",
           "route": {
             "type": "link",
@@ -127,7 +127,7 @@
       "fit": "contain",
       "route": {
         "type": "app",
-        "value": ""
+        "value": "jmbins"
       },
       "pos": {
         "desktop": {
@@ -152,29 +152,17 @@
         {
           "type": "image",
           "src": "data/work/jmbins/c3.png",
-          "title": "jmbins",
-          "route": {
-            "type": "link",
-            "value": "lcnjoel.com/jmbins"
-          }
+          "title": "jmbins"
         },
         {
           "type": "image",
           "src": "data/work/jmbins/c1.png",
-          "title": "jmbins",
-          "route": {
-            "type": "link",
-            "value": "lcnjoel.com/jmbins"
-          }
+          "title": "jmbins"
         },
         {
           "type": "image",
           "src": "data/work/jmbins/c2.png",
-          "title": "jmbins",
-          "route": {
-            "type": "link",
-            "value": "lcnjoel.com/jmbins"
-          }
+          "title": "jmbins"
         }
       ]
     },
@@ -272,7 +260,10 @@
       "id": "item-1",
       "kind": "image",
       "color": "#1e23ae",
-      "route": null,
+      "route": {
+        "type": "app",
+        "value": "rfaa"
+      },
       "pos": {
         "desktop": {
           "col": "5/6",
@@ -291,25 +282,17 @@
         {
           "type": "image",
           "src": "data/work/rfaa/main-image.png",
+          "title": ""
+        },
+        {
+          "type": "image",
+          "src": "data/work/rfaa/f.png",
           "title": "RFAA"
         },
         {
           "type": "image",
           "src": "data/work/rfaa/sf.png",
-          "title": "RFAA",
-          "route": {
-            "type": "app",
-            "value": "rfaa"
-          }
-        },
-        {
-          "type": "image",
-          "src": "data/work/rfaa/f.png",
-          "title": "RFAA",
-          "route": {
-            "type": "app",
-            "value": "rfaa"
-          }
+          "title": "RFAA"
         }
       ]
     },
@@ -403,12 +386,12 @@
       "slides": [
         {
           "type": "image",
-          "src": "../images/mag-ana-2.jpg",
+          "src": "data/work/oquesera/mag-ana-2.jpg",
           "title": "O QUE SERA"
         },
         {
           "type": "image",
-          "src": "../oquesera/data/inde_n/cover_page.jpg",
+          "src": "data/work/oquesera/cover_page.jpg",
           "title": "O QUE SERA",
           "route": {
             "type": "app",
@@ -417,7 +400,7 @@
         },
         {
           "type": "image",
-          "src": "../oquesera/data/inde_n/s-3.jpg",
+          "src": "data/work/oquesera/s-3.jpg",
           "title": "O QUE SERA"
         },
         {

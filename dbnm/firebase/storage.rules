@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email == 'joelmulonde81@gmail.com';
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('verified', false) == true;
+    }
+
+    function canPublish() {
+      return isAdmin() || isVerifiedUser();
+    }
+
+    match /packages/{fileName} {
+      allow read: if true;
+      allow create, update: if canPublish()
+        && request.resource.size < 512 * 1024
+        && fileName.matches('^[a-zA-Z0-9_-]+\\.js$');
+      allow delete: if canPublish();
+    }
+  }
+}

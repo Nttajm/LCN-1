@@ -1523,3 +1523,221 @@ a.match-tab--link {
         height: 15rem;
     }
 }
+
+.content-match-info {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .match-info {
+        height: auto;
+        min-height: 0;
+        padding: 0.85rem 0 1.1rem;
+    }
+
+    .match-info-context {
+        gap: 0.75rem;
+        padding: 0 0.85rem;
+        box-sizing: border-box;
+    }
+
+    .info-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0.65rem 0 0.85rem;
+        margin: 0;
+        font-size: 0.88rem;
+        line-height: 1.35;
+    }
+
+    .team-score {
+        width: 100%;
+        gap: 0.45rem;
+    }
+
+    .team-score .team1,
+    .team-score .team2 {
+        width: auto;
+        flex: 1;
+        min-width: 0;
+        gap: 0.45rem;
+    }
+
+    .team-score .team1 img,
+    .team-score .team2 img {
+        width: 3.25rem;
+        height: 3.25rem;
+        flex-shrink: 0;
+    }
+
+    .team-score .team1 span,
+    .team-score .team2 span {
+        font-size: 0.82rem;
+        line-height: 1.15;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    .final-score {
+        flex-shrink: 0;
+        font-size: 1.85rem;
+        padding: 0 0.15rem;
+    }
+
+    .player-goals {
+        width: 100%;
+        gap: 0.75rem;
+        margin-top: 0.35rem;
+        padding: 0 0.15rem;
+        box-sizing: border-box;
+        justify-content: space-between;
+    }
+
+    .player-goals .team1,
+    .player-goals .team2 {
+        min-width: 0;
+        flex: 1;
+        font-size: 0.92rem;
+        gap: 0.35rem;
+    }
+
+    .player-goals .team2 {
+        align-items: flex-end;
+        text-align: right;
+    }
+
+    .score-group {
+        flex-wrap: wrap;
+        justify-content: inherit;
+        gap: 0.2rem 0.35rem;
+        max-width: 100%;
+    }
+
+    .player-goals .team2 .score-group {
+        justify-content: flex-end;
+    }
+
+    .minute {
+        font-size: 0.82rem;
+        max-width: 100%;
+    }
+
+    .cards-section {
+        width: 100%;
+        gap: 0.75rem;
+        margin-top: 0.65rem;
+        padding-top: 0.65rem;
+    }
+
+    .card-tile {
+        max-width: 100%;
+        font-size: 0.82rem;
+        padding: 0.3rem 0.55rem;
+    }
+
+    .match-tabs {
+        justify-content: stretch;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .match-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .match-tab {
+        flex: 1 0 auto;
+        min-width: 0;
+        padding: 0.8rem 0.85rem;
+        font-size: 0.88rem;
+        white-space: nowrap;
+    }
+
+    .match-content-section {
+        padding: 1rem 0.85rem 1.75rem;
+    }
+
+    .match-content-grid {
+        gap: 1rem;
+    }
+
+    .key-stats-card {
+        padding: 1.15rem;
+        border-radius: 0.65rem;
+    }
+
+    .key-stats-header {
+        margin-bottom: 1.15rem;
+    }
+
+    .key-stats-title {
+        font-size: 1.2rem;
+    }
+
+    .stat-row {
+        grid-template-columns: 2.4rem 1fr 4.2rem 1fr 2.4rem;
+        gap: 0.35rem;
+    }
+
+    .stat-row--circular {
+        grid-template-columns: 3.5rem 1fr 4.2rem 1fr 3.5rem;
+    }
+
+    .stat-value {
+        font-size: 0.95rem;
+    }
+
+    .stat-label {
+        font-size: 0.72rem;
+        line-height: 1.2;
+    }
+
+    .stat-circle {
+        width: 44px;
+        height: 44px;
+        font-size: 0.9rem;
+    }
+
+    .potm-card {
+        border-radius: 0.65rem;
+    }
+
+    .article-card--large {
+        grid-column: span 1;
+    }
+
+    .article-card-image,
+    .article-card--large .article-card-image {
+        height: 12rem;
+    }
+
+    .podcast-title {
+        font-size: 1.35rem;
+    }
+
+    .podcast-subtitle {
+        font-size: 1.5rem;
+    }
+
+    .totw-text {
+        font-size: 1.45rem;
+    }
+
+    .hattrick-player {
+        font-size: 1.65rem;
+    }
+
+    .report-score {
+        font-size: 2rem;
+    }
+
+    .report-team img {
+        width: 3.5rem;
+        height: 3.5rem;
+    }
+}

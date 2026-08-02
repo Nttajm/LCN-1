@@ -8,7 +8,7 @@
       "smallLogo": "data/work/lacosta/main-image.png",
       "cover": "data/work/lacosta/main-image.png",
       "category": "Demos",
-      "description": "An interactive prototype built for La Costa Taqueria — a local restaurant brand. The demo showcases a digital menu and ordering experience."
+      "description": "An interactive prototype built for La Costa Taqueria ΓÇö a local restaurant brand. The demo showcases a digital menu and ordering experience."
     },
     {
       "id": "overunderths",
@@ -63,7 +63,7 @@
     {
       "id": "comcal",
       "name": "ComCal",
-      "nameSmall": "C",
+      "nameSmall": "Student Calneder",
       "logo": "data/work/comcal/comcal.png",
       "smallLogo": "data/work/comcal/comcal-small.png",
       "cover": "data/work/comcal/comcal.png",

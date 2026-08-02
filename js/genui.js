@@ -95,7 +95,7 @@
 
         var header = document.createElement('div');
         header.className = 'recents-header';
-        header.innerHTML = '<span class="recents-label">Recents</span><a href="#" class="recents-viewmore">View all</a>';
+        header.innerHTML = '<span class="recents-label">Recent news</span><a href="#" class="recents-viewmore">View more</a>';
 
         var grid = document.createElement('div');
         grid.className = 'recents-grid';

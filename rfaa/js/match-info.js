@@ -1,6 +1,12 @@
 import { getCurrentSeason, getTeamById, } from './acl-index.js';
 import { seasons } from './acl-index.js';
 import { getArticleByMatchId, loadArticlesFromJson } from './articles.js';
+import {
+    resolveGameStats,
+    generateDisplayExtras,
+    statsNeedRegeneration
+} from './stats-gen.js';
+import { getPreMatchEloPair } from './rankings.js';
 
 // Get last N matches for a team's form
 function getTeamForm(teamId, currentMatchId, limit = 5) {
@@ -608,9 +614,21 @@ function displayMatchInfo() {
 }
 
 function renderStatsSection(match, team1, team2) {
-    const stats = match.stats || {};
-    
-    // Get saved stats or generate defaults
+    let elo1 = 1500;
+    let elo2 = 1500;
+    if (statsNeedRegeneration(match.stats) && match.id) {
+        try {
+            const pair = getPreMatchEloPair(match.id);
+            if (!pair.error) {
+                elo1 = pair.elo1;
+                elo2 = pair.elo2;
+            }
+        } catch (_) { /* rankings may be unavailable */ }
+    }
+
+    const resolved = resolveGameStats(match, elo1, elo2) || { stats: {}, generated: false };
+    const stats = resolved.stats || {};
+
     const possession1 = stats.possession?.team1 ?? 50;
     const possession2 = stats.possession?.team2 ?? 50;
     const passAccuracy1 = stats.passAccuracy?.team1 ?? 85;
@@ -621,28 +639,31 @@ function renderStatsSection(match, team1, team2) {
     const offsides2 = stats.offsides?.team2 ?? 0;
     const shotsOnTarget1 = stats.shotsOnTarget?.team1 ?? match.score1;
     const shotsOnTarget2 = stats.shotsOnTarget?.team2 ?? match.score2;
-    
-    // Generate additional stats based on saved data or defaults
-    const seed = match.seed || Math.floor(Math.random() * 10000);
-    const seededRandom = (min, max, offset = 0) => {
-        const x = Math.sin(seed + offset) * 10000;
-        return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
-    };
-    
-    const totalAttempts1 = Math.max(shotsOnTarget1 + seededRandom(5, 12, 1), match.score1 + 2);
-    const totalAttempts2 = Math.max(shotsOnTarget2 + seededRandom(5, 12, 2), match.score2 + 2);
-    const attacks1 = seededRandom(45, 65, 3);
-    const attacks2 = seededRandom(45, 65, 4);
-    const passesCompleted1 = Math.round((passAccuracy1 / 100) * seededRandom(420, 500, 5));
-    const passesCompleted2 = Math.round((passAccuracy2 / 100) * seededRandom(420, 500, 6));
-    const passesAttempted1 = Math.round(passesCompleted1 / (passAccuracy1 / 100));
-    const passesAttempted2 = Math.round(passesCompleted2 / (passAccuracy2 / 100));
-    const ballsRecovered1 = seededRandom(25, 35, 7);
-    const ballsRecovered2 = seededRandom(25, 35, 8);
-    const saves1 = Math.max(shotsOnTarget2 - match.score2, seededRandom(3, 8, 9));
-    const saves2 = Math.max(shotsOnTarget1 - match.score1, seededRandom(3, 8, 10));
-    const distance1 = (seededRandom(98, 115, 11) + seededRandom(0, 9, 12) / 10).toFixed(1);
-    const distance2 = (seededRandom(98, 115, 13) + seededRandom(0, 9, 14) / 10).toFixed(1);
+
+    const seed = match.seed != null ? match.seed : 0;
+    const extras = generateDisplayExtras(
+        {
+            possession: { team1: possession1, team2: possession2 },
+            shotsOnTarget: { team1: shotsOnTarget1, team2: shotsOnTarget2 },
+            passAccuracy: { team1: passAccuracy1, team2: passAccuracy2 }
+        },
+        { score1: match.score1 || 0, score2: match.score2 || 0, seed }
+    );
+
+    const totalAttempts1 = extras.totalAttempts.team1;
+    const totalAttempts2 = extras.totalAttempts.team2;
+    const attacks1 = extras.attacks.team1;
+    const attacks2 = extras.attacks.team2;
+    const passesCompleted1 = extras.passesCompleted.team1;
+    const passesCompleted2 = extras.passesCompleted.team2;
+    const passesAttempted1 = extras.passesAttempted.team1;
+    const passesAttempted2 = extras.passesAttempted.team2;
+    const ballsRecovered1 = extras.ballsRecovered.team1;
+    const ballsRecovered2 = extras.ballsRecovered.team2;
+    const saves1 = extras.saves.team1;
+    const saves2 = extras.saves.team2;
+    const distance1 = extras.distanceCovered.team1.toFixed(1);
+    const distance2 = extras.distanceCovered.team2.toFixed(1);
     
     // Count cards from match data
     const yellowCards1 = (match.yellowCards || []).filter(c => c.team === match.team1).length;
@@ -694,6 +715,10 @@ function renderStatsSection(match, team1, team2) {
         `;
     };
 
+    const generatedNote = resolved.generated
+        ? `<p class="stats-generated-note" style="opacity:.65;font-size:.85rem;margin:0 0 .5rem">Auto-generated from score, ELO &amp; seed ${seed}</p>`
+        : '';
+
     return `
         <div class="match-content-grid">
             <div class="match-content-main">
@@ -703,6 +728,7 @@ function renderStatsSection(match, team1, team2) {
                         <button class="key-stats-toggle" aria-label="Toggle stats">∧</button>
                     </div>
                     <div class="key-stats-list">
+                        ${generatedNote}
                         ${renderStatRow(possession1, 'Possession (%)', possession2, true)}
                         ${renderStatRow(totalAttempts1, 'Total attempts', totalAttempts2)}
                         ${renderStatRow(attacks1, 'Attacks', attacks2)}

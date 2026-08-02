@@ -1,0 +1,154 @@
+.tx-dim { color: #7a7a7a; }
+.tx-ok { color: rgb(91, 202, 91); }
+.tx-tree { color: rgb(215, 179, 0); }
+.tx-scope { color: rgb(91, 202, 91); font-weight: bold; }
+
+.tx-ascii {
+    color: rgb(124, 182, 227);
+    line-height: 1.05;
+    font-size: 0.58rem;
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+    font-family: monospace;
+}
+
+.tx-banner {
+    border-left: 3px solid rgb(124, 182, 227);
+    padding: 0.55rem 0 0.55rem 0.85rem;
+    margin: 0.45rem 0;
+    background: linear-gradient(90deg, rgba(124, 182, 227, 0.08), transparent 65%);
+}
+
+.tx-panel {
+    border: 1px solid #333;
+    border-radius: 2px;
+    padding: 0.5rem 0.65rem;
+    margin: 0.35rem 0;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tx-choices .choice { cursor: pointer; }
+
+.tx-msg {
+    margin: 0.15rem 0;
+    font-family: monospace;
+}
+
+.tx-msg .tx-from {
+    font-weight: bold;
+}
+
+.tx-msg .tx-time {
+    color: #7a7a7a;
+    font-size: 0.85em;
+}
+
+.tx-msg.sealed .tx-body {
+    color: #9a9a9a;
+    font-style: italic;
+}
+
+.tx-msg.locked .tx-body {
+    color: #666;
+    letter-spacing: 0.04em;
+}
+
+.tx-chat-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 0.25rem;
+}
+
+.tx-chat-prompt {
+    color: rgb(124, 182, 227);
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+.tx-chat-room {
+    color: rgb(81, 231, 211);
+    font-weight: bold;
+}
+
+.tx-chat-gt {
+    color: #7a7a7a;
+}
+
+.tx-chat-input {
+    outline: none;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: monospace;
+    font-size: 1rem;
+    width: 100%;
+    flex: 1;
+}
+
+.tx-chat-input::placeholder {
+    color: #555;
+}
+
+/* ── textos home screen ─────────────────────────────── */
+
+.tx-home-header {
+    font-family: monospace;
+    margin: 0.3rem 0 0.15rem;
+}
+
+.tx-home-title {
+    color: rgb(124, 182, 227);
+    font-weight: bold;
+    font-size: 1.05em;
+    letter-spacing: 0.04em;
+}
+
+.tx-home-sep {
+    color: #555;
+}
+
+.tx-home-section {
+    display: block;
+    margin: 0.4rem 0 0.15rem;
+    font-size: 0.85em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tx-home-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    line-height: 1.7;
+    font-family: monospace;
+}
+
+.tx-home-room {
+    color: rgb(81, 231, 211);
+    font-weight: bold;
+    min-width: 8ch;
+}
+
+.tx-home-id {
+    color: #7a7a7a;
+    font-size: 0.85em;
+}
+
+.tx-home-time {
+    font-size: 0.8em;
+    margin-left: auto;
+}
+
+.tx-badge-sealed {
+    color: rgb(215, 179, 0);
+    font-size: 0.78em;
+    border: 1px solid rgb(215, 179, 0);
+    border-radius: 2px;
+    padding: 0 3px;
+    line-height: 1.2;
+}

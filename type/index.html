@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type</title>
+    <link rel="stylesheet" href="/css/type.css">
+    <style>
+        #editorjs {
+            flex-grow: 1;
+            min-height: 70vh;
+            font-size: var(--type-size, 30px);
+            color: var(--txclr);
+        }
+
+        /* Editor.js dark theme tokens (toolboxes, popovers, menus) */
+        .codex-editor {
+            --color-background: rgb(14, 14, 24);
+            --color-text-primary: rgb(210, 210, 215);
+            --color-text-secondary: rgb(140, 140, 150);
+            --color-border: rgb(55, 55, 70);
+            --color-border-icon: rgba(150, 150, 160, 0.4);
+            --color-border-icon-disabled: rgb(45, 45, 55);
+            --color-gray-border: rgba(150, 150, 160, 0.35);
+            --color-line-gray: rgb(45, 45, 58);
+            --color-background-item-hover: rgb(28, 28, 40);
+            --color-background-item-focus: rgba(0, 124, 120, 0.18);
+            --color-shadow: rgba(0, 0, 0, 0.45);
+            --color-shadow-item-focus: rgba(0, 124, 120, 0.2);
+            --color-dark: rgb(210, 210, 215);
+            --color-active-icon: var(--tlkk);
+            --color-background-icon-active: rgba(0, 124, 120, 0.18);
+            --color-text-icon-active: var(--tlkk);
+            --bg-light: rgb(22, 22, 34);
+            --selectionColor: rgba(0, 124, 120, 0.45);
+            --inlineSelectionColor: rgba(0, 124, 120, 0.45);
+            --grayText: rgb(140, 140, 150);
+        }
+
+        ::selection,
+        #editorjs ::selection,
+        .cdx-search-field__input::selection,
+        .ce-code__textarea::selection {
+            background: rgba(0, 124, 120, 0.55);
+            color: rgb(230, 230, 235);
+        }
+
+        ::-moz-selection,
+        #editorjs ::-moz-selection,
+        .cdx-search-field__input::-moz-selection,
+        .ce-code__textarea::-moz-selection {
+            background: rgba(0, 124, 120, 0.55);
+            color: rgb(230, 230, 235);
+        }
+
+        .ce-block--selected .ce-block__content {
+            background: rgba(0, 124, 120, 0.18) !important;
+        }
+
+        #editorjs .ce-block__content,
+        #editorjs .ce-toolbar__content {
+            max-width: 100%;
+        }
+
+        #editorjs .ce-paragraph,
+        #editorjs .ce-header,
+        #editorjs .cdx-list,
+        #editorjs .cdx-quote,
+        #editorjs .cdx-checklist,
+        #editorjs .ce-code__textarea {
+            color: var(--txclr);
+            font-family: roboto, arial, sans-serif;
+            line-height: 1.45;
+        }
+
+        #editorjs .ce-paragraph[data-placeholder]:empty::before,
+        #editorjs .ce-header[data-placeholder]:empty::before {
+            color: rgb(90, 90, 100);
+        }
+
+        #editorjs .ce-toolbar__plus,
+        #editorjs .ce-toolbar__settings-btn {
+            color: var(--txclr);
+            background: rgb(14, 14, 24);
+            border: 1px solid rgb(82, 82, 82);
+            border-radius: 5px;
+        }
+
+        #editorjs .ce-toolbar__plus:hover,
+        #editorjs .ce-toolbar__settings-btn:hover {
+            background: rgb(28, 28, 40);
+        }
+
+        .ce-popover,
+        .ce-popover__container,
+        .ce-inline-toolbar,
+        .ce-conversion-toolbar,
+        .ce-settings {
+            background: rgb(14, 14, 24) !important;
+            border: 1px solid rgb(55, 55, 70) !important;
+            color: rgb(210, 210, 215) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        .ce-popover .cdx-search-field,
+        .ce-popover__search .cdx-search-field {
+            background: rgb(22, 22, 34) !important;
+            border: 1px solid rgb(55, 55, 70) !important;
+        }
+
+        .cdx-search-field__input {
+            color: rgb(210, 210, 215) !important;
+            background: transparent !important;
+        }
+
+        .cdx-search-field__input::placeholder {
+            color: rgb(120, 120, 130);
+        }
+
+        .cdx-search-field__icon,
+        .ce-popover__items,
+        .ce-popover__item,
+        .ce-popover__item-icon,
+        .ce-popover__item-label,
+        .ce-popover__item-secondary-label,
+        .ce-popover__nothing-found-message {
+            color: rgb(210, 210, 215) !important;
+        }
+
+        .ce-popover__item:hover,
+        .ce-popover__item--focused {
+            background: rgb(28, 28, 40) !important;
+        }
+
+        .ce-popover__item-icon {
+            background: rgb(22, 22, 34) !important;
+            border-color: rgb(55, 55, 70) !important;
+        }
+
+        .ce-popover__item-icon svg,
+        .ce-toolbar__plus svg,
+        .ce-toolbar__settings-btn svg,
+        .ce-inline-toolbar svg {
+            color: rgb(190, 190, 200);
+        }
+
+        #editorjs .cdx-quote,
+        #editorjs .ce-code__textarea {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgb(82, 82, 82);
+            border-radius: 5px;
+            color: var(--txclr);
+        }
+
+        #editorjs .ce-code__textarea {
+            min-height: 120px;
+        }
+
+        .nav .button a {
+            color: inherit;
+        }
+
+        #contentToReveal {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <button class="button cs-b"><a class="p" href="https://lcnjoel.com">LCN</a></button>
+        <button type="button" onclick="toggleContent()" class="cs-b button">Settings</button>
+        <div id="contentToReveal">
+            <div id="sizeControls" class="fl-r Controls">
+                <span id="currentSize" class="p">30px</span>
+                <button type="button" class="button2 cs-b" onclick="increaseTextSize()">+</button>
+                <button type="button" class="button2 cs-b" onclick="decreaseTextSize()">-</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="editorjs"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.30.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.8/dist/header.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.8/dist/editorjs-list.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6/dist/quote.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.3/dist/code.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.1/dist/inline-code.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.js"></script>
+    <script>
+        const STORAGE_KEY = 'lcn-type-editor';
+        const SIZE_KEY = 'lcn-type-size';
+
+        let contentIsVisible = false;
+        let textSize = Number(localStorage.getItem(SIZE_KEY)) || 30;
+
+        function toggleContent() {
+            var contentToReveal = document.getElementById('contentToReveal');
+            contentToReveal.style.display = contentIsVisible ? 'none' : 'block';
+            contentIsVisible = !contentIsVisible;
+        }
+
+        function updateTextSize() {
+            document.documentElement.style.setProperty('--type-size', textSize + 'px');
+            document.getElementById('currentSize').textContent = textSize + 'px';
+            localStorage.setItem(SIZE_KEY, String(textSize));
+        }
+
+        function increaseTextSize() {
+            textSize += 1;
+            updateTextSize();
+        }
+
+        function decreaseTextSize() {
+            if (textSize <= 12) return;
+            textSize -= 1;
+            updateTextSize();
+        }
+
+        function loadSavedData() {
+            try {
+                var raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : undefined;
+            } catch (e) {
+                return undefined;
+            }
+        }
+
+        updateTextSize();
+
+        var editor = new EditorJS({
+            holder: 'editorjs',
+            placeholder: 'type here...',
+            autofocus: true,
+            data: loadSavedData(),
+            tools: {
+                header: {
+                    class: Header,
+                    inlineToolbar: ['marker', 'inlineCode'],
+                    config: {
+                        levels: [1, 2, 3],
+                        defaultLevel: 2
+                    }
+                },
+                list: {
+                    class: EditorjsList,
+                    inlineToolbar: true
+                },
+                checklist: {
+                    class: Checklist,
+                    inlineToolbar: true
+                },
+                quote: {
+                    class: Quote,
+                    inlineToolbar: true
+                },
+                code: CodeTool,
+                delimiter: Delimiter,
+                inlineCode: {
+                    class: InlineCode
+                },
+                marker: {
+                    class: Marker
+                }
+            },
+            onChange: async function () {
+                try {
+                    var data = await editor.save();
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    // ignore transient save errors while editing
+                }
+            }
+        });
+    </script>
+</body>
+</html>

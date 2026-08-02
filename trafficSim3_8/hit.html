@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinematic Car Path Follower</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #ui-bar {
+            padding: 15px;
+            text-align: center;
+        }
+        button {
+            background-color: #89b4fa;
+            color: #11111b;
+            border: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        button:hover { background-color: #74c7ec; }
+        canvas {
+            background-color: #313244;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-bar">
+        <span><strong>Click</strong> on the canvas to draw a 90-degree path.</span>
+        <button onclick="startCar()">Start Driving</button>
+        <button onclick="reset()">Reset</button>
+    </div>
+
+    <canvas id="canvas" width="1000" height="700"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // --- Path Drawing State ---
+    let path = [];
+    let isDriving = false;
+    let mousePos = null;
+
+    // --- Car Kinematics State ---
+    // The bicycle model tracks the rear axle.
+    let car = {
+        x: 0, 
+        y: 0,
+        heading: 0,       // theta (radians)
+        length: 40,       // Visual length of car
+        width: 20,        // Visual width of car
+        wheelbase: 28,    // L: Distance from rear to front axle
+        speed: 3,         // v: Velocity
+        maxSteering: Math.PI / 4, // Max front wheel turning angle (45 deg)
+        lookahead: 50     // Ld: Distance to look ahead on the path for Pure Pursuit
+    };
+    
+    let animationFrameId;
+
+    // --- Math: Pure Pursuit & Kinematic Bicycle Model ---
+    // 1. Get the lookahead point on the path
+    function getTargetPoint() {
+        if (path.length < 2) return null;
+        
+        let target = path[path.length - 1]; // Default to end of path
+        let closestDist = Infinity;
+        
+        // Find a point on the path segments roughly 'lookahead' distance away
+        for (let i = 0; i < path.length - 1; i++) {
+            const p1 = path[i];
+            const p2 = path[i+1];
+            
+            // Interpolate along the segment
+            const segLen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            const steps = Math.max(1, Math.floor(segLen / 5));
+            
+            for (let j = 0; j <= steps; j++) {
+                const t = j / steps;
+                const px = p1.x + t * (p2.x - p1.x);
+                const py = p1.y + t * (p2.y - p1.y);
+                
+                const distToRearAxle = Math.hypot(px - car.x, py - car.y);
+                
+                // If this point is near our lookahead radius, target it
+                if (distToRearAxle >= car.lookahead) {
+                    // Check if it's "ahead" of us to prevent backtracking
+                    const angleToPoint = Math.atan2(py - car.y, px - car.x);
+                    let angleDiff = angleToPoint - car.heading;
+                    angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff)); // normalize -pi to pi
+                    
+                    if (Math.abs(angleDiff) < Math.PI / 2) {
+                        return { x: px, y: py };
+                    }
+                }
+            }
+        }
+        return target;
+    }
+
+    function updateCar() {
+        if (path.length < 2) return;
+        
+        const target = getTargetPoint();
+        const distToTarget = Math.hypot(target.x - car.x, target.y - car.y);
+        const distToEnd = Math.hypot(path[path.length-1].x - car.x, path[path.length-1].y - car.y);
+
+        // Stop if we've reached the end
+        if (distToEnd < 10) {
+            isDriving = false;
+            return;
+        }
+
+        // Calculate Alpha (angle between car heading and target point)
+        const angleToTarget = Math.atan2(target.y - car.y, target.x - car.x);
+        let alpha = angleToTarget - car.heading;
+        
+        // Normalize alpha to [-pi, pi]
+        alpha = Math.atan2(Math.sin(alpha), Math.cos(alpha));
+
+        // Pure Pursuit Steering Angle Formula: delta = atan( (2 * L * sin(alpha)) / Ld )
+        let steeringAngle = Math.atan2(2 * car.wheelbase * Math.sin(alpha), car.lookahead);
+        
+        // Clamp to physical vehicle limits
+        steeringAngle = Math.max(-car.maxSteering, Math.min(car.maxSteering, steeringAngle));
+
+        // Update Position (Bicycle Kinematics)
+        // Rate of heading change: theta_dot = (v / L) * tan(delta)
+        car.heading += (car.speed / car.wheelbase) * Math.tan(steeringAngle);
+        car.x += car.speed * Math.cos(car.heading);
+        car.y += car.speed * Math.sin(car.heading);
+    }
+
+    // --- Rendering Logic ---
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Path
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "rgba(166, 227, 161, 0.5)"; // Soft green
+        ctx.beginPath();
+        for (let i = 0; i < path.length; i++) {
+            if (i === 0) ctx.moveTo(path[i].x, path[i].y);
+            else ctx.lineTo(path[i].x, path[i].y);
+        }
+        
+        // Draw live 90-degree preview line if not driving
+        if (!isDriving && path.length > 0 && mousePos) {
+            const last = path[path.length - 1];
+            const next = getOrthogonalPoint(last, mousePos);
+            ctx.lineTo(next.x, next.y);
+        }
+        ctx.stroke();
+
+        // Draw Waypoint dots
+        ctx.fillStyle = "#a6e3a1";
+        for (let p of path) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw Car
+        if (path.length > 0) {
+            ctx.save();
+            // Translate to REAR AXLE
+            ctx.translate(car.x, car.y);
+            ctx.rotate(car.heading);
+
+            // Draw Car Body 
+            // Offset drawing so the rear axle sits near the back of the rectangle
+            const rearOverhang = (car.length - car.wheelbase) / 2;
+            
+            ctx.fillStyle = "#f38ba8"; // Soft red
+            ctx.beginPath();
+            ctx.roundRect(-rearOverhang, -car.width / 2, car.length, car.width, 4);
+            ctx.fill();
+
+            // Draw Headlights (to show front)
+            ctx.fillStyle = "#f9e2af"; // Yellow
+            ctx.fillRect(car.length - rearOverhang - 4, -car.width/2 + 2, 4, 4);
+            ctx.fillRect(car.length - rearOverhang - 4, car.width/2 - 6, 4, 4);
+
+            // Draw Rear Axle Pivot indicator
+            ctx.fillStyle = "#1e1e2e";
+            ctx.beginPath();
+            ctx.arc(0, 0, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+    }
+
+    function loop() {
+        if (isDriving) updateCar();
+        draw();
+        animationFrameId = requestAnimationFrame(loop);
+    }
+
+    // --- Input Mechanics ---
+    function getOrthogonalPoint(lastPoint, currentMouse) {
+        // Force 90 degrees by locking the axis with the smallest change
+        const dx = Math.abs(currentMouse.x - lastPoint.x);
+        const dy = Math.abs(currentMouse.y - lastPoint.y);
+        
+        if (dx > dy) {
+            return { x: currentMouse.x, y: lastPoint.y }; // Horizontal
+        } else {
+            return { x: lastPoint.x, y: currentMouse.y }; // Vertical
+        }
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+        if (isDriving) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const clickPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+        if (path.length === 0) {
+            path.push(clickPos);
+            // Initialize car at first point
+            car.x = clickPos.x;
+            car.y = clickPos.y;
+            car.heading = 0; // Will be set when second point is placed
+        } else {
+            const snappedPoint = getOrthogonalPoint(path[path.length - 1], clickPos);
+            path.push(snappedPoint);
+            
+            // Set initial car heading based on the first segment
+            if (path.length === 2) {
+                car.heading = Math.atan2(path[1].y - path[0].y, path[1].x - path[0].x);
+            }
+        }
+    });
+
+    // --- Controls ---
+    function startCar() {
+        if (path.length >= 2) {
+            isDriving = true;
+        }
+    }
+
+    function reset() {
+        isDriving = false;
+        path = [];
+        mousePos = null;
+    }
+
+    // Start render loop
+    loop();
+</script>
+</body>
+</html>

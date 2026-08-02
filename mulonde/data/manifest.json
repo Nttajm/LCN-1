@@ -1,0 +1,408 @@
+{
+  "generated": "2026-07-18T22:20:17.821Z",
+  "basePath": "data/",
+  "folders": [
+    "banners",
+    "work",
+    "work/aero",
+    "work/alkai",
+    "work/comcal",
+    "work/fnat",
+    "work/games",
+    "work/imitadora",
+    "work/jmbins",
+    "work/jmpw",
+    "work/josu",
+    "work/lacosta",
+    "work/mulon",
+    "work/oquesera",
+    "work/ou",
+    "work/rfaa",
+    "work/square"
+  ],
+  "totalImages": 54,
+  "images": [
+    {
+      "path": "banners/games.jpg",
+      "folder": "banners",
+      "subfolders": [],
+      "name": "games.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/lcn.png",
+      "folder": "work",
+      "subfolders": [],
+      "name": "lcn.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/aero/main-image.png",
+      "folder": "work/aero",
+      "subfolders": [],
+      "name": "main-image.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/alkai/alkai_cover.jpg",
+      "folder": "work/alkai",
+      "subfolders": [],
+      "name": "alkai_cover.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/comcal/comcal-small.png",
+      "folder": "work/comcal",
+      "subfolders": [],
+      "name": "comcal-small.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/comcal/comcal.png",
+      "folder": "work/comcal",
+      "subfolders": [],
+      "name": "comcal.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/fnat/fnat_poster_web.jpg",
+      "folder": "work/fnat",
+      "subfolders": [],
+      "name": "fnat_poster_web.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/games/mulon.png",
+      "folder": "work/games",
+      "subfolders": [],
+      "name": "mulon.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/games/overunderThs.png",
+      "folder": "work/games",
+      "subfolders": [],
+      "name": "overunderThs.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/imitadora/josephpng.png",
+      "folder": "work/imitadora",
+      "subfolders": [],
+      "name": "josephpng.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/imitadora/main-image.webp",
+      "folder": "work/imitadora",
+      "subfolders": [],
+      "name": "main-image.webp",
+      "ext": "webp"
+    },
+    {
+      "path": "work/jmbins/c1.png",
+      "folder": "work/jmbins",
+      "subfolders": [],
+      "name": "c1.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmbins/c2.png",
+      "folder": "work/jmbins",
+      "subfolders": [],
+      "name": "c2.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmbins/c3.png",
+      "folder": "work/jmbins",
+      "subfolders": [],
+      "name": "c3.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmbins/slides/hoodie.png",
+      "folder": "work/jmbins",
+      "subfolders": [
+        "slides"
+      ],
+      "name": "hoodie.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmbins/jmbins.png",
+      "folder": "work/jmbins",
+      "subfolders": [],
+      "name": "jmbins.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmbins/slides/shirt.png",
+      "folder": "work/jmbins",
+      "subfolders": [
+        "slides"
+      ],
+      "name": "shirt.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmpw/s-1.png",
+      "folder": "work/jmpw",
+      "subfolders": [],
+      "name": "s-1.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmpw/s-2.png",
+      "folder": "work/jmpw",
+      "subfolders": [],
+      "name": "s-2.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmpw/s-3.png",
+      "folder": "work/jmpw",
+      "subfolders": [],
+      "name": "s-3.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmpw/s-4.png",
+      "folder": "work/jmpw",
+      "subfolders": [],
+      "name": "s-4.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/jmpw/s-5.png",
+      "folder": "work/jmpw",
+      "subfolders": [],
+      "name": "s-5.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/josu/cover.jpg",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "cover.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/josu/cover2.webp",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "cover2.webp",
+      "ext": "webp"
+    },
+    {
+      "path": "work/josu/logo.png",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "logo.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/josu/ss-1.png",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "ss-1.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/josu/ss-2.png",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "ss-2.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/josu/ss-3.png",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "ss-3.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/josu/ss-4.png",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "ss-4.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/josu/ss-5.jpg",
+      "folder": "work/josu",
+      "subfolders": [],
+      "name": "ss-5.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/lacosta/bar.png",
+      "folder": "work/lacosta",
+      "subfolders": [],
+      "name": "bar.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/lacosta/main-image.png",
+      "folder": "work/lacosta",
+      "subfolders": [],
+      "name": "main-image.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/lacosta/s-1.png",
+      "folder": "work/lacosta",
+      "subfolders": [],
+      "name": "s-1.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/lacosta/s-2.png",
+      "folder": "work/lacosta",
+      "subfolders": [],
+      "name": "s-2.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/lacosta/s-3.png",
+      "folder": "work/lacosta",
+      "subfolders": [],
+      "name": "s-3.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/mulon/main-image.png",
+      "folder": "work/mulon",
+      "subfolders": [],
+      "name": "main-image.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/mulon/mulon.png",
+      "folder": "work/mulon",
+      "subfolders": [],
+      "name": "mulon.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/mulon/overunderThs.png",
+      "folder": "work/mulon",
+      "subfolders": [],
+      "name": "overunderThs.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/oquesera/cover_page.jpg",
+      "folder": "work/oquesera",
+      "subfolders": [],
+      "name": "cover_page.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/oquesera/mag-ana-2.jpg",
+      "folder": "work/oquesera",
+      "subfolders": [],
+      "name": "mag-ana-2.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/oquesera/s-3.jpg",
+      "folder": "work/oquesera",
+      "subfolders": [],
+      "name": "s-3.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/ou/cover.jpg",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "cover.jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/ou/logo.png",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "logo.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/ou/ou (1).JPG",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "ou (1).JPG",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/ou/ou (1).PNG",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "ou (1).PNG",
+      "ext": "png"
+    },
+    {
+      "path": "work/ou/ou (2).jpg",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "ou (2).jpg",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/ou/ou (2).PNG",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "ou (2).PNG",
+      "ext": "png"
+    },
+    {
+      "path": "work/ou/ou (3).png",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "ou (3).png",
+      "ext": "png"
+    },
+    {
+      "path": "work/ou/ou (4).png",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "ou (4).png",
+      "ext": "png"
+    },
+    {
+      "path": "work/ou/proof-3.JPG",
+      "folder": "work/ou",
+      "subfolders": [],
+      "name": "proof-3.JPG",
+      "ext": "jpg"
+    },
+    {
+      "path": "work/rfaa/f.png",
+      "folder": "work/rfaa",
+      "subfolders": [],
+      "name": "f.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/rfaa/main-image.png",
+      "folder": "work/rfaa",
+      "subfolders": [],
+      "name": "main-image.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/rfaa/sf.png",
+      "folder": "work/rfaa",
+      "subfolders": [],
+      "name": "sf.png",
+      "ext": "png"
+    },
+    {
+      "path": "work/square/cover.png",
+      "folder": "work/square",
+      "subfolders": [],
+      "name": "cover.png",
+      "ext": "png"
+    }
+  ]
+}

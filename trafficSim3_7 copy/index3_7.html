@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3.7 trafficSimulator</title>
+  <style>
+    :root {
+      --enter: #2ecc71;
+      --exit: #ef5555;
+      --straight: #3fa7ff;
+      --left-turn: #b98bff;
+      --right-turn: #ff9d4d;
+      --uturn: #ff5d9e;
+      --node-label: #39ff14;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .board {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: #cfcfcf;
+      cursor: crosshair;
+      background-image:
+        radial-gradient(circle, #29292981 1px, transparent 1px);
+      background-size: 25px 25px;
+      background-position: 0 0;
+    }
+    .board.panning { cursor: grabbing; }
+    .board.space-pan { cursor: grab; }
+    .board.building {
+      cursor: crosshair;
+      box-shadow: inset 0 0 0 3px rgba(46, 204, 113, 0.55);
+    }
+    #build-hud {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 20, 30, 0.92);
+      border: 1px solid rgba(46, 204, 113, 0.45);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-family: monospace;
+      font-size: 12.5px;
+      color: #ddd;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      z-index: 110;
+      user-select: none;
+      display: none;
+      align-items: center;
+      gap: 14px;
+      pointer-events: none;
+    }
+    #build-hud.visible { display: flex; }
+    #build-hud .build-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2ecc71;
+      box-shadow: 0 0 8px rgba(46, 204, 113, 0.8);
+      animation: build-pulse 1.1s ease-in-out infinite;
+    }
+    #build-hud .build-title { color: #9f9; font-weight: 700; letter-spacing: 0.5px; }
+    #build-hud .build-meta { color: #aaa; }
+    #build-hud kbd {
+      display: inline-block;
+      padding: 1px 6px;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      font-size: 11px;
+      color: #ccc;
+    }
+    @keyframes build-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    #config-panel {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 20, 30, 0.88);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #ddd;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      z-index: 100;
+      user-select: none;
+    }
+    #config-panel label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    #config-panel .seg-preview {
+      display: flex; flex-direction: column; gap: 3px; justify-content: center;
+    }
+    #config-panel .seg-preview span {
+      display: block; height: 2px; border-radius: 1px;
+    }
+    #advanced-controls {
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    #advanced-controls.visible { display: flex; }
+    .adv-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .adv-group .adv-label {
+      font-size: 11px;
+      color: #aaa;
+      min-width: 22px;
+    }
+    .adv-group .adv-count {
+      min-width: 16px;
+      text-align: center;
+      color: #9f9;
+      font-weight: 700;
+    }
+    .adv-step {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      color: #fff;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .adv-step:hover { background: rgba(255,255,255,0.15); }
+    .lane-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #fff;
+      padding: 4px 12px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+    .lane-btn.active { background: rgba(100,200,100,0.25); border-color: #4c4; color: #9f9; }
+    .lane-btn:hover:not(.active) { background: rgba(255,255,255,0.15); }
+
+    #legend-panel {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      background: rgba(20, 20, 30, 0.88);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 12px 16px 14px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #ddd;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      z-index: 100;
+      user-select: none;
+      width: 178px;
+    }
+    #legend-panel .legend-title {
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 9px;
+    }
+    #legend-panel .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    #legend-panel .swatch {
+      width: 16px;
+      height: 3px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    #legend-panel .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    #legend-panel .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+      margin: 9px 0;
+    }
+    #legend-panel .uturn-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    #legend-panel .lane-btn {
+      padding: 3px 10px;
+      font-size: 11.5px;
+    }
+    #legend-panel .hint {
+      margin-top: 9px;
+      font-size: 10.5px;
+      color: #888;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="board" id="board">
+    <svg id="canvas">
+      <g id="world"></g>
+    </svg>
+  </div>
+
+  <div id="legend-panel">
+    <div class="legend-title">JUNCTION LEGEND</div>
+    <div class="legend-row"><span class="swatch" style="background:var(--straight)"></span>Straight</div>
+    <div class="legend-row"><span class="swatch" style="background:var(--left-turn)"></span>Left turn</div>
+    <div class="legend-row"><span class="swatch" style="background:var(--right-turn)"></span>Right turn</div>
+    <div class="legend-row"><span class="swatch" style="background:var(--uturn)"></span>U-turn</div>
+    <div class="divider"></div>
+    <div class="legend-row"><span class="dot" style="background:var(--enter)"></span>Entering lane</div>
+    <div class="legend-row"><span class="dot" style="background:var(--exit)"></span>Exiting lane</div>
+    <div class="divider"></div>
+    <div class="uturn-row">
+      <span>Include U-turns</span>
+      <button class="lane-btn" id="btn-uturn" onclick="toggleUturns()">Off</button>
+    </div>
+    <div class="uturn-row" style="margin-top:8px">
+      <span>Common sense</span>
+      <button class="lane-btn active" id="btn-common" onclick="toggleCommonSense()">On</button>
+    </div>
+    <div class="hint">Click to place a road start, then move the mouse for a preview and click again to place.<br>Esc cancels · Scroll to zoom · Middle-drag or Space+drag to pan</div>
+  </div>
+
+  <div id="build-hud">
+    <span class="build-dot"></span>
+    <span class="build-title">BUILDING ROAD</span>
+    <span class="build-meta" id="build-hud-meta">Click to place end · <kbd>Esc</kbd> cancel</span>
+  </div>
+
+  <div id="config-panel">
+    <span style="color:#aaa;font-size:11px;letter-spacing:1px">ROAD CONFIG</span>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,0.15)"></div>
+    <button class="lane-btn" id="btn-1way" onclick="setPresetMode(0,1)">1 Way</button>
+    <button class="lane-btn active" id="btn-2lane" onclick="setPresetMode(1,1)">2 Lane</button>
+    <button class="lane-btn" id="btn-4lane" onclick="setPresetMode(2,2)">4 Lane</button>
+    <button class="lane-btn" id="btn-advanced" onclick="setAdvancedMode()">Advanced</button>
+    <div id="advanced-controls">
+      <div class="adv-group">
+        <span class="adv-label" style="color:var(--enter)">In</span>
+        <button class="adv-step" onclick="nudgeAdvanced('in',-1)">−</button>
+        <span class="adv-count" id="adv-in-count">1</span>
+        <button class="adv-step" onclick="nudgeAdvanced('in',1)">+</button>
+      </div>
+      <div class="adv-group">
+        <span class="adv-label" style="color:var(--exit)">Out</span>
+        <button class="adv-step" onclick="nudgeAdvanced('out',-1)">−</button>
+        <span class="adv-count" id="adv-out-count">2</span>
+        <button class="adv-step" onclick="nudgeAdvanced('out',1)">+</button>
+      </div>
+      <button class="lane-btn" id="btn-swap" onclick="swapAdvancedLanes()">Swap</button>
+    </div>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,0.15)"></div>
+    <div class="seg-preview" id="seg-preview">
+      <span style="width:40px;background:#000"></span>
+      <span style="width:40px;background:#ffcc00"></span>
+    </div>
+    <span id="lane-label" style="color:#9f9;min-width:72px">1 in · 1 out</span>
+  </div>
+
+  <script>
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.getElementById('canvas');
+    const world = document.getElementById('world');
+    const board = document.getElementById('board');
+
+    let firstPoint = null;
+    let startMarker = null;
+    let segments = [];
+    let segmentCounter = 1;
+    let nodes = new Map();
+    const LANE_OFFSET = 4;
+    const NODE_R = 7; // half-width of a junction's footprint — also where lane stubs terminate
+    const LANE_HIT_R = 4;
+    const LANE_DOT_R = 1.6;
+    const LANE_DOT_R_ACTIVE = 2.4;
+    const LANE_LABEL_SIZE = 4;
+    const LANE_LABEL_SIZE_ACTIVE = 4.75;
+    const LANE_LABEL_OFFSET = 3.5;
+    const LANE_EDGE_WIDTH = 0.75;
+    const LANE_EDGE_WIDTH_ACTIVE = 1.4;
+    const PLACE_NODE_R = 2;
+    const GRID = 25;
+    const SIGN_DIST = NODE_R * 2.15;       // just outside the junction footprint
+    const SIGN_SIDE_EXTRA = LANE_OFFSET * 0.45; // nudge off the lane center toward the shoulder
+    const SIGN_OPACITY = 0.62;
+    const ROAD_LANE_OPACITY = 0.55;
+    const ROAD_ARROW_OPACITY = 0.48;
+    const TURN_SIGN_H = NODE_R * 1.05;
+    const TURN_SIGN_W = NODE_R * 0.72;
+    const ONEWAY_SIGN_W = NODE_R * 1.55;
+    const ONEWAY_SIGN_H = NODE_R * 0.52;
+
+    // Ghost road preview while placing
+    const ghostLayer = document.createElementNS(svgNS, 'g');
+    ghostLayer.setAttribute('id', 'ghost-layer');
+    ghostLayer.setAttribute('pointer-events', 'none');
+    world.appendChild(ghostLayer);
+    let cursorSnap = null;
+    let lastPreviewEnd = null;
+    const buildHud = document.getElementById('build-hud');
+    const buildHudMeta = document.getElementById('build-hud-meta');
+
+    // Viewport: pan (px) + zoom. Drawing coords live in world space.
+    const view = { x: 0, y: 0, scale: 1 };
+    const MIN_SCALE = 0.25;
+    const MAX_SCALE = 18;
+    let spaceHeld = false;
+    let isPanning = false;
+    let panMoved = false;
+    let panLast = null;
+    let suppressClick = false;
+
+    // Current drawing mode: lanes relative to draw direction (start → end)
+    // Out = travel start→end, In = travel end→start
+    let roadMode = 'preset'; // 'preset' | 'advanced'
+    let currentLanesIn = 1;
+    let currentLanesOut = 1;
+    const MAX_DIR_LANES = 4;
+
+    // Whether a lane is allowed to curve back onto its own road at a junction
+    let includeUturns = false;
+    // Restrict unrealistic lane turns (inner lane right-turns, mismatched exits, etc.)
+    let commonSense = true;
+
+    function applyView() {
+      world.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.scale})`);
+      const size = GRID * view.scale;
+      board.style.backgroundSize = `${size}px ${size}px`;
+      board.style.backgroundPosition = `${view.x}px ${view.y}px`;
+    }
+
+    function screenToWorld(clientX, clientY) {
+      const rect = board.getBoundingClientRect();
+      return {
+        x: (clientX - rect.left - view.x) / view.scale,
+        y: (clientY - rect.top - view.y) / view.scale
+      };
+    }
+
+    function zoomAt(clientX, clientY, factor) {
+      const rect = board.getBoundingClientRect();
+      const sx = clientX - rect.left;
+      const sy = clientY - rect.top;
+      const next = Math.min(MAX_SCALE, Math.max(MIN_SCALE, view.scale * factor));
+      if (next === view.scale) return;
+      // Keep the world point under the cursor fixed on screen
+      view.x = sx - (sx - view.x) * (next / view.scale);
+      view.y = sy - (sy - view.y) * (next / view.scale);
+      view.scale = next;
+      applyView();
+    }
+
+    function startPan(clientX, clientY) {
+      isPanning = true;
+      panMoved = false;
+      panLast = { x: clientX, y: clientY };
+      board.classList.add('panning');
+    }
+
+    function movePan(clientX, clientY) {
+      if (!isPanning || !panLast) return;
+      const dx = clientX - panLast.x;
+      const dy = clientY - panLast.y;
+      if (dx !== 0 || dy !== 0) panMoved = true;
+      view.x += dx;
+      view.y += dy;
+      panLast = { x: clientX, y: clientY };
+      applyView();
+    }
+
+    function endPan() {
+      if (!isPanning) return;
+      isPanning = false;
+      panLast = null;
+      board.classList.remove('panning');
+      if (panMoved) suppressClick = true;
+      panMoved = false;
+    }
+
+    // Resolve a segment (or legacy laneCount) into { lanesIn, lanesOut }.
+    // Out = start→end travel, In = end→start travel.
+    function getRoadDirs(seg) {
+      if (seg && typeof seg === 'object') {
+        if (seg.lanesIn != null || seg.lanesOut != null) {
+          return {
+            lanesIn: Math.max(0, seg.lanesIn || 0),
+            lanesOut: Math.max(0, seg.lanesOut || 0)
+          };
+        }
+        const n = seg.laneCount || 2;
+        if (n === 1) return { lanesIn: 0, lanesOut: 1 };
+        return { lanesIn: n / 2, lanesOut: n / 2 };
+      }
+      const n = seg || 2;
+      if (n === 1) return { lanesIn: 0, lanesOut: 1 };
+      return { lanesIn: n / 2, lanesOut: n / 2 };
+    }
+
+    // Lane strip: inbound (not forward) first on the negative side, outbound after.
+    function getLaneSpecs(lanesIn, lanesOut) {
+      const total = lanesIn + lanesOut;
+      const specs = [];
+      for (let i = 0; i < total; i++) {
+        let offset;
+        if (total === 1) offset = 0;
+        else if (total === 2) offset = i === 0 ? -LANE_OFFSET : LANE_OFFSET;
+        else offset = (i - (total - 1) / 2) * LANE_OFFSET;
+        specs.push({ offset, forward: i >= lanesIn, idx: i });
+      }
+      return specs;
+    }
+
+    function getLaneSpecsFor(seg) {
+      const { lanesIn, lanesOut } = getRoadDirs(seg);
+      return getLaneSpecs(lanesIn, lanesOut);
+    }
+
+    function isPureOneWay(lanesIn, lanesOut) {
+      return (lanesIn === 0 && lanesOut > 0) || (lanesOut === 0 && lanesIn > 0);
+    }
+
+    function laneColorFor(spec, lanesIn, lanesOut) {
+      if (isPureOneWay(lanesIn, lanesOut)) return '#ff8800';
+      if (!spec.forward) {
+        const reverseIdx = spec.idx;
+        return reverseIdx % 2 === 0 ? '#000000' : '#333333';
+      }
+      const forwardIdx = spec.idx - lanesIn;
+      return forwardIdx % 2 === 0 ? '#ffcc00' : '#ffaa00';
+    }
+
+    function roadLabel(lanesIn, lanesOut) {
+      if (lanesIn === 0 && lanesOut === 1) return '1 way';
+      if (lanesIn === 0) return lanesOut + ' out';
+      if (lanesOut === 0) return lanesIn + ' in';
+      return lanesIn + ' in · ' + lanesOut + ' out';
+    }
+
+    function refreshRoadConfigUI() {
+      const presetKey =
+        currentLanesIn === 0 && currentLanesOut === 1 ? 1 :
+        currentLanesIn === 1 && currentLanesOut === 1 ? 2 :
+        currentLanesIn === 2 && currentLanesOut === 2 ? 4 : null;
+      document.getElementById('btn-1way').classList.toggle('active', roadMode === 'preset' && presetKey === 1);
+      document.getElementById('btn-2lane').classList.toggle('active', roadMode === 'preset' && presetKey === 2);
+      document.getElementById('btn-4lane').classList.toggle('active', roadMode === 'preset' && presetKey === 4);
+      document.getElementById('btn-advanced').classList.toggle('active', roadMode === 'advanced');
+      document.getElementById('advanced-controls').classList.toggle('visible', roadMode === 'advanced');
+      document.getElementById('adv-in-count').textContent = String(currentLanesIn);
+      document.getElementById('adv-out-count').textContent = String(currentLanesOut);
+      document.getElementById('lane-label').textContent = roadLabel(currentLanesIn, currentLanesOut);
+
+      const specs = getLaneSpecs(currentLanesIn, currentLanesOut);
+      const preview = document.getElementById('seg-preview');
+      preview.innerHTML = specs.map(spec => {
+        const color = laneColorFor(spec, currentLanesIn, currentLanesOut);
+        return `<span style="width:40px;background:${color}"></span>`;
+      }).join('') || '<span style="width:40px;background:#666"></span>';
+
+      updateBuildHud();
+      if (firstPoint && lastPreviewEnd) drawBuildPreview(firstPoint, lastPreviewEnd);
+    }
+
+    function setPresetMode(lanesIn, lanesOut) {
+      roadMode = 'preset';
+      currentLanesIn = lanesIn;
+      currentLanesOut = lanesOut;
+      refreshRoadConfigUI();
+    }
+
+    function setAdvancedMode() {
+      roadMode = 'advanced';
+      // Sensible starting asymmetry if coming from a symmetric preset
+      if (currentLanesIn === currentLanesOut) {
+        currentLanesIn = 1;
+        currentLanesOut = 2;
+      }
+      if (currentLanesIn + currentLanesOut === 0) {
+        currentLanesIn = 1;
+        currentLanesOut = 1;
+      }
+      refreshRoadConfigUI();
+    }
+
+    function nudgeAdvanced(side, delta) {
+      if (roadMode !== 'advanced') setAdvancedMode();
+      if (side === 'in') {
+        currentLanesIn = Math.max(0, Math.min(MAX_DIR_LANES, currentLanesIn + delta));
+      } else {
+        currentLanesOut = Math.max(0, Math.min(MAX_DIR_LANES, currentLanesOut + delta));
+      }
+      // Keep at least one lane total
+      if (currentLanesIn + currentLanesOut === 0) {
+        if (side === 'in') currentLanesOut = 1;
+        else currentLanesIn = 1;
+      }
+      refreshRoadConfigUI();
+    }
+
+    function swapAdvancedLanes() {
+      if (roadMode !== 'advanced') setAdvancedMode();
+      const tmp = currentLanesIn;
+      currentLanesIn = currentLanesOut;
+      currentLanesOut = tmp;
+      refreshRoadConfigUI();
+    }
+
+    function isBuilding() {
+      return firstPoint != null;
+    }
+
+    function updateBuildHud() {
+      const building = isBuilding();
+      board.classList.toggle('building', building);
+      buildHud.classList.toggle('visible', building);
+      if (!building) return;
+      const mode = roadLabel(currentLanesIn, currentLanesOut);
+      buildHudMeta.innerHTML = `${mode} · click to place end · keep going from tip · <kbd>Esc</kbd> cancel`;
+    }
+
+    function clearGhost() {
+      while (ghostLayer.firstChild) ghostLayer.removeChild(ghostLayer.firstChild);
+    }
+
+    function ensureCursorSnap() {
+      if (cursorSnap) return cursorSnap;
+      cursorSnap = document.createElementNS(svgNS, 'circle');
+      cursorSnap.setAttribute('r', String(PLACE_NODE_R));
+      cursorSnap.setAttribute('fill', 'rgba(46,204,113,0.85)');
+      cursorSnap.setAttribute('stroke', '#fff');
+      cursorSnap.setAttribute('stroke-width', '0.6');
+      cursorSnap.setAttribute('opacity', '0');
+      ghostLayer.appendChild(cursorSnap);
+      return cursorSnap;
+    }
+
+    function setCursorSnap(x, y, visible) {
+      const el = ensureCursorSnap();
+      el.setAttribute('cx', x);
+      el.setAttribute('cy', y);
+      el.setAttribute('opacity', visible ? '0.9' : '0');
+      el.setAttribute('fill', isBuilding() ? 'rgba(46,204,113,0.95)' : 'rgba(80,80,90,0.55)');
+    }
+
+    function drawBuildPreview(start, end) {
+      clearGhost();
+      cursorSnap = null;
+      // Keep ghost above committed roads/junctions
+      world.appendChild(ghostLayer);
+
+      const same = start.x === end.x && start.y === end.y;
+      setCursorSnap(end.x, end.y, true);
+
+      // Anchor marker at the committed start
+      const anchor = document.createElementNS(svgNS, 'circle');
+      anchor.setAttribute('cx', start.x);
+      anchor.setAttribute('cy', start.y);
+      anchor.setAttribute('r', String(PLACE_NODE_R + 0.6));
+      anchor.setAttribute('fill', '#2ecc71');
+      anchor.setAttribute('stroke', '#fff');
+      anchor.setAttribute('stroke-width', '0.7');
+      ghostLayer.appendChild(anchor);
+
+      if (same) return;
+
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      if (segLen === 0) return;
+
+      const ux = dx / segLen;
+      const uy = dy / segLen;
+      const perpX = -uy;
+      const perpY = ux;
+      const specs = getLaneSpecs(currentLanesIn, currentLanesOut);
+      if (specs.length === 0) return;
+
+      // Soft road bed under the lanes
+      const bedHalf = (Math.max(...specs.map(s => Math.abs(s.offset))) + 2.5);
+      const bed = document.createElementNS(svgNS, 'line');
+      bed.setAttribute('x1', start.x);
+      bed.setAttribute('y1', start.y);
+      bed.setAttribute('x2', end.x);
+      bed.setAttribute('y2', end.y);
+      bed.setAttribute('stroke', 'rgba(30,30,40,0.18)');
+      bed.setAttribute('stroke-width', String(bedHalf * 2));
+      bed.setAttribute('stroke-linecap', 'round');
+      ghostLayer.insertBefore(bed, ghostLayer.firstChild);
+
+      specs.forEach(spec => {
+        const color = laneColorFor(spec, currentLanesIn, currentLanesOut);
+        const offset = spec.offset;
+        const lx1 = start.x + perpX * offset;
+        const ly1 = start.y + perpY * offset;
+        const lx2 = end.x + perpX * offset;
+        const ly2 = end.y + perpY * offset;
+
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('x1', lx1);
+        line.setAttribute('y1', ly1);
+        line.setAttribute('x2', lx2);
+        line.setAttribute('y2', ly2);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('stroke-opacity', '0.42');
+        line.setAttribute('stroke-dasharray', '4 3');
+        ghostLayer.appendChild(line);
+
+        const forward = spec.forward;
+        const tux = forward ? ux : -ux;
+        const tuy = forward ? uy : -uy;
+        const arrowLen = 5;
+        const arrowAngle = 0.45;
+        const spacing = 25;
+        const numArrows = Math.max(1, Math.floor(segLen / spacing));
+        const step = segLen / numArrows;
+
+        for (let a = 0; a < numArrows; a++) {
+          const t = (a + 0.5) * step;
+          const ax = (forward ? start.x + tux * t : end.x + tux * t) + perpX * offset;
+          const ay = (forward ? start.y + tuy * t : end.y + tuy * t) + perpY * offset;
+          const tipX = ax + tux * arrowLen * 0.5;
+          const tipY = ay + tuy * arrowLen * 0.5;
+          const arm1X = tipX - tux * arrowLen * Math.cos(arrowAngle) + tuy * arrowLen * Math.sin(arrowAngle);
+          const arm1Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) - tux * arrowLen * Math.sin(arrowAngle);
+          const arm2X = tipX - tux * arrowLen * Math.cos(arrowAngle) - tuy * arrowLen * Math.sin(arrowAngle);
+          const arm2Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) + tux * arrowLen * Math.sin(arrowAngle);
+
+          const arrow = document.createElementNS(svgNS, 'polyline');
+          arrow.setAttribute('points', `${arm1X},${arm1Y} ${tipX},${tipY} ${arm2X},${arm2Y}`);
+          arrow.setAttribute('fill', 'none');
+          arrow.setAttribute('stroke', color);
+          arrow.setAttribute('stroke-width', '1');
+          arrow.setAttribute('stroke-opacity', '0.4');
+          ghostLayer.appendChild(arrow);
+        }
+      });
+
+      // Length readout near the cursor tip
+      const label = document.createElementNS(svgNS, 'text');
+      label.setAttribute('x', end.x + 6);
+      label.setAttribute('y', end.y - 6);
+      label.setAttribute('fill', '#1a1a22');
+      label.setAttribute('font-family', 'monospace');
+      label.setAttribute('font-size', '4.5');
+      label.setAttribute('font-weight', '700');
+      label.setAttribute('opacity', '0.75');
+      label.textContent = Math.round(segLen) + ' px';
+      ghostLayer.appendChild(label);
+    }
+
+    function cancelBuild() {
+      firstPoint = null;
+      lastPreviewEnd = null;
+      if (startMarker) {
+        startMarker.remove();
+        startMarker = null;
+      }
+      clearGhost();
+      cursorSnap = null;
+      updateBuildHud();
+    }
+
+    function beginBuild(x, y) {
+      firstPoint = { x, y };
+      if (startMarker) startMarker.remove();
+      startMarker = document.createElementNS(svgNS, 'circle');
+      startMarker.setAttribute('cx', x);
+      startMarker.setAttribute('cy', y);
+      startMarker.setAttribute('r', String(PLACE_NODE_R));
+      startMarker.setAttribute('fill', '#2ecc71');
+      startMarker.setAttribute('stroke', '#fff');
+      startMarker.setAttribute('stroke-width', '0.7');
+      world.appendChild(startMarker);
+      lastPreviewEnd = { x, y };
+      updateBuildHud();
+      drawBuildPreview(firstPoint, lastPreviewEnd);
+    }
+
+    function toggleUturns() {
+      includeUturns = !includeUturns;
+      const btn = document.getElementById('btn-uturn');
+      btn.textContent = includeUturns ? 'On' : 'Off';
+      btn.classList.toggle('active', includeUturns);
+      recomputeAllJunctions();
+    }
+
+    function toggleCommonSense() {
+      commonSense = !commonSense;
+      const btn = document.getElementById('btn-common');
+      btn.textContent = commonSense ? 'On' : 'Off';
+      btn.classList.toggle('active', commonSense);
+      recomputeAllJunctions();
+    }
+
+    function recomputeAllJunctions() {
+      nodes.forEach((nd, key) => {
+        if (nd.count > 1) {
+          const [nx, ny] = key.split(',').map(Number);
+          calculateCurves(nx, ny);
+        }
+      });
+    }
+
+    function snapToGrid(value) {
+      return Math.round(value / GRID) * GRID;
+    }
+
+    function getNodeKey(x, y) {
+      return `${x},${y}`;
+    }
+
+    function shortenLine(x1, y1, x2, y2, shortenStart, shortenEnd) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.sqrt(dx * dx + dy * dy);
+
+      if (length === 0) return { x1, y1, x2, y2 };
+
+      const unitX = dx / length;
+      const unitY = dy / length;
+
+      return {
+        x1: shortenStart ? x1 + unitX * NODE_R : x1,
+        y1: shortenStart ? y1 + unitY * NODE_R : y1,
+        x2: shortenEnd ? x2 - unitX * NODE_R : x2,
+        y2: shortenEnd ? y2 - unitY * NODE_R : y2
+      };
+    }
+
+    // Check if point (px,py) lies on segment interior (not at endpoints)
+    function pointOnSegment(px, py, seg) {
+      const x1 = seg.startNode.x, y1 = seg.startNode.y;
+      const x2 = seg.endNode.x,   y2 = seg.endNode.y;
+      if ((px === x1 && py === y1) || (px === x2 && py === y2)) return false;
+      const dx = x2 - x1, dy = y2 - y1;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq === 0) return false;
+      const t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+      if (t <= 0 || t >= 1) return false;
+      const closestX = x1 + t * dx;
+      const closestY = y1 + t * dy;
+      return Math.abs(closestX - px) < 0.5 && Math.abs(closestY - py) < 0.5;
+    }
+
+    // Split an existing segment at (px,py), replacing it with two segments sharing a new node
+    function splitSegmentAtPoint(seg, px, py) {
+      const origStart = seg.startNode;
+      const origEnd   = seg.endNode;
+
+      // Remove original from both endpoint node lists
+      const startKey = getNodeKey(origStart.x, origStart.y);
+      const endKey   = getNodeKey(origEnd.x,   origEnd.y);
+      nodes.get(startKey).segments = nodes.get(startKey).segments.filter(s => s.id !== seg.id);
+      nodes.get(startKey).count--;
+      nodes.get(endKey).segments   = nodes.get(endKey).segments.filter(s => s.id !== seg.id);
+      nodes.get(endKey).count--;
+
+      // Erase visuals of original segment
+      if (seg.lineElements) seg.lineElements.forEach(el => el.remove());
+      segments = segments.filter(s => s.id !== seg.id);
+
+      // Register the split node
+      const splitKey = getNodeKey(px, py);
+      if (!nodes.has(splitKey)) nodes.set(splitKey, { count: 0, segments: [] });
+
+      function addSeg(ax, ay, bx, by) {
+        const kA = getNodeKey(ax, ay);
+        const kB = getNodeKey(bx, by);
+        if (!nodes.has(kA)) nodes.set(kA, { count: 0, segments: [] });
+        if (!nodes.has(kB)) nodes.set(kB, { count: 0, segments: [] });
+        const s = {
+          id: segmentCounter++,
+          startNode: { x: ax, y: ay },
+          endNode: { x: bx, y: by },
+          laneCount: (seg.lanesIn || 0) + (seg.lanesOut || 0) || seg.laneCount || 2,
+          lanesIn: getRoadDirs(seg).lanesIn,
+          lanesOut: getRoadDirs(seg).lanesOut,
+          lineElements: []
+        };
+        segments.push(s);
+        nodes.get(kA).segments.push(s); nodes.get(kA).count++;
+        nodes.get(kB).segments.push(s); nodes.get(kB).count++;
+        return s;
+      }
+
+      const segA = addSeg(origStart.x, origStart.y, px, py);
+      const segB = addSeg(px, py, origEnd.x, origEnd.y);
+      redrawSegment(segA);
+      redrawSegment(segB);
+
+      // Refresh junction visuals at all three involved nodes
+      [startKey, endKey, splitKey].forEach(k => refreshJunctionVisuals(k));
+
+      return splitKey;
+    }
+
+    // ============================================================
+    // JUNCTION MARKER (the dashed footprint outline)
+    // ============================================================
+    function drawJunctionMarker(x, y, segmentCount) {
+      let el;
+      if (segmentCount === 2) {
+        el = document.createElementNS(svgNS, 'circle');
+        el.setAttribute('cx', x);
+        el.setAttribute('cy', y);
+        el.setAttribute('r', String(NODE_R));
+        el.setAttribute('fill', 'rgba(255,255,255,0.03)');
+        el.setAttribute('stroke', 'rgba(20,20,30,0.25)');
+        el.setAttribute('stroke-width', '0.65');
+        el.setAttribute('stroke-dasharray', '2,3');
+      } else {
+        el = document.createElementNS(svgNS, 'rect');
+        el.setAttribute('x', x - NODE_R);
+        el.setAttribute('y', y - NODE_R);
+        el.setAttribute('width', String(NODE_R * 2));
+        el.setAttribute('height', String(NODE_R * 2));
+        el.setAttribute('fill', 'rgba(255,255,255,0.02)');
+        el.setAttribute('stroke', 'rgba(20,20,30,0.22)');
+        el.setAttribute('stroke-width', '0.65');
+        el.setAttribute('stroke-dasharray', '3,3');
+      }
+      world.appendChild(el);
+      return el;
+    }
+
+    // Clears and rebuilds everything tied to one node: its footprint marker
+    // (data-node) plus its lane graph (data-junction). Safe to call on any
+    // node — nodes with fewer than 2 segments simply end up with nothing drawn.
+    function refreshJunctionVisuals(nodeKey) {
+      svg.querySelectorAll(`[data-node="${nodeKey}"], [data-junction="${nodeKey}"]`).forEach(el => el.remove());
+      const nd = nodes.get(nodeKey);
+      if (!nd || nd.count < 2) return;
+      const [nx, ny] = nodeKey.split(',').map(Number);
+      const marker = drawJunctionMarker(nx, ny, nd.count);
+      marker.setAttribute('data-node', nodeKey);
+      calculateCurves(nx, ny);
+    }
+
+    // ============================================================
+    // LANE-GRAPH ENGINE (ported from intersection.html)
+    //
+    // Every connecting road at a junction is a "side". Each side is expanded
+    // into its individual lanes, each lane tagged as an entering ('in') or
+    // exiting ('out') connection point with its own travel direction. Every
+    // entering lane is then joined to every exiting lane on a *different*
+    // side with a tangent-fitted bezier, classified as straight/left/right/
+    // uturn from the geometry alone — no hardcoded lane-count cases.
+    //
+    // A plain two-road connection is just the simplest case of this: two
+    // sides, each contributing one in-lane and one out-lane, is exactly
+    // what you'd get from a 4-way box with two sides zeroed out.
+    // ============================================================
+    function classifyTurn(a, b) {
+      const cross = a.tdx * b.tdy - a.tdy * b.tdx;
+      const dot   = a.tdx * b.tdx + a.tdy * b.tdy;
+      if (Math.abs(cross) < 0.15) return dot > 0 ? 'straight' : 'uturn';
+      return cross > 0 ? 'right' : 'left';
+    }
+
+    // How far right a lane sits relative to its own travel direction (higher = righter).
+    // In SVG (y-down), the driver's right is rotate(travel) 90° clockwise: (-ty, tx).
+    function laneRightness(ln) {
+      return ln.y * ln.tdx - ln.x * ln.tdy;
+    }
+
+    // Group lanes by segment, sorted left → right from the driver's view.
+    function lanesBySegLeftToRight(list) {
+      const map = new Map();
+      list.forEach(ln => {
+        if (!map.has(ln.segId)) map.set(ln.segId, []);
+        map.get(ln.segId).push(ln);
+      });
+      map.forEach(arr => arr.sort((a, b) => laneRightness(a) - laneRightness(b)));
+      return map;
+    }
+
+    // Keep only realistic lane→lane connections:
+    // - Right turns from/to the rightmost matching lanes
+    // - Left turns from/to the leftmost matching lanes
+    // - Straight keeps roughly the same lane order
+    // So an inner lane on a multi-lane approach cannot cut across to a right-only exit.
+    function isCommonSenseAllowed(from, to, turn, entersBySeg, exitsBySeg) {
+      if (!commonSense) return true;
+      const enters = entersBySeg.get(from.segId) || [];
+      const exits = exitsBySeg.get(to.segId) || [];
+      const fi = enters.indexOf(from);
+      const ti = exits.indexOf(to);
+      if (fi < 0 || ti < 0) return true;
+      const ne = enters.length;
+      const nx = exits.length;
+
+      if (turn === 'right') {
+        const slots = Math.min(ne, nx);
+        const fromFromRight = ne - 1 - fi;
+        const toFromRight = nx - 1 - ti;
+        return fromFromRight < slots && toFromRight === fromFromRight;
+      }
+      if (turn === 'left') {
+        const slots = Math.min(ne, nx);
+        return fi < slots && ti === fi;
+      }
+      if (turn === 'straight') {
+        if (ne === 1 || nx === 1) return true;
+        const ideal = fi * (nx - 1) / (ne - 1);
+        return Math.abs(ti - ideal) <= 1.01;
+      }
+      if (turn === 'uturn') {
+        return fi === 0; // leftmost approach lane
+      }
+      return true;
+    }
+
+    // Fit a cubic bezier whose tangent at the start matches the entering
+    // lane's direction of travel, and whose tangent at the end matches the
+    // exiting lane's direction of travel.
+    function buildLaneCurve(a, b) {
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const isUturn = a.segId === b.segId;
+      const handle = isUturn
+        ? Math.max(dist, NODE_R * 1.6)   // swing wide for a loop back onto the same road
+        : Math.max(dist * 0.5, NODE_R * 0.5);
+      return {
+        x1: a.x, y1: a.y,
+        c1x: a.x + a.tdx * handle, c1y: a.y + a.tdy * handle,
+        c2x: b.x - b.tdx * handle, c2y: b.y - b.tdy * handle,
+        x2: b.x, y2: b.y
+      };
+    }
+
+    const TURN_COLORS = { straight: '#3fa7ff', left: '#b98bff', right: '#ff9d4d', uturn: '#ff5d9e' };
+
+    // Pick a lane-use sign for the set of available turns on an approach.
+    // Three (or more) primary turns → no sign. Left+right with no straight
+    // also has no asset, so nothing is shown.
+    function pickTurnSign(turns) {
+      const hasL = turns.has('left');
+      const hasS = turns.has('straight');
+      const hasR = turns.has('right');
+      const n = (hasL ? 1 : 0) + (hasS ? 1 : 0) + (hasR ? 1 : 0);
+      if (n >= 3) return null;
+      if (hasL && hasS) return 'signs/turn/left_straight.png';
+      if (hasR && hasS) return 'signs/turn/right_straight.png';
+      if (hasL && hasR) return null;
+      if (hasL) return 'signs/turn/left.png';
+      if (hasR) return 'signs/turn/right.png';
+      if (hasS) return 'signs/turn/straight.png';
+      return null;
+    }
+
+    function appendRoadSign(nodeKey, href, cx, cy, w, h, angleDeg) {
+      const img = document.createElementNS(svgNS, 'image');
+      img.setAttribute('href', href);
+      img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', href);
+      img.setAttribute('x', String(cx - w / 2));
+      img.setAttribute('y', String(cy - h / 2));
+      img.setAttribute('width', String(w));
+      img.setAttribute('height', String(h));
+      img.setAttribute('opacity', String(SIGN_OPACITY));
+      img.setAttribute('transform', `rotate(${angleDeg} ${cx} ${cy})`);
+      img.setAttribute('data-junction', nodeKey);
+      img.setAttribute('pointer-events', 'none');
+      world.appendChild(img);
+      return img;
+    }
+
+    // Lateral offset for the outer edge of entering/exiting lanes on one approach.
+    function getLaneSideOffset(dir, laneType) {
+      const specs = getLaneSpecsFor(dir.segment);
+      const sideOffsets = [];
+      specs.forEach(spec => {
+        const type = (dir.isStart === spec.forward) ? 'out' : 'in';
+        if (type !== laneType) return;
+        sideOffsets.push(dir.isStart ? spec.offset : -spec.offset);
+      });
+      if (sideOffsets.length === 0) return 0;
+      const outer = sideOffsets.reduce((a, b) => Math.abs(a) >= Math.abs(b) ? a : b);
+      return outer + (outer >= 0 ? SIGN_SIDE_EXTRA : -SIGN_SIDE_EXTRA);
+    }
+
+    function signPosition(nodeX, nodeY, dir, laneType) {
+      const lateral = getLaneSideOffset(dir, laneType);
+      return {
+        cx: nodeX + dir.dx * SIGN_DIST + dir.perpX * lateral,
+        cy: nodeY + dir.dy * SIGN_DIST + dir.perpY * lateral
+      };
+    }
+
+    // Place approach turn signs (and one-way exit signs) just outside the node.
+    function drawJunctionSigns(nodeKey, nodeX, nodeY, directions, edges) {
+      // --- Turn condition signs: one per approach that has entering lanes ---
+      const bySeg = new Map();
+      edges.forEach(edge => {
+        if (edge.turn === 'uturn') return;
+        const segId = edge.from.segId;
+        if (!bySeg.has(segId)) {
+          bySeg.set(segId, { turns: new Set(), tdx: edge.from.tdx, tdy: edge.from.tdy });
+        }
+        bySeg.get(segId).turns.add(edge.turn);
+      });
+
+      bySeg.forEach((info, segId) => {
+        const href = pickTurnSign(info.turns);
+        if (!href) return; // three turns (or no matching asset) → show nothing
+        const dir = directions.find(d => d.segment.id === segId);
+        if (!dir) return;
+        const { cx, cy } = signPosition(nodeX, nodeY, dir, 'in');
+        // Turn glyphs point "up" in the PNG → align up with inbound travel
+        const angleDeg = Math.atan2(info.tdy, info.tdx) * 180 / Math.PI + 90;
+        appendRoadSign(nodeKey, href, cx, cy, TURN_SIGN_W, TURN_SIGN_H, angleDeg);
+      });
+
+      // --- One-way signs on sides where traffic exits onto a one-way ---
+      directions.forEach(dir => {
+        const { lanesIn, lanesOut } = getRoadDirs(dir.segment);
+        if (!isPureOneWay(lanesIn, lanesOut)) return;
+        const specs = getLaneSpecs(lanesIn, lanesOut);
+        const hasExit = specs.some(spec => dir.isStart === spec.forward);
+        if (!hasExit) return;
+        const { cx, cy } = signPosition(nodeX, nodeY, dir, 'out');
+        // Oneway glyph arrow points right (+X) in the PNG
+        const angleDeg = Math.atan2(dir.dy, dir.dx) * 180 / Math.PI;
+        appendRoadSign(nodeKey, 'signs/oneway.png', cx, cy, ONEWAY_SIGN_W, ONEWAY_SIGN_H, angleDeg);
+      });
+    }
+
+    function calculateCurves(nodeX, nodeY) {
+      const nodeKey = getNodeKey(nodeX, nodeY);
+      svg.querySelectorAll(`[data-junction="${nodeKey}"]`).forEach(el => el.remove());
+
+      const nodeData = nodes.get(nodeKey);
+      if (!nodeData || nodeData.count < 2) return;
+
+      // One "side" per connecting segment, with its direction away from this node
+      const directions = [];
+      nodeData.segments.forEach(segment => {
+        const isStart = segment.startNode.x === nodeX && segment.startNode.y === nodeY;
+        const otherX = isStart ? segment.endNode.x : segment.startNode.x;
+        const otherY = isStart ? segment.endNode.y : segment.startNode.y;
+        const dx = otherX - nodeX, dy = otherY - nodeY;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        if (length === 0) return;
+        directions.push({
+          segment, isStart,
+          dx: dx / length, dy: dy / length,
+          perpX: -dy / length, perpY: dx / length,
+          ...getRoadDirs(segment)
+        });
+      });
+
+      // Expand each side into its individual entering/exiting lane connection points.
+      // Offsets are defined in the segment's start→end frame (same as redrawSegment).
+      // At the end node, dir/perp are flipped relative to that frame, so negate the
+      // offset — otherwise in/out land on the wrong half of the road and opposite
+      // approaches mirror each other instead of facing oncoming traffic.
+      const laneNodes = [];
+      directions.forEach(dir => {
+        const specs = getLaneSpecsFor(dir.segment);
+        specs.forEach(spec => {
+          const type = (dir.isStart === spec.forward) ? 'out' : 'in';
+          const travelDx = type === 'in' ? -dir.dx : dir.dx;
+          const travelDy = type === 'in' ? -dir.dy : dir.dy;
+          const signedOffset = dir.isStart ? spec.offset : -spec.offset;
+          laneNodes.push({
+            segId: dir.segment.id,
+            laneIdx: spec.idx,
+            type,
+            tdx: travelDx, tdy: travelDy,
+            x: nodeX + dir.dx * NODE_R + dir.perpX * signedOffset,
+            y: nodeY + dir.dy * NODE_R + dir.perpY * signedOffset
+          });
+        });
+      });
+
+      // Stable numbering: walk lane nodes clockwise around the junction center
+      laneNodes.sort((a, b) => Math.atan2(a.y - nodeY, a.x - nodeX) - Math.atan2(b.y - nodeY, b.x - nodeX));
+      laneNodes.forEach((ln, i) => { ln.id = i + 1; });
+
+      // Every entering lane reaches every exiting lane on another side;
+      // skip a lane looping back onto its own road unless U-turns are on.
+      // With common sense on, also drop unrealistic cross-lane turns.
+      const enterList = laneNodes.filter(l => l.type === 'in');
+      const exitList  = laneNodes.filter(l => l.type === 'out');
+      const entersBySeg = lanesBySegLeftToRight(enterList);
+      const exitsBySeg = lanesBySegLeftToRight(exitList);
+      const edges = [];
+      enterList.forEach(a => {
+        exitList.forEach(b => {
+          if (a.segId === b.segId && !includeUturns) return;
+          const turn = classifyTurn(a, b);
+          if (!isCommonSenseAllowed(a, b, turn, entersBySeg, exitsBySeg)) return;
+          edges.push({ from: a, to: b, turn });
+        });
+      });
+
+      nodeData.laneNodes = laneNodes;
+      nodeData.edges = edges;
+      if (!nodeData.interaction) nodeData.interaction = { selectedId: null, hoveredId: null };
+      const validIds = new Set(laneNodes.map(l => l.id));
+      if (nodeData.interaction.selectedId != null && !validIds.has(nodeData.interaction.selectedId)) {
+        nodeData.interaction.selectedId = null;
+      }
+      nodeData.interaction.hoveredId = null;
+
+      drawJunctionEdges(nodeKey, edges);
+      drawJunctionLaneNodes(nodeKey, nodeX, nodeY, laneNodes);
+      drawJunctionSigns(nodeKey, nodeX, nodeY, directions, edges);
+      refreshEmphasis(nodeKey);
+    }
+
+    function drawJunctionEdges(nodeKey, edges) {
+      edges.forEach(edge => {
+        const c = buildLaneCurve(edge.from, edge.to);
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', `M ${c.x1} ${c.y1} C ${c.c1x} ${c.c1y}, ${c.c2x} ${c.c2y}, ${c.x2} ${c.y2}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', TURN_COLORS[edge.turn]);
+        path.setAttribute('stroke-width', String(LANE_EDGE_WIDTH));
+        path.setAttribute('opacity', '0.32');
+        path.setAttribute('data-junction', nodeKey);
+        path.setAttribute('data-from-segment', edge.from.segId);
+        path.setAttribute('data-to-segment', edge.to.segId);
+        path.setAttribute('data-turn', edge.turn);
+        world.appendChild(path);
+        edge.el = path;
+      });
+    }
+
+    function drawJunctionLaneNodes(nodeKey, nodeX, nodeY, laneNodes) {
+      laneNodes.forEach(ln => {
+        // Larger invisible hit target — the visible dot alone is too small to
+        // reliably hover/click, so interaction is bound to this instead.
+        const hit = document.createElementNS(svgNS, 'circle');
+        hit.setAttribute('cx', ln.x);
+        hit.setAttribute('cy', ln.y);
+        hit.setAttribute('r', String(LANE_HIT_R));
+        hit.setAttribute('fill', 'transparent');
+        hit.setAttribute('data-junction', nodeKey);
+        hit.style.pointerEvents = 'auto';
+        hit.style.cursor = 'pointer';
+        hit.addEventListener('mouseenter', () => setHover(nodeKey, ln.id));
+        hit.addEventListener('mouseleave', () => setHover(nodeKey, null));
+        hit.addEventListener('click', (e) => { e.stopPropagation(); toggleSelect(nodeKey, ln.id); });
+        world.appendChild(hit);
+        ln.hitEl = hit;
+
+        const dot = document.createElementNS(svgNS, 'circle');
+        dot.setAttribute('cx', ln.x);
+        dot.setAttribute('cy', ln.y);
+        dot.setAttribute('r', String(LANE_DOT_R));
+        dot.setAttribute('fill', ln.type === 'in' ? 'var(--enter)' : 'var(--exit)');
+        dot.setAttribute('stroke', '#0a0d12');
+        dot.setAttribute('stroke-width', '0.5');
+        dot.setAttribute('data-junction', nodeKey);
+        world.appendChild(dot);
+        ln.dotEl = dot;
+
+        const dx = ln.x - nodeX, dy = ln.y - nodeY;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        const lx = ln.x + (dx / len) * LANE_LABEL_OFFSET;
+        const ly = ln.y + (dy / len) * LANE_LABEL_OFFSET;
+        const label = document.createElementNS(svgNS, 'text');
+        label.setAttribute('x', lx);
+        label.setAttribute('y', ly);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('dominant-baseline', 'middle');
+        label.setAttribute('font-family', 'monospace');
+        label.setAttribute('font-size', String(LANE_LABEL_SIZE));
+        label.setAttribute('font-weight', '700');
+        label.setAttribute('fill', 'var(--node-label)');
+        label.setAttribute('stroke', '#000');
+        label.setAttribute('stroke-width', '1');
+        label.setAttribute('paint-order', 'stroke');
+        label.setAttribute('data-junction', nodeKey);
+        label.setAttribute('opacity', '0');
+        label.textContent = ln.id;
+        world.appendChild(label);
+        ln.labelEl = label;
+      });
+    }
+
+    // ---------- Hover / click isolation ----------
+    function setHover(nodeKey, laneId) {
+      const nd = nodes.get(nodeKey);
+      if (!nd || !nd.interaction) return;
+      nd.interaction.hoveredId = laneId;
+      refreshEmphasis(nodeKey);
+    }
+
+    function toggleSelect(nodeKey, laneId) {
+      const nd = nodes.get(nodeKey);
+      if (!nd || !nd.interaction) return;
+      nd.interaction.selectedId = (nd.interaction.selectedId === laneId) ? null : laneId;
+      refreshEmphasis(nodeKey);
+    }
+
+    function refreshEmphasis(nodeKey) {
+      const nd = nodes.get(nodeKey);
+      if (!nd || !nd.interaction) return;
+      const activeId = nd.interaction.selectedId != null ? nd.interaction.selectedId : nd.interaction.hoveredId;
+
+      (nd.edges || []).forEach(edge => {
+        if (!edge.el) return;
+        if (activeId == null) {
+          edge.el.setAttribute('stroke-width', String(LANE_EDGE_WIDTH));
+          edge.el.setAttribute('opacity', '0.32');
+        } else {
+          const active = edge.from.id === activeId || edge.to.id === activeId;
+          edge.el.setAttribute('stroke-width', active ? String(LANE_EDGE_WIDTH_ACTIVE) : String(LANE_EDGE_WIDTH));
+          edge.el.setAttribute('opacity', active ? '0.95' : '0.06');
+          if (active) world.appendChild(edge.el);
+        }
+      });
+
+      (nd.laneNodes || []).forEach(ln => {
+        const isActive = activeId != null && ln.id === activeId;
+        if (ln.dotEl) {
+          ln.dotEl.setAttribute('r', isActive ? String(LANE_DOT_R_ACTIVE) : String(LANE_DOT_R));
+          ln.dotEl.setAttribute('stroke', isActive ? '#ffffff' : '#0a0d12');
+          ln.dotEl.setAttribute('stroke-width', isActive ? '0.9' : '0.45');
+          ln.dotEl.setAttribute('opacity', activeId == null ? '0.35' : (isActive ? '1' : '0.2'));
+          if (isActive) world.appendChild(ln.dotEl);
+        }
+        if (ln.labelEl) {
+          ln.labelEl.setAttribute('font-size', isActive ? String(LANE_LABEL_SIZE_ACTIVE) : String(LANE_LABEL_SIZE));
+          ln.labelEl.setAttribute('opacity', isActive ? '1' : '0');
+          if (isActive) world.appendChild(ln.labelEl);
+        }
+      });
+    }
+
+    // ============================================================
+    // ROAD SEGMENT RENDERING
+    // ============================================================
+    function redrawSegment(segment) {
+      const { lanesIn, lanesOut } = getRoadDirs(segment);
+      const specs = getLaneSpecs(lanesIn, lanesOut);
+      // Remove old line elements
+      if (segment.lineElements) segment.lineElements.forEach(el => el.remove());
+      segment.lineElements = [];
+
+      // Check if start or end nodes are junctions
+      const startKey = getNodeKey(segment.startNode.x, segment.startNode.y);
+      const endKey = getNodeKey(segment.endNode.x, segment.endNode.y);
+      const startIsJunction = nodes.get(startKey) && nodes.get(startKey).count > 1;
+      const endIsJunction = nodes.get(endKey) && nodes.get(endKey).count > 1;
+
+      let x1 = segment.startNode.x;
+      let y1 = segment.startNode.y;
+      let x2 = segment.endNode.x;
+      let y2 = segment.endNode.y;
+
+      // Shorten line if either end is a junction
+      const shortened = shortenLine(x1, y1, x2, y2, startIsJunction, endIsJunction);
+      x1 = shortened.x1;
+      y1 = shortened.y1;
+      x2 = shortened.x2;
+      y2 = shortened.y2;
+
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      if (segLen === 0 || specs.length === 0) return;
+
+      const ux = dx / segLen; // unit vector along segment
+      const uy = dy / segLen;
+      const perpX = -uy;     // perpendicular unit vector
+      const perpY = ux;
+
+      // Arrow size & spacing
+      const arrowLen = 6;       // length of arrow head arms
+      const arrowAngle = 0.45;  // radians, ~25°
+      const spacing = 25;       // one arrow every 25px (matches grid)
+      const numArrows = Math.max(1, Math.floor(segLen / spacing));
+      const step = segLen / numArrows;
+
+      specs.forEach(spec => {
+        const color = laneColorFor(spec, lanesIn, lanesOut);
+        const offset = spec.offset;
+
+        // Lane line
+        const lx1 = x1 + perpX * offset;
+        const ly1 = y1 + perpY * offset;
+        const lx2 = x2 + perpX * offset;
+        const ly2 = y2 + perpY * offset;
+
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('x1', lx1);
+        line.setAttribute('y1', ly1);
+        line.setAttribute('x2', lx2);
+        line.setAttribute('y2', ly2);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('stroke-opacity', String(ROAD_LANE_OPACITY));
+        line.setAttribute('data-segment', segment.id);
+        line.setAttribute('data-lane', spec.idx);
+        world.appendChild(line);
+        segment.lineElements.push(line);
+
+        const forward = spec.forward;
+        // Direction of travel along this lane
+        const tux = forward ? ux : -ux;
+        const tuy = forward ? uy : -uy;
+
+        // Place arrows evenly spaced, centered in the segment
+        for (let a = 0; a < numArrows; a++) {
+          // Center of this arrow along the segment, offset half a step from each end
+          const t = (a + 0.5) * step;
+          // Base point of arrow along segment, projected onto the lane
+          const ax = (forward ? x1 + tux * t : x2 + tux * t) + perpX * offset;
+          const ay = (forward ? y1 + tuy * t : y2 + tuy * t) + perpY * offset;
+
+          // Arrowhead tip
+          const tipX = ax + tux * arrowLen * 0.5;
+          const tipY = ay + tuy * arrowLen * 0.5;
+
+          // Two arms going back from tip
+          const arm1X = tipX - tux * arrowLen * Math.cos(arrowAngle) + tuy * arrowLen * Math.sin(arrowAngle);
+          const arm1Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) - tux * arrowLen * Math.sin(arrowAngle);
+          const arm2X = tipX - tux * arrowLen * Math.cos(arrowAngle) - tuy * arrowLen * Math.sin(arrowAngle);
+          const arm2Y = tipY - tuy * arrowLen * Math.cos(arrowAngle) + tux * arrowLen * Math.sin(arrowAngle);
+
+          const arrow = document.createElementNS(svgNS, 'polyline');
+          arrow.setAttribute('points', `${arm1X},${arm1Y} ${tipX},${tipY} ${arm2X},${arm2Y}`);
+          arrow.setAttribute('fill', 'none');
+          arrow.setAttribute('stroke', color);
+          arrow.setAttribute('stroke-width', '1');
+          arrow.setAttribute('stroke-opacity', String(ROAD_ARROW_OPACITY));
+          arrow.setAttribute('data-segment', segment.id);
+          arrow.setAttribute('data-lane', spec.idx);
+          world.appendChild(arrow);
+          segment.lineElements.push(arrow);
+        }
+      });
+    }
+
+    // ============================================================
+    // VIEWPORT (zoom / pan)
+    // ============================================================
+    board.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+      zoomAt(e.clientX, e.clientY, factor);
+    }, { passive: false });
+
+    board.addEventListener('mousedown', (e) => {
+      // Middle mouse, or Space+left, or right-drag → pan
+      if (e.button === 1 || e.button === 2 || (e.button === 0 && spaceHeld)) {
+        e.preventDefault();
+        startPan(e.clientX, e.clientY);
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isPanning) {
+        e.preventDefault();
+        movePan(e.clientX, e.clientY);
+        return;
+      }
+      const worldPt = screenToWorld(e.clientX, e.clientY);
+      const x = snapToGrid(worldPt.x);
+      const y = snapToGrid(worldPt.y);
+      lastPreviewEnd = { x, y };
+      if (firstPoint) {
+        drawBuildPreview(firstPoint, lastPreviewEnd);
+      } else {
+        clearGhost();
+        cursorSnap = null;
+        world.appendChild(ghostLayer);
+        setCursorSnap(x, y, true);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      endPan();
+    });
+
+    board.addEventListener('contextmenu', (e) => {
+      e.preventDefault(); // right-drag pans instead of opening the menu
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
+      if (isBuilding()) cancelBuild();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape' && isBuilding()) {
+        e.preventDefault();
+        cancelBuild();
+        return;
+      }
+      if (e.code === 'Space' && !e.repeat && !e.target.matches('input, textarea, button')) {
+        e.preventDefault();
+        spaceHeld = true;
+        if (!isPanning) board.classList.add('space-pan');
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        spaceHeld = false;
+        board.classList.remove('space-pan');
+        if (!isPanning) endPan();
+      }
+    });
+
+    applyView();
+    refreshRoadConfigUI();
+    updateBuildHud();
+
+    // ============================================================
+    // CLICK HANDLING
+    // ============================================================
+    function placeSegment(x, y) {
+      const startKey = getNodeKey(firstPoint.x, firstPoint.y);
+      const endKey = getNodeKey(x, y);
+
+      if (!nodes.has(startKey)) {
+        nodes.set(startKey, { count: 0, segments: [] });
+      }
+      if (!nodes.has(endKey)) {
+        nodes.set(endKey, { count: 0, segments: [] });
+      }
+
+      nodes.get(startKey).count++;
+      nodes.get(endKey).count++;
+
+      const segment = {
+        id: segmentCounter,
+        startNode: { x: firstPoint.x, y: firstPoint.y },
+        endNode: { x: x, y: y },
+        laneCount: currentLanesIn + currentLanesOut,
+        lanesIn: currentLanesIn,
+        lanesOut: currentLanesOut,
+        lineElements: []
+      };
+      segments.push(segment);
+
+      nodes.get(startKey).segments.push(segment);
+      nodes.get(endKey).segments.push(segment);
+
+      console.log(`Segment ${segmentCounter}: nodeStart(${firstPoint.x}, ${firstPoint.y}) endNode(${x}, ${y}) in:${currentLanesIn} out:${currentLanesOut}`);
+      segmentCounter++;
+
+      const affectedSegments = new Set([...nodes.get(startKey).segments, ...nodes.get(endKey).segments]);
+      affectedSegments.forEach(seg => redrawSegment(seg));
+
+      refreshJunctionVisuals(startKey);
+      refreshJunctionVisuals(endKey);
+    }
+
+    function handleClick(event) {
+      // Ignore the click that fires at the end of a pan, and Space-held pan mode
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
+      if (spaceHeld || event.button !== 0) return;
+
+      // Clicking empty space clears any active junction highlight
+      nodes.forEach((nd, key) => {
+        if (nd.interaction && (nd.interaction.selectedId != null || nd.interaction.hoveredId != null)) {
+          nd.interaction.selectedId = null;
+          nd.interaction.hoveredId = null;
+          refreshEmphasis(key);
+        }
+      });
+
+      const worldPt = screenToWorld(event.clientX, event.clientY);
+      const x = snapToGrid(worldPt.x);
+      const y = snapToGrid(worldPt.y);
+
+      // Check if this point lies on the interior of any existing segment → split it first
+      const hitSeg = segments.find(seg => pointOnSegment(x, y, seg));
+      if (hitSeg) {
+        splitSegmentAtPoint(hitSeg, x, y);
+        // Now (x,y) is a proper node — fall through to place firstPoint / end a segment here
+      }
+
+      if (!firstPoint) {
+        beginBuild(x, y);
+      } else if (firstPoint.x === x && firstPoint.y === y) {
+        // Same cell as start — ignore (need a real segment)
+        return;
+      } else {
+        placeSegment(x, y);
+        // Cities-style: keep building from the tip
+        if (startMarker) startMarker.remove();
+        beginBuild(x, y);
+      }
+    }
+
+    board.addEventListener('click', handleClick);
+  </script>
+  <script src="engine.js"></script>
+</body>
+</html>

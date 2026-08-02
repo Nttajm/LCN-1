@@ -49,7 +49,7 @@ export const work = {
         body: [
           { type: 'text', content: 'OverUnderThs is an interactive game that challenges players to predict outcomes based on given scenarios.' },
           { type: 'text', content: 'Players must analyze the information provided and make educated guesses to succeed in the game.' },
-          { type: 'image', src: '../bp/EE/assets/ouths/proof-4.JPG', caption: 'Screenshot of OverUnderThs gameplay' },
+          { type: 'image', src: 'data/work/ou/proof-3.JPG', caption: 'Screenshot of OverUnderThs gameplay' },
           { type: 'text', content: 'The game is designed to be engaging and thought-provoking, encouraging players to think critically and strategically.' },
         ],
       },
@@ -108,246 +108,275 @@ export const work = {
 // ─── Cat-View Data ──────────────────────────────────────────────────────────
 
 const catViews = {
-  demos: {
-    color: '#E8590C',
-    title: 'Demos',
-    description: 'Three tiers of web experiences. Each crafted with precision, tailored to different scales and ambitions.',
-    tiers: [
-      {
-        id: 'simple',
-        label: 'Simple',
-        cards: [
-          {
-            title: 'La Costa del Sol',
-            description: 'A refined 3–4 page presence. Clean layouts, essential information, timeless design. Perfect for restaurants, portfolios, and local businesses.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80', col: '2/3', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80', col: '1/2', row: '3/4' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80', col: '1/3', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80', col: '3/5', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80', col: '5/6', row: '2/5' },
-              ],
-            },
-          },
-          {
-            title: 'Atelier Noir',
-            description: 'Minimal portfolio for creative professionals. Single-page flow with elegant typography and considered whitespace.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80', col: '1/2', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80', col: '2/3', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=80', col: '2/3', row: '4/5' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80', col: '1/4', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80', col: '1/2', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&q=80', col: '2/4', row: '2/5' },
-              ],
-            },
-          },
-        ],
-        infoBlock: { Price: '$100–150', Pages: '1–4', Turnaround: '3–4 days' },
-      },
-      {
-        id: 'interactive',
-        label: 'Interactive',
-        cards: [
-          {
-            title: 'Kinetic Studio',
-            description: 'Motion-driven portfolio with scroll animations, page transitions, and interactive galleries. For brands that demand attention.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80', col: '2/3', row: '2/3' },
-                { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=80', col: '2/3', row: '3/5' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '3/5', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80', col: '5/6', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', col: '1/3', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?w=600&q=80', col: '1/3', row: '4/5' },
-              ],
-            },
-          },
-          {
-            title: 'Meridian Commerce',
-            description: 'E-commerce foundation with cart functionality, product filtering, and checkout flow. Stripe-ready, conversion-optimized.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80', col: '1/2', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80', col: '2/3', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80', col: '2/3', row: '4/5' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80', col: '1/2', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80', col: '5/6', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80', col: '2/4', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80', col: '1/4', row: '4/5' },
-              ],
-            },
-          },
-        ],
-        infoBlock: { Price: '$300–500', Pages: '5–10', Turnaround: '1–2 weeks' },
-      },
-      {
-        id: 'app',
-        label: 'App',
-        cards: [
-          {
-            title: 'Nexus Dashboard',
-            description: 'Full-featured web application with authentication, real-time data, and complex state management. SaaS-ready architecture.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=400&q=80', col: '2/3', row: '3/5' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80', col: '1/4', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/5' },
-                { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&q=80', col: '2/4', row: '2/3' },
-                { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80', col: '2/4', row: '3/5' },
-              ],
-            },
-          },
-          {
-            title: 'Pulse Analytics',
-            description: 'Data visualization platform with charts, reports, and exportable insights. Built for teams that need clarity from complexity.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80', col: '2/3', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80', col: '1/2', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&q=80', col: '1/3', row: '4/5' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80', col: '1/3', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80', col: '3/4', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&q=80', col: '4/6', row: '2/3' },
-                { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80', col: '4/6', row: '3/5' },
-              ],
-            },
-          },
-        ],
-        infoBlock: { Price: '$800–1500', Screens: '10+', Turnaround: '3–6 weeks' },
-      },
-    ],
-  },
-
   games: {
     color: '#38c219',
+    cover: 'data/banners/games.jpg',
     title: 'Games',
     description: 'Browser-based games built for real engagement. From casual prediction to competitive multiplayer.',
     tiers: [
       {
         id: 'arcade',
-        label: 'Arcade',
+        label: 'Over/under Series',
         cards: [
           {
             title: 'OverUnderThs',
-            description: 'An interactive prediction game challenging players to analyze scenarios and make educated guesses to win. 207 players, $50 revenue.',
+            description: 'An interactive prediction game challenging players to analyze scenarios and make educated guesses to win. 207 players out of 330 studnets $50 revenue. more info on LCN.',
             gridImages: {
               mobile: [
-                { src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).png',
+                  col: '1/2',
+                  row: '1/3'
+                },
+                {
+                  type: 'text',
+                  content: 'Over under was a pretend betting/stock market game on school sports to help students be encouraged to be more excited about games and talk about school sports more as Tech High is in smallest High School Division.',
+                  col: '2/4',
+                  row: '1/3',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).jpg',
+                  col: '2/4',
+                  row: '3/5'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture of Harrison M. winning item shop prize.',
+                  col: '1/2',
+                  row: '3/4',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'right',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data\\work\\ou\\ou (2).PNG',
+                  col: '1/2',
+                  row: '4/6'
+                },
+                {
+                  type: 'text',
+                  content: 'The game also featured a school stock market, where students can invest in teachers based on their characteristic like \'Yapping\' or \'when assignment is graded.\'',
+                  col: '1/3',
+                  row: '6/7',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (4).png',
+                  col: '1/4',
+                  row: '7/8'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (2).jpg',
+                  col: '2/4',
+                  row: '5/6'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture above was taken when 93 active players were online during passing period.',
+                  col: '3/4',
+                  row: '6/7',
+                  textStyle: 'body',
+                  textSize: 'sm',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'text',
+                  content: 'Biggest challenge for this project was dealing with hackers and figuring out how to get the female population of the school to play.',
+                  col: '1/4',
+                  row: '8/9',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                }
               ],
               desktop: [
-                { src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' },
-              ],
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).png',
+                  col: '3/4',
+                  row: '1/4'
+                },
+                {
+                  type: 'text',
+                  content: 'Over under was a pretend betting/stock market game on school sports to help students be encouraged to be more excited about games and talk about school sports more as Tech High is in smallest High School Division.',
+                  col: '1/3',
+                  row: '1/4',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).jpg',
+                  col: '4/6',
+                  row: '2/5'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture of Harrison M. winning item shop prize.',
+                  col: '5/6',
+                  row: '5/6',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data\\work\\ou\\ou (2).PNG',
+                  col: '1/3',
+                  row: '7/14'
+                },
+                {
+                  type: 'text',
+                  content: 'The game also featured a school stock market, where students can invest in teachers based on their characteristic like \'Yapping\' or \'when assignment is graded.\'',
+                  col: '1/3',
+                  row: '4/5',
+                  textStyle: 'head',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (4).png',
+                  col: '1/3',
+                  row: '5/7'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (2).jpg',
+                  col: '3/6',
+                  row: '6/9'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture above was taken when 93 active players were online during passing period.',
+                  col: '4/6',
+                  row: '9/10',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'text',
+                  content: 'Biggest challenge for this project was dealing with hackers and figuring out how to get the female population of the school to play.',
+                  col: '3/6',
+                  row: '12/14',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                }
+              ]
             },
+            gridRows: {
+              desktop: 14,
+              mobile: 8
+            }
           },
           {
             title: 'Mulon',
             description: 'A fast-paced strategy game built around resource management and real-time decision making, with a seasonal leaderboard system.',
+            isInLcn: 'projects/josu',
             gridImages: {
               mobile: [
-                { src: 'data/work/games/mulon.png', col: '1/3', row: '1/3' },
+                {
+                  src: 'data/work/games/mulon.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
               ],
               desktop: [
-                { src: 'data/work/games/mulon.png', col: '1/3', row: '1/3' },
-              ],
-            },
+                {
+                  src: 'data/work/mulon/mulon.png',
+                  col: '1/3',
+                  row: '1/3',
+                  type: 'image'
+                }
+              ]
+            }
           },
-        ],
-        infoBlock: { Players: '200+', Revenue: '$50', Status: 'Active' },
-      },
-      {
-        id: 'multiplayer',
-        label: 'Multiplayer',
-        cards: [
-          {
-            title: 'Square',
-            description: 'A collaborative pixel canvas where players place colored squares on a shared real-time grid. Inspired by r/place.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=80', col: '1/2', row: '2/4' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80', col: '1/4', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', col: '1/3', row: '2/4' },
-              ],
-            },
-          },
-          {
-            title: 'Imposter',
-            description: 'An online social deduction game with lobby creation, singleplayer mode, and multiplayer sessions. Inspired by Among Us.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&q=80', col: '2/3', row: '2/4' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?w=800&q=80', col: '3/6', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '1/3', row: '2/4' },
-              ],
-            },
-          },
-        ],
-        infoBlock: { Mode: 'Online', Players: '2–10', Status: 'Active' },
-      },
-      {
-        id: 'puzzle',
-        label: 'Puzzle',
-        cards: [
           {
             title: 'Josu',
-            description: 'A rhythm game inspired by osu! with a song browser, custom beatmap editor, and community song integration via Firebase.',
+            description: 'Card description.',
             gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80', col: '1/2', row: '2/4' },
-              ],
+              mobile: [],
               desktop: [
-                { src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80', col: '1/4', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&q=80', col: '1/3', row: '2/4' },
-              ],
+                {
+                  type: 'image',
+                  src: 'data/work/josu/ss-5.jpg',
+                  col: '4/6',
+                  row: '6/8'
+                },
+                {
+                  type: 'text',
+                  col: '1/3',
+                  row: '1/3',
+                  content: 'Josu is a rhythm game, where you use your keyboard to tap to teh rythym, inpsired by osu.\n\n the game is web adapted version allowing players to play adaptiaon with also any song they want, by either making it or finding it in the explore page.',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/josu/ss-1.png',
+                  col: '3/6',
+                  row: '1/4'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/josu/ss-2.png',
+                  col: '1/3',
+                  row: '4/6'
+                },
+                {
+                  type: 'text',
+                  content: 'screenshot of talkio, two button rythm mode, gameplay.',
+                  col: '3/4',
+                  row: '4/5',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                }
+              ]
             },
-          },
-          {
-            title: 'Titan Games',
-            description: 'A hub of word and puzzle games — crosswords, Nerdle, and other brain-teasing challenges with a clean NYT-inspired interface.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1580541832626-2a7131ee809f?w=400&q=80', col: '2/3', row: '2/4' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=800&q=80', col: '3/6', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1580541832626-2a7131ee809f?w=600&q=80', col: '1/3', row: '2/4' },
-              ],
-            },
-          },
+            gridRows: {
+              desktop: 7,
+              mobile: 5
+            }
+          }
         ],
-        infoBlock: { Mode: 'Solo', Games: '5+', Status: 'Growing' },
-      },
-    ],
+        infoBlock: {
+          Players: '200+',
+          Revenue: '$50',
+          Status: 'Active'
+        }
+      }
+    ]
   },
-
   projects: {
-    color: '#2F9E44',
+    color: '#ff0000',
+    cover: null,
     title: 'Projects',
     description: 'Platforms, tools, and web applications built for real use cases and real people.',
     tiers: [
@@ -360,53 +389,27 @@ const catViews = {
             description: 'A sports league management platform tracking matches, league tables, and player statistics across multiple competitions.',
             gridImages: {
               mobile: [
-                { src: 'data/work/rfaa/main-image.png', col: '1/3', row: '1/3' },
+                {
+                  src: 'data/work/rfaa/main-image.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
               ],
               desktop: [
-                { src: 'data/work/rfaa/main-image.png', col: '1/3', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=600&q=80', col: '3/6', row: '2/4' },
-              ],
-            },
-          },
-          {
-            title: 'Cascade',
-            description: 'A collaborative workspace platform with user profiles, shared workspaces, sidebar-based navigation, and real-time updates.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/4' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80', col: '1/4', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80', col: '1/3', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80', col: '3/6', row: '3/5' },
-              ],
-            },
-          },
+                {
+                  src: 'data/work/rfaa/main-image.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
+              ]
+            }
+          }
         ],
-        infoBlock: { Type: 'Web App', Stack: 'Full-Stack', Status: 'Active' },
-      },
-      {
-        id: 'tools',
-        label: 'Tools',
-        cards: [
-          {
-            title: 'Manifest',
-            description: 'A university tracking and planning tool helping students organize college applications, track deadlines, and compare schools.',
-            gridImages: {
-              mobile: [
-                { src: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80', col: '1/3', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80', col: '1/2', row: '2/4' },
-              ],
-              desktop: [
-                { src: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80', col: '1/4', row: '1/2' },
-                { src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80', col: '1/3', row: '2/4' },
-                { src: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&q=80', col: '3/6', row: '3/5' },
-              ],
-            },
-          },
-        ],
-        infoBlock: { Type: 'Tool', Users: 'Students', Status: 'Active' },
+        infoBlock: {
+          Type: 'Web App',
+          Stack: 'Full-Stack',
+          Status: 'Active'
+        }
       },
       {
         id: 'experiments',
@@ -414,37 +417,234 @@ const catViews = {
         cards: [
           {
             title: 'Traffic Sim',
-            description: 'A canvas-based traffic simulation exploring autonomous vehicle pathfinding and intersection logic, built iteratively across multiple versions.',
+            description: 'A canvas-based traffic simulation exploring autonomous vehicle pathfinding and intersection logic, built iteratively.',
             gridImages: {
               mobile: [
-                { src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' },
+                {
+                  src: 'data/work/games/overunderThs.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
               ],
               desktop: [
-                { src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' },
-                { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80', col: '3/6', row: '2/4' },
-              ],
-            },
+                {
+                  src: 'data/work/games/overunderThs.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
+              ]
+            }
           },
           {
             title: 'JM Bins',
             description: 'A clothing brand concept exploring product presentation, branding identity, and e-commerce layout for a local streetwear label.',
             gridImages: {
               mobile: [
-                { src: 'data/work/jmbins/jmbins.png', col: '1/2', row: '1/3' },
-                { src: 'data/work/jmbins/slides/hoodie.png', col: '2/3', row: '1/3' },
+                {
+                  src: 'data/work/jmbins/jmbins.png',
+                  col: '1/2',
+                  row: '1/3'
+                },
+                {
+                  src: 'data/work/jmbins/slides/hoodie.png',
+                  col: '2/3',
+                  row: '1/3'
+                }
               ],
               desktop: [
-                { src: 'data/work/jmbins/jmbins.png', col: '1/2', row: '1/3' },
-                { src: 'data/work/jmbins/slides/hoodie.png', col: '2/4', row: '1/3' },
-                { src: 'data/work/jmbins/slides/shirt.png', col: '4/6', row: '2/4' },
-              ],
-            },
-          },
+                {
+                  src: 'data/work/jmbins/jmbins.png',
+                  col: '1/2',
+                  row: '1/3'
+                },
+                {
+                  src: 'data/work/jmbins/slides/hoodie.png',
+                  col: '2/4',
+                  row: '1/3'
+                },
+                {
+                  src: 'data/work/jmbins/slides/shirt.png',
+                  col: '4/6',
+                  row: '2/4'
+                }
+              ]
+            }
+          }
         ],
-        infoBlock: { Type: 'Experiment', Status: 'Archived' },
-      },
-    ],
+        infoBlock: {
+          Type: 'Experiment',
+          Status: 'Archived'
+        }
+      }
+    ]
   },
+  demos: {
+    color: '#E8590C',
+    cover: null,
+    title: 'Demos',
+    description: 'Interactive prototypes and creative experiments.',
+    tiers: [
+      {
+        id: 'simple',
+        label: 'Simple',
+        cards: [
+          {
+            title: 'La Costa Taqueria',
+            description: 'A modern Mexican grill site with bold food photography, digital menu highlights, and a built-in loyalty system where guests earn and redeem store points.',
+            gridImages: {
+              mobile: [
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/main-image.png',
+                  col: '1/4',
+                  row: '1/3'
+                },
+                {
+                  type: 'text',
+                  content: 'La Costa is a colorful modern Mexican grill experience — fresh plates, loud brand energy, and a site built to feel as alive as the kitchen.',
+                  col: '1/4',
+                  row: '3/4',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-1.png',
+                  col: '1/3',
+                  row: '4/6'
+                },
+                {
+                  type: 'text',
+                  content: 'Home navigation for Menú, Order, Galería, and Redeem Points — with live points balance in the header.',
+                  col: '3/4',
+                  row: '4/6',
+                  textStyle: 'body',
+                  textSize: 'sm',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/poinst.png',
+                  col: '2/4',
+                  row: '6/8'
+                },
+                {
+                  type: 'text',
+                  content: 'Guests collect store points on every visit — earn per dollar, birthday bonuses, and referrals — then redeem at the counter.',
+                  col: '1/2',
+                  row: '6/8',
+                  textStyle: 'body',
+                  textSize: 'sm',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-3.png',
+                  col: '1/4',
+                  row: '8/10'
+                },
+                {
+                  type: 'text',
+                  content: 'Featured specials like Birria Trio and Steak Quesadilla with one-tap Order Now CTAs.',
+                  col: '1/4',
+                  row: '10/11',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                }
+              ],
+              desktop: [
+                {
+                  type: 'text',
+                  content: 'Modern Mexican grill website with loyalty points built in — guests browse, order, and redeem rewards from one colorful experience.',
+                  col: '1/3',
+                  row: '1/3',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/main-image.png',
+                  col: '3/6',
+                  row: '1/3'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-1.png',
+                  col: '1/3',
+                  row: '3/5'
+                },
+                {
+                  type: 'text',
+                  content: 'Desktop home with Menú, Order, Galería, and Redeem Points panels. Points balance stays pinned in the top bar so loyalty is always visible.',
+                  col: '3/5',
+                  row: '3/5',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/bar.png',
+                  col: '1/6',
+                  row: '5/6'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/poinst.png',
+                  col: '1/3',
+                  row: '6/10'
+                },
+                {
+                  type: 'text',
+                  content: 'Store points system: +10 per $1 in-store, birthday bonuses, and referral rewards. Guests track balance and redeem codes at the counter.',
+                  col: '3/6',
+                  row: '6/8',
+                  textStyle: 'head',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-3.png',
+                  col: '3/6',
+                  row: '8/11'
+                },
+                {
+                  type: 'text',
+                  content: 'Menu highlights section — seasonal specials with Order Now actions for PC and mobile.',
+                  col: '1/3',
+                  row: '10/11',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'bot'
+                }
+              ]
+            },
+            gridRows: {
+              desktop: 10,
+              mobile: 10
+            }
+          }
+        ],
+        infoBlock: {
+          Price: '$100–150',
+          Pages: '1–4',
+          Turnaround: '3–4 days'
+        }
+      }
+    ]
+  }
 };
 
 // ─── Cat-View Renderers ────────────────────────────────────────────────────

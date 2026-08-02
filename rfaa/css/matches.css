@@ -8,13 +8,63 @@
     align-items: center; 
     gap: 3rem;
     font-family: var(--font-1);
+    transition: padding 0.28s ease, gap 0.28s ease;
+}
+
+.season-cont.is-collapsed {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    gap: 0;
+}
+
+.season-cont .season-year-text,
+.season-cont .matches-table-select,
+.season-cont .acl-stars {
+    overflow: hidden;
+    max-height: 12rem;
+    opacity: 1;
+    transition:
+        max-height 0.32s ease,
+        opacity 0.24s ease,
+        margin 0.28s ease,
+        padding 0.28s ease;
+}
+
+.season-cont.is-collapsed .season-year-text,
+.season-cont.is-collapsed .matches-table-select,
+.season-cont.is-collapsed .acl-stars {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+.season-cont.is-collapsed .m-seasons {
+    margin: 0;
+}
+
+body:has(.season-cont):has(.pad-cont) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+}
+
+body:has(.season-cont):has(.pad-cont) .league-nav,
+body:has(.season-cont):has(.pad-cont) .nav,
+body:has(.season-cont):has(.pad-cont) .season-cont {
+    flex-shrink: 0;
 }
 
 .pad-cont {
     background-color: #f7f7f7;
-    height: 100%;
-    height: 70vh;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    overflow-anchor: none;
+    overscroll-behavior-y: contain;
     font-family: var(--font-1);
 } 
  
@@ -584,6 +634,33 @@
     box-shadow: 0 0 1.5rem rgba(59, 130, 246, 0.3);
 }
 
+.match-dialog-actions .match-simulate-btn {
+    flex: 1;
+    padding: 0.9rem 1.5rem;
+    border: 1px solid rgba(0, 174, 255, 0.45);
+    border-radius: 0.4rem;
+    font-family: var(--font-8);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    font-weight: 600;
+    background: linear-gradient(135deg, #0a3d62, #0b5d8a);
+    color: #e8f6ff;
+}
+
+.match-dialog-actions .match-simulate-btn:hover {
+    background: linear-gradient(135deg, #0d4f7c, #1280b8);
+    box-shadow: 0 0 1.5rem rgba(0, 174, 255, 0.25);
+}
+
+.match-dialog-actions .match-simulate-btn.is-busy {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
 .match-dialog-actions .match-cancel-btn {
     padding: 0.9rem 1.5rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -602,6 +679,215 @@
 .match-dialog-actions .match-cancel-btn:hover {
     border-color: rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.7);
+}
+
+.sim-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2, 8, 24, 0.82);
+    backdrop-filter: blur(0.25rem);
+    animation: sim-fade-in 0.25s ease;
+}
+
+.sim-overlay--done {
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+@keyframes sim-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.sim-card {
+    width: min(34rem, 92%);
+    background:
+        radial-gradient(ellipse 70% 50% at 20% 0%, rgba(0, 140, 255, 0.18) 0%, transparent 55%),
+        linear-gradient(165deg, #071428 0%, #0a1a36 100%);
+    border: 0.08rem solid rgba(120, 170, 255, 0.22);
+    border-radius: 0.6rem;
+    padding: 1.25rem 1.4rem 1.1rem;
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.45);
+}
+
+.sim-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.sim-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-8);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    color: #ff6b6b;
+}
+
+.sim-live::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: #ff4d4d;
+    box-shadow: 0 0 0.5rem rgba(255, 77, 77, 0.8);
+}
+
+.sim-phase {
+    font-family: var(--font-8);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(200, 220, 255, 0.7);
+}
+
+.sim-scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.sim-side {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #f0f5ff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    min-width: 0;
+}
+
+.sim-side--right {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.sim-side img {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.sim-side span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sim-score-block {
+    text-align: center;
+}
+
+.sim-clock {
+    font-family: var(--font-8);
+    font-size: 0.85rem;
+    color: var(--mc-3);
+    margin-bottom: 0.25rem;
+}
+
+.sim-scoreline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    font-family: var(--font-8);
+    font-size: 2.2rem;
+    color: #fff;
+    line-height: 1;
+}
+
+.sim-dash {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 1.4rem;
+}
+
+.sim-pulse {
+    animation: sim-score-pulse 0.45s ease;
+}
+
+@keyframes sim-score-pulse {
+    0% { transform: scale(1); color: #fff; }
+    40% { transform: scale(1.25); color: #63d158; }
+    100% { transform: scale(1); color: #fff; }
+}
+
+.sim-progress {
+    height: 0.28rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 0.9rem;
+}
+
+.sim-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00aeff, #3b82f6);
+    border-radius: 1rem;
+    transition: width 0.08s linear;
+}
+
+.sim-feed {
+    max-height: 8.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-height: 3rem;
+}
+
+.sim-event {
+    display: flex;
+    gap: 0.55rem;
+    align-items: flex-start;
+    font-size: 0.82rem;
+    color: rgba(230, 238, 255, 0.88);
+    padding: 0.35rem 0.45rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.04);
+    animation: sim-event-in 0.25s ease;
+}
+
+@keyframes sim-event-in {
+    from { opacity: 0; transform: translateY(-0.3rem); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sim-event-min {
+    font-family: var(--font-8);
+    color: var(--mc-3);
+    min-width: 2.6rem;
+    flex-shrink: 0;
+}
+
+.sim-event--goal {
+    border-left: 0.2rem solid var(--green-2);
+}
+
+.sim-event--yellow {
+    border-left: 0.2rem solid #e8c84a;
+}
+
+.sim-event--red {
+    border-left: 0.2rem solid var(--red-2);
+}
+
+.sim-meta {
+    margin-top: 0.85rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: rgba(170, 190, 220, 0.65);
+    text-align: center;
 }
 
 .teams-select {

@@ -1,9 +1,3 @@
-<<<<<<< Updated upstream
-
-
-
-=======
->>>>>>> Stashed changes
 function toggleDisplay(div) {
   const targetDiv = document.querySelector(`.` + div)
   targetDiv.classList.toggle('dbk')
@@ -35,7 +29,6 @@ slider.onmousedown = function dragMouseDown(e) {
   }
   // remove mouse-move listener on mouse-up (drag is finished now)
   document.onmouseup = () => document.onmousemove = document.onmouseup = null;
-<<<<<<< Updated upstream
 }
 
 function startLoading(duration, int) {
@@ -477,7 +470,3 @@ document.getElementById('readClipboardBtn').addEventListener('click', async () =
 
 
 
-
-=======
-}
->>>>>>> Stashed changes

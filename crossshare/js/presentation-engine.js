@@ -37,6 +37,270 @@
         return null;
     }
 
+    function parseYouTubeVideoId(input) {
+        var raw = String(input || '').trim();
+        if (!raw) return null;
+        if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
+        var match = raw.match(
+            /(?:youtube\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+        );
+        return match ? match[1] : null;
+    }
+
+    var youtubeApiPromise = null;
+
+    function ensureYoutubeApi() {
+        if (typeof window === 'undefined') {
+            return Promise.reject(new Error('No window'));
+        }
+        if (window.YT && window.YT.Player) {
+            return Promise.resolve(window.YT);
+        }
+        if (youtubeApiPromise) return youtubeApiPromise;
+        youtubeApiPromise = new Promise(function (resolve, reject) {
+            var settled = false;
+            function finish() {
+                if (settled) return;
+                if (window.YT && window.YT.Player) {
+                    settled = true;
+                    resolve(window.YT);
+                }
+            }
+            var previous = window.onYouTubeIframeAPIReady;
+            window.onYouTubeIframeAPIReady = function () {
+                try {
+                    if (typeof previous === 'function') previous();
+                } catch (e) {}
+                finish();
+            };
+            if (!document.querySelector('script[data-cs-youtube-api]')) {
+                var script = document.createElement('script');
+                script.src = 'https://www.youtube.com/iframe_api';
+                script.async = true;
+                script.setAttribute('data-cs-youtube-api', '1');
+                script.onerror = function () {
+                    if (!settled) {
+                        settled = true;
+                        youtubeApiPromise = null;
+                        reject(new Error('YouTube API failed to load'));
+                    }
+                };
+                (document.head || document.documentElement).appendChild(script);
+            }
+            finish();
+            window.setTimeout(finish, 50);
+            window.setTimeout(function () {
+                if (!settled) {
+                    settled = true;
+                    youtubeApiPromise = null;
+                    reject(new Error('YouTube API timeout'));
+                }
+            }, 15000);
+        });
+        return youtubeApiPromise;
+    }
+
+    function youtubePlayerVars(mediaTime, playing) {
+        var vars = {
+            autoplay: playing ? 1 : 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            iv_load_policy: 3,
+            cc_load_policy: 3,
+            modestbranding: 1,
+            playsinline: 1,
+            rel: 0,
+            mute: 1,
+            start: Math.max(0, Math.floor(num(mediaTime, 0)))
+        };
+        try {
+            if (typeof location !== 'undefined' && location.origin && location.origin !== 'null') {
+                vars.origin = location.origin;
+            }
+        } catch (e) {}
+        return vars;
+    }
+
+    // Kept for source-preview fallback URLs; prefer createYoutubePlayer.
+    function youtubeEmbedSrc(videoId, mediaTime, playing) {
+        var vars = youtubePlayerVars(mediaTime, playing);
+        var params = [
+            'enablejsapi=1',
+            'playsinline=1',
+            'rel=0',
+            'modestbranding=1',
+            'controls=0',
+            'disablekb=1',
+            'fs=0',
+            'iv_load_policy=3',
+            'cc_load_policy=3',
+            'mute=1',
+            'autoplay=' + vars.autoplay,
+            'start=' + vars.start
+        ];
+        if (vars.origin) params.push('origin=' + encodeURIComponent(vars.origin));
+        return 'https://www.youtube.com/embed/' + encodeURIComponent(videoId) + '?' + params.join('&');
+    }
+
+    function destroyYoutubePlayer(target) {
+        if (!target) return;
+        var player = target.ytPlayer || (target._csYtPlayer) || null;
+        if (player && typeof player.destroy === 'function') {
+            try { player.destroy(); } catch (e) {}
+        }
+        if (target.ytPlayer) target.ytPlayer = null;
+        if (target._csYtPlayer) target._csYtPlayer = null;
+        if (target.el && target.el._csYtPlayer) target.el._csYtPlayer = null;
+    }
+
+    function createYoutubePlayer(hostEl, options) {
+        options = options || {};
+        var videoId = options.videoId;
+        var mediaTime = Math.max(0, num(options.mediaTime, 0));
+        var playing = !!options.playing;
+        if (!hostEl || !videoId) return Promise.reject(new Error('Missing YouTube host'));
+        if (!hostEl.id) {
+            hostEl.id = 'cs-yt-' + String(Math.random()).slice(2, 12);
+        }
+        hostEl._csYoutubeReady = false;
+        return ensureYoutubeApi().then(function (YT) {
+            return new Promise(function (resolve) {
+                var pendingPausedFrame = !playing;
+                function latchPausedFrame(event) {
+                    if (!pendingPausedFrame) return;
+                    var state = event && event.data;
+                    if (state !== YT.PlayerState.PLAYING) return;
+                    pendingPausedFrame = false;
+                    try { event.target.pauseVideo(); } catch (e) {}
+                    event.target._csPendingPausedFrame = false;
+                    var pausedIframe = event.target.getIframe ? event.target.getIframe() : document.getElementById(hostEl.id);
+                    if (pausedIframe) pausedIframe._csPendingPausedFrame = false;
+                }
+                var player = new YT.Player(hostEl.id, {
+                    videoId: videoId,
+                    width: '100%',
+                    height: '100%',
+                    playerVars: youtubePlayerVars(mediaTime, playing),
+                    events: {
+                        onReady: function (event) {
+                            var readyPlayer = event.target;
+                            try { readyPlayer.mute(); } catch (e) {}
+                            try { readyPlayer.seekTo(mediaTime, true); } catch (e2) {}
+                            try {
+                                if (playing) readyPlayer.playVideo();
+                                else {
+                                    readyPlayer._csPendingPausedFrame = true;
+                                    readyPlayer.playVideo();
+                                }
+                            } catch (e3) {}
+                            var iframe = readyPlayer.getIframe ? readyPlayer.getIframe() : document.getElementById(hostEl.id);
+                            if (iframe) {
+                                iframe.className = hostEl.className || 'cs-render-media cs-render-embed';
+                                iframe._csYtPlayer = readyPlayer;
+                                iframe._csYoutubeReady = true;
+                                iframe._csPendingPausedFrame = !playing;
+                            }
+                            hostEl._csYtPlayer = readyPlayer;
+                            hostEl._csYoutubeReady = true;
+                            hostEl._csPendingPausedFrame = !playing;
+                            resolve({ player: readyPlayer, iframe: iframe || hostEl });
+                        },
+                        onStateChange: latchPausedFrame,
+                        onError: function () {
+                            resolve({ player: player, iframe: document.getElementById(hostEl.id) || hostEl });
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    function syncYoutubePlayer(player, playing, mediaTime, node) {
+        if (!player) return;
+        var startSec = Math.floor(Math.max(0, num(mediaTime, 0)));
+        try { player.mute(); } catch (e) {}
+        try {
+            var current = typeof player.getCurrentTime === 'function' ? player.getCurrentTime() : null;
+            var drift = current == null ? Infinity : Math.abs(current - mediaTime);
+            var lastStart = node && node.embedStartSec;
+            if (drift > 1.25 || lastStart == null || Math.abs(startSec - lastStart) > 2) {
+                player.seekTo(Math.max(0, mediaTime), true);
+                if (node) node.embedStartSec = startSec;
+            } else if (node) {
+                node.embedStartSec = startSec;
+            }
+        } catch (e2) {}
+        try {
+            if (playing) {
+                player._csPendingPausedFrame = false;
+                if (node && node.el) node.el._csPendingPausedFrame = false;
+                player.playVideo();
+            } else if (!player._csPendingPausedFrame) {
+                player.pauseVideo();
+            }
+        } catch (e3) {}
+    }
+
+    // Back-compat wrappers used by manager source preview.
+    function attachYoutubeLoadSync(hostOrIframe, playing, mediaTime) {
+        if (!hostOrIframe) return;
+        if (hostOrIframe._csYtPlayer) {
+            syncYoutubePlayer(hostOrIframe._csYtPlayer, playing, mediaTime, null);
+            return;
+        }
+        createYoutubePlayer(hostOrIframe, {
+            videoId: hostOrIframe.getAttribute('data-video-id') || hostOrIframe._csVideoId,
+            mediaTime: mediaTime,
+            playing: playing
+        }).then(function (result) {
+            if (result && result.iframe) {
+                result.iframe._csYoutubeReady = true;
+            }
+        }).catch(function () {});
+    }
+
+    function syncYoutubePlayback(hostOrIframe, playing, mediaTime, node) {
+        var player = (hostOrIframe && hostOrIframe._csYtPlayer) ||
+            (node && node.ytPlayer) ||
+            null;
+        if (player) {
+            syncYoutubePlayer(player, playing, mediaTime, node);
+            return;
+        }
+        attachYoutubeLoadSync(hostOrIframe, playing, mediaTime);
+    }
+
+    function isGeneratedMediaKind(kind) {
+        return kind === 'color' || kind === 'embed' || kind === 'timer';
+    }
+
+    function formatTimerDisplay(totalSeconds, showMs) {
+        totalSeconds = Math.max(0, num(totalSeconds, 0));
+        if (showMs) {
+            var minsMs = Math.floor(totalSeconds / 60);
+            var secsMs = Math.floor(totalSeconds % 60);
+            var cs = Math.floor((totalSeconds * 100) % 100);
+            return String(minsMs).padStart(2, '0') + ':' + String(secsMs).padStart(2, '0') + '.' + String(cs).padStart(2, '0');
+        }
+        var s = Math.floor(totalSeconds + 1e-9);
+        var h = Math.floor(s / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        var sec = s % 60;
+        if (h > 0) {
+            return h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        }
+        return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    function timerValueAtMediaTime(media, mediaTime) {
+        if (!media || media.kind !== 'timer') return 0;
+        mediaTime = Math.max(0, num(mediaTime, 0));
+        var base = positive(media.timerSeconds, 60);
+        if (media.timerMode === 'countup') return mediaTime;
+        return Math.max(0, base - mediaTime);
+    }
+
     function defaultItemFromSource(source, createId, project, parentStack) {
         var kind = source.kind === 'presentation' ? 'presentation' : 'media';
         var duration = DEFAULT_IMAGE_DURATION;
@@ -615,26 +879,74 @@
             layers.forEach(function (layer) {
                 if (!layer.media || layer.media.kind === 'audio') return;
                 chain = chain.then(function () {
+                    var viewZoom = layer.viewZoom || 1;
+                    var boxW = (layer.item.scaleX * viewZoom / 100) * width;
+                    var boxH = (layer.item.scaleY * viewZoom / 100) * height;
+                    var cx = (layer.item.x / 100) * width;
+                    var cy = (layer.item.y / 100) * height;
+                    var dx = cx - boxW / 2;
+                    var dy = cy - boxH / 2;
+
+                    function paintBox(drawFn) {
+                        ctx.save();
+                        ctx.globalAlpha = clamp(layer.opacity, 0, 100) / 100;
+                        if (layer.item.rotation) {
+                            ctx.translate(cx, cy);
+                            ctx.rotate(layer.item.rotation * Math.PI / 180);
+                            ctx.translate(-cx, -cy);
+                        }
+                        drawFn();
+                        ctx.restore();
+                    }
+
+                    if (layer.media.kind === 'color') {
+                        paintBox(function () {
+                            ctx.fillStyle = layer.media.solidColor || '#000000';
+                            ctx.fillRect(dx, dy, boxW, boxH);
+                        });
+                        return;
+                    }
+
+                    if (layer.media.kind === 'embed') {
+                        paintBox(function () {
+                            ctx.fillStyle = '#111111';
+                            ctx.fillRect(dx, dy, boxW, boxH);
+                            ctx.fillStyle = '#c0392b';
+                            var mark = Math.min(boxW, boxH) * 0.22;
+                            ctx.beginPath();
+                            ctx.moveTo(cx - mark * 0.35, cy - mark * 0.55);
+                            ctx.lineTo(cx - mark * 0.35, cy + mark * 0.55);
+                            ctx.lineTo(cx + mark * 0.65, cy);
+                            ctx.closePath();
+                            ctx.fill();
+                        });
+                        return;
+                    }
+
+                    if (layer.media.kind === 'timer') {
+                        paintBox(function () {
+                            ctx.fillStyle = layer.media.solidColor || '#141414';
+                            ctx.fillRect(dx, dy, boxW, boxH);
+                            var label = formatTimerDisplay(
+                                timerValueAtMediaTime(layer.media, layer.mediaTime),
+                                !!layer.media.timerShowMs
+                            );
+                            ctx.fillStyle = layer.media.timerTextColor || '#ffffff';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.font = '700 ' + Math.max(12, Math.min(boxW, boxH) * 0.22) + 'px ui-monospace, monospace';
+                            ctx.fillText(label, cx, cy);
+                        });
+                        return;
+                    }
+
                     return mediaElement(layer.media).then(function (cached) {
                         if (!cached || !cached.el) return;
                         return waitForPreviewMedia(cached.el, cached.kind, layer.mediaTime).then(function (ready) {
                             if (!ready) return;
-                            var viewZoom = layer.viewZoom || 1;
-                            var boxW = (layer.item.scaleX * viewZoom / 100) * width;
-                            var boxH = (layer.item.scaleY * viewZoom / 100) * height;
-                            var cx = (layer.item.x / 100) * width;
-                            var cy = (layer.item.y / 100) * height;
-                            var dx = cx - boxW / 2;
-                            var dy = cy - boxH / 2;
-                            ctx.save();
-                            ctx.globalAlpha = clamp(layer.opacity, 0, 100) / 100;
-                            if (layer.item.rotation) {
-                                ctx.translate(cx, cy);
-                                ctx.rotate(layer.item.rotation * Math.PI / 180);
-                                ctx.translate(-cx, -cy);
-                            }
-                            drawMediaFit(ctx, cached.el, dx, dy, boxW, boxH, layer.item.fit);
-                            ctx.restore();
+                            paintBox(function () {
+                                drawMediaFit(ctx, cached.el, dx, dy, boxW, boxH, layer.item.fit);
+                            });
                         });
                     });
                 });
@@ -669,9 +981,89 @@
         var onBufferingChange = typeof options.onBufferingChange === 'function' ? options.onBufferingChange : function () {};
         var nodes = {};
         var buffering = false;
-        var SEEK_DRIFT_WHILE_PLAYING = 0.12;
         var SEEK_DRIFT_WHILE_PAUSED = 0.08;
-        var SEEK_THROTTLE_MS = 250;
+        // While playing, small drift is corrected by playbackRate nudging and
+        // a hard seek only happens for large drift, at most once every few
+        // seconds. Seeking to an unbuffered position on a slow network aborts
+        // in-flight data and starts a new request, so frequent catch-up seeks
+        // turn a short stall into a permanent buffering loop.
+        var RATE_DRIFT_MIN = 0.06;
+        var HARD_SEEK_DRIFT = 0.75;
+        var RESYNC_MIN_INTERVAL_MS = 3000;
+        var POOL_MAX_MEDIA = 8;
+        var POOL_MAX_IMAGES = 16;
+
+        // Detached media elements kept for reuse. Presentations loop the same
+        // media over and over; recreating elements forces a full re-download
+        // of data the browser already had buffered.
+        var elementPool = {};
+        var poolOrder = [];
+
+        function disposePooledEntry(entry) {
+            if (!entry || !entry.el) return;
+            entry.el._csNode = null;
+            if (entry.el.pause) {
+                try { entry.el.pause(); } catch (e) {}
+                entry.el.removeAttribute('src');
+                try { entry.el.load(); } catch (e) {}
+            }
+        }
+
+        function poolPrune() {
+            var mediaCount = 0;
+            var imageCount = 0;
+            for (var i = poolOrder.length - 1; i >= 0; i--) {
+                var id = poolOrder[i];
+                var entry = elementPool[id];
+                if (!entry) {
+                    poolOrder.splice(i, 1);
+                    continue;
+                }
+                var playable = !!(entry.el && entry.el.pause);
+                if (playable) mediaCount++;
+                else imageCount++;
+                if ((playable && mediaCount > POOL_MAX_MEDIA) || (!playable && imageCount > POOL_MAX_IMAGES)) {
+                    disposePooledEntry(entry);
+                    delete elementPool[id];
+                    poolOrder.splice(i, 1);
+                }
+            }
+        }
+
+        function poolPut(mediaId, el) {
+            if (!mediaId || !el) return;
+            var url = el._csUrl || el.currentSrc || el.src || '';
+            if (!url) return;
+            var existing = elementPool[mediaId];
+            if (existing && existing.el !== el) disposePooledEntry(existing);
+            el._csNode = null;
+            elementPool[mediaId] = { el: el, url: url };
+            var idx = poolOrder.indexOf(mediaId);
+            if (idx !== -1) poolOrder.splice(idx, 1);
+            poolOrder.push(mediaId);
+            poolPrune();
+        }
+
+        function poolTake(mediaId, url) {
+            var entry = elementPool[mediaId];
+            if (!entry) return null;
+            delete elementPool[mediaId];
+            var idx = poolOrder.indexOf(mediaId);
+            if (idx !== -1) poolOrder.splice(idx, 1);
+            if (entry.url !== url) {
+                disposePooledEntry(entry);
+                return null;
+            }
+            return entry.el;
+        }
+
+        function clearPool() {
+            Object.keys(elementPool).forEach(function (id) {
+                disposePooledEntry(elementPool[id]);
+            });
+            elementPool = {};
+            poolOrder = [];
+        }
 
         function reportBuffering() {
             var next = false;
@@ -692,7 +1084,21 @@
 
         function removeNode(node) {
             if (!node) return;
-            if (node.el && node.el.pause) node.el.pause();
+            destroyYoutubePlayer(node);
+            if (node.el) {
+                if (node.el.pause) {
+                    try { node.el.pause(); } catch (e) {}
+                }
+                var wasGenerated = !!(node.el.tagName === 'IFRAME' ||
+                    (node.el.classList && (
+                        node.el.classList.contains('cs-render-color') ||
+                        node.el.classList.contains('cs-render-embed') ||
+                        node.el.classList.contains('cs-render-timer')
+                    )));
+                if (node.mediaId && !wasGenerated) poolPut(node.mediaId, node.el);
+                else node.el._csNode = null;
+                node.el = null;
+            }
             setNodeBuffering(node, false);
             if (node.wrap && node.wrap.parentNode) node.wrap.parentNode.removeChild(node.wrap);
         }
@@ -715,27 +1121,33 @@
             applyPendingSeek(node);
         }
 
-        function installMediaEvents(node, playing) {
-            if (!node || !node.el || node.eventsInstalled) return;
-            node.eventsInstalled = true;
+        function installMediaEvents(el) {
+            if (!el || el._csEventsInstalled) return;
+            el._csEventsInstalled = true;
+            // Listeners resolve the owning node via el._csNode so pooled
+            // elements can move between layer nodes without re-binding.
             ['waiting', 'stalled', 'seeking'].forEach(function (eventName) {
-                node.el.addEventListener(eventName, function () {
-                    setNodeBuffering(node, !!node.wantsPlayback);
+                el.addEventListener(eventName, function () {
+                    var node = el._csNode;
+                    if (node) setNodeBuffering(node, !!node.wantsPlayback);
                 });
             });
             ['canplay', 'canplaythrough', 'playing', 'timeupdate', 'seeked', 'loadeddata'].forEach(function (eventName) {
-                node.el.addEventListener(eventName, function () {
+                el.addEventListener(eventName, function () {
+                    var node = el._csNode;
+                    if (!node) return;
                     applyPendingSeek(node);
                     setNodeBuffering(node, false);
                 });
             });
-            node.el.addEventListener('loadedmetadata', function () {
-                applyPendingSeek(node);
+            el.addEventListener('loadedmetadata', function () {
+                var node = el._csNode;
+                if (node) applyPendingSeek(node);
             });
-            node.el.addEventListener('error', function () {
-                setNodeBuffering(node, false);
+            el.addEventListener('error', function () {
+                var node = el._csNode;
+                if (node) setNodeBuffering(node, false);
             });
-            node.wantsPlayback = !!playing;
         }
 
         function removeMissing(visible) {
@@ -748,34 +1160,155 @@
             reportBuffering();
         }
 
+        function timeIsBuffered(el, time, slackSeconds) {
+            try {
+                var ranges = el.buffered;
+                for (var i = 0; i < ranges.length; i++) {
+                    if (time >= ranges.start(i) && time <= ranges.end(i) + (slackSeconds || 0)) return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
         function setMediaNode(layer, node, playing) {
             if (!node.el) return;
-            node.el.className = 'cs-render-media cs-fit-' + layer.item.fit;
-            if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
+            var mediaClassName = 'cs-render-media cs-fit-' + layer.item.fit;
+            if (layer.media.kind === 'color') {
+                mediaClassName += ' cs-render-color';
+            } else if (layer.media.kind === 'embed') {
+                mediaClassName += ' cs-render-embed';
+            } else if (layer.media.kind === 'timer') {
+                mediaClassName += ' cs-render-timer';
+            }
+            if (node.mediaClassName !== mediaClassName) {
+                node.el.className = mediaClassName;
+                node.mediaClassName = mediaClassName;
+            }
+            if (layer.media.kind === 'color') {
+                var fill = layer.media.solidColor || '#000000';
+                if (node.solidColor !== fill) {
+                    node.el.style.background = fill;
+                    node.solidColor = fill;
+                }
+                setNodeBuffering(node, false);
+                return;
+            }
+            if (layer.media.kind === 'timer') {
+                var timerBg = layer.media.solidColor || '#141414';
+                var timerFg = layer.media.timerTextColor || '#ffffff';
+                if (node.solidColor !== timerBg) {
+                    node.el.style.background = timerBg;
+                    node.solidColor = timerBg;
+                }
+                if (node.timerTextColor !== timerFg && node.timerLabel) {
+                    node.timerLabel.style.color = timerFg;
+                    node.timerTextColor = timerFg;
+                }
+                var timerShowMs = !!layer.media.timerShowMs;
+                var timerText = formatTimerDisplay(
+                    timerValueAtMediaTime(layer.media, layer.mediaTime),
+                    timerShowMs
+                );
+                if (node.timerLabel && node.timerDisplay !== timerText) {
+                    node.timerLabel.textContent = timerText;
+                    node.timerDisplay = timerText;
+                }
+                setNodeBuffering(node, false);
+                return;
+            }
+            if (layer.media.kind === 'embed' && layer.media.embedProvider === 'youtube') {
                 var mediaTime = isFinite(layer.mediaTime) ? Math.max(0, layer.mediaTime) : 0;
-                var currentTime = node.el.currentTime || 0;
-                var signedDrift = mediaTime - currentTime;
-                var drift = Math.abs(signedDrift);
+                var startSec = Math.floor(mediaTime);
+                var videoId = layer.media.embedVideoId || parseYouTubeVideoId(layer.media.embedUrl);
+                if (!videoId) {
+                    setNodeBuffering(node, false);
+                    return;
+                }
+                node.wantsPlayback = !!playing;
                 var now = Date.now();
-                var canCorrect = node.el.readyState >= 1;
-                var largeDrift = drift > SEEK_DRIFT_WHILE_PLAYING &&
-                    now - (node.lastSeekAt || 0) > SEEK_THROTTLE_MS;
+                var lastSynced = node.embedSyncedAt || 0;
+                var lastStart = node.embedStartSec;
+                var drift = lastStart == null ? Infinity : Math.abs(startSec - lastStart);
+                var player = node.ytPlayer || (node.el && node.el._csYtPlayer) || null;
 
-                installMediaEvents(node, playing);
+                if (player && node.embedVideoId && node.embedVideoId !== videoId) {
+                    try {
+                        player.loadVideoById({
+                            videoId: videoId,
+                            startSeconds: mediaTime
+                        });
+                    } catch (e) {}
+                    node.embedVideoId = videoId;
+                    node.embedStartSec = startSec;
+                    node.embedSyncedAt = now;
+                    node.embedPlaying = !!playing;
+                    syncYoutubePlayer(player, playing, mediaTime, node);
+                    setNodeBuffering(node, false);
+                    return;
+                }
+
+                if (player && (drift > 2 && now - lastSynced > 750)) {
+                    syncYoutubePlayer(player, playing, mediaTime, node);
+                    node.embedStartSec = startSec;
+                    node.embedSyncedAt = now;
+                    node.embedPlaying = !!playing;
+                    setNodeBuffering(node, false);
+                    return;
+                }
+
+                if (player) {
+                    if (drift <= 2) node.embedStartSec = startSec;
+                    var wantsPlay = !!playing || !!node.wantsPlayback;
+                    var pendingPaused = !!(player._csPendingPausedFrame ||
+                        (node.el && node.el._csPendingPausedFrame));
+                    if (wantsPlay !== !!node.embedPlaying || pendingPaused ||
+                        (wantsPlay && !(node.el && node.el._csYoutubeReady))) {
+                        syncYoutubePlayer(player, wantsPlay, mediaTime, node);
+                        node.embedPlaying = wantsPlay;
+                        if (wantsPlay) node.embedSyncedAt = now;
+                    }
+                    setNodeBuffering(node, false);
+                    return;
+                }
+
+                setNodeBuffering(node, false);
+                return;
+            }
+            if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
+                var avMediaTime = isFinite(layer.mediaTime) ? Math.max(0, layer.mediaTime) : 0;
+                var currentTime = node.el.currentTime || 0;
+                var signedDrift = avMediaTime - currentTime;
+                var avDrift = Math.abs(signedDrift);
+                var avNow = Date.now();
+                var canCorrect = node.el.readyState >= 1;
+
+                installMediaEvents(node.el);
+                node.el._csNode = node;
                 node.wantsPlayback = !!playing;
                 node.el.muted = true;
                 node.el.loop = false;
-                if (
-                    node.pendingSeekTime != null ||
-                    node.forceSeek ||
-                    (!playing && drift > SEEK_DRIFT_WHILE_PAUSED) ||
-                    (playing && canCorrect && largeDrift)
-                ) {
-                    seekMediaNode(node, mediaTime);
+
+                var wantsHardSeek = false;
+                if (node.pendingSeekTime != null || node.forceSeek) {
+                    wantsHardSeek = true;
+                } else if (!playing && avDrift > SEEK_DRIFT_WHILE_PAUSED) {
+                    wantsHardSeek = true;
+                } else if (playing && canCorrect && avDrift > HARD_SEEK_DRIFT) {
+                    // Behind the shared clock while playing. A hard seek only
+                    // helps if the target is already buffered; otherwise it
+                    // discards buffered data and stalls the element again, so
+                    // rate-based catch-up (or simply tolerating drift) wins.
+                    var throttled = avNow - (node.lastSeekAt || 0) < RESYNC_MIN_INTERVAL_MS;
+                    if (!throttled && (timeIsBuffered(node.el, avMediaTime, 0.5) || avDrift > 8)) {
+                        wantsHardSeek = true;
+                    }
+                }
+                if (wantsHardSeek) {
+                    seekMediaNode(node, avMediaTime);
                 }
                 if ('playbackRate' in node.el) {
-                    if (playing && drift > 0.035 && drift <= SEEK_DRIFT_WHILE_PLAYING) {
-                        node.el.playbackRate = signedDrift > 0 ? 1.05 : 0.95;
+                    if (playing && !wantsHardSeek && avDrift > RATE_DRIFT_MIN) {
+                        node.el.playbackRate = signedDrift > 0 ? Math.min(1.12, 1 + avDrift * 0.15) : 0.92;
                     } else {
                         node.el.playbackRate = 1;
                     }
@@ -786,7 +1319,99 @@
                 } else if (!playing && !node.el.paused) {
                     node.el.pause();
                 }
-                setNodeBuffering(node, !!playing && (node.el.seeking || node.el.readyState < 3));
+                // readyState 2 (HAVE_CURRENT_DATA) is enough to keep showing
+                // frames; only report buffering when the element truly cannot
+                // present the current position.
+                setNodeBuffering(node, !!playing && (node.el.seeking || node.el.readyState < 2));
+            }
+        }
+
+        function mountGeneratedMedia(layer, node, playing) {
+            node.wrap.innerHTML = '';
+            node.pendingSeekTime = null;
+            node.forceSeek = true;
+            node.lastSeekAt = 0;
+            node.wantsPlayback = !!playing;
+            if (layer.media.kind === 'color') {
+                var colorEl = document.createElement('div');
+                colorEl.className = 'cs-render-media cs-render-color cs-fit-' + layer.item.fit;
+                colorEl.style.background = layer.media.solidColor || '#000000';
+                node.wrap.appendChild(colorEl);
+                node.el = colorEl;
+                node.solidColor = layer.media.solidColor || '#000000';
+                node.mediaClassName = colorEl.className;
+                setNodeBuffering(node, false);
+                return;
+            }
+            if (layer.media.kind === 'timer') {
+                var timerEl = document.createElement('div');
+                timerEl.className = 'cs-render-media cs-render-timer cs-fit-' + layer.item.fit;
+                timerEl.style.background = layer.media.solidColor || '#141414';
+                var timerLabel = document.createElement('span');
+                timerLabel.className = 'cs-render-timer-label';
+                timerLabel.style.color = layer.media.timerTextColor || '#ffffff';
+                timerLabel.textContent = formatTimerDisplay(
+                    timerValueAtMediaTime(layer.media, layer.mediaTime || 0),
+                    !!layer.media.timerShowMs
+                );
+                timerEl.appendChild(timerLabel);
+                node.wrap.appendChild(timerEl);
+                node.el = timerEl;
+                node.timerLabel = timerLabel;
+                node.timerDisplay = timerLabel.textContent;
+                node.solidColor = layer.media.solidColor || '#141414';
+                node.timerTextColor = layer.media.timerTextColor || '#ffffff';
+                node.mediaClassName = timerEl.className;
+                setNodeBuffering(node, false);
+                return;
+            }
+            if (layer.media.kind === 'embed') {
+                var videoId = layer.media.embedVideoId || parseYouTubeVideoId(layer.media.embedUrl);
+                var embedWrap = document.createElement('div');
+                embedWrap.className = 'cs-render-embed-wrap';
+                var host = document.createElement('div');
+                host.className = 'cs-render-media cs-render-embed cs-fit-' + layer.item.fit;
+                host.setAttribute('data-video-id', videoId || '');
+                host._csVideoId = videoId || '';
+                embedWrap.appendChild(host);
+                node.wrap.appendChild(embedWrap);
+                node.el = host;
+                node.embedWrap = embedWrap;
+                node.mediaClassName = host.className;
+                node.ytPlayer = null;
+                if (layer.media.embedProvider === 'youtube' && videoId) {
+                    node.embedVideoId = videoId;
+                    node.embedStartSec = Math.floor(Math.max(0, layer.mediaTime || 0));
+                    node.embedSyncedAt = Date.now();
+                    node.embedPlaying = !!playing;
+                    setNodeBuffering(node, true);
+                    createYoutubePlayer(host, {
+                        videoId: videoId,
+                        mediaTime: layer.mediaTime || 0,
+                        playing: playing
+                    }).then(function (result) {
+                        if (!nodes[layer.key] || nodes[layer.key] !== node) {
+                            if (result && result.player && result.player.destroy) {
+                                try { result.player.destroy(); } catch (e) {}
+                            }
+                            return;
+                        }
+                        node.ytPlayer = result.player;
+                        if (result.iframe) {
+                            node.el = result.iframe;
+                            result.iframe._csYtPlayer = result.player;
+                            result.iframe._csYoutubeReady = true;
+                        }
+                        var shouldPlay = !!node.wantsPlayback;
+                        syncYoutubePlayer(result.player, shouldPlay, layer.mediaTime || 0, node);
+                        node.embedPlaying = shouldPlay;
+                        setNodeBuffering(node, false);
+                    }).catch(function () {
+                        setNodeBuffering(node, false);
+                    });
+                } else {
+                    setNodeBuffering(node, false);
+                }
             }
         }
 
@@ -811,25 +1436,67 @@
                     node = nodes[layer.key] = { wrap: wrap, mediaId: null, el: null, buffering: false };
                 }
 
-                node.wrap.style.zIndex = String(index + 1);
                 var viewZoom = layer.viewZoom || 1;
-                node.wrap.style.left = (50 + (layer.item.x - 50) * viewZoom) + '%';
-                node.wrap.style.top = (50 + (layer.item.y - 50) * viewZoom) + '%';
-                node.wrap.style.width = (layer.item.scaleX * viewZoom) + '%';
-                node.wrap.style.height = (layer.item.scaleY * viewZoom) + '%';
-                node.wrap.style.opacity = String(layer.opacity / 100);
-                node.wrap.style.transform = 'translate(-50%, -50%) rotate(' + layer.item.rotation + 'deg)';
+                var layout = {
+                    zIndex: String(index + 1),
+                    left: (50 + (layer.item.x - 50) * viewZoom) + '%',
+                    top: (50 + (layer.item.y - 50) * viewZoom) + '%',
+                    width: (layer.item.scaleX * viewZoom) + '%',
+                    height: (layer.item.scaleY * viewZoom) + '%',
+                    opacity: String(layer.opacity / 100),
+                    transform: 'translate(-50%, -50%) rotate(' + layer.item.rotation + 'deg)'
+                };
+                var layoutKey = [layout.zIndex, layout.left, layout.top, layout.width, layout.height, layout.opacity, layout.transform].join('|');
+                if (node.layoutKey !== layoutKey) {
+                    node.wrap.style.zIndex = layout.zIndex;
+                    node.wrap.style.left = layout.left;
+                    node.wrap.style.top = layout.top;
+                    node.wrap.style.width = layout.width;
+                    node.wrap.style.height = layout.height;
+                    node.wrap.style.opacity = layout.opacity;
+                    node.wrap.style.transform = layout.transform;
+                    node.layoutKey = layoutKey;
+                }
 
                 if (node.mediaId !== layer.media.id && (!node.retryAt || Date.now() >= node.retryAt)) {
                     var requestedMediaId = layer.media.id;
+                    var previousMediaId = node.mediaId;
                     node.mediaId = requestedMediaId;
                     node.retryAt = 0;
-                    if (node.el && node.el.pause) node.el.pause();
+                    if (node.el) {
+                        destroyYoutubePlayer(node);
+                        if (node.el.pause) {
+                            try { node.el.pause(); } catch (e) {}
+                        }
+                        var wasGenerated = !!(node.el.tagName === 'IFRAME' ||
+                            (node.el.classList && (
+                                node.el.classList.contains('cs-render-color') ||
+                                node.el.classList.contains('cs-render-embed') ||
+                                node.el.classList.contains('cs-render-timer')
+                            )));
+                        if (previousMediaId && !wasGenerated) {
+                            poolPut(previousMediaId, node.el);
+                        } else {
+                            node.el._csNode = null;
+                        }
+                    }
                     node.el = null;
-                    node.eventsInstalled = false;
+                    node.ytPlayer = null;
                     node.pendingSeekTime = null;
                     node.forceSeek = true;
                     node.lastSeekAt = 0;
+                    node.embedVideoId = null;
+                    node.embedStartSec = null;
+                    node.embedSyncedAt = 0;
+                    node.embedPlaying = null;
+                    node.solidColor = null;
+
+                    if (isGeneratedMediaKind(layer.media.kind)) {
+                        mountGeneratedMedia(layer, node, playing);
+                        setMediaNode(layer, node, playing);
+                        return;
+                    }
+
                     setNodeBuffering(node, layer.media.kind === 'video' || layer.media.kind === 'audio');
                     node.wrap.innerHTML = '<div class="cs-render-pending">Loading</div>';
                     resolveUrl(requestedMediaId).then(function (url) {
@@ -843,27 +1510,39 @@
                             setNodeBuffering(current, false);
                             return;
                         }
-                        var el = document.createElement(
-                            layer.media.kind === 'video' ? 'video' :
-                                (layer.media.kind === 'audio' ? 'audio' : 'img')
-                        );
-                        el.className = 'cs-render-media cs-fit-' + layer.item.fit;
-                        el.alt = '';
-                        if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
-                            el.preload = 'auto';
-                            el.muted = true;
-                            el.controls = false;
-                            if (el.disableRemotePlayback != null) el.disableRemotePlayback = true;
-                            if (layer.media.kind === 'video') {
-                                el.playsInline = true;
-                                el.setAttribute('playsinline', '');
-                                el.setAttribute('webkit-playsinline', '');
+                        // Reuse a pooled element for this media if one exists:
+                        // it keeps the browser's buffered/decoded data alive so
+                        // looping content plays instantly instead of refetching.
+                        var el = poolTake(requestedMediaId, url);
+                        if (!el) {
+                            el = document.createElement(
+                                layer.media.kind === 'video' ? 'video' :
+                                    (layer.media.kind === 'audio' ? 'audio' : 'img')
+                            );
+                            el.alt = '';
+                            if (el.tagName === 'IMG') el.decoding = 'async';
+                            if (layer.media.kind === 'video' || layer.media.kind === 'audio') {
+                                el.preload = 'auto';
+                                el.muted = true;
+                                el.controls = false;
+                                if (el.disableRemotePlayback != null) el.disableRemotePlayback = true;
+                                if (layer.media.kind === 'video') {
+                                    el.playsInline = true;
+                                    el.setAttribute('playsinline', '');
+                                    el.setAttribute('webkit-playsinline', '');
+                                }
                             }
+                            el._csUrl = url;
+                            el.src = url;
                         }
-                        el.src = url;
+                        el.className = 'cs-render-media cs-fit-' + layer.item.fit;
                         current.wrap.innerHTML = '';
                         current.wrap.appendChild(el);
                         current.el = el;
+                        el._csNode = current;
+                        if (layer.media.kind !== 'video' && layer.media.kind !== 'audio') {
+                            setNodeBuffering(current, false);
+                        }
                         setMediaNode(layer, current, playing);
                     });
                 } else {
@@ -879,6 +1558,21 @@
             for (var i = 0; i < keys.length; i++) {
                 var node = nodes[keys[i]];
                 if (!node || !node.el) return false;
+                if (node.buffering) return false;
+                if (node.ytPlayer || node.el.tagName === 'IFRAME' ||
+                    (node.el.classList && (
+                        node.el.classList.contains('cs-render-color') ||
+                        node.el.classList.contains('cs-render-embed') ||
+                        node.el.classList.contains('cs-render-timer')
+                    ))) {
+                    if (node.ytPlayer || node.el._csYoutubeReady) {
+                        continue;
+                    }
+                    if (node.el.classList && node.el.classList.contains('cs-render-embed')) {
+                        return false;
+                    }
+                    continue;
+                }
                 if (node.el.tagName === 'VIDEO' || node.el.tagName === 'AUDIO') {
                     if (node.pendingSeekTime != null || node.el.seeking || node.el.readyState < 3) return false;
                 } else if (!node.el.complete || !node.el.naturalWidth) {
@@ -894,6 +1588,7 @@
                 removeNode(node);
             });
             nodes = {};
+            clearPool();
             reportBuffering();
         }
 
@@ -906,6 +1601,16 @@
         clamp: clamp,
         getPresentation: getPresentation,
         getMediaItem: getMediaItem,
+        parseYouTubeVideoId: parseYouTubeVideoId,
+        youtubeEmbedSrc: youtubeEmbedSrc,
+        ensureYoutubeApi: ensureYoutubeApi,
+        createYoutubePlayer: createYoutubePlayer,
+        destroyYoutubePlayer: destroyYoutubePlayer,
+        attachYoutubeLoadSync: attachYoutubeLoadSync,
+        syncYoutubePlayback: syncYoutubePlayback,
+        isGeneratedMediaKind: isGeneratedMediaKind,
+        formatTimerDisplay: formatTimerDisplay,
+        timerValueAtMediaTime: timerValueAtMediaTime,
         normalizeItem: normalizeItem,
         normalizeTransition: normalizeTransition,
         normalizeTransitions: normalizeTransitions,

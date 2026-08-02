@@ -65,4 +65,61 @@
     gap: 0.75rem;
 }
 
+@media (max-width: 900px) {
+    .dev-item {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 1.75rem 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .pg-list.card-view,
+    .pg-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+        margin-top: 0.75rem;
+    }
+
+    .dev-item,
+    .pg-list.card-view .dev-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        padding: 1.15rem 1.2rem;
+        border-bottom: none;
+        border-radius: 0.67rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        transition: opacity 0.2s ease, border-color 0.2s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .dev-item:hover,
+    .pg-list.card-view .dev-item:hover {
+        opacity: 1;
+        border-color: rgba(255,255,255,0.14);
+    }
+
+    .dev-item-left,
+    .pg-list.card-view .dev-item-left {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .dev-item-title,
+    .pg-list.card-view .dev-item-title {
+        font-size: 1.3rem;
+    }
+
+    .dev-item .pg-item-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
 

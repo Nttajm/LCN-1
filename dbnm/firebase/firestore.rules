@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // LCN foundation server — open client access (no auth required).
+    // Any collection/doc can be read or written from the browser.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

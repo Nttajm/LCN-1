@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "crossboard": {
+      "$sessionId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (
+          !data.exists()
+          || data.child('meta').child('ownerId').val() == auth.uid
+          || (
+            !data.child('meta').exists()
+            && newData.child('meta').child('ownerId').val() == auth.uid
+          )
+        )"
+      }
+    }
+  }
+}

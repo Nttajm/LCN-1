@@ -1,0 +1,50 @@
+.reg-npm {
+    color: #cb3837;
+    font-weight: bold;
+}
+
+.reg-scope {
+    color: rgb(91, 202, 91);
+    font-weight: bold;
+}
+
+.reg-dim {
+    color: #7a7a7a;
+}
+
+.reg-ascii {
+    color: rgb(124, 182, 227);
+    line-height: 1.05;
+    font-size: 0.58rem;
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+    font-family: monospace;
+}
+
+.reg-banner {
+    border-left: 3px solid rgb(91, 202, 91);
+    padding: 0.55rem 0 0.55rem 0.85rem;
+    margin: 0.45rem 0;
+    background: linear-gradient(90deg, rgba(91, 202, 91, 0.08), transparent 65%);
+}
+
+.reg-meta {
+    margin-top: 0.35rem;
+}
+
+.reg-tree {
+    color: rgb(215, 179, 0);
+}
+
+.reg-ok {
+    color: rgb(91, 202, 91);
+}
+
+.reg-panel {
+    border: 1px solid #333;
+    border-radius: 2px;
+    padding: 0.5rem 0.65rem;
+    margin: 0.35rem 0;
+    background: rgba(255, 255, 255, 0.02);
+}

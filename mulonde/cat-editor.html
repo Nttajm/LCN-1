@@ -199,7 +199,53 @@ textarea.fg-input{resize:vertical;min-height:80px}
 .type-btn.active{background:rgba(255,255,255,.1);color:#fff}
 .img-preview{width:100%;height:7.5rem;background:rgba(255,255,255,.04);border-radius:6px;margin-top:.5rem;overflow:hidden;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.18);font-size:.78rem}
 .img-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.img-src-row{display:flex;gap:.5rem;align-items:center}
+.img-src-row .fg-input{flex:1;min-width:0}
 .color-row{display:flex;gap:.5rem;align-items:center}
+
+/* ─── Picture Browser ────────────────────────────────────────────────────────── */
+.pic-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.pic-overlay.hidden{display:none}
+.pic-browser{background:#0e0e0e;border:1px solid rgba(255,255,255,.1);border-radius:10px;width:min(56rem,92vw);height:min(75vh,42rem);min-height:24rem;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .2s cubic-bezier(.05,.65,.4,1) both}
+.pic-header{padding:1.1rem 1.25rem .9rem;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.pic-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.pic-header-top .modal-title{margin:0}
+.pic-controls{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.pic-folders{display:flex;gap:.3rem;flex-wrap:wrap;flex:1;min-width:0}
+.pic-folder-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.28rem .6rem;font-size:.7rem;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit}
+.pic-folder-btn:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.pic-folder-btn.active{background:rgba(56,194,25,.12);border-color:rgba(56,194,25,.35);color:#38c219}
+.pic-search{width:12rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;font-size:.75rem;color:#fff;outline:none;font-family:inherit;flex-shrink:0}
+.pic-search::placeholder{color:rgba(255,255,255,.2)}
+.pic-search:focus{border-color:rgba(255,255,255,.3)}
+.pic-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:1rem 1.25rem;background:#0a0a0a}
+.pic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(7rem,1fr));gap:.75rem}
+.pic-thumb{aspect-ratio:1;border-radius:6px;overflow:hidden;cursor:pointer;position:relative;background:rgba(255,255,255,.04);border:2px solid transparent;transition:border-color .15s,transform .15s}
+.pic-thumb:hover{border-color:rgba(255,255,255,.25);transform:scale(1.02)}
+.pic-thumb.selected{border-color:#38c219;box-shadow:0 0 0 2px rgba(56,194,25,.2)}
+.pic-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pic-thumb-name{position:absolute;bottom:0;left:0;right:0;padding:.5rem .4rem .35rem;background:linear-gradient(to top,rgba(0,0,0,.85),transparent);font-family:monospace;font-size:.55rem;color:rgba(255,255,255,.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transition:opacity .15s}
+.pic-thumb:hover .pic-thumb-name,.pic-thumb.selected .pic-thumb-name{opacity:1}
+.pic-empty{display:none;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:3rem;color:rgba(255,255,255,.3);text-align:center;font-size:.85rem}
+.pic-empty.visible{display:flex}
+.pic-empty-sub{font-size:.75rem;color:rgba(255,255,255,.22)}
+.pic-empty code{background:rgba(255,255,255,.06);padding:.1rem .35rem;border-radius:3px;font-size:.7rem;color:rgba(255,255,255,.45)}
+.pic-footer{padding:.9rem 1.25rem;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:1rem;flex-shrink:0;background:#111}
+.pic-preview{flex:1;min-width:0;display:flex;align-items:center;gap:.75rem}
+.pic-preview img{width:2.5rem;height:2.5rem;object-fit:cover;border-radius:4px;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.pic-preview-info{display:flex;flex-direction:column;gap:.1rem;min-width:0}
+.pic-preview-name{font-size:.8rem;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pic-preview-path{font-family:monospace;font-size:.6rem;color:rgba(255,255,255,.3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pic-preview-placeholder{font-size:.8rem;color:rgba(255,255,255,.28);font-style:italic}
+.pic-actions{display:flex;gap:.5rem;flex-shrink:0}
+@media(max-width:40rem){
+  .pic-browser{width:95vw;height:85vh;max-height:none}
+  .pic-controls{flex-direction:column;align-items:stretch}
+  .pic-search{width:100%}
+  .pic-grid{grid-template-columns:repeat(auto-fill,minmax(5.5rem,1fr));gap:.5rem}
+  .pic-footer{flex-wrap:wrap}
+  .pic-preview{order:-1;flex-basis:100%}
+}
 .color-inp{width:2.5rem;height:2.5rem;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:.15rem;background:transparent;cursor:pointer;flex-shrink:0}
 
 /* ─── Export Panel ───────────────────────────────────────────────────────────── */
@@ -283,315 +329,580 @@ textarea.fg-input{resize:vertical;min-height:80px}
   </div>
 </div>
 
+<!-- ─── Picture Browser ───────────────────────────────────────────────────────── -->
+<div class="pic-overlay hidden" id="picOverlay">
+  <div class="pic-browser">
+    <div class="pic-header">
+      <div class="pic-header-top">
+        <span class="modal-title">Browse Images</span>
+        <button class="modal-x" id="picClose" aria-label="Close">×</button>
+      </div>
+      <div class="pic-controls">
+        <div class="pic-folders" id="picFolders">
+          <button class="pic-folder-btn active" data-folder="">All</button>
+        </div>
+        <input type="text" class="pic-search" id="picSearch" placeholder="Search images...">
+      </div>
+    </div>
+    <div class="pic-body">
+      <div class="pic-grid" id="picGrid"></div>
+      <div class="pic-empty" id="picEmpty">
+        <span>No images found</span>
+        <span class="pic-empty-sub">Run <code>node scripts/scan-mulonde-images.js</code> to scan <code>mulonde/data</code></span>
+      </div>
+    </div>
+    <div class="pic-footer">
+      <div class="pic-preview" id="picPreview">
+        <span class="pic-preview-placeholder">Select an image</span>
+      </div>
+      <div class="pic-actions">
+        <button class="ed-btn" id="picCancel">Cancel</button>
+        <button class="ed-btn accent" id="picInsert" disabled>Use Image</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── Default fallback data (used when no views/{key}.json exists) ─────────────
 const DEFAULTS = {
+  games: {
+    color: '#38c219',
+    cover: 'data/banners/games.jpg',
+    title: 'Games',
+    description: 'Browser-based games built for real engagement. From casual prediction to competitive multiplayer.',
+    tiers: [
+      {
+        id: 'arcade',
+        label: 'Over/under Series',
+        cards: [
+          {
+            title: 'OverUnderThs',
+            description: 'An interactive prediction game challenging players to analyze scenarios and make educated guesses to win. 207 players out of 330 studnets $50 revenue. more info on LCN.',
+            gridImages: {
+              mobile: [
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).png',
+                  col: '1/2',
+                  row: '1/3'
+                },
+                {
+                  type: 'text',
+                  content: 'Over under was a pretend betting/stock market game on school sports to help students be encouraged to be more excited about games and talk about school sports more as Tech High is in smallest High School Division.',
+                  col: '2/4',
+                  row: '1/3',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).jpg',
+                  col: '2/4',
+                  row: '3/5'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture of Harrison M. winning item shop prize.',
+                  col: '1/2',
+                  row: '3/4',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'right',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data\\work\\ou\\ou (2).PNG',
+                  col: '1/2',
+                  row: '4/6'
+                },
+                {
+                  type: 'text',
+                  content: 'The game also featured a school stock market, where students can invest in teachers based on their characteristic like \'Yapping\' or \'when assignment is graded.\'',
+                  col: '1/3',
+                  row: '6/7',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (4).png',
+                  col: '1/4',
+                  row: '7/8'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (2).jpg',
+                  col: '2/4',
+                  row: '5/6'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture above was taken when 93 active players were online during passing period.',
+                  col: '3/4',
+                  row: '6/7',
+                  textStyle: 'body',
+                  textSize: 'sm',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'text',
+                  content: 'Biggest challenge for this project was dealing with hackers and figuring out how to get the female population of the school to play.',
+                  col: '1/4',
+                  row: '8/9',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                }
+              ],
+              desktop: [
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).png',
+                  col: '3/4',
+                  row: '1/4'
+                },
+                {
+                  type: 'text',
+                  content: 'Over under was a pretend betting/stock market game on school sports to help students be encouraged to be more excited about games and talk about school sports more as Tech High is in smallest High School Division.',
+                  col: '1/3',
+                  row: '1/4',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (1).jpg',
+                  col: '4/6',
+                  row: '2/5'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture of Harrison M. winning item shop prize.',
+                  col: '5/6',
+                  row: '5/6',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data\\work\\ou\\ou (2).PNG',
+                  col: '1/3',
+                  row: '7/14'
+                },
+                {
+                  type: 'text',
+                  content: 'The game also featured a school stock market, where students can invest in teachers based on their characteristic like \'Yapping\' or \'when assignment is graded.\'',
+                  col: '1/3',
+                  row: '4/5',
+                  textStyle: 'head',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (4).png',
+                  col: '1/3',
+                  row: '5/7'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/ou/ou (2).jpg',
+                  col: '3/6',
+                  row: '6/9'
+                },
+                {
+                  type: 'text',
+                  content: 'Picture above was taken when 93 active players were online during passing period.',
+                  col: '4/6',
+                  row: '9/10',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'text',
+                  content: 'Biggest challenge for this project was dealing with hackers and figuring out how to get the female population of the school to play.',
+                  col: '3/6',
+                  row: '12/14',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                }
+              ]
+            },
+            gridRows: {
+              desktop: 14,
+              mobile: 8
+            }
+          },
+          {
+            title: 'Mulon',
+            description: 'A fast-paced strategy game built around resource management and real-time decision making, with a seasonal leaderboard system.',
+            isInLcn: 'projects/josu',
+            gridImages: {
+              mobile: [
+                {
+                  src: 'data/work/games/mulon.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
+              ],
+              desktop: [
+                {
+                  src: 'data/work/mulon/mulon.png',
+                  col: '1/3',
+                  row: '1/3',
+                  type: 'image'
+                }
+              ]
+            }
+          },
+          {
+            title: 'Josu',
+            description: 'Card description.',
+            gridImages: {
+              mobile: [],
+              desktop: [
+                {
+                  type: 'image',
+                  src: 'data/work/josu/ss-5.jpg',
+                  col: '4/6',
+                  row: '6/8'
+                },
+                {
+                  type: 'text',
+                  col: '1/3',
+                  row: '1/3',
+                  content: 'Josu is a rhythm game, where you use your keyboard to tap to teh rythym, inpsired by osu.\n\n the game is web adapted version allowing players to play adaptiaon with also any song they want, by either making it or finding it in the explore page.',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/josu/ss-1.png',
+                  col: '3/6',
+                  row: '1/4'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/josu/ss-2.png',
+                  col: '1/3',
+                  row: '4/6'
+                },
+                {
+                  type: 'text',
+                  content: 'screenshot of talkio, two button rythm mode, gameplay.',
+                  col: '3/4',
+                  row: '4/5',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                }
+              ]
+            },
+            gridRows: {
+              desktop: 7,
+              mobile: 5
+            }
+          }
+        ],
+        infoBlock: {
+          Players: '200+',
+          Revenue: '$50',
+          Status: 'Active'
+        }
+      }
+    ]
+  },
+  projects: {
+    color: '#ff0000',
+    cover: null,
+    title: 'Projects',
+    description: 'Platforms, tools, and web applications built for real use cases and real people.',
+    tiers: [
+      {
+        id: 'platforms',
+        label: 'Platforms',
+        cards: [
+          {
+            title: 'RFAA',
+            description: 'A sports league management platform tracking matches, league tables, and player statistics across multiple competitions.',
+            gridImages: {
+              mobile: [
+                {
+                  src: 'data/work/rfaa/main-image.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
+              ],
+              desktop: [
+                {
+                  src: 'data/work/rfaa/main-image.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
+              ]
+            }
+          }
+        ],
+        infoBlock: {
+          Type: 'Web App',
+          Stack: 'Full-Stack',
+          Status: 'Active'
+        }
+      },
+      {
+        id: 'experiments',
+        label: 'Experiments',
+        cards: [
+          {
+            title: 'Traffic Sim',
+            description: 'A canvas-based traffic simulation exploring autonomous vehicle pathfinding and intersection logic, built iteratively.',
+            gridImages: {
+              mobile: [
+                {
+                  src: 'data/work/games/overunderThs.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
+              ],
+              desktop: [
+                {
+                  src: 'data/work/games/overunderThs.png',
+                  col: '1/3',
+                  row: '1/3'
+                }
+              ]
+            }
+          },
+          {
+            title: 'JM Bins',
+            description: 'A clothing brand concept exploring product presentation, branding identity, and e-commerce layout for a local streetwear label.',
+            gridImages: {
+              mobile: [
+                {
+                  src: 'data/work/jmbins/jmbins.png',
+                  col: '1/2',
+                  row: '1/3'
+                },
+                {
+                  src: 'data/work/jmbins/slides/hoodie.png',
+                  col: '2/3',
+                  row: '1/3'
+                }
+              ],
+              desktop: [
+                {
+                  src: 'data/work/jmbins/jmbins.png',
+                  col: '1/2',
+                  row: '1/3'
+                },
+                {
+                  src: 'data/work/jmbins/slides/hoodie.png',
+                  col: '2/4',
+                  row: '1/3'
+                },
+                {
+                  src: 'data/work/jmbins/slides/shirt.png',
+                  col: '4/6',
+                  row: '2/4'
+                }
+              ]
+            }
+          }
+        ],
+        infoBlock: {
+          Type: 'Experiment',
+          Status: 'Archived'
+        }
+      }
+    ]
+  },
   demos: {
-      color: '#E8590C',
-      cover: null,
-      title: 'Demos',
-      description: 'Three tiers of web experiences. Each crafted with precision, tailored to different scales and ambitions.',
-      tiers: [
-        {
-          id: 'simple', label: 'Simple',
-          cards: [
-            {
-              title: 'La Costa del Sol',
-              description: 'A refined 3–4 page presence. Clean layouts, essential information, timeless design. Perfect for restaurants, portfolios, and local businesses.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80', col: '1/3', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80', col: '2/3', row: '2/4' },
-                  { src: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80', col: '1/2', row: '3/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80', col: '1/3', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80', col: '3/5', row: '2/4' },
-                  { src: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80', col: '5/6', row: '2/5' },
-                ],
-              },
+    color: '#E8590C',
+    cover: null,
+    title: 'Demos',
+    description: 'Interactive prototypes and creative experiments.',
+    tiers: [
+      {
+        id: 'simple',
+        label: 'Simple',
+        cards: [
+          {
+            title: 'La Costa Taqueria',
+            description: 'A modern Mexican grill site with bold food photography, digital menu highlights, and a built-in loyalty system where guests earn and redeem store points.',
+            gridImages: {
+              mobile: [
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/main-image.png',
+                  col: '1/4',
+                  row: '1/3'
+                },
+                {
+                  type: 'text',
+                  content: 'La Costa is a colorful modern Mexican grill experience — fresh plates, loud brand energy, and a site built to feel as alive as the kitchen.',
+                  col: '1/4',
+                  row: '3/4',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-1.png',
+                  col: '1/3',
+                  row: '4/6'
+                },
+                {
+                  type: 'text',
+                  content: 'Home navigation for Menú, Order, Galería, and Redeem Points — with live points balance in the header.',
+                  col: '3/4',
+                  row: '4/6',
+                  textStyle: 'body',
+                  textSize: 'sm',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/poinst.png',
+                  col: '2/4',
+                  row: '6/8'
+                },
+                {
+                  type: 'text',
+                  content: 'Guests collect store points on every visit — earn per dollar, birthday bonuses, and referrals — then redeem at the counter.',
+                  col: '1/2',
+                  row: '6/8',
+                  textStyle: 'body',
+                  textSize: 'sm',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-3.png',
+                  col: '1/4',
+                  row: '8/10'
+                },
+                {
+                  type: 'text',
+                  content: 'Featured specials like Birria Trio and Steak Quesadilla with one-tap Order Now CTAs.',
+                  col: '1/4',
+                  row: '10/11',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'center',
+                  verticalAlign: 'mid'
+                }
+              ],
+              desktop: [
+                {
+                  type: 'text',
+                  content: 'Modern Mexican grill website with loyalty points built in — guests browse, order, and redeem rewards from one colorful experience.',
+                  col: '1/3',
+                  row: '1/3',
+                  textStyle: 'head',
+                  textSize: 'xl',
+                  textAlign: 'left',
+                  verticalAlign: 'top'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/main-image.png',
+                  col: '3/6',
+                  row: '1/3'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-1.png',
+                  col: '1/3',
+                  row: '3/5'
+                },
+                {
+                  type: 'text',
+                  content: 'Desktop home with Menú, Order, Galería, and Redeem Points panels. Points balance stays pinned in the top bar so loyalty is always visible.',
+                  col: '3/5',
+                  row: '3/5',
+                  textStyle: 'body',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/bar.png',
+                  col: '1/6',
+                  row: '5/6'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/poinst.png',
+                  col: '1/3',
+                  row: '6/10'
+                },
+                {
+                  type: 'text',
+                  content: 'Store points system: +10 per $1 in-store, birthday bonuses, and referral rewards. Guests track balance and redeem codes at the counter.',
+                  col: '3/6',
+                  row: '6/8',
+                  textStyle: 'head',
+                  textSize: 'lg',
+                  textAlign: 'left',
+                  verticalAlign: 'mid'
+                },
+                {
+                  type: 'image',
+                  src: 'data/work/lacosta/s-3.png',
+                  col: '3/6',
+                  row: '8/11'
+                },
+                {
+                  type: 'text',
+                  content: 'Menu highlights section — seasonal specials with Order Now actions for PC and mobile.',
+                  col: '1/3',
+                  row: '10/11',
+                  textStyle: 'body',
+                  textSize: 'md',
+                  textAlign: 'left',
+                  verticalAlign: 'bot'
+                }
+              ]
             },
-            {
-              title: 'Atelier Noir',
-              description: 'Minimal portfolio for creative professionals. Single-page flow with elegant typography and considered whitespace.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80', col: '1/2', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80', col: '2/3', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80', col: '1/4', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&q=80', col: '1/2', row: '2/4' },
-                  { src: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&q=80', col: '2/4', row: '2/5' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Price: '$100–150', Pages: '1–4', Turnaround: '3–4 days' },
-        },
-        {
-          id: 'interactive', label: 'Interactive',
-          cards: [
-            {
-              title: 'Kinetic Studio',
-              description: 'Motion-driven portfolio with scroll animations, page transitions, and interactive galleries. For brands that demand attention.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '1/3', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80', col: '2/3', row: '2/3' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '3/5', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80', col: '5/6', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', col: '1/3', row: '2/4' },
-                ],
-              },
-            },
-            {
-              title: 'Meridian Commerce',
-              description: 'E-commerce foundation with cart functionality, product filtering, and checkout flow. Stripe-ready, conversion-optimized.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80', col: '1/2', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80', col: '2/3', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80', col: '1/2', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=80', col: '5/6', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80', col: '2/4', row: '2/4' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Price: '$300–500', Pages: '5–10', Turnaround: '1–2 weeks' },
-        },
-        {
-          id: 'app', label: 'App',
-          cards: [
-            {
-              title: 'Nexus Dashboard',
-              description: 'Full-featured web application with authentication, real-time data, and complex state management. SaaS-ready architecture.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80', col: '1/3', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80', col: '1/4', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/5' },
-                  { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80', col: '2/4', row: '3/5' },
-                ],
-              },
-            },
-            {
-              title: 'Pulse Analytics',
-              description: 'Data visualization platform with charts, reports, and exportable insights. Built for teams that need clarity from complexity.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80', col: '2/3', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80', col: '1/2', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80', col: '1/3', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&q=80', col: '3/4', row: '2/4' },
-                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80', col: '4/6', row: '3/5' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Price: '$800–1500', Screens: '10+', Turnaround: '3–6 weeks' },
-        },
-      ],
-    },
-
-    games: {
-      color: '#38c219',
-      cover: 'icons/games.png',
-      title: 'Games',
-      description: 'Browser-based games built for real engagement. From casual prediction to competitive multiplayer.',
-      tiers: [
-        {
-          id: 'arcade', label: 'Arcade',
-          cards: [
-            {
-              title: 'OverUnderThs',
-              description: 'An interactive prediction game challenging players to analyze scenarios and make educated guesses to win. 207 players, $50 revenue.',
-              gridImages: {
-                mobile: [{ src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' }],
-                desktop: [{ src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' }],
-              },
-            },
-            {
-              title: 'Mulon',
-              description: 'A fast-paced strategy game built around resource management and real-time decision making, with a seasonal leaderboard system.',
-              gridImages: {
-                mobile: [{ src: 'data/work/games/mulon.png', col: '1/3', row: '1/3' }],
-                desktop: [{ src: 'data/work/games/mulon.png', col: '1/3', row: '1/3' }],
-              },
-            },
-          ],
-          infoBlock: { Players: '200+', Revenue: '$50', Status: 'Active' },
-        },
-        {
-          id: 'multiplayer', label: 'Multiplayer',
-          cards: [
-            {
-              title: 'Square',
-              description: 'A collaborative pixel canvas where players place colored squares on a shared real-time grid. Inspired by r/place.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&q=80', col: '1/3', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=80', col: '1/2', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80', col: '1/4', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80', col: '1/3', row: '2/4' },
-                ],
-              },
-            },
-            {
-              title: 'Imposter',
-              description: 'An online social deduction game with lobby creation, singleplayer mode, and multiplayer sessions. Inspired by Among Us.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?w=600&q=80', col: '1/3', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&q=80', col: '2/3', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?w=800&q=80', col: '3/6', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&q=80', col: '1/3', row: '2/4' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Mode: 'Online', Players: '2–10', Status: 'Active' },
-        },
-        {
-          id: 'puzzle', label: 'Puzzle',
-          cards: [
-            {
-              title: 'Josu',
-              description: 'A rhythm game inspired by osu! with a song browser, custom beatmap editor, and community song integration via Firebase.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80', col: '1/3', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80', col: '1/2', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80', col: '1/4', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&q=80', col: '1/3', row: '2/4' },
-                ],
-              },
-            },
-            {
-              title: 'Titan Games',
-              description: 'A hub of word and puzzle games — crosswords, Nerdle, and other brain-teasing challenges with a clean NYT-inspired interface.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=600&q=80', col: '1/3', row: '1/2' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=800&q=80', col: '3/6', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1580541832626-2a7131ee809f?w=600&q=80', col: '1/3', row: '2/4' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Mode: 'Solo', Games: '5+', Status: 'Growing' },
-        },
-      ],
-    },
-
-    projects: {
-      color: '#2F9E44',
-      cover: null,
-      title: 'Projects',
-      description: 'Platforms, tools, and web applications built for real use cases and real people.',
-      tiers: [
-        {
-          id: 'platforms', label: 'Platforms',
-          cards: [
-            {
-              title: 'RFAA',
-              description: 'A sports league management platform tracking matches, league tables, and player statistics across multiple competitions.',
-              gridImages: {
-                mobile: [{ src: 'data/work/rfaa/main-image.png', col: '1/3', row: '1/3' }],
-                desktop: [
-                  { src: 'data/work/rfaa/main-image.png', col: '1/3', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=600&q=80', col: '3/6', row: '2/4' },
-                ],
-              },
-            },
-            {
-              title: 'Cascade',
-              description: 'A collaborative workspace platform with user profiles, shared workspaces, sidebar-based navigation, and real-time updates.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&q=80', col: '1/3', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', col: '1/2', row: '2/4' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80', col: '1/4', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80', col: '1/3', row: '2/4' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Type: 'Web App', Stack: 'Full-Stack', Status: 'Active' },
-        },
-        {
-          id: 'tools', label: 'Tools',
-          cards: [
-            {
-              title: 'Manifest',
-              description: 'A university tracking and planning tool helping students organize college applications, track deadlines, and compare schools.',
-              gridImages: {
-                mobile: [
-                  { src: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80', col: '1/3', row: '1/2' },
-                ],
-                desktop: [
-                  { src: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80', col: '1/4', row: '1/2' },
-                  { src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80', col: '1/3', row: '2/4' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Type: 'Tool', Users: 'Students', Status: 'Active' },
-        },
-        {
-          id: 'experiments', label: 'Experiments',
-          cards: [
-            {
-              title: 'Traffic Sim',
-              description: 'A canvas-based traffic simulation exploring autonomous vehicle pathfinding and intersection logic, built iteratively.',
-              gridImages: {
-                mobile: [{ src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' }],
-                desktop: [
-                  { src: 'data/work/games/overunderThs.png', col: '1/3', row: '1/3' },
-                  { src: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&q=80', col: '3/6', row: '2/4' },
-                ],
-              },
-            },
-            {
-              title: 'JM Bins',
-              description: 'A clothing brand concept exploring product presentation, branding identity, and e-commerce layout for a local streetwear label.',
-              gridImages: {
-                mobile: [
-                  { src: 'data/work/jmbins/jmbins.png', col: '1/2', row: '1/3' },
-                  { src: 'data/work/jmbins/slides/hoodie.png', col: '2/3', row: '1/3' },
-                ],
-                desktop: [
-                  { src: 'data/work/jmbins/jmbins.png', col: '1/2', row: '1/3' },
-                  { src: 'data/work/jmbins/slides/hoodie.png', col: '2/4', row: '1/3' },
-                  { src: 'data/work/jmbins/slides/shirt.png', col: '4/6', row: '2/4' },
-                ],
-              },
-            },
-          ],
-          infoBlock: { Type: 'Experiment', Status: 'Archived' },
-        },
-      ],
-    },
+            gridRows: {
+              desktop: 10,
+              mobile: 10
+            }
+          }
+        ],
+        infoBlock: {
+          Price: '$100–150',
+          Pages: '1–4',
+          Turnaround: '3–4 days'
+        }
+      }
+    ]
+  }
 };
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -887,8 +1198,11 @@ function openGridItemModal(ti, ci, ii) {
     </div>
     <div id="mImgSec"${isText?' style="display:none"':''}>
       <div class="fg">
-        <label class="fg-label">Image URL</label>
-        <input class="fg-input" id="mSrc" value="${esc(item.src||'')}" placeholder="https://... or data/work/...">
+        <label class="fg-label">Image</label>
+        <div class="img-src-row">
+          <input class="fg-input" id="mSrc" value="${esc(item.src||'')}" placeholder="https://... or data/work/...">
+          <button type="button" class="ed-btn sm" id="mBrowseSrc">Browse</button>
+        </div>
         <div class="img-preview${item.src?'':' empty'}" id="mImgPrev">
           ${item.src?`<img src="${item.src}" alt="">`:'No image'}
         </div>
@@ -982,6 +1296,12 @@ function openGridItemModal(ti, ci, ii) {
       const v = e.target.value;
       prev.innerHTML = v ? `<img src="${v}" alt="">` : 'No image';
       prev.classList.toggle('empty', !v);
+    });
+    document.getElementById('mBrowseSrc')?.addEventListener('click', () => {
+      openPicBrowser(src => {
+        srcInput.value = src;
+        srcInput.dispatchEvent(new Event('input'));
+      });
     });
   }
 
@@ -1137,8 +1457,11 @@ function openHeaderModal() {
   const data = S.cats[S.active];
   openModal('Cover &amp; Color', `
     <div class="fg">
-      <label class="fg-label">Cover Image URL</label>
-      <input class="fg-input" id="mCover" value="${esc(data.cover||'')}" placeholder="icons/games.png or https://...">
+      <label class="fg-label">Cover Image</label>
+      <div class="img-src-row">
+        <input class="fg-input" id="mCover" value="${esc(data.cover||'')}" placeholder="data/work/... or https://...">
+        <button type="button" class="ed-btn sm" id="mBrowseCover">Browse</button>
+      </div>
       <div class="img-preview${data.cover?'':' empty'}" id="mCoverPrev">
         ${data.cover?`<img src="${data.cover}" alt="">`:'No cover'}
       </div>
@@ -1162,6 +1485,13 @@ function openHeaderModal() {
     const prev = document.getElementById('mCoverPrev');
     prev.innerHTML = v ? `<img src="${v}" alt="">` : 'No cover';
     prev.classList.toggle('empty', !v);
+  });
+  document.getElementById('mBrowseCover')?.addEventListener('click', () => {
+    const coverInput = document.getElementById('mCover');
+    openPicBrowser(src => {
+      coverInput.value = src;
+      coverInput.dispatchEvent(new Event('input'));
+    });
   });
   document.getElementById('mColor').addEventListener('input', e => {
     document.getElementById('mColorTxt').value = e.target.value;
@@ -1263,10 +1593,148 @@ document.getElementById('modalOverlay').addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (!document.getElementById('picOverlay').classList.contains('hidden')) {
+      closePicBrowser();
+      return;
+    }
     closeModal();
     document.getElementById('exportOverlay').classList.add('hidden');
   }
   if (e.key === 'Enter' && e.ctrlKey && _pendingConfirm) _pendingConfirm();
+});
+
+// ─── Picture Browser (mulonde/data) ───────────────────────────────────────────
+let picManifest = null;
+let picCurrentFolder = '';
+let picSelectedImage = null;
+let picOnSelect = null;
+
+const picEls = {
+  overlay: document.getElementById('picOverlay'),
+  folders: document.getElementById('picFolders'),
+  search: document.getElementById('picSearch'),
+  grid: document.getElementById('picGrid'),
+  empty: document.getElementById('picEmpty'),
+  preview: document.getElementById('picPreview'),
+  insertBtn: document.getElementById('picInsert'),
+};
+
+function loadPicManifest(force = false) {
+  if (picManifest && !force) return Promise.resolve(picManifest);
+  return fetch('data/manifest.json')
+    .then(res => {
+      if (!res.ok) throw new Error('Manifest not found');
+      return res.json();
+    })
+    .then(data => {
+      picManifest = data;
+      return data;
+    })
+    .catch(() => {
+      picManifest = { folders: [], images: [] };
+      return picManifest;
+    });
+}
+
+function renderPicFolders() {
+  let html = `<button class="pic-folder-btn${picCurrentFolder === '' ? ' active' : ''}" data-folder="">All</button>`;
+  (picManifest.folders || []).forEach(folder => {
+    html += `<button class="pic-folder-btn${picCurrentFolder === folder ? ' active' : ''}" data-folder="${esc(folder)}">${esc(folder)}</button>`;
+  });
+  picEls.folders.innerHTML = html;
+  picEls.folders.querySelectorAll('.pic-folder-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      picCurrentFolder = btn.getAttribute('data-folder') || '';
+      renderPicFolders();
+      renderPicGrid();
+    });
+  });
+}
+
+function filterPicImages() {
+  const images = picManifest.images || [];
+  const query = (picEls.search.value || '').toLowerCase().trim();
+  return images.filter(img => {
+    if (picCurrentFolder && img.folder !== picCurrentFolder) return false;
+    if (!query) return true;
+    return img.name.toLowerCase().includes(query) || img.path.toLowerCase().includes(query);
+  });
+}
+
+function renderPicGrid() {
+  const images = filterPicImages();
+  if (images.length === 0) {
+    picEls.grid.innerHTML = '';
+    picEls.empty.classList.add('visible');
+    return;
+  }
+  picEls.empty.classList.remove('visible');
+  picEls.grid.innerHTML = images.map(img => {
+    const selected = picSelectedImage && picSelectedImage.path === img.path;
+    return `<div class="pic-thumb${selected ? ' selected' : ''}" data-path="${esc(img.path)}">
+      <img src="data/${esc(img.path)}" alt="${esc(img.name)}" loading="lazy">
+      <span class="pic-thumb-name">${esc(img.name)}</span>
+    </div>`;
+  }).join('');
+  picEls.grid.querySelectorAll('.pic-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => selectPicImage(thumb.getAttribute('data-path')));
+    thumb.addEventListener('dblclick', () => {
+      selectPicImage(thumb.getAttribute('data-path'));
+      insertPicImage();
+    });
+  });
+}
+
+function selectPicImage(path) {
+  const img = (picManifest.images || []).find(i => i.path === path);
+  if (!img) return;
+  picSelectedImage = img;
+  picEls.grid.querySelectorAll('.pic-thumb').forEach(thumb => {
+    thumb.classList.toggle('selected', thumb.getAttribute('data-path') === path);
+  });
+  picEls.preview.innerHTML = `<img src="data/${esc(img.path)}" alt="">
+    <div class="pic-preview-info">
+      <span class="pic-preview-name">${esc(img.name)}</span>
+      <span class="pic-preview-path">data/${esc(img.path)}</span>
+    </div>`;
+  picEls.insertBtn.disabled = false;
+}
+
+function resetPicBrowser() {
+  picSelectedImage = null;
+  picCurrentFolder = '';
+  picEls.search.value = '';
+  picEls.insertBtn.disabled = true;
+  picEls.preview.innerHTML = '<span class="pic-preview-placeholder">Select an image</span>';
+}
+
+function openPicBrowser(onSelect) {
+  picOnSelect = onSelect;
+  resetPicBrowser();
+  picEls.overlay.classList.remove('hidden');
+  loadPicManifest().then(() => {
+    renderPicFolders();
+    renderPicGrid();
+  });
+}
+
+function closePicBrowser() {
+  picEls.overlay.classList.add('hidden');
+  picOnSelect = null;
+}
+
+function insertPicImage() {
+  if (!picSelectedImage || !picOnSelect) return;
+  picOnSelect(`data/${picSelectedImage.path}`);
+  closePicBrowser();
+}
+
+picEls.search.addEventListener('input', renderPicGrid);
+picEls.insertBtn.addEventListener('click', insertPicImage);
+document.getElementById('picCancel').addEventListener('click', closePicBrowser);
+document.getElementById('picClose').addEventListener('click', closePicBrowser);
+picEls.overlay.addEventListener('click', e => {
+  if (e.target === picEls.overlay) closePicBrowser();
 });
 
 // ─── Grid Drag & Resize System ────────────────────────────────────────────────

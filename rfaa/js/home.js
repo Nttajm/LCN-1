@@ -57,7 +57,7 @@ function formatPhase(meta) {
 }
 
 function previewMatchLimit() {
-    return window.matchMedia('(max-width: 768px)').matches ? 3 : 4;
+    return 12;
 }
 
 function recentCount(total) {
@@ -100,6 +100,36 @@ function renderPreviewMatches() {
     const limit = previewMatchLimit();
     const recent = allPlayed.slice(-Math.min(limit, Math.max(2, allPlayed.length)));
     container.innerHTML = recent.map(renderPreviewMatchCard).join('');
+    setupPreviewMatchesScroll();
+}
+
+function setupPreviewMatchesScroll() {
+    const scroller = document.querySelector('.preview-matches');
+    const prev = document.querySelector('.preview-scroll-btn--prev');
+    const next = document.querySelector('.preview-scroll-btn--next');
+    if (!scroller || !prev || !next) return;
+
+    const scrollAmount = () => Math.max(scroller.clientWidth * 0.72, 220);
+
+    const updateButtons = () => {
+        const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+        const atStart = scroller.scrollLeft <= 4;
+        const atEnd = maxScroll <= 4 || scroller.scrollLeft >= maxScroll - 4;
+
+        prev.disabled = atStart;
+        next.disabled = atEnd;
+    };
+
+    prev.onclick = () => {
+        scroller.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    };
+    next.onclick = () => {
+        scroller.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+    };
+
+    scroller.onscroll = updateButtons;
+    window.addEventListener('resize', updateButtons);
+    updateButtons();
 }
 
 function renderGamesArticle(season) {
@@ -239,63 +269,20 @@ function renderFeatureHeadlines() {
     }
 }
 
-function probeImage(src) {
-    return new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = src;
-    });
-}
-
-let resultBackgroundsCache = null;
-
-/** Discovers articles/images/r-1.png, r-2.png, … until the first missing file. */
-async function discoverResultBackgrounds() {
-    if (resultBackgroundsCache) return resultBackgroundsCache;
-
-    const found = [];
-    const maxProbe = 40;
-    for (let i = 1; i <= maxProbe; i++) {
-        const src = `articles/images/r-${i}.png`;
-        if (await probeImage(src)) found.push(src);
-        else break;
-    }
-
-    resultBackgroundsCache = found.length ? found : ['articles/images/ball-pitch.png'];
-    return resultBackgroundsCache;
-}
-
-function formatResultHeadline(game, team1, team2) {
-    const s1 = game.score1;
-    const s2 = game.score2;
-    if (s1 === s2) {
-        return `${team1.name} and ${team2.name} draw ${s1}-${s2}`;
-    }
-    if (s1 > s2) {
-        return `${team1.name} wins ${s1}-${s2} against ${team2.name}`;
-    }
-    return `${team2.name} wins ${s2}-${s1} against ${team1.name}`;
-}
-
-function renderHighlightCard(meta, backgroundSrc) {
+function renderHighlightCard(meta) {
     const { game } = meta;
     const team1 = getTeamById(game.team1);
     const team2 = getTeamById(game.team2);
-    const title = formatResultHeadline(game, team1, team2);
+    const label = `${team1.name} vs ${team2.name} — View match highlights`;
 
     return `
-        <a class="hl-card hl-card--score link-match" href="match-info.html?match=${game.id}" data-match-id="${game.id}" aria-label="${title}">
-            <div class="hl-card__media">
-                <img class="hl-card__bg" src="${backgroundSrc}" alt="" onerror="this.src='articles/images/ball-pitch.png'">
-                <div class="hl-card__scorechip">
-                    <img src="${team1.img}" alt="">
-                    <span>${game.score1}-${game.score2}</span>
-                    <img src="${team2.img}" alt="">
-                </div>
+        <a class="hl-card hl-card--match link-match" href="match-info.html?match=${game.id}" data-match-id="${game.id}" aria-label="${label}">
+            <div class="hl-card__matchface">
+                <img class="hl-card__team-logo" src="${team1.img}" alt="${team1.name}">
+                <img class="hl-card__team-logo" src="${team2.img}" alt="${team2.name}">
             </div>
             <div class="hl-card__body">
-                <h3 class="hl-card__title">${title}</h3>
+                <span class="hl-card__cta">View match highlights</span>
                 <span class="hl-card__meta">${formatPhase(meta)} · ${meta.seasonYear}</span>
             </div>
         </a>`;
@@ -321,11 +308,10 @@ function renderArticleCard(article, { large = false } = {}) {
         </a>`;
 }
 
-async function renderRecentHighlights() {
+function renderRecentHighlights() {
     const container = document.querySelector('.hl-games');
     if (!container) return;
 
-    const backgrounds = await discoverResultBackgrounds();
     const allPlayed = getAllPlayedMatches();
     const newsArticles = getArticlesForHomeFeed(2);
     const matchCount = newsArticles.length >= 2 ? 4 : newsArticles.length === 1 ? 4 : recentCount(allPlayed.length);
@@ -333,9 +319,7 @@ async function renderRecentHighlights() {
 
     const cards = [];
     if (newsArticles[0]) cards.push(renderArticleCard(newsArticles[0], { large: true }));
-    cards.push(...highlights.map((meta, i) =>
-        renderHighlightCard(meta, backgrounds[i % backgrounds.length])
-    ));
+    cards.push(...highlights.map(renderHighlightCard));
     if (newsArticles[1]) cards.push(renderArticleCard(newsArticles[1], { large: true }));
 
     if (!cards.length) {
@@ -372,7 +356,7 @@ async function initHome() {
     renderPreviewMatches();
     renderGamesArticle(season);
     renderFeatureHeadlines();
-    await renderRecentHighlights();
+    renderRecentHighlights();
     renderHomeStandings(season);
     bindMatchClickEventsGlobal();
 }

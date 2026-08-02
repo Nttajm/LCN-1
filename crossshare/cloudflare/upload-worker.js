@@ -136,37 +136,55 @@ function extFromName(name, mime) {
     return 'bin';
 }
 
-// Ownership rarely changes; cache positive checks briefly so a batch of
+// Access rarely changes; cache positive checks briefly so a batch of
 // uploads only hits Firestore once per project instead of once per file.
-const ownerCache = new Map();
-const OWNER_CACHE_TTL_MS = 5 * 60 * 1000;
+const accessCache = new Map();
+const ACCESS_CACHE_TTL_MS = 5 * 60 * 1000;
 
-async function assertProjectOwner(env, projectId, uid, token) {
+function firestoreStringList(field) {
+    const values = field && field.arrayValue && field.arrayValue.values;
+    if (!Array.isArray(values)) return [];
+    return values
+        .map((entry) => (entry && entry.stringValue ? String(entry.stringValue).trim().toLowerCase() : ''))
+        .filter(Boolean);
+}
+
+async function assertProjectAccess(env, projectId, user, token) {
+    const uid = user && user.sub;
     if (!projectId || !uid || !token) throw new Error('Missing project or user');
 
     const cacheKey = `${uid}\u0000${projectId}`;
-    const cached = ownerCache.get(cacheKey);
-    if (cached && Date.now() - cached < OWNER_CACHE_TTL_MS) return;
+    const cached = accessCache.get(cacheKey);
+    if (cached && Date.now() - cached < ACCESS_CACHE_TTL_MS) return;
 
     const firebaseProjectId = env.FIREBASE_PROJECT_ID || 'lcn-apps';
-    // mask.fieldPaths=ownerId: fetch only the owner field instead of the
-    // full project document (which can be very large).
+    // Fetch only the ownership fields instead of the full project document.
     const documentUrl =
         `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(firebaseProjectId)}` +
         `/databases/(default)/documents/crossshare_projects/${encodeURIComponent(projectId)}` +
-        `?mask.fieldPaths=ownerId`;
+        `?mask.fieldPaths=ownerId&mask.fieldPaths=memberEmails`;
     const response = await fetch(documentUrl, {
         headers: { Authorization: `Bearer ${token}` }
     });
 
     if (response.status === 404) throw new Error('Project not found');
-    if (!response.ok) throw new Error('Project ownership could not be verified');
+    if (!response.ok) throw new Error('Project access could not be verified');
 
     const document = await response.json();
     const ownerId = document?.fields?.ownerId?.stringValue;
-    if (!ownerId || ownerId !== uid) throw new Error('Not project owner');
+    if (ownerId && ownerId === uid) {
+        accessCache.set(cacheKey, Date.now());
+        return;
+    }
 
-    ownerCache.set(cacheKey, Date.now());
+    const email = String((user && user.email) || '').trim().toLowerCase();
+    const memberEmails = firestoreStringList(document?.fields?.memberEmails);
+    if (email && memberEmails.includes(email)) {
+        accessCache.set(cacheKey, Date.now());
+        return;
+    }
+
+    throw new Error('Not project owner or member');
 }
 
 function buildObjectKey(user, projectId, mediaId, kind, ext) {
@@ -231,7 +249,7 @@ async function handleUpload(request, env, origin, user, token) {
         if (!projectId) return json({ error: 'projectId required' }, 400, origin);
         if (!request.body) return json({ error: 'file required' }, 400, origin);
 
-        await assertProjectOwner(env, projectId, user.sub, token);
+        await assertProjectAccess(env, projectId, user, token);
 
         return putAndRespond(env, origin, user, {
             projectId,
@@ -256,7 +274,7 @@ async function handleUpload(request, env, origin, user, token) {
     }
     if (!projectId) return json({ error: 'projectId required' }, 400, origin);
 
-    await assertProjectOwner(env, projectId, user.sub, token);
+    await assertProjectAccess(env, projectId, user, token);
 
     return putAndRespond(env, origin, user, {
         projectId,
@@ -284,7 +302,7 @@ async function handleMultipartCreate(request, env, origin, user, token) {
 
     if (!projectId) return json({ error: 'projectId required' }, 400, origin);
 
-    await assertProjectOwner(env, projectId, user.sub, token);
+    await assertProjectAccess(env, projectId, user, token);
 
     const ext = extFromName(name, mime);
     const objectKey = buildObjectKey(user, projectId, mediaId, kind, ext);

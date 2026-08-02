@@ -100,8 +100,9 @@ service cloud.firestore {
     }
 
     // ---- Crossshare projects ----
-    // Owners manage full project docs. Public viewers may read a project when
-    // it has a non-expired projectCode (used by the standalone viewer).
+    // Owners manage full project docs. Members (by email) can read/edit content.
+    // Public viewers may read a project when it has a non-expired projectCode
+    // (used by the standalone viewer).
     function isCrossshareOwner() {
       return signedIn()
         && resource.data.ownerId == request.auth.uid;
@@ -110,6 +111,20 @@ service cloud.firestore {
     function isCrossshareOwnerCreate() {
       return signedIn()
         && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    function crossshareAuthEmail() {
+      return signedIn() && request.auth.token.email is string
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function isCrossshareMember() {
+      return signedIn()
+        && request.auth.token.email is string
+        && 'memberEmails' in resource.data
+        && resource.data.memberEmails is list
+        && crossshareAuthEmail() in resource.data.memberEmails;
     }
 
     function crossshareCodeValid() {
@@ -131,9 +146,30 @@ service cloud.firestore {
         && resource.data.tempCodeExpiresAt > request.time.toMillis();
     }
 
+    function crossshareOwnerFieldsUnchanged() {
+      return request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.ownerEmail == resource.data.ownerEmail;
+    }
+
+    function crossshareMembersUnchanged() {
+      return (
+        (
+          !('members' in resource.data) && !('members' in request.resource.data)
+        )
+        || request.resource.data.members == resource.data.members
+      )
+      && (
+        (
+          !('memberEmails' in resource.data) && !('memberEmails' in request.resource.data)
+        )
+        || request.resource.data.memberEmails == resource.data.memberEmails
+      );
+    }
+
     match /crossshare_projects/{projectId} {
       allow get: if isAdmin()
         || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || isCrossshareMember()
         || crossshareCodeValid()
         || crossshareTempCodeValid();
 
@@ -141,6 +177,7 @@ service cloud.firestore {
       // so expiry is enforced client-side and on subsequent gets.
       allow list: if isAdmin()
         || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || isCrossshareMember()
         || request.query.limit <= 1;
 
       allow create: if isCrossshareOwnerCreate()
@@ -152,9 +189,85 @@ service cloud.firestore {
           isCrossshareOwner()
           && request.resource.data.ownerId == resource.data.ownerId
           && request.resource.data.id == projectId
+        )
+        || (
+          isCrossshareMember()
+          && crossshareOwnerFieldsUnchanged()
+          && crossshareMembersUnchanged()
+          && request.resource.data.id == projectId
         );
 
       allow delete: if isAdmin() || isCrossshareOwner();
+    }
+
+    // ---- Crossboard sessions ----
+    // Owners create/manage boards. Signed-in users may look up a session by
+    // active code and read public sessions. Viewers may only bump viewers count.
+    function isCrossboardOwner() {
+      return signedIn()
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    function isCrossboardOwnerCreate() {
+      return signedIn()
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    function crossboardCodeValid() {
+      return resource.data.code is string
+        && resource.data.code.size() == 4
+        && resource.data.codeExpiresAt is number
+        && resource.data.codeExpiresAt > request.time.toMillis();
+    }
+
+    function crossboardSessionData(sessionId) {
+      return get(/databases/$(database)/documents/crossboard_sessions/$(sessionId)).data;
+    }
+
+    function canReadCrossboardSession(sessionId) {
+      return isAdmin()
+        || (signedIn() && crossboardSessionData(sessionId).ownerId == request.auth.uid)
+        || (signedIn() && crossboardSessionData(sessionId).isPublic == true);
+    }
+
+    function isCrossboardSessionOwner(sessionId) {
+      return signedIn()
+        && crossboardSessionData(sessionId).ownerId == request.auth.uid;
+    }
+
+    match /crossboard_sessions/{sessionId} {
+      allow get: if isAdmin()
+        || isCrossboardOwner()
+        || (signedIn() && resource.data.isPublic == true && crossboardCodeValid())
+        || (signedIn() && resource.data.isPublic == true);
+
+      allow list: if isAdmin()
+        || (signedIn() && resource.data.ownerId == request.auth.uid)
+        || (signedIn() && request.query.limit <= 1);
+
+      allow create: if isCrossboardOwnerCreate()
+        && request.resource.data.id == sessionId
+        && request.resource.data.keys().hasAll(['name', 'ownerId', 'code', 'createdAt', 'isPublic']);
+
+      allow update: if isAdmin()
+        || (
+          isCrossboardOwner()
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.id == sessionId
+        )
+        || (
+          signedIn()
+          && resource.data.isPublic == true
+          && changedKeysOnly(['viewers'])
+          && request.resource.data.viewers is number
+        );
+
+      allow delete: if isAdmin() || isCrossboardOwner();
+
+      match /slides/{slideId}/strokes/{strokeId} {
+        allow read: if canReadCrossboardSession(sessionId);
+        allow create, update, delete: if isCrossboardSessionOwner(sessionId);
+      }
     }
 
     // ---- Crossshare viewer presence ----

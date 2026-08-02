@@ -4,7 +4,24 @@ const dail = document.querySelector('.dail');
 const sections = document.querySelectorAll('.category-section');
 const gridItems = document.querySelectorAll('.grid-item');
 
+// Dial UI is optional (single-tier demos pages may omit it)
+if (!elems.length || !elemHolder || !dail) {
+  function handleRevealEffect(elements) {
+    elements.forEach(element => {
+      element.addEventListener('mousemove', (e) => {
+        const rect = element.getBoundingClientRect();
+        element.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        element.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+      element.addEventListener('mouseenter', () => element.classList.add('reveal-active'));
+      element.addEventListener('mouseleave', () => element.classList.remove('reveal-active'));
+    });
+  }
+  handleRevealEffect(gridItems);
+} else {
+
 let currentIndex = elems.findIndex(elem => elem.classList.contains('current'));
+if (currentIndex < 0) currentIndex = 0;
 let programmaticScroll = false;
 
 function updatePosition() {
@@ -161,3 +178,5 @@ function handleRevealEffect(elements) {
 
 handleRevealEffect(gridItems);
 window.addEventListener('scroll', handleScroll, { passive: true });
+
+} // end dial-enabled branch

@@ -1,0 +1,6941 @@
+{
+  "meta": {
+    "source": "Wikidata",
+    "query": "wd:Q166177 p:P1346 / pq:P585",
+    "fetchedAt": "2026-07-22T06:12:13.826Z",
+    "note": "Award-side P1346 (not player-side P166). One query, full year history. Later trophies (UCL, WC) add keys under trophies/years.",
+    "awards": {
+      "ballonDor": {
+        "id": "ballonDor",
+        "label": "Ballon d'Or",
+        "wikidataId": "Q166177",
+        "icon": "icons/trophies/ballondor.png"
+      },
+      "worldCup": {
+        "id": "worldCup",
+        "label": "World Cup",
+        "wikidataId": "Q19317",
+        "icon": "icons/trophies/worldcup.png",
+        "category": "Category:FIFA World Cup–winning players"
+      },
+      "championsLeague": {
+        "id": "championsLeague",
+        "label": "Champions League",
+        "wikidataId": "Q19317",
+        "icon": "icons/trophies/championsleague.png",
+        "category": "Category:Champions League–winning players"
+      }
+    },
+    "queries": {
+      "ballonDor": "wd:Q166177 p:P1346 / pq:P585",
+      "worldCup": "enwiki category + edition P1346/P1532 + player P1344"
+    }
+  },
+  "players": [
+    {
+      "id": "Q615",
+      "name": "Lionel Messi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Leo%20Messi%20Argentina%20v%20Egypt%207%20July%202026-1.jpg",
+      "trophies": {
+        "ballonDor": 8,
+        "worldCup": 1,
+        "championsLeague": 4
+      },
+      "years": {
+        "ballonDor": [
+          2009,
+          2010,
+          2011,
+          2012,
+          2015,
+          2019,
+          2021,
+          2023
+        ],
+        "worldCup": [
+          2022
+        ],
+        "championsLeague": [
+          2009,
+          2011,
+          2015,
+          2019
+        ]
+      }
+    },
+    {
+      "id": "Q11571",
+      "name": "Cristiano Ronaldo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cristiano%20Ronaldo%20Croatia%20v%20Portugal%202%20July%202026-075%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 5,
+        "championsLeague": 5
+      },
+      "years": {
+        "ballonDor": [
+          2008,
+          2013,
+          2014,
+          2016,
+          2017
+        ],
+        "championsLeague": [
+          2008,
+          2015,
+          2016,
+          2017,
+          2019
+        ]
+      }
+    },
+    {
+      "id": "Q311511",
+      "name": "Mário Zagallo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/M%C3%A1rio%20Zagallo%201974.jpg",
+      "trophies": {
+        "worldCup": 4
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962,
+          1970,
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q529207",
+      "name": "Ronaldo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/051119SMcC0014.jpg",
+      "trophies": {
+        "ballonDor": 2,
+        "worldCup": 2
+      },
+      "years": {
+        "ballonDor": [
+          1997,
+          2002
+        ],
+        "worldCup": [
+          1994,
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q4457",
+      "name": "Franz Beckenbauer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Franz%20Beckenbauer%20%281975%29.jpg",
+      "trophies": {
+        "ballonDor": 2,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          1972,
+          1976
+        ],
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q17163",
+      "name": "Johan Cruyff",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Johan%20Cruijff%20%281974%29.jpg",
+      "trophies": {
+        "ballonDor": 3
+      },
+      "years": {
+        "ballonDor": [
+          1971,
+          1973,
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q483629",
+      "name": "Marco van Basten",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marco%20van%20Basten%20%28ca%202006%29.jpg",
+      "trophies": {
+        "ballonDor": 3
+      },
+      "years": {
+        "ballonDor": [
+          1988,
+          1989,
+          1992
+        ]
+      }
+    },
+    {
+      "id": "Q4261",
+      "name": "Michel Platini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Michel%20Platini%202010%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 3
+      },
+      "years": {
+        "ballonDor": [
+          1983,
+          1984,
+          1985
+        ]
+      }
+    },
+    {
+      "id": "Q12897",
+      "name": "Pelé",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pele%20con%20brasil%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 3
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962,
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q164546",
+      "name": "Alfredo Di Stéfano",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Di%20stefano%20argentina%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 2
+      },
+      "years": {
+        "ballonDor": [
+          1957,
+          1959
+        ]
+      }
+    },
+    {
+      "id": "Q171583",
+      "name": "Bobby Charlton",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bobby%20Charlton%20en%201966%20160.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          1966
+        ],
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q178683",
+      "name": "Cafu",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cafu%20-%2026.02.2026%20-%20Cerim%C3%B4nia%20de%20apresenta%C3%A7%C3%A3o%20das%20ta%C3%A7as%20da%20Copa%20do%20Mundo%20de%202026.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1994,
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q667127",
+      "name": "Castilho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Castilho%2C%201956.tif",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q15802",
+      "name": "Daniel Passarella",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Daniel%20passarella%20en%201985.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1978,
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q312486",
+      "name": "Didi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Waldir%20Pereira%201958.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q508711",
+      "name": "Didier Deschamps",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Didier%20Deschamps%20France%20v%20Senegal%2016%20June%202026-519%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1998,
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q299693",
+      "name": "Djalma Santos",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Djalma%20Santos.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q535475",
+      "name": "Eraldo Monzeglio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Eraldo%20Monzeglio%2C%20double%20champion%20du%20monde%20de%20football%20avec%20la%20s%C3%A9lection%20italienne.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1934,
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q102027",
+      "name": "Fabio Cannavaro",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fabio%20Cannavaro%20-%202024%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          2006
+        ],
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q180642",
+      "name": "Garrincha",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Manoel%20Francisco%20dos%20Santos-Garrincha.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q43744",
+      "name": "Gerd Müller",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gerd%20M%C3%BCller%20c1973%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          1970
+        ],
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q257606",
+      "name": "Gilmar",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/GILMAR%20-%20Gylmar%20dos%20Santos%20Neve%20-%201958.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q382987",
+      "name": "Giovanni Ferrari",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/FBC%20Juventus%20-%201930s%20-%20Giovanni%20Ferrari.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1934,
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q192131",
+      "name": "Giuseppe Meazza",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giuseppe%20Meazza%201935.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1934,
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q944592",
+      "name": "Guido Masetti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Guido%20Masetti.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1934,
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q262826",
+      "name": "Hilderaldo Bellini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bellini%2C%20jogador%20de%20futebol%2C%201961.tif",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q62182",
+      "name": "José Altafini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jos%C3%A9%20Altafini%20%281974%29.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q531814",
+      "name": "Kaká",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ricardo%20Izecson%20dos%20Santos%20Leite%20%28Kak%C3%A1%29%2001.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          2007
+        ],
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q152871",
+      "name": "Karl-Heinz Rummenigge",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2015-02-06%20Rummenigge%200400.JPG",
+      "trophies": {
+        "ballonDor": 2
+      },
+      "years": {
+        "ballonDor": [
+          1980,
+          1981
+        ]
+      }
+    },
+    {
+      "id": "Q152832",
+      "name": "Kevin Keegan",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Kevin%20keegan%20panini%20card%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 2
+      },
+      "years": {
+        "ballonDor": [
+          1978,
+          1979
+        ]
+      }
+    },
+    {
+      "id": "Q36386",
+      "name": "Lothar Matthäus",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2019%20Lothar%20Matth%C3%A4us.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          1990
+        ],
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q463460",
+      "name": "Mauro Ramos",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mauro%20Ramos%20en%201962.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q83329",
+      "name": "Nílton Santos",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nilton%20Santos%201%20%281956%29.tif",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q20851003",
+      "name": "Ousmane Dembélé",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ousmane%20Dembele%20France%20v%20Senegal%2016%20June%202026-341%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          2025
+        ],
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q178628",
+      "name": "Paolo Rossi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paolo%20Rossi%20Vicenza%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          1982
+        ],
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q509491",
+      "name": "Pepe",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pepe%2022.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q483577",
+      "name": "Rivaldo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rivaldo%20bunyodkor%202010.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          1999
+        ],
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q20994118",
+      "name": "Rodri",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rodri%20France%20v%20Spain%207.24.26-096%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          2024
+        ],
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q39444",
+      "name": "Ronaldinho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sports%20Festival%202025%20-%204%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          2005
+        ],
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q311445",
+      "name": "Vavá",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vav%C3%A1%20en%201962.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q1835",
+      "name": "Zinedine Zidane",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Zinedine%20Zidane%20by%20Tasnim%2003.jpg",
+      "trophies": {
+        "ballonDor": 1,
+        "worldCup": 1
+      },
+      "years": {
+        "ballonDor": [
+          1998
+        ],
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q372092",
+      "name": "Zito",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Zito%20en%201962.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q122905",
+      "name": "Zózimo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Z%C3%B3zimo%20Alves%20Calaz%C3%A3es%20en%201962.jpg",
+      "trophies": {
+        "worldCup": 2
+      },
+      "years": {
+        "worldCup": [
+          1958,
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q1909",
+      "name": "Adil Rami",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Adil%20Rami%2020120611.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q2447165",
+      "name": "Ado",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ado.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q350738",
+      "name": "Alain Boghossian",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q310058",
+      "name": "Alan Ball Jr.",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alan%20Ball%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q182451",
+      "name": "Alberto Gilardino",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alberto%20Gilardino.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q455135",
+      "name": "Alberto Tarantini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tarantini%20argentina.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q352611",
+      "name": "Alcides Ghiggia",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/AS%20Roma%20-%20Alcides%20Ghiggia.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q297721",
+      "name": "Aldair",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aldair.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q749706",
+      "name": "Aldo Donati",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aldo%20Donati%20Inter.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q967005",
+      "name": "Aldo Olivieri",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aldo%20Olivieri%20Audace.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q346945",
+      "name": "Alessandro Altobelli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alessandro%20Altobelli%20-%201982%20-%20Inter%20Milan.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q624",
+      "name": "Alessandro Del Piero",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alessandro%20Del%20Piero%2C%20New%20York%20NY%202015.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q227892",
+      "name": "Alessandro Nesta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alessandro%20Nesta%20as%20Miami%20FC%20Manager.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q97404267",
+      "name": "Álex Baena",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alex%20Baena%20France%20v%20Spain%207.24.26-024.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q921324",
+      "name": "Álex Grimaldo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alex%20Grimaldo%20France%20v%20Spain%207.24.26-005.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q33297140",
+      "name": "Alexis Mac Allister",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alexis%20Mac%20Allister%20Argentina%20v%20Egypt%207%20July%202026-182.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2022
+        ]
+      }
+    },
+    {
+      "id": "Q438501",
+      "name": "Alfred Pfaff",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q469096",
+      "name": "Alfredo Foni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alfredo%20Foni%20%28ca.%201930s%E2%80%9340s%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q153463",
+      "name": "Allan Simonsen",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Allan%20Simonsen%20%281976%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1977
+        ]
+      }
+    },
+    {
+      "id": "Q2839693",
+      "name": "Alphonse Areola",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2019-07-17%20SG%20Dynamo%20Dresden%20vs.%20Paris%20Saint-Germain%20by%20Sandro%20Halank%E2%80%93011%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q2566025",
+      "name": "Altair",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Altair%20Gomes%20de%20Figueiredo%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q250901",
+      "name": "Álvaro Arbeloa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%C3%81lvaro%20Arbeloa.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q463746",
+      "name": "Álvaro Gestido",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%C3%81lvaro%20Gestido%20%281928%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q454934",
+      "name": "Amarildo Tavares da Silveira",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Amarildo%20en%201965%20au%20Milan%20AC.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q460580",
+      "name": "Amedeo Biavati",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Amedeo%20Biavati%201946%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q465487",
+      "name": "Américo Gallego",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tologallego.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q252711",
+      "name": "Ânderson Polga",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q58377",
+      "name": "André Schürrle",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sch%C3%BCrrle%202019.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q107051",
+      "name": "Andrea Barzagli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Andrea%20Barzagli%20BGR-ITA%202012.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q43926",
+      "name": "Andrea Pirlo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20150616%20-%20Portugal%20-%20Italie%20-%20Gen%C3%A8ve%20-%20Andrea%20Pirlo%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q159045",
+      "name": "Andreas Brehme",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Andreas%20Brehme.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q154856",
+      "name": "Andreas Köpke",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20180602%20FIFA%20Friendly%20Match%20Austria%20vs.%20Germany%20Andreas%20K%C3%B6pke%20850%200604.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q155919",
+      "name": "Andreas Möller",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2018-09-17%20Eintracht%20Frankfurt%20Golf%20Open%20Andreas%20M%C3%B6ller-8877.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q43729",
+      "name": "Andrés Iniesta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Andr%C3%A9s%20Iniesta%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q41244",
+      "name": "Andriy Shevchenko",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%90%D0%BD%D0%B4%D1%80%D1%96%D0%B9%20%D0%A8%D0%B5%D0%B2%D1%87%D0%B5%D0%BD%D0%BA%D0%BE%202024%20%28cropped%29.png",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          2004
+        ]
+      }
+    },
+    {
+      "id": "Q529865",
+      "name": "Anfilogino Guarisi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fil%C3%B3%2C%20Los%20Sports%2C%201926-01-08%20%28148%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q10855654",
+      "name": "Ángel Correa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%C3%81ngel%20Correa.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q251683",
+      "name": "Ángel Di María",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/NIG-ARG%20%285%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q251829",
+      "name": "Ángel Melogno",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q294565",
+      "name": "Angelo Peruzzi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Angelo%20Peruzzi.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q315817",
+      "name": "Angelo Schiavio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Angelo%20Schiavio%20-%201925%20-%20Bologna%20FC.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q615232",
+      "name": "Aníbal Paz",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/An%C3%ADbal%20Paz%2C%20Estadio%2C%201948-02-28%20%28250%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q455462",
+      "name": "Antoine Griezmann",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Antoine%20Griezmann%20%2851100409504%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q68064",
+      "name": "Antonio Cabrini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cabrini%20sez.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q678243",
+      "name": "Armando Castellazzi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Armando%20Castellazzi.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q517922",
+      "name": "Attilio Demaría",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q463500",
+      "name": "Attilio Ferraris",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Attilio%20Ferraris.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q3855340",
+      "name": "Aymeric Laporte",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aymeric%20Laporte%20France%20v%20Spain%207.24.26-033%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q44298",
+      "name": "Bastian Schweinsteiger",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Re-publica%2023%20-%20Tag%203%20%2852957826298%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q204825",
+      "name": "Bebeto",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bebeto%20brazil%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q152897",
+      "name": "Benedikt Höwedes",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Benedikt%20H%C3%B6wedes%202018.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q2896171",
+      "name": "Benjamin Mendy",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/U-19%20EC-Qualifikation%20Austria%20vs.%20France%202013-06-10%20%28057%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q19599124",
+      "name": "Benjamin Pavard",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Benjamin%20Pavard%2020180709.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q372046",
+      "name": "Bernard Diomède",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bernard%20Diomede.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q314328",
+      "name": "Bernard Lama",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bernard%20Lama.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q44858",
+      "name": "Bernd Hölzenbein",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2018-09-17%20Eintracht%20Frankfurt%20Golf%20Open%20Bernd%20H%C3%B6lzenbein-8819.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q438453",
+      "name": "Bernhard Cullmann",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2011-12-30%20Bonn%20Telekom-Dome%20Cullmanns%20%28cropped%29.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q601212",
+      "name": "Bernhard Klodt",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q828203",
+      "name": "Berti Vogts",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Berti%20Vogts%201%20%28cropped%29.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q44073",
+      "name": "Bixente Lizarazu",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bixente%20Lizarazu%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q1921",
+      "name": "Blaise Matuidi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Matuidi%20PSG.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q191492",
+      "name": "Bobby Moore",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bobby%20moore%20elgrafico%201970.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q833002",
+      "name": "Bodo Illgner",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/6640Bodo%20Illgner.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q18719485",
+      "name": "Borja Iglesias",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2022%2004%2028%20Recepci%C3%B3n%20oficial%20Del%20Real%20Betis%20Balompi%C3%A9%20por%20la%20consecuci%C3%B3n%20de%20la%20Copa%20del%20Rey.%20%2852037368778%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q351827",
+      "name": "Branco",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Branco%20-%20Brescia%20Calcio%201986-87.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q705942",
+      "name": "Brito",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/H%C3%A9rcules%20Brito%20Ruas.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q993153",
+      "name": "Bruno Chizzo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bruno%20Chizzo%20primo%20piano.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q355923",
+      "name": "Bruno Conti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bruno%20Conti%201982.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q208104",
+      "name": "Carasu",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Los%20Caminos%20del%20f%C3%BAtbol.%20Xabi%20Alonso%20%2839666778464%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q1042039",
+      "name": "Carlo Ceresoli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Carlo%20Ceresoli%20-%20ca.%201937.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q295262",
+      "name": "Carlos Alberto Torres",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Carlos%20alberto%20cosmos.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q983591",
+      "name": "Carlos Daniel Tapia",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Carlos%20tapia%20argentina%20juvenil.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q186415",
+      "name": "Carlos Marchena",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Carlos%20Marchena.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q612442",
+      "name": "Carlos Riolfo",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q29763",
+      "name": "Carlos Romero",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q17499",
+      "name": "Cesc Fàbregas",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2023%20-%20Cesc%20Fabregas%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q286511",
+      "name": "Christian Karembeu",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Christian%20Karembeu%20in%202017.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q1085348",
+      "name": "Christoph Kramer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Christoph%20Kramer%20-%202022236201413%202022-08-24%20Champions%20for%20Charity%20-%20Sven%20-%201D%20X%20MK%20II%20-%204835%20-%20B70I6845%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q176755",
+      "name": "Christophe Dugarry",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Christophe%20Dugarry%202007.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q516805",
+      "name": "Claudio Borghi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Borghi%201985.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q315839",
+      "name": "Claudio Gentile",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Claudio%20Gentile.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q295891",
+      "name": "Cláudio Taffarel",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Taffarel%202018.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q464419",
+      "name": "Clodoaldo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Clodoaldo%20Tavares%20de%20Santana.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q972898",
+      "name": "Conduelo Píriz",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q15406583",
+      "name": "Corentin Tolisso",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tolisso%20asse%20ol%202425.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q612073",
+      "name": "Coutinho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Coutinho%20panini%20card.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q28058687",
+      "name": "Cristian Romero",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cristian%20Romero%20Argentina%20v%20Egypt%207%20July%202026-108.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q154478",
+      "name": "Cristian Zaccardo",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q517914",
+      "name": "Dadá Maravilha",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dada%20maravilha.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q19560313",
+      "name": "Dani Olmo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dani%20Olmo%20France%20v%20Spain%207.24.26-176%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q446923",
+      "name": "Daniel Bertoni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Daniel%20Bertoni%202006.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q714544",
+      "name": "Daniel Killer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Daniel%20Killer1.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q168497",
+      "name": "Daniele De Rossi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Daniele%20De%20Rossi%20BGR-ITA%202012.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q352826",
+      "name": "Daniele Massaro",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Daniele%20Massaro.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q19665907",
+      "name": "David Raya",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/David%20Raya%20France%20v%20Spain%207.24.26-019.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q161069",
+      "name": "David Silva",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/David%20Silva%202017.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q183967",
+      "name": "David Trezeguet",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/David%20Trezeguet%20became%20Save%20the%20Dream%20Ambassador%2C%202017%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q83006",
+      "name": "David Villa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Spain-Tahiti%2C%20Confederations%20Cup%202013%20%2802%29%20%28Villa%20crop%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q311641",
+      "name": "Denílson de Oliveira",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/CASA%20ONZE%20-%20DENILSON.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q233565",
+      "name": "Denis Law",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Denis%20Law.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1964
+        ]
+      }
+    },
+    {
+      "id": "Q188544",
+      "name": "Dida",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dida-wikipedia%20%28cropped%202%29.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q17515",
+      "name": "Diego Maradona",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Argentina%20celebrando%20copa%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q699806",
+      "name": "Dieter Herzog",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dieter%20Herzog.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q2266089",
+      "name": "Dino Sani",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dino%20Sani%2001.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q180661",
+      "name": "Dino Zoff",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dino%20Zoff%20-%201972%20-%20Juventus%20FC%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q66737676",
+      "name": "Djibril Sidibé",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Djibril%20Sidib%C3%A9.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q463743",
+      "name": "Domingo Tejera",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q215890",
+      "name": "Dunga",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dunga061115.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q535429",
+      "name": "Edílson",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q296058",
+      "name": "Edmílson",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Edm%C3%ADlson%20-%20001.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q2294362",
+      "name": "Edvaldo Alves de Santa Rosa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dida%2C%201961.tif",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q274872",
+      "name": "Émerson Leão",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Emerson%20Leao.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q3275904",
+      "name": "Emiliano Martínez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Emiliano%20Martinez%20Argentina%20v%20Egypt%207%20July%202026-093%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q142813",
+      "name": "Emilio Recoba",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q269883",
+      "name": "Emmanuel Petit",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Emmanuel%20Petit.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q371717",
+      "name": "Enrique Ballestrero",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Enrique%20Ballestrero%2C%20Los%20Sports%2C%201930-12-12%20%28405%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q722007",
+      "name": "Enrique Guaita",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Enrique-guaita.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q96105248",
+      "name": "Enzo Fernández",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Enzo%20Fernandez%20Argentina%20v%20Egypt%207%20July%202026-127%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2022
+        ]
+      }
+    },
+    {
+      "id": "Q59938996",
+      "name": "Eric García",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Eric%20Garcia%20autographs%202022%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q823064",
+      "name": "Erik Durm",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2022128173607%202022-05-08%20Fussball%20Eintracht%20Frankfurt%20vs%20Borussia%20M%C3%B6nchengladbach%20-%20Sven%20-%201D%20X%20MK%20II%20-%200635%20-%20AK8I7370%20%28Erik%20Durm%20cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q721969",
+      "name": "Ernesto Mascheroni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Uruguay%20en%20el%20Mundial%201930%2C%20Los%20Sports%2C%201930-08-08%20%28387%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q983694",
+      "name": "Ernesto Vidal",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ernesto%20Vidal.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q162043",
+      "name": "Eusébio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Eusebio%20en%201973.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1965
+        ]
+      }
+    },
+    {
+      "id": "Q535182",
+      "name": "Eusebio Tejera",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Eusebio%20Tejera%2C%20Estadio%2C%201948-02-28%20%28250%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q438442",
+      "name": "Everaldo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Everaldo%20%281970%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q19345715",
+      "name": "Exequiel Palacios",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Exequiel%20Palacios%2C%202022-07-31%2C%20Saisoner%C3%B6ffnung%20Bayer%2004%2C%20Leverkusen%20%281%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q18637930",
+      "name": "Fabián Ruiz",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fabian%20Ruiz%20France%20v%20Spain%207.24.26-110.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q191139",
+      "name": "Fabien Barthez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fabien%20Barthez%20at%20OM.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q230529",
+      "name": "Fabio Grosso",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fabio%20Grosso%20-%20Frosinone%20Calcio%20-%20DSC%202731%20AF%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q68053",
+      "name": "Felice Borel",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Felice%20Placido%20Borel%20-%201930s%20-%20FBC%20Juventus.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q372058",
+      "name": "Félix",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/F%C3%A9lix%20Mi%C3%A9li%20Venerando.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q187891",
+      "name": "Fernando Llorente",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fernando%20Llorente%20contra%20el%20H%C3%A9rcules%20en%20el%20estadio%20Jos%C3%A9%20Rico%20P%C3%A9rez%20%28american%20shot%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q42731",
+      "name": "Fernando Torres",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fernando%20Torres%202017.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q44297797",
+      "name": "Ferran Torres",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ferran%20Torres%20France%20v%20Spain%207.24.26-237%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q126503",
+      "name": "Filippo Inzaghi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Filippo%20Inzaghi%202011.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q201534",
+      "name": "Flórián Albert",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fl%C3%B3ri%C3%A1n%20Albert%20cropped.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1967
+        ]
+      }
+    },
+    {
+      "id": "Q27476",
+      "name": "Florian Thauvin",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/FRA-ARG%20%286%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q355897",
+      "name": "Francesco Graziani",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Francesco%20Graziani.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q20110",
+      "name": "Francesco Totti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Francesco%20Totti%20Vicario%20%28crop%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q5484508",
+      "name": "Franco Armani",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q189984",
+      "name": "Franco Baresi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Franco%20Baresi%202012.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q355696",
+      "name": "Franco Causio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1971%E2%80%9372%20Juventus%20FC%20-%20Franco%20Causio.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q533052",
+      "name": "Franco Selvaggi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Franco%20Selvaggi%2C%20Cagliari%201980-81.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q290769",
+      "name": "Frank Leboeuf",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Frank%20Leboeuf.jpeg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q550144",
+      "name": "Frank Mill",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Frank%20Mill.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q708139",
+      "name": "Fritz Laband",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q22717",
+      "name": "Fritz Walter",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fritz%20Walter%20Trainingslager%20der%20Deutschen%20Fu%C3%9Fballnationalmannschaft%20in%20der%20Sportschule%20Malente%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q366073",
+      "name": "Fulvio Collovati",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Italia82.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q353482",
+      "name": "Gabriele Oriali",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gabriele%20Oriali%202011.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q299608",
+      "name": "Gaetano Scirea",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1975%E2%80%9376%20Juventus%20FC%20-%20Gaetano%20Scirea.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q108111889",
+      "name": "Gavi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gavi%20France%20v%20Spain%207.24.26-275%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q116980",
+      "name": "Gennaro Gattuso",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gennaro%20Gattuso%202008.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q212738",
+      "name": "Geoff Hurst",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Geoff%20Hurst%20%282%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q44820",
+      "name": "Georg Schwarzenbeck",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hans-Georg%20Schwarzenbeck.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q164521",
+      "name": "George Best",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/George%20Best%20%281976%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1968
+        ]
+      }
+    },
+    {
+      "id": "Q446908",
+      "name": "George Cohen",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fulham%20FC%201958.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q709041",
+      "name": "George Eastham",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/George%20Eastham1.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q173139",
+      "name": "George Weah",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/George%20Weah%20in%202019%20%28cropped%29%20mod-2.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1995
+        ]
+      }
+    },
+    {
+      "id": "Q17507",
+      "name": "Gerard Piqué",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/GerardPique.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q3761173",
+      "name": "Germán Pezzella",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Germ%C3%A1n%20Pezella%20en%20los%20premios%20Jorge%20Newbery%202024%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q5879014",
+      "name": "Gerónimo Rulli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Geronimo%20Rulli%20Argentina%20v%20Egypt%207%20July%202026-051.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q959780",
+      "name": "Gerry Byrne",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gerry%20Byrne.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q280306",
+      "name": "Gérson",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%A9rson%201970%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q379326",
+      "name": "Giancarlo Antognoni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giancarlo%20antognoni.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q182907",
+      "name": "Gianluca Zambrotta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gianluca%20Zambrotta%202019.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q68060",
+      "name": "Gianluigi Buffon",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gianluigi%20Buffon%20%2831784615942%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q230046",
+      "name": "Gianni Rivera",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gianni%20Rivera%20-%20AC%20Milan%20%28San%20Siro%2C%20January%201971%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1969
+        ]
+      }
+    },
+    {
+      "id": "Q351994",
+      "name": "Gianpiero Combi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gianpiero%20Combi%201920s%20Juve.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q705935",
+      "name": "Gianpiero Marini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gianpiero%20Marini%20-%20FC%20Internazionale%20Milano%201981-82.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q190142",
+      "name": "Gilberto Silva",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2021%20-%20Press%20conferences%20SM7%200168%20%2851649502936%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q2015814",
+      "name": "Gilmar Rinaldi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gilmar%20Rinaldi%20CBF.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q257588",
+      "name": "Gino Colaussi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gino%20Colaussi%20%28cropped%29.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q375502",
+      "name": "Giovanni Galli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giovanni%20galli.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q235159",
+      "name": "Giuseppe Bergomi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giuseppe%20Bergomi.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q647563",
+      "name": "Giuseppe Cavanna",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giuseppe%20Cavanna.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q726054",
+      "name": "Giuseppe Dossena",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giuseppe%20Dossena%202014.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q26255087",
+      "name": "Gonzalo Montiel",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gonzalo%20Montiel%20Argentina%20v%20Egypt%207%20July%202026-298%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q213879",
+      "name": "Gordon Banks",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gordon%20banks%20figurita.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q77305",
+      "name": "Guido Buchwald",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/6309Guido%20Buchwald.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q18224850",
+      "name": "Guido Rodríguez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Guido%20Rodr%C3%ADguez.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q694904",
+      "name": "Günter Hermann",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q44326",
+      "name": "Günter Netzer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%BCnter%20Netzer.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q635439",
+      "name": "Hans Bauer",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q551633",
+      "name": "Hans Pflügler",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q455823",
+      "name": "Hans Schäfer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hans%20Sch%C3%A4fer%201954%20%28Com%20M03-0108-005-0004%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q553084",
+      "name": "Héctor Baley",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hector%20baley.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q32411",
+      "name": "Héctor Castro",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/H%C3%A9ctor%20Castro%20%281928%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q516743",
+      "name": "Héctor Enrique",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hector%20enrique%20lanus.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q318172",
+      "name": "Héctor Scarone",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hector%20scarone%20nacional.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q731474",
+      "name": "Héctor Vilches",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q1355097",
+      "name": "Héctor Zelada",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Miguel%20Zelada.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q455150",
+      "name": "Heinz Flohe",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Heinz%20Flohe.jpeg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q495333",
+      "name": "Heinz Kubsch",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q706731",
+      "name": "Heinz Kwiatkowski",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q698071",
+      "name": "Helmut Kremers",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Helmut%20Kremers%20-%20Portrait%20%286540%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q60691",
+      "name": "Helmut Rahn",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Helmut%20Rahn.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q702463",
+      "name": "Herbert Erhard",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Herbert%20Erhardt%2C%20Estadio%2C%201961-04-20%20%28934%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q383106",
+      "name": "Herbert Wimmer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Herbert%20Wimmer%201972.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q516790",
+      "name": "Horst Eckel",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Horst%20Eckel%20Obers%C3%BClzen.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q505919",
+      "name": "Horst-Dieter Höttges",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Horst-Dieter%20H%C3%B6ttges%20%281971%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q187125",
+      "name": "Hristo Stoichkov",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Stoichkov%20in%202016.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q1907",
+      "name": "Hugo Lloris",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lloris%202018%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q540463",
+      "name": "Ian Callaghan",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ian%20Callaghan%20%281966%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q311410",
+      "name": "Igor Belanov",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ihor%20Belanov.jpeg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q11584",
+      "name": "Iker Casillas",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Iker%20Casillas%202.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q183564",
+      "name": "Ivano Bordon",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Inter%20Milan%201973-1974%20Ivano%20Bordon.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q313674",
+      "name": "Jack Charlton",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jack%20Charlton.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q720549",
+      "name": "Jair da Costa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jair%20FC%20Internazionale%20Milano.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q2565969",
+      "name": "Jair Marinho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jair%20Marinho%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q210102",
+      "name": "Jairzinho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jairzinho%201970s.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q201752",
+      "name": "Javi Martínez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2019147183047%202019-05-27%20Fussball%201.FC%20Kaiserslautern%20vs%20FC%20Bayern%20M%C3%BCnchen%20-%20Sven%20-%201D%20X%20MK%20II%20-%200041%20-%20AK8I1654%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q13494",
+      "name": "Jean-Pierre Papin",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/PapinJP1997%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1991
+        ]
+      }
+    },
+    {
+      "id": "Q1990849",
+      "name": "Jenílson Ângelo de Souza",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jen%C3%ADlson%20%C3%82ngelo%20de%20Souza%20%28J%C3%BAnior%29%2002.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q151260",
+      "name": "Jérôme Boateng",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/MJK30405%20J%C3%A9r%C3%B4me%20Boateng%20%28Berlinale%202017%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q185093",
+      "name": "Jesús Navas",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jes%C3%BAs%20Navas.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q124495",
+      "name": "Jimmy Armfield",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jimmy%20Armfield%2C%202012%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q297271",
+      "name": "Jimmy Greaves",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jimmy%20Greaves%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q188793",
+      "name": "Joan Capdevila",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Joan%20Capdevila%202010.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q110258306",
+      "name": "Joan Garcia",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Joan%20Garcia%20France%20v%20Spain%207.24.26-031.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q931197",
+      "name": "Joel Antônio Martins",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q2447197",
+      "name": "Joel Camargo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Joel%20Camargo%20%281970%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q712408",
+      "name": "John Connelly",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/England%20national%20football%20team%2C%2028%20October%201959%20%28Connelly%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q2294406",
+      "name": "Jonas Eduardo Américo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jonas%20Eduardo%20Am%C3%A9rico.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q313774",
+      "name": "Jorge Burruchaga",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Burruchaga%20final%20cropped.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q516971",
+      "name": "Jorge Olguín",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q298305",
+      "name": "Jorge Valdano",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Valdano.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q163750",
+      "name": "Jorginho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jorginho%202005.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q561621",
+      "name": "José Daniel Valencia",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jose%20daniel%20valencia.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q738689",
+      "name": "José de Anchieta Fontana",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jos%C3%A9%20de%20Anchieta%20Fontana%20%281970%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q593650",
+      "name": "José Guilherme Baldocchi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Baldocchi%20%281970%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q311035",
+      "name": "José Kléberson",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jose%20Kleberson.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q315814",
+      "name": "José Leandro Andrade",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Andrade%20urug.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q721998",
+      "name": "José Luis Brown",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Brown%20camiseta%20agujero%2086.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q541353",
+      "name": "José Luis Cuciuffo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cuciuffo%20argentina%201986.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q312164",
+      "name": "José Nasazzi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jose%20nasazzi%20urug.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q223158",
+      "name": "Josef Masopust",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Josef%20Masopust%20%282011%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q706786",
+      "name": "Josef Posipal",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Josef%20Posipal%201953.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q332064",
+      "name": "Juan Alberto Schiaffino",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Schiaffino%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q922759",
+      "name": "Juan Burgueño",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q972873",
+      "name": "Juan Carlos Calvo",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q722015",
+      "name": "Juan Carlos González",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q29841260",
+      "name": "Juan Foyth",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Juan%20Foyth%202017.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q168740",
+      "name": "Juan Mata",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Zarya-MU%20%2810%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q59381180",
+      "name": "Julián Alvarez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Julian%20Alvarez%20Argentina%20v%20Egypt%207%20July%202026-056.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2022
+        ]
+      }
+    },
+    {
+      "id": "Q315697",
+      "name": "Julian Draxler",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2019-07-17%20SG%20Dynamo%20Dresden%20vs.%20Paris%20Saint-Germain%20by%20Sandro%20Halank%E2%80%93107.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q237561",
+      "name": "Juliano Belletti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Belletti%202018.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q972226",
+      "name": "Julio César Britos",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q516892",
+      "name": "Julio Olarticoechea",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Macri%20JJOO%20Olarticoechea%204%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q931777",
+      "name": "Julio Pérez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Urug1950.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q318184",
+      "name": "Juninho Paulista",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q152107",
+      "name": "Jupp Heynckes",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jupp%20Heynckes%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q62078",
+      "name": "Jupp Kapellmann",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q569094",
+      "name": "Jurandir de Freitas",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q44917",
+      "name": "Jürgen Grabowski",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2018-09-17%20Eintracht%20Frankfurt%20Golf%20Open%20J%C3%BCrgen%20Grabowski-8891%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q57079",
+      "name": "Jürgen Klinsmann",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/J%C3%BCrgen%20Klinsmann%2014021113000678638425063004371092%2064131.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q308925",
+      "name": "Jürgen Kohler",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/J%C3%BCrgen%20Kohler%202005.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q1912",
+      "name": "Karim Benzema",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Karim%20Benzema%20Pick.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          2022
+        ]
+      }
+    },
+    {
+      "id": "Q252788",
+      "name": "Karl Mai",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Karl%20Mai%201954%20%28Com%20M03-0108-005-0017%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q677626",
+      "name": "Karl-Heinz Metzner",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q159951",
+      "name": "Karl-Heinz Riedle",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Karl-Heinz%20Riedle%2C%202012.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q158367",
+      "name": "Kevin Großkreutz",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Kevin%20grosskreutz.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q159948",
+      "name": "Klaus Augenthaler",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Klaus%20Augenthaler%202021.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q21621995",
+      "name": "Kylian Mbappé",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Kylian%20Mbappe%20France%20v%20Senegal%2016%20June%202026-391%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q113704154",
+      "name": "Lamine Yamal",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lamine%20Yamal%20France%20v%20Spain%207.24.26-142.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q1839",
+      "name": "Laurent Blanc",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Laurent%20blanc%2011%2011%202013%20reves%20de%20Clara.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q21484126",
+      "name": "Lautaro Martínez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lautaro%20Martinez%20Argentina%20v%20Egypt%207%20July%202026-041.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q630170",
+      "name": "Leandro Paredes",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Leandro%20Paredes%20Argentina%20v%20Egypt%207%20July%202026-048.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q46741",
+      "name": "Leonardo Araújo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Leonardo%20Nascimento%20de%20Ara%C3%BAjo%202013-01-01%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q372086",
+      "name": "Leopoldo Luque",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Leopoldo%20Luque%201978.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q167828",
+      "name": "Lev Yashin",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lev%20Yashin%201966.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1963
+        ]
+      }
+    },
+    {
+      "id": "Q180326",
+      "name": "Lilian Thuram",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lilian%20Thuram%20-%20F%C3%A9vrier%202013.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q2332935",
+      "name": "Lionel Charbonnier",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lionel%20Charbonnier.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q30881092",
+      "name": "Lisandro Martínez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lisandro%20Martinez%20Argentina%20v%20Egypt%207%20July%202026-343%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q446891",
+      "name": "Lorenzo Fernández",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lorenzo%20Fern%C3%A1ndez%20%281928%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q186478",
+      "name": "Luca Toni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/FC%20Zenit%20Saint%20Petersburg%20vs.%20Juventus%2C%2020%20October%202021%2033%20%28Luca%20Toni%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q18924954",
+      "name": "Lucas Hernandez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lucas%20Hernandez%20France%20v%20Senegal%2016%20June%202026-281.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q156822",
+      "name": "Lúcio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lucio%202019%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q470529",
+      "name": "Luigi Allemandi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1926%E2%80%9327%20Divisione%20Nazionale%20-%20Bologna%20v%20Juventus%20%28final%20round%29%20-%20Schiavio%2C%20Rosetta%20and%20Allemandi%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q67985",
+      "name": "Luigi Bertolini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Luigi%20Bertolini%20-%201930s%20-%20FBC%20Juventus.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q483145",
+      "name": "Luís Figo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/L.%20Figo%202017%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          2000
+        ]
+      }
+    },
+    {
+      "id": "Q552167",
+      "name": "Luis Galván",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Luis%20galvan%20panini%20cropped.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q923318",
+      "name": "Luis Islas",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Luis%20Islas%20estudiantes.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q315333",
+      "name": "Luis Monti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Luis%20Monti%201934.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q24310",
+      "name": "Luis Rijo",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q270367",
+      "name": "Luis Suárez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Luis%20Su%C3%A1rez%20Miramontes.JPG",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1960
+        ]
+      }
+    },
+    {
+      "id": "Q350756",
+      "name": "Luizão",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q483837",
+      "name": "Luka Modrić",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Luka%20Modric%20Croatia%20v%20Portugal%202%20July%202026-055.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q134976",
+      "name": "Lukas Podolski",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lukas%20Podolski%202023%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q107365",
+      "name": "Manuel Neuer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Manuel%20Neuer%20Ecuador%20v%20Germany%2025%20June%202026-148.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q22082505",
+      "name": "Marc Cucurella",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marc%20Cucurella%20France%20v%20Spain%207.24.26-149%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q110220404",
+      "name": "Marc Pubill",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marc%20Pubill%20France%20v%20Spain%207.24.26-011%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q193625",
+      "name": "Marcel Desailly",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/25th%20Laureus%20World%20Sports%20Awards%20-%20Red%20Carpet%20-%20Marcel%20Desailly%20-%20240422%20192752-3%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q983728",
+      "name": "Marcelo Trobbiani",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/MARCELO%20TROBIANNI%20%2825390359206%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q1526974",
+      "name": "Márcio Roberto dos Santos",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q234866",
+      "name": "Marco Amelia",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marco%20Amelia%202008.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q2294414",
+      "name": "Marco Antônio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marco%20Antonio.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q185081",
+      "name": "Marco Materazzi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marco%20Materazzi%202020.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q312626",
+      "name": "Marco Tardelli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marco%20Tardelli%201976%20Torino.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q342474",
+      "name": "Marcos",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marcos-history-channel-3%20%28cropped%29.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q17462635",
+      "name": "Marcos Acuña",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Argentina%20-%20Colombia%202022%20%2852%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q21130285",
+      "name": "Marcos Llorente",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Marcos%20Llorente%20France%20v%20Spain%207.24.26-020.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q1898828",
+      "name": "Mario Genta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mario%20Genta.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q104454",
+      "name": "Mario Götze",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mario%20G%C3%B6tze%2C%20Germany%20national%20football%20team%20%2807%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q180649",
+      "name": "Mario Kempes",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Kempes%20Valencia%20CF.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q1372984",
+      "name": "Mario Perazzolo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mario%20Perazzolo%202.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q277395",
+      "name": "Mario Pizziolo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mario%20Pizziolo.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q1343591",
+      "name": "Mario Varglien",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mario%20Varglien%2C%20Juventus.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q505028",
+      "name": "Martin Peters",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Martin%20Peters.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q63384759",
+      "name": "Martín Zubimendi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mart%C3%ADn%20Zubimendi.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q125438",
+      "name": "Massimo Oddo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Oddo%20Perugia.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q516834",
+      "name": "Matías González",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mat%C3%ADas%20Gonz%C3%A1lez%20%28cropped%29.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q110053",
+      "name": "Mats Hummels",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2023-08-12%20TSV%20Schott%20Mainz%20gegen%20Borussia%20Dortmund%20%28DFB-Pokal%202023-24%29%20by%20Sandro%20Halank%E2%80%93103%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q129109",
+      "name": "Matthias Ginter",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Matthias%20Ginter%202019.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q57183",
+      "name": "Matthias Sammer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Matthias%20Sammer%202722.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1996
+        ]
+      }
+    },
+    {
+      "id": "Q189716",
+      "name": "Mauro Camoranesi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Camoranesi%202016.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q342457",
+      "name": "Mauro Silva",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Maurosilva.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q366361",
+      "name": "Max Morlock",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Max%20Morlock%201954%20%28Com%20M03-0108-005-0002%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q350761",
+      "name": "Mazinho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Iomar%20do%20Nascimento%20Melo%2C%20Barcelona%202019%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q2565981",
+      "name": "Mengálvio Pedro Figueiró",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q83488",
+      "name": "Mesut Özil",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mesut%20%C3%96zil%20at%20Baku%20before%202019%20UEFA%20Europe%20League%20Final.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q128829",
+      "name": "Michael Owen",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Michael%20Owen.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          2001
+        ]
+      }
+    },
+    {
+      "id": "Q966495",
+      "name": "Michele Andreolo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Andreolo.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q926403",
+      "name": "Miguel Capuccini",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q368633",
+      "name": "Miguel Oviedo",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q17612631",
+      "name": "Mikel Merino",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mikel%20Merino%20France%20v%20Spain%207.24.26-241%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q21195147",
+      "name": "Mikel Oyarzabal",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mikel%20Oyarzabal%20France%20v%20Spain%207.24.26-161%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q80471",
+      "name": "Miroslav Klose",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2016209185719%202016-07-27%20Champions%20for%20Charity%20-%20Sven%20-%201D%20X%20-%200149%20-%20DV3P4742%20mod.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q928143",
+      "name": "Moacir Claudino Pinto",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Moacir%20Claudino%20Pinto.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q381729",
+      "name": "Müller",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lu%C3%ADs%20Ant%C3%B4nio%20Corr%C3%AAa%20da%20Costa%20%28M%C3%BCller%29%2001.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q16665941",
+      "name": "N'Golo Kanté",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/N%27Golo%20Kante%20France%20v%20Senegal%2016%20June%202026-397.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q14778629",
+      "name": "Nabil Fekir",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fekir%202018%20%28cropped%292.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q22082590",
+      "name": "Nahuel Molina",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nahuel%20Molina%20Argentina%20v%20Egypt%207%20July%202026-067.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q461838",
+      "name": "Nery Pumpido",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nery%20Pumpido.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q688933",
+      "name": "Néstor Clausen",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Clausen%20independiente.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q104414736",
+      "name": "Nico Williams",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nico%20Williams%20France%20v%20Spain%207.24.26-030.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q182063",
+      "name": "Nicolás Otamendi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nicolas%20Otamendi%20Argentina%20v%20Egypt%207%20July%202026-030.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q3876530",
+      "name": "Nicolás Tagliafico",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nicolas%20Tagliafico%20Argentina%20v%20Egypt%207%20July%202026-126%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q721984",
+      "name": "Nílton de Sordi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/N%C3%ADlton%20De%20Sordi%2001.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q344152",
+      "name": "Nobby Stiles",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nobby%20Stiles%20%281966%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q677557",
+      "name": "Norbert Nigbur",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Norbert%20Nigbur%20%28cropped%29.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q94949",
+      "name": "Norberto Alonso",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Beto%20alonso%20retouched.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q430746",
+      "name": "Norman Hunter",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Norman%20Hunter.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q471743",
+      "name": "Obdulio Varela",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Obdulio%20varela%20uruguay.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q366493",
+      "name": "Olaf Thon",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Olaf%20Thon%20%E2%80%93%20Tag%20der%20Legenden%202016%2002.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q186691",
+      "name": "Oleh Blokhin",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Oleg%20Blokhin2013.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1975
+        ]
+      }
+    },
+    {
+      "id": "Q1911",
+      "name": "Olivier Giroud",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Olivier%20Giroud%202018.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q709739",
+      "name": "Omar Larrosa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Omar%20larrosa%20panini%20cropped.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q220700",
+      "name": "Omar Sívori",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Omar%20sivori%20argentina.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1961
+        ]
+      }
+    },
+    {
+      "id": "Q2455175",
+      "name": "Oreco",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Time%20do%20Internacional%2C%201953%20%28Oreco%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q438483",
+      "name": "Orlando Peçanha",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gilmar%20catching%20a%20ball.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q721974",
+      "name": "Oscar Garré",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Oscar%20garre%20ferro.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q24347",
+      "name": "Óscar Míguez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%C3%93scar%20M%C3%ADguez%2C%20Estadio%2C%201955-04-02%20%28620%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q561402",
+      "name": "Oscar Ortiz",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Oscarortiz.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q346942",
+      "name": "Oscar Ruggeri",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ruggeri%20debut%20boca.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q310373",
+      "name": "Osvaldo Ardiles",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Osvaldo%20Ardiles%20%281981%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q315704",
+      "name": "Ottmar Walter",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ottmar%20Walter%20Obers%C3%BClzen.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q357405",
+      "name": "Pablo Dorado",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pablo%20Dorado%20%28cropped%29.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q965846",
+      "name": "Papu Gómez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Papu%20G%C3%B3mez%202022.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q46347",
+      "name": "Patrick Vieira",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Patrick%20Vieira%20NYCFC.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q118473161",
+      "name": "Pau Cubarsí",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pau%20Cubarsi%20France%20v%20Spain%207.24.26-115.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q44458",
+      "name": "Paul Breitner",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paul%20Breitner%202011.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q699816",
+      "name": "Paul Mebus",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q129027",
+      "name": "Paul Pogba",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paul%20Pogba%20at%20the%202025%20Cannes%20Film%20Festival%2002.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q698937",
+      "name": "Paul Steiner",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q552922",
+      "name": "Paulo César Caju",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paulo%20Lima%20C%C3%A9sar%20Caju.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q166317",
+      "name": "Paulo Dybala",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%9C%D0%B0%D1%82%D1%87%20%C2%AB%D0%94%D0%B8%D0%BD%D0%B0%D0%BC%D0%BE%C2%BB%20-%20%C2%AB%D0%AE%D0%B2%D0%B5%D0%BD%D1%82%D1%83%D1%81%C2%BB%200-2.%2020%20%D0%BE%D0%BA%D1%82%D1%8F%D0%B1%D1%80%D1%8F%202020%20%D0%B3%D0%BE%D0%B4%D0%B0%20%E2%80%94%201153905%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q316229",
+      "name": "Paulo Sérgio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paulo%20sergio%20silvestre%20nascimento.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q171295",
+      "name": "Pavel Nedvěd",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pavel%20Nedv%C4%9Bd.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          2003
+        ]
+      }
+    },
+    {
+      "id": "Q66606355",
+      "name": "Pedri",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pedri%20France%20v%20Spain%207.24.26-245.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q179773",
+      "name": "Pedro",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bar%C3%A7a%20-%20Napoli%20-%2020140806%20-%20Pedro%20Rodriguez%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q191471",
+      "name": "Pedro Cea",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pedro%20Cea%20%281928%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q932459",
+      "name": "Pedro Pasculli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pedro%20Pasculli.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q362838",
+      "name": "Pedro Petrone",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pedro%20Petrone%20%281928%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q44080929",
+      "name": "Pedro Porro",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pedro%20Porro%20France%20v%20Spain%207.24.26-108%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q163666",
+      "name": "Pepe Reina",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pepe%20Reina%202017.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q70550",
+      "name": "Per Mertesacker",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/FIFA%20WC-qualification%202014%20-%20Austria%20vs.%20Germany%202012-09-11%20-%20Per%20Mertesacker%2001%20%28cropped%29.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q438495",
+      "name": "Peregrino Anselmo",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Juan%20Anselmo.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q344902",
+      "name": "Peter Bonetti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Peter%20Bonetti.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q43682",
+      "name": "Philipp Lahm",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Philipp%20Lahm%20auf%20der%20Berlinale%202024%2C%20Ausschnitt.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q47516",
+      "name": "Pierre Littbarski",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pierre%20Littbarski%202006%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q616767",
+      "name": "Pietro Arcari",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pietro%20Arcari%20calciatore.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q723583",
+      "name": "Pietro Ferraris",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pietro%20Ferraris.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q1350265",
+      "name": "Pietro Pasinati",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Italy%20v%20Czechoslovakia%20%28Genoa%2C%201936%29%20-%20Piero%20Pasinati%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q378122",
+      "name": "Pietro Rava",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pietro%20Rava%20-%20FBC%20Juventus%201935-36.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q739297",
+      "name": "Pietro Serantoni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pietro%20Serantoni.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q351990",
+      "name": "Pietro Vierchowod",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2013%20friendly%20match%2C%20Persepolis%20Legends%20v%20AC%20Milan%20Glorie%20%2868%29%20-%20Pietro%20Vierchowod%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1982
+        ]
+      }
+    },
+    {
+      "id": "Q18325379",
+      "name": "Presnel Kimpembe",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Presnel%20Kimpembe%202022.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q155049",
+      "name": "Q155049",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ron-Robert%20Zieler.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q17158",
+      "name": "Q17158",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Premios%20Goya%202020%20-%20Carles%20Pujol.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q714530",
+      "name": "Q714530",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ruben%20Pagnanini.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q312895",
+      "name": "Raí",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2025-04-30%20Lan%C3%A7amento%20Fundo%20de%20Investimento%20em%20Participa%C3%A7%C3%B5es%20Nordeste%20Capital%20Semente%2C%20017%20%28Ra%C3%AD%20Souza%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q380629",
+      "name": "Raimond Aumann",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Raimond%20Aumann.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q265697",
+      "name": "Raimundo Orsi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/FBC%20Juventus%20-%20Raimundo%20Orsi.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q44951",
+      "name": "Rainer Bonhof",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rainer%20Bonhof.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q489039",
+      "name": "Raphaël Varane",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rapha%C3%ABl%20Varane%202018%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q4599",
+      "name": "Raúl Albiol",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/UEFA%20EURO%20qualifiers%20Sweden%20vs%20Spain%2020191015%20136%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q249912",
+      "name": "Ray Wilson",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Champions%20statue.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q123118",
+      "name": "Raymond Kopa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Raymond%20Kopa%2C%20Estadio%2C%201962-03-01.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1958
+        ]
+      }
+    },
+    {
+      "id": "Q920458",
+      "name": "Renato Olmi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Renato%20Olmi%20Crema.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q463492",
+      "name": "René Houseman",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Houseman%20argentina%20photo.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q72886",
+      "name": "Ricardinho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ricardinho.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q318304",
+      "name": "Ricardo Bochini",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bocho.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q721996",
+      "name": "Ricardo Giusti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giusti%20festejo%20vs%20racing.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q504399",
+      "name": "Ricardo La Volpe",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/RicardoLavolpe.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q428431",
+      "name": "Ricardo Rocha",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q705946",
+      "name": "Ricardo Villa",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Villa%201978.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q708145",
+      "name": "Richard Herrmann",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q220283",
+      "name": "Rivelino",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rivelino%20brasil%20figurita.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q113156",
+      "name": "Robert Pires",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Robert%20Pir%C3%A8s.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q67964",
+      "name": "Roberto Baggio",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%D8%B1%D9%88%D8%A8%D8%B1%D8%AA%D9%88%20%D8%A8%D8%A7%D8%AC%D9%88%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1993
+        ]
+      }
+    },
+    {
+      "id": "Q429039",
+      "name": "Roberto Carlos",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/LS3%201288%20%2853332367864%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q614391",
+      "name": "Roberto Miranda",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Roberto%20Lopes%20de%20Miranda.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q2120640",
+      "name": "Rodolfo Pini",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q6110670",
+      "name": "Rodrigo De Paul",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rodrigo%20De%20Paul%20Argentina%20v%20Egypt%207%20July%202026-344%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q366022",
+      "name": "Roger Hunt",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Roger%20Hunt.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q1249859",
+      "name": "Rogério Ceni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rog%C3%A9rio%20Ceni.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q154397",
+      "name": "Roman Weidenfeller",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Roman%20Weidenfeller%202014%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q178649",
+      "name": "Romário",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Senadores%20da%2057%C2%AA%20Legislatura%20%2852689451805%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q959933",
+      "name": "Ron Flowers",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ron%20Flowers%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q532442",
+      "name": "Ron Springett",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q929023",
+      "name": "Ronaldo Rodrigues de Jesus",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ronaldao-2008.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q315831",
+      "name": "Roque Júnior",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Roque%20J%C3%BAnior%20em%202002.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q535530",
+      "name": "Roque Máspoli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Roque%20maspoli%20posando.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q923286",
+      "name": "Rubén Galván",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ruben%20galvan%20argentina.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q778478",
+      "name": "Rubén Morán",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rub%C3%A9n%20Mor%C3%A1n%20%28cropped%29.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q44464",
+      "name": "Rudi Völler",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rudi%20V%C3%B6ller%20B%C3%BChne%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q173972",
+      "name": "Ruud Gullit",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/25th%20Laureus%20World%20Sports%20Awards%20-%20Ruud%20Gullit%20-%20240422%20131911%20%28cropped%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1987
+        ]
+      }
+    },
+    {
+      "id": "Q54094",
+      "name": "Sami Khedira",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20180602%20FIFA%20Friendly%20Match%20Austria%20vs.%20Germany%20Sami%20Khedira%20850%200707.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q13308",
+      "name": "Samuel Umtiti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Samuel%20Umtiti%202018.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q438513",
+      "name": "Santos Iriarte",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Santos%20Iriarte%20%28cropped%29.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q438478",
+      "name": "Santos Urdinarán",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Santos%20Urdinar%C3%A1n%20%281928%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1930
+        ]
+      }
+    },
+    {
+      "id": "Q722004",
+      "name": "Schubert Gambetta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Urug1950.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q44194",
+      "name": "Sepp Maier",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sepp%20Maier%2C%201978.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q318195",
+      "name": "Sergio Batista",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Argentine%20-%20Portugal%20-%20Sergio%20Batista.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q721144",
+      "name": "Sergio Bertoni",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sergio%20Bertoni%2C%20italien%20champion%20olympique%20et%20du%20monde%20de%20football%20%28ann%C3%A9es%201936-38%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q49704",
+      "name": "Sergio Busquets",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sergio%20Busquets%20NYCFC%20Miami%2024%20Sep%202025-020%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q281512",
+      "name": "Sergio Omar Almirón",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1986
+        ]
+      }
+    },
+    {
+      "id": "Q483309",
+      "name": "Sergio Ramos",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sergio%20Ramos%20Interview%202021%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q694014",
+      "name": "Shkodran Mustafi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1%20Shkodran%20Mustafi%202018%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q296276",
+      "name": "Silvio Piola",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Silvio%20Piola%20%28Pro%20Vercelli%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q299105",
+      "name": "Simone Barone",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Simone%20Barone.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q232789",
+      "name": "Simone Perrotta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Simone%20Perrotta%202007.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q216140",
+      "name": "Stanley Matthews",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Stanley%20Matthews%201962%20%28crop%29.jpg",
+      "trophies": {
+        "ballonDor": 1
+      },
+      "years": {
+        "ballonDor": [
+          1956
+        ]
+      }
+    },
+    {
+      "id": "Q327285",
+      "name": "Stefan Reuter",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Stefan-Reuter-2016-07.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q125669",
+      "name": "Stéphane Guivarc'h",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/S.%20Guivarc%27h%20EAG.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q1924",
+      "name": "Steve Mandanda",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Steve%20Mandanda%202018.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q442492",
+      "name": "Steven Nzonzi",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Steven%20Nzonzi%202018.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q536930",
+      "name": "Terry Paine",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1966
+        ]
+      }
+    },
+    {
+      "id": "Q57293140",
+      "name": "Thiago Almada",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Thiago%20Almada%20Argentina%20v%20Egypt%207%20July%202026-045.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q45901",
+      "name": "Thierry Henry",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Thierry%20Henry%20%2851649035951%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q57433",
+      "name": "Thomas Berthold",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Thomas%20Berthold%202014.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q155911",
+      "name": "Thomas Häßler",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Thomas%20H%C3%A4%C3%9Fler%20%282%29%20%28cropped%29.JPG",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q15081905",
+      "name": "Thomas Lemar",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Thomas%20Lemar.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2018
+        ]
+      }
+    },
+    {
+      "id": "Q43666",
+      "name": "Thomas Müller",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Thomas%20M%C3%BCller%202022%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q131234",
+      "name": "Toni Kroos",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Toni%20Kroos%20Real%20Madrid%202021.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2014
+        ]
+      }
+    },
+    {
+      "id": "Q376015",
+      "name": "Toni Turek",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Toni%20Turek%2C%20Estadio%2C%201954-07-17%20%28583%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q311407",
+      "name": "Tostão",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tost%C3%A3o%20%28Eduardo%20Gon%C3%A7alves%20de%20Andrade%2C%201970%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q140319",
+      "name": "Ubaldo Fillol",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fillol%20river.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1978
+        ]
+      }
+    },
+    {
+      "id": "Q535491",
+      "name": "Ugo Locatelli",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ugo%20Lacatelli%2C%20Inter%20de%20Milan%20%281936-1941%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1938
+        ]
+      }
+    },
+    {
+      "id": "Q44340",
+      "name": "Uli Hoeneß",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Uli%20Hoene%C3%9F%202019.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q495301",
+      "name": "Ulrich Biesinger",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q68067",
+      "name": "Umberto Caligaris",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Foot-Ball%20Club%20Juventus%20-%20Umberto%20Caligaris.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q23908113",
+      "name": "Unai Simón",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Unai%20Sim%C3%B3n%202025%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q455161",
+      "name": "Uwe Bein",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2018-09-17%20Eintracht%20Frankfurt%20Golf%20Open%20Uwe%20Bein-8883%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1990
+        ]
+      }
+    },
+    {
+      "id": "Q1982869",
+      "name": "Vampeta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vampeta%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2002
+        ]
+      }
+    },
+    {
+      "id": "Q121422889",
+      "name": "Víctor Muñoz",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Victor%20Munoz%20France%20v%20Spain%207.24.26-017.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q721958",
+      "name": "Víctor Rodríguez Andrade",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/V%C3%ADctor%20Rodr%C3%ADguez%20Andrade%2C%20Estadio%2C%201952-04-12%20%28465%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q47548",
+      "name": "Víctor Valdés",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/V%C3%ADctor%20Vald%C3%A9s%20before%20Euro%202012%20vs%20France%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q299624",
+      "name": "Vincent Candela",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vincent%20Candela.jpeg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q191869",
+      "name": "Vincenzo Iaquinta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vincenzo%20Iaquinta%202010.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2006
+        ]
+      }
+    },
+    {
+      "id": "Q509812",
+      "name": "Viola",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q470524",
+      "name": "Virginio Rosetta",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Virginio%20Rosetta%201932.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1934
+        ]
+      }
+    },
+    {
+      "id": "Q967729",
+      "name": "Washington Ortuño",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    },
+    {
+      "id": "Q60947",
+      "name": "Werner Kohlmeyer",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Werner%20Kohlmeyer%201954%20%28Com%20M03-0108-005-0012%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q551474",
+      "name": "Werner Liebrich",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Werner%20Liebrich%20crop%20%28Com%20M03-0108-005-0011%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1954
+        ]
+      }
+    },
+    {
+      "id": "Q977165",
+      "name": "William Martínez",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/William%20Mart%C3%ADnez%2C%20Estadio%2C%201955-03-12%20%28617%29%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1950
+        ]
+      }
+    },
+    {
+      "id": "Q535520",
+      "name": "Wilson da Silva Piazza",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wilson%20da%20Silva%20Piazza%20%281970%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q695307",
+      "name": "Wolfgang Kleff",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Spelmoment%2C%20Bestanddeelnr%20927-9410%20%28cropped%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q44688",
+      "name": "Wolfgang Overath",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wolfgang%20Overath%201974.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1974
+        ]
+      }
+    },
+    {
+      "id": "Q17500",
+      "name": "Xavi Hernández",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Xavi%2013981129001173637176666027076571.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2010
+        ]
+      }
+    },
+    {
+      "id": "Q100735281",
+      "name": "Yéremy Pino",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Yeremy%20Pino%20France%20v%20Spain%207.24.26-004.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          2026
+        ]
+      }
+    },
+    {
+      "id": "Q217482",
+      "name": "Youri Djorkaeff",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Youri%20Djorkaeff%202011.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1998
+        ]
+      }
+    },
+    {
+      "id": "Q2321775",
+      "name": "Zé Maria",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Z%C3%A9%20Maria%20%281974%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1970
+        ]
+      }
+    },
+    {
+      "id": "Q2566043",
+      "name": "Zequinha",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Zequinha%20%281963%29.png",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1962
+        ]
+      }
+    },
+    {
+      "id": "Q196897",
+      "name": "Zetti",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Armelino%20Donizetti%20Quagliato%20%28Zetti%29%2002%20cropped.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q204555",
+      "name": "Zinho",
+      "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Zinho-%28footballer%29.jpg",
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": [
+          1994
+        ]
+      }
+    },
+    {
+      "id": "Q218437",
+      "name": "Zoilo Saldombide",
+      "image": null,
+      "trophies": {
+        "worldCup": 1
+      },
+      "years": {
+        "worldCup": []
+      }
+    }
+  ]
+}
