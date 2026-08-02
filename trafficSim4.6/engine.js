@@ -781,6 +781,13 @@ const ALLIE_CONFIG = {
   SIGNAL_DECEL: 30,
   SIGNAL_REACTION: 0.35,
   STOP_LINE_GAP: 4.5, // rear-axle hold before turn entry (~bumper near stub)
+  STOP_BRAKE_PAD: 0.85, // aim slightly short of the line (clamp catches overshoot)
+  STOP_APPROACH_BITE: 15, // keep rolling until this close, then firm brake (no long crawl)
+  STOP_APPROACH_EASE: 0.9, // cruise fraction while still outside the bite zone
+  // After a queued lead clears past the painted line into the box, roll up to
+  // our own limit line at this peak instead of matching their junction creep.
+  STOP_PULLUP_SPEED: 15,
+  STOP_PULLUP_EASE: 10, // smoothstep taper distance into the painted line
   ROR_DWELL: 0.9,
   ROR_CREEP_SPEED: 3.2,
   ROR_CREEP_TIME: 1.15,
@@ -924,6 +931,10 @@ const PARKING_CONFIG = {
   SETTLE_TIME: 0.35,
   SEARCH_INTERVAL: 0.45,
   ROAM_MAX_ATTEMPTS: 6,       // failed roam/reroutes before giving up
+  // How far ahead (in stall lengths) a driver scans the curb for an open spot.
+  // They take the next free pad in that window — not a map-wide closest stall
+  // that might be behind them and force a long lap.
+  LOOKAHEAD_STALLS: 7,
   YIELD_LOOKAHEAD: 56,
   YIELD_GAP: 5.6 * 1.85,
   // Same-lane only — adjacent lanes must not wait for curb parkers.
@@ -5718,13 +5729,40 @@ function signalConstraintFor(car) {
 
 function stopConstraint(car, stopDist) {
   const rate = ALLIE_CONFIG.SIGNAL_DECEL;
-  // Kinematic max speed that still allows a stop at the line
-  const target = Math.sqrt(Math.max(0, 2 * rate * Math.max(stopDist, 0)));
-  if (stopDist <= 0.4) {
-    return { desired: 0, decelRate: rate, status: 'Red light' };
+  // Aim short of the painted line so timestep + reaction don't blow past it
+  const pad = ALLIE_CONFIG.STOP_BRAKE_PAD != null ? ALLIE_CONFIG.STOP_BRAKE_PAD : 0;
+  const d = Math.max(0, stopDist - pad);
+  // Kinematic max speed that still allows a stop at (line − pad)
+  const target = Math.sqrt(Math.max(0, 2 * rate * d));
+  if (stopDist <= 0.55) {
+    return { desired: 0, decelRate: Math.max(rate, ALLIE_CONFIG.DECEL_SHARP), status: 'Red light' };
   }
   if (target >= ALLIE_CONFIG.CRUISE_SPEED - 0.5) return null;
   return { desired: Math.max(0, target), decelRate: rate, status: 'Red light' };
+}
+
+/**
+ * While approaching / dwelling at a stop sign, never roll the rear axle past
+ * the limit line (stopDist = 0). Snaps pose back onto the line if needed.
+ */
+function clampStopSignLimitLine(car) {
+  const st = car.stopSignState;
+  if (!st || st.control !== 'stop') return;
+  if (st.phase !== 'approach' && st.phase !== 'dwell') return;
+  const info = findUpcomingSignalTurn(car);
+  if (!info || info.turnLegIndex !== st.turnLegIndex) return;
+  const stopS = info.turnLeg.cumStart - ALLIE_CONFIG.STOP_LINE_GAP;
+  if (!(car.traveledLength > stopS + 0.02)) return;
+  car.traveledLength = stopS;
+  car.speed = 0;
+  car.braking = true;
+  const p = sampleRouteAtDistance(car, stopS);
+  if (p) {
+    car.x = p.x;
+    car.y = p.y;
+    if (p.tx != null && p.ty != null) car.heading = Math.atan2(p.ty, p.tx);
+    refreshCarPoseCache(car);
+  }
 }
 
 function rightOnRedConstraint(car, stopDist) {
@@ -6194,12 +6232,14 @@ function advanceSignedJunction(car, dt) {
     return;
   }
 
-  // creep — don't slam back to a full stop on a one-frame coast flicker
+  // creep — once rolling into the box, don't bounce back to look on soft
+  // coast flicker (that caused accel↔stop pulsing). Only seniority hard-yield
+  // holds speed at 0 via the constraint; phase stays creep until cleared.
   if (!clear && !forceGo) {
-    st.unclearT = (st.unclearT || 0) + dt;
-    if (st.unclearT >= 0.45) {
-      st.phase = 'look';
-      car._juncClearT = 0;
+    if (priorityHold) {
+      st.unclearT = (st.unclearT || 0) + dt;
+      // keep phase as creep — desired=0 from hardYield handles the hold
+    } else {
       st.unclearT = 0;
     }
     return;
@@ -6681,13 +6721,20 @@ function headAwarenessConstraintFor(car) {
       && parkerBlocksEgoLane(car, other);
     if (sameLane || pathLead || parkingInLane) {
       const leadV = Math.max(0, other.speed || 0);
-      const holdGap = Math.max(ALLIE_CONFIG.DETECT_FOLLOW_GAP, ALLIE_CONFIG.CAR_LENGTH * 0.9);
+      const pullUp = stopSignLeadPastLimitLine(car, other);
+      const holdGap = pullUp
+        ? Math.max(1.6, ALLIE_CONFIG.DETECT_FOLLOW_GAP * 0.32)
+        : Math.max(ALLIE_CONFIG.DETECT_FOLLOW_GAP, ALLIE_CONFIG.CAR_LENGTH * 0.9);
       const gap = isFinite(head.criticalGap) ? head.criticalGap : 0;
       const closing = Math.max(0, gap - holdGap);
       let desired = Math.sqrt(Math.max(0, leadV * leadV + 2 * ALLIE_CONFIG.DECEL_SHARP * closing));
-      if (gap <= holdGap || leadV < 1.2) desired = 0;
+      if (!pullUp && (gap <= holdGap || leadV < 1.2)) desired = 0;
+      else if (pullUp && gap < holdGap * 0.5) desired = Math.min(desired, Math.max(leadV, 0));
+      const speedCap = pullUp
+        ? (ALLIE_CONFIG.STOP_PULLUP_SPEED != null ? ALLIE_CONFIG.STOP_PULLUP_SPEED : 15)
+        : ALLIE_CONFIG.HEAD_NEAR_SPEED_CAP;
       return {
-        desired: Math.max(0, Math.min(desired, ALLIE_CONFIG.HEAD_NEAR_SPEED_CAP)),
+        desired: Math.max(0, Math.min(desired, speedCap)),
         decelRate: ALLIE_CONFIG.DECEL_SHARP,
         status: desired <= 0.2 ? 'Sensor stop' : 'Sensor yield'
       };
@@ -6950,6 +6997,25 @@ function intersectionClearanceConstraintFor(car) {
   return null;
 }
 
+/**
+ * Ego is still approaching a stop limit line, and `other` (same-queue lead)
+ * has already crossed past that painted line into the junction. Used so the
+ * follower can pull up briskly instead of crawl-matching junction creep.
+ */
+function stopSignLeadPastLimitLine(car, other) {
+  if (!car || !other) return false;
+  const st = car.stopSignState;
+  if (!st || st.control !== 'stop') return false;
+  if (st.phase !== 'approach' && st.phase !== 'dwell') return false;
+  const info = findUpcomingSignalTurn(car);
+  if (!info || info.turnLegIndex !== st.turnLegIndex) return false;
+  const stopS = info.turnLeg.cumStart - ALLIE_CONFIG.STOP_LINE_GAP;
+  if (other.traveledLength > stopS + 0.35) return true;
+  const oLeg = other.route && other.route[other.legIndex];
+  if (oLeg && oLeg.atom.kind === 'turn' && oLeg.atom.nodeKey === info.nodeKey) return true;
+  return false;
+}
+
 function trafficConstraintFor(car) {
   car._trafficStatus = null;
   const obs = findNearestObstruction(car);
@@ -6980,6 +7046,50 @@ function trafficConstraintFor(car) {
 
   function matchCap(decel) {
     return Math.sqrt(Math.max(0, leadV * leadV + 2 * decel * closing));
+  }
+
+  // Lead already past our stop line into the box — pull up to the painted
+  // line. Peak is STOP_PULLUP_SPEED, but ease in/out so it doesn't lurch
+  // from a standstill or slam into the line.
+  if (obs.other && stopSignLeadPastLimitLine(car, obs.other)) {
+    const info = findUpcomingSignalTurn(car);
+    const stopDist = info
+      ? Math.max(0, info.dist - ALLIE_CONFIG.STOP_LINE_GAP)
+      : gap;
+    const pad = ALLIE_CONFIG.STOP_BRAKE_PAD != null ? ALLIE_CONFIG.STOP_BRAKE_PAD : 0;
+    const holdGap = Math.max(1.6, FOLLOW * 0.32);
+    const closingPull = Math.max(0, gap - holdGap);
+    const gapCap = Math.sqrt(Math.max(0,
+      leadV * leadV + 2 * ALLIE_CONFIG.DECEL_NORMAL * closingPull));
+    const dAvail = Math.max(0, stopDist - pad);
+    // Gentle brake curve into the painted line (not DECEL_SHARP slam)
+    const lineCap = Math.sqrt(Math.max(0, 2 * ALLIE_CONFIG.DECEL_NORMAL * dAvail));
+    const pull = ALLIE_CONFIG.STOP_PULLUP_SPEED != null
+      ? ALLIE_CONFIG.STOP_PULLUP_SPEED : 15;
+    const easeLen = ALLIE_CONFIG.STOP_PULLUP_EASE != null
+      ? ALLIE_CONFIG.STOP_PULLUP_EASE : 10;
+    // smoothstep on remaining distance: soft launch + soft settle at the line
+    const u = clampNum(dAvail / Math.max(0.01, easeLen), 0, 1);
+    const smooth = u * u * (3 - 2 * u);
+    const profile = pull * (0.28 + 0.72 * smooth);
+    let desired = Math.min(profile, gapCap, lineCap);
+    // Don't outrun what we can still ease down for; keep a little forward
+    // intent until the signed approach owns the final stop.
+    if (stopDist <= pad + 0.2) {
+      desired = 0;
+    } else if (car.speed > 0.4) {
+      // Anti-lurch: don't yank desired far above current while already rolling
+      desired = Math.min(desired, Math.max(car.speed + 4.5, car.speed * 1.15));
+    }
+    if (gap < holdGap) {
+      desired = Math.min(desired, Math.max(leadV, gapCap * 0.5));
+    }
+    car._trafficStatus = desired < 0.5 ? 'Stopped for traffic' : 'Following';
+    return {
+      desired,
+      decelRate: ALLIE_CONFIG.DECEL_NORMAL,
+      status: car._trafficStatus
+    };
   }
 
   if (gap <= INNER) {
@@ -7608,31 +7718,60 @@ function signedJunctionConstraintFor(car) {
   // ---- STOP: full stop + dwell, then look both ways, creep, go ----
   if (myControl === 'stop') {
     const st = car.stopSignState;
+    const arriveSlop = Math.max(0.9, (ALLIE_CONFIG.STOP_BRAKE_PAD || 0) + 0.35);
+
     if (st.phase === 'approach' || st.phase === 'dwell') {
-      if (stopDist > 0.55 || car.speed > 0.45) {
-        st.phase = 'approach';
-        const c = stopConstraint(car, stopDist);
-        if (!c) {
-          // Still outside the kinematic braking envelope for the line —
-          // do NOT pin desired to current speed (that froze cars at 0 u/s
-          // 20–30u before the painted sign once anything had stopped them).
-          return null;
+      const nearLine = stopDist <= arriveSlop;
+      const stoppedEnough = car.speed <= 0.55;
+
+      // Finished the stop → dwell (even if still a bit short of the stub due to pad)
+      if (nearLine && stoppedEnough) {
+        if (st.phase !== 'dwell') {
+          st.phase = 'dwell';
+          st.dwellStart = simTime;
+          st.arrivalT = simTime;
         }
-        return { desired: c.desired, decelRate: c.decelRate, status: 'Stop sign' };
+        if (simTime - (st.dwellStart || simTime) < ALLIE_CONFIG.STOP_SIGN_DWELL) {
+          car._yieldOther = null;
+          car._stopPriorityYield = null;
+          return { desired: 0, decelRate: ALLIE_CONFIG.SIGNAL_DECEL, status: 'Stop sign' };
+        }
+        st.phase = 'look';
+        car._juncClearT = 0;
+      } else {
+        st.phase = 'approach';
+        // In the arrive zone while still rolling — finish the stop, no creep past
+        if (nearLine) {
+          return {
+            desired: 0,
+            decelRate: ALLIE_CONFIG.DECEL_SHARP,
+            status: 'Stop sign'
+          };
+        }
+        // Human-like approach: keep a brisk pace until the bite zone, then
+        // firm brake. Using the long kinematic cruise curve felt like a weird crawl.
+        const bite = ALLIE_CONFIG.STOP_APPROACH_BITE != null
+          ? ALLIE_CONFIG.STOP_APPROACH_BITE : 15;
+        if (stopDist > bite) {
+          return {
+            desired: ALLIE_CONFIG.CRUISE_SPEED * (ALLIE_CONFIG.STOP_APPROACH_EASE != null
+              ? ALLIE_CONFIG.STOP_APPROACH_EASE : 0.9),
+            decelRate: ALLIE_CONFIG.DECEL_NORMAL,
+            status: 'Stop sign'
+          };
+        }
+        const rate = ALLIE_CONFIG.DECEL_SHARP;
+        const pad = ALLIE_CONFIG.STOP_BRAKE_PAD != null ? ALLIE_CONFIG.STOP_BRAKE_PAD : 0;
+        const dAvail = Math.max(0, stopDist - pad);
+        let desired = Math.sqrt(Math.max(0, 2 * rate * dAvail));
+        // Anti-hunt: don't accelerate back up while already in the bite
+        if (car.speed > 0.85) desired = Math.min(desired, car.speed);
+        return {
+          desired,
+          decelRate: rate,
+          status: 'Stop sign'
+        };
       }
-      // At the line and nearly stopped — stamp DMV arrival clock once
-      if (st.phase !== 'dwell') {
-        st.phase = 'dwell';
-        st.dwellStart = simTime;
-        st.arrivalT = simTime;
-      }
-      if (simTime - (st.dwellStart || simTime) < ALLIE_CONFIG.STOP_SIGN_DWELL) {
-        car._yieldOther = null;
-        car._stopPriorityYield = null;
-        return { desired: 0, decelRate: ALLIE_CONFIG.SIGNAL_DECEL, status: 'Stop sign' };
-      }
-      st.phase = 'look';
-      car._juncClearT = 0;
     }
 
     if (st.phase === 'look' || st.phase === 'creep') {
@@ -7643,10 +7782,8 @@ function signedJunctionConstraintFor(car) {
         car._stopCourtesyFlash = true;
       }
       car._stopPriorityYield = priorityOther;
-      // Invalidate coast cache so ignore-peer logic runs fresh this frame
       car._juncClearFrame = -1;
       let coastClear = !priorityOther && junctionCoastClear(car, info);
-      // Extra guard: coast may still flag a waiting peer we outrank
       if (!coastClear && !priorityOther && car._juncThreat
           && shouldIgnoreStopPeerForIx(car, car._juncThreat, info)) {
         coastClear = true;
@@ -7657,30 +7794,22 @@ function signedJunctionConstraintFor(car) {
 
       const courtesy = !!(car.highBeamFlashT > 0 && (priorityOther || car._stopCourtesyFlash));
       const hardYield = !!priorityOther;
-      const creepTarget = signedJunctionCreepDesired(clear, hardYield);
+      // After a full stop: only hard seniority zeros us. Soft coast → slow creep,
+      // never 0↔creep hunting from stopConstraint.
+      const creepTarget = hardYield
+        ? 0
+        : (clear ? ALLIE_CONFIG.JUNCTION_CREEP_SPEED : ALLIE_CONFIG.JUNCTION_CREEP_SPEED * 0.55);
       const waitStatus = courtesy ? 'After you' : 'Yielding';
       const lookStatus = clear ? 'Looking both ways' : waitStatus;
 
       if (st.phase === 'look') {
-        // Roll the nose at a steady creep — don't pulse 0 ↔ half-creep
-        if (stopDist > 0.35 && !clear) {
-          const c = stopConstraint(car, stopDist);
-          if (c) {
-            return {
-              desired: Math.min(c.desired, creepTarget),
-              decelRate: ALLIE_CONFIG.DECEL_NORMAL,
-              status: lookStatus
-            };
-          }
-        }
         return {
           desired: creepTarget,
-          decelRate: ALLIE_CONFIG.DECEL_NORMAL,
+          decelRate: hardYield ? ALLIE_CONFIG.SIGNAL_DECEL : ALLIE_CONFIG.DECEL_NORMAL,
           status: lookStatus
         };
       }
 
-      // creep — hold creep speed; only hard-stop for real seniority yield
       return {
         desired: creepTarget,
         decelRate: hardYield ? ALLIE_CONFIG.SIGNAL_DECEL : ALLIE_CONFIG.DECEL_NORMAL,
@@ -7688,7 +7817,6 @@ function signedJunctionConstraintFor(car) {
       };
     }
 
-    // cleared / unknown
     car._yieldOther = null;
     car._stopPriorityYield = null;
     return null;
@@ -9031,6 +9159,10 @@ function findParkingCandidate(car) {
     ? projectAlongSeg(seg, car.x, car.y)
     : 0;
 
+  const lookStalls = PARKING_CONFIG.LOOKAHEAD_STALLS != null
+    ? PARKING_CONFIG.LOOKAHEAD_STALLS : 7;
+  const minAhead = ALLIE_CONFIG.CAR_LENGTH * 2.0;
+
   // Prefer a stall we already reserved while roaming / staging setup
   const claimedBay = car._parkPlan && car._parkPlan.bay;
   const claimedIdx = car._parkPlan ? car._parkPlan.stallIndex : null;
@@ -9041,8 +9173,9 @@ function findParkingCandidate(car) {
         ? projectAlongSeg(seg, sc.x, sc.y) : 0;
       const bayDot = claimedBay.ux * approachUx + claimedBay.uy * approachUy;
       const ahead = (along - carAlong) * (bayDot >= 0 ? 1 : -1);
-      // Soft runway: claimed stalls only need to be roughly ahead
-      if (ahead > -ALLIE_CONFIG.CAR_LENGTH * 0.5 && ahead < 140) {
+      const claimMax = (claimedBay.spotLength || ALLIE_CONFIG.CAR_LENGTH * 1.2) * (lookStalls + 1);
+      // Soft runway: claimed stalls only need to be roughly ahead in the look window
+      if (ahead > -ALLIE_CONFIG.CAR_LENGTH * 0.5 && ahead < claimMax) {
         if (side === 0 || claimedBay.side === side) {
           return {
             bay: claimedBay, stallIndex: claimedIdx, ahead,
@@ -9061,6 +9194,7 @@ function findParkingCandidate(car) {
     if (side !== 0 && bay.side !== side) continue;
     // Bay travel vs car travel: stall must be ahead
     const bayDot = bay.ux * approachUx + bay.uy * approachUy;
+    const maxAhead = (bay.spotLength || ALLIE_CONFIG.CAR_LENGTH * 1.2) * lookStalls;
     for (let i = 0; i < bay.count; i++) {
       if (!stallIsFree(bay, i, car)) continue;
       const sc = stallCenterWorld(bay, i);
@@ -9070,10 +9204,109 @@ function findParkingCandidate(car) {
       // Ahead in travel direction
       const ahead = (along - carAlong) * (bayDot >= 0 ? 1 : -1);
       // Need enough runway to reach the stage point before the stall
-      if (ahead < ALLIE_CONFIG.CAR_LENGTH * 2.0) continue;
-      if (ahead > 120) continue;
+      if (ahead < minAhead) continue;
+      if (ahead > maxAhead) continue;
       if (!best || ahead < best.ahead) {
         best = { bay, stallIndex: i, ahead, approachUx, approachUy, laneX: sample.x, laneY: sample.y };
+      }
+    }
+  }
+  return best;
+}
+
+/**
+ * Cruise-and-scan: next free curb stall ahead of the car on the current road,
+ * within LOOKAHEAD_STALLS. Prefers the curb matching the travel lane (right or
+ * left), then the other same-direction curb. Never returns a stall behind.
+ */
+function findLocalParkingAhead(car) {
+  if (!car || !car.route || !parkingBaysAvailable()) return null;
+  const curLeg = car.route[car.legIndex];
+  if (!curLeg || curLeg.atom.kind !== 'lane') return null;
+  const segId = curLeg.atom.segId;
+  const seg = findSegmentById(segId);
+  if (!seg) return null;
+
+  const sample = curLeg.atom.sampleAtT(currentLegFrac(car));
+  if (!sample) return null;
+  const approachUx = sample.tx, approachUy = sample.ty;
+  const side = laneOffsetSignForAtom(curLeg.atom);
+  const carAlong = typeof projectAlongSeg === 'function'
+    ? projectAlongSeg(seg, car.x, car.y) : 0;
+
+  const bayList = ensureParkingBayIndex().get(segId);
+  if (!bayList || !bayList.length) return null;
+
+  const lookStalls = PARKING_CONFIG.LOOKAHEAD_STALLS != null
+    ? PARKING_CONFIG.LOOKAHEAD_STALLS : 7;
+  const minAhead = ALLIE_CONFIG.CAR_LENGTH * 2.0;
+
+  let bestSame = null;
+  let bestOther = null;
+  for (let b = 0; b < bayList.length; b++) {
+    const bay = bayList[b];
+    // Only same travel direction along this curb (skip opposite-way pads)
+    const bayDot = bay.ux * approachUx + bay.uy * approachUy;
+    if (bayDot < 0.25) continue;
+    const maxAhead = (bay.spotLength || ALLIE_CONFIG.CAR_LENGTH * 1.2) * lookStalls;
+    for (let i = 0; i < bay.count; i++) {
+      if (!stallIsFree(bay, i, car)) continue;
+      const sc = stallCenterWorld(bay, i);
+      const along = typeof projectAlongSeg === 'function'
+        ? projectAlongSeg(seg, sc.x, sc.y) : 0;
+      const ahead = along - carAlong;
+      if (ahead < minAhead || ahead > maxAhead) continue;
+      const cand = {
+        bay, stallIndex: i, ahead,
+        approachUx, approachUy,
+        laneX: sample.x, laneY: sample.y
+      };
+      const sideMatch = (side === 0 || bay.side === side);
+      if (sideMatch) {
+        if (!bestSame || ahead < bestSame.ahead) bestSame = cand;
+      } else if (!bestOther || ahead < bestOther.ahead) {
+        bestOther = cand;
+      }
+    }
+  }
+  // Prefer the curb beside this lane; fall back to the other same-way curb
+  return bestSame || bestOther;
+}
+
+/**
+ * Fallback when the current curb is empty: nearest free stall still roughly
+ * ahead of the nose (no behind-the-car / lap-around picks).
+ */
+function findForwardParkingStall(car, rejected) {
+  if (!car || !parkingBaysAvailable()) return null;
+  const cosH = car._cosH != null ? car._cosH : Math.cos(car.heading);
+  const sinH = car._sinH != null ? car._sinH : Math.sin(car.heading);
+  const egoX = car._cx != null ? car._cx : car.x;
+  const egoY = car._cy != null ? car._cy : car.y;
+  const lookStalls = PARKING_CONFIG.LOOKAHEAD_STALLS != null
+    ? PARKING_CONFIG.LOOKAHEAD_STALLS : 7;
+  // Allow a bit further than one curb window when hopping to the next block
+  const maxFwd = ALLIE_CONFIG.CAR_LENGTH * 1.2 * lookStalls * 2.5;
+
+  let best = null;
+  let bestScore = Infinity;
+  for (let i = 0; i < parkingBays.length; i++) {
+    const bay = parkingBays[i];
+    if (!bay || bay.count < 1) continue;
+    for (let s = 0; s < bay.count; s++) {
+      if (rejected && rejected.has(bay.id + ':' + s)) continue;
+      if (!stallIsFree(bay, s, car)) continue;
+      const sc = stallCenterWorld(bay, s);
+      const dx = sc.x - egoX, dy = sc.y - egoY;
+      const fwd = dx * cosH + dy * sinH;
+      if (fwd < ALLIE_CONFIG.CAR_LENGTH * 1.5) continue; // behind / beside
+      if (fwd > maxFwd) continue;
+      const lat = Math.abs(-dx * sinH + dy * cosH);
+      // Prefer forward + not way across town sideways
+      const score = fwd + lat * 1.4;
+      if (score < bestScore) {
+        bestScore = score;
+        best = { bay, stallIndex: s, ahead: fwd };
       }
     }
   }
@@ -9289,18 +9522,11 @@ function updateParkingSearch(car, dt) {
     return;
   }
 
-  // ── Roaming mode: no parking on destination road, scan whole map ──
+  // ── Roaming mode: cruise and scan curb L/R ahead (no lap-to-behind) ──
   if (car.parkingIntent.roaming) {
     car._parkSearchT = (car._parkSearchT || 0) + dt;
     if (car._parkSearchT < PARKING_CONFIG.SEARCH_INTERVAL) return;
     car._parkSearchT = 0;
-
-    car._parkRoamAttempts = (car._parkRoamAttempts || 0) + 1;
-    if (car._parkRoamAttempts > PARKING_CONFIG.ROAM_MAX_ATTEMPTS) {
-      if (car._parkDebug) car._parkDebug = { phase: 'outta', spot: 'roam exhausted' };
-      beginOuttaHere(car);
-      return;
-    }
 
     // If there are literally no free stalls anywhere, give up now
     if (!anyFreeParkingStallExists()) {
@@ -9312,72 +9538,137 @@ function updateParkingSearch(car, dt) {
     if (!car._parkRoamRejected) car._parkRoamRejected = new Set();
     const rejected = car._parkRoamRejected;
 
-    // Closest free stall — reserve immediately so parallel roamers don't collide.
-    // Skip stalls this car already failed to path to (avoids infinite same-stall loops).
-    let bestBay = null, bestStall = -1, bestDist = Infinity;
-    for (let i = 0; i < parkingBays.length; i++) {
-      const bay = parkingBays[i];
-      for (let s = 0; s < bay.count; s++) {
-        if (rejected.has(bay.id + ':' + s)) continue;
-        if (!stallIsFree(bay, s, car)) continue;
-        const sc = stallCenterWorld(bay, s);
-        const d = Math.hypot(sc.x - car.x, sc.y - car.y);
-        if (d < bestDist) { bestDist = d; bestBay = bay; bestStall = s; }
+    // 1) Prefer the next open pad on this road's curb within LOOKAHEAD_STALLS
+    let pick = findLocalParkingAhead(car);
+    if (pick && rejected.has(pick.bay.id + ':' + pick.stallIndex)) pick = null;
+
+    // 2) Still nothing beside us — only consider stalls still ahead of the nose
+    //    (never a closer-behind spot that would force a whole lap).
+    let needReroute = false;
+    if (!pick) {
+      const fwd = findForwardParkingStall(car, rejected);
+      if (fwd) {
+        pick = fwd;
+        needReroute = true;
       }
     }
-    if (!bestBay) {
-      // Race / all free stalls already rejected — next interval still counts toward give-up
+
+    if (!pick) {
+      // Keep cruising; count a miss only when the current route is nearly done
+      const remaining = Math.max(0, (car.totalLength || 0) - (car.traveledLength || 0));
+      if (remaining < ALLIE_CONFIG.CAR_LENGTH * 1.5) {
+        car._parkRoamAttempts = (car._parkRoamAttempts || 0) + 1;
+        if (car._parkRoamAttempts > PARKING_CONFIG.ROAM_MAX_ATTEMPTS) {
+          if (car._parkDebug) car._parkDebug = { phase: 'outta', spot: 'roam exhausted' };
+          beginOuttaHere(car);
+        } else if (car._parkDebug) {
+          car._parkDebug = { phase: 'roaming', spot: 'scanning ahead' };
+        }
+      } else if (car._parkDebug) {
+        car._parkDebug = { phase: 'roaming', spot: 'scanning ahead' };
+      }
       return;
     }
 
-    car._parkPlan = { bay: bestBay, stallIndex: bestStall };
-    if (!reserveStall(bestBay, bestStall, car)) {
-      car._parkPlan = null;
-      return; // try again next interval
+    // Local curb hit on the road we're already on — claim and stage immediately
+    const curLeg = car.route && car.route[car.legIndex];
+    const onSameSeg = curLeg && curLeg.atom.kind === 'lane'
+      && curLeg.atom.segId === pick.bay.segId;
+    if (onSameSeg && !needReroute) {
+      // Ensure approach fields exist (forward pick may lack lane sample)
+      if (pick.approachUx == null) {
+        const sample = curLeg.atom.sampleAtT(currentLegFrac(car));
+        if (!sample) return;
+        pick.approachUx = sample.tx;
+        pick.approachUy = sample.ty;
+        pick.laneX = sample.x;
+        pick.laneY = sample.y;
+      }
+      const side = laneOffsetSignForAtom(curLeg.atom);
+      // Other curb on a two-way: we'd need to be on that side — skip & reject
+      if (side !== 0 && pick.bay.side !== 0 && side !== pick.bay.side) {
+        rejected.add(pick.bay.id + ':' + pick.stallIndex);
+        return;
+      }
+      car.parkingIntent = {
+        segId: pick.bay.segId,
+        side: pick.bay.side || 0,
+        roaming: false,
+        bayId: pick.bay.id,
+        stallIndex: pick.stallIndex
+      };
+      if (beginParkingStaging(car, pick)) {
+        if (car._parkDebug) {
+          car._parkDebug = {
+            phase: 'staging',
+            spot: 'bay#' + pick.bay.id + '[' + pick.stallIndex + ']',
+            blinker: car._parkBlinker,
+            dist: null
+          };
+        }
+      } else {
+        rejected.add(pick.bay.id + ':' + pick.stallIndex);
+        car.parkingIntent = { segId: null, roaming: true };
+      }
+      return;
     }
 
-    const seg = findSegmentById(bestBay.segId);
+    // Stall ahead but on another block — soft reroute toward that curb (still
+    // forward-biased). Reserve first so parallel roamers don't collide.
+    car._parkPlan = { bay: pick.bay, stallIndex: pick.stallIndex };
+    if (!reserveStall(pick.bay, pick.stallIndex, car)) {
+      car._parkPlan = null;
+      return;
+    }
+
+    const seg = findSegmentById(pick.bay.segId);
     if (!seg) {
-      rejected.add(bestBay.id + ':' + bestStall);
+      rejected.add(pick.bay.id + ':' + pick.stallIndex);
       releaseStallReservation(car);
       car._parkPlan = null;
       car.parkingIntent = { segId: null, roaming: true };
       return;
     }
     car.parkingIntent = {
-      segId: bestBay.segId,
-      side: bestBay.side || 0,
+      segId: pick.bay.segId,
+      side: pick.bay.side || 0,
       roaming: false,
-      bayId: bestBay.id,
-      stallIndex: bestStall
+      bayId: pick.bay.id,
+      stallIndex: pick.stallIndex
     };
     car.parkPhase = null;
-    car._parkDebug = { phase: 'rerouting', spot: 'bay#' + bestBay.id + '[' + bestStall + ']' };
+    car._parkDebug = { phase: 'rerouting', spot: 'bay#' + pick.bay.id + '[' + pick.stallIndex + ']' };
 
     const origin = findNearestAtomPoint(car.x, car.y, 40, true);
     if (!origin) {
-      rejected.add(bestBay.id + ':' + bestStall);
+      rejected.add(pick.bay.id + ':' + pick.stallIndex);
       releaseStallReservation(car);
       car._parkPlan = null;
       car.parkingIntent = { segId: null, roaming: true };
       return;
     }
-    const destPick = findLanePickForParkingBay(bestBay, bestStall);
+    const destPick = findLanePickForParkingBay(pick.bay, pick.stallIndex);
     if (!destPick) {
-      rejected.add(bestBay.id + ':' + bestStall);
+      rejected.add(pick.bay.id + ':' + pick.stallIndex);
       releaseStallReservation(car);
       car._parkPlan = null;
       car.parkingIntent = { segId: null, roaming: true };
-      // Keep _parkRoamAttempts — do not undo; otherwise we loop forever on the same stall
       return;
     }
     const raw = allieFindPath(origin, destPick);
     if (!raw || !raw.length) {
-      rejected.add(bestBay.id + ':' + bestStall);
+      rejected.add(pick.bay.id + ':' + pick.stallIndex);
       releaseStallReservation(car);
       car._parkPlan = null;
       car.parkingIntent = { segId: null, roaming: true };
-      // Keep _parkRoamAttempts — do not undo; otherwise we loop forever on the same stall
+      return;
+    }
+    car._parkRoamAttempts = (car._parkRoamAttempts || 0) + 1;
+    if (car._parkRoamAttempts > PARKING_CONFIG.ROAM_MAX_ATTEMPTS) {
+      releaseStallReservation(car);
+      car._parkPlan = null;
+      if (car._parkDebug) car._parkDebug = { phase: 'outta', spot: 'roam exhausted' };
+      beginOuttaHere(car);
       return;
     }
     // Keep the claim — evaluateParkingIntent would wipe it
@@ -9965,6 +10256,7 @@ function updateCar(car, dt) {
   if (car.parkPhase !== 'staging') {
     car.traveledLength = Math.min(car.totalLength, car.traveledLength + car.speed * dt);
     advanceCarLeg(car);
+    clampStopSignLimitLine(car);
 
     if (car.traveledLength >= car.totalLength - 0.05 && car.speed <= 0.5) {
       if (parkingSearchEnabled && car.state === 'driving') {

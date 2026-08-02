@@ -311,7 +311,7 @@ Parallel park reverse S-curves are tighter / closer, and reversing cars hold ins
 
 
 
-## 4.4.13 — Don't yield for cars 2+ deep in a conflict queue
+## 4.5.13 — Don't yield for cars 2+ deep in a conflict queue
 
 Junction yield no longer latches onto a conflicting car that is queued **behind** another car on the same approach. Only the front conflict peer per approach matters; deeper cars are the intervening lead's problem.
 
@@ -321,7 +321,7 @@ Junction yield no longer latches onto a conflicting car that is queued **behind*
 
 
 
-## 4.4.14 — Don't yield for parking cars behind you
+## 4.5.14 — Don't yield for parking cars behind you
 
 Cars no longer soft-yield / sensor-hold for a staging or reversing parker whose **body is already behind** them. Stage-point ghosts in the travel lane must not freeze a car that has already passed the parking vehicle.
 
@@ -330,13 +330,13 @@ Cars no longer soft-yield / sensor-hold for a staging or reversing parker whose 
 
 
 
-## 4.4.15 — Stop closer at stop signs / stop lines
+## 4.5.15 — Stop closer at stop signs / stop lines
 
 Cars were holding too far back from junctions. `STOP_LINE_GAP` reduced `9.5 → 4.5` (rear-axle distance before turn entry) so stop signs, yield lines, and red lights stop nearer the stub / stop line.
 
 
 
-## 4.4.16 — Car debug overlay redesign
+## 4.5.16 — Car debug overlay redesign
 
 Car inspect / follow panel is clearer and less noisy.
 
@@ -347,7 +347,7 @@ Car inspect / follow panel is clearer and less noisy.
 
 
 
-## 4.4.17 — Debug gap hold bar
+## 4.5.17 — Debug gap hold bar
 
 With Debug On, the selected/hovered car shows the clearance it is trying to keep — only in those scenarios:
 
@@ -358,7 +358,7 @@ Hidden when cruising with no lead and no junction constraint.
 
 
 
-## 4.4.18 — Why is it doing this?
+## 4.6.18 — Why is it doing this?
 
 Car overlay gains a **Why is it doing this?** button (works with or without Debug rings).
 
@@ -370,7 +370,7 @@ Use this to debug early stops at stop signs — if stopDist is still large but T
 
 
 
-## 4.4.19 — Stop-sign early freeze
+## 4.6.19 — Stop-sign early freeze
 
 Stop-sign approach used `desired = min(speed, 4)` when still outside the braking envelope for the line. A car that was already at 0 (or got stopped) would stay frozen mid-block 20–30u before the sign while Why showed **Stop / yield sign @ 0**.
 
@@ -378,4 +378,59 @@ Far-from-line approach now returns `null` (keep cruising) until `stopConstraint`
 
 
 
+## 4.4.20 — Stop-sign limit line overshoot
+
+After the early-freeze fix, some cars rolled past the stop line. Braking now aims short of the line (`STOP_BRAKE_PAD: 1.7`), hard-stops within ~1.2u of it, and `clampStopSignLimitLine` snaps the rear axle back to the limit during approach/dwell so they can't drift into the box.
+
+
+
+## 4.6.21 — Stop-sign dwell / look unstick
+
+Brake pad made cars stop ~1.5–2u short of the stub, which never satisfied the old dwell gate (`stopDist ≤ 0.55`), so they sat forever in approach at 0. Look phase also re-applied `stopConstraint` (desired 0 with the pad) and blocked roll-out.
+
+- Dwell now starts when nearly stopped inside the pad arrive zone.
+- After dwell, look/creep use creep speed only (no re-pin to stopConstraint).
+- `STOP_BRAKE_PAD` eased `1.7 → 1.2` (clamp still prevents overshoot).
+
+
+
+## 4.6.22 — Stop-sign accel↔stop pulse
+
+Stop approach was hunting the kinematic brake curve (speed up then slam), and creep↔look was bouncing on soft coast flickers.
+
+- Approach: once braking, never accelerate back up toward the curve.
+- Dwell triggers cleanly in the arrive zone when nearly stopped.
+- Creep no longer demotes back to look on soft unclear (only seniority hard-yield holds at 0).
+- `STOP_BRAKE_PAD` eased to `0.85` (limit-line clamp still prevents overshoot).
+
+
+
+## 4.6.23 — Brisker stop-sign approach
+
+Stop-sign approach no longer crawls in on the long kinematic curve. Cars keep ~90% cruise until `STOP_APPROACH_BITE` (15u), then firm-brake (`DECEL_SHARP`) to the line.
+
+
+
+## 4.6.24 — Faster stop-sign queue pull-up
+
+After the car ahead finishes its stop and rolls into the box, the next car no longer crawl-matches that junction creep all the way to the painted limit line (FOLLOW-gap matching kept the cushion stuck shut at ~creep speed).
+
+- `stopSignLeadPastLimitLine` detects a same-queue lead already past ego’s stop line / on the turn.
+- `trafficConstraintFor` uses a tighter hold gap + `STOP_PULLUP_SPEED` (15) with a smoothstep taper (`STOP_PULLUP_EASE`) and gentle `DECEL_NORMAL` brake-in — brisk roll-up without a slam into the line.
+- Driver-head critical stop uses the same pull-up exception so Sensor stop doesn’t re-pin the crawl.
+
+
+
+## 4.6.25 — Parking hunt: curb ahead, not lap-around
+
+Parking search no longer grabs the map-wide closest free stall (often behind the car → whole-block lap). Drivers cruise and scan the curb beside them.
+
+- Look up to `LOOKAHEAD_STALLS` (7) spaces ahead on the left/right curb matching travel (`findLocalParkingAhead`); take the next open pad.
+- Destination search (`findParkingCandidate`) uses the same window instead of a 120u lookahead.
+- Roam fallback only considers stalls still ahead of the nose (`findForwardParkingStall`) — never a closer-behind spot.
+
+
+
 ## update me after each read thank you, bye [exp: 1.1.n+1 (foldername)]
+
+for example if folder name is trafficsim4.6 then add .n+1 (4.6.1, 4.6.2)

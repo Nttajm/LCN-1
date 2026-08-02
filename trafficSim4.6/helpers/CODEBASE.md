@@ -123,7 +123,7 @@ Debug: lane-change overlay / `_laneChangeDebug` when selected or rings on.
 - `signals.js` builds heads + phases for 3+ way nodes.  
 - Engine: `signalConstraintFor`, right-on-red, yellow commit latch (`signalDecision`).  
 - Unsignalized: first-arrival + `turnAtom.conflicts`.  
-- **Signed controls:** `nd.approachControls` stop / yield / R.O.W.; `signedJunctionConstraintFor` when lights are off (replaces first-arrival at that node).  
+- **Signed controls:** `nd.approachControls` stop / yield / R.O.W.; `signedJunctionConstraintFor` when lights are off (replaces first-arrival at that node). Same-approach queues use normal following; once the lead clears past the painted limit line, `stopSignLeadPastLimitLine` / `STOP_PULLUP_SPEED` lets the next car roll up briskly instead of matching junction creep.  
 - **Auto signs:** on junction rebuild, `autoApplyJunctionControls` sets T / major-minor / all-way stop (one-way stem often **yield** into a larger through). Skipped when `nd.controlsManual` (editor or saved).  
 - Cars never treat green as “enter a blocked box” — `intersectionClearanceConstraintFor`.
 
@@ -141,8 +141,8 @@ Debug: lane-change overlay / `_laneChangeDebug` when selected or rings on.
 
 - **Drive in:** engine RH reverse S-curve (`PARKING_CONFIG`, `beginParkingStaging`, `updateParkingMotion`).  
 - **Claims:** stalls are reserved as soon as a car targets them (including roam), re-checked before reverse, and held through abort-despawn so nobody double-books. Free checks also look for a car already sitting in the pad.  
-- Intent: cars may seek curb stalls while searching / at destination; roam picks a curb-side lane past the stall (`findLanePickForParkingBay`) and keeps that claim across `applyRouteToCar`.  
-- If the target stall is taken / blocked / overshot, `resumeParkingRoam()` drops the claim and keeps hunting elsewhere (fresh roam budget) instead of despawning right away.  
+- Intent: cars may seek curb stalls while searching / at destination. Hunt is **cruise-and-scan**: look at the curb beside you (L/R matching travel) up to `LOOKAHEAD_STALLS` (7) ahead and take the next free pad (`findLocalParkingAhead` / `findParkingCandidate`). Roam no longer pathfinds to the map-wide closest stall (that caused laps to spots behind). Forward-only fallback: `findForwardParkingStall`.  
+- If the target stall is taken / blocked / overshot, `resumeParkingRoam()` drops the claim and keeps hunting ahead (fresh roam budget) instead of despawning right away.  
 - Deleting parking (`syncCarsAfterParkingGeometryChange`) despawns cars parked / mid-park in removed stalls; staging cars re-roam. Surviving stalls after a partial delete rebind onto the new bay objects.
 
 ---
