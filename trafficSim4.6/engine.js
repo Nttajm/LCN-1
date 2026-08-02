@@ -1385,6 +1385,7 @@ let followRouteCar = null;
 let followHighlightTimer = 0;
 let simTime = 0;
 let debugRingsOn = false;
+let carWhyPanelOpen = false;
 let laneChangeGraphVisible = false;
 
 // Draw every lane-change window edge currently in the graph — a toggle-able
@@ -2938,7 +2939,7 @@ function updateCarOverlayVisibility() {
   if (!el) return;
   const car = carOverlayTarget();
   if (!car || !driveMode) {
-    el.classList.remove('visible', 'follow-mode', 'hover-mode', 'debug-on');
+    el.classList.remove('visible', 'follow-mode', 'hover-mode', 'debug-on', 'why-on');
     return;
   }
   const isFollow = followedCar === car && car.selected;
@@ -2946,11 +2947,13 @@ function updateCarOverlayVisibility() {
   el.classList.toggle('follow-mode', isFollow);
   el.classList.toggle('hover-mode', !isFollow);
   el.classList.toggle('debug-on', debugRingsOn);
+  el.classList.toggle('why-on', carWhyPanelOpen);
 
   const badge = document.getElementById('co-badge');
   const unfollowBtn = document.getElementById('co-unfollow');
   const controlBtn = document.getElementById('co-control');
   const tip = document.getElementById('co-tip');
+  const whyBtn = document.getElementById('co-why-btn');
   if (badge) {
     badge.textContent = (controlledCar === car) ? 'Controlling'
       : (isFollow ? 'Following' : 'Inspect');
@@ -2960,6 +2963,10 @@ function updateCarOverlayVisibility() {
     controlBtn.style.display = isFollow ? '' : 'none';
     controlBtn.textContent = (controlledCar === car) ? 'Release' : 'Control car';
     controlBtn.classList.toggle('active', controlledCar === car);
+  }
+  if (whyBtn) {
+    whyBtn.classList.toggle('active', carWhyPanelOpen);
+    whyBtn.textContent = carWhyPanelOpen ? 'Hide why' : 'Why is it doing this?';
   }
   if (tip) {
     tip.textContent = (controlledCar === car)
@@ -3025,7 +3032,8 @@ function updateCarOverlayContent(car) {
   set('co-remaining', remText);
 
   const lcdBrief = car._laneChangeDebug;
-  if (lcdBrief && lcdBrief.phase && lcdBrief.phase !== 'none') {
+  const lcActive = !!(lcdBrief && lcdBrief.phase && lcdBrief.phase !== 'none');
+  if (lcActive) {
     const bits = [lcdBrief.phase];
     if (lcdBrief.blinker) bits.push(lcdBrief.blinker);
     if (lcdBrief.plan) bits.push(lcdBrief.plan);
@@ -3034,24 +3042,57 @@ function updateCarOverlayContent(car) {
     set('co-lc-brief', '—');
   }
 
+  // Tags stay on the summary (visible even with debug off)
+  const tagsEl = document.getElementById('co-tags');
+  if (tagsEl) {
+    const tags = describeCarAction(car);
+    let key = '';
+    for (let i = 0; i < tags.length; i++) key += tags[i].text + '|' + tags[i].color + ';';
+    if (tagsEl._tagKey !== key) {
+      tagsEl._tagKey = key;
+      tagsEl.textContent = '';
+      for (let i = 0; i < tags.length; i++) {
+        const tag = tags[i];
+        const span = document.createElement('span');
+        span.className = 'co-tag';
+        span.textContent = tag.text;
+        span.style.color = tag.color;
+        span.style.borderColor = tag.color + '44';
+        span.style.background = tag.color + '18';
+        tagsEl.appendChild(span);
+      }
+    }
+  }
+
+  if (carWhyPanelOpen) updateCarWhyPanel(car);
+
   if (!debugRingsOn) return;
 
   const caution = Math.max(car._peripheralCaution || 0, car._headCaution || 0);
   const nearby = gatherNearbyForDebug(car, Math.max(ALLIE_CONFIG.SIDE_DETECT_RADIUS, ALLIE_CONFIG.HEAD_RING_FAR));
   const obs = car._lastObstruction;
+  const yieldTxt = formatYieldDebugText(car);
+  let safetyTxt = '—';
+  if (car._hardSafetyHit) {
+    const win = hardSafetyLoser(car, car._hardSafetyHit) === car._hardSafetyHit;
+    safetyTxt = win ? `WIN vs #${car._hardSafetyHit.id}` : `LOSE vs #${car._hardSafetyHit.id}`;
+  }
   set('co-caution', caution.toFixed(2));
   set('co-nearby', String(nearby.length));
   set('co-lead', obs ? `#${obs.other.id} · ${obs.gap.toFixed(1)} gap` : '—');
-  set('co-yield', formatYieldDebugText(car));
-  if (car._hardSafetyHit) {
-    const win = hardSafetyLoser(car, car._hardSafetyHit) === car._hardSafetyHit;
-    set('co-safety', win ? `WIN vs #${car._hardSafetyHit.id}` : `LOSE vs #${car._hardSafetyHit.id}`);
-  } else {
-    set('co-safety', '—');
-  }
+  set('co-yield', yieldTxt);
+  set('co-safety', safetyTxt);
+
+  // Sensors summary chip
+  const sensorBits = [];
+  if (obs) sensorBits.push('lead #' + obs.other.id);
+  if (yieldTxt !== '—') sensorBits.push('yield ' + yieldTxt);
+  else if (caution > 0.05) sensorBits.push('caut ' + caution.toFixed(2));
+  else sensorBits.push(nearby.length + ' near');
+  set('co-sensors-brief', sensorBits.join(' · '));
 
   const lcd = car._laneChangeDebug;
-  if (lcd && lcd.phase && lcd.phase !== 'none') {
+  if (lcActive) {
     set('co-lc-phase', lcd.phase);
     set('co-lc-plan', lcd.plan || '—');
     set('co-lc-blinker', lcd.blinker ? lcd.blinker.toUpperCase() : 'off');
@@ -3066,6 +3107,7 @@ function updateCarOverlayContent(car) {
     set('co-lc-wait',
       (lcd.waitT != null ? lcd.waitT.toFixed(1) + 's' : '0s')
       + (lcd.force ? ' · FORCE' : ''));
+    set('co-lc-sec-brief', lcd.phase + (lcd.blinker ? ' · ' + lcd.blinker : ''));
   } else {
     set('co-lc-phase', 'none');
     set('co-lc-plan', 'stay in lane');
@@ -3074,6 +3116,7 @@ function updateCarOverlayContent(car) {
     set('co-lc-gap', '—');
     set('co-lc-decision', '—');
     set('co-lc-wait', '—');
+    set('co-lc-sec-brief', 'idle');
   }
 
   // Parking debug rows
@@ -3126,6 +3169,7 @@ function updateCarOverlayContent(car) {
         : '');
   }
   set('co-park-yield', parkYieldTxt);
+  set('co-park-sec-brief', parkPhase === 'none' ? 'none' : parkPhase);
 
   // Enrich main status when waiting on a specific parker
   if (car._signalStatus === 'Waiting for parking' && (py || po)) {
@@ -3134,23 +3178,248 @@ function updateCarOverlayContent(car) {
       + (py && py.phase ? (' · ' + py.phase) : ''));
   }
 
-  const tagsEl = document.getElementById('co-tags');
-  if (!tagsEl) return;
-  const tags = describeCarAction(car);
-  let key = '';
-  for (let i = 0; i < tags.length; i++) key += tags[i].text + '|' + tags[i].color + ';';
-  if (tagsEl._tagKey === key) return;
-  tagsEl._tagKey = key;
-  tagsEl.textContent = '';
-  for (let i = 0; i < tags.length; i++) {
-    const tag = tags[i];
-    const span = document.createElement('span');
-    span.className = 'co-tag';
-    span.textContent = tag.text;
-    span.style.color = tag.color;
-    span.style.borderColor = tag.color + '44';
-    span.style.background = tag.color + '18';
-    tagsEl.appendChild(span);
+  // Highlight + auto-open relevant debug sections (respect manual toggle)
+  const parkActive = parkPhase !== 'none'
+    || !!(py || po)
+    || car.state === 'parking'
+    || car.state === 'parked';
+  const sensorsHot = !!(obs || (yieldTxt !== '—') || car._hardSafetyHit || caution > 0.2);
+  refreshCarOverlaySections({
+    lcActive,
+    parkActive,
+    sensorsHot
+  });
+}
+
+function toggleCarWhyPanel() {
+  carWhyPanelOpen = !carWhyPanelOpen;
+  const el = document.getElementById('car-overlay');
+  if (el) el.classList.toggle('why-on', carWhyPanelOpen);
+  const whyBtn = document.getElementById('co-why-btn');
+  if (whyBtn) {
+    whyBtn.classList.toggle('active', carWhyPanelOpen);
+    whyBtn.textContent = carWhyPanelOpen ? 'Hide why' : 'Why is it doing this?';
+  }
+  const car = carOverlayTarget();
+  if (carWhyPanelOpen && car) updateCarWhyPanel(car);
+}
+
+/** Build stop-line / lead / yield facts for the Why panel. */
+function collectCarWhyFacts(car) {
+  const facts = [];
+  const speed = car.speed;
+  const desired = car._debugDesired != null ? car._debugDesired
+    : (car._constraintFinalDesired != null ? car._constraintFinalDesired : null);
+  facts.push({
+    k: 'Speed → target',
+    v: Math.round(speed) + ' → ' + (desired != null ? Math.round(desired) : '—') + ' u/s',
+    alert: speed < 0.6 && desired != null && desired < 0.6
+  });
+
+  const info = findUpcomingSignalTurn(car);
+  if (info) {
+    const gapCfg = ALLIE_CONFIG.STOP_LINE_GAP;
+    const stopDist = Math.max(0, info.dist - gapCfg);
+    facts.push({
+      k: 'Turn entry',
+      v: info.dist.toFixed(1) + ' u · ' + (info.turnType || '?')
+    });
+    facts.push({
+      k: 'Stop line (gap ' + gapCfg + ')',
+      v: stopDist.toFixed(1) + ' u before entry',
+      alert: car.speed < 0.6 && stopDist > 3.5
+    });
+    const nd = nodes.get(info.nodeKey);
+    if (nd && junctionHasSignedControls(nd)) {
+      const ctl = effectiveApproachControl(nd, info.segId) || '—';
+      facts.push({ k: 'Approach control', v: String(ctl).toUpperCase() });
+    }
+  } else {
+    facts.push({ k: 'Upcoming turn', v: 'none in lookahead' });
+  }
+
+  const st = car.stopSignState;
+  if (st && st.phase && st.phase !== 'cleared') {
+    facts.push({
+      k: 'Sign phase',
+      v: st.phase + (st.control ? (' · ' + st.control) : '')
+    });
+  }
+  if (car.signalDecision) {
+    facts.push({
+      k: 'Signal decision',
+      v: car.signalDecision.choice
+        + (car.rorPhase && car.rorPhase !== 'cleared' ? (' · ror ' + car.rorPhase) : '')
+    });
+  }
+
+  const obs = car._lastObstruction;
+  if (obs && obs.other) {
+    facts.push({
+      k: 'Lead car',
+      v: '#' + obs.other.id + ' · gap ' + obs.gap.toFixed(1)
+        + 'u · ' + Math.round(obs.speed) + ' u/s',
+      alert: car.speed < 0.6 && obs.gap > ALLIE_CONFIG.DETECT_FOLLOW_GAP * 1.5
+    });
+  } else {
+    facts.push({ k: 'Lead car', v: 'none' });
+  }
+
+  const yieldTxt = formatYieldDebugText(car);
+  if (yieldTxt !== '—') {
+    facts.push({ k: 'Yielding for', v: yieldTxt, alert: true });
+  }
+  if (car._ixBlocker) {
+    facts.push({ k: 'IX blocker', v: '#' + car._ixBlocker.id, alert: true });
+  }
+  if (car._hardSafetyHit) {
+    const win = hardSafetyLoser(car, car._hardSafetyHit) === car._hardSafetyHit;
+    facts.push({
+      k: 'Hard safety',
+      v: (win ? 'WIN' : 'LOSE') + ' vs #' + car._hardSafetyHit.id,
+      alert: !win
+    });
+  }
+  if (car._parkYieldOther || car._parkYieldInfo) {
+    const id = car._parkYieldInfo && car._parkYieldInfo.id != null
+      ? car._parkYieldInfo.id
+      : (car._parkYieldOther ? car._parkYieldOther.id : '?');
+    facts.push({ k: 'Parking hold', v: '#' + id, alert: true });
+  }
+
+  return facts;
+}
+
+function updateCarWhyPanel(car) {
+  const verdictEl = document.getElementById('co-why-verdict');
+  const factsEl = document.getElementById('co-why-facts');
+  const listEl = document.getElementById('co-why-list');
+  if (!verdictEl || !factsEl || !listEl) return;
+
+  const status = car._signalStatus || (car.speed < 0.55 ? 'Stopped' : 'Driving');
+  const desired = car._debugDesired != null ? car._debugDesired : car._constraintFinalDesired;
+  const trace = car._constraintTrace || [];
+  const binders = trace.filter(t => t.binding);
+  let verdict;
+  if (car.speed < 0.55 && desired != null && desired < 0.55) {
+    if (binders.length) {
+      verdict = 'Stopped by: ' + binders.map(b => b.name + (b.status ? ' (' + b.status + ')' : '')).join(' + ');
+    } else {
+      verdict = 'Stopped · status “' + status + '” (no cap rows this frame)';
+    }
+  } else if (binders.length) {
+    verdict = 'Capped by: ' + binders.map(b => b.name).join(' + ')
+      + ' → ' + Math.round(desired != null ? desired : car.speed) + ' u/s';
+  } else {
+    verdict = status + (desired != null ? (' · target ' + Math.round(desired) + ' u/s') : '');
+  }
+
+  if (verdictEl._coText !== verdict) {
+    verdictEl._coText = verdict;
+    verdictEl.textContent = verdict;
+  }
+
+  const facts = collectCarWhyFacts(car);
+  let factKey = '';
+  for (let i = 0; i < facts.length; i++) {
+    factKey += facts[i].k + '=' + facts[i].v + (facts[i].alert ? '!' : '') + ';';
+  }
+  if (factsEl._factKey !== factKey) {
+    factsEl._factKey = factKey;
+    factsEl.textContent = '';
+    for (let i = 0; i < facts.length; i++) {
+      const f = facts[i];
+      const row = document.createElement('div');
+      row.className = 'co-why-fact' + (f.alert ? ' alert' : '');
+      const k = document.createElement('span');
+      k.className = 'k';
+      k.textContent = f.k;
+      const v = document.createElement('span');
+      v.className = 'v';
+      v.textContent = f.v;
+      row.appendChild(k);
+      row.appendChild(v);
+      factsEl.appendChild(row);
+    }
+  }
+
+  let listKey = '';
+  for (let i = 0; i < trace.length; i++) {
+    const t = trace[i];
+    listKey += t.name + '|' + t.desired + '|' + (t.status || '') + '|' + (t.binding ? 1 : 0) + ';';
+  }
+  if (listEl._listKey === listKey) return;
+  listEl._listKey = listKey;
+  listEl.textContent = '';
+  if (!trace.length) {
+    const empty = document.createElement('div');
+    empty.className = 'co-why-empty';
+    empty.textContent = 'No constraint sample yet — wait one tick (follow / hover the car).';
+    listEl.appendChild(empty);
+    return;
+  }
+  for (let i = 0; i < trace.length; i++) {
+    const t = trace[i];
+    const row = document.createElement('div');
+    row.className = 'co-why-row' + (t.binding ? ' binding' : '');
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = (t.binding ? '● ' : '') + t.name;
+    const spd = document.createElement('span');
+    spd.className = 'spd';
+    spd.textContent = (t.desired < 0.05 ? '0' : t.desired.toFixed(1)) + ' u/s';
+    row.appendChild(name);
+    row.appendChild(spd);
+    if (t.status) {
+      const st = document.createElement('span');
+      st.className = 'st';
+      st.textContent = t.status;
+      row.appendChild(st);
+    }
+    listEl.appendChild(row);
+  }
+}
+
+/** Persist / sync collapsible debug sections on the car overlay. */
+const _coSectionManual = Object.create(null);
+
+function initCarOverlaySections() {
+  const ids = ['co-sec-sensors', 'co-sec-lc', 'co-sec-park'];
+  for (let i = 0; i < ids.length; i++) {
+    const el = document.getElementById(ids[i]);
+    if (!el) continue;
+    try {
+      const saved = localStorage.getItem('co-section:' + ids[i]);
+      if (saved === '1') el.open = true;
+      else if (saved === '0') el.open = false;
+    } catch (e) { /* ignore */ }
+    el.addEventListener('toggle', () => {
+      _coSectionManual[ids[i]] = true;
+      try {
+        localStorage.setItem('co-section:' + ids[i], el.open ? '1' : '0');
+      } catch (e) { /* ignore */ }
+    });
+  }
+}
+
+function refreshCarOverlaySections(flags) {
+  const setSec = (id, hot, preferOpen) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('hot', !!hot);
+    // Auto-open when relevant only if the user hasn't toggled this section yet
+    if (preferOpen && !_coSectionManual[id] && !el.open) el.open = true;
+  };
+  setSec('co-sec-sensors', flags.sensorsHot, flags.sensorsHot);
+  setSec('co-sec-lc', flags.lcActive, flags.lcActive);
+  setSec('co-sec-park', flags.parkActive, flags.parkActive);
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCarOverlaySections);
+  } else {
+    initCarOverlaySections();
   }
 }
 
@@ -4129,6 +4398,191 @@ function drawDebugSensors(c, car, center, radius, nearby) {
 
   // Highlight who this car is actually yielding for (stop / coast / park)
   drawDebugYieldTargets(c, car, center);
+  // Target follow / stop-line gap bar (only while those holds are active)
+  drawDebugGapHold(c, car);
+}
+
+/**
+ * When following traffic or holding for a stop/yield/signal line, draw the
+ * clearance the car is trying to keep: a lane-width bar ahead of the nose
+ * ending at a cross-line. Hidden otherwise so debug stays quiet.
+ */
+function drawDebugGapHold(c, car) {
+  if (!car || car.state === 'parked' || car.state === 'parking' || car.state === 'despawning') return;
+
+  const cosH = car._cosH != null ? car._cosH : Math.cos(car.heading);
+  const sinH = car._sinH != null ? car._sinH : Math.sin(car.heading);
+  const halfW = ALLIE_CONFIG.CAR_WIDTH * 0.42;
+  const nose = ALLIE_CONFIG.CAR_LENGTH - ALLIE_CONFIG.REAR_OVERHANG;
+  const fx = car.x + cosH * nose;
+  const fy = car.y + sinH * nose;
+  const rx = -sinH, ry = cosH; // right lateral
+
+  const FOLLOW = ALLIE_CONFIG.DETECT_FOLLOW_GAP;
+  const MID = ALLIE_CONFIG.DETECT_RING_MID;
+  const obs = car._lastObstruction;
+  const following = !!(obs && obs.other && obs.gap != null && isFinite(obs.gap) && obs.gap < MID);
+
+  const stopGap = debugStopGapHold(car);
+
+  if (!following && !stopGap) return;
+
+  function drawGapBar(dist, fill, stroke, label) {
+    if (!(dist > 0.15)) return;
+    const ex = fx + cosH * dist;
+    const ey = fy + sinH * dist;
+    c.save();
+    c.globalAlpha = 0.9;
+    // Soft corridor fill
+    c.beginPath();
+    c.moveTo(fx + rx * halfW, fy + ry * halfW);
+    c.lineTo(ex + rx * halfW, ey + ry * halfW);
+    c.lineTo(ex - rx * halfW, ey - ry * halfW);
+    c.lineTo(fx - rx * halfW, fy - ry * halfW);
+    c.closePath();
+    c.fillStyle = fill;
+    c.fill();
+    // Side rails
+    c.strokeStyle = stroke;
+    c.lineWidth = 0.35;
+    c.setLineDash([]);
+    c.beginPath();
+    c.moveTo(fx + rx * halfW, fy + ry * halfW);
+    c.lineTo(ex + rx * halfW, ey + ry * halfW);
+    c.moveTo(fx - rx * halfW, fy - ry * halfW);
+    c.lineTo(ex - rx * halfW, ey - ry * halfW);
+    c.stroke();
+    // Target gap / stop line across the lane
+    c.lineWidth = 0.85;
+    c.beginPath();
+    c.moveTo(ex + rx * (halfW + 0.35), ey + ry * (halfW + 0.35));
+    c.lineTo(ex - rx * (halfW + 0.35), ey - ry * (halfW + 0.35));
+    c.stroke();
+    // Tick marks on the hold line
+    c.lineWidth = 0.55;
+    c.beginPath();
+    c.moveTo(ex, ey);
+    c.lineTo(ex - cosH * 0.7, ey - sinH * 0.7);
+    c.stroke();
+    if (label) {
+      c.fillStyle = stroke;
+      c.font = '600 2.1px ui-monospace, Consolas, monospace';
+      c.textAlign = 'center';
+      c.textBaseline = 'bottom';
+      c.fillText(label, ex - rx * (halfW + 0.2), ey - ry * (halfW + 0.55));
+    }
+    c.restore();
+  }
+
+  // Follow cushion — drawn first (closer). Tint hotter when inside the hold gap.
+  if (following) {
+    const tight = obs.gap <= FOLLOW;
+    const fill = tight ? 'rgba(255,90,70,0.18)' : 'rgba(255,180,60,0.14)';
+    const stroke = tight ? 'rgba(255,100,80,0.95)' : 'rgba(255,190,70,0.9)';
+    drawGapBar(FOLLOW, fill, stroke, 'gap ' + FOLLOW.toFixed(1));
+    // Actual lead bumper mark along the same corridor (if within mid ring)
+    if (obs.gap > 0.2 && obs.gap < MID) {
+      const ax = fx + cosH * Math.max(0.2, obs.gap);
+      const ay = fy + sinH * Math.max(0.2, obs.gap);
+      c.save();
+      c.globalAlpha = 0.85;
+      c.strokeStyle = 'rgba(255,255,255,0.75)';
+      c.lineWidth = 0.45;
+      c.setLineDash([1.2, 0.8]);
+      c.beginPath();
+      c.moveTo(ax + rx * halfW, ay + ry * halfW);
+      c.lineTo(ax - rx * halfW, ay - ry * halfW);
+      c.stroke();
+      c.restore();
+    }
+  }
+
+  // Intersection / signal stop line — fixed on the road at the hold point
+  if (stopGap) {
+    const stopS = stopGap.stopS != null
+      ? stopGap.stopS
+      : (car.traveledLength + stopGap.dist);
+    let ex = fx + cosH * Math.max(0.2, stopGap.dist);
+    let ey = fy + sinH * Math.max(0.2, stopGap.dist);
+    let tx = cosH, ty = sinH;
+    const p = sampleRouteAtDistance(car, stopS);
+    if (p) {
+      ex = p.x; ey = p.y;
+      if (p.tx != null && p.ty != null) { tx = p.tx; ty = p.ty; }
+    }
+    // Don't draw if the hold line is well behind the nose already
+    const along = (ex - fx) * cosH + (ey - fy) * sinH;
+    if (along < -ALLIE_CONFIG.CAR_LENGTH * 0.4) {
+      // past the line — skip
+    } else {
+      const prx = -ty, pry = tx;
+      const lineHalf = halfW + 0.55;
+      const colors = stopGap.kind === 'stop' || stopGap.kind === 'signal'
+        ? { fill: 'rgba(255,70,70,0.12)', stroke: 'rgba(255,90,90,0.95)', label: 'stop' }
+        : stopGap.kind === 'yield'
+          ? { fill: 'rgba(255,170,50,0.12)', stroke: 'rgba(255,180,70,0.95)', label: 'yield' }
+          : { fill: 'rgba(120,200,255,0.12)', stroke: 'rgba(140,210,255,0.95)', label: 'hold' };
+
+      c.save();
+      c.globalAlpha = 0.9;
+      if (along > 0.4 && !(following && along < FOLLOW * 1.35)) {
+        c.beginPath();
+        c.moveTo(fx + rx * halfW * 0.85, fy + ry * halfW * 0.85);
+        c.lineTo(ex + prx * halfW * 0.85, ey + pry * halfW * 0.85);
+        c.lineTo(ex - prx * halfW * 0.85, ey - pry * halfW * 0.85);
+        c.lineTo(fx - rx * halfW * 0.85, fy - ry * halfW * 0.85);
+        c.closePath();
+        c.fillStyle = colors.fill;
+        c.fill();
+      }
+      c.strokeStyle = colors.stroke;
+      c.lineWidth = 1.05;
+      c.setLineDash([]);
+      c.beginPath();
+      c.moveTo(ex + prx * lineHalf, ey + pry * lineHalf);
+      c.lineTo(ex - prx * lineHalf, ey - pry * lineHalf);
+      c.stroke();
+      c.fillStyle = colors.stroke;
+      c.font = '600 2.1px ui-monospace, Consolas, monospace';
+      c.textAlign = 'center';
+      c.textBaseline = 'bottom';
+      c.fillText(colors.label, ex, ey - 1.1);
+      c.restore();
+    }
+  }
+}
+
+/** Active stop/yield/signal hold distance ahead of the rear axle along the route. */
+function debugStopGapHold(car) {
+  const info = findUpcomingSignalTurn(car);
+  if (!info || info.dist == null) return null;
+  const stopDist = Math.max(0, info.dist - ALLIE_CONFIG.STOP_LINE_GAP);
+  // Only while the car is actually in a junction / signal hold scenario
+  const st = car.stopSignState;
+  const signedHold = !!(st && st.phase && st.phase !== 'cleared'
+    && (st.phase === 'approach' || st.phase === 'dwell' || st.phase === 'look'
+      || st.phase === 'creep'));
+  const status = car._signalStatus || '';
+  const statusHold = /Stop sign|Yield sign|Yielding|Looking both|Waiting for clear|Red light|Right on red|Creeping|After you|Intersection caution/.test(status);
+  const signalHold = !!(car.signalDecision
+    && (car.signalDecision.choice === 'stop' || car.signalDecision.choice === 'ror')
+    && car.rorPhase !== 'cleared');
+  const unsigHold = !!(car.junctionWait && info.dist <= ALLIE_CONFIG.JUNCTION_YIELD_LOOKAHEAD + 2
+    && (status === 'Yielding' || car._yieldOther));
+
+  if (!signedHold && !statusHold && !signalHold && !unsigHold) return null;
+  // Don't draw when still far out (not yet "at" the intersection hold)
+  if (info.dist > ALLIE_CONFIG.STOP_SIGN_LOOKAHEAD + 4) return null;
+  if (stopDist > 26) return null;
+
+  let kind = 'hold';
+  if (st && st.control === 'stop') kind = 'stop';
+  else if (st && st.control === 'yield') kind = 'yield';
+  else if (/Red light|Right on red/.test(status) || (car.signalDecision && car.signalDecision.choice === 'stop')) kind = 'signal';
+  else if (/Yield/.test(status)) kind = 'yield';
+  else if (/Stop sign/.test(status)) kind = 'stop';
+
+  return { dist: stopDist, stopS: info.turnLeg.cumStart - ALLIE_CONFIG.STOP_LINE_GAP, kind };
 }
 
 /** Gather distinct cars this vehicle is currently yielding to, with reason labels. */
@@ -5346,6 +5800,9 @@ function rorCoastClear(car, info) {
 
   let threat = null;
   const nearby = collectNearbyCars(egoX, egoY, radius);
+  const frontPeers = (conflicts && info && info.nodeKey)
+    ? frontConflictPeers(car, nearby, info.nodeKey, conflicts, myOrigin)
+    : null;
   for (let i = 0; i < nearby.length; i++) {
     const other = nearby[i];
     if (other === car || other.isProbe || other.state === 'despawning') continue;
@@ -5386,6 +5843,9 @@ function rorCoastClear(car, info) {
         && oInfo.dist < ALLIE_CONFIG.ROR_LOOK_RADIUS) {
       conflictHit = true;
     }
+
+    // Don't ROR-yield for a car 2+ deep in a conflicting approach queue
+    if (conflictHit && frontPeers && frontPeers.size > 0 && !frontPeers.has(other)) continue;
 
     // Near our forward turn path (receiving lane / cut-across)
     let nearPath = false;
@@ -5557,6 +6017,10 @@ function junctionCoastClear(car, info) {
 
   let threat = null;
   const nearby = collectNearbyCars(egoX, egoY, radius);
+  // Front-of-queue only for graph conflict peers (ignore deep queued cross traffic)
+  const frontPeers = (conflicts && info && info.nodeKey)
+    ? frontConflictPeers(car, nearby, info.nodeKey, conflicts, myOrigin)
+    : null;
   for (let i = 0; i < nearby.length; i++) {
     const other = nearby[i];
     if (other === car || other.isProbe || other.state === 'despawning' || other.state === 'parked') continue;
@@ -5601,6 +6065,9 @@ function junctionCoastClear(car, info) {
         && oInfo.dist < radius) {
       conflictHit = true;
     }
+
+    // Don't coast-yield for a car 2+ deep in a conflicting approach queue
+    if (conflictHit && frontPeers && frontPeers.size > 0 && !frontPeers.has(other)) continue;
 
     let nearPath = false;
     if (inFwd && pathPts.length) {
@@ -5964,6 +6431,8 @@ function findNearestObstruction(car) {
       if (other === car || other.isProbe) continue;
       if (other.state !== 'parking' && other.parkPhase !== 'staging') continue;
       if (!parkerBlocksEgoLane(car, other)) continue;
+      // Don't treat a parker behind us as an on-path lead via stage ghost
+      if (!shouldYieldForParker(car, other)) continue;
       const sp = other._parkStagePoint || (other._parkPlan && other._parkPlan.stagePoint);
       if (!sp) continue;
       const dx = sp.x - egoX, dy = sp.y - egoY;
@@ -6015,9 +6484,10 @@ function computePeripheralCaution(car) {
         && (other._segPos.segId !== myPos.segId || other._segPos.laneIdx !== myPos.laneIdx)) {
       continue;
     }
-    // Parkers only matter if their blocked lane matches ours
+    // Parkers only matter if their blocked lane matches ours and they aren't behind
     if (other.state === 'parking' || other.parkPhase === 'staging') {
       if (!parkerBlocksEgoLane(car, other)) continue;
+      if (!shouldYieldForParker(car, other)) continue;
       const sp = other._parkStagePoint || (other._parkPlan && other._parkPlan.stagePoint);
       if (sp) {
         const sdx = sp.x - egoX, sdy = sp.y - egoY;
@@ -6095,6 +6565,8 @@ function scanDriverHead(car) {
     if (parking) {
       // Never head-scan parkers outside our travel lane
       if (!parkerBlocksEgoLane(car, other)) continue;
+      // Never sensor-yield for a parking car behind us
+      if (!shouldYieldForParker(car, other)) continue;
       const sp = other._parkStagePoint || (other._parkPlan && other._parkPlan.stagePoint);
       if (sp) { ox = sp.x; oy = sp.y; }
     }
@@ -6323,6 +6795,9 @@ function intersectionClearanceConstraintFor(car) {
   let cautionScore = 0;
 
   const nearby = collectNearbyCars(egoX, egoY, ALLIE_CONFIG.IX_CLEAR_LOOKAHEAD + 40);
+  const frontPeers = (conflicts && info && info.nodeKey)
+    ? frontConflictPeers(car, nearby, info.nodeKey, conflicts, myOrigin)
+    : null;
   for (let i = 0; i < nearby.length; i++) {
     const other = nearby[i];
     if (other === car || other.isProbe || other.state === 'despawning') continue;
@@ -6364,7 +6839,9 @@ function intersectionClearanceConstraintFor(car) {
     // Graph conflict + currently occupying / aiming at the box
     let conflictHit = false;
     if (conflicts && oTurnAtom && oTurnAtom.nodeKey === info.nodeKey && conflicts.has(oTurnAtom.id)) {
-      if (inBox || (oInfo && oInfo.dist < ALLIE_CONFIG.IX_CLEAR_LOOKAHEAD * 0.7 && other.speed > 1.0)) {
+      // Queued-behind peers (not front, not in box) are the lead car's problem
+      const queuedBehind = !inBox && frontPeers && frontPeers.size > 0 && !frontPeers.has(other);
+      if (!queuedBehind && (inBox || (oInfo && oInfo.dist < ALLIE_CONFIG.IX_CLEAR_LOOKAHEAD * 0.7 && other.speed > 1.0))) {
         conflictHit = true;
       }
     }
@@ -6639,6 +7116,80 @@ function isCarInYieldForwardView(car, other) {
   return isInYieldForwardView(car, wx, wy);
 }
 
+/**
+ * Approach key for grouping conflict peers into the same queue.
+ * Same origin stub (or same incoming seg) = same approach line.
+ */
+function conflictPeerApproachKey(other, nodeKey) {
+  if (!other || !nodeKey) return null;
+  const oLeg = other.route && other.route[other.legIndex];
+  if (oLeg && oLeg.atom.kind === 'turn' && oLeg.atom.nodeKey === nodeKey) {
+    if (oLeg.atom.originStub) return oLeg.atom.originStub;
+  }
+  const oInfo = findUpcomingSignalTurn(other);
+  if (oInfo && oInfo.nodeKey === nodeKey) {
+    const atom = oInfo.turnLeg && oInfo.turnLeg.atom;
+    if (atom && atom.originStub) return atom.originStub;
+    if (oInfo.segId != null) return 'seg:' + oInfo.segId;
+  }
+  return null;
+}
+
+/**
+ * Lower score = closer to / further into the junction (front of that approach queue).
+ * Cars already on the turn atom rank ahead of anyone still approaching.
+ */
+function conflictPeerFrontScore(other, nodeKey) {
+  if (!other || !nodeKey) return Infinity;
+  const oLeg = other.route && other.route[other.legIndex];
+  if (oLeg && oLeg.atom.kind === 'turn' && oLeg.atom.nodeKey === nodeKey) {
+    const frac = (other.traveledLength - oLeg.cumStart) / Math.max(oLeg.length, 0.01);
+    return -1000 - frac;
+  }
+  const oInfo = findUpcomingSignalTurn(other);
+  if (oInfo && oInfo.nodeKey === nodeKey) return oInfo.dist;
+  return Infinity;
+}
+
+/** True if other has a turn that conflicts with ego's conflict set at nodeKey. */
+function isConflictingPeerAtNode(other, nodeKey, conflicts, myOrigin) {
+  if (!other || !nodeKey || !conflicts || conflicts.size === 0) return false;
+  const oLeg = other.route && other.route[other.legIndex];
+  if (oLeg && oLeg.atom.kind === 'turn' && oLeg.atom.nodeKey === nodeKey
+      && conflicts.has(oLeg.atom.id)) {
+    if (myOrigin && oLeg.atom.originStub === myOrigin) return false;
+    return true;
+  }
+  const oInfo = findUpcomingSignalTurn(other);
+  if (!oInfo || oInfo.nodeKey !== nodeKey) return false;
+  if (!oInfo.turnLeg || !conflicts.has(oInfo.turnLeg.atom.id)) return false;
+  if (myOrigin && oInfo.turnLeg.atom.originStub === myOrigin) return false;
+  return true;
+}
+
+/**
+ * Front-of-queue conflict peers only: one car per approach (closest to / into the box).
+ * Deeper queued cars are the intervening car's problem — ego must not yield to them.
+ * @returns {Set<object>}
+ */
+function frontConflictPeers(car, nearby, nodeKey, conflicts, myOrigin) {
+  const front = new Set();
+  if (!car || !nearby || !nodeKey || !conflicts || conflicts.size === 0) return front;
+  const best = new Map();
+  for (let i = 0; i < nearby.length; i++) {
+    const other = nearby[i];
+    if (other === car || other.state === 'despawning' || other.isProbe || other.state === 'parked') continue;
+    if (!isConflictingPeerAtNode(other, nodeKey, conflicts, myOrigin)) continue;
+    const key = conflictPeerApproachKey(other, nodeKey);
+    if (key == null) continue;
+    const score = conflictPeerFrontScore(other, nodeKey);
+    const prev = best.get(key);
+    if (!prev || score < prev.score) best.set(key, { car: other, score });
+  }
+  for (const v of best.values()) front.add(v.car);
+  return front;
+}
+
 function headingsAreOpposing(car, other) {
   let d = other.heading - car.heading;
   while (d > Math.PI) d -= Math.PI * 2;
@@ -6909,6 +7460,8 @@ function signedJunctionConstraintFor(car) {
     const egoX = car._cx != null ? car._cx : car.x;
     const egoY = car._cy != null ? car._cy : car.y;
     const nearby = collectNearbyCars(egoX, egoY, look * 2 + 30);
+    // Only the front car on each conflicting approach — ignore queue depth 2+
+    const frontPeers = frontConflictPeers(car, nearby, info.nodeKey, conflicts, turnAtom.originStub);
     const myRank = controlPriorityRank(myControl);
     const myArrival = getStopArrivalT(car);
     const myTurnType = info.turnType;
@@ -6918,6 +7471,11 @@ function signedJunctionConstraintFor(car) {
       if (other === car || other.state === 'despawning' || other.isProbe) continue;
       // Never yield for cars outside the forward yield FOV (incl. behind)
       if (!isCarInYieldForwardView(car, other)) continue;
+      // Skip cars queued behind another conflict peer on the same approach
+      if (frontPeers.size > 0 && !frontPeers.has(other)
+          && isConflictingPeerAtNode(other, info.nodeKey, conflicts, turnAtom.originStub)) {
+        continue;
+      }
 
       const oLeg = other.route && other.route[other.legIndex];
       let conflictsWith = false;
@@ -7055,11 +7613,10 @@ function signedJunctionConstraintFor(car) {
         st.phase = 'approach';
         const c = stopConstraint(car, stopDist);
         if (!c) {
-          return {
-            desired: Math.min(car.speed, 4),
-            decelRate: ALLIE_CONFIG.SIGNAL_DECEL,
-            status: 'Stop sign'
-          };
+          // Still outside the kinematic braking envelope for the line —
+          // do NOT pin desired to current speed (that froze cars at 0 u/s
+          // 20–30u before the painted sign once anything had stopped them).
+          return null;
         }
         return { desired: c.desired, decelRate: c.decelRate, status: 'Stop sign' };
       }
@@ -7281,10 +7838,16 @@ function unsignalizedJunctionConstraintFor(car) {
   const egoX = car._cx != null ? car._cx : car.x;
   const egoY = car._cy != null ? car._cy : car.y;
   const nearby = collectNearbyCars(egoX, egoY, yieldLook * 2 + 30);
+  // Only yield to the front conflict peer on each approach (not queue depth 2+)
+  const frontPeers = frontConflictPeers(car, nearby, info.nodeKey, turnAtom.conflicts, turnAtom.originStub);
   for (let i = 0; i < nearby.length; i++) {
     const other = nearby[i];
     if (other === car || other.state === 'despawning' || other.isProbe) continue;
     if (!isCarInYieldForwardView(car, other)) continue;
+    if (frontPeers.size > 0 && !frontPeers.has(other)
+        && isConflictingPeerAtNode(other, info.nodeKey, turnAtom.conflicts, turnAtom.originStub)) {
+      continue;
+    }
 
     const oLeg = other.route && other.route[other.legIndex];
     if (oLeg && oLeg.atom.kind === 'turn' && oLeg.atom.nodeKey === info.nodeKey
@@ -7503,6 +8066,17 @@ function tryUnstickWinner(car, dt) {
 
 function computeDesiredSpeed(car) {
   const route = car.route;
+  const wantTrace = !!(car.selected || car === hoveredCar || carWhyPanelOpen && followedCar === car);
+  const trace = wantTrace ? [] : null;
+  function note(name, c) {
+    if (!trace || !c) return;
+    trace.push({
+      name,
+      desired: c.desired,
+      status: c.status || null,
+      decel: c.decelRate != null ? c.decelRate : null
+    });
+  }
 
   // Detect the moment an emergency escape blend finishes (legIndex moved
   // past the 'lanechange' atom) so we can start gently re-accelerating
@@ -7522,11 +8096,13 @@ function computeDesiredSpeed(car) {
   let desired = (laneApproach && laneApproach.boost) ? laneApproach.desired : ALLIE_CONFIG.CRUISE_SPEED;
   let decelRate = ALLIE_CONFIG.DECEL_NORMAL;
   let signalStatus = (laneApproach && laneApproach.boost) ? laneApproach.status : null;
+  if (laneApproach && laneApproach.boost) note('Lane approach boost', laneApproach);
 
   const curLeg = route[car.legIndex];
   if (curLeg && curLeg.atom.kind === 'turn' && curLeg.atom.targetSpeed < desired) {
     desired = curLeg.atom.targetSpeed;
     decelRate = curLeg.atom.sharp ? ALLIE_CONFIG.DECEL_SHARP : ALLIE_CONFIG.DECEL_NORMAL;
+    if (trace) note('Turn (current)', { desired, decelRate, status: 'Turn speed' });
   }
   if (curLeg && curLeg.atom.kind === 'lanechange' && car._emergencyLaneChange) {
     // Sharp escape blend: creep through it slowly rather than near-cruise —
@@ -7534,6 +8110,7 @@ function computeDesiredSpeed(car) {
     desired = Math.min(desired, ALLIE_CONFIG.EMERGENCY_LANE_CHANGE_SPEED);
     decelRate = ALLIE_CONFIG.DECEL_NORMAL;
     signalStatus = 'Forcing jam escape';
+    note('Jam escape', { desired, decelRate, status: signalStatus });
   } else if (curLeg && curLeg.atom.kind === 'lanechange' && desired > ALLIE_CONFIG.CRUISE_SPEED * 0.94) {
     // Ease off slightly while actually inside the blend — realistic caution,
     // not a hard cap, so the maneuver stays smooth.
@@ -7551,6 +8128,7 @@ function computeDesiredSpeed(car) {
       if (distToLegStart <= brakingDist + 0.001 && targetSpeed < desired) {
         desired = targetSpeed;
         decelRate = rate;
+        if (trace) note('Upcoming turn', { desired, decelRate, status: 'Turn ahead' });
       }
     }
   }
@@ -7559,10 +8137,20 @@ function computeDesiredSpeed(car) {
   const arrivalBrakingDist = Math.max(ALLIE_CONFIG.ARRIVAL_MIN_DIST, (car.speed * car.speed) / (2 * ALLIE_CONFIG.ARRIVAL_DECEL));
   if (remaining <= arrivalBrakingDist) {
     const arrivalTarget = remaining <= 0.5 ? 0 : ALLIE_CONFIG.CRUISE_SPEED * (remaining / arrivalBrakingDist);
-    if (arrivalTarget < desired) { desired = Math.max(0, arrivalTarget); decelRate = ALLIE_CONFIG.ARRIVAL_DECEL; }
+    if (arrivalTarget < desired) {
+      desired = Math.max(0, arrivalTarget);
+      decelRate = ALLIE_CONFIG.ARRIVAL_DECEL;
+      if (trace) note('Arrival', { desired, decelRate, status: 'Arriving' });
+    }
   }
 
-  const sig = signalConstraintFor(car) || signedJunctionConstraintFor(car) || unsignalizedJunctionConstraintFor(car);
+  const sigLight = signalConstraintFor(car);
+  note('Traffic light', sigLight);
+  const sigSigned = (!sigLight) ? signedJunctionConstraintFor(car) : null;
+  note('Stop / yield sign', sigSigned);
+  const sigUnsig = (!sigLight && !sigSigned) ? unsignalizedJunctionConstraintFor(car) : null;
+  note('Unsignalized yield', sigUnsig);
+  const sig = sigLight || sigSigned || sigUnsig;
   if (sig && sig.desired < desired) {
     desired = sig.desired;
     decelRate = sig.decelRate;
@@ -7572,6 +8160,7 @@ function computeDesiredSpeed(car) {
   // Don't enter a junction whose path is occupied (green light does not mean "go
   // into a blocked box"). Off-path cars in the box only earn caution.
   const ixClear = intersectionClearanceConstraintFor(car);
+  note('Intersection clear', ixClear);
   if (ixClear && ixClear.desired < desired) {
     desired = ixClear.desired;
     decelRate = Math.max(decelRate, ixClear.decelRate);
@@ -7596,6 +8185,7 @@ function computeDesiredSpeed(car) {
   // Forward car detection — applied after signals so red lights still win,
   // but traffic can further cut speed when both apply.
   const traffic = trafficConstraintFor(car);
+  note('Traffic / lead', traffic);
   if (traffic && traffic.desired < desired) {
     desired = traffic.desired;
     decelRate = Math.max(decelRate, traffic.decelRate);
@@ -7606,6 +8196,7 @@ function computeDesiredSpeed(car) {
 
   // Hold behind a car that is staging / reversing into a parking stall
   const parkYield = parkingYieldConstraintFor(car);
+  note('Parking yield', parkYield);
   if (parkYield && parkYield.desired < desired) {
     desired = parkYield.desired;
     decelRate = Math.max(decelRate, parkYield.decelRate);
@@ -7614,6 +8205,7 @@ function computeDesiredSpeed(car) {
 
   // Staging approach — brake toward the stage point beside the stall
   const parkApproach = parkingApproachConstraintFor(car);
+  note('Parking approach', parkApproach);
   if (parkApproach && parkApproach.desired < desired) {
     desired = parkApproach.desired;
     decelRate = Math.max(decelRate, parkApproach.decelRate);
@@ -7622,6 +8214,7 @@ function computeDesiredSpeed(car) {
 
   // Hold back on approach to a lane-change window if the target lane isn't
   // clear yet — never shove into traffic to force a merge.
+  if (laneApproach && !laneApproach.boost) note('Lane change hold', laneApproach);
   if (laneApproach && !laneApproach.boost && laneApproach.desired < desired) {
     desired = laneApproach.desired;
     decelRate = Math.max(decelRate, laneApproach.decelRate);
@@ -7633,12 +8226,14 @@ function computeDesiredSpeed(car) {
   if (((car.id + tickFrame) & 1) === 0) {
     const courtesy = mergeCourtesyConstraintFor(car);
     car._cachedCourtesy = courtesy;
+    note('Merge courtesy', courtesy);
     if (courtesy && courtesy.desired < desired) {
       desired = courtesy.desired;
       decelRate = Math.max(decelRate, courtesy.decelRate);
       if (!signalStatus) signalStatus = courtesy.status;
     }
   } else if (car._cachedCourtesy && car._cachedCourtesy.desired < desired) {
+    note('Merge courtesy', car._cachedCourtesy);
     desired = car._cachedCourtesy.desired;
     decelRate = Math.max(decelRate, car._cachedCourtesy.decelRate);
     if (!signalStatus) signalStatus = car._cachedCourtesy.status;
@@ -7649,6 +8244,7 @@ function computeDesiredSpeed(car) {
   if (((car.id + tickFrame) & 1) === 1) {
     const scootch = mergeScootchConstraintFor(car);
     car._cachedScootch = scootch;
+    if (scootch) note('Merge scootch', scootch);
     if (scootch && scootch.boost && scootch.desired > desired) {
       desired = scootch.desired;
       if (!signalStatus || signalStatus === 'Following' || signalStatus === 'Caution'
@@ -7657,6 +8253,7 @@ function computeDesiredSpeed(car) {
       }
     }
   } else if (car._cachedScootch && car._cachedScootch.boost && car._cachedScootch.desired > desired) {
+    note('Merge scootch', car._cachedScootch);
     desired = car._cachedScootch.desired;
     if (!signalStatus || signalStatus === 'Following' || signalStatus === 'Caution'
         || signalStatus === 'Letting merge') {
@@ -7677,11 +8274,13 @@ function computeDesiredSpeed(car) {
     if (sideCap < desired) {
       desired = sideCap;
       if (!signalStatus) signalStatus = 'Caution';
+      if (trace) note('Side caution', { desired: sideCap, decelRate: ALLIE_CONFIG.DECEL_NORMAL, status: 'Caution' });
     }
   }
 
   // Forward driver-head cone — looks further (±30°) with nested caution rings
   const head = headAwarenessConstraintFor(car);
+  note('Driver head', head);
   if (head && head.desired < desired) {
     desired = head.desired;
     decelRate = Math.max(decelRate, head.decelRate);
@@ -7697,15 +8296,36 @@ function computeDesiredSpeed(car) {
   const player = applyPlayerSpeedOverride(car, desired, decelRate);
   desired = player.desired;
   decelRate = player.decelRate;
-  if (player.status) signalStatus = player.status;
+  if (player.status) {
+    signalStatus = player.status;
+    if (trace) note('Player control', { desired, decelRate, status: player.status });
+  }
 
   // Aimless soft-freeze: brief player-style gas tap
   const nudge = applyStuckGasNudge(car, desired, decelRate);
   desired = nudge.desired;
   decelRate = nudge.decelRate;
-  if (nudge.status) signalStatus = nudge.status;
+  if (nudge.status) {
+    signalStatus = nudge.status;
+    if (trace) note('Stuck nudge', { desired, decelRate, status: nudge.status });
+  }
 
   car._signalStatus = signalStatus;
+  if (trace) {
+    const bindingFloor = desired + 0.05;
+    for (let i = 0; i < trace.length; i++) {
+      trace[i].binding = trace[i].desired <= bindingFloor;
+    }
+    // Sort binding first, then by desired ascending
+    trace.sort((a, b) => {
+      if (a.binding !== b.binding) return a.binding ? -1 : 1;
+      return a.desired - b.desired;
+    });
+    car._constraintTrace = trace;
+    car._constraintFinalDesired = desired;
+  } else {
+    car._constraintTrace = null;
+  }
 
   return { desired, decelRate };
 }
@@ -8538,6 +9158,41 @@ function parkerBlocksEgoLane(ego, other) {
   return false;
 }
 
+/**
+ * Parker body is at/behind ego's bumper plane — already passed them.
+ * Never yield / sensor-hold for these (stage-point ghosts must not freeze us).
+ */
+function isParkerBodyBehind(car, other) {
+  if (!car || !other) return true;
+  const egoX = car._cx != null ? car._cx : car.x;
+  const egoY = car._cy != null ? car._cy : car.y;
+  const cosH = car._cosH != null ? car._cosH : Math.cos(car.heading);
+  const sinH = car._sinH != null ? car._sinH : Math.sin(car.heading);
+  const ox = other._cx != null ? other._cx : other.x;
+  const oy = other._cy != null ? other._cy : other.y;
+  return ((ox - egoX) * cosH + (oy - egoY) * sinH) < ALLIE_CONFIG.CAR_LENGTH * 0.12;
+}
+
+/**
+ * May this parker hold ego? Body must not be behind; stage (or body) must be
+ * ahead in the forward yield FOV.
+ */
+function shouldYieldForParker(car, other) {
+  if (!car || !other) return false;
+  if (isParkerBodyBehind(car, other)) return false;
+  const sp = other._parkStagePoint || (other._parkPlan && other._parkPlan.stagePoint);
+  if (sp) {
+    const egoX = car._cx != null ? car._cx : car.x;
+    const egoY = car._cy != null ? car._cy : car.y;
+    const cosH = car._cosH != null ? car._cosH : Math.cos(car.heading);
+    const sinH = car._sinH != null ? car._sinH : Math.sin(car.heading);
+    const fwd = (sp.x - egoX) * cosH + (sp.y - egoY) * sinH;
+    if (fwd < ALLIE_CONFIG.CAR_LENGTH * 0.15) return false;
+    return isInYieldForwardView(car, sp.x, sp.y);
+  }
+  return isCarInYieldForwardView(car, other);
+}
+
 function beginParkingStaging(car, candidate) {
   // Drop a previous claim if we're switching stalls
   if (car._parkPlan && (car._parkPlan.bay !== candidate.bay
@@ -8806,20 +9461,8 @@ function parkingYieldConstraintFor(car) {
   const imminentHold = !!(cachedYield && cachedYield.desired <= 1.0);
   if (!imminentHold && ((car.id + tickFrame) & 1) === 1) {
     if (cachedYield && cachedYield.other) {
-      // Drop stale holds if the parker is now behind us
-      const o = cachedYield.other;
-      const sp = o._parkStagePoint || (o._parkPlan && o._parkPlan.stagePoint);
-      const egoX = car._cx != null ? car._cx : car.x;
-      const egoY = car._cy != null ? car._cy : car.y;
-      const cosH = car._cosH != null ? car._cosH : Math.cos(car.heading);
-      const sinH = car._sinH != null ? car._sinH : Math.sin(car.heading);
-      let stillAhead = false;
-      if (sp) {
-        const fwd = (sp.x - egoX) * cosH + (sp.y - egoY) * sinH;
-        stillAhead = fwd >= ALLIE_CONFIG.CAR_LENGTH * 0.15
-          && isInYieldForwardView(car, sp.x, sp.y);
-      }
-      if (stillAhead) {
+      // Drop stale holds if the parker is now behind us / out of FOV
+      if (shouldYieldForParker(car, cachedYield.other)) {
         car._parkYieldOther = cachedYield.other;
         car._parkYieldInfo = cachedYield.info || null;
         return cachedYield;
@@ -8858,21 +9501,15 @@ function parkingYieldConstraintFor(car) {
 
     // Hard gate: only the parker's blocked travel lane may hold us
     if (!parkerBlocksEgoLane(car, other)) continue;
+    // Never yield for a parking car whose body is behind us
+    if (!shouldYieldForParker(car, other)) continue;
 
     // Only the in-lane stage point — never the curb-swung body
     const sp = other._parkStagePoint || (other._parkPlan && other._parkPlan.stagePoint);
     if (!sp) continue;
     const dx = sp.x - egoX, dy = sp.y - egoY;
     const fwd = dx * cosH + dy * sinH;
-    // Never yield for parking behind us — stage must be clearly ahead
     if (fwd < ALLIE_CONFIG.CAR_LENGTH * 0.15 || fwd > look) continue;
-    // Only within forward yield FOV (never behind / far beside)
-    if (!isInYieldForwardView(car, sp.x, sp.y)) continue;
-    // Parker body behind us also means we've already passed — don't hold
-    const ox = other._cx != null ? other._cx : other.x;
-    const oy = other._cy != null ? other._cy : other.y;
-    const bodyFwd = (ox - egoX) * cosH + (oy - egoY) * sinH;
-    if (bodyFwd < -ALLIE_CONFIG.CAR_LENGTH * 0.35 && fwd < ALLIE_CONFIG.CAR_LENGTH * 0.85) continue;
     const lat = Math.abs(-dx * sinH + dy * cosH);
     if (lat > PARKING_CONFIG.YIELD_LATERAL_REVERSE) continue;
     const gap = fwd - ALLIE_CONFIG.CAR_LENGTH;
