@@ -10,9 +10,10 @@ Deep reference for the Canvas 2D traffic simulator. Changelog detail lives in [`
 
 | Path | ~Lines | Owns |
 |------|--------|------|
-| `index4_6.html` | ~8200 | Shell CSS/DOM, road & junction editor, pan/zoom, `renderFrame()`, map serialize/load, ref-overlay (Leaflet), boot |
-| `engine.js` | ~10200 | ALLIE routing graph, cars, AI constraints, parking motion, spawners, `tick`/`stepSim`, FF, debug overlays |
-| `items.js` | ~1600 | Parallel curb parking authoring + serialize; monkey-patches map save/load |
+| `index4_7.html` | ~9800 | Shell CSS/DOM, road & junction editor, pan/zoom, `renderFrame()`, map serialize/load, ref-overlay (Leaflet), boot |
+| `engine.js` | ~11500 | ALLIE routing graph, cars, AI constraints, parking motion, spawners, `tick`/`stepSim`, FF, debug overlays |
+| `lanes.js` | ~700 | MUTCD road skins (pavement + yellow/white markings, approach limit lines, 2-leg curve/taper paint); Realistic/Debug view-bar toggle |
+| `items.js` | ~1700 | Parallel curb parking authoring + serialize; monkey-patches map save/load |
 | `units.js` | ~820 | Zoning polygons; monkey-patches map save/load |
 | `signals.js` | ~1010 | Signal heads, phase rings, `movementDisplay`, canvas draw + hit-test, signal panel |
 | `helpers/updates.md` | — | Feature changelog (source of “why”) |
@@ -23,14 +24,15 @@ Ignore: `Untitled.html` (scratch), root `yield.png` (likely leftover duplicate o
 
 ### Script load order
 
-At the bottom of `index4_6.html`:
+At the bottom of `index4_7.html`:
 
 1. Large inline `<script>` — geometry, modes, `renderFrame`, maps
 2. `signals.js`
 3. `engine.js` — starts `requestAnimationFrame(tick)` at end of file
-4. `units.js` → `initUnitsZoning()`
-5. `items.js` → `initParkingItems()`
-6. Trailing inline — traffic-state store, `tryAutoLoadLastMap()`, `resizeSimCanvas()`
+4. `lanes.js` — monkey-patches segment/junction canvas paint; injects view-bar skin toggle
+5. `units.js` → `initUnitsZoning()`
+6. `items.js` → `initParkingItems()`
+7. Trailing inline — traffic-state store, `tryAutoLoadLastMap()`, `resizeSimCanvas()`
 
 No bundler / ES modules. Everything shares **window globals**: `segments`, `nodes`, `view`, `canvas`/`ctx`, `cars`, `parkingBays`, `zones`, `allieAtoms`, signal helpers, etc.
 
@@ -106,8 +108,10 @@ Presets: 1 Way `(0,1)`, 2 Lane `(1,1)`, 4 Lane `(2,2)`, Advanced nudge In/Out + 
 ```
 
 - Junction when `count >= 2`
+- Dead-end turnaround when `count === 1` on a two-way road (`lanesIn > 0 && lanesOut > 0`): U-turn bulb only (always on, not gated by `includeUturns`)
 - Signals when `count >= 3`
 - Node key: `"x,y"` string from `getNodeKey`
+- Helpers: `isDeadEndTurnaround(nd)`, `nodeHasLaneGraph(nd)`
 
 ### 3.3 ALLIE atoms — `allieAtoms[]`
 
@@ -121,8 +125,9 @@ Routing graph built by `rebuildAllieGraph()`. Three kinds:
 
 **Stubs** connect atoms:
 
-- Junction: `stubKey(nodeKey, laneNodeId)` → `"x,y#laneNodeId"`
+- Junction / dead-end turnaround: `stubKey(nodeKey, laneNodeId)` → `"x,y#laneNodeId"`
 - Mid-road rungs: `rungStubKey(segId, splitIdx, laneIdx)`
+- One-way free ends still have no stub (cars cannot U-turn there)
 
 Adjacency: `allieOutByStub: Map<stub, atom[]>`. Pathfinding: `allieDijkstra` / `allieFindPath`. Lane-change edges are cost-penalized by `LANE_CHANGE_GRAPH_PENALTY` (55) so Dijkstra prefers stay-in-lane unless a change is needed.
 
@@ -166,15 +171,19 @@ Created by `spawnCarFromRoute(route, destPick, opts)`:
 
 ```
 {
-  enabled, rightOnRed, protectedLeft,
+  enabled, rightOnRed, protectedLeft,   // protectedLeft = mirror of any P/P or protected approach
+  leftModePolicy: 'auto'|'permissive'|'protPerm'|'protected',
+  leftModeBySeg: { [segId]: mode },
+  groupGreen: [seconds per barrier group],
   timing: { green, yellow, allRed, protLeft },  // DEFAULT_TIMING
-  heads: [{ segId, laneIdxs, movements, groupIndex, ox,oy,angle, housing, hitRect, ... }],
-  groups, phases: [{ kind, duration, groupIndex, allow:{left,straight,right} }],
+  timingManual, signalManual,
+  heads: [{ segId, laneIdxs, movements, groupIndex, ... }],
+  groups, phases: [{ kind, duration, groupIndex, allow, byApproach? }],
   phaseIndex, phaseT, overrides: Map
 }
 ```
 
-Cars read lamps via `movementDisplay(nodeKey, segId, laneIdx, turn)` → `'red'|'yellow'|'green'|'off'`.
+Cars read lamps via `movementDisplay(nodeKey, segId, laneIdx, turn)` → `'red'|'yellow'|'green'|'off'` (uses `phase.byApproach[segId]` when present).
 
 ### 3.6 Parking bay — `parkingBays[]` (`items.js`)
 
@@ -257,8 +266,8 @@ Since **4.3.1** the sim is a single full-frame Canvas redraw. SVG APIs are no-op
 ### `renderFrame()` paint order
 
 1. `resizeSimCanvas` / clear / `setTransform(view.scale*dpr, …, view.x*dpr, view.y*dpr)`
-2. `drawAllSegmentsCanvas` — roads + underpass beds
-3. `drawAllJunctionsCanvas` — markers, edges, lane dots, turn signs, approach controls, editor overlay, inset handles
+2. `drawAllSegmentsCanvas` — roads + underpass beds (when Realistic skin is on, `lanes.js` replaces centerline strokes with MUTCD pavement + yellow/white markings, then paints approach limit lines)
+3. `drawAllJunctionsCanvas` — markers, edges, lane dots, turn signs, approach controls, editor overlay, inset handles (Realistic skin first paints seamless pavement + MUTCD markings at plain 2-leg connectors via `drawLaneTransitionsCanvas` — same asphalt / edges / yellow center / white lane lines as mid-block; yellow omitted on one-ways; debug curves/dots hidden on those connectors unless Path edit is on)
 4. `drawAllSignalsCanvas`
 5. `drawZonesCanvas`
 6. `drawParkingCanvas`
@@ -269,6 +278,8 @@ Since **4.3.1** the sim is a single full-frame Canvas redraw. SVG APIs are no-op
 11. `drawDebugOverlayCanvas`
 12. `drawCarsCanvas`
 13. `drawRefOverlayChromeCanvas`
+
+**Road skins (`lanes.js`):** default **Realistic** MUTCD paint (flat asphalt fill, broken/double yellow centers, broken white lane lines, solid edge lines, stop/limit bars on controlled approaches, curved paint at `count === 2` bends / lane-count transitions). View-bar **Road skin** toggle switches back to the legacy debug colored-centerline look. 3+ way intersection interiors, dead-end U-turn bulbs, and junction editor overlays stay on the existing path.
 
 ### View / camera
 
@@ -326,7 +337,9 @@ Upgrade (`!`) honors the same toggles (4.3.12).
 
 Builds `laneNodes` + `edges` (U-turns gated by `includeUturns`; filter `commonSense` / per-lane turn override). Then turn signs, `syncJunctionSignals`, `autoApplyJunctionControls`, approach inset handles.
 
-Approach inset: clamps `MIN_STUB_INSET`–`MAX_STUB_INSET`; drag via `approachInsetEdit`.
+Dead-end turnarounds (`count === 1`, two-way): same lane-node layout, but edges are always same-road U-turns (paired left→left when common sense is on). No signals/control signs — only the bulb + optional approach insets.
+
+Approach inset: clamps `MIN_STUB_INSET`–`MAX_STUB_INSET`; drag via `approachInsetEdit`. Dead ends also pull painted roads back via `shortenSegment` / `computeShortenedEndpoints`.
 
 ### Section brush (4.3.8)
 
@@ -440,34 +453,37 @@ Only **3+ way** junctions get heads. Heads merge by approach/turn set; phases: g
 
 | API | Role |
 |-----|------|
-| `syncJunctionSignals` | Rebuild heads from laneNodes/edges |
-| `rebuildPhaseRing` | Build phase list from groups + timing |
+| `syncJunctionSignals` | Rebuild heads from laneNodes/edges; runs `autoConfigureSignalPlan` |
+| `autoConfigureSignalPlan` | Per-approach left modes + green splits from geometry |
+| `rebuildPhaseRing` | Build phase list from groups + left modes + timing |
 | `updateSignals(dt)` | Advance phaseT / phaseIndex |
 | `movementDisplay` | Color for a movement (engine + light-status graph) |
 | `cycleSignalVisibility` | Off → Faint → Medium → Full |
 | `toggleSignalsMaster` | Global `signalsEnabled` |
 | `hitTestSignalAt` | Editor pick |
 
-`DEFAULT_TIMING = { green: 8, yellow: 3.2, allRed: 1.6, protLeft: 4.5 }`. Heads sit `SIGNAL_OUT_NUDGE` (4.2) back from stubs.
+`DEFAULT_TIMING = { green: 10, yellow: 3.5, allRed: 1.5, protLeft: 5.0 }`. Heads sit `SIGNAL_OUT_NUDGE` (4.2) back from stubs. `autoConfigureSignalPlan` picks per-approach left modes from geometry and splits green across barrier groups by enter-lane weight.
 
 #### Phase ring (`rebuildPhaseRing`)
 
-For each barrier **group** (opposing approaches share a group):
+NEMA-style **barrier groups** (opposing approaches share a group). Within each group (concurrent dual-ring lead-lead):
 
-1. Optional **protected left** green + yellow (if `protectedLeft` and a left head exists)
-2. **Main green** — with protLeft on, left stays red while thru/right go; otherwise all movements green
-3. **Yellow** — greens become yellow
-4. **All-red** — full red clearance
+1. Optional **leading protected left** green + yellow for approaches with `protPerm` or `protected` mode (`byApproach` map — other approaches stay red)
+2. **Main green** — thru/right green; left green if permissive or P/P, left red if protected-only
+3. **Yellow** — active greens become yellow
+4. **All-red** — full red clearance between barrier sides
+
+Left-mode Auto warrants (geometry proxies for FHWA guidance): exclusive double left or ≥3 opposing thru → protected-only; exclusive left or ≥2 opposing thru → protected/permissive; else permissive.
 
 `updateSignals(dt)` advances `phaseT` / `phaseIndex` when master-enabled and not paused. Batch FF advances timers but skips mid-skip lamp paint. Master-off forces lamps dark once via `paintSignalLamps(..., true)`.
 
 Cars latch decisions in `signalDecision` (`commit` / `stop` / `ror`) so they do not flicker on phase boundaries. Right-on-red: only rightmost approach lane; `rorCoastClear` looks left + forward with `ROR_*` cones / TTC before creep.
 
-Signed junctions often call `disableSignalsForControls` so stop/yield own the box.
+Auto Junction on equal 4-ways prefers **signals** (clears stop signs). T / stem junctions still get stop/yield. **Mutual exclusion:** lights On clears stop/yield/ROW (and skips drawing those glyphs); signed approaches force lights Off via `disableSignalsForControls`.
 
 #### Signal editor panel
 
-Select junction/head → `updateSignalPanel`. Per-junction: enable, right-on-red, protected left, timing fields (`applySignalTiming`). Per-head: toggle movements, style, remove/add (`toggleHeadMovement`, `addSignalHead`, …). Overrides live in `sig.overrides` Map and survive resync via `ensureOverride`.
+Select junction/head → `updateSignalPanel`. Per-junction: enable, right-on-red, **Left turns** cycle (Auto / Perm / P/P / Prot), timing fields (`applySignalTiming`). Per-head: toggle movements, style, remove/add (`toggleHeadMovement`, `addSignalHead`, …). Overrides live in `sig.overrides` Map and survive resync via `ensureOverride`.
 
 ### Turn restriction signs
 
@@ -484,7 +500,7 @@ Assets: `signs/stop.png`, `signs/yield.png`; ROW is text label. Persisted as `ap
 
 ### Auto junction signs (4.4.6 / 4.4.8)
 
-When `autoJunctionControls` On (default): `pickAutoControlPlan` / `autoApplyJunctionControls`
+When `autoJunctionControls` On (off by default): `pickAutoControlPlan` / `autoApplyJunctionControls`
 
 - **T / stem:** through ROW; stem stop (or yield if one-way into larger through)
 - **Major vs minor 4-way:** wider corridor ROW, others stop
@@ -536,6 +552,18 @@ Deleting parking despawns cars on those stalls; staging cars resume roam (4.4.3)
 ---
 
 ## 10. UI modes & panels
+
+### Design system (chrome only, not game objects)
+
+All interactive UI (panels, HUDs, toolbars, overlays, popups — not roads/cars/lanes/canvas drawing) shares one token set defined in `:root` at the top of `index4_7.html`'s `<style>` block:
+
+- Surfaces: `--ui-bg` / `--ui-bg-strong` / `--ui-bg-raised` (translucent sage-green, `#536e5e`-based) + `--ui-border` / `--ui-border-soft` / `--ui-divider`.
+- Shape: `--ui-radius` (panels) / `--ui-radius-sm` (controls, chips) — small, rectangular, not pill-shaped.
+- Type: `--ui-font` (IBM Plex Sans, general UI text) / `--ui-font-mono` (IBM Plex Mono, numeric/data readouts).
+- Semantic accents: `--acc-info` / `--acc-go` / `--acc-warn` / `--acc-danger` / `--acc-signal` (+ `-soft` background variants) — use these instead of new hex colors for state/feedback.
+- Shared control look: `--control-bg` / `--control-bg-hover` / `--control-border` / `--control-border-hover`, consumed by `.lane-btn` and friends.
+- `units.js` / `items.js` inject their own `<style>` tags at runtime (zone + parking toolbar buttons/HUD/popups) but reference the same `:root` variables since they're appended to the same document.
+- `#ff-panel` uses the same tokens and layout patterns (title, raised control group, `.opt-row` chips) as the drive panel.
 
 ### Mode exclusivity
 
@@ -705,6 +733,10 @@ Separate store from maps. Saves live `cars[]` + signal phase snapshots so you ca
 
 `ZONE_TYPES`, zone draft/commit, `serializeZones` / `loadZones`, `initUnitsZoning`.
 
+### `lanes.js`
+
+`paintSegmentSkin` (mid-block MUTCD pavement + markings), `drawApproachLimitLinesCanvas` (solid approach + stop bar), `drawLaneTransitionsCanvas` (2-leg curve/taper paint), `toggleRoadSkinMode` / `setRoadSkinRealistic`, view-bar inject + monkey-patches on segment/junction draw.
+
 ---
 
 ## 14. Interaction cheat sheet
@@ -816,7 +848,7 @@ approach  →  (bite brake / latch)  →  dwell  →  look  →  creep  →  com
                  └── mid-block resume ──┘         └── seniority hard-yield → hold 0
 ```
 
-Important tunables: `STOP_APPROACH_BITE`, `STOP_BRAKE_PAD`, `STOP_SIGN_DWELL`, `JUNCTION_CREEP_SPEED`, `JUNCTION_CLEAR_HOLD`. Limit-line clamp (`clampStopSignLimitLine`) prevents drift into the box after pad braking. Queue pull-up uses `stopSignLeadPastLimitLine` so followers do not crawl-match junction creep all the way to the line.
+Important tunables: `STOP_APPROACH_BITE`, `STOP_BRAKE_PAD`, `STOP_SIGN_DWELL`, `JUNCTION_CREEP_SPEED`, `JUNCTION_CLEAR_HOLD`. Limit-line clamp (`clampStopSignLimitLine`) holds the axle during approach/dwell and while look/creep is still waiting on a clear grant (`_stopHoldAtLine` / yield peers). Soft unclear creep only noses up to the painted line; past it needs a full clear. Intersection clearance hard-holds graph-conflicting peers already in the box even outside the head cone. Queue pull-up uses `stopSignLeadPastLimitLine` so followers do not crawl-match junction creep all the way to the line.
 
 ---
 

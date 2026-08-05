@@ -3,10 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4.6 trafficSimulator</title>
+  <title>4.7 trafficSimulator</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
   <style>
     :root {
+      /* ---- Surface: sage panel chrome, shared by every interactive UI
+             element (panels, HUDs, toolbars, including the fast-forward
+             panel). ---- */
+      --ui-bg: rgba(34, 46, 40, 0.94);
+      --ui-bg-strong: rgba(26, 36, 31, 0.97);
+      --ui-bg-soft: rgba(34, 46, 40, 0.86);
+      --ui-bg-raised: rgba(0, 0, 0, 0.22);
+      --ui-border: rgba(232, 238, 233, 0.16);
+      --ui-border-soft: rgba(232, 238, 233, 0.09);
+      --ui-border-strong: rgba(232, 238, 233, 0.28);
+      --ui-divider: rgba(232, 238, 233, 0.12);
+
+      /* Rectangular, restrained corner rounding — never pill-shaped. */
+      --ui-radius: 0.375rem;
+      --ui-radius-sm: 0.1875rem;
+      --ui-radius-ctl: 0.1875rem;
+      --ui-radius-lg: 0.5rem;
+
+      --ui-text: #eef3ee;
+      --ui-text-dim: #c4cec6;
+      --ui-muted: #8fa096;
+      --ui-faint: #6c7c72;
+
+      --ui-font: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+      --ui-font-mono: 'IBM Plex Mono', 'Consolas', 'Courier New', monospace;
+
+      --ui-shadow: 0 0.75rem 2rem rgba(8, 12, 10, 0.42), 0 0 0 1px rgba(0, 0, 0, 0.18);
+      --ui-shadow-sm: 0 0.25rem 0.75rem rgba(8, 12, 10, 0.32);
+
+      /* Single functional accent per meaning — used sparingly, never as
+         a per-panel neon glow. */
+      --acc-info: #6fa8c9;
+      --acc-info-soft: rgba(111, 168, 201, 0.16);
+      --acc-go: #6bab7e;
+      --acc-go-soft: rgba(107, 171, 126, 0.16);
+      --acc-warn: #c99a55;
+      --acc-warn-soft: rgba(201, 154, 85, 0.16);
+      --acc-danger: #c96b5f;
+      --acc-danger-soft: rgba(201, 107, 95, 0.16);
+      --acc-signal: #c9b25a;
+      --acc-signal-soft: rgba(201, 178, 90, 0.16);
+
+      --control-bg: rgba(0, 0, 0, 0.32);
+      --control-bg-hover: rgba(255, 255, 255, 0.07);
+      --control-border: rgba(232, 238, 233, 0.18);
+      --control-border-hover: rgba(232, 238, 233, 0.32);
+
+      /* Legend / lane-graph colors — tied to canvas rendering, unchanged. */
       --enter: #2ecc71;
       --exit: #ef5555;
       --straight: #3fa7ff;
@@ -19,6 +70,7 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
+      font-family: var(--ui-font);
     }
     .board {
       width: 100vw;
@@ -55,130 +107,54 @@
       cursor: pointer;
       box-shadow: inset 0 0 0 3px rgba(241, 196, 15, 0.55);
     }
-    #build-hud {
+    /* Shared chrome for every transient "mode" status strip (build / delete /
+       upgrade / drive / ref-overlay / zone / parking …). One consistent
+       rectangular sage panel; only a small accent dot + label tint carry
+       the per-mode meaning, instead of a differently-glowing border each. */
+    kbd {
+      display: inline-block;
+      padding: 0.0625rem 0.4375rem;
+      border: 1px solid var(--ui-border-strong);
+      border-radius: var(--ui-radius-sm);
+      background: rgba(0, 0, 0, 0.16);
+      font-family: var(--ui-font-mono);
+      font-size: 0.6875rem;
+      color: var(--ui-text-dim);
+    }
+    #build-hud, #delete-hud, #upgrade-hud {
       position: fixed;
-      top: 68px;
+      top: 64px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(46, 204, 113, 0.45);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-family: monospace;
-      font-size: 12.5px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
+      padding: 0.5rem 0.875rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 110;
       user-select: none;
       display: none;
       align-items: center;
-      gap: 14px;
+      gap: 0.75rem;
       pointer-events: none;
     }
-    #build-hud.visible { display: flex; }
-    #delete-hud {
-      position: fixed;
-      top: 68px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(231, 76, 60, 0.45);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-family: monospace;
-      font-size: 12.5px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      z-index: 110;
-      user-select: none;
-      display: none;
-      align-items: center;
-      gap: 14px;
-      pointer-events: none;
+    #build-hud.visible, #delete-hud.visible, #upgrade-hud.visible { display: flex; }
+    #build-hud .build-dot, #delete-hud .delete-dot, #upgrade-hud .upgrade-dot {
+      width: 0.4375rem;
+      height: 0.4375rem;
+      border-radius: 1px;
+      flex-shrink: 0;
     }
-    #delete-hud.visible { display: flex; }
-    #delete-hud .delete-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #e74c3c;
-      box-shadow: 0 0 8px rgba(231, 76, 60, 0.8);
-      animation: build-pulse 1.1s ease-in-out infinite;
-    }
-    #delete-hud .delete-title { color: #f88; font-weight: 700; letter-spacing: 0.5px; }
-    #delete-hud .delete-meta { color: #aaa; }
-    #delete-hud kbd {
-      display: inline-block;
-      padding: 1px 6px;
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 4px;
-      background: rgba(255,255,255,0.06);
-      font-size: 11px;
-      color: #ccc;
-    }
-    #upgrade-hud {
-      position: fixed;
-      top: 68px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(241, 196, 15, 0.45);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-family: monospace;
-      font-size: 12.5px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      z-index: 110;
-      user-select: none;
-      display: none;
-      align-items: center;
-      gap: 14px;
-      pointer-events: none;
-    }
-    #upgrade-hud.visible { display: flex; }
-    #upgrade-hud .upgrade-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #f1c40f;
-      box-shadow: 0 0 8px rgba(241, 196, 15, 0.8);
-      animation: build-pulse 1.1s ease-in-out infinite;
-    }
-    #upgrade-hud .upgrade-title { color: #ffe066; font-weight: 700; letter-spacing: 0.5px; }
-    #upgrade-hud .upgrade-meta { color: #aaa; }
-    #upgrade-hud kbd {
-      display: inline-block;
-      padding: 1px 6px;
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 4px;
-      background: rgba(255,255,255,0.06);
-      font-size: 11px;
-      color: #ccc;
-    }
-    #build-hud .build-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #2ecc71;
-      box-shadow: 0 0 8px rgba(46, 204, 113, 0.8);
-      animation: build-pulse 1.1s ease-in-out infinite;
-    }
-    #build-hud .build-title { color: #9f9; font-weight: 700; letter-spacing: 0.5px; }
-    #build-hud .build-meta { color: #aaa; }
-    #build-hud kbd {
-      display: inline-block;
-      padding: 1px 6px;
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 4px;
-      background: rgba(255,255,255,0.06);
-      font-size: 11px;
-      color: #ccc;
-    }
-    @keyframes build-pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.45; transform: scale(0.85); }
-    }
+    #build-hud .build-dot { background: var(--acc-go); }
+    #delete-hud .delete-dot { background: var(--acc-danger); }
+    #upgrade-hud .upgrade-dot { background: var(--acc-warn); }
+    #build-hud .build-title { color: var(--acc-go); font-weight: 600; letter-spacing: 0.4px; }
+    #delete-hud .delete-title { color: var(--acc-danger); font-weight: 600; letter-spacing: 0.4px; }
+    #upgrade-hud .upgrade-title { color: var(--acc-warn); font-weight: 600; letter-spacing: 0.4px; }
+    #build-hud .build-meta, #delete-hud .delete-meta, #upgrade-hud .upgrade-meta { color: var(--ui-muted); }
     canvas#canvas {
       position: absolute;
       top: 0;
@@ -234,158 +210,337 @@
       transform: none !important;
     }
     #ref-map-host .leaflet-control-attribution { display: none; }
+    /* ---- Shared control primitive: every clickable chip / mode button in
+           the app is a .lane-btn — one flat rectangular surface, a soft
+           tinted border only when active, no per-widget glow. ---- */
+    .lane-btn {
+      background: var(--control-bg);
+      border: 1px solid transparent;
+      border-radius: var(--ui-radius-ctl);
+      color: var(--ui-text-dim);
+      padding: 0.34rem 0.75rem;
+      cursor: pointer;
+      font-family: var(--ui-font);
+      font-weight: 500;
+      font-size: 0.75rem;
+      letter-spacing: 0.005em;
+      line-height: 1.3;
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+    .lane-btn.active { background: var(--acc-info-soft); border-color: var(--acc-info); color: #daedf6; }
+    .lane-btn:hover:not(.active) { background: var(--control-bg-hover); color: var(--ui-text); }
+    .lane-btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* Compact label + value row — used for every binary/simple setting
+       (build options, drive-panel toggles, signal rows, uturn/common
+       sense, …) so a control is never just a sentence stuffed in a button. */
+    .opt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.625rem;
+    }
+    .opt-row .opt-row-label {
+      color: var(--ui-muted);
+      font-size: 0.75rem;
+    }
+    .opt-row .lane-btn {
+      min-width: 2.6rem;
+      text-align: center;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.6875rem;
+    }
+
     #build-toggles {
       position: fixed;
       bottom: 138px;
       left: 50%;
       transform: translateX(-50%);
       display: none;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 10px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #ddd;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.4rem;
+      padding: 0.5rem 0.6rem;
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 101;
       user-select: none;
-      max-width: min(720px, calc(100vw - 36px));
+      min-width: 0;
     }
     #build-toggles.visible { display: flex; }
     #build-toggles .build-toggle-label {
-      color: #888;
-      font-size: 10px;
-      letter-spacing: 1px;
-      margin-right: 2px;
+      color: var(--ui-faint);
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
-    #build-toggles .lane-btn {
-      padding: 5px 12px;
-      font-size: 12px;
+    #build-toggles .build-toggle-icons {
+      display: flex;
+      align-items: stretch;
+      gap: 0.375rem;
     }
-    #build-toggles .lane-btn.active {
-      background: rgba(46, 204, 113, 0.2);
-      border-color: #2ecc71;
-      color: #b8f0cc;
+    #build-toggles .build-icon-btn {
+      position: relative;
+      width: 2.75rem;
+      height: 2.75rem;
+      padding: 0.28rem;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      cursor: pointer;
+      transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
     }
+    #build-toggles .build-icon-btn:hover {
+      background: var(--control-bg-hover);
+      border-color: var(--control-border-hover);
+    }
+    #build-toggles .build-icon-btn.active {
+      background: var(--acc-go-soft);
+      border-color: var(--acc-go);
+    }
+    #build-toggles .build-icon-btn.is-off {
+      opacity: 0.55;
+    }
+    #build-toggles .build-icon-btn.is-disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    #build-toggles .build-icon-btn img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      border-radius: 2px;
+    }
+    #build-toggles .build-icon-tag {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      z-index: 1;
+      padding: 0 3px;
+      border-radius: 2px;
+      background: rgba(8, 12, 10, 0.82);
+      border: 1px solid rgba(232, 238, 233, 0.22);
+      color: #f2f6f2;
+      font-family: var(--ui-font);
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1.35;
+      text-transform: lowercase;
+      pointer-events: none;
+    }
+    #build-toggles .build-grade-arrow {
+      width: 1.35rem;
+      height: 1.35rem;
+      color: #bfe0ee;
+      pointer-events: none;
+      transition: transform 0.12s ease, color 0.12s ease;
+      transform: rotate(-45deg);
+    }
+    #build-toggles .build-icon-btn.grade-below .build-grade-arrow {
+      color: #e2c090;
+      transform: rotate(45deg);
+    }
+    #build-toggles .build-grade-arrow svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
     #road-toolbar {
       position: fixed;
       bottom: 18px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 10px;
-      padding: 10px 16px;
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
+      padding: 0.55rem 0.75rem;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
-      font-family: monospace;
-      font-size: 13px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      gap: 0.625rem 0.75rem;
+      font-family: var(--ui-font);
+      font-size: 0.8125rem;
+      color: var(--ui-text-dim);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 100;
       user-select: none;
       max-width: min(1040px, calc(100vw - 36px));
     }
     #road-toolbar .road-toolbar-title,
     #road-toolbar .road-toolbar-label {
-      color: #aaa;
-      font-size: 11px;
-      letter-spacing: 1px;
+      color: var(--ui-faint);
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       white-space: nowrap;
     }
     #road-toolbar .road-toolbar-divider {
       width: 1px;
-      height: 24px;
-      background: rgba(255,255,255,0.15);
+      height: 1.5rem;
+      background: var(--ui-divider);
       flex-shrink: 0;
     }
+    /* Segmented tool strip — one equal-height row; scope chips (Brush/Whole)
+       float above their tool so they never shove neighbors out of line. */
     #road-toolbar .road-tools {
       display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    #road-toolbar .road-tool-stack {
-      display: flex;
-      flex-direction: column;
       align-items: stretch;
-      gap: 3px;
+      height: 2.25rem;
+      gap: 1px;
+      padding: 1px;
+      background: var(--control-border);
+      border-radius: var(--ui-radius-ctl);
+      box-sizing: border-box;
     }
-    #road-toolbar .road-tool-stack .lane-btn {
-      padding: 5px 12px;
-      font-size: 12px;
+    #road-toolbar .road-tools > .lane-btn,
+    #road-toolbar .road-tools > .road-tool-cluster,
+    #road-toolbar .road-tools > .zone-tool-wrap,
+    #road-toolbar .road-tools > .parking-tool-wrap {
+      height: 100%;
+      box-sizing: border-box;
     }
-    #road-toolbar .delete-scope-btn {
-      padding: 2px 8px !important;
-      font-size: 10px !important;
-      letter-spacing: 0.3px;
-      line-height: 1.2;
-      color: #f5a8a0;
-      border-color: rgba(231, 76, 60, 0.4);
-      display: none;
+    #road-toolbar .road-tools > .lane-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      border-color: transparent;
+      padding: 0 0.85rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+      min-width: 0;
     }
-    #road-toolbar .delete-scope-btn.visible {
-      display: block;
+    #road-toolbar .road-tool-cluster {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      min-width: 0;
     }
-    #road-toolbar .delete-scope-btn.active {
-      background: rgba(231, 76, 60, 0.22);
-      border-color: #e74c3c;
-      color: #ffd0cb;
+    #road-toolbar .road-tool-cluster > .lane-btn:last-child {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      border-radius: 2px;
+      border-color: transparent;
+      padding: 0 0.85rem;
+      font-size: 0.75rem;
+      white-space: nowrap;
     }
+    #road-toolbar .delete-scope-btn,
     #road-toolbar .upgrade-scope-btn {
-      padding: 2px 8px !important;
-      font-size: 10px !important;
-      letter-spacing: 0.3px;
-      line-height: 1.2;
-      color: #ffe8a0;
-      border-color: rgba(241, 196, 15, 0.45);
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: calc(100% + 5px);
+      z-index: 2;
       display: none;
+      margin: 0;
+      padding: 0.2rem 0.4rem !important;
+      font-size: 0.625rem !important;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      text-align: center;
+      border-radius: var(--ui-radius-sm) !important;
+      box-shadow: var(--ui-shadow-sm);
+      white-space: nowrap;
     }
+    #road-toolbar .delete-scope-btn { color: #e3b3ad; background: var(--ui-bg-strong); border: 1px solid rgba(201, 107, 95, 0.4); }
+    #road-toolbar .upgrade-scope-btn { color: #e0c98a; background: var(--ui-bg-strong); border: 1px solid rgba(201, 178, 90, 0.4); }
+    #road-toolbar .delete-scope-btn.visible,
     #road-toolbar .upgrade-scope-btn.visible {
       display: block;
     }
-    #road-toolbar .upgrade-scope-btn.active {
-      background: rgba(241, 196, 15, 0.22);
-      border-color: #f1c40f;
-      color: #fff6b3;
+    #road-toolbar .delete-scope-btn.active {
+      background: var(--acc-danger-soft);
+      border-color: var(--acc-danger);
+      color: #f3d3ce;
     }
-    #road-toolbar .road-tools .lane-btn {
-      padding: 5px 12px;
-      font-size: 12px;
+    #road-toolbar .upgrade-scope-btn.active {
+      background: var(--acc-warn-soft);
+      border-color: var(--acc-warn);
+      color: #f3e2c2;
     }
     #road-toolbar .upgrade-btn {
-      font-size: 17px;
-      font-weight: 800;
-      line-height: 1;
-      padding: 4px 11px;
-      color: #ffe066;
-      border-color: rgba(241, 196, 15, 0.45);
-      min-width: 34px;
-    }
-    #road-toolbar .upgrade-btn.active {
-      background: rgba(241, 196, 15, 0.22);
-      border-color: #f1c40f;
-      color: #fff6b3;
-    }
-    #road-toolbar .inset-drag-btn {
-      font-size: 16px;
+      font-size: 1rem;
       font-weight: 700;
       line-height: 1;
-      padding: 4px 11px;
-      min-width: 34px;
-      color: #ffe066;
-      border-color: rgba(241, 196, 15, 0.45);
+      padding: 0 0.75rem !important;
+      color: var(--acc-warn);
+      min-width: 2.25rem;
+    }
+    #road-toolbar .upgrade-btn.active {
+      background: var(--acc-warn-soft);
+      border-color: var(--acc-warn);
+      color: #f3e2c2;
+    }
+    #road-toolbar .inset-drag-btn {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      line-height: 1;
+      padding: 0 0.75rem !important;
+      min-width: 2.25rem;
+      color: var(--acc-warn);
     }
     #road-toolbar .inset-drag-btn.active {
-      background: rgba(241, 196, 15, 0.22);
-      border-color: #f1c40f;
-      color: #fff6b3;
+      background: var(--acc-warn-soft);
+      border-color: var(--acc-warn);
+      color: #f3e2c2;
+    }
+    #road-toolbar .parking-tool-btn,
+    #road-toolbar .zone-tool-btn {
+      width: 2.25rem;
+      min-width: 2.25rem;
+      height: 100%;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      border-color: transparent;
+    }
+    #road-toolbar .zone-tool-wrap,
+    #road-toolbar .parking-tool-wrap {
+      display: flex;
+      align-items: stretch;
+    }
+    #road-toolbar .lane-type-group {
+      display: flex;
+      align-items: stretch;
+      height: 2.25rem;
+      gap: 1px;
+      padding: 1px;
+      background: var(--control-border);
+      border-radius: var(--ui-radius-ctl);
+      box-sizing: border-box;
+    }
+    #road-toolbar .lane-type-group .lane-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      border-radius: 2px;
+      border-color: transparent;
+      padding: 0 0.75rem;
+      font-size: 0.75rem;
+      white-space: nowrap;
     }
     #road-toolbar .seg-preview {
       display: flex;
@@ -400,117 +555,116 @@
     }
     #road-toolbar-hint {
       flex: 1 1 200px;
-      font-size: 11px;
-      color: #888;
-      line-height: 1.35;
+      font-size: 0.6875rem;
+      color: var(--ui-muted);
+      line-height: 1.4;
       min-width: 180px;
     }
     #advanced-controls {
       display: none;
       align-items: center;
-      gap: 10px;
+      gap: 0.625rem;
     }
     #advanced-controls.visible { display: flex; }
     .adv-group {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 0.25rem;
     }
     .adv-group .adv-label {
-      font-size: 11px;
-      color: #aaa;
-      min-width: 22px;
+      font-size: 0.6875rem;
+      color: var(--ui-muted);
+      min-width: 1.375rem;
     }
     .adv-group .adv-count {
-      min-width: 16px;
+      min-width: 1rem;
       text-align: center;
-      color: #9f9;
-      font-weight: 700;
+      font-family: var(--ui-font-mono);
+      color: var(--ui-text);
+      font-weight: 600;
     }
     .adv-step {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 4px;
-      color: #fff;
-      width: 22px;
-      height: 22px;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-text);
+      width: 1.375rem;
+      height: 1.375rem;
       padding: 0;
       cursor: pointer;
-      font-family: monospace;
-      font-size: 14px;
+      font-family: var(--ui-font);
+      font-size: 0.875rem;
       line-height: 1;
     }
-    .adv-step:hover { background: rgba(255,255,255,0.15); }
-    .lane-btn {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 6px;
-      color: #fff;
-      padding: 4px 12px;
-      cursor: pointer;
-      font-family: monospace;
-      font-size: 13px;
-      transition: background 0.15s;
+    .adv-step:hover { background: var(--control-bg-hover); }
+    .mono-value {
+      font-family: var(--ui-font-mono);
+      color: var(--ui-text);
+      font-weight: 600;
+      font-size: 0.75rem;
     }
-    .lane-btn.active { background: rgba(100,200,100,0.25); border-color: #4c4; color: #9f9; }
-    .lane-btn:hover:not(.active) { background: rgba(255,255,255,0.15); }
 
     #legend-panel {
       position: fixed;
       top: 18px;
       left: 18px;
-      background: rgba(20, 20, 30, 0.88);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px;
-      padding: 12px 16px 14px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius);
+      padding: 0.875rem 1rem 1rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: var(--ui-shadow);
       z-index: 100;
       user-select: none;
-      width: 200px;
+      width: 13.75rem;
       max-height: calc(100vh - 36px);
       overflow-y: auto;
     }
     #legend-panel .legend-title {
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: #aaa;
-      margin-bottom: 9px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-faint);
+      margin-bottom: 0.625rem;
     }
     #legend-panel .legend-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
+      gap: 0.5rem;
+      margin-bottom: 0.4375rem;
     }
     #legend-panel .swatch {
-      width: 16px;
-      height: 3px;
-      border-radius: 2px;
+      width: 1rem;
+      height: 0.1875rem;
+      border-radius: 1px;
       flex-shrink: 0;
     }
     #legend-panel .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+      width: 0.4375rem;
+      height: 0.4375rem;
+      border-radius: 1px;
       flex-shrink: 0;
     }
     #legend-panel .divider {
       height: 1px;
-      background: rgba(255,255,255,0.15);
-      margin: 9px 0;
+      background: var(--ui-divider);
+      margin: 0.625rem 0;
     }
     #legend-panel .uturn-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 0.625rem;
     }
+    #legend-panel .uturn-row + .uturn-row { margin-top: 0.5rem; }
     #legend-panel .lane-btn {
-      padding: 3px 10px;
-      font-size: 11.5px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.6875rem;
+      min-width: 2.6rem;
+      text-align: center;
     }
     #legend-panel .lane-btn.wide {
       width: 100%;
@@ -519,80 +673,89 @@
       margin-top: 2px;
     }
     #legend-panel .hint {
-      margin-top: 9px;
-      font-size: 10.5px;
-      color: #888;
-      line-height: 1.5;
+      margin-top: 0.625rem;
+      font-size: 0.65625rem;
+      color: var(--ui-faint);
+      line-height: 1.55;
     }
     #legend-panel .maps-section {
-      margin-top: 4px;
+      margin-top: 2px;
     }
     #legend-panel .maps-section summary {
       cursor: pointer;
-      color: #aaa;
-      font-size: 11px;
-      letter-spacing: 0.5px;
+      color: var(--ui-muted);
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       list-style: none;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0.3rem 0;
     }
+    #legend-panel .maps-section summary:hover { color: var(--ui-text-dim); }
     #legend-panel .maps-section summary::-webkit-details-marker { display: none; }
-    #legend-panel .maps-section summary::after { content: '▸'; color: #666; }
-    #legend-panel .maps-section[open] summary::after { content: '▾'; }
+    #legend-panel .maps-section summary::after { content: '+'; color: var(--ui-faint); font-weight: 400; }
+    #legend-panel .maps-section[open] summary::after { content: '\2212'; }
     #legend-panel .maps-body {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-top: 8px;
+      gap: 0.4375rem;
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.5rem 0.625rem;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
     }
     #legend-panel .maps-body input[type="text"],
     #legend-panel .maps-body select {
       width: 100%;
       box-sizing: border-box;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 4px;
-      color: #eee;
-      font-family: monospace;
-      font-size: 11px;
-      padding: 4px 6px;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-text);
+      font-family: var(--ui-font);
+      font-size: 0.6875rem;
+      padding: 0.3rem 0.4rem;
     }
     #legend-panel .maps-body .maps-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 4px;
+      gap: 0.25rem;
     }
     #legend-panel .maps-body .lane-btn {
-      padding: 3px 6px;
-      font-size: 10.5px;
+      padding: 0.2rem 0.375rem;
+      font-size: 0.625rem;
       text-align: center;
+      min-width: 0;
     }
     #legend-panel .maps-body .maps-actions .lane-btn.wide-col {
       grid-column: 1 / -1;
     }
     #legend-panel .maps-status {
-      font-size: 10px;
-      color: #7fd4ff;
-      line-height: 1.35;
+      font-size: 0.625rem;
+      color: var(--acc-info);
+      line-height: 1.4;
       min-height: 14px;
     }
     #legend-panel .trace-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      font-size: 11px;
-      color: #bbb;
+      gap: 0.5rem;
+      font-size: 0.6875rem;
+      color: var(--ui-text-dim);
     }
     #legend-panel .trace-row input[type="range"] {
-      width: 92px;
-      accent-color: #3fa7ff;
+      width: 5.75rem;
+      accent-color: var(--acc-info);
     }
     #legend-panel .trace-hint {
-      font-size: 10px;
-      color: #777;
-      line-height: 1.4;
+      font-size: 0.625rem;
+      color: var(--ui-faint);
+      line-height: 1.45;
     }
 
     /* Traffic state load screen */
@@ -600,11 +763,11 @@
       position: fixed;
       inset: 0;
       z-index: 100000;
-      background: #000;
+      background: #0b0f0d;
       display: none;
       align-items: center;
       justify-content: center;
-      font-family: monospace;
+      font-family: var(--ui-font);
       color: #fff;
     }
     #traffic-load-screen.visible {
@@ -615,122 +778,119 @@
       text-align: center;
     }
     #traffic-load-screen .tls-title {
-      font-size: 13px;
-      letter-spacing: 0.22em;
-      margin-bottom: 18px;
-      opacity: 0.85;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 1.125rem;
+      color: var(--ui-muted);
     }
     #traffic-load-screen .tls-info {
-      font-size: 12px;
-      color: #ddd;
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
       min-height: 1.4em;
-      margin-bottom: 16px;
+      margin-bottom: 1rem;
       line-height: 1.4;
     }
     #traffic-load-screen .tls-bar {
       width: 100%;
-      height: 4px;
-      background: rgba(255,255,255,0.15);
+      height: 3px;
+      background: rgba(255,255,255,0.12);
       overflow: hidden;
+      border-radius: 1px;
     }
     #traffic-load-screen .tls-fill {
       height: 100%;
       width: 0%;
-      background: #fff;
+      background: var(--acc-info);
       transition: width 0.12s linear;
     }
     #traffic-load-screen .tls-pct {
-      margin-top: 10px;
-      font-size: 11px;
-      color: #aaa;
-      letter-spacing: 0.08em;
+      margin-top: 0.625rem;
+      font-size: 0.6875rem;
+      font-family: var(--ui-font-mono);
+      color: var(--ui-muted);
+      letter-spacing: 0.06em;
     }
 
     /* ---------------- Map reference overlay + picker ---------------- */
     #ref-overlay-hud {
       position: fixed;
-      top: 68px;
+      top: 64px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(63, 167, 255, 0.45);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-family: monospace;
-      font-size: 12.5px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
+      padding: 0.5rem 0.875rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 110;
       user-select: none;
       display: none;
       align-items: center;
-      gap: 14px;
+      gap: 0.75rem;
       pointer-events: none;
     }
     #ref-overlay-hud.visible { display: flex; }
     #ref-overlay-hud .ref-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #3fa7ff;
-      box-shadow: 0 0 8px rgba(63, 167, 255, 0.8);
+      width: 0.4375rem;
+      height: 0.4375rem;
+      border-radius: 1px;
+      background: var(--acc-info);
+      flex-shrink: 0;
     }
-    #ref-overlay-hud .ref-title { color: #9cf; font-weight: 700; letter-spacing: 0.5px; }
-    #ref-overlay-hud .ref-meta { color: #aaa; }
-    #ref-overlay-hud kbd {
-      display: inline-block;
-      padding: 1px 6px;
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 4px;
-      background: rgba(255,255,255,0.06);
-      font-size: 11px;
-      color: #ccc;
-    }
+    #ref-overlay-hud .ref-title { color: var(--acc-info); font-weight: 600; letter-spacing: 0.4px; }
+    #ref-overlay-hud .ref-meta { color: var(--ui-muted); }
     #map-picker {
       position: fixed;
       inset: 0;
       z-index: 400;
       display: none;
-      background: rgba(8, 10, 16, 0.72);
+      background: rgba(14, 18, 16, 0.72);
       backdrop-filter: blur(4px);
-      font-family: monospace;
-      color: #eee;
+      font-family: var(--ui-font);
+      color: var(--ui-text-dim);
     }
     #map-picker.open { display: flex; flex-direction: column; }
     #map-picker .mp-bar {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      background: rgba(18, 20, 28, 0.96);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      gap: 0.5rem;
+      padding: 0.625rem 0.875rem;
+      background: var(--ui-bg-strong);
+      border-bottom: 1px solid var(--ui-border);
     }
     #map-picker .mp-title {
-      font-weight: 700;
-      letter-spacing: 0.6px;
-      color: #9cf;
-      margin-right: 6px;
+      font-weight: 600;
+      font-size: 0.6875rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-faint);
+      margin-right: 0.375rem;
     }
     #map-picker input[type="text"],
     #map-picker select {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 4px;
-      color: #eee;
-      font-family: monospace;
-      font-size: 12px;
-      padding: 6px 8px;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-text);
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      padding: 0.375rem 0.5rem;
     }
     #map-picker #mp-search { min-width: 220px; flex: 1; max-width: 360px; }
     #map-picker .lane-btn {
-      padding: 5px 10px;
-      font-size: 11.5px;
+      padding: 0.3rem 0.625rem;
+      font-size: 0.71875rem;
     }
     #map-picker .lane-btn.active {
-      background: rgba(63,167,255,0.25);
-      border-color: #3fa7ff;
-      color: #bfe4ff;
+      background: var(--acc-info-soft);
+      border-color: var(--acc-info);
+      color: #daedf6;
     }
     #map-picker .mp-map-wrap {
       position: relative;
@@ -744,28 +904,28 @@
     #map-picker .mp-frame {
       position: absolute;
       inset: 10% 12%;
-      border: 2px dashed rgba(63, 167, 255, 0.95);
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.38);
+      border: 2px dashed rgba(111, 168, 201, 0.9);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
       pointer-events: none;
       z-index: 500;
-      border-radius: 4px;
+      border-radius: var(--ui-radius-sm);
     }
     #map-picker .mp-frame-label {
       position: absolute;
       top: -22px;
       left: 0;
-      font-size: 11px;
-      color: #bfe4ff;
-      background: rgba(20, 20, 30, 0.85);
-      padding: 2px 8px;
-      border-radius: 4px;
+      font-size: 0.6875rem;
+      color: #daedf6;
+      background: rgba(15, 20, 18, 0.9);
+      padding: 0.125rem 0.5rem;
+      border-radius: var(--ui-radius-sm);
     }
     #map-picker .mp-status {
-      padding: 8px 14px;
-      background: rgba(18, 20, 28, 0.96);
-      border-top: 1px solid rgba(255,255,255,0.1);
-      font-size: 11.5px;
-      color: #9cf;
+      padding: 0.5rem 0.875rem;
+      background: var(--ui-bg-strong);
+      border-top: 1px solid var(--ui-border);
+      font-size: 0.71875rem;
+      color: var(--acc-info);
       min-height: 18px;
     }
 
@@ -777,122 +937,197 @@
     .board.drive-mode.drive-follow-hover {
       cursor: pointer;
     }
-    #drive-panel {
+    /* Conjoined FF + Drive dock — upside-down L (⌝): wide top bar,
+       tall stem on the right. drop-shadow follows the irregular outline. */
+    #sim-dock {
       position: fixed;
       top: 18px;
       right: 18px;
-      background: rgba(20, 20, 30, 0.88);
-      border: 1px solid rgba(63, 167, 255, 0.35);
-      border-radius: 10px;
-      padding: 12px 16px 14px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: flex-start;
       z-index: 100;
+      filter: drop-shadow(0 0.65rem 1.5rem rgba(8, 12, 10, 0.48));
+    }
+    #drive-panel {
+      position: relative;
+      top: auto;
+      right: auto;
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: 0 var(--ui-radius) var(--ui-radius) var(--ui-radius);
+      padding: 0.875rem 1rem 1rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: none;
+      z-index: auto;
       user-select: none;
-      width: 210px;
+      width: 14.5rem;
+      flex: 0 0 14.5rem;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 0.625rem;
+      box-sizing: border-box;
     }
 
-    /* Fast-forwarder — sits just left of the drive panel */
+    /* Fast-forwarder — top-left arm of the L */
     #ff-panel {
-      position: fixed;
-      top: 18px;
-      right: 244px;
-      background: rgba(20, 20, 30, 0.88);
-      border: 1px solid rgba(63, 167, 255, 0.35);
-      border-radius: 10px;
-      padding: 10px 12px 12px;
-      font-family: "Consolas", "Courier New", monospace;
-      font-size: 12px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      z-index: 100;
+      position: relative;
+      top: auto;
+      right: auto;
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-right: none;
+      border-radius: var(--ui-radius) 0 0 var(--ui-radius);
+      padding: 0.875rem 1rem 1rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: none;
+      z-index: auto;
       user-select: none;
-      min-width: 200px;
+      width: 12.5rem;
+      flex: 0 0 12.5rem;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 0.625rem;
+      box-sizing: border-box;
+    }
+    /* Soft seam where the two arms meet */
+    #ff-panel::after {
+      content: '';
+      position: absolute;
+      top: 0.75rem;
+      bottom: 0.75rem;
+      right: 0;
+      width: 1px;
+      background: var(--ui-divider);
+      pointer-events: none;
+    }
+    #ff-panel .ff-panel-title {
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-faint);
     }
     #ff-panel .ff-clock {
-      font-size: 18px;
+      font-family: var(--ui-font-mono);
+      font-size: 1.125rem;
       font-weight: 600;
-      letter-spacing: 0.04em;
-      color: #fff;
+      letter-spacing: 0.02em;
+      color: var(--ui-text);
       line-height: 1.2;
+      font-variant-numeric: tabular-nums;
     }
     #ff-panel .ff-status {
-      background: rgba(196, 140, 110, 0.85);
-      color: #fff;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 3px;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      color: var(--ui-text-dim);
+      font-family: var(--ui-font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      padding: 0.3rem 0.5rem;
+      border-radius: var(--ui-radius-sm);
       letter-spacing: 0.02em;
     }
     #ff-panel .ff-controls {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 0.375rem;
       flex-wrap: wrap;
+      padding: 0.5rem 0.5rem;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
     }
     #ff-panel .ff-icon-btn {
-      background: transparent;
-      border: none;
-      color: #fff;
+      width: 1.75rem;
+      height: 1.75rem;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-text);
       cursor: pointer;
-      padding: 2px 4px;
-      font-size: 14px;
+      padding: 0;
+      font-size: 0.75rem;
       line-height: 1;
-      opacity: 0.9;
-    }
-    #ff-panel .ff-icon-btn:hover { opacity: 1; }
-    #ff-panel .ff-icon-btn.active { color: #3fa7ff; }
-    #ff-panel .ff-speeds {
-      display: flex;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+    #ff-panel .ff-icon-btn:hover {
+      background: var(--control-bg-hover);
+      border-color: var(--control-border-hover);
+    }
+    #ff-panel .ff-icon-btn.active {
+      background: var(--acc-info-soft);
+      border-color: var(--acc-info);
+      color: #daedf6;
+    }
+    #ff-panel .ff-speeds {
+      display: inline-flex;
+      align-items: stretch;
       gap: 1px;
+      background: var(--ui-border-soft);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      overflow: hidden;
     }
     #ff-panel .ff-speed-chevron {
-      background: transparent;
+      background: var(--control-bg);
       border: none;
-      color: rgba(255,255,255,0.28);
+      color: var(--ui-faint);
       cursor: pointer;
-      padding: 0 1px;
-      font-size: 11px;
+      padding: 0 0.35rem;
+      min-width: 1.35rem;
+      height: 1.75rem;
+      font-size: 0.625rem;
       line-height: 1;
+      transition: background 0.12s ease, color 0.12s ease;
     }
-    #ff-panel .ff-speed-chevron.on { color: #fff; }
-    #ff-panel .ff-speed-chevron:hover { color: rgba(255,255,255,0.7); }
+    #ff-panel .ff-speed-chevron.on {
+      background: var(--acc-info-soft);
+      color: var(--acc-info);
+    }
+    #ff-panel .ff-speed-chevron:hover { color: var(--ui-text); background: var(--control-bg-hover); }
+    #ff-panel .ff-speed-chevron.on:hover { color: #daedf6; background: var(--acc-info-soft); }
     #ff-panel .ff-skip-wrap {
       position: relative;
       display: inline-flex;
-      border: 1px solid rgba(255,255,255,0.55);
-      border-radius: 3px;
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
       overflow: visible;
+      height: 1.75rem;
     }
     #ff-panel .ff-skip-main {
-      background: rgba(0,0,0,0.35);
+      background: var(--control-bg);
       border: none;
-      color: #fff;
-      font-family: inherit;
-      font-size: 11px;
-      padding: 4px 8px;
+      color: var(--ui-text);
+      font-family: var(--ui-font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      padding: 0 0.5rem;
       cursor: pointer;
-      min-width: 42px;
+      min-width: 2.75rem;
+      height: 100%;
     }
-    #ff-panel .ff-skip-main:hover { background: rgba(255,255,255,0.08); }
+    #ff-panel .ff-skip-main:hover { background: var(--control-bg-hover); }
     #ff-panel .ff-skip-caret {
-      background: rgba(180,180,180,0.35);
+      background: var(--control-bg);
       border: none;
-      border-left: 1px solid rgba(255,255,255,0.35);
-      color: #111;
-      padding: 4px 6px;
+      border-left: 1px solid var(--control-border);
+      color: var(--ui-muted);
+      padding: 0 0.375rem;
       cursor: pointer;
-      font-size: 9px;
+      font-size: 0.5625rem;
       line-height: 1;
+      height: 100%;
+    }
+    #ff-panel .ff-skip-caret:hover {
+      background: var(--control-bg-hover);
+      color: var(--ui-text);
     }
     #ff-panel .ff-skip-menu {
       display: none;
@@ -900,9 +1135,10 @@
       top: calc(100% + 4px);
       left: 0;
       min-width: 100%;
-      background: rgba(24, 24, 34, 0.98);
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 4px;
+      background: var(--ui-bg-strong);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 20;
       overflow: hidden;
     }
@@ -913,188 +1149,248 @@
       text-align: left;
       background: transparent;
       border: none;
-      color: #ddd;
-      font-family: inherit;
-      font-size: 11px;
-      padding: 6px 10px;
+      color: var(--ui-text-dim);
+      font-family: var(--ui-font-mono);
+      font-size: 0.6875rem;
+      padding: 0.375rem 0.625rem;
       cursor: pointer;
     }
     #ff-panel .ff-skip-menu button:hover,
     #ff-panel .ff-skip-menu button.active {
-      background: rgba(63,167,255,0.22);
-      color: #fff;
+      background: var(--acc-info-soft);
+      color: #daedf6;
     }
     #ff-panel .ff-minutes {
       display: none;
-      gap: 6px;
+      gap: 0.375rem;
       align-items: center;
+      padding: 0.5rem 0.5rem;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
     }
     #ff-panel .ff-minutes.open { display: flex; }
     #ff-panel .ff-minutes label {
-      color: #888;
-      font-size: 10px;
+      color: var(--ui-muted);
+      font-size: 0.625rem;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 0.375rem;
+      flex: 1;
     }
     #ff-panel .ff-minutes input {
-      width: 52px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 4px;
-      color: #eee;
-      font-family: inherit;
-      font-size: 12px;
-      padding: 3px 6px;
+      width: 3.25rem;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-text);
+      font-family: var(--ui-font-mono);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.375rem;
     }
     #ff-panel .ff-minutes .lane-btn {
-      padding: 3px 8px;
-      font-size: 11px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.6875rem;
     }
     #ff-panel.ff-running {
-      border-color: rgba(255, 180, 90, 0.65);
+      border-color: rgba(201, 154, 85, 0.55);
+    }
+    #sim-dock:has(#ff-panel.ff-running) #drive-panel {
+      border-color: rgba(201, 154, 85, 0.35);
     }
     #ff-panel .ff-scrub {
       display: none;
       flex-direction: column;
-      gap: 4px;
+      gap: 0.25rem;
     }
     #ff-panel.ff-running .ff-scrub { display: flex; }
     #ff-panel .ff-scrub-label {
-      font-size: 10px;
-      color: #c8a878;
-      letter-spacing: 0.03em;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--acc-warn);
     }
     #ff-panel .ff-scrub-bar {
       width: 100%;
       height: 3px;
-      background: rgba(255,255,255,0.12);
+      background: var(--ui-border-soft);
       overflow: hidden;
-      border-radius: 2px;
+      border-radius: 1px;
     }
     #ff-panel .ff-scrub-fill {
       height: 100%;
       width: 0%;
-      background: #e8a86a;
+      background: var(--acc-warn);
     }
-    #ff-panel .ff-opt-row {
+    #ff-panel .opt-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      padding: 0.5rem 0.625rem;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
+    }
+    #ff-panel .opt-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      margin-top: -2px;
+      gap: 0.5rem;
     }
-    #ff-panel .ff-opt-label {
-      color: #888;
-      font-size: 10px;
-      letter-spacing: 0.02em;
+    #ff-panel .opt-row-label {
+      color: var(--ui-muted);
+      font-size: 0.6875rem;
     }
-    #ff-panel .ff-opt-row .lane-btn {
-      padding: 2px 8px;
-      font-size: 10px;
-      min-width: 36px;
+    #ff-panel .opt-row .lane-btn {
+      min-width: 2.6rem;
+      text-align: center;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.6875rem;
     }
-    #ff-panel .ff-opt-row .lane-btn.active {
-      background: rgba(232, 168, 106, 0.22);
-      border-color: #e8a86a;
-      color: #f0d0a8;
+    #ff-panel .opt-row .lane-btn.active {
+      background: var(--acc-warn-soft);
+      border-color: var(--acc-warn);
+      color: #e2c090;
     }
     #drive-panel .drive-panel-title {
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: #aaa;
-      margin-bottom: 2px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-faint);
+      margin-bottom: 0.125rem;
     }
+    #drive-panel .drive-actions {
+      display: flex;
+      gap: 0.375rem;
+    }
+    #drive-panel .drive-actions .lane-btn { flex: 1; text-align: center; }
     #drive-panel .lane-btn.wide { width: 100%; box-sizing: border-box; text-align: center; }
-    #drive-panel .lane-btn.active { background: rgba(63,167,255,0.25); border-color: #3fa7ff; color: #bfe4ff; }
-    #drive-panel .drive-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    #drive-panel .stat-label { color: #888; }
-    #drive-panel .stat-value { color: #9f9; font-weight: 700; }
+    #drive-panel .lane-btn.active { background: var(--acc-info-soft); border-color: var(--acc-info); color: #daedf6; }
+    #drive-panel .drive-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    #drive-panel .stat-label { color: var(--ui-muted); }
+    #drive-panel .stat-value { font-family: var(--ui-font-mono); color: var(--ui-text); font-weight: 600; }
+    #drive-panel .lane-btn.danger-ghost {
+      background: transparent;
+      border-color: rgba(201, 107, 95, 0.5);
+      color: #dba39d;
+    }
+    #drive-panel .lane-btn.danger-ghost:hover { background: var(--acc-danger-soft); border-color: var(--acc-danger); color: #f3d3ce; }
+    #drive-panel .drive-section-label {
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-faint);
+    }
+    #drive-panel .opt-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      padding: 0.5rem 0.625rem;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
+    }
+    #drive-panel .opt-group .opt-row + .opt-row {
+      padding-top: 0.375rem;
+      border-top: 1px solid var(--ui-divider);
+    }
     #drive-panel .drive-divider {
       height: 1px;
-      background: rgba(255,255,255,0.12);
+      background: var(--ui-divider);
       margin: 2px 0;
     }
     #drive-panel .drive-advanced summary {
       cursor: pointer;
-      color: #aaa;
-      font-size: 11px;
-      letter-spacing: 0.4px;
+      color: var(--ui-muted);
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       list-style: none;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0.2rem 0;
     }
+    #drive-panel .drive-advanced summary:hover { color: var(--ui-text-dim); }
     #drive-panel .drive-advanced summary::-webkit-details-marker { display: none; }
-    #drive-panel .drive-advanced summary::after { content: '▸'; color: #666; }
-    #drive-panel .drive-advanced[open] summary::after { content: '▾'; }
+    #drive-panel .drive-advanced summary::after { content: '+'; color: var(--ui-faint); font-weight: 400; }
+    #drive-panel .drive-advanced[open] summary::after { content: '\2212'; }
     #drive-panel .drive-advanced-body {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.625rem 0.625rem;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
     }
     #drive-panel .spawner-fields {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 0.375rem;
     }
     #drive-panel .spawner-fields label {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      font-size: 10.5px;
-      color: #888;
+      font-size: 0.625rem;
+      color: var(--ui-muted);
     }
     #drive-panel .spawner-fields input[type="number"] {
       width: 100%;
       box-sizing: border-box;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 4px;
-      color: #eee;
-      font-family: monospace;
-      font-size: 12px;
-      padding: 3px 6px;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-text);
+      font-family: var(--ui-font-mono);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.375rem;
     }
     #drive-panel .spawner-indef {
       grid-column: 1 / -1;
       flex-direction: row !important;
       align-items: center;
-      gap: 6px !important;
-      color: #bbb !important;
+      gap: 0.375rem !important;
+      color: var(--ui-text-dim) !important;
     }
     #spawner-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0.375rem;
       max-height: 140px;
       overflow-y: auto;
     }
     #spawner-list .spawner-empty {
-      font-size: 10.5px;
-      color: #777;
+      font-size: 0.65625rem;
+      color: var(--ui-faint);
       line-height: 1.4;
     }
     #spawner-list .spawner-row {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      padding: 6px 8px;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
+      padding: 0.375rem 0.5rem;
     }
     #spawner-list .spawner-row-title {
-      font-size: 10px;
-      color: #bbb;
-      margin-bottom: 5px;
+      font-size: 0.625rem;
+      font-family: var(--ui-font-mono);
+      color: var(--ui-text-dim);
+      margin-bottom: 0.3rem;
       line-height: 1.35;
     }
     #spawner-list .spawner-row-actions {
       display: flex;
-      gap: 4px;
+      gap: 0.25rem;
     }
     #spawner-list .lane-btn.sig-mini {
-      padding: 2px 7px;
-      font-size: 10px;
+      padding: 0.125rem 0.4375rem;
+      font-size: 0.625rem;
       min-width: 0;
       flex: 1;
     }
@@ -1104,54 +1400,44 @@
       top: 18px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(63, 167, 255, 0.45);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-family: monospace;
-      font-size: 12.5px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
+      padding: 0.5rem 0.875rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 110;
       user-select: none;
       display: none;
       align-items: center;
-      gap: 14px;
+      gap: 0.75rem;
       pointer-events: none;
     }
     #drive-hud.visible { display: flex; }
     #drive-hud .drive-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #3fa7ff;
-      box-shadow: 0 0 8px rgba(63, 167, 255, 0.8);
-      animation: build-pulse 1.1s ease-in-out infinite;
+      width: 0.4375rem;
+      height: 0.4375rem;
+      border-radius: 1px;
+      background: var(--acc-info);
+      flex-shrink: 0;
     }
-    #drive-hud .drive-title { color: #9cf; font-weight: 700; letter-spacing: 0.5px; }
-    #drive-hud .drive-meta { color: #aaa; }
-    #drive-hud kbd {
-      display: inline-block;
-      padding: 1px 6px;
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 4px;
-      background: rgba(255,255,255,0.06);
-      font-size: 11px;
-      color: #ccc;
-    }
+    #drive-hud .drive-title { color: var(--acc-info); font-weight: 600; letter-spacing: 0.4px; }
+    #drive-hud .drive-meta { color: var(--ui-muted); }
 
     #drive-toast {
       position: fixed;
       bottom: 90px;
       left: 50%;
       transform: translateX(-50%) translateY(8px);
-      background: rgba(35, 20, 20, 0.94);
-      border: 1px solid rgba(255, 120, 120, 0.45);
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #fdd;
+      background: var(--ui-bg-strong);
+      border: 1px solid rgba(201, 107, 95, 0.45);
+      border-radius: var(--ui-radius-sm);
+      padding: 0.5rem 1rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: #f1cec9;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
@@ -1163,29 +1449,29 @@
       position: fixed;
       bottom: 18px;
       right: 18px;
-      background: linear-gradient(165deg, rgba(18, 24, 40, 0.97), rgba(10, 14, 24, 0.97));
-      border: 1px solid rgba(127, 212, 255, 0.38);
-      border-radius: 12px;
-      padding: 11px 12px 10px;
-      font-family: ui-monospace, Consolas, monospace;
-      font-size: 11px;
-      color: #e8ecf4;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+      background: var(--ui-bg-strong);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius);
+      padding: 0.7rem 0.75rem 0.65rem;
+      font-family: var(--ui-font);
+      font-size: 0.7rem;
+      color: var(--ui-text);
+      box-shadow: var(--ui-shadow);
       z-index: 115;
       pointer-events: auto;
       display: none;
-      width: 248px;
-      max-width: calc(100vw - 28px);
-      max-height: calc(100vh - 96px);
+      width: 15.5rem;
+      max-width: calc(100vw - 1.75rem);
+      max-height: calc(100vh - 6rem);
       overflow-y: auto;
       overflow-x: hidden;
       scrollbar-width: thin;
-      scrollbar-color: rgba(127,212,255,0.35) transparent;
+      scrollbar-color: rgba(255,255,255,0.25) transparent;
     }
     #car-overlay.visible { display: block; }
     #car-overlay.follow-mode {
-      border-color: rgba(255, 224, 102, 0.55);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,224,102,0.1);
+      border-color: rgba(201, 178, 90, 0.55);
+      box-shadow: var(--ui-shadow);
     }
     #car-overlay .co-head {
       display: flex;
@@ -1195,27 +1481,28 @@
       margin-bottom: 8px;
     }
     #car-overlay .co-id {
-      color: #9ecfff;
-      font-weight: 700;
-      font-size: 12px;
+      color: var(--acc-info);
+      font-family: var(--ui-font-mono);
+      font-weight: 600;
+      font-size: 0.75rem;
       letter-spacing: 0.4px;
     }
-    #car-overlay.follow-mode .co-id { color: #ffe066; }
+    #car-overlay.follow-mode .co-id { color: var(--acc-signal); }
     #car-overlay .co-badge {
       font-size: 9px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       padding: 2px 7px;
-      border-radius: 999px;
+      border-radius: var(--ui-radius-sm);
       background: rgba(255,255,255,0.07);
       color: #8a93a8;
       flex-shrink: 0;
     }
-    #car-overlay.follow-mode .co-badge { color: #ffe066; background: rgba(255,224,102,0.12); }
+    #car-overlay.follow-mode .co-badge { color: var(--acc-signal); background: var(--acc-signal-soft); }
     #car-overlay .co-status-block {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 8px;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
       padding: 7px 9px 8px;
       margin-bottom: 8px;
     }
@@ -1253,8 +1540,9 @@
     }
     #car-overlay .co-metric .v {
       color: #f2f4f8;
-      font-weight: 700;
-      font-size: 11.5px;
+      font-family: var(--ui-font-mono);
+      font-weight: 600;
+      font-size: 11px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1273,29 +1561,30 @@
     #car-overlay .co-row .k { color: #8a93a8; flex-shrink: 0; }
     #car-overlay .co-row .v {
       color: #f2f4f8;
-      font-weight: 650;
+      font-family: var(--ui-font-mono);
+      font-weight: 600;
       text-align: right;
       word-break: break-word;
     }
     #car-overlay .co-debug { display: none; margin-top: 4px; }
     #car-overlay.debug-on .co-debug { display: block; }
     #car-overlay .co-section {
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
+      background: var(--ui-bg-raised);
       margin-top: 6px;
       overflow: hidden;
     }
     #car-overlay .co-section + .co-section { margin-top: 5px; }
     #car-overlay .co-section[open] {
-      background: rgba(127, 212, 255, 0.04);
-      border-color: rgba(127, 212, 255, 0.16);
+      background: var(--acc-info-soft);
+      border-color: rgba(111, 168, 201, 0.24);
     }
     #car-overlay .co-section.hot {
-      border-color: rgba(255, 176, 70, 0.35);
+      border-color: rgba(201, 154, 85, 0.4);
     }
     #car-overlay .co-section.hot[open] {
-      background: rgba(255, 176, 70, 0.06);
+      background: var(--acc-warn-soft);
     }
     #car-overlay .co-section > summary {
       list-style: none;
@@ -1309,14 +1598,14 @@
       font-weight: 700;
       letter-spacing: 0.55px;
       text-transform: uppercase;
-      color: #9ecfff;
+      color: var(--acc-info);
     }
     #car-overlay .co-section > summary::-webkit-details-marker { display: none; }
     #car-overlay .co-section > summary::before {
       content: '';
       width: 0;
       height: 0;
-      border-left: 4px solid #7fd4ff;
+      border-left: 4px solid var(--acc-info);
       border-top: 3px solid transparent;
       border-bottom: 3px solid transparent;
       flex-shrink: 0;
@@ -1343,10 +1632,10 @@
       white-space: nowrap;
       text-align: right;
     }
-    #car-overlay .co-section.hot .co-sec-brief { color: #ffc878; }
+    #car-overlay .co-section.hot .co-sec-brief { color: var(--acc-warn); }
     #car-overlay .co-section-body {
       padding: 2px 8px 7px;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid var(--ui-border-soft);
     }
     #car-overlay .co-tags {
       display: flex;
@@ -1358,7 +1647,7 @@
     #car-overlay .co-tag {
       font-size: 9.5px;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: var(--ui-radius-sm);
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.08);
       line-height: 1.2;
@@ -1376,33 +1665,34 @@
       margin-top: 0;
       font-family: inherit;
       font-size: 10.5px;
+      font-weight: 500;
       padding: 6px 8px;
       cursor: pointer;
       box-sizing: border-box;
-      border-radius: 7px;
+      border-radius: var(--ui-radius-sm);
     }
     #car-overlay .co-unfollow {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: #ddd;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      color: var(--ui-text-dim);
     }
-    #car-overlay .co-unfollow:hover { background: rgba(255,255,255,0.14); }
+    #car-overlay .co-unfollow:hover { background: var(--control-bg-hover); }
     #car-overlay .co-delete {
-      background: rgba(220, 60, 60, 0.18);
-      border: 1px solid rgba(255, 100, 100, 0.35);
-      color: #ffb0b0;
+      background: var(--acc-danger-soft);
+      border: 1px solid rgba(201, 107, 95, 0.4);
+      color: #e8b4ac;
     }
-    #car-overlay .co-delete:hover { background: rgba(220, 60, 60, 0.32); }
+    #car-overlay .co-delete:hover { background: rgba(201, 107, 95, 0.28); }
     #car-overlay .co-control {
-      background: rgba(63, 167, 255, 0.16);
-      border: 1px solid rgba(63, 167, 255, 0.4);
-      color: #bfe4ff;
+      background: var(--acc-info-soft);
+      border: 1px solid rgba(111, 168, 201, 0.4);
+      color: #bfe0ee;
     }
-    #car-overlay .co-control:hover { background: rgba(63, 167, 255, 0.28); }
+    #car-overlay .co-control:hover { background: rgba(111, 168, 201, 0.26); }
     #car-overlay .co-control.active {
-      background: rgba(255, 224, 102, 0.18);
-      border-color: rgba(255, 224, 102, 0.45);
-      color: #ffe066;
+      background: var(--acc-signal-soft);
+      border-color: rgba(201, 178, 90, 0.45);
+      color: var(--acc-signal);
     }
     #car-overlay .co-tip {
       margin-top: 6px;
@@ -1414,30 +1704,30 @@
     #car-overlay .co-why-btn {
       width: 100%;
       margin-top: 7px;
-      background: rgba(255, 176, 70, 0.12);
-      border: 1px solid rgba(255, 176, 70, 0.4);
-      border-radius: 7px;
-      color: #ffc878;
+      background: var(--acc-warn-soft);
+      border: 1px solid rgba(201, 154, 85, 0.4);
+      border-radius: var(--ui-radius-sm);
+      color: #e2c090;
       font-family: inherit;
       font-size: 10.5px;
-      font-weight: 700;
+      font-weight: 600;
       letter-spacing: 0.3px;
       padding: 6px 8px;
       cursor: pointer;
       box-sizing: border-box;
     }
-    #car-overlay .co-why-btn:hover { background: rgba(255, 176, 70, 0.22); }
+    #car-overlay .co-why-btn:hover { background: rgba(201, 154, 85, 0.26); }
     #car-overlay .co-why-btn.active {
-      background: rgba(255, 176, 70, 0.28);
-      border-color: rgba(255, 200, 100, 0.65);
-      color: #ffe0a8;
+      background: rgba(201, 154, 85, 0.3);
+      border-color: rgba(201, 154, 85, 0.65);
+      color: #efd6ac;
     }
     #car-overlay .co-why {
       display: none;
       margin-top: 7px;
-      border: 1px solid rgba(255, 176, 70, 0.28);
-      border-radius: 8px;
-      background: rgba(255, 160, 40, 0.06);
+      border: 1px solid rgba(201, 154, 85, 0.28);
+      border-radius: var(--ui-radius-sm);
+      background: rgba(201, 154, 85, 0.06);
       padding: 7px 8px 8px;
       max-height: 280px;
       overflow-y: auto;
@@ -1447,14 +1737,14 @@
       font-size: 9px;
       letter-spacing: 0.7px;
       text-transform: uppercase;
-      color: #ffc878;
+      color: #e2c090;
       font-weight: 700;
       margin-bottom: 5px;
     }
     #car-overlay .co-why-verdict {
       font-size: 11px;
       font-weight: 700;
-      color: #fff0d0;
+      color: #f4e6cc;
       line-height: 1.35;
       margin-bottom: 6px;
       word-break: break-word;
@@ -1475,7 +1765,7 @@
     }
     #car-overlay .co-why-fact .k { color: #8a93a8; flex-shrink: 0; }
     #car-overlay .co-why-fact .v { color: #e8ecf4; text-align: right; font-weight: 650; word-break: break-word; }
-    #car-overlay .co-why-fact.alert .v { color: #ff9a7a; }
+    #car-overlay .co-why-fact.alert .v { color: #e39a7a; }
     #car-overlay .co-why-sub {
       font-size: 8.5px;
       letter-spacing: 0.55px;
@@ -1489,19 +1779,20 @@
       grid-template-columns: 1fr auto;
       gap: 2px 8px;
       padding: 4px 6px;
-      border-radius: 5px;
+      border-radius: var(--ui-radius-sm);
       background: rgba(0,0,0,0.18);
       border: 1px solid rgba(255,255,255,0.05);
       font-size: 9.5px;
     }
     #car-overlay .co-why-row.binding {
-      background: rgba(255, 90, 70, 0.16);
-      border-color: rgba(255, 120, 90, 0.45);
+      background: var(--acc-danger-soft);
+      border-color: rgba(201, 107, 95, 0.45);
     }
     #car-overlay .co-why-row .name { color: #c8d0e0; font-weight: 650; }
-    #car-overlay .co-why-row.binding .name { color: #ffb0a0; }
+    #car-overlay .co-why-row.binding .name { color: #e8b4ac; }
     #car-overlay .co-why-row .spd {
       color: #f2f4f8;
+      font-family: var(--ui-font-mono);
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
@@ -1510,7 +1801,7 @@
       color: #8a93a8;
       font-size: 9px;
     }
-    #car-overlay .co-why-row.binding .st { color: #ffc8b8; }
+    #car-overlay .co-why-row.binding .st { color: #e6bfb6; }
     #car-overlay .co-why-empty {
       font-size: 9.5px;
       color: #6d778c;
@@ -1523,16 +1814,16 @@
       bottom: 86px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(180deg, rgba(28, 34, 48, 0.97), rgba(16, 20, 32, 0.97));
-      border: 1px solid rgba(120, 170, 220, 0.35);
-      border-radius: 12px;
+      background: var(--ui-bg-strong);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
       padding: 8px;
       display: none;
       flex-direction: column;
       gap: 6px;
-      font-family: system-ui, Segoe UI, sans-serif;
-      color: #e8eef8;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+      font-family: var(--ui-font);
+      color: var(--ui-text);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 101;
       user-select: none;
       width: 232px;
@@ -1549,11 +1840,11 @@
       padding: 0 1px;
     }
     #car-control-hud .cc-id {
-      color: #ffe066;
+      color: var(--acc-signal);
+      font-family: var(--ui-font-mono);
       font-size: 10px;
-      font-weight: 650;
+      font-weight: 600;
       letter-spacing: 0.3px;
-      font-family: ui-monospace, Consolas, monospace;
     }
     #car-control-hud .cc-row {
       display: grid;
@@ -1568,9 +1859,9 @@
     #car-control-hud .cc-btn {
       appearance: none;
       -webkit-appearance: none;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 9px;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
       color: #f2f6ff;
       cursor: pointer;
       height: 38px;
@@ -1612,27 +1903,27 @@
       stroke: none;
     }
     #car-control-hud .cc-btn.active {
-      background: rgba(63, 167, 255, 0.28);
-      border-color: #4db0ff;
+      background: var(--acc-info-soft);
+      border-color: var(--acc-info);
       color: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(120, 200, 255, 0.25);
+      box-shadow: inset 0 0 0 1px rgba(111, 168, 201, 0.3);
     }
     #car-control-hud .cc-btn.warn.active {
-      background: rgba(255, 90, 70, 0.3);
-      border-color: #ff6b4a;
+      background: var(--acc-danger-soft);
+      border-color: var(--acc-danger);
       color: #fff;
-      box-shadow: inset 0 0 0 1px rgba(255, 160, 140, 0.25);
+      box-shadow: inset 0 0 0 1px rgba(201, 107, 95, 0.3);
     }
     #car-control-hud .cc-btn.good.active {
-      background: rgba(70, 200, 120, 0.3);
-      border-color: #4cc87a;
+      background: var(--acc-go-soft);
+      border-color: var(--acc-go);
       color: #fff;
-      box-shadow: inset 0 0 0 1px rgba(160, 255, 190, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(107, 171, 126, 0.3);
     }
     #car-control-hud .cc-btn.cc-exit {
       width: 26px;
       height: 26px;
-      border-radius: 8px;
+      border-radius: var(--ui-radius-sm);
       flex: 0 0 auto;
     }
     #car-control-hud .cc-btn.cc-exit svg.cc-ico {
@@ -1651,99 +1942,117 @@
       position: fixed;
       bottom: 18px;
       left: 18px;
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(255, 224, 102, 0.4);
-      border-radius: 10px;
-      padding: 12px 14px 14px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #ddd;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius);
+      padding: 0.875rem 1rem 1rem;
+      font-family: var(--ui-font);
+      font-size: 0.75rem;
+      color: var(--ui-text-dim);
+      box-shadow: var(--ui-shadow);
       z-index: 100;
       user-select: none;
-      width: 220px;
+      width: 14rem;
       display: none;
       flex-direction: column;
-      gap: 8px;
+      gap: 0.625rem;
       max-height: calc(100vh - 120px);
       overflow-y: auto;
     }
     #signal-panel.visible { display: flex; }
     #signal-panel .sig-title {
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: #ffe066;
-      font-weight: 700;
-      margin-bottom: 2px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--acc-signal);
+      margin-bottom: 0.125rem;
+    }
+    #signal-panel .opt-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      padding: 0.5rem 0.625rem;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
     }
     #signal-panel .sig-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 0.5rem;
     }
-    #signal-panel .sig-row .k { color: #888; }
+    #signal-panel .opt-group .sig-row + .sig-row {
+      padding-top: 0.375rem;
+      border-top: 1px solid var(--ui-divider);
+    }
+    #signal-panel .sig-row .k { color: var(--ui-muted); }
+    #signal-panel .sig-row .lane-btn { min-width: 2.6rem; text-align: center; padding: 0.2rem 0.6rem; font-size: 0.6875rem; }
     #signal-panel .sig-timing {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 0.375rem;
     }
     #signal-panel .sig-timing label {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      font-size: 10.5px;
-      color: #888;
+      font-size: 0.625rem;
+      color: var(--ui-muted);
     }
     #signal-panel .sig-timing input {
       width: 100%;
       box-sizing: border-box;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 4px;
-      color: #eee;
-      font-family: monospace;
-      font-size: 12px;
-      padding: 3px 6px;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-text);
+      font-family: var(--ui-font-mono);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.375rem;
     }
     #signal-panel .sig-divider {
       height: 1px;
-      background: rgba(255,255,255,0.12);
+      background: var(--ui-divider);
       margin: 2px 0;
     }
     #signal-panel .sig-heads-title {
-      font-size: 10.5px;
-      color: #aaa;
-      letter-spacing: 0.5px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ui-faint);
     }
-    #sig-heads-list { display: flex; flex-direction: column; gap: 6px; }
+    #sig-heads-list { display: flex; flex-direction: column; gap: 0.375rem; }
     .sig-head-row {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      padding: 6px 8px;
+      background: var(--ui-bg-raised);
+      border: 1px solid var(--ui-border-soft);
+      border-radius: var(--ui-radius-sm);
+      padding: 0.375rem 0.5rem;
       cursor: pointer;
     }
     .sig-head-row.selected {
-      border-color: rgba(255, 224, 102, 0.55);
-      background: rgba(255, 224, 102, 0.08);
+      border-color: rgba(201, 178, 90, 0.5);
+      background: var(--acc-signal-soft);
     }
     .sig-head-title {
-      font-size: 10.5px;
-      color: #bbb;
-      margin-bottom: 5px;
+      font-size: 0.625rem;
+      font-family: var(--ui-font-mono);
+      color: var(--ui-text-dim);
+      margin-bottom: 0.3rem;
     }
-    .sig-move-btns { display: flex; flex-wrap: wrap; gap: 4px; }
+    .sig-move-btns { display: flex; flex-wrap: wrap; gap: 0.25rem; }
     .lane-btn.sig-mini {
-      padding: 2px 7px;
-      font-size: 11px;
+      padding: 0.125rem 0.4375rem;
+      font-size: 0.6875rem;
       min-width: 0;
     }
     #signal-panel .sig-actions {
       display: flex;
-      gap: 6px;
+      gap: 0.375rem;
     }
-    #signal-panel .sig-actions .lane-btn { flex: 1; text-align: center; font-size: 11px; padding: 4px 6px; }
+    #signal-panel .sig-actions .lane-btn { flex: 1; text-align: center; font-size: 0.6875rem; padding: 0.25rem 0.375rem; }
 
     /* Top-middle view chrome: lane-graph color + light visibility */
     #view-bar {
@@ -1753,22 +2062,22 @@
       transform: translateX(-50%);
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 7px 12px;
-      background: rgba(20, 20, 30, 0.9);
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 999px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+      gap: 0.5rem;
+      padding: 0.4375rem 0.625rem;
+      background: var(--ui-bg);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius);
+      box-shadow: var(--ui-shadow-sm);
       z-index: 120;
       user-select: none;
     }
     #view-bar .view-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.06);
-      color: #ddd;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: var(--ui-radius-sm);
+      border: 1px solid var(--control-border);
+      background: var(--control-bg);
+      color: var(--ui-text-dim);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -1777,17 +2086,17 @@
       transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
     #view-bar .view-btn:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.35);
+      background: var(--control-bg-hover);
+      border-color: var(--control-border-hover);
     }
     #view-bar .view-btn.active {
-      background: rgba(63,167,255,0.18);
-      border-color: rgba(63,167,255,0.65);
-      box-shadow: 0 0 0 1px rgba(63,167,255,0.25);
+      background: var(--acc-info-soft);
+      border-color: var(--acc-info);
+      box-shadow: none;
     }
     #view-bar .view-btn.mode-light {
-      background: rgba(46,204,113,0.14);
-      border-color: rgba(46,204,113,0.55);
+      background: var(--acc-go-soft);
+      border-color: rgba(107, 171, 126, 0.55);
     }
     #view-graph-icon {
       display: block;
@@ -1862,6 +2171,23 @@
     #view-btn-auto-junction:not(.active) {
       opacity: 0.45;
     }
+    #view-btn-paths.active {
+      background: rgba(63, 167, 255, 0.2);
+      border-color: rgba(63, 167, 255, 0.7);
+      box-shadow: 0 0 0 1px rgba(63, 167, 255, 0.28);
+    }
+    #view-paths-icon {
+      display: block;
+      width: 22px;
+      height: 18px;
+      overflow: visible;
+    }
+    #view-paths-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
     #view-t-icon {
       display: block;
       width: 18px;
@@ -1920,13 +2246,13 @@
       left: 50%;
       transform: translateX(-50%);
       max-width: min(520px, 92vw);
-      padding: 7px 14px;
-      background: rgba(20, 20, 30, 0.92);
-      border: 1px solid rgba(231, 76, 60, 0.45);
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
-      color: #eee;
-      font: 600 12px/1.35 monospace;
+      padding: 0.4375rem 0.875rem;
+      background: var(--ui-bg);
+      border: 1px solid rgba(201, 107, 95, 0.4);
+      border-radius: var(--ui-radius-sm);
+      box-shadow: var(--ui-shadow-sm);
+      color: var(--ui-text);
+      font: 600 0.75rem/1.35 var(--ui-font-mono);
       z-index: 120;
       pointer-events: none;
       text-align: center;
@@ -1935,11 +2261,11 @@
       text-overflow: ellipsis;
     }
     #junction-editor-status.visible { display: block; }
-    #junction-editor-status .jes-k { color: #9aa3b2; font-weight: 500; }
-    #junction-editor-status .jes-stop { color: #ff6b5a; }
-    #junction-editor-status .jes-yield { color: #f1c40f; }
-    #junction-editor-status .jes-row { color: #7dffa0; }
-    #junction-editor-status .jes-none { color: #8b93a7; }
+    #junction-editor-status .jes-k { color: var(--ui-muted); font-weight: 500; }
+    #junction-editor-status .jes-stop { color: var(--acc-danger); }
+    #junction-editor-status .jes-yield { color: var(--acc-warn); }
+    #junction-editor-status .jes-row { color: var(--acc-go); }
+    #junction-editor-status .jes-none { color: var(--ui-faint); }
   </style>
 </head>
 <body>
@@ -1979,9 +2305,28 @@
       title="Junction editor: Off (click to edit stop / yield / R.O.W.)">
       <img src="signs/stop.png" alt="Junction editor" width="22" height="22">
     </button>
-    <button type="button" class="view-btn active" id="view-btn-auto-junction"
+    <button type="button" class="view-btn" id="view-btn-paths"
+      onclick="toggleLaneGraphEditMode()"
+      title="Path edit: Off (click to select / create / rewire junction curves)">
+      <span id="view-paths-icon" aria-hidden="true">
+        <svg viewBox="0 0 22 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- turn curves: straight / left / right -->
+          <path d="M4 14 C8 14, 12 9, 18 4" stroke="#3fa7ff" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M4 14 C7 11, 8 6, 10 3" stroke="#b98bff" stroke-width="1.45" stroke-linecap="round"/>
+          <path d="M4 14 C10 15, 15 13, 19 10" stroke="#ff9d4d" stroke-width="1.45" stroke-linecap="round"/>
+          <!-- enter nodes (green) -->
+          <circle cx="4" cy="14" r="2.15" fill="#2ecc71" stroke="#0a0d12" stroke-width="0.6"/>
+          <circle cx="2.2" cy="10.2" r="1.55" fill="#2ecc71" stroke="#0a0d12" stroke-width="0.5"/>
+          <!-- exit nodes (red) -->
+          <circle cx="18" cy="4" r="2.15" fill="#ef5555" stroke="#0a0d12" stroke-width="0.6"/>
+          <circle cx="10" cy="3" r="1.55" fill="#ef5555" stroke="#0a0d12" stroke-width="0.5"/>
+          <circle cx="19" cy="10" r="1.55" fill="#ef5555" stroke="#0a0d12" stroke-width="0.5"/>
+        </svg>
+      </span>
+    </button>
+    <button type="button" class="view-btn" id="view-btn-auto-junction"
       onclick="toggleAutoJunctionControls()"
-      title="Auto junction signs: On (T / multi-way get stop / yield / R.O.W. automatically)">
+      title="Auto junction signs: Off (new junctions stay unsigned until you set them)">
       <span id="view-t-icon" aria-hidden="true">
         <span class="t-bar"></span><span class="t-stem"></span>
       </span>
@@ -1997,23 +2342,27 @@
   <div id="junction-editor-status" aria-live="polite"></div>
 
   <div id="legend-panel">
-    <div class="legend-title">JUNCTION LEGEND</div>
-    <div class="legend-row"><span class="swatch" style="background:var(--straight)"></span>Straight</div>
-    <div class="legend-row"><span class="swatch" style="background:var(--left-turn)"></span>Left turn</div>
-    <div class="legend-row"><span class="swatch" style="background:var(--right-turn)"></span>Right turn</div>
-    <div class="legend-row"><span class="swatch" style="background:var(--uturn)"></span>U-turn</div>
-    <div class="divider"></div>
-    <div class="legend-row"><span class="dot" style="background:var(--enter)"></span>Entering lane</div>
-    <div class="legend-row"><span class="dot" style="background:var(--exit)"></span>Exiting lane</div>
-    <div class="divider"></div>
-    <div class="uturn-row">
-      <span>Include U-turns</span>
-      <button class="lane-btn" id="btn-uturn" onclick="toggleUturns()">Off</button>
-    </div>
-    <div class="uturn-row" style="margin-top:8px">
-      <span>Common sense</span>
-      <button class="lane-btn active" id="btn-common" onclick="toggleCommonSense()">On</button>
-    </div>
+    <details class="maps-section" id="turn-legend-section">
+      <summary>TURN LEGEND</summary>
+      <div class="maps-body">
+        <div class="legend-row"><span class="swatch" style="background:var(--straight)"></span>Straight</div>
+        <div class="legend-row"><span class="swatch" style="background:var(--left-turn)"></span>Left turn</div>
+        <div class="legend-row"><span class="swatch" style="background:var(--right-turn)"></span>Right turn</div>
+        <div class="legend-row"><span class="swatch" style="background:var(--uturn)"></span>U-turn</div>
+        <div class="divider"></div>
+        <div class="legend-row"><span class="dot" style="background:var(--enter)"></span>Entering lane</div>
+        <div class="legend-row"><span class="dot" style="background:var(--exit)"></span>Exiting lane</div>
+        <div class="divider"></div>
+        <div class="uturn-row">
+          <span>Include U-turns</span>
+          <button class="lane-btn" id="btn-uturn" onclick="toggleUturns()">Off</button>
+        </div>
+        <div class="uturn-row" style="margin-top:8px">
+          <span>Common sense</span>
+          <button class="lane-btn active" id="btn-common" onclick="toggleCommonSense()">On</button>
+        </div>
+      </div>
+    </details>
     <div class="divider"></div>
     <div class="hint" id="mode-hint">View mode · click lane nodes to set turns (click again to cycle) · click junctions/signals to edit · empty click deselects<br>Scroll to zoom · Middle-drag or Space+drag to pan</div>
     <div class="divider"></div>
@@ -2036,7 +2385,7 @@
       </div>
     </details>
     <div class="divider"></div>
-    <details class="maps-section" id="trace-section" open>
+    <details class="maps-section" id="trace-section">
       <summary>TRACE MAP</summary>
       <div class="maps-body">
         <div class="trace-hint">Live map glued to the board. Adjust to move / scale / rotate. Lock before building.</div>
@@ -2119,30 +2468,44 @@
 
   <div id="build-toggles" aria-label="Build and upgrade options">
     <span class="build-toggle-label" id="build-toggles-label">OPTIONS</span>
-    <button type="button" class="lane-btn active" id="btn-build-parking-roads"
-      onclick="toggleBuildParkingWithRoads()"
-      title="When on, new/upgraded roads get curb parking (same rules as Apply parking)">Parking with roads: On</button>
-    <button type="button" class="lane-btn active" id="btn-build-auto-intersect"
-      onclick="toggleBuildAutoIntersections()"
-      title="When on, crossings join as intersections. When off, mid-span crossings use Above/Below — you can still snap/connect to existing intersections.">Auto intersections: On</button>
-    <button type="button" class="lane-btn active" id="btn-build-crossing-grade"
-      onclick="toggleBuildCrossingGrade()"
-      title="When Auto intersections is Off: Above/Below only for mid-span crossings. Endpoints still connect to intersections.">Crossing: Above</button>
+    <div class="build-toggle-icons">
+      <button type="button" class="build-icon-btn active" id="btn-build-parking-roads"
+        onclick="toggleBuildParkingWithRoads()"
+        title="When on, new/upgraded roads get curb parking (same rules as Apply parking)">
+        <img id="btn-build-parking-img" src="signs/parking.png" alt="Parking with roads">
+      </button>
+      <button type="button" class="build-icon-btn active" id="btn-build-auto-intersect"
+        onclick="toggleBuildAutoIntersections()"
+        title="When on, crossings join as intersections. When off, mid-span crossings use Above/Below — you can still snap/connect to existing intersections.">
+        <img src="signs/intersection.png" alt="Auto intersections">
+        <span class="build-icon-tag">auto</span>
+      </button>
+      <button type="button" class="build-icon-btn grade-above" id="btn-build-crossing-grade"
+        onclick="toggleBuildCrossingGrade()"
+        title="When Auto intersections is Off: Above/Below only for mid-span crossings. Endpoints still connect to intersections.">
+        <span class="build-grade-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="M13 6l6 6-6 6"/>
+          </svg>
+        </span>
+      </button>
+    </div>
   </div>
 
   <div id="road-toolbar">
-    <span class="road-toolbar-title">ROADS</span>
+    <span class="road-toolbar-title">Roads</span>
     <div class="road-toolbar-divider"></div>
     <div class="road-tools">
       <button class="lane-btn" id="btn-build-mode" onclick="toggleBuildMode()">Build</button>
-      <div class="road-tool-stack">
+      <div class="road-tool-cluster">
         <button type="button" class="lane-btn upgrade-scope-btn" id="btn-upgrade-scope"
           onclick="toggleUpgradeWholeSegment()"
           title="Upgrade scope: Brush = 3-unit section · Whole = click entire road (4.2 style)">Brush</button>
         <button class="lane-btn upgrade-btn" id="btn-upgrade-mode" onclick="toggleUpgradeMode()" title="Apply lane type to existing roads">!</button>
       </div>
       <button class="lane-btn inset-drag-btn" id="btn-inset-drag" onclick="toggleApproachInsetEdit()" title="Toggle drag handles to adjust how far each road sits from an intersection">↕</button>
-      <div class="road-tool-stack">
+      <div class="road-tool-cluster">
         <button type="button" class="lane-btn delete-scope-btn" id="btn-delete-scope"
           onclick="toggleDeleteWholeSegment()"
           title="Delete scope: Brush = 3-unit section · Whole = click entire road (4.2 style)">Brush</button>
@@ -2153,11 +2516,13 @@
       </button>
     </div>
     <div class="road-toolbar-divider"></div>
-    <span class="road-toolbar-label">LANE TYPE</span>
-    <button class="lane-btn" id="btn-1way" onclick="setPresetMode(0,1)">1 Way</button>
-    <button class="lane-btn active" id="btn-2lane" onclick="setPresetMode(1,1)">2 Lane</button>
-    <button class="lane-btn" id="btn-4lane" onclick="setPresetMode(2,2)">4 Lane</button>
-    <button class="lane-btn" id="btn-advanced" onclick="setAdvancedMode()">Advanced</button>
+    <span class="road-toolbar-label">Lane type</span>
+    <div class="lane-type-group">
+      <button class="lane-btn" id="btn-1way" onclick="setPresetMode(0,1)">1 Way</button>
+      <button class="lane-btn active" id="btn-2lane" onclick="setPresetMode(1,1)">2 Lane</button>
+      <button class="lane-btn" id="btn-4lane" onclick="setPresetMode(2,2)">4 Lane</button>
+      <button class="lane-btn" id="btn-advanced" onclick="setAdvancedMode()">Advanced</button>
+    </div>
     <div id="advanced-controls">
       <div class="adv-group">
         <span class="adv-label" style="color:var(--enter)">In</span>
@@ -2177,12 +2542,14 @@
       <span style="width:40px;background:#000"></span>
       <span style="width:40px;background:#ffcc00"></span>
     </div>
-    <span id="lane-label" style="color:#9f9;min-width:72px">1 in · 1 out</span>
+    <span id="lane-label" class="mono-value" style="min-width:72px">1 in · 1 out</span>
     <div class="road-toolbar-divider"></div>
     <span id="road-toolbar-hint">Pick Build, Upgrade (!), or Delete · lane type applies to new &amp; upgraded roads</span>
   </div>
 
+  <div id="sim-dock" aria-label="Simulation controls">
   <div id="ff-panel" aria-label="Fast forward">
+    <div class="ff-panel-title">Sim time</div>
     <div class="ff-clock" id="ff-clock">12:00:00 AM</div>
     <div class="ff-status" id="ff-status">Cars: 0</div>
     <div class="ff-scrub" id="ff-scrub">
@@ -2210,9 +2577,11 @@
       </div>
       <button type="button" class="ff-icon-btn" id="ff-btn-clock" onclick="toggleFfMinutes()" title="Skip custom minutes">◷</button>
     </div>
-    <div class="ff-opt-row">
-      <span class="ff-opt-label">Skip drawing</span>
-      <button type="button" class="lane-btn" id="ff-btn-skip-draw" onclick="toggleFfSkipDraw()" title="Off = animate skip on canvas · On = loader + batch sim (faster)">Off</button>
+    <div class="opt-group">
+      <div class="opt-row">
+        <span class="opt-row-label">Skip drawing</span>
+        <button type="button" class="lane-btn" id="ff-btn-skip-draw" onclick="toggleFfSkipDraw()" title="Off = animate skip on canvas · On = loader + batch sim (faster)">Off</button>
+      </div>
     </div>
     <div class="ff-minutes" id="ff-minutes">
       <label>Minutes
@@ -2223,20 +2592,43 @@
   </div>
 
   <div id="drive-panel">
-    <div class="drive-panel-title">ALLIE DRIVE ENGINE</div>
-    <button class="lane-btn wide" id="btn-drive-mode" onclick="toggleDriveMode()">Drive</button>
-    <button class="lane-btn wide" id="btn-sim-pause" onclick="toggleSimPaused()">Pause</button>
+    <div class="drive-panel-title">Allie drive engine</div>
+    <div class="drive-actions">
+      <button class="lane-btn" id="btn-drive-mode" onclick="toggleDriveMode()">Drive</button>
+      <button class="lane-btn" id="btn-sim-pause" onclick="toggleSimPaused()">Pause</button>
+    </div>
     <div class="drive-row">
-      <span class="stat-label">Cars</span>
+      <span class="stat-label">Cars on road</span>
       <span class="stat-value" id="car-count">0</span>
     </div>
-    <button class="lane-btn wide" onclick="clearAllCars()">Clear cars</button>
-    <button class="lane-btn wide active" id="btn-signals" onclick="toggleSignalsMaster()">Signals: On</button>
-    <button class="lane-btn wide" id="btn-signal-vis" onclick="cycleSignalVisibility()">Lights: Off</button>
-    <button class="lane-btn wide" id="btn-debug-rings" onclick="toggleDebugRings()">Debug: Off</button>
-    <button class="lane-btn wide active" id="btn-parking-search" onclick="toggleParkingSearch()">Cars use parking: On</button>
-    <button class="lane-btn wide" id="btn-lane-changes" onclick="toggleAllowIntersectionLaneChanges()">Allow lane changes in intersection: Off</button>
-    <button class="lane-btn wide" id="btn-lanechange-graph" onclick="toggleLaneChangeGraphVisible()">Lane-change windows: Off</button>
+    <div class="drive-section-label">Traffic</div>
+    <div class="opt-group">
+      <div class="opt-row">
+        <span class="opt-row-label">Signals</span>
+        <button class="lane-btn active" id="btn-signals" onclick="toggleSignalsMaster()">On</button>
+      </div>
+      <div class="opt-row">
+        <span class="opt-row-label">Light visibility</span>
+        <button class="lane-btn" id="btn-signal-vis" onclick="cycleSignalVisibility()">Off</button>
+      </div>
+      <div class="opt-row">
+        <span class="opt-row-label">Cars use parking</span>
+        <button class="lane-btn active" id="btn-parking-search" onclick="toggleParkingSearch()">On</button>
+      </div>
+      <div class="opt-row">
+        <span class="opt-row-label">Lane changes in junctions</span>
+        <button class="lane-btn" id="btn-lane-changes" onclick="toggleAllowIntersectionLaneChanges()">Off</button>
+      </div>
+      <div class="opt-row">
+        <span class="opt-row-label">Debug rings</span>
+        <button class="lane-btn" id="btn-debug-rings" onclick="toggleDebugRings()">Off</button>
+      </div>
+      <div class="opt-row">
+        <span class="opt-row-label">Lane-change windows</span>
+        <button class="lane-btn" id="btn-lanechange-graph" onclick="toggleLaneChangeGraphVisible()">Off</button>
+      </div>
+    </div>
+    <button class="lane-btn wide danger-ghost" onclick="clearAllCars()">Clear cars</button>
     <div class="drive-divider"></div>
     <details class="drive-advanced" id="drive-advanced">
       <summary>Advanced · Spawners</summary>
@@ -2260,6 +2652,7 @@
         <button class="lane-btn wide" onclick="clearAllSpawners()">Clear spawners</button>
       </div>
     </details>
+  </div>
   </div>
 
   <div id="drive-hud">
@@ -2425,28 +2818,30 @@
 
   <div id="signal-panel">
     <div class="sig-title">TRAFFIC SIGNAL</div>
-    <div class="sig-row">
-      <span class="k">Intersection</span>
-      <button class="lane-btn" id="sig-enabled" onclick="toggleSignalEnabled()">On</button>
+    <div class="opt-group">
+      <div class="sig-row">
+        <span class="k">Intersection</span>
+        <button class="lane-btn" id="sig-enabled" onclick="toggleSignalEnabled()">On</button>
+      </div>
+      <div class="sig-row">
+        <span class="k">Right on red</span>
+        <button class="lane-btn" id="sig-ror" onclick="toggleSignalRor()">On</button>
+      </div>
+      <div class="sig-row">
+        <span class="k">Left turns</span>
+        <button class="lane-btn" id="sig-protleft" onclick="toggleSignalProtLeft()">Auto</button>
+      </div>
+      <div id="sig-leftmode-hint" style="font-size:0.625rem;color:var(--ui-faint);padding:0 0.15rem 0.2rem"></div>
+      <div class="sig-row">
+        <span class="k">Light visibility</span>
+        <button class="lane-btn" id="sig-vis-panel" onclick="cycleSignalVisibility()">Off</button>
+      </div>
     </div>
-    <div class="sig-row">
-      <span class="k">Right on red</span>
-      <button class="lane-btn" id="sig-ror" onclick="toggleSignalRor()">On</button>
-    </div>
-    <div class="sig-row">
-      <span class="k">Protected left</span>
-      <button class="lane-btn" id="sig-protleft" onclick="toggleSignalProtLeft()">Off</button>
-    </div>
-    <div class="sig-row">
-      <span class="k">Light visibility</span>
-      <button class="lane-btn" id="sig-vis-panel" onclick="cycleSignalVisibility()">Off</button>
-    </div>
-    <div class="sig-divider"></div>
     <div class="sig-timing">
-      <label>Green (s)<input id="sig-green" type="number" min="1" step="0.5" value="8" onchange="applySignalTiming()"></label>
-      <label>Yellow (s)<input id="sig-yellow" type="number" min="0.5" step="0.1" value="3.2" onchange="applySignalTiming()"></label>
-      <label>All-red (s)<input id="sig-allred" type="number" min="0.2" step="0.1" value="1.6" onchange="applySignalTiming()"></label>
-      <label>Prot. left (s)<input id="sig-protleft-t" type="number" min="1" step="0.5" value="4.5" onchange="applySignalTiming()"></label>
+      <label>Green (s)<input id="sig-green" type="number" min="1" step="0.5" value="10" onchange="applySignalTiming()"></label>
+      <label>Yellow (s)<input id="sig-yellow" type="number" min="0.5" step="0.1" value="3.5" onchange="applySignalTiming()"></label>
+      <label>All-red (s)<input id="sig-allred" type="number" min="0.2" step="0.1" value="1.5" onchange="applySignalTiming()"></label>
+      <label>Prot. left (s)<input id="sig-protleft-t" type="number" min="1" step="0.5" value="5" onchange="applySignalTiming()"></label>
     </div>
     <div class="sig-divider"></div>
     <div class="sig-heads-title">SIGNAL HEADS</div>
@@ -2591,7 +2986,64 @@
     let junctionEditorHover = null; // { nodeKey, segId|null }
     let junctionEditorFocus = null; // { nodeKey, label }
     // When On, new/rebuilt 3+ way junctions get auto stop / yield / R.O.W.
-    let autoJunctionControls = true;
+    let autoJunctionControls = false;
+    // When On, lane nodes / curves can be selected, created, rewired
+    let laneGraphEditMode = false;
+
+    function exitLaneGraphEditMode() {
+      if (!laneGraphEditMode) return;
+      laneGraphEditMode = false;
+      if (edgeEndDrag) cancelEdgeEndDrag();
+      pendingEdgeCreate = null;
+      clearLaneNodeSelections();
+      clearSelectedEdge();
+      if (hoveredLaneNode) {
+        setHover(hoveredLaneNode.nodeKey, null);
+        hoveredLaneNode = null;
+      }
+      refreshLaneGraphEditUI();
+    }
+
+    function toggleLaneGraphEditMode() {
+      laneGraphEditMode = !laneGraphEditMode;
+      if (laneGraphEditMode) {
+        if (typeof setDriveMode === 'function') setDriveMode(false);
+        if (typeof setBuildMode === 'function') setBuildMode(false);
+        if (typeof setDeleteMode === 'function') setDeleteMode(false);
+        if (typeof setUpgradeMode === 'function') setUpgradeMode(false);
+        exitJunctionEditorMode();
+        if (typeof clearSignalSelection === 'function') clearSignalSelection();
+      } else {
+        if (edgeEndDrag) cancelEdgeEndDrag();
+        pendingEdgeCreate = null;
+        clearLaneNodeSelections();
+        clearSelectedEdge();
+        if (hoveredLaneNode) {
+          setHover(hoveredLaneNode.nodeKey, null);
+          hoveredLaneNode = null;
+        }
+      }
+      refreshLaneGraphEditUI();
+    }
+
+    function refreshLaneGraphEditUI() {
+      const btn = document.getElementById('view-btn-paths');
+      if (btn) {
+        btn.classList.toggle('active', laneGraphEditMode);
+        btn.title = laneGraphEditMode
+          ? 'Path edit: On (select / create / rewire junction curves · click again to exit)'
+          : 'Path edit: Off (click to select / create / rewire junction curves)';
+      }
+      refreshViewModeHint();
+    }
+
+    function refreshViewModeHint() {
+      const hint = document.getElementById('mode-hint');
+      if (!hint) return;
+      if (junctionEditorMode) hint.innerHTML = JUNCTION_EDITOR_HINT;
+      else if (laneGraphEditMode) hint.innerHTML = PATH_EDIT_HINT;
+      else hint.innerHTML = VIEW_MODE_HINT;
+    }
 
     function toggleAutoJunctionControls() {
       autoJunctionControls = !autoJunctionControls;
@@ -2616,7 +3068,8 @@
       row: { fill: 'rgba(46,204,113,0.22)', stroke: 'rgba(125,255,160,0.95)', text: '#7dffa0', name: 'R.O.W.' },
       none: { fill: 'rgba(255,255,255,0.08)', stroke: 'rgba(180,190,210,0.55)', text: '#9aa3b2', name: '—' }
     };
-    const VIEW_MODE_HINT = 'View mode · click lane nodes to set turns (click again to cycle) · click junctions/signals to edit · empty click deselects<br>Scroll to zoom · Middle-drag or Space+drag to pan';
+    const VIEW_MODE_HINT = 'View mode · enable Path edit (top bar) to select / create junction curves · click junctions/signals to edit · empty click deselects<br>Scroll to zoom · Middle-drag or Space+drag to pan';
+    const PATH_EDIT_HINT = 'Path edit · click enter node, then exit to add/remove a curve · drag enter→exit to create · drag path end to rewire · click again on enter to cycle turns<br>Scroll to zoom · Middle-drag or Space+drag to pan';
     const JUNCTION_EDITOR_HINT = 'Junction editor · tap intersection center to cycle stop / R.O.W. presets · tap a sign to cycle Stop → Yield → R.O.W. → none<br>Scroll to zoom · Middle-drag or Space+drag to pan';
 
     function exitJunctionEditorMode() {
@@ -2637,6 +3090,7 @@
         if (typeof setBuildMode === 'function') setBuildMode(false);
         if (typeof setDeleteMode === 'function') setDeleteMode(false);
         if (typeof setUpgradeMode === 'function') setUpgradeMode(false);
+        exitLaneGraphEditMode();
         clearLaneNodeSelections();
         if (typeof clearSignalSelection === 'function') clearSignalSelection();
         junctionEditorFocus = null;
@@ -2747,7 +3201,7 @@
           : 'Junction editor: Off (click to edit stop / yield / R.O.W.)';
       }
       const hint = document.getElementById('mode-hint');
-      if (hint) hint.innerHTML = junctionEditorMode ? JUNCTION_EDITOR_HINT : VIEW_MODE_HINT;
+      if (hint) refreshViewModeHint();
       refreshJunctionEditorStatus();
     }
 
@@ -2849,7 +3303,11 @@
     }
 
     function controlsMatchPlan(nd, plan) {
-      if (!plan || !plan.map) return false;
+      if (!plan) return false;
+      // Clear / prefer-signals plans match when no approach controls are set
+      if (!plan.map) {
+        return !junctionHasApproachControls(nd);
+      }
       const keys = Object.keys(plan.map);
       if (!keys.length) return !junctionHasApproachControls(nd);
       for (let i = 0; i < keys.length; i++) {
@@ -2863,7 +3321,7 @@
       clearApproachControls(nd);
       if (!plan || !plan.map) {
         nd.controlPresetIdx = null;
-        nd.controlAutoName = null;
+        nd.controlAutoName = (plan && plan.name) ? plan.name : null;
         return;
       }
       Object.keys(plan.map).forEach(sid => setApproachControl(nd, sid, plan.map[sid]));
@@ -2924,10 +3382,10 @@
     }
 
     /**
-     * Pick stop / yield / R.O.W. for a junction from geometry + road types.
+     * Pick stop / yield / R.O.W. / signals for a junction from geometry.
      * T / stem → through R.O.W., stem stop (yield when one-way merges into a larger road).
-     * Clear major vs minor → major R.O.W., minor stop.
-     * Equal multi-way → all-way stop.
+     * Clear 4-way / multi-way cross → preferSignals (no signs; lights run).
+     * Equal multi-way → Auto signals (not all-way stop).
      */
     function pickAutoControlPlan(nodeKey) {
       const nd = nodes.get(nodeKey);
@@ -2940,10 +3398,6 @@
       const bySeg = new Map(approaches.map(a => [a.segId, a]));
       const { pairs, stems } = findOppositePairs(approaches);
       const map = {};
-
-      function setAll(type) {
-        approaches.forEach(a => { map[a.segId] = type; });
-      }
 
       function stemControl(stem, throughMeta) {
         const throughRank = throughMeta.reduce((s, a) => s + (a.rank || 0), 0)
@@ -3045,38 +3499,15 @@
             }
           }
           if (legPairs.length >= 2) {
-            const scored = legPairs.map(pair => ({
-              pair,
-              score: pair[0].rank + pair[1].rank
-            })).sort((a, b) => b.score - a.score);
-            if (scored[0].score >= scored[1].score + 3) {
-              scored[0].pair.forEach(l => {
-                if (bySeg.has(l.segId)) map[l.segId] = 'row';
-              });
-              approaches.forEach(a => {
-                if (map[a.segId]) return;
-                map[a.segId] = 'stop';
-              });
-              return { name: 'Auto · major R.O.W. / stop', map };
-            }
+            // Full cross (two corridors) → signalize; timing splits handle major/minor
+            return { name: 'Auto signals', map: null, preferSignals: true };
           }
         }
         if (pairs.length >= 2) {
-          const scored = pairs.map(pair => ({
-            pair,
-            score: pair[0].rank + pair[1].rank
-          })).sort((a, b) => b.score - a.score);
-          if (scored[0].score >= scored[1].score + 3) {
-            scored[0].pair.forEach(a => { map[a.segId] = 'row'; });
-            approaches.forEach(a => {
-              if (map[a.segId]) return;
-              map[a.segId] = 'stop';
-            });
-            return { name: 'Auto · major R.O.W. / stop', map };
-          }
+          return { name: 'Auto signals', map: null, preferSignals: true };
         }
-        setAll('stop');
-        return { name: 'Auto all-way stop', map };
+        // Equal / ambiguous multi-way → signalize (not all-way stop)
+        return { name: 'Auto signals', map: null, preferSignals: true };
       }
 
       // 2 enter approaches on a 3-leg node (one-way through T): stem stop, through ROW
@@ -3114,6 +3545,7 @@
       }
 
       const plan = pickAutoControlPlan(nodeKey);
+      nd._preferSignals = !!plan.preferSignals;
       if (controlsMatchPlan(nd, plan)) return false;
       applyControlPlan(nd, plan);
       return true;
@@ -3197,12 +3629,48 @@
         name: 'Clear controls',
         apply(nd) { clearApproachControls(nd); }
       });
+      presets.push({
+        name: 'Traffic signals',
+        apply(nd) {
+          clearApproachControls(nd);
+          nd._preferSignals = true;
+          if (nd.signal) {
+            nd.signal.signalManual = false;
+            nd.signal.enabled = true;
+          }
+        }
+      });
       return presets;
     }
 
     function disableSignalsForControls(nd) {
-      if (nd && nd.signal && junctionHasApproachControls(nd)) {
-        nd.signal.enabled = false;
+      if (!nd) return;
+      const hasSig = !!(nd.signal && nd.signal.heads && nd.signal.heads.length);
+      const lit = !!(nd.signal && nd.signal.enabled && hasSig);
+
+      // Mutual exclusion: lights On → no stop/yield/ROW; signs present → lights Off
+      if (lit) {
+        if (junctionHasApproachControls(nd)) {
+          clearApproachControls(nd);
+          nd.controlAutoName = 'Traffic signals';
+          nd.controlPresetIdx = null;
+        }
+        return;
+      }
+
+      if (junctionHasApproachControls(nd)) {
+        if (nd.signal) nd.signal.enabled = false;
+        return;
+      }
+
+      // No stop/yield/ROW signs: auto-run lights on 3+ way when Auto prefers signals
+      if (nd.count >= 3 && hasSig) {
+        if (nd.signal.signalManual) return;
+        if (nd._preferSignals || nd.count >= 4) nd.signal.enabled = true;
+        // Enabling lights must also wipe any stale controls
+        if (nd.signal.enabled && junctionHasApproachControls(nd)) {
+          clearApproachControls(nd);
+        }
       }
     }
 
@@ -3444,6 +3912,12 @@
       const nd = nodes.get(nodeKey);
       if (!nd) return;
       nd.controlSignHits = [];
+      // Traffic lights own the box — never paint stop/yield/ROW over signal heads
+      const signalsOwn = !!(nd.signal && nd.signal.enabled
+        && nd.signal.heads && nd.signal.heads.length
+        && (typeof signalsEnabled === 'undefined' || signalsEnabled));
+      if (signalsOwn) return;
+
       const bySeg = new Map();
       (laneNodes || []).forEach(ln => {
         if (ln.type !== 'in') return;
@@ -3490,6 +3964,135 @@
     let hoveredLaneNode = null; // { nodeKey, id } from geometric hit-test
     let canvasW = 0, canvasH = 0, canvasDpr = 1;
     let _canvasSizeDirty = true;
+    let _drawVp = null;
+    let _worldCache = null;
+    let _worldCacheCtx = null;
+    let _worldCacheDirty = true;
+    let _worldCacheViewKey = '';
+    let _worldCachePanActive = false;
+    let _worldCachePanTimer = 0;
+    const WORLD_CACHE_SETTLE_MS = 100;
+
+    function getWorldViewport(pad) {
+      const p = pad || 0;
+      const scale = Math.max(0.001, view.scale || 1);
+      return {
+        minX: -view.x / scale - p,
+        minY: -view.y / scale - p,
+        maxX: (canvasW - view.x) / scale + p,
+        maxY: (canvasH - view.y) / scale + p,
+        scale
+      };
+    }
+
+    function aabbIntersectsView(minX, minY, maxX, maxY, vp) {
+      if (!vp) return true;
+      return maxX >= vp.minX && minX <= vp.maxX && maxY >= vp.minY && minY <= vp.maxY;
+    }
+
+    function segIntersectsView(x1, y1, x2, y2, halfW, vp) {
+      if (!vp) return true;
+      const pad = halfW || 0;
+      return aabbIntersectsView(
+        Math.min(x1, x2) - pad,
+        Math.min(y1, y2) - pad,
+        Math.max(x1, x2) + pad,
+        Math.max(y1, y2) + pad,
+        vp
+      );
+    }
+
+    function pointInView(x, y, vp, pad) {
+      if (!vp) return true;
+      const p = pad || 0;
+      return x >= vp.minX - p && x <= vp.maxX + p && y >= vp.minY - p && y <= vp.maxY + p;
+    }
+
+    function getRoadLodLevel(scale) {
+      const s = scale != null ? scale : ((typeof view !== 'undefined' && view.scale) || 1);
+      if (s >= 1) return 2;
+      if (s >= 0.5) return 1;
+      return 0;
+    }
+
+    function invalidateWorldCache() {
+      _worldCacheDirty = true;
+    }
+
+    function noteWorldViewChanged() {
+      _worldCacheDirty = true;
+      _worldCachePanActive = true;
+      _worldCachePanTimer = (typeof performance !== 'undefined' && performance.now)
+        ? performance.now()
+        : Date.now();
+    }
+
+    function worldCacheViewKey() {
+      return canvasW + 'x' + canvasH + '@' + canvasDpr + ':' +
+        view.x.toFixed(2) + ',' + view.y.toFixed(2) + ',' + view.scale.toFixed(5);
+    }
+
+    function ensureWorldCacheSurface() {
+      const w = Math.max(1, Math.round(canvasW * canvasDpr));
+      const h = Math.max(1, Math.round(canvasH * canvasDpr));
+      if (_worldCache && _worldCache.width === w && _worldCache.height === h && _worldCacheCtx) {
+        return _worldCacheCtx;
+      }
+      if (typeof OffscreenCanvas !== 'undefined') {
+        _worldCache = new OffscreenCanvas(w, h);
+      } else {
+        _worldCache = document.createElement('canvas');
+        _worldCache.width = w;
+        _worldCache.height = h;
+      }
+      _worldCacheCtx = _worldCache.getContext('2d', { alpha: true });
+      _worldCacheDirty = true;
+      return _worldCacheCtx;
+    }
+
+    function paintStaticWorld(c) {
+      drawAllSegmentsCanvas(c);
+      drawAllJunctionsCanvas(c);
+      if (typeof drawZonesCanvas === 'function') drawZonesCanvas(c);
+      if (typeof drawParkingCanvas === 'function') drawParkingCanvas(c);
+    }
+
+    function rebuildWorldCache() {
+      const c = ensureWorldCacheSurface();
+      const dpr = canvasDpr;
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.clearRect(0, 0, _worldCache.width, _worldCache.height);
+      c.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.x * dpr, view.y * dpr);
+      _drawVp = getWorldViewport(48);
+      paintStaticWorld(c);
+      _worldCacheDirty = false;
+      _worldCacheViewKey = worldCacheViewKey();
+    }
+
+    function worldCacheSettled() {
+      if (!_worldCachePanActive) return true;
+      const now = (typeof performance !== 'undefined' && performance.now)
+        ? performance.now()
+        : Date.now();
+      if (now - _worldCachePanTimer >= WORLD_CACHE_SETTLE_MS) {
+        _worldCachePanActive = false;
+        return true;
+      }
+      return false;
+    }
+
+    window.getWorldViewport = getWorldViewport;
+    window.aabbIntersectsView = aabbIntersectsView;
+    window.segIntersectsView = segIntersectsView;
+    window.pointInView = pointInView;
+    window.getRoadLodLevel = getRoadLodLevel;
+    window.invalidateWorldCache = invalidateWorldCache;
+    window.noteWorldViewChanged = noteWorldViewChanged;
+    Object.defineProperty(window, '_drawVp', {
+      get() { return _drawVp; },
+      set(v) { _drawVp = v; },
+      configurable: true
+    });
 
     function resizeSimCanvas(force) {
       // getBoundingClientRect forces layout — only measure when size may have changed.
@@ -3505,6 +4108,7 @@
       canvas.height = Math.round(h * dpr);
       canvas.style.width = w + 'px';
       canvas.style.height = h + 'px';
+      invalidateWorldCache();
     }
 
     function requestRedraw() { /* tick() always redraws */ }
@@ -3608,18 +4212,34 @@
       if (segLen < 0.01 || !specs.length) return;
       const ux = dx / segLen, uy = dy / segLen;
       const perpX = -uy, perpY = ux;
+      const lod = typeof getRoadLodLevel === 'function' ? getRoadLodLevel(view.scale) : 2;
       const arrowLen = dash ? 5 : 6;
       const arrowAngle = 0.45;
       const spacing = 25;
 
-      // Soft gray bed under dashed underpass pieces — square ends (filled quad, not round stroke)
+      let maxOff = 0;
+      for (let i = 0; i < specs.length; i++) {
+        const a = Math.abs(specs[i].offset);
+        if (a > maxOff) maxOff = a;
+      }
+      const bedHalf = maxOff + (dash ? 2.5 : 1.2);
+
+      if (lod === 0) {
+        const ox = perpX * bedHalf, oy = perpY * bedHalf;
+        c.save();
+        c.fillStyle = dash ? UNDERPASS_BED : 'rgba(106,110,116,0.92)';
+        c.beginPath();
+        c.moveTo(x1 + ox, y1 + oy);
+        c.lineTo(x2 + ox, y2 + oy);
+        c.lineTo(x2 - ox, y2 - oy);
+        c.lineTo(x1 - ox, y1 - oy);
+        c.closePath();
+        c.fill();
+        c.restore();
+        return;
+      }
+
       if (dash) {
-        let maxOff = 0;
-        for (let i = 0; i < specs.length; i++) {
-          const a = Math.abs(specs[i].offset);
-          if (a > maxOff) maxOff = a;
-        }
-        const bedHalf = maxOff + 2.5;
         const ox = perpX * bedHalf, oy = perpY * bedHalf;
         c.save();
         c.fillStyle = UNDERPASS_BED;
@@ -3658,19 +4278,23 @@
         c.stroke();
         c.setLineDash([]);
         c.restore();
-        drawLaneArrowsCanvas(c, x1, y1, x2, y2, ux, uy, perpX, perpY, spec.offset, spec.forward, color, arrowLen, arrowAngle, spacing, arrowAlpha);
+        if (lod >= 2) {
+          drawLaneArrowsCanvas(c, x1, y1, x2, y2, ux, uy, perpX, perpY, spec.offset, spec.forward, color, arrowLen, arrowAngle, spacing, arrowAlpha);
+        }
       });
     }
 
     function drawAllSegmentsCanvas(c) {
-      // Two passes: underpass (faded) pieces first, then normal/over pieces on top.
+      const vp = _drawVp || getWorldViewport(40);
       const underPieces = [];
       const overPieces = [];
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
         const { lanesIn, lanesOut } = getRoadDirs(segment);
+        const halfW = roadHalfWidthApprox(segment) + 4;
         if (!segment.underpasses || !segment.underpasses.length) {
           const short = shortenSegment(segment);
+          if (!segIntersectsView(short.x1, short.y1, short.x2, short.y2, halfW, vp)) continue;
           overPieces.push({
             x1: short.x1, y1: short.y1, x2: short.x2, y2: short.y2,
             lanesIn, lanesOut, under: false, segId: segment.id
@@ -3680,6 +4304,7 @@
         const pieces = segmentDrawPieces(segment);
         for (let p = 0; p < pieces.length; p++) {
           const piece = pieces[p];
+          if (!segIntersectsView(piece.x1, piece.y1, piece.x2, piece.y2, halfW, vp)) continue;
           piece.lanesIn = lanesIn;
           piece.lanesOut = lanesOut;
           piece.segId = segment.id;
@@ -3789,8 +4414,8 @@
       // visually/structurally into the intersection instead of fading at the stub.
       const startKey = getNodeKey(seg.startNode.x, seg.startNode.y);
       const endKey = getNodeKey(seg.endNode.x, seg.endNode.y);
-      const startJ = !!(nodes.get(startKey) && nodes.get(startKey).count > 1);
-      const endJ = !!(nodes.get(endKey) && nodes.get(endKey).count > 1);
+      const startJ = nodeHasLaneGraph(nodes.get(startKey));
+      const endJ = nodeHasLaneGraph(nodes.get(endKey));
       const insetStart = startJ ? getStubInset(seg, 'start') : 0;
       const insetEnd = endJ ? getStubInset(seg, 'end') : 0;
       const clear = Math.max(insetStart, insetEnd, 4) / Math.max(len, 1);
@@ -4044,11 +4669,24 @@
     }
 
     function drawAllJunctionsCanvas(c) {
+      const vp = _drawVp || getWorldViewport(40);
+      const lod = typeof getRoadLodLevel === 'function' ? getRoadLodLevel(view.scale) : 2;
+      const pathEdit = typeof laneGraphEditMode !== 'undefined' && laneGraphEditMode;
       nodes.forEach((nd, nodeKey) => {
-        if (!nd || nd.count < 2) return;
+        if (!nd || !nodeHasLaneGraph(nd)) return;
         const [nx, ny] = nodeKey.split(',').map(Number);
+        if (!pointInView(nx, ny, vp, NODE_R * 4 + 30)) return;
         const marker = nd.marker;
-        if (marker) {
+        if (marker && lod >= 1) {
+          // Realistic skin owns plain 2-leg connector look — skip the faint
+          // dashed node ring (it reads as a dark blotch on the asphalt).
+          const hideConnectorChrome = typeof roadSkinRealistic !== 'undefined'
+            && roadSkinRealistic
+            && !pathEdit
+            && marker.count === 2
+            && !(nd.signal && nd.signal.enabled)
+            && !(typeof junctionHasApproachControls === 'function' && junctionHasApproachControls(nd));
+          if (!hideConnectorChrome) {
           c.save();
           if (marker.count === 2) {
             c.fillStyle = 'rgba(255,255,255,0.03)';
@@ -4069,13 +4707,15 @@
           }
           c.setLineDash([]);
           c.restore();
+          }
         }
 
         const inter = nd.interaction || { selectedId: null, hoveredId: null };
         const activeId = inter.selectedId != null ? inter.selectedId : inter.hoveredId;
         const dragHere = edgeEndDrag && edgeEndDrag.nodeKey === nodeKey;
+        const drawEdges = lod >= 2 || pathEdit || activeId != null || dragHere;
 
-        (nd.edges || []).forEach(edge => {
+        if (drawEdges) (nd.edges || []).forEach(edge => {
           const curve = edge.curve;
           if (!curve) return;
           // While rewiring this enter lane, hide the old path being dragged
@@ -4142,7 +4782,16 @@
               ? buildLaneCurve(fromLn, realExit)
               : buildLaneCurve(fromLn, { x: tipX, y: tipY, tdx: fromLn.tdx, tdy: fromLn.tdy, segId: -1 });
             c.save();
-            c.strokeStyle = edgeEndDrag.hoverExit ? '#ffe066' : '#ffffff';
+            c.strokeStyle = edgeEndDrag.hoverExit
+              ? ((nd.edges || []).some(e =>
+                  e.from
+                  && e.from.segId === edgeEndDrag.fromSegId
+                  && e.from.laneIdx === edgeEndDrag.fromLaneIdx
+                  && e.to
+                  && e.to.segId === edgeEndDrag.hoverExit.segId
+                  && e.to.laneIdx === edgeEndDrag.hoverExit.laneIdx
+                ) ? '#ff6b5a' : '#ffe066')
+              : '#ffffff';
             c.lineWidth = LANE_EDGE_WIDTH_ACTIVE + 0.2;
             c.globalAlpha = 0.95;
             c.setLineDash([2.2, 1.4]);
@@ -4152,26 +4801,57 @@
             c.setLineDash([]);
             c.beginPath();
             c.arc(tipX, tipY, 2.3, 0, Math.PI * 2);
-            c.fillStyle = edgeEndDrag.hoverExit ? '#ffe066' : '#fff';
+            c.fillStyle = edgeEndDrag.hoverExit
+              ? ((nd.edges || []).some(e =>
+                  e.from
+                  && e.from.segId === edgeEndDrag.fromSegId
+                  && e.from.laneIdx === edgeEndDrag.fromLaneIdx
+                  && e.to
+                  && e.to.segId === edgeEndDrag.hoverExit.segId
+                  && e.to.laneIdx === edgeEndDrag.hoverExit.laneIdx
+                ) ? '#ff6b5a' : '#ffe066')
+              : '#fff';
             c.fill();
             c.restore();
           }
         }
 
-        (nd.laneNodes || []).forEach(ln => {
+        if (lod >= 1 || pathEdit || dragHere || junctionEditorMode) (nd.laneNodes || []).forEach(ln => {
           // During path-end drag, paint exit targets as drop snaps
           if (dragHere && ln.type === 'out') {
-            if (ln.segId === edgeEndDrag.fromSegId && !includeUturns) return;
+            if (ln.segId === edgeEndDrag.fromSegId && !includeUturns && nd.count >= 2) return;
             const hot = edgeEndDrag.hoverExit && edgeEndDrag.hoverExit.id === ln.id;
+            const linked = (nd.edges || []).some(e =>
+              e.from
+              && e.from.segId === edgeEndDrag.fromSegId
+              && e.from.laneIdx === edgeEndDrag.fromLaneIdx
+              && e.to
+              && e.to.segId === ln.segId
+              && e.to.laneIdx === ln.laneIdx
+            );
+            // Already-linked exits: drop = delete that curve (warn tint)
+            const fill = hot
+              ? (linked ? '#ff6b5a' : '#ffe066')
+              : (linked ? 'rgba(255, 107, 90, 0.85)' : COLOR_EXIT);
             c.save();
-            c.globalAlpha = hot ? 1 : 0.6;
+            c.globalAlpha = hot ? 1 : (linked ? 0.75 : 0.6);
             canvasFillCircle(
               c, ln.x, ln.y, hot ? LANE_DOT_R_ACTIVE + 0.7 : LANE_DOT_R_ACTIVE,
-              hot ? '#ffe066' : COLOR_EXIT,
+              fill,
               '#fff',
               hot ? 1 : 0.75
             );
             c.restore();
+            return;
+          }
+          // Realistic skin owns plain 2-leg connector look — hide idle dots
+          // (dark-bordered circles were reading as black spots on the asphalt).
+          if (typeof roadSkinRealistic !== 'undefined' && roadSkinRealistic
+              && !(typeof laneGraphEditMode !== 'undefined' && laneGraphEditMode)
+              && !junctionEditorMode
+              && nd.count === 2
+              && !(nd.signal && nd.signal.enabled)
+              && !(typeof junctionHasApproachControls === 'function' && junctionHasApproachControls(nd))) {
             return;
           }
           const isActive = activeId != null && ln.id === activeId;
@@ -4210,7 +4890,7 @@
           drawJunctionEditorOverlay(c, nodeKey, nd, nx, ny);
         }
 
-        (nd.signs || []).forEach(sign => {
+        if (lod >= 1) (nd.signs || []).forEach(sign => {
           if (sign.label) {
             c.save();
             const fontPx = Math.max(1.6, (sign.h || 2) * (sign.label.length > 2 ? 0.85 : 1.15));
@@ -4534,14 +5214,30 @@
     function renderFrame() {
       resizeSimCanvas();
       const dpr = canvasDpr;
+      _drawVp = getWorldViewport(48);
+      const settled = worldCacheSettled();
+      const key = worldCacheViewKey();
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvasW, canvasH);
-      ctx.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.x * dpr, view.y * dpr);
-      drawAllSegmentsCanvas(ctx);
-      drawAllJunctionsCanvas(ctx);
+
+      if (!settled || _worldCachePanActive) {
+        ctx.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.x * dpr, view.y * dpr);
+        paintStaticWorld(ctx);
+      } else {
+        if (_worldCacheDirty || key !== _worldCacheViewKey) rebuildWorldCache();
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (_worldCache) {
+          ctx.drawImage(
+            _worldCache,
+            0, 0, _worldCache.width, _worldCache.height,
+            0, 0, canvasW, canvasH
+          );
+        }
+        ctx.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.x * dpr, view.y * dpr);
+      }
+
       if (typeof drawAllSignalsCanvas === 'function') drawAllSignalsCanvas(ctx);
-      if (typeof drawZonesCanvas === 'function') drawZonesCanvas(ctx);
-      if (typeof drawParkingCanvas === 'function') drawParkingCanvas(ctx);
       drawGhostPreviewCanvas(ctx);
       if (typeof drawLaneChangeGraphCanvas === 'function') drawLaneChangeGraphCanvas(ctx);
       if (typeof drawRouteHighlightsCanvas === 'function') drawRouteHighlightsCanvas(ctx);
@@ -4549,6 +5245,7 @@
       if (typeof drawDebugOverlayCanvas === 'function') drawDebugOverlayCanvas(ctx);
       if (typeof drawCarsCanvas === 'function') drawCarsCanvas(ctx);
       drawRefOverlayChromeCanvas(ctx);
+      if (typeof drawPerfHudCanvas === 'function') drawPerfHudCanvas(ctx);
     }
 
     function distPointToSegment(px, py, ax, ay, bx, by) {
@@ -4602,7 +5299,7 @@
       const tol = LANE_HIT_R;
       let best = null, bestD = tol;
       nodes.forEach((nd, nodeKey) => {
-        if (!nd || nd.count < 2) return;
+        if (!nd || !nodeHasLaneGraph(nd)) return;
         (nd.laneNodes || []).forEach(ln => {
           const d = Math.hypot(wx - ln.x, wy - ln.y);
           if (d <= bestD) {
@@ -4643,9 +5340,14 @@
     let approachDrag = null; // { nodeKey, seg, isStart, ux, uy, moved }
     // Selected junction lane-graph edge (enter → exit path)
     let selectedEdge = null; // { nodeKey, fromSegId, fromLaneIdx, toSegId, toLaneIdx }
-    // Drag the exit end of a path onto a different out lane node
+    // Drag the exit end of a path onto a different out lane node, or
+    // drag from an enter (start) node to create/toggle a curve to an exit.
     let edgeEndDrag = null;
-    // { nodeKey, fromSegId, fromLaneIdx, oldToSegId, oldToLaneIdx, wx, wy, hoverExit, moved }
+    // { mode:'rewire'|'create', nodeKey, fromSegId, fromLaneIdx,
+    //   oldToSegId, oldToLaneIdx, wx, wy, hoverExit, moved }
+    // Enter-node press waiting for a small move before starting create-drag
+    // (so a plain click still selects / cycles turn mode).
+    let pendingEdgeCreate = null; // { nodeKey, fromLn, x0, y0 }
     // Yellow road-end inset handles — off until the drag icon is clicked
     let approachInsetEdit = false;
 
@@ -4703,23 +5405,36 @@
 
     function syncBuildToggleButtons() {
       const parkBtn = document.getElementById('btn-build-parking-roads');
+      const parkImg = document.getElementById('btn-build-parking-img');
       const ixBtn = document.getElementById('btn-build-auto-intersect');
       const gradeBtn = document.getElementById('btn-build-crossing-grade');
       const bar = document.getElementById('build-toggles');
       const label = document.getElementById('build-toggles-label');
       if (parkBtn) {
         parkBtn.classList.toggle('active', buildParkingWithRoads);
-        parkBtn.textContent = 'Parking with roads: ' + (buildParkingWithRoads ? 'On' : 'Off');
+        parkBtn.classList.toggle('is-off', !buildParkingWithRoads);
+        parkBtn.title = buildParkingWithRoads
+          ? 'Parking with roads: On — new/upgraded roads get curb parking'
+          : 'Parking with roads: Off — place roads without curb parking';
+      }
+      if (parkImg) {
+        parkImg.src = buildParkingWithRoads ? 'signs/parking.png' : 'signs/no-parking.png';
+        parkImg.alt = buildParkingWithRoads ? 'Parking with roads' : 'No parking with roads';
       }
       if (ixBtn) {
         ixBtn.classList.toggle('active', buildAutoIntersections);
-        ixBtn.textContent = 'Auto intersections: ' + (buildAutoIntersections ? 'On' : 'Off');
+        ixBtn.classList.toggle('is-off', !buildAutoIntersections);
+        ixBtn.title = buildAutoIntersections
+          ? 'Auto intersections: On — crossings join as intersections'
+          : 'Auto intersections: Off — mid-span crossings use Above/Below grade';
       }
       if (gradeBtn) {
         const above = buildCrossingGrade === 'above';
-        gradeBtn.classList.toggle('active', true);
-        gradeBtn.textContent = 'Crossing: ' + (above ? 'Above' : 'Below');
-        gradeBtn.style.opacity = buildAutoIntersections ? '0.45' : '1';
+        gradeBtn.classList.toggle('grade-above', above);
+        gradeBtn.classList.toggle('grade-below', !above);
+        gradeBtn.classList.toggle('active', !buildAutoIntersections);
+        gradeBtn.classList.toggle('is-disabled', buildAutoIntersections);
+        gradeBtn.setAttribute('aria-label', above ? 'Crossing grade: Above' : 'Crossing grade: Below');
         gradeBtn.title = buildAutoIntersections
           ? 'Turn Auto intersections Off to use overpass/underpass when roads cross'
           : (above
@@ -4858,6 +5573,7 @@
 
     function applyView() {
       // Pan/zoom is applied via ctx.setTransform inside renderFrame — no DOM transform.
+      noteWorldViewChanged();
 
       // Grid CSS updates are expensive during follow-cam; throttle them.
       const now = performance.now();
@@ -4971,6 +5687,17 @@
       return (lanesIn === 0 && lanesOut > 0) || (lanesOut === 0 && lanesIn > 0);
     }
 
+    // Free end of a two-way road: cars need a U-turn bulb to circle back.
+    function isDeadEndTurnaround(nd) {
+      if (!nd || nd.count !== 1 || !nd.segments || !nd.segments.length) return false;
+      const { lanesIn, lanesOut } = getRoadDirs(nd.segments[0]);
+      return lanesIn > 0 && lanesOut > 0;
+    }
+
+    function nodeHasLaneGraph(nd) {
+      return !!(nd && (nd.count >= 2 || isDeadEndTurnaround(nd)));
+    }
+
     function laneColorFor(spec, lanesIn, lanesOut) {
       if (isPureOneWay(lanesIn, lanesOut)) return '#ff8800';
       if (!spec.forward) {
@@ -5072,6 +5799,7 @@
       if (!buildMode) cancelBuild();
       if (buildMode) {
         if (typeof exitJunctionEditorMode === 'function') exitJunctionEditorMode();
+        if (typeof exitLaneGraphEditMode === 'function') exitLaneGraphEditMode();
         if (typeof setDeleteMode === 'function') setDeleteMode(false);
         if (typeof setUpgradeMode === 'function') setUpgradeMode(false);
         if (typeof driveMode !== 'undefined' && driveMode && typeof toggleDriveMode === 'function') toggleDriveMode();
@@ -5169,6 +5897,7 @@
       clearDeleteHover();
       if (deleteMode) {
         if (typeof exitJunctionEditorMode === 'function') exitJunctionEditorMode();
+        if (typeof exitLaneGraphEditMode === 'function') exitLaneGraphEditMode();
         if (buildMode) setBuildMode(false);
         if (upgradeMode) setUpgradeMode(false);
         if (typeof driveMode !== 'undefined' && driveMode && typeof toggleDriveMode === 'function') toggleDriveMode();
@@ -5235,6 +5964,7 @@
       clearUpgradeHover();
       if (upgradeMode) {
         if (typeof exitJunctionEditorMode === 'function') exitJunctionEditorMode();
+        if (typeof exitLaneGraphEditMode === 'function') exitLaneGraphEditMode();
         if (buildMode) setBuildMode(false);
         if (deleteMode) setDeleteMode(false);
         if (typeof driveMode !== 'undefined' && driveMode && typeof toggleDriveMode === 'function') toggleDriveMode();
@@ -5271,7 +6001,7 @@
       }
       // Rebuild junction visuals so yellow approach bars appear/disappear
       nodes.forEach((nd, key) => {
-        if (nd.count >= 2) refreshJunctionVisuals(key);
+        if (nodeHasLaneGraph(nd)) refreshJunctionVisuals(key);
       });
       updateRoadToolbar();
     }
@@ -5348,7 +6078,7 @@
 
     function recomputeAllJunctions() {
       nodes.forEach((nd, key) => {
-        if (nd.count > 1) {
+        if (nodeHasLaneGraph(nd)) {
           const [nx, ny] = key.split(',').map(Number);
           calculateCurves(nx, ny);
         }
@@ -5414,13 +6144,15 @@
     function shortenSegment(seg) {
       const startKey = getNodeKey(seg.startNode.x, seg.startNode.y);
       const endKey = getNodeKey(seg.endNode.x, seg.endNode.y);
-      const startIsJunction = !!(nodes.get(startKey) && nodes.get(startKey).count > 1);
-      const endIsJunction = !!(nodes.get(endKey) && nodes.get(endKey).count > 1);
+      const startNd = nodes.get(startKey);
+      const endNd = nodes.get(endKey);
+      const startNeedsStub = nodeHasLaneGraph(startNd);
+      const endNeedsStub = nodeHasLaneGraph(endNd);
       return shortenLine(
         seg.startNode.x, seg.startNode.y,
         seg.endNode.x, seg.endNode.y,
-        startIsJunction ? getStubInset(seg, 'start') : 0,
-        endIsJunction ? getStubInset(seg, 'end') : 0
+        startNeedsStub ? getStubInset(seg, 'start') : 0,
+        endNeedsStub ? getStubInset(seg, 'end') : 0
       );
     }
 
@@ -6068,7 +6800,7 @@
       const otherKey = isStart
         ? getNodeKey(seg.endNode.x, seg.endNode.y)
         : getNodeKey(seg.startNode.x, seg.startNode.y);
-      const otherIsJunction = !!(nodes.get(otherKey) && nodes.get(otherKey).count > 1);
+      const otherIsJunction = nodeHasLaneGraph(nodes.get(otherKey));
       const otherInset = otherIsJunction ? other : 0;
       const maxForLen = Math.max(MIN_STUB_INSET, len - otherInset - 2);
       return Math.max(MIN_STUB_INSET, Math.min(MAX_STUB_INSET, maxForLen, desired));
@@ -6135,14 +6867,19 @@
 
     // Clears and rebuilds everything tied to one node: its footprint marker
     // (data-node) plus its lane graph (data-junction). Safe to call on any
-    // node — nodes with fewer than 2 segments simply end up with nothing drawn.
+    // node — dead ends of two-way roads get a U-turn bulb; one-way free ends
+    // and empty nodes draw nothing.
     function refreshJunctionVisuals(nodeKey) {
       const nd = nodes.get(nodeKey);
       if (!nd) return;
       clearJunctionVisualData(nd);
-      if (nd.count < 2) return;
+      if (!nodeHasLaneGraph(nd)) {
+        nd.laneNodes = [];
+        nd.edges = [];
+        return;
+      }
       const [nx, ny] = nodeKey.split(',').map(Number);
-      drawJunctionMarker(nx, ny, nd.count, nodeKey);
+      if (nd.count >= 2) drawJunctionMarker(nx, ny, nd.count, nodeKey);
       calculateCurves(nx, ny);
     }
 
@@ -6289,29 +7026,33 @@
       const seg = findSegmentById(ln.segId);
       if (!seg || !nodeKey) return null;
       const store = getSegmentApproachExits(seg, isLaneAtSegmentStart(nodeKey, ln));
-      const list = store[String(ln.laneIdx)];
-      return Array.isArray(list) && list.length ? list : null;
+      const key = String(ln.laneIdx);
+      // Missing key = auto common-sense. Present key (even []) = forced exit list.
+      if (!Object.prototype.hasOwnProperty.call(store, key)) return null;
+      const list = store[key];
+      return Array.isArray(list) ? list : null;
     }
 
     function setLaneExitOverride(nodeKey, ln, targets) {
       const seg = findSegmentById(ln.segId);
       if (!seg || !ln) return;
       const store = getSegmentApproachExits(seg, isLaneAtSegmentStart(nodeKey, ln));
-      if (!targets || !targets.length) {
-        delete store[String(ln.laneIdx)];
+      const key = String(ln.laneIdx);
+      if (targets == null) {
+        delete store[key];
         return;
       }
       const seen = new Set();
       const cleaned = [];
       targets.forEach(t => {
         if (!t || t.segId == null || t.laneIdx == null) return;
-        const key = t.segId + ':' + t.laneIdx;
-        if (seen.has(key)) return;
-        seen.add(key);
+        const k = t.segId + ':' + t.laneIdx;
+        if (seen.has(k)) return;
+        seen.add(k);
         cleaned.push({ segId: t.segId, laneIdx: t.laneIdx });
       });
-      if (!cleaned.length) delete store[String(ln.laneIdx)];
-      else store[String(ln.laneIdx)] = cleaned;
+      // Empty array is intentional: this enter lane has no curves
+      store[key] = cleaned;
     }
 
     function clearLaneExitOverride(nodeKey, ln) {
@@ -6358,7 +7099,7 @@
       const tol = Math.max(LANE_EDGE_HIT_TOL, 9 / Math.max(0.01, view.scale));
       let best = null, bestD = tol;
       nodes.forEach((nd, nodeKey) => {
-        if (!nd || nd.count < 2 || !nd.edges) return;
+        if (!nd || !nodeHasLaneGraph(nd) || !nd.edges) return;
         for (let i = 0; i < nd.edges.length; i++) {
           const edge = nd.edges[i];
           if (!edge || !edge.curve || !edge.from || !edge.to) continue;
@@ -6376,6 +7117,78 @@
         }
       });
       return best;
+    }
+
+    function syncEnterLaneTurnFromTargets(nodeKey, nd, fromLn, targets) {
+      const probeTurns = new Set();
+      (targets || []).forEach(t => {
+        const exit = (nd.laneNodes || []).find(l =>
+          l.type === 'out' && l.segId === t.segId && l.laneIdx === t.laneIdx
+        );
+        if (!exit) return;
+        const turn = classifyTurn(fromLn, exit);
+        if (turn !== 'uturn') probeTurns.add(turn);
+      });
+      setLaneTurnOverride(nodeKey, fromLn, modeFromTurns(probeTurns));
+    }
+
+    /**
+     * Toggle a curve from an enter lane to an exit lane.
+     * First edit seeds from current edges; dropping on an existing link removes it.
+     * Returns 'added' | 'removed' | null.
+     */
+    function toggleLaneCurveConnection(nodeKey, fromLn, toLn) {
+      const nd = nodes.get(nodeKey);
+      if (!nd || !fromLn || !toLn || fromLn.type !== 'in' || toLn.type !== 'out') return null;
+      if (fromLn.segId === toLn.segId && !includeUturns && !(nd.count === 1)) return null;
+
+      let targets = getLaneExitOverride(nd, fromLn, nodeKey);
+      if (targets) targets = targets.map(t => ({ segId: t.segId, laneIdx: t.laneIdx }));
+      else targets = cloneExitTargetsFromEdges(nd, fromLn);
+
+      const idx = targets.findIndex(t => t.segId === toLn.segId && t.laneIdx === toLn.laneIdx);
+      let action = null;
+      if (idx >= 0) {
+        targets.splice(idx, 1);
+        action = 'removed';
+      } else {
+        targets.push({ segId: toLn.segId, laneIdx: toLn.laneIdx });
+        action = 'added';
+      }
+
+      setLaneExitOverride(nodeKey, fromLn, targets);
+      syncEnterLaneTurnFromTargets(nodeKey, nd, fromLn, targets);
+
+      const keepFromSeg = fromLn.segId;
+      const keepFromIdx = fromLn.laneIdx;
+      const keepToSeg = toLn.segId;
+      const keepToIdx = toLn.laneIdx;
+      refreshJunctionVisuals(nodeKey);
+
+      const nd2 = nodes.get(nodeKey);
+      if (nd2) {
+        const ln2 = (nd2.laneNodes || []).find(
+          l => l.segId === keepFromSeg && l.laneIdx === keepFromIdx && l.type === 'in'
+        );
+        if (!nd2.interaction) nd2.interaction = { selectedId: null, hoveredId: null };
+        nd2.interaction.selectedId = ln2 ? ln2.id : null;
+        if (action === 'added') {
+          setSelectedEdge({
+            nodeKey,
+            fromSegId: keepFromSeg,
+            fromLaneIdx: keepFromIdx,
+            toSegId: keepToSeg,
+            toLaneIdx: keepToIdx
+          });
+        } else {
+          clearSelectedEdge();
+        }
+        redrawJunctionTurnSigns(nodeKey);
+        refreshEmphasis(nodeKey);
+      }
+      if (typeof rebuildAllieGraph === 'function') rebuildAllieGraph();
+      persistLaneTurnsToStore();
+      return action;
     }
 
     /** Prefer grabbing the exit end of a selected (or nearest) path to start a rewire drag. */
@@ -6409,7 +7222,7 @@
       }
       // Also allow grabbing any path end without pre-select (nearby exit tip)
       nodes.forEach((nd, nodeKey) => {
-        if (!nd || nd.count < 2 || !nd.edges) return;
+        if (!nd || !nodeHasLaneGraph(nd) || !nd.edges) return;
         nd.edges.forEach(edge => consider(nodeKey, edge));
       });
       return best;
@@ -6418,6 +7231,7 @@
     function beginEdgeEndDrag(hit, event) {
       if (!hit || !hit.from || !hit.to) return false;
       edgeEndDrag = {
+        mode: 'rewire',
         nodeKey: hit.nodeKey,
         fromSegId: hit.from.segId,
         fromLaneIdx: hit.from.laneIdx,
@@ -6450,6 +7264,37 @@
       return true;
     }
 
+    /** Start a new-curve drag from an entering lane node (start). */
+    function beginEdgeCreateDrag(nodeKey, fromLn, event) {
+      if (!fromLn || fromLn.type !== 'in') return false;
+      edgeEndDrag = {
+        mode: 'create',
+        nodeKey,
+        fromSegId: fromLn.segId,
+        fromLaneIdx: fromLn.laneIdx,
+        oldToSegId: null,
+        oldToLaneIdx: null,
+        wx: fromLn.x,
+        wy: fromLn.y,
+        hoverExit: null,
+        moved: false
+      };
+      const nd = nodes.get(nodeKey);
+      if (nd) {
+        if (!nd.interaction) nd.interaction = { selectedId: null, hoveredId: null };
+        nd.interaction.selectedId = fromLn.id;
+        redrawJunctionTurnSigns(nodeKey);
+        refreshEmphasis(nodeKey);
+      }
+      clearSelectedEdge();
+      board.classList.add('edge-end-dragging');
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      return true;
+    }
+
     function updateEdgeEndDrag(wx, wy) {
       if (!edgeEndDrag) return;
       edgeEndDrag.wx = wx;
@@ -6463,8 +7308,8 @@
         for (let i = 0; i < nd.laneNodes.length; i++) {
           const ln = nd.laneNodes[i];
           if (!ln || ln.type !== 'out') continue;
-          // Same-road U-turn only when uturns enabled
-          if (ln.segId === edgeEndDrag.fromSegId && !includeUturns) continue;
+          // Same-road U-turn only when uturns enabled (dead-end bulbs always allow)
+          if (ln.segId === edgeEndDrag.fromSegId && !includeUturns && nd.count >= 2) continue;
           const d = Math.hypot(wx - ln.x, wy - ln.y);
           if (d <= bestD) {
             bestD = d;
@@ -6489,10 +7334,6 @@
       board.classList.remove('edge-end-dragging');
       if (!drag || !drag.moved || !drag.hoverExit) return false;
 
-      const same = drag.hoverExit.segId === drag.oldToSegId
-        && drag.hoverExit.laneIdx === drag.oldToLaneIdx;
-      if (same) return false;
-
       const nd = nodes.get(drag.nodeKey);
       if (!nd) return false;
       const fromLn = (nd.laneNodes || []).find(l =>
@@ -6502,6 +7343,18 @@
         l.type === 'out' && l.segId === drag.hoverExit.segId && l.laneIdx === drag.hoverExit.laneIdx
       );
       if (!fromLn || !newTo) return false;
+
+      // Create-from-start: drop on an exit toggles that curve (add or delete)
+      if (drag.mode === 'create') {
+        return !!toggleLaneCurveConnection(drag.nodeKey, fromLn, newTo);
+      }
+
+      const same = drag.hoverExit.segId === drag.oldToSegId
+        && drag.hoverExit.laneIdx === drag.oldToLaneIdx;
+      if (same) {
+        // Dropping a rewire back on the same exit deletes that curve
+        return toggleLaneCurveConnection(drag.nodeKey, fromLn, newTo) === 'removed';
+      }
 
       let targets = getLaneExitOverride(nd, fromLn, drag.nodeKey);
       if (targets) targets = targets.map(t => ({ segId: t.segId, laneIdx: t.laneIdx }));
@@ -6518,18 +7371,7 @@
       if (!replaced) targets.push({ segId: newTo.segId, laneIdx: newTo.laneIdx });
 
       setLaneExitOverride(drag.nodeKey, fromLn, targets);
-
-      // Sync turn-restriction sign to the new turn set for this enter lane
-      const probeTurns = new Set();
-      targets.forEach(t => {
-        const exit = (nd.laneNodes || []).find(l =>
-          l.type === 'out' && l.segId === t.segId && l.laneIdx === t.laneIdx
-        );
-        if (!exit) return;
-        const turn = classifyTurn(fromLn, exit);
-        if (turn !== 'uturn') probeTurns.add(turn);
-      });
-      setLaneTurnOverride(drag.nodeKey, fromLn, modeFromTurns(probeTurns));
+      syncEnterLaneTurnFromTargets(drag.nodeKey, nd, fromLn, targets);
 
       const keepFromSeg = fromLn.segId;
       const keepFromIdx = fromLn.laneIdx;
@@ -6739,7 +7581,7 @@
       const nodeKey = getNodeKey(nodeX, nodeY);
 
       const nodeData = nodes.get(nodeKey);
-      if (!nodeData || nodeData.count < 2) return;
+      if (!nodeData || !nodeHasLaneGraph(nodeData)) return;
 
       // One "side" per connecting segment, with its direction away from this node
       const directions = [];
@@ -6792,22 +7634,40 @@
 
       // Every entering lane reaches every exiting lane on another side;
       // skip a lane looping back onto its own road unless U-turns are on.
+      // Dead-end bulbs always get same-road U-turns (not gated by includeUturns).
       // With common sense on, also drop unrealistic cross-lane turns.
       const enterList = laneNodes.filter(l => l.type === 'in');
       const exitList  = laneNodes.filter(l => l.type === 'out');
       const entersBySeg = lanesBySegLeftToRight(enterList);
       const exitsBySeg = lanesBySegLeftToRight(exitList);
+      const deadEnd = nodeData.count === 1;
       const edges = [];
       enterList.forEach(a => {
         const forced = getLaneExitOverride(nodeData, a, nodeKey);
-        if (forced && forced.length) {
-          // Drag-rewired exits: honor the forced list (bypass common-sense lane matching)
+        if (forced !== null) {
+          // Forced exits (including empty = no curves): bypass common-sense matching
           forced.forEach(target => {
             const b = exitList.find(e => e.segId === target.segId && e.laneIdx === target.laneIdx);
             if (!b) return;
-            if (a.segId === b.segId && !includeUturns) return;
+            if (a.segId === b.segId && !includeUturns && !deadEnd) return;
             const turn = classifyTurn(a, b);
             edges.push({ from: a, to: b, turn });
+          });
+          return;
+        }
+        if (deadEnd) {
+          // Cul-de-sac: circle each approach lane back onto a matching exit
+          const enters = entersBySeg.get(a.segId) || [];
+          const exits = exitsBySeg.get(a.segId) || [];
+          const fi = enters.indexOf(a);
+          const tiTarget = (!exits.length)
+            ? -1
+            : (enters.length <= 1 || exits.length === 1)
+              ? 0
+              : Math.round(fi * (exits.length - 1) / (enters.length - 1));
+          exits.forEach((b, ti) => {
+            if (commonSense && ti !== tiTarget) return;
+            edges.push({ from: a, to: b, turn: 'uturn' });
           });
           return;
         }
@@ -6836,14 +7696,20 @@
 
       drawJunctionEdges(nodeKey, edges);
       drawJunctionLaneNodes(nodeKey, nodeX, nodeY, laneNodes);
-      autoApplyJunctionControls(nodeKey);
-      drawJunctionSigns(nodeKey, nodeX, nodeY, directions, edges, laneNodes);
-      if (typeof syncJunctionSignals === 'function') {
-        syncJunctionSignals(nodeKey, nodeX, nodeY, directions, laneNodes, edges);
+      if (deadEnd) {
+        // No stop/yield/signals at a free end — just the U-turn bulb + optional insets
+        drawApproachInsetHandles(nodeKey, nodeX, nodeY, directions);
+      } else {
+        autoApplyJunctionControls(nodeKey);
+        if (typeof syncJunctionSignals === 'function') {
+          syncJunctionSignals(nodeKey, nodeX, nodeY, directions, laneNodes, edges);
+        }
+        // Resolve lights vs stop/yield before painting signs so they never overlap
+        disableSignalsForControls(nodeData);
+        drawJunctionSigns(nodeKey, nodeX, nodeY, directions, edges, laneNodes);
+        // Handles last so they stay above signs/signals for grabbing
+        drawApproachInsetHandles(nodeKey, nodeX, nodeY, directions);
       }
-      disableSignalsForControls(nodeData);
-      // Handles last so they stay above signs/signals for grabbing
-      drawApproachInsetHandles(nodeKey, nodeX, nodeY, directions);
       refreshEmphasis(nodeKey);
     }
 
@@ -6892,6 +7758,15 @@
       if (!ln) return;
 
       if (ln.type !== 'in') {
+        // With an enter lane selected on this junction, click an exit to add/remove that curve
+        const selId = nd.interaction.selectedId;
+        const fromLn = selId != null
+          ? (nd.laneNodes || []).find(l => l.id === selId)
+          : null;
+        if (fromLn && fromLn.type === 'in') {
+          toggleLaneCurveConnection(nodeKey, fromLn, ln);
+          return;
+        }
         // Deselect any other junction selections first
         nodes.forEach((other, key) => {
           if (key !== nodeKey && other.interaction && other.interaction.selectedId != null) {
@@ -7080,10 +7955,26 @@
           beginApproachInsetDrag(ah.nodeKey, ah.seg, ah.isStart, ah.ux, ah.uy, e);
           return;
         }
-        // Grab a path's exit end before junction-center drag (ends sit near the box)
-        const exitHit = hitTestEdgeExitHandle(wp.x, wp.y);
-        if (exitHit && beginEdgeEndDrag(exitHit, e)) {
-          return;
+        // Path-edit only: grab curve ends / drag from enter nodes to create curves
+        if (laneGraphEditMode) {
+          const exitHit = hitTestEdgeExitHandle(wp.x, wp.y);
+          if (exitHit && beginEdgeEndDrag(exitHit, e)) {
+            return;
+          }
+          const startHit = hitTestLaneNode(wp.x, wp.y);
+          if (startHit) {
+            const snd = nodes.get(startHit.nodeKey);
+            const sln = snd && (snd.laneNodes || []).find(l => l.id === startHit.id);
+            if (sln && sln.type === 'in') {
+              pendingEdgeCreate = {
+                nodeKey: startHit.nodeKey,
+                fromLn: sln,
+                x0: e.clientX,
+                y0: e.clientY
+              };
+              return;
+            }
+          }
         }
         const jk = hitTestJunctionNode(wp.x, wp.y);
         if (jk) {
@@ -7142,6 +8033,23 @@
         applyApproachInsetDrag(e.clientX, e.clientY);
         return;
       }
+      if (pendingEdgeCreate && !edgeEndDrag) {
+        if (!laneGraphEditMode) {
+          pendingEdgeCreate = null;
+        } else {
+          const dx = e.clientX - pendingEdgeCreate.x0;
+          const dy = e.clientY - pendingEdgeCreate.y0;
+          if (Math.hypot(dx, dy) >= 5) {
+            const pend = pendingEdgeCreate;
+            pendingEdgeCreate = null;
+            beginEdgeCreateDrag(pend.nodeKey, pend.fromLn, e);
+            const wpCreate = screenToWorld(e.clientX, e.clientY);
+            updateEdgeEndDrag(wpCreate.x, wpCreate.y);
+            e.preventDefault();
+            return;
+          }
+        }
+      }
       if (edgeEndDrag) {
         e.preventDefault();
         const wp = screenToWorld(e.clientX, e.clientY);
@@ -7185,13 +8093,18 @@
           updateJunctionEditorHover(worldPt.x, worldPt.y);
           return;
         }
-        // View-mode hover: lane nodes + approach handles
-        const laneHit = hitTestLaneNode(worldPt.x, worldPt.y);
-        if (laneHit) {
-          if (!hoveredLaneNode || hoveredLaneNode.nodeKey !== laneHit.nodeKey || hoveredLaneNode.id !== laneHit.id) {
-            if (hoveredLaneNode) setHover(hoveredLaneNode.nodeKey, null);
-            hoveredLaneNode = laneHit;
-            setHover(laneHit.nodeKey, laneHit.id);
+        // View-mode hover: lane nodes (path-edit only) + approach handles
+        if (laneGraphEditMode) {
+          const laneHit = hitTestLaneNode(worldPt.x, worldPt.y);
+          if (laneHit) {
+            if (!hoveredLaneNode || hoveredLaneNode.nodeKey !== laneHit.nodeKey || hoveredLaneNode.id !== laneHit.id) {
+              if (hoveredLaneNode) setHover(hoveredLaneNode.nodeKey, null);
+              hoveredLaneNode = laneHit;
+              setHover(laneHit.nodeKey, laneHit.id);
+            }
+          } else if (hoveredLaneNode) {
+            setHover(hoveredLaneNode.nodeKey, null);
+            hoveredLaneNode = null;
           }
         } else if (hoveredLaneNode) {
           setHover(hoveredLaneNode.nodeKey, null);
@@ -7234,8 +8147,12 @@
       }
       endRefOverlayDrag();
       endPan();
+      if (pendingEdgeCreate) {
+        pendingEdgeCreate = null;
+        // Plain click on enter — leave suppressClick alone so select/cycle runs
+      }
       if (edgeEndDrag) {
-        // Always consume the gesture — commit rewires when a valid exit is hovered
+        // Always consume the gesture — commit rewires / toggles when a valid exit is hovered
         if (commitEdgeEndDrag()) suppressClick = true;
         else suppressClick = true;
         e.preventDefault();
@@ -7266,6 +8183,11 @@
       if (e.code === 'Escape' && edgeEndDrag) {
         e.preventDefault();
         cancelEdgeEndDrag();
+        return;
+      }
+      if (e.code === 'Escape' && pendingEdgeCreate) {
+        e.preventDefault();
+        pendingEdgeCreate = null;
         return;
       }
       if (e.code === 'Escape' && selectedEdge) {
@@ -7570,35 +8492,37 @@
           }
           return;
         }
-        const laneHit = hitTestLaneNode(worldPt.x, worldPt.y);
-        if (laneHit) {
-          handleLaneNodeClick(laneHit.nodeKey, laneHit.id);
-          return;
-        }
-        const edgeHit = hitTestLaneEdge(worldPt.x, worldPt.y);
-        if (edgeHit && edgeHit.from && edgeHit.to) {
-          // Click a path to select it — white handle appears on the exit end for dragging
-          nodes.forEach((other, key) => {
-            if (other.interaction && other.interaction.selectedId != null) {
-              other.interaction.selectedId = null;
-              if (key !== edgeHit.nodeKey) refreshEmphasis(key);
-            }
-          });
-          const nd = nodes.get(edgeHit.nodeKey);
-          if (nd) {
-            if (!nd.interaction) nd.interaction = { selectedId: null, hoveredId: null };
-            nd.interaction.selectedId = edgeHit.from.id;
-            redrawJunctionTurnSigns(edgeHit.nodeKey);
-            refreshEmphasis(edgeHit.nodeKey);
+        if (laneGraphEditMode) {
+          const laneHit = hitTestLaneNode(worldPt.x, worldPt.y);
+          if (laneHit) {
+            handleLaneNodeClick(laneHit.nodeKey, laneHit.id);
+            return;
           }
-          setSelectedEdge({
-            nodeKey: edgeHit.nodeKey,
-            fromSegId: edgeHit.from.segId,
-            fromLaneIdx: edgeHit.from.laneIdx,
-            toSegId: edgeHit.to.segId,
-            toLaneIdx: edgeHit.to.laneIdx
-          });
-          return;
+          const edgeHit = hitTestLaneEdge(worldPt.x, worldPt.y);
+          if (edgeHit && edgeHit.from && edgeHit.to) {
+            // Click a path to select it — white handle appears on the exit end for dragging
+            nodes.forEach((other, key) => {
+              if (other.interaction && other.interaction.selectedId != null) {
+                other.interaction.selectedId = null;
+                if (key !== edgeHit.nodeKey) refreshEmphasis(key);
+              }
+            });
+            const nd = nodes.get(edgeHit.nodeKey);
+            if (nd) {
+              if (!nd.interaction) nd.interaction = { selectedId: null, hoveredId: null };
+              nd.interaction.selectedId = edgeHit.from.id;
+              redrawJunctionTurnSigns(edgeHit.nodeKey);
+              refreshEmphasis(edgeHit.nodeKey);
+            }
+            setSelectedEdge({
+              nodeKey: edgeHit.nodeKey,
+              fromSegId: edgeHit.from.segId,
+              fromLaneIdx: edgeHit.from.laneIdx,
+              toSegId: edgeHit.to.segId,
+              toLaneIdx: edgeHit.to.laneIdx
+            });
+            return;
+          }
         }
         if (typeof hitTestSignalAt === 'function') {
           const sig = hitTestSignalAt(worldPt.x, worldPt.y);
@@ -8432,6 +9356,11 @@
           enabled: sig.enabled,
           rightOnRed: sig.rightOnRed,
           protectedLeft: sig.protectedLeft,
+          leftModePolicy: sig.leftModePolicy || 'auto',
+          leftModeBySeg: Object.assign({}, sig.leftModeBySeg || {}),
+          groupGreen: (sig.groupGreen || []).slice(),
+          timingManual: !!sig.timingManual,
+          signalManual: !!sig.signalManual,
           timing: Object.assign({}, sig.timing || {}),
           overrides: [...(sig.overrides instanceof Map ? sig.overrides.entries() : Object.entries(sig.overrides || {}))],
           phaseIndex: sig.phaseIndex || 0,
@@ -8685,6 +9614,11 @@
           sig.enabled = sd.enabled !== false;
           sig.rightOnRed = sd.rightOnRed !== false;
           sig.protectedLeft = !!sd.protectedLeft;
+          sig.leftModePolicy = sd.leftModePolicy || 'auto';
+          sig.leftModeBySeg = Object.assign({}, sd.leftModeBySeg || {});
+          sig.groupGreen = Array.isArray(sd.groupGreen) ? sd.groupGreen.slice() : [];
+          sig.timingManual = !!sd.timingManual;
+          sig.signalManual = !!sd.signalManual;
           sig.timing = timing;
           sig.overrides = overrides;
           if (typeof rebuildPhaseRing === 'function') rebuildPhaseRing(sig);
@@ -8707,6 +9641,11 @@
           enabled: sd.enabled !== false,
           rightOnRed: sd.rightOnRed !== false,
           protectedLeft: !!sd.protectedLeft,
+          leftModePolicy: sd.leftModePolicy || 'auto',
+          leftModeBySeg: Object.assign({}, sd.leftModeBySeg || {}),
+          groupGreen: Array.isArray(sd.groupGreen) ? sd.groupGreen.slice() : [],
+          timingManual: !!sd.timingManual,
+          signalManual: !!sd.signalManual,
           timing,
           heads: [],
           groups: [],
@@ -8760,8 +9699,23 @@
 
       segments.forEach(seg => redrawSegment(seg));
       nodes.forEach((nd, key) => {
-        if (nd.count >= 2) refreshJunctionVisuals(key);
+        if (nodeHasLaneGraph(nd)) refreshJunctionVisuals(key);
       });
+
+      // Re-apply after heads exist — rebuild can wipe timing greens / enabled via
+      // autoConfigure + early disableSignalsForControls (heads were still empty).
+      applySavedSignals(data.signals);
+      if (data.signals && typeof data.signals === 'object') {
+        Object.keys(data.signals).forEach(key => {
+          const nd = nodes.get(key);
+          if (nd && typeof disableSignalsForControls === 'function') {
+            disableSignalsForControls(nd);
+            if (typeof refreshJunctionControlSigns === 'function') {
+              refreshJunctionControlSigns(key);
+            }
+          }
+        });
+      }
 
       if (typeof rebuildAllieGraph === 'function') rebuildAllieGraph();
       if (typeof importMapSpawners === 'function') importMapSpawners(data.spawners || []);
@@ -8896,6 +9850,7 @@
   </script>
   <script src="signals.js"></script>
   <script src="engine.js"></script>
+  <script src="lanes.js"></script>
   <script src="units.js"></script>
   <script src="items.js"></script>
   <script>
@@ -9139,6 +10094,14 @@
     if (typeof refreshSignalVisibilityUI === 'function') refreshSignalVisibilityUI();
     if (typeof refreshLaneGraphColorUI === 'function') refreshLaneGraphColorUI();
     if (typeof refreshAllSignalOpacities === 'function') refreshAllSignalOpacities();
+    // Sync Signals master button with restored localStorage preference
+    (function syncSignalsMasterUI() {
+      if (typeof signalsEnabled === 'undefined') return;
+      const btn = document.getElementById('btn-signals');
+      if (!btn) return;
+      btn.textContent = signalsEnabled ? 'On' : 'Off';
+      btn.classList.toggle('active', !!signalsEnabled);
+    })();
 
     (function tryAutoLoadLastMap() {
       const store = readMapsStore();

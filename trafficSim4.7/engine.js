@@ -6,12 +6,14 @@
 //     getLaneSpecsFor(segment)
 //   - `nodes`: each junction (count > 1) has `laneNodes` (the little
 //     colored in/out dots) and `edges` (the bezier turn connections
-//     between them), built by calculateCurves().
+//     between them), built by calculateCurves(). Dead ends of two-way
+//     roads also get laneNodes + U-turn edges so cars can circle back.
 //
 // ALLIE turns both of those into one directed graph of "atoms":
 //   - a LANE atom = driving the length of one lane, from the stub
 //     where it leaves its origin junction to the stub where it
-//     arrives at its destination junction (open ends have no stub).
+//     arrives at its destination junction (one-way open ends have
+//     no stub; two-way dead ends use a U-turn stub).
 //   - a TURN atom = one bezier lane-to-lane connection inside a
 //     junction (already computed & already respects the U-turn /
 //     common-sense settings).
@@ -28,18 +30,25 @@ function stubKey(nodeKey, laneNodeId) {
   return nodeKey + '#' + laneNodeId;
 }
 
+function nodeHasLaneGraphForAllie(nd) {
+  if (typeof nodeHasLaneGraph === 'function') return nodeHasLaneGraph(nd);
+  return !!(nd && nd.count > 1);
+}
+
 // Same start/end shortening `redrawSegment()` uses to draw a segment's lane
 // lines (pulled back to STUB_R at any junction end) — lane atoms need to
 // walk the exact same drivable geometry that's on screen.
 function computeShortenedEndpoints(segment) {
   const startKey = getNodeKey(segment.startNode.x, segment.startNode.y);
   const endKey = getNodeKey(segment.endNode.x, segment.endNode.y);
-  const startIsJunction = !!(nodes.get(startKey) && nodes.get(startKey).count > 1);
-  const endIsJunction = !!(nodes.get(endKey) && nodes.get(endKey).count > 1);
-  const startInset = startIsJunction
+  const startNd = nodes.get(startKey);
+  const endNd = nodes.get(endKey);
+  const startNeedsStub = nodeHasLaneGraphForAllie(startNd);
+  const endNeedsStub = nodeHasLaneGraphForAllie(endNd);
+  const startInset = startNeedsStub
     ? (typeof getStubInset === 'function' ? getStubInset(segment, 'start') : STUB_R)
     : 0;
-  const endInset = endIsJunction
+  const endInset = endNeedsStub
     ? (typeof getStubInset === 'function' ? getStubInset(segment, 'end') : STUB_R)
     : 0;
   const shortened = shortenLine(
@@ -303,8 +312,8 @@ function buildLaneAtoms(segment) {
     const tux = (ax2 - ax1) / segLen, tuy = (ay2 - ay1) / segLen;
     const originNode = nodes.get(originKey);
     const destNode = nodes.get(destKey);
-    const originIsJunction = !!(originNode && originNode.count > 1);
-    const destIsJunction = !!(destNode && destNode.count > 1);
+    const originIsJunction = nodeHasLaneGraphForAllie(originNode);
+    const destIsJunction = nodeHasLaneGraphForAllie(destNode);
     const originStubObj = originIsJunction ? findLaneStub(originKey, segment.id, spec.idx, 'out') : null;
     const destStubObj = destIsJunction ? findLaneStub(destKey, segment.id, spec.idx, 'in') : null;
     return {
@@ -400,7 +409,7 @@ function rebuildAllieGraph() {
   segments.forEach(seg => { atoms.push(...buildLaneAtoms(seg)); });
   const turnsByNode = new Map();
   nodes.forEach((nd, nodeKey) => {
-    if (nd.count > 1 && nd.edges) {
+    if (nodeHasLaneGraphForAllie(nd) && nd.edges) {
       const turns = [];
       nd.edges.forEach(edge => {
         // When intersection lane-changes are off, drop straight-through edges
@@ -430,6 +439,7 @@ function rebuildAllieGraph() {
   if (typeof rebuildLaneChangeGraphVisual === 'function') rebuildLaneChangeGraphVisual();
   // Network changed — every live car needs a fresh optimal path to its dest.
   if (typeof cars !== 'undefined' && cars.length) rerouteAllCars();
+  if (typeof invalidateWorldCache === 'function') invalidateWorldCache();
 }
 
 // Driver's-right ranking for a junction stub (SVG y-down). Higher = righter.
@@ -954,7 +964,43 @@ const PARKING_CONFIG = {
   NEIGHBOR_MARGIN: 0.15
 };
 
-const CAR_COLORS = ['#e74c3c', '#3498db', '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22', '#ecf0f1', '#34495e', '#2ecc71', '#ff6fae'];
+// Realistic street palette — weighted so most cars are black / white / silver,
+// with a smaller share of common blues and reds (and a few rare accents).
+const CAR_COLOR_WEIGHTS = [
+  { color: '#1a1a1a', w: 18 }, // black
+  { color: '#0d0d0d', w: 10 }, // deep black
+  { color: '#2b2b2b', w: 8 },  // charcoal
+  { color: '#f5f5f5', w: 16 }, // white
+  { color: '#e8e8e8', w: 10 }, // off-white
+  { color: '#c8c8c8', w: 12 }, // silver
+  { color: '#9a9a9a', w: 8 },  // gray
+  { color: '#6e6e6e', w: 5 },  // dark gray
+  { color: '#1e3a5f', w: 5 },  // navy blue
+  { color: '#2c5aa0', w: 4 },  // medium blue
+  { color: '#8bb4d9', w: 2 },  // light blue
+  { color: '#8b1a1a', w: 5 },  // dark red
+  { color: '#b33a3a', w: 4 },  // red
+  { color: '#c45c26', w: 1 },  // burnt orange (rare)
+  { color: '#d4a017', w: 2 },  // mustard / taxi yellow (rare)
+  { color: '#e8c84a', w: 1 },  // bright yellow (very rare)
+  { color: '#2f6b3a', w: 2 },  // forest green (rare)
+  { color: '#3d8b5a', w: 1 },  // mid green (very rare)
+  { color: '#3d4a3a', w: 1 },  // dark olive (rare)
+  { color: '#5c4033', w: 1 }   // brown (rare)
+];
+let _carColorWeightSum = 0;
+for (let i = 0; i < CAR_COLOR_WEIGHTS.length; i++) _carColorWeightSum += CAR_COLOR_WEIGHTS[i].w;
+
+function pickCarColor() {
+  let r = Math.random() * _carColorWeightSum;
+  for (let i = 0; i < CAR_COLOR_WEIGHTS.length; i++) {
+    r -= CAR_COLOR_WEIGHTS[i].w;
+    if (r <= 0) return CAR_COLOR_WEIGHTS[i].color;
+  }
+  return CAR_COLOR_WEIGHTS[0].color;
+}
+
+const CAR_COLORS = CAR_COLOR_WEIGHTS.map(e => e.color);
 
 let parkingSearchEnabled = true;
 let activeParkersCount = 0; // cars staging / reversing into stalls
@@ -1172,7 +1218,9 @@ function updateLaneCongestionState(force) {
 function maybeUpdateLaneCongestion(dt) {
   if (!(dt > 0)) return;
   laneCongestionAccum += dt;
-  updateLaneCongestionState(false);
+  if (updateLaneCongestionState(false) && typeof invalidateWorldCache === 'function') {
+    invalidateWorldCache();
+  }
 }
 
 function refreshLaneCongestionUI() {
@@ -1192,6 +1240,7 @@ function toggleLaneCongestionOverlay() {
     updateLaneCongestionState(true);
   }
   refreshLaneCongestionUI();
+  if (typeof invalidateWorldCache === 'function') invalidateWorldCache();
   if (typeof renderFrame === 'function') renderFrame();
 }
 
@@ -1251,9 +1300,9 @@ function drawLaneCongestionSegmentCanvas(c, p, lanesIn, lanesOut, segId, alphaMu
     const alpha = alphaMul == null ? 1 : alphaMul;
     const fill = lane.color.replace(/,([0-9.]+)\)$/, (_, a) => ',' + (Number(a) * alpha).toFixed(3) + ')');
     c.fillStyle = fill;
-    // Soft outer glow so blocks pop against dark asphalt
+    const useBlur = scale >= 0.7 && (typeof segments === 'undefined' || segments.length <= 120);
     c.shadowColor = fill.replace(/,([0-9.]+)\)$/, ',0.55)');
-    c.shadowBlur = 4.5 / Math.max(0.2, scale);
+    c.shadowBlur = useBlur ? (4.5 / Math.max(0.2, scale)) : 0;
     c.beginPath();
     if (len <= blockLen + gap) {
       const inset = Math.min(len * 0.12, 4);
@@ -1460,6 +1509,7 @@ function toggleDriveMode() {
   document.getElementById('drive-hud').classList.toggle('visible', driveMode);
   if (driveMode) {
     if (typeof exitJunctionEditorMode === 'function') exitJunctionEditorMode();
+    if (typeof exitLaneGraphEditMode === 'function') exitLaneGraphEditMode();
     if (typeof setBuildMode === 'function') setBuildMode(false);
     if (typeof setDeleteMode === 'function') setDeleteMode(false);
     if (typeof setUpgradeMode === 'function') setUpgradeMode(false);
@@ -1861,7 +1911,7 @@ function spawnCarFromRoute(route, destPick, opts) {
   const first = legs[0];
   const start = first.atom.sampleAtT(first.tStart);
 
-  const color = opts.color || CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)];
+  const color = opts.color || pickCarColor();
 
   // Destination pick for post-lane-change route recompute
   let storedDest = destPick || null;
@@ -2086,8 +2136,21 @@ function drawCarCanvas(c, car) {
 }
 
 function drawCarsCanvas(c) {
-  for (let i = 0; i < cars.length; i++) drawCarCanvas(c, cars[i]);
-  // Yield / parking wait icons only for the currently targeted car (debug on)
+  const vp = (typeof _drawVp !== 'undefined' && _drawVp)
+    || (typeof getWorldViewport === 'function' ? getWorldViewport(24) : null);
+  const pad = ALLIE_CONFIG.CAR_LENGTH * 1.25;
+  for (let i = 0; i < cars.length; i++) {
+    const car = cars[i];
+    if (!car) continue;
+    if (car === followedCar || car === controlledCar || car.selected || car.hovered) {
+      drawCarCanvas(c, car);
+      continue;
+    }
+    const cx = car._cx != null ? car._cx : car.x;
+    const cy = car._cy != null ? car._cy : car.y;
+    if (typeof pointInView === 'function' && !pointInView(cx, cy, vp, pad)) continue;
+    drawCarCanvas(c, car);
+  }
   if (debugRingsOn) {
     const target = carOverlayTarget();
     if (target) drawCarWaitIndicator(c, target);
@@ -3689,10 +3752,55 @@ function stepSim(dt) {
   simTime += dt;
   if (typeof updateSignals === 'function') updateSignals(dt);
   updateSpawners(dt);
-  // Batch skip: rebuild spatial/lane indexes every 6th step (~0.75s stale at 1/8 dt)
-  if (!simBatchMode || (_batchRebuildSkip++ % 6 === 0)) rebuildCarIndexes();
+  if (simBatchMode) {
+    if (_batchRebuildSkip++ % 6 === 0) rebuildCarIndexes();
+  } else if (cars.length > 100) {
+    if ((tickFrame & 1) === 0) rebuildCarIndexes();
+  } else {
+    rebuildCarIndexes();
+  }
+  if ((tickFrame & 3) === 0) refreshCarSimNearFlags();
   maybeUpdateLaneCongestion(dt);
   for (let i = cars.length - 1; i >= 0; i--) updateCar(cars[i], dt);
+}
+
+function carNeedsFullSim(car) {
+  if (!car) return false;
+  if (car === followedCar || car === controlledCar || car.selected || car.hovered) return true;
+  if (car.state === 'parking' || car.state === 'despawning') return true;
+  if (car.parkPhase === 'staging') return true;
+  const curLeg = car.route && car.route[car.legIndex];
+  if (curLeg && curLeg.atom && curLeg.atom.kind === 'turn') return true;
+  if (curLeg && curLeg.atom && curLeg.atom.kind === 'lanechange') return true;
+  if (typeof findUpcomingSignalTurn === 'function') {
+    const ixInfo = findUpcomingSignalTurn(car);
+    if (ixInfo && ixInfo.dist < ALLIE_CONFIG.IX_CLEAR_LOOKAHEAD) return true;
+  }
+  return false;
+}
+
+function refreshCarSimNearFlags() {
+  const vp = typeof getWorldViewport === 'function' ? getWorldViewport(96) : null;
+  for (let i = 0; i < cars.length; i++) {
+    const car = cars[i];
+    if (!car || car.state === 'parked') {
+      if (car) car._simNear = false;
+      continue;
+    }
+    if (carNeedsFullSim(car)) {
+      car._simNear = true;
+      continue;
+    }
+    if (!vp) {
+      car._simNear = true;
+      continue;
+    }
+    const cx = car._cx != null ? car._cx : car.x;
+    const cy = car._cy != null ? car._cy : car.y;
+    car._simNear = typeof pointInView === 'function'
+      ? pointInView(cx, cy, vp, ALLIE_CONFIG.CAR_LENGTH * 2)
+      : true;
+  }
 }
 
 /** Pick a scrub multiplier so skips are watchable (~10–100×), not a black flash. */
@@ -4197,8 +4305,7 @@ function toggleAllowIntersectionLaneChanges() {
   ALLIE_CONFIG.ALLOW_INTERSECTION_LANE_CHANGES = !ALLIE_CONFIG.ALLOW_INTERSECTION_LANE_CHANGES;
   const btn = document.getElementById('btn-lane-changes');
   if (btn) {
-    btn.textContent = 'Allow lane changes in intersection: '
-      + (ALLIE_CONFIG.ALLOW_INTERSECTION_LANE_CHANGES ? 'On' : 'Off');
+    btn.textContent = ALLIE_CONFIG.ALLOW_INTERSECTION_LANE_CHANGES ? 'On' : 'Off';
     btn.classList.toggle('active', ALLIE_CONFIG.ALLOW_INTERSECTION_LANE_CHANGES);
   }
   // Rebuild junction edges (common-sense straight hops) then the ALLIE graph
@@ -4211,7 +4318,7 @@ function toggleLaneChangeGraphVisible() {
   laneChangeGraphVisible = !laneChangeGraphVisible;
   const btn = document.getElementById('btn-lanechange-graph');
   if (btn) {
-    btn.textContent = 'Lane-change windows: ' + (laneChangeGraphVisible ? 'On' : 'Off');
+    btn.textContent = laneChangeGraphVisible ? 'On' : 'Off';
     btn.classList.toggle('active', laneChangeGraphVisible);
   }
   rebuildLaneChangeGraphVisual();
@@ -4221,7 +4328,7 @@ function toggleDebugRings() {
   debugRingsOn = !debugRingsOn;
   const btn = document.getElementById('btn-debug-rings');
   if (btn) {
-    btn.textContent = debugRingsOn ? 'Debug: On' : 'Debug: Off';
+    btn.textContent = debugRingsOn ? 'On' : 'Off';
     btn.classList.toggle('active', debugRingsOn);
   }
   updateCarOverlayVisibility();
@@ -4232,7 +4339,7 @@ function toggleParkingSearch() {
   parkingSearchEnabled = !parkingSearchEnabled;
   const btn = document.getElementById('btn-parking-search');
   if (btn) {
-    btn.textContent = 'Cars use parking: ' + (parkingSearchEnabled ? 'On' : 'Off');
+    btn.textContent = parkingSearchEnabled ? 'On' : 'Off';
     btn.classList.toggle('active', parkingSearchEnabled);
   }
   if (!parkingSearchEnabled) {
@@ -5739,6 +5846,38 @@ function findUpcomingSignalTurn(car) {
   return null;
 }
 
+/**
+ * Rear axle has crossed the painted limit line (STOP_LINE_GAP before turn entry).
+ * `slack` is how far past the line counts as committed (not a tiny overshoot).
+ */
+function isPastJunctionLimitLine(info, slack) {
+  if (!info) return false;
+  const s = slack != null ? slack : 0.45;
+  return info.dist < ALLIE_CONFIG.STOP_LINE_GAP - s;
+}
+
+/**
+ * Car has committed past the approach hold point — clear through the box
+ * instead of freezing mid-junction on lights / yield / don't-block-box.
+ */
+function junctionApproachCommitted(car, info) {
+  if (!car || !info) return false;
+  if (car.legIndex === info.turnLegIndex) return true;
+  if (info.dist <= 0.15) return true;
+  return isPastJunctionLimitLine(info, 0.45);
+}
+
+/**
+ * Stop-sign only: allow clamp to fix small overshoots, but once deep past the
+ * line (or on the turn) never yank back / hold mid-box — clear through.
+ */
+function stopSignMustClearThrough(car, info) {
+  if (!car || !info) return false;
+  if (car.legIndex === info.turnLegIndex) return true;
+  if (info.dist <= 0.15) return true;
+  return isPastJunctionLimitLine(info, 1.75);
+}
+
 function signalConstraintFor(car) {
   if (typeof movementDisplay !== 'function') return null;
   if (car.isProbe) return null;
@@ -5766,17 +5905,14 @@ function signalConstraintFor(car) {
 
   const display = movementDisplay(nodeKey, segId, laneIdx, turnType);
 
-  // Past the stop line — only clear/commit if we are allowed through.
-  // On red with a stop latch, keep holding so left arrows (and balls) are obeyed.
-  if (dist <= 0.15) {
-    if (display === 'off' || display === 'green' || (decision && decision.choice === 'commit')) {
-      car.signalDecision = { turnLegIndex, choice: 'commit' };
-      car.rorPhase = null;
-      return null;
-    }
-    if (display === 'red' && decision && decision.choice === 'stop') {
-      return { desired: 0, decelRate: ALLIE_CONFIG.SIGNAL_DECEL, status: 'Red light' };
-    }
+  // Past the painted limit line / into the turn — always clear through.
+  // Holding desired=0 mid-box blocks cross traffic and twirls Pure Pursuit.
+  // (Earlier escape used dist < -1.5 = deep into the turn atom, which left the
+  // whole stop-line→entry stub free to freeze on a red stop latch.)
+  if (junctionApproachCommitted(car, info)) {
+    car.signalDecision = { turnLegIndex, choice: 'commit' };
+    car.rorPhase = null;
+    return null;
   }
 
   if (display === 'off' || display === 'green') {
@@ -5848,15 +5984,30 @@ function stopConstraint(car, stopDist) {
 }
 
 /**
- * While approaching / dwelling at a stop sign, never roll the rear axle past
- * the limit line (stopDist = 0). Snaps pose back onto the line if needed.
+ * While approaching / dwelling at a stop sign — and while look/creep is still
+ * waiting on seniority — never roll the rear axle past the limit line
+ * (stopDist = 0). Snaps pose back onto the line if needed.
  */
 function clampStopSignLimitLine(car) {
   const st = car.stopSignState;
   if (!st || st.control !== 'stop') return;
-  if (st.phase !== 'approach' && st.phase !== 'dwell') return;
+  const phase = st.phase;
+  if (phase !== 'approach' && phase !== 'dwell' && phase !== 'look' && phase !== 'creep') return;
+  // look/creep: only hold the line while yielding / waiting for a clear grant
+  if (phase === 'look' || phase === 'creep') {
+    if (!(car._yieldOther || car._stopPriorityYield || car._stopHoldAtLine)) return;
+  }
   const info = findUpcomingSignalTurn(car);
   if (!info || info.turnLegIndex !== st.turnLegIndex) return;
+  // Already deep into the stub/box — don't teleport backward mid-junction
+  if (stopSignMustClearThrough(car, info)) {
+    st.phase = 'cleared';
+    clearStopSignApproachLatch(st);
+    car._yieldOther = null;
+    car._stopPriorityYield = null;
+    car._stopHoldAtLine = false;
+    return;
+  }
   const stopS = info.turnLeg.cumStart - ALLIE_CONFIG.STOP_LINE_GAP;
   if (!(car.traveledLength > stopS + 0.02)) return;
   car.traveledLength = stopS;
@@ -5877,11 +6028,21 @@ function rightOnRedConstraint(car, stopDist) {
 
   if (car.rorPhase === 'stopped' || car.rorPhase === 'creep') {
     const info = findUpcomingSignalTurn(car);
+    // Past the limit line — never freeze mid-box waiting on ROR coast
+    if (info && junctionApproachCommitted(car, info)) {
+      car.rorPhase = 'cleared';
+      if (car.signalDecision) {
+        car.signalDecision = { turnLegIndex: car.signalDecision.turnLegIndex, choice: 'commit' };
+      }
+      car._rorYielding = false;
+      return null;
+    }
     if (info) {
       const clear = rorCoastClear(car, info);
       car._rorYielding = !clear;
       // Threat while creeping: hold at the line this frame (phase flips in advance)
-      if (car.rorPhase === 'creep' && !clear) {
+      // Only while still short of / at the painted line — not after committing past it.
+      if (car.rorPhase === 'creep' && !clear && stopDist > 0.35) {
         return {
           desired: 0,
           decelRate: ALLIE_CONFIG.SIGNAL_DECEL,
@@ -6065,8 +6226,9 @@ function advanceRightOnRed(car, dt) {
   }
 
   const info = findUpcomingSignalTurn(car);
-  // If we've entered the turn, commit
-  if (!info || info.turnLegIndex !== car.signalDecision.turnLegIndex || info.dist <= 0.15) {
+  // Past limit line / into the turn — commit through (never abort mid-box)
+  if (!info || info.turnLegIndex !== car.signalDecision.turnLegIndex
+      || junctionApproachCommitted(car, info)) {
     car.rorPhase = 'cleared';
     car.signalDecision = { turnLegIndex: car.signalDecision.turnLegIndex, choice: 'commit' };
     car._rorYielding = false;
@@ -6095,6 +6257,7 @@ function advanceRightOnRed(car, dt) {
     car._rorYielding = true;
   }
   const heldClear = (car._rorClearT || 0) >= ALLIE_CONFIG.ROR_CLEAR_HOLD;
+  const stopDist = Math.max(0, info.dist - ALLIE_CONFIG.STOP_LINE_GAP);
 
   if (car.rorPhase === 'stopped') {
     car.signalTimer += dt;
@@ -6108,8 +6271,8 @@ function advanceRightOnRed(car, dt) {
   }
 
   if (car.rorPhase === 'creep') {
-    // Traffic appeared — abort back to the stop line
-    if (!coastClear) {
+    // Traffic appeared — abort back to the stop line only while still short of it
+    if (!coastClear && stopDist > 0.35) {
       car.rorPhase = 'stopped';
       car.signalTimer = Math.min(car.signalTimer, ALLIE_CONFIG.ROR_DWELL * 0.35);
       car._rorClearT = 0;
@@ -6117,7 +6280,8 @@ function advanceRightOnRed(car, dt) {
       return;
     }
     car.signalTimer += dt;
-    if ((car.signalTimer >= ALLIE_CONFIG.ROR_CREEP_TIME && heldClear) || info.dist <= 0.15) {
+    if ((car.signalTimer >= ALLIE_CONFIG.ROR_CREEP_TIME && heldClear)
+        || stopDist <= 0.35 || info.dist <= 0.15) {
       car.rorPhase = 'cleared';
       car.signalDecision = { turnLegIndex: car.signalDecision.turnLegIndex, choice: 'commit' };
       car._rorYielding = false;
@@ -6302,14 +6466,18 @@ function advanceSignedJunction(car, dt) {
     return;
   }
 
-  // Entered the turn — commit
-  if (info.dist <= 0.12 || (car.legIndex === info.turnLegIndex
-      && (car.traveledLength - info.turnLeg.cumStart) / Math.max(info.turnLeg.length, 0.01)
-        >= ALLIE_CONFIG.JUNCTION_CREEP_COMMIT)) {
+  // Entered the turn / committed past the hold point — clear through
+  const deepStop = st.control === 'stop' && stopSignMustClearThrough(car, info);
+  const pastLimit = st.control !== 'stop' && junctionApproachCommitted(car, info);
+  if (deepStop || pastLimit
+      || (car.legIndex === info.turnLegIndex
+        && (car.traveledLength - info.turnLeg.cumStart) / Math.max(info.turnLeg.length, 0.01)
+          >= ALLIE_CONFIG.JUNCTION_CREEP_COMMIT)) {
     st.phase = 'cleared';
     clearStopSignApproachLatch(st);
     car._yieldOther = null;
     car._stopPriorityYield = null;
+    car._stopHoldAtLine = false;
     car._juncClearT = 0;
     return;
   }
@@ -6356,6 +6524,7 @@ function advanceSignedJunction(car, dt) {
     st.phase = 'cleared';
     car._yieldOther = null;
     car._stopPriorityYield = null;
+    car._stopHoldAtLine = false;
     car._juncClearT = 0;
   }
 }
@@ -6933,24 +7102,26 @@ function intersectionClearanceConstraintFor(car) {
     car._ixHoldT = 0;
     car._ixBlocker = null;
     car._ixBlockReason = null;
+    car._ixBlockPeripheral = false;
     return null;
   }
 
-  // Already committed deep into the turn — mid-box freezes are traffic/hard-safety's job
-  if (car.legIndex === info.turnLegIndex) {
-    const frac = (car.traveledLength - info.turnLeg.cumStart) / Math.max(info.turnLeg.length, 0.01);
-    if (frac >= ALLIE_CONFIG.JUNCTION_COMMIT_FRAC) {
-      car._ixHoldT = 0;
-      car._ixBlocker = null;
-      car._ixBlockReason = null;
-      return null;
-    }
+  // Past the painted limit line / on the turn — never freeze mid-box waiting
+  // for path / exit room. Don't-block-the-box holds belong at the approach line.
+  if (junctionApproachCommitted(car, info)) {
+    car._ixHoldT = 0;
+    car._ixBlocker = null;
+    car._ixBlockReason = null;
+    car._ixBlockPeripheral = false;
+    car._ixHoldSince = null;
+    return null;
   }
 
   if (info.dist > ALLIE_CONFIG.IX_CLEAR_LOOKAHEAD) {
     car._ixHoldT = 0;
     car._ixBlocker = null;
     car._ixBlockReason = null;
+    car._ixBlockPeripheral = false;
     return null;
   }
 
@@ -6975,6 +7146,7 @@ function intersectionClearanceConstraintFor(car) {
   let blocker = null;
   let blockerGap = Infinity;
   let exitBlocker = null;
+  car._ixBlockPeripheral = false;
   let exitBlockerRoom = Infinity;
   let cautionScore = 0;
 
@@ -7046,18 +7218,32 @@ function intersectionClearanceConstraintFor(car) {
       }
     }
 
-    // Hard hold only when the threat is inside the driver-head 60° sensor wedge
+    // Hard hold: path threat in head cone, OR confirmed graph conflict already in the box
+    // (perpendicular cross-traffic sits outside HEAD_CONE_DEG but still must stop us).
     if (inHead && onMyPath && (inBox || conflictHit || other.speed < 1.5)) {
       const gap = bestS - car.traveledLength;
       if (gap < blockerGap) {
         blockerGap = gap;
         blocker = other;
+        car._ixBlockPeripheral = false;
       }
       continue;
     }
 
     // Off path but in/near the box → caution only (human "watch them")
     if (!nearMyPath && !conflictHit && !inBox) continue;
+
+    // Graph-conflicting peer already occupying the box — hard hold without head cone
+    // (DMV: don't enter while someone with a crossing path is still clearing).
+    if (conflictHit && inBox && (bestLatSq < softHalfSq * 0.7 || dist < 18)) {
+      const gap = Math.max(0, bestS - car.traveledLength);
+      if (gap < blockerGap) {
+        blockerGap = gap;
+        blocker = other;
+        car._ixBlockPeripheral = true;
+      }
+      continue;
+    }
 
     if (inHead && conflictHit && inBox) {
       // Conflicting mover in the box but not on our polyline — still hold if close
@@ -7066,6 +7252,7 @@ function intersectionClearanceConstraintFor(car) {
         if (gap < blockerGap) {
           blockerGap = gap;
           blocker = other;
+          car._ixBlockPeripheral = false;
         }
         continue;
       }
@@ -7081,7 +7268,8 @@ function intersectionClearanceConstraintFor(car) {
 
   // Drop hold if the blocker left the head sensor wedge (e.g. passed behind / aside)
   // Exit blockers are exempt — they sit past a turn, outside the cone by design.
-  if (blocker && blocker !== exitBlocker) {
+  // Peripheral conflict+inBox holds are also exempt (cross-traffic is ~90° off heading).
+  if (blocker && blocker !== exitBlocker && !car._ixBlockPeripheral) {
     const bdx = blocker._cx - egoX, bdy = blocker._cy - egoY;
     const bfwd = bdx * cosH + bdy * sinH;
     if (bfwd <= 0) blocker = null;
@@ -7097,8 +7285,11 @@ function intersectionClearanceConstraintFor(car) {
   if (exitBlocker) {
     blocker = exitBlocker;
     blockReason = 'exit';
+    car._ixBlockPeripheral = false;
   } else if (blocker) {
     blockReason = 'path';
+  } else {
+    car._ixBlockPeripheral = false;
   }
 
   car._ixBlocker = blocker || null;
@@ -7699,15 +7890,18 @@ function signedJunctionConstraintFor(car) {
   if (info.dist > look) {
     car.stopSignState = null;
     car._yieldOther = null;
+    car._stopHoldAtLine = false;
     return null;
   }
 
-  // Committed into the junction — release control hold
-  if (info.dist <= 0.15 || (car.legIndex === info.turnLegIndex &&
-      (car.traveledLength - info.turnLeg.cumStart) / Math.max(info.turnLeg.length, 0.01)
-        >= ALLIE_CONFIG.JUNCTION_COMMIT_FRAC)) {
+  // Yield / ROW: past the painted limit → clear through (no mid-box freeze).
+  // Stop: allow clamp to fix small overshoots; only deep past / on-turn clears.
+  if (myControl === 'stop' ? stopSignMustClearThrough(car, info)
+      : junctionApproachCommitted(car, info)) {
     if (car.stopSignState) car.stopSignState.phase = 'cleared';
     car._yieldOther = null;
+    car._stopHoldAtLine = false;
+    car._stopPriorityYield = null;
     return null;
   }
 
@@ -7721,6 +7915,7 @@ function signedJunctionConstraintFor(car) {
       nodeKey: info.nodeKey,
       control: myControl
     };
+    car._stopHoldAtLine = false;
   }
   car.stopSignState.control = myControl;
   car._stopPriorityYield = null;
@@ -8026,28 +8221,42 @@ function signedJunctionConstraintFor(car) {
       }
       const clear = coastClear && !priorityOther;
       car._yieldOther = priorityOther || (clear ? null : (car._juncThreat || null));
+      // Hold axle at the painted line whenever we lack a full clear grant
+      car._stopHoldAtLine = !clear;
 
       const courtesy = !!(car.highBeamFlashT > 0 && (priorityOther || car._stopCourtesyFlash));
       const hardYield = !!priorityOther;
-      // After a full stop: only hard seniority zeros us. Soft coast → slow creep,
-      // never 0↔creep hunting from stopConstraint.
-      const creepTarget = hardYield
-        ? 0
-        : (clear ? ALLIE_CONFIG.JUNCTION_CREEP_SPEED : ALLIE_CONFIG.JUNCTION_CREEP_SPEED * 0.55);
+      // Soft unclear creep is only for nosing up to the painted line so the
+      // driver can look both ways. Past the line requires a full clear grant —
+      // otherwise cars roll into the box without ROW and collide.
+      const softLineFloor = ALLIE_CONFIG.STOP_LINE_GAP * 0.3;
+      let creepTarget;
+      if (hardYield) {
+        creepTarget = 0;
+      } else if (clear) {
+        creepTarget = ALLIE_CONFIG.JUNCTION_CREEP_SPEED;
+      } else if (stopDist > softLineFloor) {
+        // Still short of the line: ease forward to look around (anti-deadlock)
+        creepTarget = ALLIE_CONFIG.JUNCTION_CREEP_SPEED * 0.55;
+      } else {
+        // At / past the line without clear — hold (clamp also snaps overshoot)
+        creepTarget = 0;
+      }
       const waitStatus = courtesy ? 'After you' : 'Yielding';
       const lookStatus = clear ? 'Looking both ways' : waitStatus;
+      const holdAtLine = !clear || hardYield;
 
       if (st.phase === 'look') {
         return {
           desired: creepTarget,
-          decelRate: hardYield ? ALLIE_CONFIG.SIGNAL_DECEL : ALLIE_CONFIG.DECEL_NORMAL,
+          decelRate: holdAtLine ? ALLIE_CONFIG.SIGNAL_DECEL : ALLIE_CONFIG.DECEL_NORMAL,
           status: lookStatus
         };
       }
 
       return {
         desired: creepTarget,
-        decelRate: hardYield ? ALLIE_CONFIG.SIGNAL_DECEL : ALLIE_CONFIG.DECEL_NORMAL,
+        decelRate: holdAtLine ? ALLIE_CONFIG.SIGNAL_DECEL : ALLIE_CONFIG.DECEL_NORMAL,
         status: clear ? 'Creeping out' : waitStatus
       };
     }
@@ -8055,6 +8264,7 @@ function signedJunctionConstraintFor(car) {
     clearStopSignApproachLatch(st);
     car._yieldOther = null;
     car._stopPriorityYield = null;
+    car._stopHoldAtLine = false;
     return null;
   }
 
@@ -8171,9 +8381,8 @@ function unsignalizedJunctionConstraintFor(car) {
     car.junctionWait = { turnAtomId: turnAtom.id, arrivalT: simTime, nodeKey: info.nodeKey };
   }
 
-  if (info.dist <= 0.15 || (car.legIndex === info.turnLegIndex &&
-      (car.traveledLength - info.turnLeg.cumStart) / Math.max(info.turnLeg.length, 0.01)
-        >= ALLIE_CONFIG.JUNCTION_COMMIT_FRAC)) {
+  // Past the painted limit / on the turn — clear through, don't freeze mid-box
+  if (junctionApproachCommitted(car, info)) {
     car._yieldOther = null;
     return null;
   }
@@ -10424,6 +10633,7 @@ function updateCarBatch(car, dt) {
   } else {
     car.traveledLength = Math.min(car.totalLength, car.traveledLength + car.speed * dt);
     advanceCarLeg(car);
+    clampStopSignLimitLine(car);
     const pose = sampleRouteAtDistance(car, car.traveledLength);
     if (pose) {
       car.x = pose.x;
@@ -10498,6 +10708,12 @@ function updateCar(car, dt) {
 
   // Skip-draw FF: coarse route snap (no PP / OBB / soft awareness / LC systems)
   if (simBatchMode) {
+    updateCarBatch(car, dt);
+    return;
+  }
+
+  // Off-screen cars: cheap batch path keeps traffic flowing without full AI cost
+  if (car._simNear === false) {
     updateCarBatch(car, dt);
     return;
   }
@@ -10593,14 +10809,23 @@ function updateCar(car, dt) {
 
   if (car.speed > 0.02 && cars.length > 1) {
     // Stagger full OBB checks across frames when not recently blocked —
-    // but always run near an active parking maneuver so we can't skip a frame
-    // and plow into a staging / reversing car.
+    // but always run near junctions / parking so we can't skip a frame and
+    // plow into crossing traffic or a staging / reversing car.
     let forceObb = !!car._hardSafetyHit;
     if (!forceObb && car._parkYieldOther) {
       forceObb = true;
     } else if (!forceObb && activeParkersCount > 0) {
       const obs = car._lastObstruction;
       if (obs && obs.gap < PARKING_CONFIG.YIELD_LOOKAHEAD) forceObb = true;
+    }
+    if (!forceObb) {
+      const curLeg = car.route && car.route[car.legIndex];
+      if (curLeg && curLeg.atom && curLeg.atom.kind === 'turn') {
+        forceObb = true;
+      } else {
+        const ixInfo = findUpcomingSignalTurn(car);
+        if (ixInfo && ixInfo.dist < ALLIE_CONFIG.IX_CLEAR_LOOKAHEAD) forceObb = true;
+      }
     }
     if (forceObb || ((car.id + tickFrame) & 1) === 0) {
       const resolved = resolveHardSafety(car, nextX, nextY, nextHeading, steer, dt);
@@ -11347,6 +11572,33 @@ const MAX_DT = 1 / 30; // keep steps even when a hitch occurs
 let lastTick = null;
 let _boardRectCache = null;
 let _boardRectCacheT = 0;
+let _perfFrameMs = 0;
+let _perfFpsEma = 60;
+let _perfLastTs = 0;
+
+function drawPerfHudCanvas(c) {
+  if (!debugRingsOn || !c) return;
+  if (typeof view === 'undefined') return;
+  const dpr = (typeof canvasDpr === 'number' && canvasDpr > 0) ? canvasDpr : 1;
+  const screenW = (typeof canvasW === 'number') ? canvasW : 0;
+  if (!(screenW > 0)) return;
+  c.save();
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const fps = Math.round(_perfFpsEma);
+  const ms = _perfFrameMs.toFixed(1);
+  const nearCount = cars.reduce((n, car) => n + (car && car._simNear !== false ? 1 : 0), 0);
+  const label = fps + ' fps · ' + ms + ' ms · cars ' + cars.length + ' (' + nearCount + ' near)';
+  c.font = '12px monospace';
+  c.textAlign = 'left';
+  c.textBaseline = 'top';
+  const pad = 8;
+  const tw = c.measureText(label).width;
+  c.fillStyle = 'rgba(8,10,14,0.72)';
+  c.fillRect(pad, pad, tw + 12, 22);
+  c.fillStyle = fps >= 50 ? '#7dffa3' : (fps >= 30 ? '#ffe066' : '#ff6b5a');
+  c.fillText(label, pad + 6, pad + 5);
+  c.restore();
+}
 
 function getBoardRectCached(force) {
   const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -11378,6 +11630,10 @@ function tick(ts) {
   // Batch scrub owns stepping + paint; don't fight it with a stale frame
   if (simFastForwarding) return;
 
+  const frameStart = (typeof performance !== 'undefined' && performance.now)
+    ? performance.now()
+    : Date.now();
+
   // Re-check hover every few frames — cars move and the follow camera pans under a
   // stationary cursor, so mousemove alone isn't enough.
   if (driveMode && lastDriveMouseWorld && (tickFrame & 1) === 0) {
@@ -11388,10 +11644,20 @@ function tick(ts) {
     // Speed chevrons: run multiple fixed steps when simSpeed > 1
     // tickFrame advances inside each stepSim for stagger/caches
     let budget = dt * (simSpeed > 0 ? simSpeed : 1);
-    while (budget > 1e-8) {
+    let steps = 0;
+    const maxSteps = simSpeed > 1
+      ? Math.max(1, Math.ceil(simSpeed) + 1)
+      : 2;
+    const stepBudgetMs = simSpeed > 1 ? 10 : 14;
+    while (budget > 1e-8 && steps < maxSteps) {
       const step = Math.min(budget, MAX_DT);
       stepSim(step);
       budget -= step;
+      steps++;
+      const now = (typeof performance !== 'undefined' && performance.now)
+        ? performance.now()
+        : Date.now();
+      if (simSpeed > 1 && (now - frameStart) > stepBudgetMs) break;
     }
   } else {
     tickFrame++; // keep stagger clocks moving while paused (no stepSim)
@@ -11433,6 +11699,16 @@ function tick(ts) {
   if (followedCar) updateCameraFollow(followedCar, dt);
 
   if (typeof renderFrame === 'function') renderFrame();
+
+  const frameEnd = (typeof performance !== 'undefined' && performance.now)
+    ? performance.now()
+    : Date.now();
+  _perfFrameMs = frameEnd - frameStart;
+  if (_perfLastTs > 0) {
+    const frameDt = Math.max(1, ts - _perfLastTs);
+    _perfFpsEma = _perfFpsEma * 0.9 + (1000 / frameDt) * 0.1;
+  }
+  _perfLastTs = ts;
 }
 
 rebuildAllieGraph();

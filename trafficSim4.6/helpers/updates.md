@@ -431,6 +431,82 @@ Parking search no longer grabs the map-wide closest free stall (often behind the
 
 
 
+## 4.6.26 — Don't block the box
+
+Intersection clearance now refuses to enter when the **exit lane is backed up**, not only when something sits on the turn polyline inside the driver-head cone.
+
+- New tunables: `IX_EXIT_ROOM` (7.5), `IX_EXIT_SCAN` (20), `IX_EXIT_SLOW_SPEED` (3.5).
+- `sampleIntersectionPath` reaches past the turn exit so the receiving-lane queue is visible; path samples grown to 20.
+- Slow cars on ego’s path past `turnLeg.cumEnd` with less than one car-length of free room become an exit blocker — no head-cone / yield-FOV gate (turns need this).
+- `IX_HOLD_TIMEOUT` no longer releases into a full exit; hold ends only when `IX_EXIT_ROOM` opens. Status stays `Waiting for clear`.
+
+
+
+## 4.6.27 — Stop-sign brake/gas hunt fix
+
+Cars near stop signs no longer rapidly alternate accelerate/brake (or freeze) when traffic/sensors briefly slow them in the bite zone.
+
+- Stop approach latch: once inside `STOP_APPROACH_BITE`, `brakingToStop` + `lastApproachDesired` make desired speed monotonic until dwell (never re-open gas for the kinematic curve).
+- Shared settle band: `stopSignArriveSlop` / `stopSignSettlingAtLine` — nearly stopped just short of the line becomes dwell.
+- Queue pull-up (`trafficConstraintFor`) and head-sensor pull-up hand off to `desired: 0` in that settle band so they don’t fight signed stop.
+
+
+
+## 4.6.28 — Stop-sign mid-block freeze
+
+The 4.6.27 latch could pin `desired = 0` forever when a car was traffic-stopped short of the painted line (lead left, latch floor stayed 0).
+
+- Settle / dwell only inside the true arrive zone (`stopDist ≤ stopSignArriveSlop`), not “nearly stopped mid-block.”
+- If latched but stopped short of the line, resume a junction-creep crawl to the line (traffic/sensors still clamp if blocked).
+- Pull-up / head-sensor zero only in the arrive zone.
+
+
+
+## 4.6.29 — Stop-sign pull-up without gas↔brake hunt
+
+Resuming crawl whenever `speed ≤ 0.55` re-opened accel/brake pulsing (brake dip → crawl target → gas → brake).
+
+- Bite zone is **coast/brake only** while rolling (`desired ≤ speed`).
+- Pull-up to creep is allowed only from a **true dead stop** (`speed ≤ 0.08`), via `pullingToLine`, then returns to coast/brake — no mid-brake re-accel.
+
+
+
+## 4.6.30 — Abort bad parking stage early
+
+Cars that start staging but miss the stage pose (behind / beside / bad heading / no progress) no longer sit through a long timeout before hunting again.
+
+- `abortBadParkingStage` blacklists the stall and resumes roam immediately.
+- Reject plans whose stage is already behind or far beside at `beginParkingStaging`.
+- Live checks: behind/beside cancel right away; bad heading / no progress cancel after short timers; `STAGE_TIMEOUT` cut `12 → 6.5`.
+- Heading must be close enough at commit — no more snap-into-bad-reverse.
+- Status/tag: **Won't fit — looking for another** while hunting the next stall.
+
+
+
+## 4.6.31 — A→B spawners
+
+New spawner type that works like Drive-mode pickup→destination, but keeps feeding multiple cars along that fixed corridor.
+
+- Drive panel **Advanced · Spawners** gains **Place A→B spawner**.
+- Click origin, then destination (same pick + route preview as Drive). Cars spawn on the interval/duration settings already used by random spawners.
+- Markers: cyan origin + red destination, with a dashed route ribbon while running.
+- List rows show `A→B` vs `rand`. Saved with the map (`kind: 'ab'`, `destX`/`destY`); rematched onto the live lane graph after rebuilds.
+- Esc cancels destination re-pick, then exits place mode. Mutually exclusive with the random Place spawner tool.
+
+
+
+## 4.6.32 — Drag lane-graph path ends
+
+You can rewire a junction path onto a different exit lane node; turn signs update to match.
+
+- Click a lane-graph edge to select it (white handle on the exit end), or grab any path’s exit tip directly.
+- Drag the exit end onto another **out** lane node at that junction — rubber-band preview + highlighted snap targets.
+- On drop: forced exit list is stored on the road end (`laneExitsStart` / `laneExitsEnd`), the turn-restriction sign mode is synced to the new turn set, signals/ALLIE rebuild.
+- Cycling an enter-lane turn mode clears that lane’s forced exits (back to common-sense + mode filter).
+- Esc cancels an in-progress drag or clears path selection. Saved with the map.
+
+
+
 ## update me after each read thank you, bye [exp: 1.1.n+1 (foldername)]
 
 for example if folder name is trafficsim4.6 then add .n+1 (4.6.1, 4.6.2)
