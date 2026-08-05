@@ -11,9 +11,11 @@
 //   C — seamless pavement + MUTCD markings at plain 2-road connectors
 //       (same asphalt / edges / yellow center / white lane lines as mid-block;
 //       yellow omitted on one-ways; unpaired lane-add/drop lines skipped)
+//   D — 3+ way intersection asphalt (fillet polygon from intersection.html;
+//       edges/borders match stub bed corners; no interior lane markings yet)
 //
 // Toggle: view-bar "Road skin" button (Realistic ↔ Debug). Default Realistic.
-// Intersection interiors (3+ way), dead-end bulbs, signals — left alone.
+// Dead-end bulbs left alone for now.
 // ================================================================
 
 (function initRoadLaneSkins() {
@@ -842,6 +844,321 @@
   }
 
   // ------------------------------------------------------------------
+  // Section D — 3+ way intersection pavement (fillet polygon)
+  //
+  // Port of intersection.html's offset-edge + tangent-circle fillets.
+  // Caps are forced to each approach's already-painted stub bed corners
+  // so asphalt and borders meet mid-block roads exactly. No interior
+  // lane / center markings yet.
+  // ------------------------------------------------------------------
+
+  const IX_SKIP_DEG = 165;
+
+  function ixSub(a, b) { return { x: a.x - b.x, y: a.y - b.y }; }
+  function ixAdd(a, b) { return { x: a.x + b.x, y: a.y + b.y }; }
+  function ixScl(a, s) { return { x: a.x * s, y: a.y * s }; }
+  function ixLen(a) { return Math.hypot(a.x, a.y); }
+  function ixNorm(a) {
+    const l = ixLen(a) || 1e-9;
+    return { x: a.x / l, y: a.y / l };
+  }
+  function ixPerp(d) { return { x: -d.y, y: d.x }; }
+  function ixDot(a, b) { return a.x * b.x + a.y * b.y; }
+  function ixAngle(d) { return Math.atan2(d.y, d.x); }
+
+  function ixLineIntersect(p1, d1, p2, d2) {
+    const denom = d1.x * d2.y - d1.y * d2.x;
+    if (Math.abs(denom) < 1e-9) return null;
+    const diff = ixSub(p2, p1);
+    const t = (diff.x * d2.y - diff.y * d2.x) / denom;
+    return ixAdd(p1, ixScl(d1, t));
+  }
+
+  // list: [{dir, width, maxReach}] — dir unit away from node
+  // returns {edges, capsByIndex, order, fillets, pts}
+  function computeIntersection(node, list, R) {
+    const n = list.length;
+    const order = list.map((_, i) => i).sort(
+      (a, b) => ixAngle(list[a].dir) - ixAngle(list[b].dir)
+    );
+    const pts = list.map(() => ({ left: null, right: null }));
+    const fillets = [];
+    const gaps = [];
+    for (let k = 0; k < n; k++) {
+      const i = order[k], j = order[(k + 1) % n];
+      let gap = ixAngle(list[j].dir) - ixAngle(list[i].dir);
+      while (gap <= 0) gap += 2 * Math.PI;
+      while (gap > 2 * Math.PI) gap -= 2 * Math.PI;
+      gaps.push([i, j, gap]);
+    }
+    for (const [i, j, gap] of gaps) {
+      const dI = list[i].dir, wI = list[i].width;
+      const dJ = list[j].dir, wJ = list[j].width;
+      const nI = ixPerp(dI), nJ = ixPerp(dJ);
+      const edgeIpt = ixAdd(node, ixScl(nI, wI / 2));
+      const edgeJpt = ixAdd(node, ixScl(nJ, -wJ / 2));
+
+      if (gap >= IX_SKIP_DEG * Math.PI / 180) { fillets.push(null); continue; }
+
+      const C = ixLineIntersect(edgeIpt, dI, edgeJpt, dJ);
+      if (!C) { fillets.push(null); continue; }
+
+      let t = R / Math.tan(gap / 2);
+      const maxT = Math.min(list[i].maxReach ?? 1e9, list[j].maxReach ?? 1e9);
+      let Reff = R;
+      if (t > maxT) { t = maxT; Reff = t * Math.tan(gap / 2); }
+      if (t < 0) { fillets.push(null); continue; }
+
+      const tangentI = ixAdd(C, ixScl(dI, t));
+      const tangentJ = ixAdd(C, ixScl(dJ, t));
+      const bis = ixNorm(ixAdd(dI, dJ));
+      const centerDist = Reff / Math.sin(gap / 2);
+      const center = ixAdd(C, ixScl(bis, centerDist));
+
+      const fid = fillets.length;
+      pts[i].left = tangentI; pts[i].leftFillet = fid;
+      pts[j].right = tangentJ; pts[j].rightFillet = fid;
+      fillets.push({ center, R: Reff, roadA: i, roadB: j });
+    }
+
+    function distAlong(p, idx) { return ixDot(ixSub(p, node), list[idx].dir); }
+
+    for (let idx = 0; idx < n; idx++) {
+      const d = list[idx].dir, w = list[idx].width, nrm = ixPerp(d);
+      let L = pts[idx].left, Rp = pts[idx].right;
+      if (L && !Rp) {
+        const dd = distAlong(L, idx);
+        Rp = ixAdd(ixAdd(node, ixScl(d, dd)), ixScl(nrm, -w / 2));
+        pts[idx].right = Rp;
+      } else if (Rp && !L) {
+        const dd = distAlong(Rp, idx);
+        L = ixAdd(ixAdd(node, ixScl(d, dd)), ixScl(nrm, w / 2));
+        pts[idx].left = L;
+      } else if (!L && !Rp) {
+        const dd = Math.min(w, list[idx].maxReach || w);
+        L = ixAdd(ixAdd(node, ixScl(d, dd)), ixScl(nrm, w / 2));
+        Rp = ixAdd(ixAdd(node, ixScl(d, dd)), ixScl(nrm, -w / 2));
+        pts[idx].left = L; pts[idx].right = Rp;
+      }
+    }
+
+    const seq = [];
+    const capsFinal = [];
+    for (let k = 0; k < n; k++) {
+      const i = order[k];
+      const d = list[i].dir, w = list[i].width, nrm = ixPerp(d);
+      const rightArc = pts[i].right, leftArc = pts[i].left;
+      const rightDist = ixDot(ixSub(rightArc, node), d);
+      const leftDist = ixDot(ixSub(leftArc, node), d);
+      const cd = Math.max(rightDist, leftDist);
+      let finalRight = rightArc, finalLeft = leftArc;
+      seq.push([i, 'right', rightArc]);
+      if (rightDist < cd - 1e-6) {
+        finalRight = ixAdd(ixAdd(node, ixScl(d, cd)), ixScl(nrm, -w / 2));
+        seq.push([i, 'rightcap', finalRight]);
+      }
+      if (leftDist < cd - 1e-6) {
+        finalLeft = ixAdd(ixAdd(node, ixScl(d, cd)), ixScl(nrm, w / 2));
+        seq.push([i, 'leftcap', finalLeft]);
+      }
+      seq.push([i, 'left', leftArc]);
+      capsFinal[i] = { p1: finalLeft, p2: finalRight };
+    }
+
+    const edges = [];
+    const m = seq.length;
+    for (let k = 0; k < m; k++) {
+      const a = seq[k], b = seq[(k + 1) % m];
+      let fid = null;
+      if (a[0] !== b[0]) {
+        for (let f = 0; f < fillets.length; f++) {
+          const fl = fillets[f];
+          if (fl && fl.roadA === a[0] && fl.roadB === b[0]
+              && a[1] === 'left' && b[1] === 'right') { fid = f; break; }
+        }
+      }
+      if (fid !== null) {
+        const fl = fillets[fid];
+        edges.push({ type: 'arc', p0: a[2], p1: b[2], center: fl.center, r: fl.R, role: 'outer' });
+      } else {
+        edges.push({ type: 'line', p0: a[2], p1: b[2], role: 'outer' });
+      }
+    }
+    return { edges, capsByIndex: capsFinal, order, fillets, pts };
+  }
+
+  // Build arms anchored to stub bed corners (same lateral frame as Section A).
+  function buildIntersectionArms(nd, nodeX, nodeY) {
+    const dirs = computeNodeDirections(nd, nodeX, nodeY);
+    if (dirs.length < 3) return null;
+    const node = { x: nodeX, y: nodeY };
+    const arms = [];
+    for (let i = 0; i < dirs.length; i++) {
+      const info = directionEdgeInfo(dirs[i]);
+      if (!info) return null;
+      const away = { x: dirs[i].awayX, y: dirs[i].awayY };
+      const nrm = ixPerp(away);
+      // left = +perp(away), right = -perp(away). bedA/bedB are in segment
+      // start→end frame; when !isStart that frame is flipped vs away.
+      const stub = stubPointFor(dirs[i]);
+      const stubDist = Math.hypot(stub.x - nodeX, stub.y - nodeY);
+      if (stubDist < 0.5) return null;
+      const toA = ixDot(ixSub(info.bedA, stub), nrm);
+      const toB = ixDot(ixSub(info.bedB, stub), nrm);
+      // Pick which bed corner is on +nrm (left) vs -nrm (right).
+      let stubLeft, stubRight;
+      if (toB >= toA) {
+        stubLeft = info.bedB;
+        stubRight = info.bedA;
+      } else {
+        stubLeft = info.bedA;
+        stubRight = info.bedB;
+      }
+      arms.push({
+        dir: away,
+        width: info.lay.bedHalf * 2,
+        maxReach: Math.max(1, stubDist * 0.98),
+        stubDist,
+        stubLeft,
+        stubRight,
+        info
+      });
+    }
+    return { node, arms };
+  }
+
+  // Rebuild ring so each approach cap is exactly the painted stub bed edge.
+  function stubAnchoredEdges(arms, raw) {
+    const n = arms.length;
+    const order = raw.order;
+    const pts = raw.pts;
+    const fillets = raw.fillets;
+    const edges = [];
+
+    for (let k = 0; k < n; k++) {
+      const i = order[k];
+      const j = order[(k + 1) % n];
+      const stubR = arms[i].stubRight;
+      const stubL = arms[i].stubLeft;
+      const nextR = arms[j].stubRight;
+
+      // Cap across the stub tip (fill only — do not stroke).
+      edges.push({ type: 'line', p0: stubR, p1: stubL, role: 'cap' });
+
+      // Connect this arm's left to next arm's right via fillet (or line).
+      // Arc endpoints must be the true tangent points (on the circle);
+      // short lines bridge stub corners ↔ tangents so canvas arc stays clean.
+      const leftArc = pts[i].left;
+      const rightArc = pts[j].right;
+      let fl = null;
+      for (let f = 0; f < fillets.length; f++) {
+        if (fillets[f] && fillets[f].roadA === i && fillets[f].roadB === j) {
+          fl = fillets[f];
+          break;
+        }
+      }
+
+      if (fl && leftArc && rightArc) {
+        // Always bridge stub ↔ tangents so the ring stays continuous even
+        // when the segments are tiny (path tracer only lineTo's each p1).
+        edges.push({ type: 'line', p0: stubL, p1: leftArc, role: 'outer' });
+        edges.push({
+          type: 'arc', p0: leftArc, p1: rightArc,
+          center: fl.center, r: fl.R, role: 'outer'
+        });
+        edges.push({ type: 'line', p0: rightArc, p1: nextR, role: 'outer' });
+      } else {
+        edges.push({ type: 'line', p0: stubL, p1: nextR, role: 'outer' });
+      }
+    }
+    return edges;
+  }
+
+  function traceIntersectionPath(c, edges) {
+    if (!edges || !edges.length) return;
+    c.beginPath();
+    let first = true;
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (first) { c.moveTo(e.p0.x, e.p0.y); first = false; }
+      if (e.type === 'line') {
+        c.lineTo(e.p1.x, e.p1.y);
+      } else {
+        const a0 = Math.atan2(e.p0.y - e.center.y, e.p0.x - e.center.x);
+        let a1 = Math.atan2(e.p1.y - e.center.y, e.p1.x - e.center.x);
+        let da = a1 - a0;
+        while (da <= -Math.PI) da += 2 * Math.PI;
+        while (da > Math.PI) da -= 2 * Math.PI;
+        c.arc(e.center.x, e.center.y, e.r, a0, a0 + da, da < 0);
+      }
+    }
+    c.closePath();
+  }
+
+  function strokeOuterEdges(c, edges, edgeColor) {
+    c.strokeStyle = edgeColor;
+    c.lineWidth = 0.8;
+    c.lineCap = 'butt';
+    c.lineJoin = 'round';
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (e.role === 'cap') continue;
+      c.beginPath();
+      c.moveTo(e.p0.x, e.p0.y);
+      if (e.type === 'line') {
+        c.lineTo(e.p1.x, e.p1.y);
+      } else {
+        const a0 = Math.atan2(e.p0.y - e.center.y, e.p0.x - e.center.x);
+        let a1 = Math.atan2(e.p1.y - e.center.y, e.p1.x - e.center.x);
+        let da = a1 - a0;
+        while (da <= -Math.PI) da += 2 * Math.PI;
+        while (da > Math.PI) da -= 2 * Math.PI;
+        c.arc(e.center.x, e.center.y, e.r, a0, a0 + da, da < 0);
+      }
+      c.stroke();
+    }
+  }
+
+  function drawIntersectionPavementCanvas(c) {
+    if (!roadSkinRealistic) return;
+    if (typeof nodes === 'undefined' || !nodes) return;
+    const lod = typeof getRoadLodLevel === 'function'
+      ? getRoadLodLevel(typeof view !== 'undefined' ? view.scale : 1)
+      : 2;
+    if (lod < 1) return;
+    const vp = (typeof _drawVp !== 'undefined' && _drawVp)
+      || (typeof getWorldViewport === 'function' ? getWorldViewport(40) : null);
+
+    const pal = palette(false);
+    const roadAlpha = (typeof ROAD_LANE_OPACITY === 'number') ? ROAD_LANE_OPACITY : 0.55;
+    const stubR = (typeof STUB_R === 'number') ? STUB_R : 13;
+    const filletR = stubR * 0.55;
+
+    nodes.forEach((nd, nodeKey) => {
+      if (!nd.segments || nd.segments.length < 3) return;
+
+      const parts = String(nodeKey).split(',');
+      const nodeX = Number(parts[0]), nodeY = Number(parts[1]);
+      if (typeof pointInView === 'function' && !pointInView(nodeX, nodeY, vp, 40)) return;
+
+      const built = buildIntersectionArms(nd, nodeX, nodeY);
+      if (!built || built.arms.length < 3) return;
+
+      const raw = computeIntersection(built.node, built.arms, filletR);
+      const edges = stubAnchoredEdges(built.arms, raw);
+      if (!edges.length) return;
+
+      c.save();
+      c.globalAlpha = Math.min(1, roadAlpha * 0.95);
+      c.fillStyle = pal.asphalt;
+      traceIntersectionPath(c, edges);
+      c.fill();
+      strokeOuterEdges(c, edges, pal.edge);
+      c.restore();
+    });
+  }
+
+  // ------------------------------------------------------------------
   // Monkey-patch render hooks (same pattern as items.js)
   // ------------------------------------------------------------------
   function installPatches() {
@@ -871,7 +1188,10 @@
       const orig = drawAllJunctionsCanvas;
       function wrappedDrawAllJunctions(c) {
         // Pavement first so turn signs / path-edit overlays stay on top.
-        if (roadSkinRealistic) drawLaneTransitionsCanvas(c);
+        if (roadSkinRealistic) {
+          drawIntersectionPavementCanvas(c);
+          drawLaneTransitionsCanvas(c);
+        }
         orig(c);
       }
       wrappedDrawAllJunctions._laneSkinPatched = true;
@@ -898,6 +1218,7 @@
   // Expose for debugging
   window.drawApproachLimitLinesCanvas = drawApproachLimitLinesCanvas;
   window.drawLaneTransitionsCanvas = drawLaneTransitionsCanvas;
+  window.drawIntersectionPavementCanvas = drawIntersectionPavementCanvas;
   window.paintSegmentSkin = paintSegmentSkin;
   window.setRoadSkinRealistic = setRoadSkinRealistic;
 

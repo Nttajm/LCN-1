@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Junction Studio — road network &amp; intersection generator</title>
+<style>
+  :root{
+    --bg:#0b0e13;
+    --panel:#12161e;
+    --panel2:#161c26;
+    --border:#242c3a;
+    --text:#e7ebf3;
+    --text-dim:#8993a6;
+    --accent:#5ec8ff;
+    --accent-dim:#2f5b73;
+    --link-fill:rgba(73,201,138,0.58);
+    --link-stroke:#2f9e6b;
+    --axis:#ffb454;
+    --isec-fill:rgba(224,85,159,0.92);
+    --isec-stroke:#a83a76;
+    --node-ready:#ffcf5c;
+    --node-ready-ring:rgba(255,207,92,0.35);
+    --node-dead:#3c4658;
+    --danger:#ff6b6b;
+    --font-ui: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--font-ui);
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  }
+  header{
+    flex:0 0 auto;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border-bottom:1px solid var(--border);
+    padding:10px 14px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:14px;
+  }
+  .brand{
+    display:flex; flex-direction:column; margin-right:6px; min-width:150px;
+  }
+  .brand .title{ font-size:14px; font-weight:700; letter-spacing:.08em; color:var(--text); }
+  .brand .sub{ font-size:10px; color:var(--text-dim); letter-spacing:.04em; margin-top:2px;}
+  .group{
+    display:flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.02);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:5px 8px;
+  }
+  .seg{ display:flex; border-radius:6px; overflow:hidden; border:1px solid var(--border); }
+  .seg button{
+    background:transparent; color:var(--text-dim); border:none; cursor:pointer;
+    font-family:var(--font-ui); font-size:11.5px; padding:7px 12px; letter-spacing:.03em;
+    display:flex; align-items:center; gap:6px;
+  }
+  .seg button.active{ background:var(--accent); color:#04121a; font-weight:700; }
+  .seg button:not(.active):hover{ background:rgba(255,255,255,0.06); color:var(--text); }
+
+  label.ctl{ display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-dim); }
+  label.ctl input[type=range]{ width:92px; accent-color:var(--accent); }
+  label.ctl .val{ color:var(--text); min-width:38px; display:inline-block; text-align:right; font-variant-numeric:tabular-nums;}
+
+  button.action{
+    font-family:var(--font-ui); font-size:11.5px; letter-spacing:.03em;
+    background:var(--panel2); color:var(--text); border:1px solid var(--border);
+    padding:7px 12px; border-radius:7px; cursor:pointer;
+  }
+  button.action:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
+  button.action:disabled{ opacity:.35; cursor:not-allowed; }
+  button.action.primary{ background:var(--accent); color:#04121a; border-color:var(--accent); font-weight:700; }
+  button.action.primary:hover:not(:disabled){ filter:brightness(1.08); color:#04121a; }
+  button.action.danger:hover:not(:disabled){ border-color:var(--danger); color:var(--danger); }
+
+  .spacer{ flex:1 1 auto; }
+  .iconbtn{
+    width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--panel2);
+    color:var(--text-dim); cursor:pointer; font-size:12px; display:flex;align-items:center;justify-content:center;
+  }
+  .iconbtn:hover{ color:var(--accent); border-color:var(--accent); }
+
+  #stage{ position:relative; flex:1 1 auto; overflow:hidden; }
+  canvas{ display:block; width:100%; height:100%; touch-action:none; }
+
+  #hint{
+    position:absolute; left:14px; bottom:14px; max-width:420px;
+    background:rgba(18,22,30,0.88); border:1px solid var(--border); backdrop-filter:blur(3px);
+    border-radius:9px; padding:9px 12px; font-size:11.5px; color:var(--text-dim); line-height:1.5;
+    pointer-events:none;
+  }
+  #hint b{ color:var(--text); }
+  #hint.flash{ color:var(--accent); }
+
+  #legend{
+    position:absolute; right:14px; bottom:14px;
+    background:rgba(18,22,30,0.88); border:1px solid var(--border); backdrop-filter:blur(3px);
+    border-radius:9px; padding:9px 12px; font-size:11px; color:var(--text-dim);
+    display:flex; flex-direction:column; gap:5px;
+  }
+  #legend .row{ display:flex; align-items:center; gap:7px; }
+  #legend .sw{ width:11px;height:11px;border-radius:3px; flex:0 0 auto; }
+
+  #info{
+    position:absolute; right:14px; top:14px;
+    background:rgba(18,22,30,0.88); border:1px solid var(--border); backdrop-filter:blur(3px);
+    border-radius:9px; padding:10px 13px; font-size:11.5px; color:var(--text-dim);
+    max-width:230px; display:none;
+  }
+  #info.show{ display:block; }
+  #info b{ color:var(--text); }
+  #info .close{ float:right; cursor:pointer; color:var(--text-dim); }
+
+  #about{
+    position:absolute; inset:0; background:rgba(4,6,10,0.72); display:none;
+    align-items:center; justify-content:center; z-index:20;
+  }
+  #about.show{ display:flex; }
+  #about .card{
+    width:min(560px,88vw); background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:22px 24px; font-size:12.5px; line-height:1.65; color:var(--text-dim);
+  }
+  #about h2{ color:var(--text); font-size:15px; margin:0 0 10px; letter-spacing:.02em;}
+  #about code{ color:var(--accent); }
+  #about .close-row{ text-align:right; margin-top:16px; }
+
+  @media (max-width:760px){
+    #info{ display:none !important; }
+    .brand .sub{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="title">JUNCTION STUDIO</div>
+    <div class="sub">road network · intersection generator</div>
+  </div>
+
+  <div class="group seg" id="modeSeg">
+    <button data-mode="draw" class="active">✎ Draw road</button>
+    <button data-mode="select">⛝ Select</button>
+  </div>
+
+  <div class="group">
+    <label class="ctl">Width <input type="range" id="widthSlider" min="10" max="42" value="22"><span class="val" id="widthVal">22px</span></label>
+  </div>
+  <div class="group">
+    <label class="ctl">Corner R <input type="range" id="radiusSlider" min="3" max="45" value="16"><span class="val" id="radiusVal">16px</span></label>
+  </div>
+
+  <div class="group">
+    <button class="action primary" id="makeBtn" disabled>Make intersection</button>
+    <button class="action" id="autoBtn">Auto-generate all</button>
+    <button class="action danger" id="deleteBtn" disabled>Delete selected</button>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="group">
+    <button class="action" id="clearBtn">Clear all</button>
+    <button class="iconbtn" id="aboutBtn" title="How this works">i</button>
+  </div>
+</header>
+
+<div id="stage">
+  <canvas id="c"></canvas>
+  <div id="hint"></div>
+  <div id="legend">
+    <div class="row"><span class="sw" style="background:var(--link-fill);border:1px solid var(--link-stroke);"></span>Link (road)</div>
+    <div class="row"><span class="sw" style="background:var(--isec-fill);border:1px solid var(--isec-stroke);"></span>Intersection</div>
+    <div class="row"><span class="sw" style="background:var(--node-ready);border-radius:50%;"></span>Ready junction (click)</div>
+  </div>
+  <div id="info"><span class="close" id="infoClose">✕</span><div id="infoBody"></div></div>
+</div>
+
+<div id="about">
+  <div class="card">
+    <h2>How this generates intersections</h2>
+    <p>Every road is a straight center axis with a width. Draw roads and snap their endpoints together to form a <b style="color:var(--text)">junction node</b>. Selecting that node and clicking <b style="color:var(--text)">Make intersection</b> runs the same construction used in road-network GIS pipelines:</p>
+    <p>1. Each road's two outer edges are offset <code>±width/2</code> from its center axis.<br>
+    2. Roads at the node are sorted by angle. For each pair of angularly-adjacent roads, a circle of radius <code>R</code> is inscribed tangent to both facing edges — this is the rounded corner.<br>
+    3. Where two roads are nearly opposite (a straight through-road, e.g. a T-junction's top), no corner exists — that boundary stays a flat cut instead of a curve.<br>
+    4. All tangent points are connected in order — arcs where a corner was rounded, straight edges elsewhere — producing one convex polygon that works for T's, staggered crossings, 5-way junctions, or any angle.</p>
+    <p style="color:var(--text-dim)">Approach adapted from the offset-boundary + tangent-circle method described in <i>“Automatic Generation of Large-scale 3D Road Networks based on GIS Data”</i> (Wang et al., 2021), §3.2 / Fig. 3.</p>
+    <div class="close-row"><button class="action primary" id="aboutClose">Got it</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const hintEl = document.getElementById('hint');
+  const infoEl = document.getElementById('info');
+  const infoBody = document.getElementById('infoBody');
+
+  // ---------------------------------------------------------------
+  // vector / geometry helpers
+  // ---------------------------------------------------------------
+  const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+  const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+  const scl=(a,s)=>({x:a.x*s,y:a.y*s});
+  const vlen=(a)=>Math.hypot(a.x,a.y);
+  const vnorm=(a)=>{ const l=vlen(a)||1e-9; return {x:a.x/l,y:a.y/l}; };
+  const perp=(d)=>({x:-d.y,y:d.x});
+  const vdot=(a,b)=>a.x*b.x+a.y*b.y;
+  const dist=(x1,y1,x2,y2)=>Math.hypot(x2-x1,y2-y1);
+  const angleOf=(d)=>Math.atan2(d.y,d.x);
+
+  function lineIntersect(p1,d1,p2,d2){
+    const denom = d1.x*d2.y - d1.y*d2.x;
+    if (Math.abs(denom) < 1e-9) return null;
+    const diff = sub(p2,p1);
+    const t = (diff.x*d2.y - diff.y*d2.x)/denom;
+    return add(p1, scl(d1,t));
+  }
+
+  function pointToSegmentDist(px,py,x1,y1,x2,y2){
+    const dx=x2-x1, dy=y2-y1;
+    const l2 = dx*dx+dy*dy;
+    if (l2===0) return Math.hypot(px-x1,py-y1);
+    let t = ((px-x1)*dx+(py-y1)*dy)/l2;
+    t = Math.max(0,Math.min(1,t));
+    return Math.hypot(px-(x1+t*dx), py-(y1+t*dy));
+  }
+
+  // ---------------------------------------------------------------
+  // core algorithm: offset boundaries -> tangent-circle fillets
+  // list: [{dir:{x,y} (unit, pointing away from node), width, maxReach}]
+  // returns { edges:[{type:'line',p0,p1} | {type:'arc',p0,p1,center,r}], capsByIndex:[{p1,p2}] }
+  // ---------------------------------------------------------------
+  const SKIP_DEG = 165; // gaps at/above this angle are treated as a straight through-road (no fillet)
+
+  function computeIntersection(node, list, R){
+    const n = list.length;
+    const order = list.map((_,i)=>i).sort((a,b)=>angleOf(list[a].dir)-angleOf(list[b].dir));
+    const pts = list.map(()=>({left:null,right:null}));
+    const fillets = [];
+    const gaps = [];
+    for (let k=0;k<n;k++){
+      const i=order[k], j=order[(k+1)%n];
+      let gap = angleOf(list[j].dir) - angleOf(list[i].dir);
+      while(gap<=0) gap += 2*Math.PI;
+      while(gap>2*Math.PI) gap -= 2*Math.PI;
+      gaps.push([i,j,gap]);
+    }
+    for (const [i,j,gap] of gaps){
+      const dI=list[i].dir, wI=list[i].width;
+      const dJ=list[j].dir, wJ=list[j].width;
+      const nI=perp(dI), nJ=perp(dJ);
+      const edgeIpt = add(node, scl(nI, wI/2));
+      const edgeJpt = add(node, scl(nJ, -wJ/2));
+
+      if (gap >= SKIP_DEG*Math.PI/180){ fillets.push(null); continue; }
+
+      const C = lineIntersect(edgeIpt, dI, edgeJpt, dJ);
+      if (!C){ fillets.push(null); continue; }
+
+      let t = R / Math.tan(gap/2);
+      const maxT = Math.min(list[i].maxReach ?? 1e9, list[j].maxReach ?? 1e9);
+      let Reff = R;
+      if (t > maxT){ t = maxT; Reff = t*Math.tan(gap/2); }
+      if (t < 0){ fillets.push(null); continue; }
+
+      const tangentI = add(C, scl(dI,t));
+      const tangentJ = add(C, scl(dJ,t));
+      const bis = vnorm(add(dI,dJ));
+      const centerDist = Reff / Math.sin(gap/2);
+      const center = add(C, scl(bis, centerDist));
+
+      const fid = fillets.length;
+      pts[i].left = tangentI; pts[i].leftFillet = fid;
+      pts[j].right = tangentJ; pts[j].rightFillet = fid;
+      fillets.push({center, R:Reff, roadA:i, roadB:j});
+    }
+
+    function distAlong(p, idx){ return vdot(sub(p,node), list[idx].dir); }
+
+    for (let idx=0; idx<n; idx++){
+      const d=list[idx].dir, w=list[idx].width, nrm=perp(d);
+      let L=pts[idx].left, Rp=pts[idx].right;
+      if (L && !Rp){
+        const dd = distAlong(L, idx);
+        Rp = add(add(node, scl(d,dd)), scl(nrm, -w/2));
+        pts[idx].right = Rp;
+      } else if (Rp && !L){
+        const dd = distAlong(Rp, idx);
+        L = add(add(node, scl(d,dd)), scl(nrm, w/2));
+        pts[idx].left = L;
+      } else if (!L && !Rp){
+        const dd = w;
+        L = add(add(node, scl(d,dd)), scl(nrm, w/2));
+        Rp = add(add(node, scl(d,dd)), scl(nrm, -w/2));
+        pts[idx].left = L; pts[idx].right = Rp;
+      }
+    }
+
+    // Build the ordered vertex list. Each road's near-node cut must be PERPENDICULAR to
+    // that road's own axis: extend whichever side (left/right) has the shorter tangent
+    // distance out to match the farther one, then cut straight across. The extension is
+    // a straight edge lying along the (already straight) offset boundary, so it stays
+    // visually seamless with the fillet arc it continues from.
+    const seq = [];
+    const capsFinal = [];
+    for (let k=0;k<n;k++){
+      const i = order[k];
+      const d = list[i].dir, w = list[i].width, nrm = perp(d);
+      const rightArc = pts[i].right, leftArc = pts[i].left;
+      const rightDist = vdot(sub(rightArc,node), d);
+      const leftDist = vdot(sub(leftArc,node), d);
+      const cd = Math.max(rightDist, leftDist);
+      let finalRight = rightArc, finalLeft = leftArc;
+      seq.push([i,'right',rightArc]);
+      if (rightDist < cd - 1e-6){
+        finalRight = add(add(node, scl(d,cd)), scl(nrm,-w/2));
+        seq.push([i,'rightcap',finalRight]);
+      }
+      if (leftDist < cd - 1e-6){
+        finalLeft = add(add(node, scl(d,cd)), scl(nrm,w/2));
+        seq.push([i,'leftcap',finalLeft]);
+      }
+      seq.push([i,'left',leftArc]);
+      capsFinal[i] = {p1:finalLeft, p2:finalRight};
+    }
+    const edges = [];
+    const m = seq.length;
+    for (let k=0;k<m;k++){
+      const a=seq[k], b=seq[(k+1)%m];
+      let fid = null;
+      if (a[0] !== b[0]){
+        for (let f=0; f<fillets.length; f++){
+          const fl = fillets[f];
+          if (fl && fl.roadA===a[0] && fl.roadB===b[0] && a[1]==='left' && b[1]==='right'){ fid=f; break; }
+        }
+      }
+      if (fid !== null){
+        const fl = fillets[fid];
+        edges.push({type:'arc', p0:a[2], p1:b[2], center:fl.center, r:fl.R});
+      } else {
+        edges.push({type:'line', p0:a[2], p1:b[2]});
+      }
+    }
+    const capsByIndex = capsFinal;
+    return {edges, capsByIndex, order};
+  }
+
+  // ---------------------------------------------------------------
+  // data model
+  // ---------------------------------------------------------------
+  let roads = [];          // {id,x1,y1,x2,y2,width,startCap,endCap,trimStartDist,trimEndDist}
+  let intersections = {};  // key -> {x,y,edges}
+  let nextId = 1;
+
+  function keyFor(x,y){ return Math.round(x)+','+Math.round(y); }
+  function roadById(id){ return roads.find(r=>r.id===id); }
+
+  function nodesFromRoads(){
+    const map = new Map();
+    function addP(x,y,roadId,end){
+      const key = keyFor(x,y);
+      if (!map.has(key)) map.set(key,{x,y,members:[]});
+      map.get(key).members.push({roadId,end});
+    }
+    for (const r of roads){ addP(r.x1,r.y1,r.id,'start'); addP(r.x2,r.y2,r.id,'end'); }
+    return map;
+  }
+
+  function invalidateNode(key){
+    if (!intersections[key]) return;
+    for (const r of roads){
+      if (r.startCap && keyFor(r.x1,r.y1)===key){ r.startCap=null; r.trimStartDist=0; }
+      if (r.endCap && keyFor(r.x2,r.y2)===key){ r.endCap=null; r.trimEndDist=0; }
+    }
+    delete intersections[key];
+  }
+
+  function makeIntersectionAt(key){
+    const node = nodesFromRoads().get(key);
+    if (!node || node.members.length < 2){
+      flashStatus('Need at least 2 roads meeting at that point.');
+      return false;
+    }
+    const list = node.members.map(m=>{
+      const r = roadById(m.roadId);
+      const isStart = m.end==='start';
+      const from = isStart ? {x:r.x1,y:r.y1} : {x:r.x2,y:r.y2};
+      const to   = isStart ? {x:r.x2,y:r.y2} : {x:r.x1,y:r.y1};
+      const dir = vnorm(sub(to,from));
+      const roadLen = dist(r.x1,r.y1,r.x2,r.y2);
+      const otherEndUsed = isStart ? (r.trimEndDist||0) : (r.trimStartDist||0);
+      const avail = Math.max(4, roadLen - otherEndUsed);
+      return {roadId:r.id, end:m.end, dir, width:r.width, maxReach: Math.max(4, avail*0.85)};
+    });
+    const nodePoint = {x:node.x, y:node.y};
+    const result = computeIntersection(nodePoint, list, filletR);
+    intersections[key] = {x:node.x, y:node.y, edges: result.edges};
+    list.forEach((entry, idx)=>{
+      const r = roadById(entry.roadId);
+      const cap = result.capsByIndex[idx];
+      const usedDist = Math.max(vdot(sub(cap.p1,nodePoint),entry.dir), vdot(sub(cap.p2,nodePoint),entry.dir));
+      if (entry.end==='start'){ r.startCap = cap; r.trimStartDist = usedDist; }
+      else { r.endCap = cap; r.trimEndDist = usedDist; }
+    });
+    flashStatus('Intersection generated (' + list.length + '-way).');
+    return true;
+  }
+
+  function deleteRoad(id){
+    const r = roadById(id);
+    if (!r) return;
+    invalidateNode(keyFor(r.x1,r.y1));
+    invalidateNode(keyFor(r.x2,r.y2));
+    roads = roads.filter(x=>x.id!==id);
+  }
+
+  // ---------------------------------------------------------------
+  // view state
+  // ---------------------------------------------------------------
+  let mode = 'draw';
+  let drawStart = null;
+  let mouse = {x:-999,y:-999};
+  let selected = null; // {type:'node',key} | {type:'road',id}
+  let defaultWidth = 22;
+  let filletR = 16;
+  const SNAP_DIST = 16;
+  let statusText = '';
+  let statusUntil = 0;
+  let DPR = Math.max(1, window.devicePixelRatio||1);
+
+  function flashStatus(msg){ statusText = msg; statusUntil = performance.now() + 1800; }
+
+  // ---------------------------------------------------------------
+  // snapping helpers
+  // ---------------------------------------------------------------
+  function allEndpoints(){
+    const pts = [];
+    for (const r of roads){ pts.push({x:r.x1,y:r.y1}); pts.push({x:r.x2,y:r.y2}); }
+    return pts;
+  }
+  function findSnap(x,y, excludeSame){
+    let best=null, bestD=SNAP_DIST;
+    for (const p of allEndpoints()){
+      const d = dist(x,y,p.x,p.y);
+      if (d<bestD){ bestD=d; best=p; }
+    }
+    return best;
+  }
+
+  function hitTestNode(x,y){
+    let best=null, bestD=18;
+    for (const [key,node] of nodesFromRoads()){
+      const d = dist(x,y,node.x,node.y);
+      if (d<bestD){ bestD=d; best={key,node}; }
+    }
+    return best;
+  }
+  function hitTestRoad(x,y){
+    let best=null, bestD=1e9;
+    for (const r of roads){
+      const d = pointToSegmentDist(x,y,r.x1,r.y1,r.x2,r.y2);
+      const thresh = Math.max(10, r.width/2+4);
+      if (d<thresh && d<bestD){ bestD=d; best=r; }
+    }
+    return best;
+  }
+
+  // ---------------------------------------------------------------
+  // canvas sizing
+  // ---------------------------------------------------------------
+  let CW=0, CH=0;
+  function resize(){
+    const rect = stage.getBoundingClientRect();
+    CW = rect.width; CH = rect.height;
+    DPR = Math.max(1, window.devicePixelRatio||1);
+    canvas.width = Math.round(CW*DPR);
+    canvas.height = Math.round(CH*DPR);
+    canvas.style.width = CW+'px';
+    canvas.style.height = CH+'px';
+  }
+  window.addEventListener('resize', ()=>{ resize(); });
+
+  // ---------------------------------------------------------------
+  // demo scene
+  // ---------------------------------------------------------------
+  function addRoad(x1,y1,x2,y2,width){
+    const r = {id:nextId++, x1,y1,x2,y2, width, startCap:null,endCap:null, trimStartDist:0, trimEndDist:0};
+    roads.push(r);
+    return r;
+  }
+  function seedDemo(){
+    const cx = CW*0.30, cy = CH*0.56, arm=105;
+    addRoad(cx-arm,cy, cx,cy, 22);
+    addRoad(cx+arm,cy, cx,cy, 22);
+    addRoad(cx,cy-arm, cx,cy, 22);
+    addRoad(cx,cy+arm, cx,cy, 22);
+    makeIntersectionAt(keyFor(cx,cy));
+
+    // Y-junction (asymmetric, like a fork) — demonstrates perpendicular cuts on angled roads
+    const yx = CW*0.68, yy = CH*0.42, yarm=100;
+    addRoad(yx,yy+yarm*0.92, yx,yy, 22);
+    addRoad(yx-yarm*Math.cos(0.55), yy-yarm*Math.sin(0.55), yx,yy, 20);
+    addRoad(yx+yarm*Math.cos(0.95), yy-yarm*Math.sin(0.95), yx,yy, 18);
+    makeIntersectionAt(keyFor(yx,yy));
+  }
+
+  // ---------------------------------------------------------------
+  // rendering
+  // ---------------------------------------------------------------
+  function drawGrid(){
+    const step=28;
+    ctx.strokeStyle = '#141a24';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x=0;x<CW;x+=step){ ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,CH); }
+    for (let y=0;y<CH;y+=step){ ctx.moveTo(0,y+.5); ctx.lineTo(CW,y+.5); }
+    ctx.stroke();
+  }
+
+  function assignSide(cap, nodePt, nrm){
+    const d1 = vdot(sub(cap.p1,nodePt), nrm);
+    const d2 = vdot(sub(cap.p2,nodePt), nrm);
+    return d1>=d2 ? {L:cap.p1,R:cap.p2} : {L:cap.p2,R:cap.p1};
+  }
+
+  function roadCorners(r){
+    const start={x:r.x1,y:r.y1}, end={x:r.x2,y:r.y2};
+    const d = vnorm(sub(end,start));
+    const nrm = perp(d);
+    let sL = add(start, scl(nrm, r.width/2));
+    let sR = add(start, scl(nrm, -r.width/2));
+    let eL = add(end, scl(nrm, r.width/2));
+    let eR = add(end, scl(nrm, -r.width/2));
+    if (r.startCap){ const a=assignSide(r.startCap, start, nrm); sL=a.L; sR=a.R; }
+    if (r.endCap){ const a=assignSide(r.endCap, end, nrm); eL=a.L; eR=a.R; }
+    return {sL,sR,eL,eR};
+  }
+
+  function drawRoadAxis(r){
+    ctx.save();
+    ctx.setLineDash([6,6]);
+    ctx.strokeStyle = 'var(--axis)'.startsWith('var')? '#ffb454' : '#ffb454';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(r.x1,r.y1); ctx.lineTo(r.x2,r.y2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawRoadFill(r){
+    const {sL,sR,eL,eR} = roadCorners(r);
+    ctx.beginPath();
+    ctx.moveTo(sL.x,sL.y); ctx.lineTo(eL.x,eL.y); ctx.lineTo(eR.x,eR.y); ctx.lineTo(sR.x,sR.y);
+    ctx.closePath();
+    ctx.fillStyle = '#49c98a';
+    ctx.globalAlpha = 0.55;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#2f9e6b';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+
+  function tracePolygon(inter){
+    ctx.beginPath();
+    let first=true;
+    for (const e of inter.edges){
+      if (first){ ctx.moveTo(e.p0.x,e.p0.y); first=false; }
+      if (e.type==='line'){ ctx.lineTo(e.p1.x,e.p1.y); }
+      else {
+        const a0 = Math.atan2(e.p0.y-e.center.y, e.p0.x-e.center.x);
+        let a1 = Math.atan2(e.p1.y-e.center.y, e.p1.x-e.center.x);
+        let da = a1-a0;
+        while(da<=-Math.PI) da+=2*Math.PI;
+        while(da>Math.PI) da-=2*Math.PI;
+        ctx.arc(e.center.x, e.center.y, e.r, a0, a0+da, da<0);
+      }
+    }
+    ctx.closePath();
+  }
+
+  function drawIntersection(inter, highlight){
+    tracePolygon(inter);
+    ctx.fillStyle = '#e0559f';
+    ctx.globalAlpha = 0.92;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = highlight ? '#5ec8ff' : '#a83a76';
+    ctx.lineWidth = highlight ? 2.4 : 1.4;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(inter.x, inter.y, 2.2, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fill();
+  }
+
+  let pulseT = 0;
+  function drawNodeMarkers(){
+    const nodes = nodesFromRoads();
+    for (const [key,node] of nodes){
+      if (intersections[key]) continue;
+      if (node.members.length>=2){
+        const r = 5 + Math.sin(pulseT*2.4)*1.6;
+        ctx.beginPath();
+        ctx.arc(node.x,node.y, r+7, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255,207,92,0.16)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(node.x,node.y, r, 0, Math.PI*2);
+        ctx.fillStyle = '#ffcf5c';
+        ctx.fill();
+        ctx.lineWidth=1.2; ctx.strokeStyle='#4a3010';
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(node.x,node.y, 4, 0, Math.PI*2);
+        ctx.fillStyle = '#3c4658';
+        ctx.fill();
+      }
+      if (selected && selected.type==='node' && selected.key===key){
+        ctx.beginPath();
+        ctx.arc(node.x,node.y, 13, 0, Math.PI*2);
+        ctx.strokeStyle='#5ec8ff'; ctx.lineWidth=2; ctx.stroke();
+      }
+    }
+  }
+
+  function drawSelectedRoadHighlight(){
+    if (!(selected && selected.type==='road')) return;
+    const r = roadById(selected.id);
+    if (!r) return;
+    const {sL,sR,eL,eR} = roadCorners(r);
+    ctx.beginPath();
+    ctx.moveTo(sL.x,sL.y); ctx.lineTo(eL.x,eL.y); ctx.lineTo(eR.x,eR.y); ctx.lineTo(sR.x,sR.y);
+    ctx.closePath();
+    ctx.strokeStyle='#5ec8ff'; ctx.lineWidth=2.2; ctx.stroke();
+  }
+
+  function drawPreview(){
+    if (!(mode==='draw' && drawStart)) return;
+    const target = findSnap(mouse.x,mouse.y) || mouse;
+    const d = dist(drawStart.x,drawStart.y,target.x,target.y);
+    if (d<2) return;
+    const dirv = vnorm(sub(target,drawStart));
+    const nrm = perp(dirv);
+    const p1=add(drawStart,scl(nrm,defaultWidth/2));
+    const p2=add(target,scl(nrm,defaultWidth/2));
+    const p3=add(target,scl(nrm,-defaultWidth/2));
+    const p4=add(drawStart,scl(nrm,-defaultWidth/2));
+    ctx.beginPath();
+    ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.lineTo(p3.x,p3.y);ctx.lineTo(p4.x,p4.y);ctx.closePath();
+    ctx.fillStyle='rgba(94,200,255,0.16)';
+    ctx.fill();
+    ctx.setLineDash([5,5]);
+    ctx.strokeStyle='#5ec8ff'; ctx.lineWidth=1.3;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(drawStart.x,drawStart.y,3.5,0,Math.PI*2); ctx.fillStyle='#5ec8ff'; ctx.fill();
+  }
+
+  function drawSnapRing(){
+    if (mode!=='draw') return;
+    const s = findSnap(mouse.x,mouse.y);
+    if (!s) return;
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,10,0,Math.PI*2);
+    ctx.strokeStyle='#5ec8ff'; ctx.lineWidth=2;
+    ctx.stroke();
+  }
+
+  function render(){
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.clearRect(0,0,CW,CH);
+    drawGrid();
+    for (const r of roads) drawRoadAxis(r);
+    for (const r of roads) drawRoadFill(r);
+    for (const r of roads) drawRoadAxis(r);
+    for (const key in intersections){
+      const highlight = selected && selected.type==='node' && selected.key===key;
+      drawIntersection(intersections[key], highlight);
+    }
+    drawSelectedRoadHighlight();
+    drawNodeMarkers();
+    drawPreview();
+    drawSnapRing();
+    updateHint();
+  }
+
+  function loop(t){
+    pulseT = t/1000;
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------------------------------------------------------------
+  // UI: hint / info panels
+  // ---------------------------------------------------------------
+  function updateHint(){
+    const now = performance.now();
+    if (now < statusUntil){
+      hintEl.classList.add('flash');
+      hintEl.innerHTML = statusText;
+      return;
+    }
+    hintEl.classList.remove('flash');
+    if (mode==='draw'){
+      hintEl.innerHTML = drawStart
+        ? 'Click to finish the road (snaps to nearby endpoints). <b>Esc</b> to stop chaining.'
+        : 'Click to start a road. Click near an existing endpoint to snap and connect it.';
+    } else {
+      hintEl.innerHTML = 'Click a junction to select it, then <b>Make intersection</b>. Click a road to select or delete it.';
+    }
+  }
+
+  function updateInfo(){
+    if (!selected){ infoEl.classList.remove('show'); return; }
+    if (selected.type==='node'){
+      const node = nodesFromRoads().get(selected.key);
+      if (!node){ infoEl.classList.remove('show'); return; }
+      const processed = !!intersections[selected.key];
+      infoBody.innerHTML = '<b>Junction</b><br>' + node.members.length + ' road(s) meet here<br>' +
+        (processed ? 'Status: <span style="color:#e0559f">generated</span>' : 'Status: <span style="color:#ffcf5c">ready</span>');
+      infoEl.classList.add('show');
+    } else if (selected.type==='road'){
+      const r = roadById(selected.id);
+      if (!r){ infoEl.classList.remove('show'); return; }
+      const len = Math.round(dist(r.x1,r.y1,r.x2,r.y2));
+      infoBody.innerHTML = '<b>Road</b><br>length ' + len + 'px<br>width ' + r.width + 'px';
+      infoEl.classList.add('show');
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // toolbar wiring
+  // ---------------------------------------------------------------
+  const modeSeg = document.getElementById('modeSeg');
+  modeSeg.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    mode = btn.dataset.mode;
+    drawStart = null;
+    [...modeSeg.querySelectorAll('button')].forEach(b=>b.classList.toggle('active', b===btn));
+    if (mode==='draw'){ selected=null; updateInfo(); refreshButtons(); }
+    canvas.style.cursor = mode==='draw' ? 'crosshair' : 'default';
+  });
+
+  const widthSlider = document.getElementById('widthSlider');
+  const widthVal = document.getElementById('widthVal');
+  widthSlider.addEventListener('input', ()=>{ defaultWidth = +widthSlider.value; widthVal.textContent = defaultWidth+'px'; });
+
+  const radiusSlider = document.getElementById('radiusSlider');
+  const radiusVal = document.getElementById('radiusVal');
+  radiusSlider.addEventListener('input', ()=>{ filletR = +radiusSlider.value; radiusVal.textContent = filletR+'px'; });
+
+  const makeBtn = document.getElementById('makeBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const autoBtn = document.getElementById('autoBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  function refreshButtons(){
+    let canMake=false, canDelete=false, label='Make intersection';
+    if (selected && selected.type==='node'){
+      const node = nodesFromRoads().get(selected.key);
+      if (node){
+        if (intersections[selected.key]){ label='Reset intersection'; canMake=true; }
+        else if (node.members.length>=2){ label='Make intersection'; canMake=true; }
+      }
+    } else if (selected && selected.type==='road'){
+      canDelete = true;
+    }
+    makeBtn.disabled = !canMake;
+    makeBtn.textContent = label;
+    deleteBtn.disabled = !canDelete;
+  }
+
+  makeBtn.addEventListener('click', ()=>{
+    if (!(selected && selected.type==='node')) return;
+    if (intersections[selected.key]){
+      invalidateNode(selected.key);
+      flashStatus('Intersection reset.');
+    } else {
+      makeIntersectionAt(selected.key);
+    }
+    refreshButtons(); updateInfo();
+  });
+
+  autoBtn.addEventListener('click', ()=>{
+    const nodes = nodesFromRoads();
+    let count=0;
+    for (const [key,node] of nodes){
+      if (node.members.length>=2 && !intersections[key]){
+        if (makeIntersectionAt(key)) count++;
+      }
+    }
+    flashStatus(count ? ('Generated ' + count + ' intersection(s).') : 'Nothing to generate — draw some connected roads first.');
+    refreshButtons(); updateInfo();
+  });
+
+  deleteBtn.addEventListener('click', ()=>{
+    if (selected && selected.type==='road'){
+      deleteRoad(selected.id);
+      selected = null;
+      refreshButtons(); updateInfo();
+    }
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    roads = []; intersections = {}; selected=null; drawStart=null; nextId=1;
+    refreshButtons(); updateInfo();
+    flashStatus('Cleared.');
+  });
+
+  document.getElementById('aboutBtn').addEventListener('click', ()=> document.getElementById('about').classList.add('show'));
+  document.getElementById('aboutClose').addEventListener('click', ()=> document.getElementById('about').classList.remove('show'));
+  document.getElementById('about').addEventListener('click', (e)=>{ if (e.target.id==='about') e.currentTarget.classList.remove('show'); });
+  document.getElementById('infoClose').addEventListener('click', ()=>{ selected=null; updateInfo(); refreshButtons(); });
+
+  // ---------------------------------------------------------------
+  // canvas interaction
+  // ---------------------------------------------------------------
+  function localPos(e){
+    const rect = canvas.getBoundingClientRect();
+    return {x:e.clientX-rect.left, y:e.clientY-rect.top};
+  }
+
+  canvas.addEventListener('mousemove', (e)=>{ mouse = localPos(e); });
+
+  canvas.addEventListener('click', (e)=>{
+    const p = localPos(e);
+    if (mode==='draw'){
+      const snap = findSnap(p.x,p.y);
+      const pt = snap ? {x:snap.x,y:snap.y} : {x:p.x,y:p.y};
+      if (!drawStart){
+        drawStart = pt;
+      } else {
+        if (dist(drawStart.x,drawStart.y,pt.x,pt.y) > 6){
+          const targetKey = keyFor(pt.x,pt.y);
+          invalidateNode(targetKey);
+          invalidateNode(keyFor(drawStart.x,drawStart.y));
+          addRoad(drawStart.x,drawStart.y, pt.x,pt.y, defaultWidth);
+          drawStart = {x:pt.x,y:pt.y};
+        }
+      }
+    } else {
+      const nodeHit = hitTestNode(p.x,p.y);
+      if (nodeHit){
+        selected = {type:'node', key:nodeHit.key};
+      } else {
+        const roadHit = hitTestRoad(p.x,p.y);
+        selected = roadHit ? {type:'road', id:roadHit.id} : null;
+      }
+      refreshButtons(); updateInfo();
+    }
+  });
+
+  canvas.addEventListener('contextmenu', (e)=>{
+    e.preventDefault();
+    if (mode==='draw') drawStart = null;
+  });
+
+  window.addEventListener('keydown', (e)=>{
+    if (e.key==='Escape'){
+      if (mode==='draw') drawStart = null;
+      else { selected=null; updateInfo(); refreshButtons(); }
+    } else if (e.key==='Enter'){
+      if (!makeBtn.disabled) makeBtn.click();
+    } else if (e.key==='Delete' || e.key==='Backspace'){
+      if (mode==='select' && selected && selected.type==='road'){
+        e.preventDefault();
+        deleteBtn.click();
+      }
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // init
+  // ---------------------------------------------------------------
+  resize();
+  seedDemo();
+  refreshButtons();
+  updateInfo();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

@@ -606,7 +606,7 @@
 
     #legend-panel {
       position: fixed;
-      top: 18px;
+      top: 28px;
       left: 18px;
       background: var(--ui-bg);
       border: 1px solid var(--ui-border);
@@ -3002,6 +3002,7 @@
         hoveredLaneNode = null;
       }
       refreshLaneGraphEditUI();
+      if (typeof invalidateWorldCache === 'function') invalidateWorldCache();
     }
 
     function toggleLaneGraphEditMode() {
@@ -3024,6 +3025,7 @@
         }
       }
       refreshLaneGraphEditUI();
+      if (typeof invalidateWorldCache === 'function') invalidateWorldCache();
     }
 
     function refreshLaneGraphEditUI() {
@@ -3075,6 +3077,7 @@
     function exitJunctionEditorMode() {
       if (!junctionEditorMode) return;
       junctionEditorMode = false;
+      if (typeof invalidateWorldCache === 'function') invalidateWorldCache();
       junctionEditorHover = null;
       junctionEditorFocus = null;
       refreshJunctionEditorUI();
@@ -3103,6 +3106,7 @@
       nodes.forEach((nd, key) => {
         if (nd && nd.count >= 2) refreshJunctionControlSigns(key);
       });
+      if (typeof invalidateWorldCache === 'function') invalidateWorldCache();
     }
 
     function controlTypeLabel(type) {
@@ -4319,7 +4323,7 @@
           UNDERPASS_LANE_OPACITY, UNDERPASS_ARROW_OPACITY, true
         );
         if (typeof drawLaneCongestionSegmentCanvas === 'function') {
-          drawLaneCongestionSegmentCanvas(c, p, p.lanesIn, p.lanesOut, p.segId, 0.72);
+          drawLaneCongestionSegmentCanvas(c, p, p.lanesIn, p.lanesOut, p.segId, 0.9);
         }
       }
       for (let i = 0; i < overPieces.length; i++) {
@@ -5217,11 +5221,17 @@
       _drawVp = getWorldViewport(48);
       const settled = worldCacheSettled();
       const key = worldCacheViewKey();
+      // Junction / path editors paint hover + selection inside drawAllJunctionsCanvas.
+      // Those must stay live — a stale world cache makes the editors look broken.
+      const liveWorld = !settled || _worldCachePanActive
+        || junctionEditorMode
+        || laneGraphEditMode
+        || (typeof pathFlowMode !== 'undefined' && pathFlowMode);
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvasW, canvasH);
 
-      if (!settled || _worldCachePanActive) {
+      if (liveWorld) {
         ctx.setTransform(view.scale * dpr, 0, 0, view.scale * dpr, view.x * dpr, view.y * dpr);
         paintStaticWorld(ctx);
       } else {
@@ -9853,6 +9863,7 @@
   <script src="lanes.js"></script>
   <script src="units.js"></script>
   <script src="items.js"></script>
+  <script src="paths.js"></script>
   <script>
     refreshMapListUI();
     updateRefOverlayUI();

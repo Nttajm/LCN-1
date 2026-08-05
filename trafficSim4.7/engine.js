@@ -1119,6 +1119,12 @@ function laneCongestionRgb(score) {
   ];
 }
 
+function laneCongestionColor(score, alpha) {
+  const rgb = laneCongestionRgb(score);
+  const a = alpha == null ? 1 : clampNum(alpha, 0, 1);
+  return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a.toFixed(3) + ')';
+}
+
 function laneCongestionLevel(score) {
   if (score >= 0.66) return 'red';
   if (score >= 0.30) return 'yellow';
@@ -1166,8 +1172,7 @@ function updateLaneCongestionState(force) {
       let score = count ? clampNum(density * 0.55 + speedScore * 0.45, 0, 1) : 0;
       if (count >= 2 && avgSpeed < cruise * 0.18) score = Math.max(score, 0.72);
       const level = laneCongestionLevel(score);
-      const rgb = laneCongestionRgb(score);
-      const alpha = 0.38 + score * 0.48;
+      const alpha = 0.58 + score * 0.38;
       const entry = {
         segmentId: seg.id,
         roadId: seg.id,
@@ -1179,7 +1184,7 @@ function updateLaneCongestionState(force) {
         avgSpeed: +avgSpeed.toFixed(2),
         score: +score.toFixed(3),
         level,
-        color: 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha.toFixed(3) + ')',
+        color: laneCongestionColor(score, alpha),
         updatedAtSimTime: +now.toFixed(2)
       };
 
@@ -1284,56 +1289,58 @@ function drawLaneCongestionSegmentCanvas(c, p, lanesIn, lanesOut, segId, alphaMu
   const perpX = -uy;
   const perpY = ux;
   const scale = (typeof view !== 'undefined' && view.scale) ? Math.max(0.08, view.scale) : 1;
-  const blockLen = clampNum(28 / scale, 14, 40);
-  const gap = clampNum(blockLen * 0.1, 1.2, 3.2);
-  const halfW = clampNum(LANE_OFFSET * 0.52, 1.8, 3.1);
+  const halfW = clampNum(LANE_OFFSET * 0.72, 2.4, 4.2);
+  const glowW = halfW * 1.55;
+  const inset = Math.min(len * 0.04, 2.2);
   const specs = getLaneSpecs(lanesIn, lanesOut);
+  const mul = alphaMul == null ? 1 : alphaMul;
+  const useBlur = scale >= 0.55 && (typeof segments === 'undefined' || segments.length <= 180);
 
   c.save();
   c.lineJoin = 'round';
-  for (let i = 0; i < specs.length; i++) {
-    const spec = specs[i];
-    const lane = segData.lanes[spec.idx];
-    if (!lane) continue;
-    const offX = perpX * spec.offset;
-    const offY = perpY * spec.offset;
-    const alpha = alphaMul == null ? 1 : alphaMul;
-    const fill = lane.color.replace(/,([0-9.]+)\)$/, (_, a) => ',' + (Number(a) * alpha).toFixed(3) + ')');
-    c.fillStyle = fill;
-    const useBlur = scale >= 0.7 && (typeof segments === 'undefined' || segments.length <= 120);
-    c.shadowColor = fill.replace(/,([0-9.]+)\)$/, ',0.55)');
-    c.shadowBlur = useBlur ? (4.5 / Math.max(0.2, scale)) : 0;
-    c.beginPath();
-    if (len <= blockLen + gap) {
-      const inset = Math.min(len * 0.12, 4);
-      drawCongestionBlock(
-        c,
-        p.x1 + ux * inset + offX,
-        p.y1 + uy * inset + offY,
-        p.x2 - ux * inset + offX,
-        p.y2 - uy * inset + offY,
-        perpX,
-        perpY,
-        halfW
-      );
-    } else {
-      for (let s = 0; s < len - 0.5; s += blockLen + gap) {
-        const e = Math.min(len, s + blockLen);
-        if (e - s < 2) continue;
-        drawCongestionBlock(
-          c,
-          p.x1 + ux * s + offX,
-          p.y1 + uy * s + offY,
-          p.x1 + ux * e + offX,
-          p.y1 + uy * e + offY,
-          perpX,
-          perpY,
-          halfW
-        );
+  c.lineCap = 'round';
+
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < specs.length; i++) {
+      const spec = specs[i];
+      const lane = segData.lanes[spec.idx];
+      if (!lane) continue;
+      const score = clampNum(lane.score || 0, 0, 1);
+      const heat = Math.sqrt(score);
+      const offX = perpX * spec.offset;
+      const offY = perpY * spec.offset;
+      const x1 = p.x1 + ux * inset + offX;
+      const y1 = p.y1 + uy * inset + offY;
+      const x2 = p.x2 - ux * inset + offX;
+      const y2 = p.y2 - uy * inset + offY;
+
+      if (pass === 0) {
+        const glowA = (0.28 + heat * 0.42) * mul;
+        c.fillStyle = laneCongestionColor(score, glowA);
+        c.shadowColor = laneCongestionColor(score, 0.55 * mul);
+        c.shadowBlur = useBlur ? (7 / Math.max(0.25, scale)) : 0;
+        c.beginPath();
+        drawCongestionBlock(c, x1, y1, x2, y2, perpX, perpY, glowW);
+        c.fill();
+      } else {
+        const coreA = (0.62 + heat * 0.34) * mul;
+        const edgeA = (0.82 + heat * 0.16) * mul;
+        c.shadowBlur = 0;
+        c.fillStyle = laneCongestionColor(score, coreA);
+        c.beginPath();
+        drawCongestionBlock(c, x1, y1, x2, y2, perpX, perpY, halfW);
+        c.fill();
+
+        c.strokeStyle = laneCongestionColor(score, edgeA);
+        c.lineWidth = Math.max(1.1, halfW * 0.38);
+        c.beginPath();
+        c.moveTo(x1, y1);
+        c.lineTo(x2, y2);
+        c.stroke();
       }
     }
-    c.fill();
   }
+
   c.shadowBlur = 0;
   c.restore();
 }
@@ -2009,6 +2016,27 @@ function spawnCarFromRoute(route, destPick, opts) {
   return car;
 }
 
+// When zoomed out, grow cars + thicken outlines so they stay readable from
+// farther away. Visual only — physics still use CAR_LENGTH / CAR_WIDTH.
+function getCarDrawEmphasis() {
+  const s = Math.max(0.01, (typeof view !== 'undefined' && view.scale) ? view.scale : 1);
+  // Start boosting below ~1.25; stronger toward min zoom (0.25).
+  const ref = 1.25;
+  if (s >= ref) return { size: 1, edge: 0.35, edgeAlpha: 0.55 };
+  const t = clampNum((ref - s) / (ref - 0.25), 0, 1);
+  // Ease in so a mild zoom-out already pops a bit
+  const ease = t * t * (3 - 2 * t);
+  const size = 1 + ease * 0.85; // up to ~1.85× body
+  // Aim for ~1.1 screen-px outline when far (lineWidth is after size scale)
+  const targetPx = 0.4 + ease * 0.85;
+  const edge = Math.max(0.35, targetPx / (size * s));
+  return {
+    size,
+    edge,
+    edgeAlpha: 0.55 + ease * 0.35
+  };
+}
+
 function drawCarCanvas(c, car) {
   if (!car) return;
   const L = ALLIE_CONFIG.CAR_LENGTH, W = ALLIE_CONFIG.CAR_WIDTH;
@@ -2021,19 +2049,21 @@ function drawCarCanvas(c, car) {
   const ignitionOff = car.state === 'parked';
   // Parked = "off": body a touch faded, lamps dark/dim
   if (ignitionOff) opacity *= 0.78;
+  const emph = getCarDrawEmphasis();
 
   c.save();
   c.globalAlpha = opacity;
   c.translate(car.x, car.y);
   c.rotate(car.heading);
   if (scale < 0.999) c.scale(scale, scale);
+  if (emph.size > 1.001) c.scale(emph.size, emph.size);
 
   if (car.hovered && !car.selected) {
     canvasRoundRect(c, rearX - 0.7, -W / 2 - 0.7, L + 1.4, W + 1.4, 1.2);
     c.fillStyle = 'rgba(127,212,255,0.12)';
     c.fill();
     c.strokeStyle = '#7fd4ff';
-    c.lineWidth = 0.65;
+    c.lineWidth = 0.65 * Math.max(1, emph.size * 0.85);
     c.globalAlpha = opacity * 0.95;
     c.stroke();
     c.globalAlpha = opacity;
@@ -2042,7 +2072,7 @@ function drawCarCanvas(c, car) {
   if (car.selected) {
     canvasRoundRect(c, rearX - 0.55, -W / 2 - 0.55, L + 1.1, W + 1.1, 1.1);
     c.strokeStyle = '#7fd4ff';
-    c.lineWidth = 0.55;
+    c.lineWidth = 0.55 * Math.max(1, emph.size * 0.85);
     c.setLineDash([1.6, 1.1]);
     c.stroke();
     c.setLineDash([]);
@@ -2051,8 +2081,8 @@ function drawCarCanvas(c, car) {
   canvasRoundRect(c, rearX, -W / 2, L, W, 0.9);
   c.fillStyle = car.color || '#888';
   c.fill();
-  c.strokeStyle = 'rgba(0,0,0,0.55)';
-  c.lineWidth = 0.35;
+  c.strokeStyle = 'rgba(0,0,0,' + emph.edgeAlpha.toFixed(3) + ')';
+  c.lineWidth = emph.edge;
   c.stroke();
 
   canvasRoundRect(c,
@@ -2138,7 +2168,8 @@ function drawCarCanvas(c, car) {
 function drawCarsCanvas(c) {
   const vp = (typeof _drawVp !== 'undefined' && _drawVp)
     || (typeof getWorldViewport === 'function' ? getWorldViewport(24) : null);
-  const pad = ALLIE_CONFIG.CAR_LENGTH * 1.25;
+  const emphSize = getCarDrawEmphasis().size;
+  const pad = ALLIE_CONFIG.CAR_LENGTH * 1.25 * emphSize;
   for (let i = 0; i < cars.length; i++) {
     const car = cars[i];
     if (!car) continue;
@@ -9900,6 +9931,10 @@ function parkerBlocksEgoLane(ego, other) {
   return false;
 }
 
+function isActiveParker(car) {
+  return !!(car && (car.state === 'parking' || car.parkPhase === 'staging'));
+}
+
 /**
  * Parker body is at/behind ego's bumper plane — already passed them.
  * Never yield / sensor-hold for these (stage-point ghosts must not freeze us).
@@ -9923,7 +9958,7 @@ function shouldYieldForParker(car, other) {
   if (!car || !other) return false;
   if (isParkerBodyBehind(car, other)) return false;
   const sp = other._parkStagePoint || (other._parkPlan && other._parkPlan.stagePoint);
-  if (sp) {
+  if (sp && !(car.parkPhase === 'staging' && other.parkPhase === 'staging')) {
     const egoX = car._cx != null ? car._cx : car.x;
     const egoY = car._cy != null ? car._cy : car.y;
     const cosH = car._cosH != null ? car._cosH : Math.cos(car.heading);
@@ -9933,6 +9968,40 @@ function shouldYieldForParker(car, other) {
     return isInYieldForwardView(car, sp.x, sp.y);
   }
   return isCarInYieldForwardView(car, other);
+}
+
+function parkingPeerBodyHold(car, other) {
+  if (!car || !other || other === car) return null;
+  if (!isActiveParker(other)) return null;
+  if (isParkerBodyBehind(car, other)) return null;
+  if (!parkerBlocksEgoLane(car, other)) {
+    const myPos = car._segPos;
+    const oPos = other._segPos;
+    if (!(myPos && oPos && myPos.segId === oPos.segId && myPos.laneIdx === oPos.laneIdx)) {
+      return null;
+    }
+  }
+
+  const egoX = car._cx != null ? car._cx : car.x;
+  const egoY = car._cy != null ? car._cy : car.y;
+  const cosH = car._cosH != null ? car._cosH : Math.cos(car.heading);
+  const sinH = car._sinH != null ? car._sinH : Math.sin(car.heading);
+  const ox = other._cx != null ? other._cx : other.x;
+  const oy = other._cy != null ? other._cy : other.y;
+  const dx = ox - egoX;
+  const dy = oy - egoY;
+  const fwd = dx * cosH + dy * sinH;
+  if (fwd < ALLIE_CONFIG.CAR_LENGTH * 0.2) return null;
+  const lat = Math.abs(-dx * sinH + dy * cosH);
+  const latLim = Math.max(
+    PARKING_CONFIG.YIELD_LATERAL_REVERSE,
+    ALLIE_CONFIG.DETECT_CORRIDOR_HALF * 1.15
+  );
+  if (lat > latLim) return null;
+  if (!isCarInYieldForwardView(car, other)) return null;
+
+  const gap = fwd - ALLIE_CONFIG.CAR_LENGTH;
+  return { other, gap, lat, fwd, sp: { x: ox, y: oy }, body: true };
 }
 
 function beginParkingStaging(car, candidate) {
@@ -10002,6 +10071,8 @@ function beginParkingStaging(car, candidate) {
 function updateParkingSearch(car, dt) {
   if (!car.parkingIntent || car.state !== 'driving') return;
   if (car.parkPhase === 'staging') {
+    // Refresh peer-parker hold before stage progress / reverse commit checks
+    if (typeof parkingYieldConstraintFor === 'function') parkingYieldConstraintFor(car);
     // Accumulate staging time — bail if we've been stuck too long
     car._stagingT = (car._stagingT || 0) + dt;
     if (car._stagingT > PARKING_CONFIG.STAGE_TIMEOUT) {
@@ -10027,7 +10098,10 @@ function updateParkingSearch(car, dt) {
     if (car._parkDebug) car._parkDebug.dist = dist;
 
     // Track progress toward the stage point
-    if (car._stagingBestDist == null || dist < car._stagingBestDist - 0.15) {
+    if (car._parkYieldOther && isActiveParker(car._parkYieldOther)) {
+      // Held for another parker — don't treat that wait as a failed stage
+      car._stagingNoProgressT = 0;
+    } else if (car._stagingBestDist == null || dist < car._stagingBestDist - 0.15) {
       car._stagingBestDist = dist;
       car._stagingNoProgressT = 0;
     } else if (car._stagingT > 0.8) {
@@ -10060,6 +10134,23 @@ function updateParkingSearch(car, dt) {
       // Final claim check before committing to reverse
       if (car._parkPlan && !stallIsFree(car._parkPlan.bay, car._parkPlan.stallIndex, car)) {
         abortBadParkingStage(car, 'stall taken');
+        return;
+      }
+      // Another parker still in the way — hold stage, don't start reverse shove
+      if (car._parkYieldOther && isActiveParker(car._parkYieldOther)) {
+        car.speed = 0;
+        car.braking = true;
+        if (!car._signalStatus) car._signalStatus = 'Waiting for parker';
+        return;
+      }
+      const bump = typeof wouldCollideAt === 'function'
+        ? wouldCollideAt(car, car.x, car.y, car.heading)
+        : null;
+      if (bump && isActiveParker(bump)) {
+        car.speed = 0;
+        car.braking = true;
+        car._parkYieldOther = bump;
+        if (!car._signalStatus) car._signalStatus = 'Waiting for parker';
         return;
       }
       // Require heading to be roughly right — don't snap into a bad reverse
@@ -10305,20 +10396,18 @@ function parkingYieldConstraintFor(car) {
     car._parkYieldInfo = null;
     return null;
   }
-  if (car.parkPhase === 'staging') {
-    car._parkYieldOther = null;
-    car._parkYieldInfo = null;
-    return null;
-  }
   if (car.isProbe) return null;
   // Stagger soft yield scans — reuse last result on off frames.
   // Skip stagger once we're already in an imminent hold so reaction stays fresh.
+  // Staging cars always scan every frame — peer parkers shove otherwise.
+  const egoStaging = car.parkPhase === 'staging';
   const cachedYield = car._cachedParkYield;
   const imminentHold = !!(cachedYield && cachedYield.desired <= 1.0);
-  if (!imminentHold && ((car.id + tickFrame) & 1) === 1) {
+  if (!egoStaging && !imminentHold && ((car.id + tickFrame) & 1) === 1) {
     if (cachedYield && cachedYield.other) {
       // Drop stale holds if the parker is now behind us / out of FOV
-      if (shouldYieldForParker(car, cachedYield.other)) {
+      if (shouldYieldForParker(car, cachedYield.other)
+          || parkingPeerBodyHold(car, cachedYield.other)) {
         car._parkYieldOther = cachedYield.other;
         car._parkYieldInfo = cachedYield.info || null;
         return cachedYield;
@@ -10355,6 +10444,14 @@ function parkingYieldConstraintFor(car) {
     const staging = other.parkPhase === 'staging';
     if (!reversing && !staging) continue;
 
+    // Two parkers lining up: prefer body-to-body hold so they don't shove
+    if (egoStaging || staging || reversing) {
+      const peer = parkingPeerBodyHold(car, other);
+      if (peer && peer.fwd <= look) {
+        if (!best || peer.gap < best.gap) best = peer;
+      }
+    }
+
     // Hard gate: only the parker's blocked travel lane may hold us
     if (!parkerBlocksEgoLane(car, other)) continue;
     // Never yield for a parking car whose body is behind us
@@ -10369,7 +10466,7 @@ function parkingYieldConstraintFor(car) {
     const lat = Math.abs(-dx * sinH + dy * cosH);
     if (lat > PARKING_CONFIG.YIELD_LATERAL_REVERSE) continue;
     const gap = fwd - ALLIE_CONFIG.CAR_LENGTH;
-    if (!best || gap < best.gap) best = { other, gap, lat, fwd, sp };
+    if (!best || gap < best.gap) best = { other, gap, lat, fwd, sp, body: false };
   }
   if (!best) {
     car._cachedParkYield = null;
@@ -10394,21 +10491,24 @@ function parkingYieldConstraintFor(car) {
     lat: +best.lat.toFixed(1),
     bay: bay ? ('bay#' + bay.id + (stall != null ? '[' + stall + ']' : '')) : null,
     lane: laneTxt,
-    color: other.color || null
+    color: other.color || null,
+    peer: !!best.body
   };
 
   car._parkYieldOther = other;
   car._parkYieldInfo = info;
-  const holdGap = PARKING_CONFIG.YIELD_GAP;
+  const holdGap = best.body
+    ? Math.max(PARKING_CONFIG.YIELD_GAP, ALLIE_CONFIG.CAR_LENGTH * 1.35)
+    : PARKING_CONFIG.YIELD_GAP;
   const closing = Math.max(0, best.gap - holdGap);
   const rate = ALLIE_CONFIG.DECEL_NORMAL;
   const desired = best.gap <= holdGap
     ? 0
     : Math.sqrt(Math.max(0, 2 * rate * closing));
   const result = {
-    desired: Math.min(desired, ALLIE_CONFIG.CRUISE_SPEED * 0.45),
-    decelRate: Math.max(rate, ALLIE_CONFIG.DECEL_SHARP * 0.85),
-    status: 'Waiting for parking',
+    desired: Math.min(desired, ALLIE_CONFIG.CRUISE_SPEED * 0.35),
+    decelRate: Math.max(rate, ALLIE_CONFIG.DECEL_SHARP * 0.9),
+    status: best.body ? 'Waiting for parker' : 'Waiting for parking',
     other,
     info
   };
@@ -10666,9 +10766,11 @@ function updateCarBatch(car, dt) {
 
   // Cheap hard-stop: only when near an active parker or a tight lead — restores
   // "cannot drive through" during batch FF without full per-frame OBB for every car.
+  // Staging cars always check — peer parkers shove through otherwise.
   if (car.speed > 0.02 && cars.length > 1) {
     const obs = car._lastObstruction;
     const nearParkHold = !!car._parkYieldOther
+      || car.parkPhase === 'staging'
       || (car._cachedParkYield && car._cachedParkYield.desired < ALLIE_CONFIG.CRUISE_SPEED * 0.5)
       || (activeParkersCount > 0 && obs && obs.gap < PARKING_CONFIG.YIELD_LOOKAHEAD);
     const tightLead = obs && obs.gap < ALLIE_CONFIG.DETECT_RING_INNER;
@@ -10811,7 +10913,7 @@ function updateCar(car, dt) {
     // Stagger full OBB checks across frames when not recently blocked —
     // but always run near junctions / parking so we can't skip a frame and
     // plow into crossing traffic or a staging / reversing car.
-    let forceObb = !!car._hardSafetyHit;
+    let forceObb = !!car._hardSafetyHit || car.parkPhase === 'staging';
     if (!forceObb && car._parkYieldOther) {
       forceObb = true;
     } else if (!forceObb && activeParkersCount > 0) {

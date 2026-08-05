@@ -11465,3 +11465,4 @@ if (ffMinutesInput) {
   });
 }
 requestAnimationFrame(tick);
+requestAnimationFrame(tick);
