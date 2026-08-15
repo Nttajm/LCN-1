@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUNE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        #wave {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            width: 100%;
+            height: clamp(160px, 42vh, 360px);
+            display: block;
+            pointer-events: none;
+        }
+
+        .terrain-wrap {
+            --terrain-blur: 18px;
+            --glow-size: 60px;
+            --glow-color: rgba(255, 122, 0, 0.5);
+
+            position: fixed;
+            left: -80px;
+            right: -80px;
+            bottom: -80px;
+            z-index: 2;
+            height: calc(clamp(100px, 18vh, 140px) + 160px);
+            pointer-events: none;
+            filter:
+                blur(var(--terrain-blur))
+                drop-shadow(0 -18px var(--glow-size) var(--glow-color));
+        }
+
+        .terrain {
+            --side: 72px;
+            --valley: 55%;
+
+            position: absolute;
+            left: 80px;
+            right: 80px;
+            bottom: 80px;
+            height: clamp(100px, 18vh, 140px);
+            transform: scale(1.35);
+            transform-origin: center bottom;
+            clip-path: polygon(
+                0% 100%,
+                0% 0%,
+                var(--side) var(--valley),
+                calc(100% - var(--side)) var(--valley),
+                100% 0%,
+                100% 100%
+            );
+        }
+
+        .terrain__inner {
+            display: flex;
+            align-items: stretch;
+            width: 140%;
+            height: 160%;
+            margin-left: -20%;
+            margin-top: -20%;
+            filter: blur(10px);
+        }
+
+        .terrain__col {
+            height: 100%;
+            flex: var(--w) 1 0;
+            background: var(--c);
+            min-width: 0;
+        }
+
+        .terrain__grain {
+            position: absolute;
+            inset: 0;
+            opacity: 0.28;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 180px 180px;
+        }
+
+        @media (min-width: 768px) {
+            .terrain-wrap {
+                height: calc(clamp(180px, 28vh, 280px) + 160px);
+                --terrain-blur: 20px;
+            }
+
+            .terrain {
+                --side: 160px;
+                height: clamp(180px, 28vh, 280px);
+                transform: scale(1.28);
+            }
+
+            .terrain__inner {
+                filter: blur(8px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="wave"></canvas>
+    <div class="terrain-wrap" aria-hidden="true">
+        <div class="terrain">
+            <div class="terrain__inner">
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+            </div>
+            <div class="terrain__grain"></div>
+        </div>
+    </div>
+    <script>
+        (() => {
+            const canvas = document.getElementById("wave");
+            const ctx = canvas.getContext("2d");
+            const terrainWrap = document.querySelector(".terrain-wrap");
+            const cols = [...document.querySelectorAll(".terrain__col")];
+            const DPR = Math.min(window.devicePixelRatio || 1, 1.25);
+
+            const bumps = [
+                {
+                    height: 0,
+                    target: 0,
+                    center: 0.42,
+                    halfWidth: 0.24,
+                    band: [0.0, 0.28],
+                    phase: 0,
+                    scale: 0.9,
+                    color: "rgba(255, 115, 0, 0.95)",
+                    glow: "rgba(255, 115, 0, 0.45)",
+                    fill: "rgba(255, 115, 0, 0.72)",
+                },
+                {
+                    height: 0,
+                    target: 0,
+                    center: 0.56,
+                    halfWidth: 0.18,
+                    band: [0.22, 0.58],
+                    phase: 1.5,
+                    scale: 1.0,
+                    color: "rgba(255, 186, 8, 0.95)",
+                    glow: "rgba(255, 186, 8, 0.45)",
+                    fill: "rgba(255, 186, 8, 0.7)",
+                },
+                {
+                    height: 0,
+                    target: 0,
+                    center: 0.66,
+                    halfWidth: 0.13,
+                    band: [0.55, 0.9],
+                    phase: 3,
+                    scale: 0.82,
+                    color: "rgba(255, 55, 40, 0.95)",
+                    glow: "rgba(255, 55, 40, 0.4)",
+                    fill: "rgba(255, 55, 40, 0.68)",
+                },
+            ];
+
+            const colState = cols.map((_, i) => ({
+                huePhase: Math.random() * Math.PI * 2,
+                lightPhase: Math.random() * Math.PI * 2,
+                wPhase: Math.random() * Math.PI * 2,
+                wBase: 0.7 + (i % 3) * 0.35 + Math.random() * 0.5,
+                band: [i / cols.length, Math.min(1, (i + 3) / cols.length)],
+            }));
+
+            let W = 0;
+            let H = 0;
+            let audioCtx = null;
+            let analyser = null;
+            let freqData = null;
+            let micEnergy = 0;
+            let smoothedEnergy = 0;
+            let mode = "demo";
+            let time = 0;
+
+            function resize() {
+                const rect = canvas.getBoundingClientRect();
+                W = Math.max(1, Math.floor(rect.width * DPR));
+                H = Math.max(1, Math.floor(rect.height * DPR));
+                canvas.width = W;
+                canvas.height = H;
+            }
+
+            function shapedBump(x, center, halfWidth, amplitude) {
+                if (amplitude <= 0.0001 || halfWidth <= 0) return 0;
+                const t = (x - center) / halfWidth;
+                if (t <= -1 || t >= 1) return 0;
+                const lobe = 0.5 + 0.5 * Math.cos(Math.PI * t);
+                const pointiness = 0.7 + amplitude * 2.2;
+                return amplitude * Math.pow(lobe, pointiness);
+            }
+
+            function easeHeight(a) {
+                const t = Math.max(0, Math.min(1, a));
+                return t * t * (3 - 2 * t);
+            }
+
+            function bandEnergy(startFrac, endFrac) {
+                if (!freqData || !analyser) return 0;
+                const n = freqData.length;
+                const a = Math.floor(startFrac * n);
+                const b = Math.max(a + 1, Math.floor(endFrac * n));
+                let sum = 0;
+                for (let i = a; i < b; i++) sum += freqData[i];
+                const avg = sum / (b - a) / 255;
+                return Math.min(1, Math.pow(avg * 1.9, 0.72));
+            }
+
+            function updateAudio(dt) {
+                time += dt;
+
+                if (mode === "mic" && analyser) {
+                    analyser.getByteFrequencyData(freqData);
+                    micEnergy = bandEnergy(0, 0.95);
+                } else {
+                    micEnergy = Math.pow(Math.max(0, Math.sin(time * 1.4)), 2) * 0.45;
+                }
+
+                const energyLerp = 1 - Math.exp(-dt * 12);
+                smoothedEnergy += (micEnergy - smoothedEnergy) * energyLerp;
+
+                for (const bump of bumps) {
+                    const energy = mode === "mic"
+                        ? bandEnergy(bump.band[0], bump.band[1])
+                        : Math.pow(Math.max(0, Math.sin(time * 0.85 + bump.phase)), 2) * 0.55;
+                    bump.target = energy * bump.scale;
+                    const lerp = 1 - Math.exp(-dt * (mode === "mic" ? 30 : 14));
+                    bump.height += (bump.target - bump.height) * lerp;
+                }
+            }
+
+            function drawBumpPath(b, x0, span, baselineY, maxRise, samples, offsetX = 0) {
+                const amp = easeHeight(b.height);
+                const center = x0 + span * b.center + offsetX;
+                const halfW = span * b.halfWidth * (1.12 - amp * 0.32);
+                const pad = halfW * 1.02;
+                const left = Math.max(x0, center - pad);
+                const right = Math.min(x0 + span, center + pad);
+                const n = Math.max(16, Math.floor(samples * ((right - left) / span)));
+
+                ctx.beginPath();
+                ctx.moveTo(x0, baselineY);
+                ctx.lineTo(left, baselineY);
+
+                for (let i = 0; i <= n; i++) {
+                    const x = left + ((right - left) * i) / n;
+                    const yOff = shapedBump(x, center, halfW, amp);
+                    ctx.lineTo(x, baselineY - yOff * maxRise);
+                }
+
+                ctx.lineTo(right, baselineY);
+                ctx.lineTo(x0 + span, baselineY);
+                ctx.closePath();
+            }
+
+            function strokeBump(b, x0, span, baselineY, maxRise, samples) {
+                drawBumpPath(b, x0, span, baselineY, maxRise, samples);
+
+                ctx.save();
+                ctx.fillStyle = b.fill;
+                ctx.shadowColor = b.glow;
+                ctx.shadowBlur = 10 * DPR;
+                ctx.fill();
+                ctx.restore();
+
+                ctx.save();
+                ctx.strokeStyle = b.color;
+                ctx.lineWidth = 2 * DPR;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawWave() {
+                ctx.clearRect(0, 0, W, H);
+
+                const baselineY = H;
+                const maxRise = H * 0.85;
+                const span = W * 0.86;
+                const x0 = W * 0.5 - span / 2;
+                const samples = Math.floor(W / (5 * DPR));
+
+                for (const bump of bumps) {
+                    strokeBump(bump, x0, span, baselineY, maxRise, samples);
+                }
+            }
+
+            function updateTerrain(now) {
+                const t = now / 1000;
+                const glowHue = 18 + smoothedEnergy * 22;
+                terrainWrap.style.setProperty("--glow-size", `${60 + smoothedEnergy * 120}px`);
+                terrainWrap.style.setProperty("--glow-color", `hsla(${glowHue}, 100%, ${56 + smoothedEnergy * 12}%, ${0.42 + smoothedEnergy * 0.42})`);
+
+                colState.forEach((s, i) => {
+                    const localEnergy = mode === "mic" ? bandEnergy(s.band[0], s.band[1]) : smoothedEnergy;
+                    const hue = 12 + localEnergy * 34 + 10 * Math.sin(t * 0.5 + s.huePhase);
+                    const sat = 84 + localEnergy * 16;
+                    const light = 38 + localEnergy * 24 + 6 * Math.sin(t * 0.6 + s.lightPhase);
+                    const w = s.wBase + 0.45 * Math.sin(t * 0.75 + s.wPhase) + localEnergy * 0.9;
+
+                    cols[i].style.setProperty("--c", `hsl(${hue} ${sat}% ${light}%)`);
+                    cols[i].style.setProperty("--w", Math.max(0.35, w).toFixed(3));
+                });
+            }
+
+            async function startMic() {
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === "suspended") await audioCtx.resume();
+
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: true,
+                        },
+                        video: false,
+                    });
+
+                    const source = audioCtx.createMediaStreamSource(stream);
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 512;
+                    analyser.smoothingTimeConstant = 0.58;
+                    source.connect(analyser);
+                    freqData = new Uint8Array(analyser.frequencyBinCount);
+                    mode = "mic";
+                } catch (err) {
+                    console.error(err);
+                    mode = "demo";
+                }
+            }
+
+            let last = performance.now();
+            function frame(now) {
+                if (now - last < 33) {
+                    requestAnimationFrame(frame);
+                    return;
+                }
+
+                const dt = Math.min(0.05, (now - last) / 1000);
+                last = now;
+                updateAudio(dt);
+                updateTerrain(now);
+                drawWave();
+                requestAnimationFrame(frame);
+            }
+
+            resize();
+            window.addEventListener("resize", resize);
+            startMic();
+            requestAnimationFrame(frame);
+        })();
+    </script>
+</body>
+</html>

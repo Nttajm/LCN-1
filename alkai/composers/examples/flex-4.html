@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alkai — Flex Wave</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #1a120e;
+      --bg-mid: #2a1c14;
+      --ink: #f4ebe3;
+      --muted: rgba(244, 235, 227, 0.55);
+      --accent: #ff6b2c;
+      --line: rgba(244, 235, 227, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-deep);
+      color: var(--ink);
+      font-family: "DM Sans", sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    .stage {
+      position: relative;
+      width: min(100vw, 1100px);
+      height: min(100vh, 720px);
+      isolation: isolate;
+    }
+
+    .atmosphere {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 42%, #4a2a18 0%, transparent 62%),
+        radial-gradient(ellipse 50% 40% at 20% 80%, #1e3a3a 0%, transparent 55%),
+        radial-gradient(ellipse 45% 35% at 85% 75%, #3a1a28 0%, transparent 50%),
+        linear-gradient(165deg, var(--bg-mid), var(--bg-deep));
+      z-index: 0;
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.18;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      display: block;
+    }
+
+    .chrome {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+    }
+
+    .brand {
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      opacity: 0;
+      animation: rise 0.9s ease 0.15s forwards;
+    }
+
+    .brand span {
+      display: block;
+      font-size: 0.38em;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .hint {
+      max-width: 16rem;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: var(--muted);
+      opacity: 0;
+      animation: rise 0.9s ease 0.35s forwards;
+    }
+
+    .controls {
+      pointer-events: auto;
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: rise 0.9s ease 0.5s forwards;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(244, 235, 227, 0.06);
+      color: var(--ink);
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.7rem 1.15rem;
+      border-radius: 999px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background: rgba(244, 235, 227, 0.12);
+      border-color: rgba(244, 235, 227, 0.28);
+      transform: translateY(-1px);
+    }
+
+    button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #1a120e;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      align-self: flex-end;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: rise 0.9s ease 0.6s forwards;
+    }
+
+    .status[data-live="true"] {
+      color: #7dffa8;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 560px) {
+      .hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="atmosphere" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <canvas id="wave"></canvas>
+    <div class="chrome">
+      <div>
+        <h1 class="brand"><span>Alkai · Flex</span>Listen</h1>
+      </div>
+      <p class="hint">Smooth bumps rise from a flat line — speak or play sound and watch them ease into shape.</p>
+      <div class="controls">
+        <button type="button" id="micBtn">Enable mic</button>
+        <button type="button" id="demoBtn" class="active">Demo pulse</button>
+      </div>
+      <div class="status" id="status" data-live="false">Idle · demo</div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("wave");
+      const ctx = canvas.getContext("2d");
+      const micBtn = document.getElementById("micBtn");
+      const demoBtn = document.getElementById("demoBtn");
+      const statusEl = document.getElementById("status");
+
+      const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+      // Overlapping layers — matching the sketch's multi-curve idea
+      const LAYERS = [
+        { color: "rgba(255, 107, 44, 0.95)", glow: "rgba(255, 107, 44, 0.35)", width: 1.9, band: [0, 0.18], phase: 0.0 },
+        { color: "rgba(72, 196, 255, 0.9)", glow: "rgba(72, 196, 255, 0.3)", width: 1.55, band: [0.12, 0.42], phase: 0.35 },
+        { color: "rgba(90, 230, 150, 0.88)", glow: "rgba(90, 230, 150, 0.28)", width: 1.35, band: [0.3, 0.65], phase: 0.7 },
+        { color: "rgba(255, 210, 120, 0.7)", glow: "rgba(255, 210, 120, 0.22)", width: 1.15, band: [0.5, 0.9], phase: 1.1 },
+      ];
+
+      // Each layer gets several bumps clustered around the middle
+      const BUMPS_PER_LAYER = 3;
+
+      let W = 0;
+      let H = 0;
+      let mode = "demo"; // "demo" | "mic"
+      let audioCtx = null;
+      let analyser = null;
+      let micStream = null;
+      let freqData = null;
+      let time = 0;
+
+      // Smoothed energy targets per bump
+      const bumps = LAYERS.map((layer, li) =>
+        Array.from({ length: BUMPS_PER_LAYER }, (_, bi) => ({
+          height: 0,
+          target: 0,
+          // Center bias toward middle of the stage
+          centerBias: 0.28 + (bi / (BUMPS_PER_LAYER - 1 || 1)) * 0.44 + (li - 1.5) * 0.02,
+          baseWidth: 0.1 + bi * 0.035 + (li % 2) * 0.02,
+          breath: Math.random() * Math.PI * 2,
+        }))
+      );
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        W = Math.max(1, Math.floor(rect.width * DPR));
+        H = Math.max(1, Math.floor(rect.height * DPR));
+        canvas.width = W;
+        canvas.height = H;
+      }
+
+      // Cosine lobe: flat outside, zero derivative at edges, smooth peak
+      function cosineBump(x, center, halfWidth, amplitude) {
+        if (amplitude <= 0.0001 || halfWidth <= 0) return 0;
+        const t = (x - center) / halfWidth;
+        if (t <= -1 || t >= 1) return 0;
+        // Ease the amplitude itself so tiny values stay nearly flat
+        const shaped = amplitude * amplitude * (3 - 2 * amplitude); // smoothstep on normalized amp later
+        return shaped * 0.5 * (1 + Math.cos(Math.PI * t));
+      }
+
+      // Map raw amplitude 0–1 through an ease so growth from flat feels soft
+      function easeOutBump(a) {
+        const t = Math.max(0, Math.min(1, a));
+        // Soft start: barely rises at first, then opens into the bump
+        return t * t * (3 - 2 * t);
+      }
+
+      function bandEnergy(startFrac, endFrac) {
+        if (!freqData || !analyser) return 0;
+        const n = freqData.length;
+        const a = Math.floor(startFrac * n);
+        const b = Math.max(a + 1, Math.floor(endFrac * n));
+        let sum = 0;
+        for (let i = a; i < b; i++) sum += freqData[i];
+        const avg = sum / (b - a) / 255;
+        // Gentle compression so quiet speech still moves the line
+        return Math.min(1, Math.pow(avg * 1.85, 0.72));
+      }
+
+      function updateTargets(dt) {
+        time += dt;
+
+        if (mode === "mic" && analyser) {
+          analyser.getByteFrequencyData(freqData);
+        }
+
+        for (let li = 0; li < LAYERS.length; li++) {
+          const layer = LAYERS[li];
+          let energy = 0;
+
+          if (mode === "mic" && analyser) {
+            energy = bandEnergy(layer.band[0], layer.band[1]);
+          } else {
+            // Demo: staggered organic pulses — flat → bump → flat
+            const pulse =
+              0.5 +
+              0.5 *
+                Math.sin(time * (0.7 + li * 0.18) + layer.phase) *
+                Math.sin(time * (0.35 + li * 0.09) + 1.2);
+            energy = Math.max(0, pulse) * (0.35 + 0.45 * Math.abs(Math.sin(time * 0.22 + li)));
+            // Occasional stronger hits
+            const hit = Math.sin(time * (0.95 + li * 0.13) + layer.phase * 2);
+            if (hit > 0.92) energy = Math.min(1, energy + (hit - 0.92) * 8);
+          }
+
+          for (let bi = 0; bi < bumps[li].length; bi++) {
+            const b = bumps[li][bi];
+            const local =
+              energy *
+              (0.55 + 0.45 * (0.5 + 0.5 * Math.sin(time * (1.1 + bi * 0.4) + b.breath + layer.phase)));
+            // Width breathes slightly with energy
+            b.target = local;
+            const lerp = 1 - Math.exp(-dt * (mode === "mic" ? 10 : 4.5));
+            b.height += (b.target - b.height) * lerp;
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        const baselineY = H * 0.58;
+        const maxRise = H * 0.28;
+        const midX = W * 0.5;
+        const span = W * 0.72;
+
+        // Soft baseline glow
+        ctx.save();
+        ctx.strokeStyle = "rgba(244, 235, 227, 0.08)";
+        ctx.lineWidth = 1 * DPR;
+        ctx.beginPath();
+        ctx.moveTo(W * 0.08, baselineY);
+        ctx.lineTo(W * 0.92, baselineY);
+        ctx.stroke();
+        ctx.restore();
+
+        // Sample points along the visible span
+        const samples = Math.floor(W / (2 * DPR));
+        const x0 = midX - span / 2;
+        const x1 = midX + span / 2;
+
+        for (let li = LAYERS.length - 1; li >= 0; li--) {
+          const layer = LAYERS[li];
+          const layerBumps = bumps[li];
+
+          // Build path: flat line with upward-only bumps
+          ctx.beginPath();
+          let started = false;
+
+          for (let i = 0; i <= samples; i++) {
+            const u = i / samples;
+            const x = x0 + (x1 - x0) * u;
+            let yOff = 0;
+
+            for (let bi = 0; bi < layerBumps.length; bi++) {
+              const b = layerBumps[bi];
+              const amp = easeOutBump(b.height);
+              const center = x0 + span * b.centerBias;
+              const halfW = span * b.baseWidth * (0.85 + 0.35 * amp);
+              yOff += cosineBump(x, center, halfW, amp);
+            }
+
+            // Soft falloff near the ends so edges stay flat
+            const edge = Math.sin(Math.PI * u);
+            yOff *= edge * edge;
+
+            const y = baselineY - yOff * maxRise;
+
+            if (!started) {
+              ctx.moveTo(x, y);
+              started = true;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+
+          // Glow pass
+          ctx.save();
+          ctx.strokeStyle = layer.glow;
+          ctx.lineWidth = layer.width * 5 * DPR;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.shadowColor = layer.glow;
+          ctx.shadowBlur = 18 * DPR;
+          ctx.stroke();
+          ctx.restore();
+
+          // Crisp stroke
+          ctx.save();
+          ctx.strokeStyle = layer.color;
+          ctx.lineWidth = layer.width * DPR;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Tiny center tick — quiet reference
+        ctx.save();
+        ctx.fillStyle = "rgba(244, 235, 227, 0.2)";
+        ctx.beginPath();
+        ctx.arc(midX, baselineY, 2.2 * DPR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      let last = performance.now();
+      function frame(now) {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        updateTargets(dt);
+        draw();
+        requestAnimationFrame(frame);
+      }
+
+      async function startMic() {
+        try {
+          if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (audioCtx.state === "suspended") await audioCtx.resume();
+
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: true,
+            },
+            video: false,
+          });
+
+          const source = audioCtx.createMediaStreamSource(micStream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.72;
+          source.connect(analyser);
+          freqData = new Uint8Array(analyser.frequencyBinCount);
+
+          mode = "mic";
+          micBtn.classList.add("active");
+          demoBtn.classList.remove("active");
+          statusEl.textContent = "Live · microphone";
+          statusEl.dataset.live = "true";
+        } catch (err) {
+          console.error(err);
+          statusEl.textContent = "Mic blocked · demo";
+          statusEl.dataset.live = "false";
+          mode = "demo";
+          micBtn.classList.remove("active");
+          demoBtn.classList.add("active");
+        }
+      }
+
+      function stopMic() {
+        if (micStream) {
+          micStream.getTracks().forEach((t) => t.stop());
+          micStream = null;
+        }
+        analyser = null;
+        freqData = null;
+        mode = "demo";
+        micBtn.classList.remove("active");
+        demoBtn.classList.add("active");
+        statusEl.textContent = "Idle · demo";
+        statusEl.dataset.live = "false";
+      }
+
+      micBtn.addEventListener("click", () => {
+        if (mode === "mic") stopMic();
+        else startMic();
+      });
+
+      demoBtn.addEventListener("click", () => {
+        stopMic();
+      });
+
+      window.addEventListener("resize", resize);
+      resize();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

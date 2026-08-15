@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUNE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,500;9..40,600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .pill {
+            --pill-fg: #fff8f1;
+            --pill-muted: rgba(255, 236, 220, 0.88);
+            --pill-divider: rgba(255, 220, 190, 0.45);
+
+            position: fixed;
+            left: 50%;
+            bottom: clamp(132px, 24vh, 250px);
+            z-index: 10;
+            transform: translateX(-50%);
+            display: grid;
+            grid-template-columns: 1fr 1px 120px;
+            align-items: center;
+            width: 292px;
+            height: 46px;
+            padding: 5px 6px 5px 15px;
+            border: 1px solid rgba(255, 160, 70, 0.55);
+            border-radius: 999px;
+            background: rgba(232, 98, 12, 0.88);
+            color: var(--pill-fg);
+            box-shadow: 0 12px 32px rgba(220, 80, 0, 0.28);
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+            font-family: "DM Sans", sans-serif;
+            user-select: none;
+            transition:
+                background 0.35s ease,
+                border-color 0.35s ease,
+                box-shadow 0.35s ease;
+        }
+
+        .pill.is-running {
+            background: rgba(220, 88, 8, 0.94);
+            border-color: rgba(255, 170, 90, 0.65);
+            box-shadow: 0 12px 32px rgba(210, 70, 0, 0.34);
+        }
+
+        .pill__status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            padding-right: 12px;
+            color: var(--pill-muted);
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+        }
+
+        .pill__status-odo {
+            display: block;
+            width: 7.2em;
+            height: 1.2em;
+            overflow: hidden;
+            line-height: 1.2;
+        }
+
+        .pill__status-track {
+            --status-i: 0;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(calc(var(--status-i) * -1.2em));
+            transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform;
+        }
+
+        .pill.is-status-snap .pill__status-track {
+            transition: none;
+        }
+
+        .pill__status-item {
+            display: flex;
+            align-items: center;
+            height: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .pill__dots {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            opacity: 0.45;
+            transition: opacity 0.35s ease;
+        }
+
+        .pill.is-running .pill__dots {
+            opacity: 1;
+        }
+
+        .pill.is-thinking .pill__dots {
+            animation: pill-spin 0.9s linear infinite;
+        }
+
+        .pill__dots span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 3px;
+            height: 3px;
+            margin: -1.5px 0 0 -1.5px;
+            border-radius: 50%;
+            background: currentColor;
+            transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .pill__dots span:nth-child(1) { transform: translateX(-5px); }
+        .pill__dots span:nth-child(2) { transform: translateX(0); }
+        .pill__dots span:nth-child(3) { transform: translateX(5px); }
+
+        .pill.is-running:not(.is-thinking) .pill__dots span:nth-child(1) {
+            animation: pill-dot 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .pill.is-running:not(.is-thinking) .pill__dots span:nth-child(2) {
+            animation: pill-dot 1.25s cubic-bezier(0.4, 0, 0.2, 1) 0.15s infinite;
+        }
+        .pill.is-running:not(.is-thinking) .pill__dots span:nth-child(3) {
+            animation: pill-dot 1.25s cubic-bezier(0.4, 0, 0.2, 1) 0.3s infinite;
+        }
+
+        .pill.is-thinking .pill__dots span {
+            animation: none;
+        }
+
+        .pill.is-thinking .pill__dots span:nth-child(1) {
+            transform: rotate(0deg) translateY(-5.5px);
+        }
+        .pill.is-thinking .pill__dots span:nth-child(2) {
+            transform: rotate(120deg) translateY(-5.5px);
+        }
+        .pill.is-thinking .pill__dots span:nth-child(3) {
+            transform: rotate(240deg) translateY(-5.5px);
+        }
+
+        @keyframes pill-dot {
+            0%, 80%, 100% { opacity: 0.35; }
+            40% { opacity: 1; }
+        }
+
+        @keyframes pill-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .pill__divider {
+            width: 1px;
+            height: 18px;
+            background: var(--pill-divider);
+            flex-shrink: 0;
+        }
+
+        .pill__action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 114px;
+            height: 36px;
+            margin-left: 6px;
+            padding: 0 12px 0 14px;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--pill-fg);
+            cursor: pointer;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            transition: background 0.3s ease;
+        }
+
+        .pill__action:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .pill__action:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .pill__action:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 180, 100, 0.55);
+        }
+
+        .pill__label {
+            display: block;
+            width: 4.7em;
+            height: 1.2em;
+            overflow: hidden;
+            text-align: left;
+            line-height: 1.2;
+        }
+
+        .pill__odo {
+            display: block;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .pill__odo-track {
+            display: flex;
+            flex-direction: column;
+            transform: translateY(0);
+            transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform;
+        }
+
+        .pill.is-running .pill__odo-track {
+            transform: translateY(-50%);
+        }
+
+        .pill__odo-item {
+            display: flex;
+            align-items: center;
+            height: 1.2em;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .pill__odo-item--mono {
+            font-family: "JetBrains Mono", monospace;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
+        }
+
+        .pill__icon {
+            display: grid;
+            place-items: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            flex-shrink: 0;
+            transition:
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                background 0.3s ease,
+                border-radius 0.3s ease;
+        }
+
+        .pill__icon svg {
+            display: block;
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .pill.is-running .pill__icon {
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.24);
+            transform: rotate(90deg);
+        }
+
+        .pill.is-running .pill__icon svg {
+            width: 10px;
+            height: 10px;
+            transform: rotate(-90deg);
+        }
+
+        @media (min-width: 768px) {
+            .pill {
+                bottom: clamp(210px, 32vh, 320px);
+                width: 318px;
+                height: 50px;
+                padding: 0 7px 0 16px;
+                grid-template-columns: 1fr 1px 132px;
+            }
+
+            .pill__status {
+                font-size: 14px;
+                padding-right: 14px;
+            }
+
+            .pill__action {
+                width: 126px;
+                height: 38px;
+                font-size: 14px;
+                padding: 0 14px 0 16px;
+            }
+        }
+
+        .terrain-wrap {
+            --terrain-blur: 18px;
+            --glow-size: 60px;
+            --glow-color: rgba(255, 122, 0, 0.5);
+
+            position: fixed;
+            left: -80px;
+            right: -80px;
+            bottom: -80px;
+            z-index: 2;
+            height: calc(clamp(100px, 18vh, 140px) + 160px);
+            pointer-events: none;
+            filter:
+                blur(var(--terrain-blur))
+                drop-shadow(0 -18px var(--glow-size) var(--glow-color));
+        }
+
+        .terrain {
+            --side: 72px;
+            --valley: 55%;
+
+            position: absolute;
+            left: 80px;
+            right: 80px;
+            bottom: 80px;
+            height: clamp(100px, 18vh, 140px);
+            transform: scale(1.35);
+            transform-origin: center bottom;
+            clip-path: polygon(
+                0% 100%,
+                0% 0%,
+                var(--side) var(--valley),
+                calc(100% - var(--side)) var(--valley),
+                100% 0%,
+                100% 100%
+            );
+        }
+
+        .terrain__inner {
+            display: flex;
+            align-items: stretch;
+            width: 140%;
+            height: 160%;
+            margin-left: -20%;
+            margin-top: -20%;
+            filter: blur(10px);
+        }
+
+        .terrain__col {
+            height: 100%;
+            flex: var(--w) 1 0;
+            background: var(--c);
+            min-width: 0;
+        }
+
+        .terrain__grain {
+            position: absolute;
+            inset: 0;
+            opacity: 0.28;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 180px 180px;
+        }
+
+        @media (min-width: 768px) {
+            .terrain-wrap {
+                height: calc(clamp(180px, 28vh, 280px) + 160px);
+                --terrain-blur: 20px;
+            }
+
+            .terrain {
+                --side: 160px;
+                height: clamp(180px, 28vh, 280px);
+                transform: scale(1.28);
+            }
+
+            .terrain__inner {
+                filter: blur(8px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pill" id="pill" role="group" aria-label="Session control" data-status="paused">
+        <div class="pill__status">
+            <span class="pill__dots" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span class="pill__status-odo" aria-live="polite">
+                <span class="pill__status-track" id="status-track">
+                    <span class="pill__status-item">Paused</span>
+                    <span class="pill__status-item">Waiting</span>
+                    <span class="pill__status-item">Listening</span>
+                    <span class="pill__status-item">Thinking</span>
+                    <span class="pill__status-item">Speaking</span>
+                    <span class="pill__status-item" aria-hidden="true">Waiting</span>
+                    <span class="pill__status-item" aria-hidden="true">Listening</span>
+                </span>
+            </span>
+        </div>
+        <span class="pill__divider" aria-hidden="true"></span>
+        <button class="pill__action" id="pill-action" type="button" aria-pressed="false">
+            <span class="pill__label" id="pill-label" aria-live="polite">
+                <span class="pill__odo">
+                    <span class="pill__odo-track" id="pill-odo-track">
+                        <span class="pill__odo-item" id="pill-word">Start</span>
+                        <span class="pill__odo-item pill__odo-item--mono" id="pill-time">0:00</span>
+                    </span>
+                </span>
+            </span>
+            <span class="pill__icon" id="pill-icon" aria-hidden="true">
+                <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3.2 1.4c0-.55.6-.9 1.07-.64l6.1 3.6c.45.27.45 1 0 1.28l-6.1 3.6A.75.75 0 0 1 3.2 8.6V1.4Z"/>
+                </svg>
+            </span>
+        </button>
+    </div>
+    <div class="terrain-wrap" aria-hidden="true">
+        <div class="terrain">
+            <div class="terrain__inner">
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+                <div class="terrain__col"></div>
+            </div>
+            <div class="terrain__grain"></div>
+        </div>
+    </div>
+    <script>
+        (() => {
+            const terrainWrap = document.querySelector(".terrain-wrap");
+            const cols = [...document.querySelectorAll(".terrain__col")];
+
+            const colState = cols.map((_, i) => ({
+                huePhase: Math.random() * Math.PI * 2,
+                lightPhase: Math.random() * Math.PI * 2,
+                wPhase: Math.random() * Math.PI * 2,
+                wBase: 0.7 + (i % 3) * 0.35 + Math.random() * 0.5,
+                band: [i / cols.length, Math.min(1, (i + 3) / cols.length)],
+            }));
+
+            let audioCtx = null;
+            let analyser = null;
+            let freqData = null;
+            let micEnergy = 0;
+            let smoothedEnergy = 0;
+            let mode = "demo";
+            let time = 0;
+
+            function bandEnergy(startFrac, endFrac) {
+                if (!freqData || !analyser) return 0;
+                const n = freqData.length;
+                const a = Math.floor(startFrac * n);
+                const b = Math.max(a + 1, Math.floor(endFrac * n));
+                let sum = 0;
+                for (let i = a; i < b; i++) sum += freqData[i];
+                const avg = sum / (b - a) / 255;
+                return Math.min(1, Math.pow(avg * 1.9, 0.72));
+            }
+
+            function updateAudio(dt) {
+                time += dt;
+
+                if (mode === "mic" && analyser) {
+                    analyser.getByteFrequencyData(freqData);
+                    micEnergy = bandEnergy(0, 0.95);
+                } else {
+                    micEnergy = Math.pow(Math.max(0, Math.sin(time * 1.4)), 2) * 0.45;
+                }
+
+                const energyLerp = 1 - Math.exp(-dt * 12);
+                smoothedEnergy += (micEnergy - smoothedEnergy) * energyLerp;
+            }
+
+            function updateTerrain(now) {
+                const t = now / 1000;
+                const glowHue = 18 + smoothedEnergy * 22;
+                terrainWrap.style.setProperty("--glow-size", `${60 + smoothedEnergy * 120}px`);
+                terrainWrap.style.setProperty("--glow-color", `hsla(${glowHue}, 100%, ${56 + smoothedEnergy * 12}%, ${0.42 + smoothedEnergy * 0.42})`);
+
+                colState.forEach((s, i) => {
+                    const localEnergy = mode === "mic" ? bandEnergy(s.band[0], s.band[1]) : smoothedEnergy;
+                    const hue = 12 + localEnergy * 34 + 10 * Math.sin(t * 0.5 + s.huePhase);
+                    const sat = 84 + localEnergy * 16;
+                    const light = 38 + localEnergy * 24 + 6 * Math.sin(t * 0.6 + s.lightPhase);
+                    const w = s.wBase + 0.45 * Math.sin(t * 0.75 + s.wPhase) + localEnergy * 0.9;
+
+                    cols[i].style.setProperty("--c", `hsl(${hue} ${sat}% ${light}%)`);
+                    cols[i].style.setProperty("--w", Math.max(0.35, w).toFixed(3));
+                });
+            }
+
+            async function startMic() {
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        mode = "demo";
+                        syncListenStatus();
+                        return;
+                    }
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === "suspended") await audioCtx.resume();
+
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: true,
+                        },
+                        video: false,
+                    });
+
+                    const source = audioCtx.createMediaStreamSource(stream);
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 512;
+                    analyser.smoothingTimeConstant = 0.58;
+                    source.connect(analyser);
+                    freqData = new Uint8Array(analyser.frequencyBinCount);
+                    mode = "mic";
+                    syncListenStatus();
+                } catch (err) {
+                    console.error(err);
+                    mode = "demo";
+                    syncListenStatus();
+                }
+            }
+
+            let last = performance.now();
+            function frame(now) {
+                if (now - last < 33) {
+                    requestAnimationFrame(frame);
+                    return;
+                }
+
+                const dt = Math.min(0.05, (now - last) / 1000);
+                last = now;
+                updateAudio(dt);
+                updateTerrain(now);
+                requestAnimationFrame(frame);
+            }
+
+            const pill = document.getElementById("pill");
+            const statusTrack = document.getElementById("status-track");
+            const pillAction = document.getElementById("pill-action");
+            const pillWord = document.getElementById("pill-word");
+            const pillTime = document.getElementById("pill-time");
+            const pillIcon = document.getElementById("pill-icon");
+            const playIcon = `
+                <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3.2 1.4c0-.55.6-.9 1.07-.64l6.1 3.6c.45.27.45 1 0 1.28l-6.1 3.6A.75.75 0 0 1 3.2 8.6V1.4Z"/>
+                </svg>`;
+            const stopIcon = `
+                <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2.4" y="2.4" width="7.2" height="7.2" rx="1.1"/>
+                </svg>`;
+
+            let running = false;
+            let startedAt = 0;
+            let elapsedMs = 0;
+            let timerId = null;
+            let statusTimer = null;
+            let statusPhase = "paused";
+            let statusIndex = 0;
+
+            const statusIndexMap = {
+                paused: 0,
+                waiting: 1,
+                listening: 2,
+                thinking: 3,
+                speaking: 4,
+            };
+
+            const statusLoopIndex = {
+                waiting: 5,
+                listening: 6,
+            };
+
+            function listenPhase() {
+                return mode === "mic" ? "listening" : "waiting";
+            }
+
+            function snapStatusIndex(index) {
+                pill.classList.add("is-status-snap");
+                statusIndex = index;
+                statusTrack.style.setProperty("--status-i", String(index));
+                void statusTrack.offsetWidth;
+                pill.classList.remove("is-status-snap");
+            }
+
+            function setStatus(phase) {
+                const next = phase === "active" ? listenPhase() : phase;
+                const wrapping = statusPhase === "speaking" && (next === "listening" || next === "waiting");
+                statusPhase = next;
+                pill.dataset.status = next;
+                pill.classList.toggle("is-thinking", next === "thinking");
+
+                if (wrapping) {
+                    const loopIndex = statusLoopIndex[next];
+                    statusIndex = loopIndex;
+                    statusTrack.style.setProperty("--status-i", String(loopIndex));
+
+                    const onDone = (event) => {
+                        if (event.propertyName !== "transform") return;
+                        statusTrack.removeEventListener("transitionend", onDone);
+                        if (!running || statusPhase !== next) return;
+                        snapStatusIndex(statusIndexMap[next]);
+                    };
+                    statusTrack.addEventListener("transitionend", onDone);
+                    return;
+                }
+
+                statusIndex = statusIndexMap[next] ?? 0;
+                statusTrack.style.setProperty("--status-i", String(statusIndex));
+            }
+
+            function syncListenStatus() {
+                if (!running) return;
+                if (statusPhase === "listening" || statusPhase === "waiting") {
+                    setStatus(listenPhase());
+                }
+            }
+
+            function clearStatusCycle() {
+                if (statusTimer) {
+                    clearTimeout(statusTimer);
+                    statusTimer = null;
+                }
+            }
+
+            function armStatusCycle() {
+                clearStatusCycle();
+                const flow = [
+                    { phase: "active", ms: 1600 },
+                    { phase: "thinking", ms: 1800 },
+                    { phase: "speaking", ms: 2000 },
+                ];
+                let i = 0;
+
+                function step() {
+                    if (!running) return;
+                    setStatus(flow[i].phase);
+                    const wait = flow[i].ms;
+                    i = (i + 1) % flow.length;
+                    statusTimer = setTimeout(step, wait);
+                }
+
+                step();
+            }
+
+            function formatTime(ms) {
+                const total = Math.floor(ms / 1000);
+                const m = Math.floor(total / 60);
+                const s = total % 60;
+                return `${m}:${String(s).padStart(2, "0")}`;
+            }
+
+            function tickTimer() {
+                elapsedMs = performance.now() - startedAt;
+                pillTime.textContent = formatTime(elapsedMs);
+            }
+
+            function startSession() {
+                running = true;
+                startedAt = performance.now() - elapsedMs;
+                pillTime.textContent = formatTime(elapsedMs);
+                pill.classList.add("is-running");
+                pillAction.setAttribute("aria-pressed", "true");
+                pillIcon.innerHTML = stopIcon;
+                armStatusCycle();
+                if (timerId) clearInterval(timerId);
+                timerId = setInterval(tickTimer, 250);
+            }
+
+            function pauseSession() {
+                running = false;
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+                clearStatusCycle();
+                elapsedMs = performance.now() - startedAt;
+                pillTime.textContent = formatTime(elapsedMs);
+                pillWord.textContent = "Paused";
+                pill.classList.remove("is-running");
+                setStatus("paused");
+                pillAction.setAttribute("aria-pressed", "false");
+                pillIcon.innerHTML = playIcon;
+            }
+
+            pillAction.addEventListener("click", () => {
+                if (running) pauseSession();
+                else startSession();
+            });
+
+            syncListenStatus();
+            startMic();
+            requestAnimationFrame(frame);
+        })();
+    </script>
+</body>
+</html>
