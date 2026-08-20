@@ -1,6 +1,6 @@
 {
   "firestore": {
-    "rules": "crossshare/firebase.rules"
+    "rules": "techchat/firestore.rules"
   },
   "database": {
     "rules": "crossshare/database.rules.json"

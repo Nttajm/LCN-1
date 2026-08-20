@@ -338,8 +338,44 @@ service cloud.firestore {
     }
 
     // ---- Techchat classroom chat ----
-    // Students are identified by a roster name and a device id, not an account,
-    // so open writes are gated on document shape and size instead.
+    function isTechchatAdmin() {
+      return signedIn()
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() == 'joel.mulonde@crpusd.org';
+    }
+
+    match /techchat_classes/{classId} {
+      function techchatClassValid() {
+        return request.resource.data.keys().hasOnly([
+            'code', 'subject', 'teacher', 'room',
+            'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+          ])
+          && request.resource.data.code is string
+          && request.resource.data.code.size() > 0
+          && request.resource.data.code.size() <= 8
+          && request.resource.data.subject is string
+          && request.resource.data.subject.size() > 0
+          && request.resource.data.subject.size() <= 48
+          && request.resource.data.teacher is string
+          && request.resource.data.teacher.size() > 0
+          && request.resource.data.teacher.size() <= 48
+          && request.resource.data.room is string
+          && request.resource.data.room.size() > 0
+          && request.resource.data.room.size() <= 12
+          && request.resource.data.createdAt is number
+          && request.resource.data.createdBy is string
+          && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
+          && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy is string)
+          && classId.size() > 0
+          && classId.size() <= 20
+          && classId != 'campus';
+      }
+
+      allow read: if true;
+      allow create, update: if isTechchatAdmin() && techchatClassValid();
+      allow delete: if isTechchatAdmin();
+    }
+
     match /techchat_presence/{uid} {
       function techchatPresenceValid() {
         return request.resource.data.keys().hasOnly([

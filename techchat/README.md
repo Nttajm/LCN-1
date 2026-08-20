@@ -1,6 +1,6 @@
 # Techchat
 
-Classroom chat for periods B5, C3 and D4. Students sign in with the name on their
+Classroom chat for published periods. Students sign in with the name on their
 schedule, pick a period, and talk in three channels per class.
 
 ## Files
@@ -21,28 +21,29 @@ python3 -m http.server 8899
 
 ## How identity works
 
-There are no accounts. A student types a first and last name, and the app derives
-the roster name shown to everyone else: first initial, space, last name
-(`Jaydon Faintly` becomes `J Faintly`). The name and a device id are kept in
-`localStorage` under `techchat.me`, so a returning student lands straight in the
-last class they used. "Sign out" from the left rail clears it.
+Everyone signs in with Google first. Then they set a roster name (first and last)
+used in chat: first initial, space, last name (`Jaydon Faintly` becomes
+`J Faintly`). The roster profile is kept in `localStorage` under `techchat.me`
+and keyed to the Google uid. Sign out clears both Google auth and that profile.
+
+Only `joel.mulonde@crpusd.org` can publish or edit classes. After that Google
+account signs in, **Add class** appears on the period picker and the left rail.
 
 ## Data
 
-Firestore project `overunder-ths`.
+Firebase project `overunder-ths`.
 
 | Path | Holds |
 | --- | --- |
+| `techchat_classes/{classId}` | Published periods (code, subject, teacher, room) |
 | `techchat_rooms/{classId}/channels/{channelId}/messages` | One document per message |
 | `techchat_presence/{deviceId}` | Who is in which class, plus typing state |
 
-Messages are ordered by a client `createdAt` millisecond number, which keeps a
-sent message on screen immediately and avoids a composite index. Presence
+Messages are ordered by a client `createdAt` millisecond number. Presence
 documents carry a `beat` timestamp refreshed every 20 seconds; anything older
 than 70 seconds is treated as gone.
 
-Rules for both paths live in `../crossshare/firebase.rules` and validate document
-shape and size, since writes are unauthenticated. Deploy them with:
+Rules live in `../crossshare/firebase.rules`. Deploy them with:
 
 ```bash
 firebase deploy --only firestore:rules
@@ -50,12 +51,10 @@ firebase deploy --only firestore:rules
 
 ## GIFs
 
-The picker calls the GIPHY search endpoint, pre-loaded with the term `speed`, and
-students can search any other term. The key is in `js/app.js` as `GIPHY_KEY`;
-results are requested at rating `pg`.
+The picker calls the GIPHY search endpoint, pre-loaded with the term `speed`.
+The key is in `js/app.js` as `GIPHY_KEY`; results are requested at rating `pg`.
 
-## Classes and channels
+## Channels
 
-Both lists are plain arrays at the top of `js/app.js`. Add a period by pushing to
-`CLASSES` with an `id`, `code`, `subject`, `teacher` and `room`; the rail, the
-picker and the roster pick it up with no other changes.
+Every class gets `#general`, `#homework`, and `#lounge` from the `CHANNELS`
+array in `js/app.js`. Periods themselves come from Firestore, not that file.

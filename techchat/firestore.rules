@@ -1,0 +1,119 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function changedKeysOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    function isTechchatAdmin() {
+      return signedIn()
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() == 'joel.mulonde@crpusd.org';
+    }
+
+    function isTechchatCollection() {
+      return request.path[3] in [
+        'techchat_classes',
+        'techchat_presence',
+        'techchat_rooms'
+      ];
+    }
+
+    match /techchat_classes/{classId} {
+      function techchatClassValid() {
+        return request.resource.data.keys().hasOnly([
+            'code', 'subject', 'teacher', 'room',
+            'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+          ])
+          && request.resource.data.code is string
+          && request.resource.data.code.size() > 0
+          && request.resource.data.code.size() <= 8
+          && request.resource.data.subject is string
+          && request.resource.data.subject.size() > 0
+          && request.resource.data.subject.size() <= 48
+          && request.resource.data.teacher is string
+          && request.resource.data.teacher.size() > 0
+          && request.resource.data.teacher.size() <= 48
+          && request.resource.data.room is string
+          && request.resource.data.room.size() > 0
+          && request.resource.data.room.size() <= 12
+          && request.resource.data.createdAt is number
+          && request.resource.data.createdBy is string
+          && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is number)
+          && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy is string)
+          && classId.size() > 0
+          && classId.size() <= 20
+          && classId != 'campus';
+      }
+
+      allow read: if true;
+      allow create, update: if isTechchatAdmin() && techchatClassValid();
+      allow delete: if isTechchatAdmin();
+    }
+
+    match /techchat_presence/{uid} {
+      function techchatPresenceValid() {
+        return request.resource.data.keys().hasOnly([
+            'uid', 'handle', 'full', 'initials', 'tone',
+            'classId', 'channelId', 'typingIn', 'typingAt', 'beat'
+          ])
+          && request.resource.data.uid == uid
+          && request.resource.data.handle is string
+          && request.resource.data.handle.size() > 0
+          && request.resource.data.handle.size() <= 60
+          && request.resource.data.full is string
+          && request.resource.data.full.size() <= 60
+          && request.resource.data.initials is string
+          && request.resource.data.initials.size() <= 4
+          && request.resource.data.classId is string
+          && request.resource.data.classId.size() <= 20
+          && request.resource.data.channelId is string
+          && request.resource.data.channelId.size() <= 20
+          && request.resource.data.beat is number;
+      }
+
+      allow read: if true;
+      allow create, update: if techchatPresenceValid();
+      allow delete: if true;
+    }
+
+    match /techchat_rooms/{classId}/channels/{channelId}/messages/{messageId} {
+      function techchatMessageValid() {
+        return request.resource.data.keys().hasOnly([
+            'authorId', 'handle', 'initials', 'tone',
+            'text', 'gif', 'createdAt', 'reactions'
+          ])
+          && request.resource.data.authorId is string
+          && request.resource.data.authorId.size() > 0
+          && request.resource.data.authorId.size() <= 80
+          && request.resource.data.handle is string
+          && request.resource.data.handle.size() > 0
+          && request.resource.data.handle.size() <= 60
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt is number
+          && (request.resource.data.gif == null || request.resource.data.gif is map)
+          && (request.resource.data.text.size() > 0 || request.resource.data.gif != null)
+          && classId.size() <= 20
+          && channelId.size() <= 20;
+      }
+
+      allow read: if true;
+      allow create: if techchatMessageValid();
+      allow update: if changedKeysOnly(['reactions'])
+        && request.resource.data.reactions is map;
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if request.time < timestamp.date(2026, 11, 28)
+        && !isTechchatCollection();
+    }
+  }
+}

@@ -1,6 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
-  getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, setDoc, updateDoc,
   onSnapshot, query, orderBy, limit, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -14,21 +17,38 @@ const firebaseConfig = {
   measurementId: "G-4GSKNVGTM0"
 };
 
-const db = getFirestore(initializeApp(firebaseConfig));
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
 const GIPHY_KEY = "Yld6rG99fDQgrMKBCSFbi2SI29jcdwGY";
 const GIPHY_TERM = "speed";
+const ADMIN_EMAIL = "joel.mulonde@crpusd.org";
 
-const CLASSES = [
+const DEFAULT_CLASSES = [
   { id: "b5", code: "B5", subject: "Computer Science", teacher: "Mr. Alvarez", room: "214" },
   { id: "c3", code: "C3", subject: "Algebra II", teacher: "Ms. Whitfield", room: "118" },
   { id: "d4", code: "D4", subject: "US History", teacher: "Mr. Osei", room: "306" }
 ];
 
-const CHANNELS = [
+const CAMPUS = {
+  id: "campus",
+  code: "ALL",
+  subject: "Campus Chat",
+  teacher: "Everyone",
+  room: "Schoolwide",
+  isCampus: true
+};
+
+const CLASS_CHANNELS = [
   { id: "general", name: "general", topic: "Anything for this period." },
   { id: "homework", name: "homework", topic: "Questions about tonight's work." },
   { id: "lounge", name: "lounge", topic: "Off topic. Keep it school safe." }
+];
+
+const CAMPUS_CHANNELS = [
+  { id: "campus", name: "campus", topic: "The big schoolwide chat. Every period can talk here." }
 ];
 
 const REACTIONS = [
@@ -40,8 +60,10 @@ const REACTIONS = [
 
 const TONES = ["#f0a83c", "#7cc0f0", "#8fd694", "#e9748d", "#b79bf0", "#f0d05a", "#f28f6a", "#77d4c8"];
 
-const PRESENCE_TTL = 70000;
-const TYPING_TTL = 6000;
+const PRESENCE_ONLINE = 240000;
+const TYPING_TTL = 5000;
+const HEARTBEAT_MS = 20000;
+const ROSTER_TICK_MS = 10000;
 const GROUP_WINDOW = 300000;
 
 const el = (id) => document.getElementById(id);
@@ -56,9 +78,28 @@ const nodes = {
   first: el("input-first"),
   last: el("input-last"),
   nameError: el("name-error"),
+  gateAuth: el("gate-auth"),
+  googleSignIn: el("google-sign-in"),
+  authError: el("auth-error"),
+  signedEmail: el("signed-email"),
+  authSignOut: el("auth-sign-out"),
   gateClasses: el("gate-classes"),
   classCards: el("class-cards"),
   backToName: el("back-to-name"),
+  adminBar: el("admin-bar"),
+  adminSigned: el("admin-signed"),
+  adminEmail: el("admin-email"),
+  addClassToggle: el("add-class-toggle"),
+  adminForm: el("admin-form"),
+  adminFormTitle: el("admin-form-title"),
+  adminCancel: el("admin-cancel"),
+  adminCode: el("admin-code"),
+  adminRoom: el("admin-room"),
+  adminSubject: el("admin-subject"),
+  adminTeacher: el("admin-teacher"),
+  adminError: el("admin-error"),
+  adminSubmit: el("admin-submit"),
+  railAdd: el("rail-add"),
   app: el("app"),
   scrim: el("scrim"),
   railList: el("rail-list"),
@@ -85,34 +126,66 @@ const nodes = {
   gifToggle: el("gif-toggle"),
   composer: el("composer"),
   input: el("composer-input"),
-  rosterList: el("roster-list"),
+  rosterOnline: el("roster-online"),
+  rosterOffline: el("roster-offline"),
+  rosterOnlineCount: el("roster-online-count"),
+  rosterOfflineCount: el("roster-offline-count"),
   rosterCount: el("roster-count"),
+  rosterLabel: el("roster-label"),
   toasts: el("toasts")
 };
 
 const state = {
   me: null,
-  classId: CLASSES[0].id,
-  channelId: CHANNELS[0].id,
+  authUser: null,
+  classes: [],
+  classId: CAMPUS.id,
+  channelId: CAMPUS_CHANNELS[0].id,
   draft: { first: "", last: "" },
   messages: [],
   presence: [],
+  isAdmin: false,
+  editingId: null,
   gifsLoaded: false,
   gifToken: 0,
-  lastTypingWrite: 0
+  lastTypingWrite: 0,
+  authReady: false
 };
 
 let messagesUnsub = null;
 let presenceUnsub = null;
 let heartbeat = null;
+let rosterTick = null;
 let gifTimer = null;
 const gifNodeCache = new Map();
 const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
 const dayFmt = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" });
 const dateFmt = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
-const classById = (id) => CLASSES.find((c) => c.id === id) || CLASSES[0];
-const channelById = (id) => CHANNELS.find((c) => c.id === id) || CHANNELS[0];
+const classById = (id) => allRooms().find((c) => c.id === id) || CAMPUS;
+const allRooms = () => [CAMPUS, ...state.classes];
+const channelsFor = (klass) => (klass && klass.isCampus ? CAMPUS_CHANNELS : CLASS_CHANNELS);
+const channelById = (id, klass = classById(state.classId)) => {
+  const list = channelsFor(klass);
+  return list.find((c) => c.id === id) || list[0];
+};
+
+function classIdFromCode(code) {
+  return code.trim().toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20);
+}
+
+function isAdminEmail(email) {
+  return (email || "").trim().toLowerCase() === ADMIN_EMAIL;
+}
+
+function ensureChannelForRoom(roomId) {
+  const klass = classById(roomId);
+  const list = channelsFor(klass);
+  if (!list.some((c) => c.id === state.channelId)) {
+    state.channelId = list[0].id;
+    localStorage.setItem("techchat.channel", state.channelId);
+  }
+}
 
 function titleCase(value) {
   return value
@@ -129,17 +202,12 @@ function toneFor(seed) {
   return TONES[hash % TONES.length];
 }
 
-function makeId() {
-  if (crypto.randomUUID) return crypto.randomUUID();
-  return `u${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function loadMe() {
   try {
     const raw = localStorage.getItem("techchat.me");
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed.uid || !parsed.handle) return null;
+    if (!parsed.uid || !parsed.handle || !parsed.first || !parsed.last) return null;
     return parsed;
   } catch (err) {
     return null;
@@ -148,6 +216,43 @@ function loadMe() {
 
 function saveMe() {
   localStorage.setItem("techchat.me", JSON.stringify(state.me));
+}
+
+function namesFromGoogle(user) {
+  const given = (user.displayName || "").trim().split(/\s+/).filter(Boolean);
+  let first = "";
+  let last = "";
+  if (given.length >= 2) {
+    first = given[0];
+    last = given.slice(1).join(" ");
+  } else if (given.length === 1) {
+    first = given[0];
+  }
+  const emailLocal = (user.email || "").split("@")[0] || "";
+  if (!first && emailLocal) first = emailLocal.replace(/[._0-9]+/g, " ").trim().split(/\s+/)[0] || "";
+  return {
+    first: titleCase(first).replace(/[^A-Za-z'\u2019-]/g, "").slice(0, 24),
+    last: titleCase(last).replace(/[^A-Za-z'\u2019-]/g, "").slice(0, 24)
+  };
+}
+
+function buildMe(first, last, uid) {
+  const f = titleCase(first);
+  const l = titleCase(last);
+  return {
+    uid,
+    email: state.authUser?.email || "",
+    first: f,
+    last: l,
+    full: `${f} ${l}`,
+    handle: `${f[0]} ${l}`,
+    initials: `${f[0]}${l[0]}`,
+    tone: toneFor(uid)
+  };
+}
+
+function requireAuth() {
+  return !!(state.authUser && state.authUser.uid);
 }
 
 function toast(message) {
@@ -171,15 +276,37 @@ function validateName(value) {
   return /^[A-Za-z][A-Za-z'\u2019-]{1,23}$/.test(value.trim());
 }
 
+function paintAdminChrome() {
+  const admin = state.isAdmin;
+  nodes.adminBar.hidden = !admin;
+  nodes.railAdd.hidden = !admin;
+  if (admin && state.authUser) {
+    nodes.adminEmail.textContent = state.authUser.email;
+  } else {
+    closeAdminForm();
+  }
+}
+
+function rebuildClassViews() {
+  buildGatePeriods();
+  buildClassCards();
+  buildRail();
+  buildChannels();
+  renderPresence();
+  if (state.me && classById(state.classId)) paintShell();
+}
+
 function buildGatePeriods() {
   nodes.gatePeriods.textContent = "";
-  CLASSES.forEach((klass) => {
+  allRooms().forEach((klass) => {
     const li = document.createElement("li");
     const code = document.createElement("span");
     code.className = "code";
     code.textContent = klass.code;
     const label = document.createElement("span");
-    label.textContent = `${klass.subject} \u00b7 ${klass.teacher}`;
+    label.textContent = klass.isCampus
+      ? "Schoolwide chat for every period"
+      : `${klass.subject} \u00b7 ${klass.teacher}`;
     li.append(code, label);
     nodes.gatePeriods.appendChild(li);
   });
@@ -187,10 +314,14 @@ function buildGatePeriods() {
 
 function buildClassCards() {
   nodes.classCards.textContent = "";
-  CLASSES.forEach((klass) => {
+  const rooms = allRooms();
+  rooms.forEach((klass) => {
+    const row = document.createElement("div");
+    row.className = "class-row";
+
     const card = document.createElement("button");
     card.type = "button";
-    card.className = "class-card";
+    card.className = klass.isCampus ? "class-card is-campus" : "class-card";
     card.dataset.classId = klass.id;
 
     const code = document.createElement("span");
@@ -203,7 +334,9 @@ function buildClassCards() {
     subject.textContent = klass.subject;
     const meta = document.createElement("span");
     meta.className = "class-card-meta";
-    meta.textContent = `${klass.teacher} \u00b7 Room ${klass.room}`;
+    meta.textContent = klass.isCampus
+      ? "Open to every signed-in student"
+      : `${klass.teacher} \u00b7 Room ${klass.room}`;
     body.append(subject, meta);
 
     const live = document.createElement("span");
@@ -214,24 +347,39 @@ function buildClassCards() {
     card.append(code, body, live);
     card.addEventListener("click", () => enterClass(klass.id));
     card.addEventListener("mouseenter", () => {
-      nodes.cardPeriod.textContent = `Period ${klass.code}`;
+      nodes.cardPeriod.textContent = klass.isCampus ? "Campus chat" : `Period ${klass.code}`;
     });
     card.addEventListener("focus", () => {
-      nodes.cardPeriod.textContent = `Period ${klass.code}`;
+      nodes.cardPeriod.textContent = klass.isCampus ? "Campus chat" : `Period ${klass.code}`;
     });
-    nodes.classCards.appendChild(card);
+    row.appendChild(card);
+
+    if (state.isAdmin && !klass.isCampus) {
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "class-edit";
+      edit.textContent = "Edit";
+      edit.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openEditClass(klass.id);
+      });
+      row.appendChild(edit);
+    }
+
+    nodes.classCards.appendChild(row);
   });
 }
 
 function buildRail() {
   nodes.railList.textContent = "";
-  CLASSES.forEach((klass) => {
+  allRooms().forEach((klass) => {
     const li = document.createElement("li");
     li.className = "rail-item";
     li.dataset.classId = klass.id;
+    if (klass.id === state.classId) li.classList.add("is-active");
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "rail-btn";
+    btn.className = klass.isCampus ? "rail-btn is-campus" : "rail-btn";
     btn.textContent = klass.code;
     btn.title = `${klass.code} \u00b7 ${klass.subject}`;
     btn.setAttribute("aria-label", `${klass.code}, ${klass.subject}`);
@@ -243,12 +391,14 @@ function buildRail() {
 
 function buildChannels() {
   nodes.channelList.textContent = "";
-  CHANNELS.forEach((channel) => {
+  const klass = classById(state.classId);
+  channelsFor(klass).forEach((channel) => {
     const li = document.createElement("li");
     li.dataset.channelId = channel.id;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "channel-btn";
+    if (channel.id === state.channelId) btn.classList.add("is-active");
     const hash = document.createElement("span");
     hash.className = "hash";
     hash.textContent = "#";
@@ -262,15 +412,20 @@ function buildChannels() {
 
 function paintShell() {
   const klass = classById(state.classId);
-  const channel = channelById(state.channelId);
+  if (!klass) return;
+  ensureChannelForRoom(klass.id);
+  const channel = channelById(state.channelId, klass);
 
-  nodes.sideCode.textContent = `Period ${klass.code}`;
+  nodes.sideCode.textContent = klass.isCampus ? "Campus" : `Period ${klass.code}`;
   nodes.sideSubject.textContent = klass.subject;
-  nodes.sideMeta.textContent = `${klass.teacher} \u00b7 Room ${klass.room}`;
+  nodes.sideMeta.textContent = klass.isCampus
+    ? "Open to every period"
+    : `${klass.teacher} \u00b7 Room ${klass.room}`;
   nodes.stageChannel.textContent = channel.name;
   nodes.stageTopic.textContent = channel.topic;
   nodes.input.placeholder = `Message #${channel.name}`;
   nodes.gifToggle.title = `Add a GIF to #${channel.name}`;
+  nodes.rosterLabel.textContent = "Everyone";
 
   nodes.railList.querySelectorAll(".rail-item").forEach((item) => {
     item.classList.toggle("is-active", item.dataset.classId === state.classId);
@@ -279,10 +434,12 @@ function paintShell() {
     item.querySelector(".channel-btn").classList.toggle("is-active", item.dataset.channelId === state.channelId);
   });
 
-  nodes.meAvatar.textContent = state.me.initials;
-  nodes.meAvatar.style.background = state.me.tone;
-  nodes.meHandle.textContent = state.me.handle;
-  nodes.meFull.textContent = state.me.full;
+  if (state.me) {
+    nodes.meAvatar.textContent = state.me.initials;
+    nodes.meAvatar.style.background = state.me.tone;
+    nodes.meHandle.textContent = state.me.handle;
+    nodes.meFull.textContent = state.me.full;
+  }
 }
 
 function avatar(initials, tone, small) {
@@ -446,7 +603,9 @@ function emptyStream() {
   title.textContent = `#${channel.name} is quiet`;
   const copy = document.createElement("p");
   copy.className = "stream-empty-copy";
-  copy.textContent = `Nobody in ${klass.code} has posted here yet. Start the thread.`;
+  copy.textContent = klass.isCampus
+    ? "Nobody has posted in the campus chat yet. Say hello."
+    : `Nobody in ${klass.code} has posted here yet. Start the thread.`;
   wrap.append(mark, title, copy);
   return wrap;
 }
@@ -488,15 +647,108 @@ function renderMessages(forceBottom) {
   if (stick) nodes.stream.scrollTop = nodes.stream.scrollHeight;
 }
 
-function livePresence() {
-  const cutoff = Date.now() - PRESENCE_TTL;
-  return state.presence.filter((p) => (p.beat || 0) > cutoff);
+function isOnline(person, now = Date.now()) {
+  return (person.beat || 0) > now - PRESENCE_ONLINE;
+}
+
+function isTypingHere(person, now = Date.now()) {
+  const room = `${state.classId}/${state.channelId}`;
+  return person.typingIn === room && (person.typingAt || 0) > now - TYPING_TTL;
+}
+
+function isTypingAnywhere(person, now = Date.now()) {
+  return !!(person.typingIn && (person.typingAt || 0) > now - TYPING_TTL);
+}
+
+function personClassLabel(person) {
+  const klass = allRooms().find((c) => c.id === person.classId);
+  if (!klass) {
+    if (!person.classId) return "Away";
+    return String(person.classId).toUpperCase();
+  }
+  return klass.isCampus ? "Campus" : `Period ${klass.code}`;
+}
+
+function allMembers() {
+  return state.presence
+    .filter((p) => p && p.handle)
+    .sort((a, b) => a.handle.localeCompare(b.handle));
+}
+
+function onlinePresence() {
+  const now = Date.now();
+  return state.presence.filter((p) => p && p.handle && isOnline(p, now));
+}
+
+function rosterRow(person, online) {
+  const now = Date.now();
+  const typingHere = online && isTypingHere(person, now);
+  const typingAway = online && !typingHere && isTypingAnywhere(person, now);
+  const here = person.classId === state.classId;
+  const li = document.createElement("li");
+  li.className = online ? "roster-row is-online" : "roster-row is-offline";
+  if (here) li.classList.add("is-here");
+  if (typingHere || typingAway) li.classList.add("is-typing");
+
+  const wrap = document.createElement("span");
+  wrap.className = "avatar-wrap";
+  wrap.appendChild(avatar(person.initials, person.tone, true));
+  const dot = document.createElement("span");
+  dot.className = online ? "avatar-dot is-online" : "avatar-dot is-offline";
+  wrap.appendChild(dot);
+
+  const meta = document.createElement("span");
+  meta.className = "roster-meta";
+  const name = document.createElement("span");
+  name.className = "roster-name";
+  name.textContent = person.handle;
+  name.title = person.full || person.handle;
+  meta.appendChild(name);
+
+  const tip = document.createElement("span");
+  tip.className = "roster-status";
+  if (typingHere) {
+    tip.className = "roster-typing";
+    tip.innerHTML = 'Typing<span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+  } else if (typingAway) {
+    tip.className = "roster-typing";
+    tip.textContent = `Typing \u00b7 ${personClassLabel(person)}`;
+  } else if (!online) {
+    tip.textContent = `Offline \u00b7 ${personClassLabel(person)}`;
+  } else {
+    tip.textContent = personClassLabel(person);
+  }
+  meta.appendChild(tip);
+
+  li.append(wrap, meta);
+
+  if (state.me && person.uid === state.me.uid) {
+    const you = document.createElement("span");
+    you.className = "roster-you";
+    you.textContent = "You";
+    li.appendChild(you);
+  }
+
+  return li;
+}
+
+function fillRosterList(target, people, online) {
+  target.textContent = "";
+  if (!people.length) {
+    const empty = document.createElement("li");
+    empty.className = "roster-empty";
+    empty.textContent = online ? "Nobody online." : "Nobody offline.";
+    target.appendChild(empty);
+    return;
+  }
+  people.forEach((person) => target.appendChild(rosterRow(person, online)));
 }
 
 function renderPresence() {
-  const live = livePresence();
+  const now = Date.now();
+  const onlineAll = onlinePresence();
   const counts = new Map();
-  live.forEach((p) => counts.set(p.classId, (counts.get(p.classId) || 0) + 1));
+  onlineAll.forEach((p) => counts.set(p.classId, (counts.get(p.classId) || 0) + 1));
 
   nodes.classCards.querySelectorAll("[data-live-for]").forEach((tag) => {
     const n = counts.get(tag.dataset.liveFor) || 0;
@@ -505,58 +757,37 @@ function renderPresence() {
 
   if (!state.me) return;
 
-  const inClass = live
-    .filter((p) => p.classId === state.classId)
-    .sort((a, b) => a.handle.localeCompare(b.handle));
+  const members = allMembers();
+  const online = members.filter((p) => isOnline(p, now));
+  const offline = members.filter((p) => !isOnline(p, now));
 
-  nodes.rosterCount.textContent = String(inClass.length);
-  nodes.stageCount.textContent = inClass.length === 1 ? "1 in class" : `${inClass.length} in class`;
+  nodes.rosterOnlineCount.textContent = String(online.length);
+  nodes.rosterOfflineCount.textContent = String(offline.length);
+  nodes.rosterCount.textContent = String(members.length);
 
-  const list = nodes.rosterList;
-  list.textContent = "";
-  if (!inClass.length) {
-    const empty = document.createElement("li");
-    empty.className = "roster-empty";
-    empty.textContent = "Nobody here right now.";
-    list.appendChild(empty);
-  }
-  inClass.forEach((person) => {
-    const li = document.createElement("li");
-    li.className = "roster-row";
-    const wrap = document.createElement("span");
-    wrap.className = "avatar-wrap";
-    wrap.appendChild(avatar(person.initials, person.tone, true));
-    const dot = document.createElement("span");
-    dot.className = "avatar-dot";
-    wrap.appendChild(dot);
-    const name = document.createElement("span");
-    name.className = "roster-name";
-    name.textContent = person.handle;
-    name.title = person.full || person.handle;
-    li.append(wrap, name);
-    if (person.uid === state.me.uid) {
-      const you = document.createElement("span");
-      you.className = "roster-you";
-      you.textContent = "You";
-      li.appendChild(you);
-    }
-    list.appendChild(li);
-  });
+  nodes.stageCount.textContent = online.length === 1 ? "1 online" : `${online.length} online`;
 
-  renderTyping(live);
+  fillRosterList(nodes.rosterOnline, online, true);
+  fillRosterList(nodes.rosterOffline, offline, false);
+  renderTyping(onlineAll);
 }
 
 function renderTyping(live) {
+  const now = Date.now();
   const room = `${state.classId}/${state.channelId}`;
-  const cutoff = Date.now() - TYPING_TTL;
   const names = live
-    .filter((p) => p.uid !== state.me.uid && p.typingIn === room && (p.typingAt || 0) > cutoff)
+    .filter((p) => p.uid !== state.me.uid && p.typingIn === room && (p.typingAt || 0) > now - TYPING_TTL)
     .map((p) => p.handle);
 
   nodes.typing.textContent = "";
-  if (!names.length) return;
+  if (!names.length) {
+    nodes.typing.hidden = true;
+    return;
+  }
 
+  nodes.typing.hidden = false;
   const label = document.createElement("span");
+  label.className = "typing-copy";
   names.slice(0, 3).forEach((name, index) => {
     if (index) label.appendChild(document.createTextNode(index === names.length - 1 ? " and " : ", "));
     const strong = document.createElement("b");
@@ -564,8 +795,14 @@ function renderTyping(live) {
     label.appendChild(strong);
   });
   const tail = names.length > 3 ? ` and ${names.length - 3} others are typing` : names.length > 1 ? " are typing" : " is typing";
-  label.appendChild(document.createTextNode(`${tail}\u2026`));
-  nodes.typing.appendChild(label);
+  label.appendChild(document.createTextNode(` ${tail}`));
+
+  const dots = document.createElement("span");
+  dots.className = "typing-dots";
+  dots.setAttribute("aria-hidden", "true");
+  dots.innerHTML = "<i></i><i></i><i></i>";
+
+  nodes.typing.append(label, dots);
 }
 
 function messagesRef() {
@@ -604,6 +841,195 @@ function watchPresence() {
       console.error(error);
     }
   );
+}
+
+async function seedDefaultClasses() {
+  if (!state.isAdmin || !state.authUser) return;
+  try {
+    await Promise.all(DEFAULT_CLASSES.map((klass) => setDoc(doc(db, "techchat_classes", klass.id), {
+      ...klass,
+      createdAt: Date.now(),
+      createdBy: state.authUser.uid
+    }, { merge: true })));
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function watchClasses() {
+  onSnapshot(
+    query(collection(db, "techchat_classes"), orderBy("code")),
+    async (snap) => {
+      if (snap.empty) {
+        await seedDefaultClasses();
+        state.classes = [];
+      } else {
+        state.classes = snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            code: data.code || d.id.toUpperCase(),
+            subject: data.subject || "Class",
+            teacher: data.teacher || "Teacher",
+            room: data.room || "—",
+            createdAt: data.createdAt || 0,
+            createdBy: data.createdBy || ""
+          };
+        });
+      }
+
+      const saved = localStorage.getItem("techchat.class") || "";
+      const next = classById(saved);
+      const previous = state.classId;
+      state.classId = next.id;
+      ensureChannelForRoom(state.classId);
+      rebuildClassViews();
+
+      if (state.me) {
+        if (nodes.app.hidden || previous !== state.classId) {
+          startSession();
+        } else {
+          paintShell();
+        }
+      }
+    },
+    (error) => {
+      console.error(error);
+      toast("Could not load classes. Reload the page.");
+    }
+  );
+}
+
+async function googleSignIn() {
+  nodes.authError.hidden = true;
+  try {
+    await signInWithPopup(auth, googleProvider);
+  } catch (error) {
+    if (error.code === "auth/popup-closed-by-user") return;
+    console.error(error);
+    nodes.authError.hidden = false;
+    nodes.authError.textContent = "Google sign-in didn't finish. Try again.";
+  }
+}
+
+async function googleSignOutOnly() {
+  try {
+    await firebaseSignOut(auth);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function closeAdminForm() {
+  state.editingId = null;
+  nodes.adminForm.hidden = true;
+  nodes.adminError.hidden = true;
+  nodes.adminForm.reset();
+  nodes.adminFormTitle.textContent = "Add a class";
+  nodes.adminSubmit.textContent = "Publish class";
+  nodes.adminCode.disabled = false;
+}
+
+function revealAdminPanel() {
+  if (!nodes.gate.hidden) {
+    showClassStep();
+  } else {
+    nodes.app.hidden = true;
+    nodes.gate.hidden = false;
+    showClassStep();
+  }
+}
+
+function openCreateClass() {
+  if (!state.isAdmin) return;
+  revealAdminPanel();
+  state.editingId = null;
+  nodes.adminForm.reset();
+  nodes.adminError.hidden = true;
+  nodes.adminFormTitle.textContent = "Add a class";
+  nodes.adminSubmit.textContent = "Publish class";
+  nodes.adminCode.disabled = false;
+  nodes.adminForm.hidden = false;
+  nodes.adminCode.focus();
+}
+
+function openEditClass(id) {
+  if (!state.isAdmin) return;
+  const klass = state.classes.find((c) => c.id === id);
+  if (!klass) return;
+  revealAdminPanel();
+  state.editingId = id;
+  nodes.adminError.hidden = true;
+  nodes.adminFormTitle.textContent = `Edit ${klass.code}`;
+  nodes.adminSubmit.textContent = "Save changes";
+  nodes.adminCode.value = klass.code;
+  nodes.adminCode.disabled = false;
+  nodes.adminSubject.value = klass.subject;
+  nodes.adminTeacher.value = klass.teacher;
+  nodes.adminRoom.value = klass.room;
+  nodes.adminForm.hidden = false;
+  nodes.adminSubject.focus();
+}
+
+function openAdminForm() {
+  openCreateClass();
+}
+
+async function publishClass(event) {
+  event.preventDefault();
+  if (!state.isAdmin) {
+    toast("Sign in as joel.mulonde@crpusd.org to manage classes.");
+    return;
+  }
+
+  const code = nodes.adminCode.value.trim().toUpperCase();
+  const subject = nodes.adminSubject.value.trim();
+  const teacher = nodes.adminTeacher.value.trim();
+  const room = nodes.adminRoom.value.trim();
+  const editingId = state.editingId;
+  const id = editingId || classIdFromCode(code);
+
+  if (!/^[A-Z0-9]{1,8}$/.test(code) || !id || id === CAMPUS.id) {
+    nodes.adminError.hidden = false;
+    nodes.adminError.textContent = "Use a short period code like B5 or C3.";
+    nodes.adminCode.focus();
+    return;
+  }
+  if (subject.length < 2 || teacher.length < 2 || room.length < 1) {
+    nodes.adminError.hidden = false;
+    nodes.adminError.textContent = "Fill in subject, teacher, and room.";
+    return;
+  }
+
+  const duplicate = state.classes.find((c) => c.id !== id && c.code.toUpperCase() === code);
+  if (duplicate) {
+    nodes.adminError.hidden = false;
+    nodes.adminError.textContent = `${code} is already used by another class.`;
+    return;
+  }
+
+  nodes.adminError.hidden = true;
+  const existing = editingId ? state.classes.find((c) => c.id === editingId) : null;
+  const payload = {
+    code,
+    subject: subject.slice(0, 48),
+    teacher: teacher.slice(0, 48),
+    room: room.slice(0, 12),
+    createdAt: existing?.createdAt || Date.now(),
+    createdBy: existing?.createdBy || state.authUser.uid,
+    updatedAt: Date.now(),
+    updatedBy: state.authUser.uid
+  };
+
+  try {
+    await setDoc(doc(db, "techchat_classes", id), payload, { merge: true });
+    closeAdminForm();
+    toast(editingId ? `Updated ${code}.` : `Published ${code}.`);
+  } catch (error) {
+    console.error(error);
+    nodes.adminError.hidden = false;
+    nodes.adminError.textContent = "Could not save that class. Check you are signed in as the teacher account.";
+  }
 }
 
 async function writePresence(extra) {
@@ -731,9 +1157,11 @@ function closeGifs() {
 }
 
 function switchClass(id) {
-  if (id === state.classId) return;
+  if (id === state.classId || !classById(id)) return;
   state.classId = id;
   localStorage.setItem("techchat.class", id);
+  ensureChannelForRoom(id);
+  buildChannels();
   paintShell();
   watchMessages();
   writePresence();
@@ -743,6 +1171,7 @@ function switchClass(id) {
 
 function switchChannel(id) {
   if (id === state.channelId) return;
+  if (!channelsFor(classById(state.classId)).some((c) => c.id === id)) return;
   state.channelId = id;
   localStorage.setItem("techchat.channel", id);
   paintShell();
@@ -763,12 +1192,42 @@ function autoGrow() {
 
 function markTyping() {
   const now = Date.now();
-  if (now - state.lastTypingWrite < 2600) return;
+  if (now - state.lastTypingWrite < 2000) return;
   state.lastTypingWrite = now;
   writePresence({ typingIn: `${state.classId}/${state.channelId}`, typingAt: now });
 }
 
+function clearTyping() {
+  if (!state.lastTypingWrite) return;
+  state.lastTypingWrite = 0;
+  writePresence({ typingIn: "", typingAt: 0 });
+}
+
+async function markOffline() {
+  if (!state.me) return;
+  try {
+    await setDoc(doc(db, "techchat_presence", state.me.uid), {
+      uid: state.me.uid,
+      handle: state.me.handle,
+      full: state.me.full,
+      initials: state.me.initials,
+      tone: state.me.tone,
+      classId: state.classId,
+      channelId: state.channelId,
+      typingIn: "",
+      typingAt: 0,
+      beat: Date.now() - PRESENCE_ONLINE - 1000
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 function startSession() {
+  if (!requireAuth() || !state.me) {
+    showAuthStep();
+    return;
+  }
   nodes.gate.hidden = true;
   nodes.app.hidden = false;
   paintShell();
@@ -777,71 +1236,141 @@ function startSession() {
   writePresence();
   renderPresence();
   if (heartbeat) clearInterval(heartbeat);
+  if (rosterTick) clearInterval(rosterTick);
   heartbeat = setInterval(() => {
-    writePresence();
+    if (document.visibilityState === "hidden") return;
+    const typing = nodes.input.value.trim()
+      ? { typingIn: `${state.classId}/${state.channelId}`, typingAt: Date.now() }
+      : { typingIn: "", typingAt: 0 };
+    writePresence(typing);
     renderPresence();
-  }, 20000);
+  }, HEARTBEAT_MS);
+  rosterTick = setInterval(() => renderPresence(), ROSTER_TICK_MS);
 }
 
 function enterClass(id) {
+  if (!requireAuth()) {
+    showAuthStep();
+    toast("Sign in with Google to join a class.");
+    return;
+  }
   const first = titleCase(state.draft.first);
   const last = titleCase(state.draft.last);
-  const uid = (loadMe() || {}).uid || makeId();
+  if (!validateName(first) || !validateName(last)) {
+    showNameStep();
+    toast("Set your roster name before joining a class.");
+    return;
+  }
 
-  state.me = {
-    uid,
-    first,
-    last,
-    full: `${first} ${last}`,
-    handle: `${first[0]} ${last}`,
-    initials: `${first[0]}${last[0]}`,
-    tone: toneFor(uid)
-  };
+  state.me = buildMe(first, last, state.authUser.uid);
   saveMe();
   state.classId = id;
   localStorage.setItem("techchat.class", id);
+  ensureChannelForRoom(id);
   startSession();
 }
 
-function showClassStep() {
-  nodes.gate.dataset.step = "class";
+function showAuthStep() {
+  nodes.gate.hidden = false;
+  nodes.app.hidden = true;
+  nodes.gate.dataset.step = "auth";
+  nodes.gateAuth.hidden = false;
   nodes.nameForm.hidden = true;
-  nodes.gateClasses.hidden = false;
-  nodes.cardPeriod.textContent = "Pick a period";
-  nodes.classCards.querySelector(".class-card").focus();
+  nodes.gateClasses.hidden = true;
+  nodes.cardPeriod.textContent = "No period";
+  nodes.authError.hidden = true;
 }
 
 function showNameStep() {
+  if (!requireAuth()) {
+    showAuthStep();
+    return;
+  }
+  nodes.gate.hidden = false;
+  nodes.app.hidden = true;
   nodes.gate.dataset.step = "name";
+  nodes.gateAuth.hidden = true;
   nodes.nameForm.hidden = false;
   nodes.gateClasses.hidden = true;
   nodes.cardPeriod.textContent = "No period";
+  nodes.signedEmail.textContent = state.authUser.email || "";
   nodes.first.focus();
+}
+
+function showClassStep() {
+  if (!requireAuth()) {
+    showAuthStep();
+    return;
+  }
+  if (!validateName(state.draft.first) || !validateName(state.draft.last)) {
+    showNameStep();
+    return;
+  }
+  nodes.gate.hidden = false;
+  nodes.app.hidden = true;
+  nodes.gate.dataset.step = "class";
+  nodes.gateAuth.hidden = true;
+  nodes.nameForm.hidden = true;
+  nodes.gateClasses.hidden = false;
+  nodes.cardPeriod.textContent = "Pick a period";
+  const firstCard = nodes.classCards.querySelector(".class-card");
+  if (firstCard) firstCard.focus();
 }
 
 async function signOut() {
   if (heartbeat) clearInterval(heartbeat);
+  if (rosterTick) clearInterval(rosterTick);
   if (messagesUnsub) messagesUnsub();
   if (presenceUnsub) presenceUnsub();
   messagesUnsub = null;
   presenceUnsub = null;
   heartbeat = null;
-  try {
-    await deleteDoc(doc(db, "techchat_presence", state.me.uid));
-  } catch (error) {
-    console.error(error);
-  }
+  rosterTick = null;
+  await markOffline();
   localStorage.removeItem("techchat.me");
   state.me = null;
   state.messages = [];
   state.presence = [];
-  nodes.app.hidden = true;
-  nodes.gate.hidden = false;
   nodes.first.value = "";
   nodes.last.value = "";
   state.draft = { first: "", last: "" };
   setDraftCard();
+  await googleSignOutOnly();
+  showAuthStep();
+}
+
+function resumeAfterAuth(user) {
+  state.authUser = user;
+  state.isAdmin = isAdminEmail(user.email);
+  paintAdminChrome();
+
+  const stored = loadMe();
+  if (stored && stored.uid === user.uid) {
+    state.me = stored;
+    state.draft = { first: stored.first, last: stored.last };
+    nodes.first.value = stored.first;
+    nodes.last.value = stored.last;
+    setDraftCard();
+    state.classId = classById(localStorage.getItem("techchat.class") || CAMPUS.id).id;
+    state.channelId = channelById(localStorage.getItem("techchat.channel") || "", classById(state.classId)).id;
+    startSession();
+    return;
+  }
+
+  const guessed = namesFromGoogle(user);
+  state.draft = guessed;
+  nodes.first.value = guessed.first;
+  nodes.last.value = guessed.last;
+  setDraftCard();
   showNameStep();
+}
+
+function clearAuthSession() {
+  state.authUser = null;
+  state.isAdmin = false;
+  state.me = null;
+  paintAdminChrome();
+  showAuthStep();
 }
 
 nodes.first.addEventListener("input", () => {
@@ -856,6 +1385,10 @@ nodes.last.addEventListener("input", () => {
 
 nodes.nameForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  if (!requireAuth()) {
+    showAuthStep();
+    return;
+  }
   const first = nodes.first.value.trim();
   const last = nodes.last.value.trim();
 
@@ -868,12 +1401,20 @@ nodes.nameForm.addEventListener("submit", (event) => {
 
   nodes.nameError.hidden = true;
   state.draft = { first, last };
+  state.me = buildMe(first, last, state.authUser.uid);
+  saveMe();
   setDraftCard();
   showClassStep();
 });
 
 nodes.backToName.addEventListener("click", showNameStep);
 nodes.signOut.addEventListener("click", signOut);
+nodes.googleSignIn.addEventListener("click", googleSignIn);
+nodes.authSignOut.addEventListener("click", signOut);
+nodes.addClassToggle.addEventListener("click", openCreateClass);
+nodes.adminCancel.addEventListener("click", closeAdminForm);
+nodes.railAdd.addEventListener("click", openAdminForm);
+nodes.adminForm.addEventListener("submit", publishClass);
 nodes.navToggle.addEventListener("click", () => nodes.app.classList.toggle("is-open"));
 nodes.scrim.addEventListener("click", closeNav);
 
@@ -888,6 +1429,7 @@ nodes.composer.addEventListener("submit", (event) => {
 nodes.input.addEventListener("input", () => {
   autoGrow();
   if (nodes.input.value.trim()) markTyping();
+  else clearTyping();
 });
 
 nodes.input.addEventListener("keydown", (event) => {
@@ -935,24 +1477,24 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.addEventListener("pagehide", () => {
-  if (state.me) deleteDoc(doc(db, "techchat_presence", state.me.uid)).catch(() => {});
+  if (state.me) markOffline();
 });
 
-buildGatePeriods();
-buildClassCards();
-buildRail();
 buildChannels();
 setDraftCard();
+paintAdminChrome();
+showAuthStep();
+watchClasses();
 watchPresence();
-
-const stored = loadMe();
-if (stored) {
-  state.me = stored;
-  state.classId = classById(localStorage.getItem("techchat.class") || "").id;
-  state.channelId = channelById(localStorage.getItem("techchat.channel") || "").id;
-  state.draft = { first: stored.first, last: stored.last };
-  nodes.first.value = stored.first;
-  nodes.last.value = stored.last;
-  setDraftCard();
-  startSession();
-}
+onAuthStateChanged(auth, (user) => {
+  state.authReady = true;
+  if (!user) {
+    if (heartbeat) clearInterval(heartbeat);
+    if (rosterTick) clearInterval(rosterTick);
+    heartbeat = null;
+    rosterTick = null;
+    clearAuthSession();
+    return;
+  }
+  resumeAfterAuth(user);
+});
