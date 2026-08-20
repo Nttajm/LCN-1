@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Techchat — classroom chat</title>
+<meta name="description" content="Period chat for class B5, C3 and D4. Sign in with your roster name and talk to your classmates.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=Martian+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<section class="gate" id="gate" data-step="name">
+  <div class="gate-brief">
+    <p class="gate-eyebrow">Techchat</p>
+    <h1 class="gate-title">Class is<br><em>in session</em></h1>
+    <p class="gate-copy">Sign in with the name on your schedule. Your classmates see you the way the roster does &mdash; first initial, last name.</p>
+    <ul class="gate-periods" id="gate-periods"></ul>
+  </div>
+
+  <div class="gate-panel">
+    <div class="idcard" id="idcard">
+      <span class="idcard-punch" aria-hidden="true"></span>
+      <div class="idcard-head">
+        <span class="idcard-school">Lincoln Central</span>
+        <span class="idcard-year">26&ndash;27</span>
+      </div>
+      <div class="idcard-body">
+        <span class="idcard-photo" id="card-photo">&mdash;&mdash;</span>
+        <div class="idcard-fields">
+          <span class="idcard-label">Roster name</span>
+          <strong class="idcard-handle" id="card-handle">Your name</strong>
+          <span class="idcard-label">Given name</span>
+          <span class="idcard-full" id="card-full">Not set yet</span>
+        </div>
+      </div>
+      <div class="idcard-foot">
+        <span class="idcard-period" id="card-period">No period</span>
+        <span class="idcard-bars" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <form class="gate-form" id="name-form" novalidate>
+      <div class="field-pair">
+        <label class="field">
+          <span class="field-label">First name</span>
+          <input class="field-input" id="input-first" type="text" autocomplete="given-name" spellcheck="false" maxlength="24" placeholder="Jaydon">
+        </label>
+        <label class="field">
+          <span class="field-label">Last name</span>
+          <input class="field-input" id="input-last" type="text" autocomplete="family-name" spellcheck="false" maxlength="24" placeholder="Faintly">
+        </label>
+      </div>
+      <p class="field-error" id="name-error" role="alert" hidden></p>
+      <button class="btn-primary" type="submit">Continue to class list</button>
+    </form>
+
+    <div class="gate-classes" id="gate-classes" hidden>
+      <div class="gate-classes-head">
+        <h2 class="gate-classes-title">Pick a period</h2>
+        <button class="btn-quiet" type="button" id="back-to-name">Change name</button>
+      </div>
+      <div class="class-cards" id="class-cards"></div>
+    </div>
+  </div>
+</section>
+
+<div class="app" id="app" hidden>
+  <div class="scrim" id="scrim"></div>
+
+  <nav class="rail" aria-label="Periods">
+    <span class="rail-mark" aria-hidden="true">TC</span>
+    <ul class="rail-list" id="rail-list"></ul>
+    <button class="rail-out" type="button" id="sign-out" aria-label="Sign out">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h9"/></svg>
+    </button>
+  </nav>
+
+  <aside class="sidebar">
+    <header class="sidebar-head">
+      <span class="sidebar-code" id="side-code">B5</span>
+      <span class="sidebar-subject" id="side-subject">Computer Science</span>
+      <span class="sidebar-meta" id="side-meta">Room 214</span>
+    </header>
+    <p class="sidebar-title">Channels</p>
+    <ul class="channel-list" id="channel-list"></ul>
+    <footer class="sidebar-foot">
+      <span class="avatar avatar-sm" id="me-avatar">--</span>
+      <span class="sidebar-foot-text">
+        <strong class="sidebar-foot-name" id="me-handle">J Doe</strong>
+        <span class="sidebar-foot-sub" id="me-full">Jane Doe</span>
+      </span>
+    </footer>
+  </aside>
+
+  <main class="stage">
+    <header class="stage-head">
+      <button class="icon-btn nav-btn" type="button" id="nav-toggle" aria-label="Show periods and channels">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <h1 class="stage-title"><span class="hash" aria-hidden="true">#</span><span id="stage-channel">general</span></h1>
+      <span class="stage-divider" aria-hidden="true"></span>
+      <p class="stage-topic" id="stage-topic"></p>
+      <span class="stage-count" id="stage-count">0 in class</span>
+    </header>
+
+    <div class="stream" id="stream">
+      <div class="messages" id="messages"></div>
+    </div>
+
+    <div class="typing" id="typing" aria-live="polite"></div>
+
+    <div class="composer-wrap">
+      <div class="gif-panel" id="gif-panel" hidden>
+        <div class="gif-head">
+          <input class="gif-search" id="gif-search" type="search" placeholder="Search GIFs" autocomplete="off" spellcheck="false">
+          <button class="btn-quiet" type="button" id="gif-close">Close</button>
+        </div>
+        <p class="gif-status" id="gif-status">Loading</p>
+        <div class="gif-grid" id="gif-grid"></div>
+        <p class="gif-credit">Powered by GIPHY</p>
+      </div>
+
+      <form class="composer" id="composer">
+        <button class="icon-btn gif-btn" type="button" id="gif-toggle" aria-label="Add a GIF"><span>GIF</span></button>
+        <textarea class="composer-input" id="composer-input" rows="1" placeholder="Message #general" maxlength="2000"></textarea>
+        <button class="composer-send" type="submit" aria-label="Send message">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 8 6 8-16-8Z"/></svg>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <aside class="roster">
+    <p class="roster-title">In class now &mdash; <span id="roster-count">0</span></p>
+    <ul class="roster-list" id="roster-list"></ul>
+  </aside>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

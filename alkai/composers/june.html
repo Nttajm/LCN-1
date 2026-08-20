@@ -33,7 +33,7 @@
             display: grid;
             grid-template-columns: 1fr 1px 120px;
             align-items: center;
-            width: 292px;
+            width: 372px;
             height: 46px;
             padding: 5px 6px 5px 15px;
             border: 1px solid rgba(255, 160, 70, 0.55);
@@ -72,7 +72,7 @@
 
         .pill__status-odo {
             display: block;
-            width: 7.2em;
+            width: 12.8em;
             height: 1.2em;
             overflow: hidden;
             line-height: 1.2;
@@ -284,7 +284,7 @@
         @media (min-width: 768px) {
             .pill {
                 bottom: clamp(210px, 32vh, 320px);
-                width: 318px;
+                width: 398px;
                 height: 50px;
                 padding: 0 7px 0 16px;
                 grid-template-columns: 1fr 1px 132px;
@@ -393,12 +393,10 @@
             <span class="pill__status-odo" aria-live="polite">
                 <span class="pill__status-track" id="status-track">
                     <span class="pill__status-item">Paused</span>
-                    <span class="pill__status-item">Waiting</span>
-                    <span class="pill__status-item">Listening</span>
+                    <span class="pill__status-item">June core memory</span>
                     <span class="pill__status-item">Thinking</span>
                     <span class="pill__status-item">Speaking</span>
-                    <span class="pill__status-item" aria-hidden="true">Waiting</span>
-                    <span class="pill__status-item" aria-hidden="true">Listening</span>
+                    <span class="pill__status-item" aria-hidden="true">June core memory</span>
                 </span>
             </span>
         </div>
@@ -506,7 +504,6 @@
                 try {
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                         mode = "demo";
-                        syncListenStatus();
                         return;
                     }
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -528,11 +525,9 @@
                     source.connect(analyser);
                     freqData = new Uint8Array(analyser.frequencyBinCount);
                     mode = "mic";
-                    syncListenStatus();
                 } catch (err) {
                     console.error(err);
                     mode = "demo";
-                    syncListenStatus();
                 }
             }
 
@@ -575,19 +570,17 @@
 
             const statusIndexMap = {
                 paused: 0,
-                waiting: 1,
-                listening: 2,
-                thinking: 3,
-                speaking: 4,
+                memory: 1,
+                thinking: 2,
+                speaking: 3,
             };
 
             const statusLoopIndex = {
-                waiting: 5,
-                listening: 6,
+                memory: 4,
             };
 
-            function listenPhase() {
-                return mode === "mic" ? "listening" : "waiting";
+            function activePhase() {
+                return "memory";
             }
 
             function snapStatusIndex(index) {
@@ -599,8 +592,8 @@
             }
 
             function setStatus(phase) {
-                const next = phase === "active" ? listenPhase() : phase;
-                const wrapping = statusPhase === "speaking" && (next === "listening" || next === "waiting");
+                const next = phase === "active" ? activePhase() : phase;
+                const wrapping = statusPhase === "speaking" && next === "memory";
                 statusPhase = next;
                 pill.dataset.status = next;
                 pill.classList.toggle("is-thinking", next === "thinking");
@@ -624,13 +617,6 @@
                 statusTrack.style.setProperty("--status-i", String(statusIndex));
             }
 
-            function syncListenStatus() {
-                if (!running) return;
-                if (statusPhase === "listening" || statusPhase === "waiting") {
-                    setStatus(listenPhase());
-                }
-            }
-
             function clearStatusCycle() {
                 if (statusTimer) {
                     clearTimeout(statusTimer);
@@ -641,7 +627,7 @@
             function armStatusCycle() {
                 clearStatusCycle();
                 const flow = [
-                    { phase: "active", ms: 1600 },
+                    { phase: "memory", ms: 2200 },
                     { phase: "thinking", ms: 1800 },
                     { phase: "speaking", ms: 2000 },
                 ];
@@ -703,7 +689,6 @@
                 else startSession();
             });
 
-            syncListenStatus();
             startMic();
             requestAnimationFrame(frame);
         })();
