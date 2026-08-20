@@ -88,16 +88,117 @@ body {
 }
 
 .student-center {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-30%, -40%);
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 160%;
   height: 100%;
-  scale: 1.3;
-  background-image: url('../assets/dark-stc.png');
+  background-image: url('../assets/studentcenter/format/LORO.png');
   background-position: center;
   background-size: cover;
+}
+
+.sc-objects {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+}
+
+.button-overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.button-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.button-overlay-left,
+.button-overlay-right {
+  z-index: 1;
+}
+
+.doorButtons {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  pointer-events: auto;
+  z-index: 3;
+  transform: none;
+}
+
+.doorButtons button {
+  width: 66px;
+  aspect-ratio: 1/ 1;
+  background: rgba(0, 0, 0, 0.15);
+  border: 2px solid #2aff2a;
+  border-radius: 4px;
+  color: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  outline: none;
+  pointer-events: auto;
+}
+
+.doorButtons button:hover,
+.doorButtons .door-btn.active {
+  border-color: #6bff6b;
+  background-color: rgba(0, 140, 0, 0.18);
+  box-shadow: 0 0 8px rgba(40, 255, 40, 0.45);
+}
+
+.doorButtons .light-btn.active {
+  border-color: #7bff7b;
+  background-color: rgba(0, 170, 0, 0.2);
+  box-shadow: 0 0 8px rgba(100, 255, 100, 0.5);
+}
+
+
+
+.doorButtons.left {
+  top: 41%;
+  left: 16%;
+}
+
+.doorButtons.right {
+  top: 48%;
+  right: 38.5%;
+}
+
+.computer_trigger {
+  position: absolute;
+  top: 0%;
+  left: 3%;
+  width: 180px;
+  height: 120px;
+  display: none;
+}
+
+.computer-img-hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../assets/studentcenter/computerhover.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.computer_trigger:hover ~ .computer-img-hover {
+  opacity: 1;
 }
 
 .game-view {
@@ -116,17 +217,32 @@ body {
   width: 100%;
   height: 100%;
   z-index: 3;
+  pointer-events: none;
+}
+
+.dev-tools {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: black;
+  border: 2px solid white;
+  color: white;
+  padding: 6px 10px;
+  font-family: var(--f15);
+  font-size: 0.7rem;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .game-border {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   border: solid 2px white;
   scale: 0.95;
-
+  pointer-events: none;
 }
 
 .game-clock {
@@ -159,55 +275,396 @@ body {
   left: 50%;
   transform: translateX(-50%);
   pointer-events: auto;
+  opacity: 0.4;
+}
+
+.cameras-button:hover {
+  opacity: 1; 
 }
 
 /* ipad view: center and scale to fill most of the viewport */
 .ipad {
   position: absolute;
-  top: 50%;
+  top: 47%;
   left: 50%;
-  width: 80vw;
-  height: 80vh;
-  transform: translate(-50%, -50%);
-  background-color: #000;
-  border: 5px solid #1b1b1b;
-  border-radius: 40px;
+  width: min(80vw, 1000px);
+  aspect-ratio: 6 / 4;
+  transform: translate(-50%, -50%) rotateX(90deg);
+  transform-origin: bottom;
+  background: linear-gradient(145deg, #1c1c1e 0%, #0f0f10 48%, #0a0a0b 100%);
+  border: 2px solid #2c2c2e;
+  border-radius: 38px;
   box-sizing: border-box;
   z-index: 4;
   pointer-events: auto;
   overflow: hidden;
+  box-shadow:
+    0 26px 55px rgba(0, 0, 0, 0.65),
+    inset 0 2px 2px rgba(255, 255, 255, 0.08),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+  transform-style: preserve-3d;
+  pointer-events: none;
 }
 
-.ipad .screen {
+.ipad .ipad-screen {
   position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 90%;
+  top: 5%;
+  left: 8%;
+  width: 84%;
   height: 90%;
-  background-color: #111;
-  border-radius: 20px;
+  background: #0b0b0d;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.65),
+    inset 0 6px 16px rgba(255, 255, 255, 0.01);
+  transform-style: preserve-3d;
+}
+
+.ipad * {
+  transform-style: preserve-3d;
+}
+
+.ipad .ipad-screen-data {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+    transform-style: preserve-3d;
+
+}
+
+.ipad-texture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.15;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.static-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#ips-data .map-cont {
+  position: absolute;
+  bottom: 5%;
+  right: 2%;
+  width: 450px;
+  z-index: 2;
+}
+
+.map {
+  position: relative;
+  width: 100%;
+}
+
+.rec-circle {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  scale: 2;
+}
+
+#ips-data .map img {
+  width: 100%;
+  height: auto;
+  filter: invert();
 }
 
 .ipad .camera-hole {
   position: absolute;
   top: 50%;
-  left: 1%;
-  width: 7px;
-  height: 7px;
-  background-color: #222;
-  border: 2px solid #555;
+  left: 3.5%;
+  width: clamp(10px, 1.2vw, 14px);
+  height: clamp(10px, 1.2vw, 14px);
+  background: radial-gradient(circle at 35% 35%, #252a3a 0%, #0a0c10 60%, #030304 100%);
+  border: 1px solid #3a3a3c;
   border-radius: 50%;
   transform: translateY(-50%);
+  box-shadow:
+    0 0 0 2px rgba(8, 8, 10, 0.9),
+    inset 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
 .ipad .home-button {
   position: absolute;
   top: 50%;
-  right: 1%;
-  width: 40px;
-  height: 40px;
-  background-color: #222;
-  border: 2px solid #555;
+  right: .8%;
+  width: clamp(36px, 4vw, 52px);
+  aspect-ratio: 1 / 1;
+  background: radial-gradient(circle at 50% 45%, #1f1f21 0%, #121214 100%);
+  border: 1px solid #3a3a3c;
   border-radius: 50%;
   transform: translateY(-50%);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.ipad .home-button::before {
+  content: "";
+  position: absolute;
+  inset: 26%;
+  border: 2px solid rgba(70, 70, 74, 0.7);
+  border-radius: 8px;
+}
+
+.sc-flicker {
+  animation: screen-flicker 2.95s infinite;
+}
+
+.screen-on {
+  animation: screen-flip-on 0.2s ease-out forwards;
+  pointer-events: all;
+}
+
+.screen-off {
+  animation: screen-flip-off 0.2s ease-in forwards;
+  pointer-events: none;
+}
+
+.current-room {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.room {
+  position: absolute;
+  z-index: 4;
+  opacity: 1;
+  border: solid 1px rgb(255, 255, 255);
+  background-color: #252a3a;
+  padding: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.room:hover {
+  background-color: #8f8f8f;
+  cursor: pointer;
+}
+
+#a2 {
+  top: 80%;
+  left: 27%;
+}
+
+#a3 {
+  top: 69%;
+  left: 24%;
+}
+
+#b1 {
+  top: 50%;
+  left: 22%;
+}
+
+#b2 {
+  top: 47%;
+  left: 22%;
+}
+
+#b3 {
+  top: 35%;
+  left: 19%;
+}
+
+#b5 {
+  top: 30%;
+  left: 29%;
+}
+
+#c1 {
+  top: 29%;
+  left: 38%;
+}
+
+#c2 {
+  top: 19%;
+  left: 38%;
+}
+
+#c3 {
+  top: 15%;
+  left: 45%;
+}
+
+#d3 {
+  top: 43%;
+  left: 72%;
+}
+
+#wkshp {
+  top: 35%;
+  left: 58%;
+}
+
+#GYM {
+  top: 45%;
+  left: 85%;
+}
+
+#lounge {
+  top: 55%;
+  left: 60%;
+}
+
+#office {
+  top: 80%;
+  left: 48%;
+}
+
+.power-info {
+  position: absolute;
+  bottom: 5%;
+  left: 5%;
+  z-index: 5;
+  color: white;
+  font-family: var(--f13);
+  font-size: 1.1rem;
+}
+
+.usage-cont {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.usage {
+  width: 10px;
+  height: 20px;
+  background-color: #1eff00;
+  position: relative;
+}
+
+#u1, #u2 {
+  background-color: #1eff00;
+}
+
+#u3 {
+  background-color: #ffd900;
+}
+
+#u4 {
+  background-color: #ff0000;
+}
+
+
+
+@keyframes screen-flip-on {
+  0% {
+    transform: translate(-50%, -50%) perspective(1000px) rotateX(90deg);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) perspective(1000px) rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes screen-flip-off {
+  0% {
+    transform: translate(-50%, -50%) perspective(1000px) rotateX(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) perspective(1000px) rotateX(90deg);
+    opacity: 0.85;
+  }
+}
+
+
+@keyframes screen-flicker {
+  0% {
+    opacity: 0.78;
+    filter: brightness(0.95) contrast(1.02) saturate(0.96);
+  }
+  6% {
+    opacity: 0.86;
+    filter: brightness(1.04) contrast(1.06) saturate(1);
+  }
+  12% {
+    opacity: 0.8;
+    filter: brightness(0.98) contrast(1.03) saturate(0.98);
+  }
+  18% {
+    opacity: 0.9;
+    filter: brightness(1.12) contrast(1.08) saturate(1.02);
+  }
+  24% {
+    opacity: 0.82;
+    filter: brightness(1) contrast(1.04) saturate(0.99);
+  }
+  31% {
+    opacity: 0.88;
+    filter: brightness(1.08) contrast(1.06) saturate(1.01);
+  }
+  39% {
+    opacity: 0.76;
+    filter: brightness(0.92) contrast(1.03) saturate(0.95);
+  }
+  46% {
+    opacity: 0.91;
+    filter: brightness(1.16) contrast(1.1) saturate(1.03);
+  }
+  54% {
+    opacity: 0.83;
+    filter: brightness(1.01) contrast(1.05) saturate(1);
+  }
+  63% {
+    opacity: 0.89;
+    filter: brightness(1.1) contrast(1.07) saturate(1.02);
+  }
+  72% {
+    opacity: 0.79;
+    filter: brightness(0.97) contrast(1.04) saturate(0.97);
+  }
+  81% {
+    opacity: 0.92;
+    filter: brightness(1.18) contrast(1.1) saturate(1.04);
+  }
+  90% {
+    opacity: 0.84;
+    filter: brightness(1.03) contrast(1.05) saturate(1);
+  }
+  100% {
+    opacity: 0.8;
+    filter: brightness(1) contrast(1.02) saturate(0.98);
+  }
+}
+
+@media (max-width: 900px) {
+  .ipad {
+    width: min(88vw, 760px);
+    border-radius: 30px;
+  }
+
+  .ipad .ipad-screen {
+    border-radius: 14px;
+  }
+}
+
+
+.unfoucsed {
+  filter: blur(1px) brightness(0.5);
+  pointer-events: none;
 }

@@ -1,0 +1,866 @@
+/* FNAF Alpha Test - Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+.game-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: #0a0a0a;
+}
+
+/* Office View */
+.office-view {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    position: relative;
+}
+
+.office-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(ellipse at center, #1c1c1c 0%, #0a0a0a 70%);
+}
+
+.desk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 150px;
+    background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+    border-top: 4px solid #4a4a4a;
+}
+
+.fan {
+    position: absolute;
+    bottom: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    background: #333;
+    border-radius: 50%;
+    border: 3px solid #444;
+}
+
+.fan::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 8px;
+    background: #555;
+    border-radius: 4px;
+    animation: fanSpin 0.5s linear infinite;
+}
+
+@keyframes fanSpin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Door Areas */
+.door-area {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 180px;
+    height: 400px;
+    z-index: 10;
+}
+
+.door-area.left {
+    left: 20px;
+}
+
+.door-area.right {
+    right: 20px;
+}
+
+.door-btn, .light-btn {
+    display: block;
+    width: 80px;
+    padding: 10px;
+    margin: 5px auto;
+    background: #333;
+    color: #0f0;
+    border: 2px solid #0f0;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.1s;
+}
+
+.door-btn:hover, .light-btn:hover {
+    background: #0f0;
+    color: #000;
+}
+
+.door-btn.active {
+    background: #f00;
+    border-color: #f00;
+    color: #fff;
+}
+
+.light-btn.active {
+    background: #ff0;
+    border-color: #ff0;
+    color: #000;
+}
+
+.door-frame {
+    width: 150px;
+    height: 280px;
+    background: #1a1a1a;
+    border: 4px solid #333;
+    margin: 10px auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.door {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        #444 0px,
+        #444 20px,
+        #333 20px,
+        #333 22px
+    );
+    transition: height 0.3s ease-in-out;
+    z-index: 5;
+}
+
+.door.closed {
+    height: 100%;
+}
+
+.hallway {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #0a0a0a, #151515);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.animatronic-peek {
+    width: 60px;
+    height: 120px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.animatronic-peek.visible {
+    opacity: 1;
+}
+
+.animatronic-peek::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 40px;
+    background: #8b4513;
+    border-radius: 5px;
+    margin: 0 auto 5px;
+    position: relative;
+}
+
+.animatronic-peek::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 70px;
+    background: #8b4513;
+    border-radius: 5px;
+    margin: 0 auto;
+}
+
+/* Light effect */
+.door-area .hallway.lit {
+    background: linear-gradient(180deg, #2a2a20, #3a3a30);
+}
+
+/* Clock Display */
+.clock-display {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    text-align: right;
+    color: #fff;
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    z-index: 100;
+}
+
+.clock-display .time {
+    display: block;
+    font-size: 36px;
+}
+
+.clock-display .night {
+    display: block;
+    font-size: 18px;
+    color: #888;
+}
+
+/* Power Display */
+.power-display {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    color: #0f0;
+    font-size: 16px;
+    z-index: 100;
+}
+
+.power-label {
+    display: block;
+}
+
+.power-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.power-bar {
+    width: 150px;
+    height: 10px;
+    background: #333;
+    border: 1px solid #0f0;
+    margin: 5px 0;
+}
+
+.power-fill {
+    height: 100%;
+    width: 100%;
+    background: #0f0;
+    transition: width 0.3s, background 0.3s;
+}
+
+.power-fill.low {
+    background: #ff0;
+}
+
+.power-fill.critical {
+    background: #f00;
+}
+
+.usage {
+    font-size: 14px;
+}
+
+.usage-bars {
+    color: #0f0;
+    letter-spacing: 2px;
+}
+
+/* iPad / Camera System */
+.ipad-container {
+    position: absolute;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: bottom 0.5s ease-in-out;
+    z-index: 200;
+}
+
+.ipad-container.active {
+    bottom: 0;
+}
+
+.ipad {
+    width: 800px;
+    height: 550px;
+}
+
+.ipad-frame {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    border-radius: 20px;
+    padding: 15px;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.ipad-screen {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 10px;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Camera Feed */
+.camera-feed {
+    flex: 1;
+    position: relative;
+    background: #0a0a0a;
+    overflow: hidden;
+}
+
+.camera-static {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23111" width="100" height="100"/></svg>');
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.camera-static.active {
+    opacity: 1;
+    animation: staticNoise 0.1s steps(4) infinite;
+}
+
+@keyframes staticNoise {
+    0% { background-position: 0 0; }
+    25% { background-position: 50px 50px; }
+    50% { background-position: -50px 25px; }
+    75% { background-position: 25px -50px; }
+    100% { background-position: 0 0; }
+}
+
+.camera-view {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Room Scene */
+.room-scene {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: linear-gradient(180deg, #1a1510 0%, #0d0a08 100%);
+}
+
+.room-floor {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            #2a2520 0px,
+            #2a2520 40px,
+            #252018 40px,
+            #252018 80px
+        );
+    transform: perspective(500px) rotateX(60deg);
+    transform-origin: bottom;
+}
+
+.room-walls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: 
+        linear-gradient(90deg, #1a1510 0%, #2a2520 50%, #1a1510 100%),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 100px,
+            #151210 100px,
+            #151210 102px
+        );
+}
+
+/* Animatronic (Rectangle-based person) */
+.animatronic {
+    position: absolute;
+    bottom: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 160px;
+}
+
+.anim-head {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(180deg, #8b5a2b, #6b4423);
+    border-radius: 8px;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.anim-eyes {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+}
+
+.eye {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    position: relative;
+}
+
+.eye::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 4px;
+    height: 4px;
+    background: #000;
+    border-radius: 50%;
+}
+
+.anim-body {
+    width: 60px;
+    height: 70px;
+    background: linear-gradient(180deg, #8b5a2b, #6b4423);
+    border-radius: 8px;
+    margin: 5px auto 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.anim-arm {
+    position: absolute;
+    width: 15px;
+    height: 50px;
+    background: linear-gradient(180deg, #8b5a2b, #6b4423);
+    border-radius: 5px;
+    top: 60px;
+}
+
+.anim-arm.left {
+    left: 0;
+}
+
+.anim-arm.right {
+    right: 0;
+}
+
+.anim-leg {
+    position: absolute;
+    width: 18px;
+    height: 40px;
+    background: linear-gradient(180deg, #8b5a2b, #6b4423);
+    border-radius: 5px;
+    bottom: 0;
+}
+
+.anim-leg.left {
+    left: 18px;
+}
+
+.anim-leg.right {
+    right: 18px;
+}
+
+/* Different animatronic colors */
+.animatronic.freddy {
+    --anim-color: #8b5a2b;
+}
+
+.animatronic.bonnie {
+    --anim-color: #4a4a8b;
+}
+
+.animatronic.chica {
+    --anim-color: #c9b30a;
+}
+
+.animatronic.foxy {
+    --anim-color: #8b2020;
+}
+
+.animatronic.bonnie .anim-head,
+.animatronic.bonnie .anim-body,
+.animatronic.bonnie .anim-arm,
+.animatronic.bonnie .anim-leg {
+    background: linear-gradient(180deg, #5555aa, #3a3a8b);
+}
+
+.animatronic.chica .anim-head,
+.animatronic.chica .anim-body,
+.animatronic.chica .anim-arm,
+.animatronic.chica .anim-leg {
+    background: linear-gradient(180deg, #e6c619, #c9a30a);
+}
+
+.animatronic.foxy .anim-head,
+.animatronic.foxy .anim-body,
+.animatronic.foxy .anim-arm,
+.animatronic.foxy .anim-leg {
+    background: linear-gradient(180deg, #aa3030, #8b2020);
+}
+
+/* Animatronic states */
+.animatronic.gone {
+    display: none;
+}
+
+.animatronic.moving {
+    animation: animMove 0.5s ease-in-out;
+}
+
+@keyframes animMove {
+    0%, 100% { transform: translateX(-50%); }
+    50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* Scanlines */
+.scanlines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1) 0px,
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Recording indicator */
+.recording {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #f00;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 10;
+}
+
+.rec-dot {
+    width: 10px;
+    height: 10px;
+    background: #f00;
+    border-radius: 50%;
+    animation: recBlink 1s ease-in-out infinite;
+}
+
+@keyframes recBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Timestamp */
+.timestamp {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    color: #fff;
+    font-size: 14px;
+    z-index: 10;
+}
+
+/* Camera Name */
+.camera-name {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* Camera Map */
+.camera-map {
+    width: 200px;
+    background: #111;
+    padding: 15px;
+    border-left: 2px solid #333;
+}
+
+.map-title {
+    color: #0f0;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.map-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.cam-btn {
+    padding: 10px 5px;
+    background: #222;
+    color: #888;
+    border: 1px solid #444;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.cam-btn:hover {
+    background: #333;
+    color: #fff;
+    border-color: #666;
+}
+
+.cam-btn.active {
+    background: #0a3d0a;
+    color: #0f0;
+    border-color: #0f0;
+}
+
+.cam-btn.has-animatronic {
+    animation: camAlert 0.5s ease-in-out infinite;
+}
+
+@keyframes camAlert {
+    0%, 100% { border-color: #444; }
+    50% { border-color: #f00; }
+}
+
+/* Camera Toggle Button */
+.camera-toggle {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    background: #222;
+    color: #0f0;
+    border: 2px solid #0f0;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 150;
+    transition: all 0.2s;
+}
+
+.camera-toggle:hover {
+    background: #0f0;
+    color: #000;
+}
+
+.camera-toggle.active {
+    background: #0a3d0a;
+}
+
+.toggle-icon {
+    font-size: 24px;
+}
+
+/* Game Over Screen */
+.game-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 500;
+}
+
+.game-over.active {
+    display: flex;
+}
+
+.jumpscare {
+    animation: jumpscareShake 0.3s ease-in-out;
+    margin-bottom: 50px;
+}
+
+@keyframes jumpscareShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-20px) scale(1.1); }
+    75% { transform: translateX(20px) scale(1.1); }
+}
+
+.jumpscare-animatronic {
+    width: 200px;
+    height: 300px;
+    position: relative;
+}
+
+.js-head {
+    width: 150px;
+    height: 150px;
+    background: linear-gradient(180deg, #8b5a2b, #6b4423);
+    border-radius: 15px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.js-eye {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: #fff;
+    border-radius: 50%;
+    top: 40px;
+}
+
+.js-eye.left {
+    left: 30px;
+}
+
+.js-eye.right {
+    right: 30px;
+}
+
+.js-eye::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 14px;
+    height: 14px;
+    background: #000;
+    border-radius: 50%;
+}
+
+.js-mouth {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 40px;
+    background: #000;
+    border-radius: 0 0 40px 40px;
+}
+
+.js-body {
+    width: 120px;
+    height: 130px;
+    background: linear-gradient(180deg, #8b5a2b, #6b4423);
+    border-radius: 15px;
+    margin: 10px auto 0;
+}
+
+.game-over-text {
+    color: #f00;
+    font-size: 72px;
+    font-weight: bold;
+    text-shadow: 0 0 20px #f00;
+    animation: gameOverFlicker 0.5s ease-in-out infinite;
+}
+
+@keyframes gameOverFlicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Win Screen */
+.win-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 500;
+}
+
+.win-screen.active {
+    display: flex;
+}
+
+.win-text {
+    color: #fff;
+    font-size: 120px;
+    font-weight: bold;
+    text-shadow: 0 0 30px #fff;
+    animation: winPulse 1s ease-in-out infinite;
+}
+
+@keyframes winPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.win-subtext {
+    color: #888;
+    font-size: 36px;
+    margin-top: 20px;
+}
+
+/* Power Out Effect */
+.game-container.power-out .office-view {
+    background: #000;
+}
+
+.game-container.power-out .office-background,
+.game-container.power-out .door-area,
+.game-container.power-out .clock-display,
+.game-container.power-out .power-display,
+.game-container.power-out .camera-toggle {
+    opacity: 0;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .ipad {
+        width: 95vw;
+        height: 400px;
+    }
+    
+    .camera-map {
+        width: 150px;
+    }
+}
