@@ -1,0 +1,39 @@
+.css-vcr {
+    
+}
+
+/* Static transition effect for room switching */
+.static-transition {
+    position: relative;
+}
+
+.static-transition::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.15) 0px,
+            rgba(255, 255, 255, 0.15) 1px,
+            transparent 2px,
+            transparent 3px
+        );
+    z-index: 999;
+    pointer-events: none;
+    animation: staticNoise 0.1s steps(3) infinite;
+}
+
+@keyframes staticNoise {
+    0%, 100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(2px);
+    }
+}

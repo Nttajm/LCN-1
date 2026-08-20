@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="css/startgame.css">
   <link rel="stylesheet" href="css/game-utils.css">
   <link rel="icon" href="https://lcnjoel.com/css/standard.css">
-  <link rel="stylesheet" href="../css/standard.css">
   <link rel="stylesheet" href="css/clock.css">
+  <link rel="stylesheet" href="css/effects.css">
 </head>
 <body>
   <!-- is to remove dn -->
@@ -41,11 +41,36 @@
     </div>
     <div class="game-view">
       <div class="student-center">
-          
+          <div class="sc-objects">
+            <div class="button-overlay-layer" aria-hidden="true">
+              <img class="button-overlay button-overlay-left" data-overlay="left" src="assets/buttons/dooropen_btn_l.png" alt="">
+              <img class="button-overlay button-overlay-right" data-overlay="right" src="assets/buttons/dooropen_btn_r.png" alt="">
+            </div>
+            <div class="doorButtons left">
+              <button class="door-btn" data-door="left" id="doorLeft">DOOR</button>
+            </div>
+            <div class="doorButtons right">
+              <button class="door-btn" data-door="right" id="doorRight">DOOR</button>
+            </div>
+
+
+            <div class="computer_trigger"></div>
+            <div class="computer-img-hover"></div>
+          </div>
       </div>
       <div class="game-ui">
-        <div class="game-border dn">
+        <div class="dev-tools">
+          <div>
+            <span id="dev-time">time (s): 00:00</span>
+            <span id="dev-power">power: 100%</span>
+            <span id="dev-door-left">door Left: closed</span>
+            <span id="dev-door-right">door Right: closed</span>
+          </div>
+          <div>
+            <span id="dev-usage">usage: 0%</span>
+          </div>
         </div>
+      
         <div class="game-clock ">
             <div class="clock-js-import"></div>
         </div>
@@ -60,20 +85,117 @@
         <div class="cameras-button">
           <img src="assets_exp/cameras.png" alt="camera_btn">
         </div>
-        <div class="ipad">
-          <div class="screen">
-            <!-- content shown on the iPad display goes here -->
+        <div class="ipad ">
+          <div class="ipad-screen sc-flicker">
+            <img src="assets/textures/texture_smudges.avif" class="ipad-texture" alt="iPad texture">
+            <div class="ipad-screen-data" id="ips-data">
+              <video class="static-video dn" muted playsinline>
+                <source src="assets/footage/static.mp4" type="video/mp4">
+              </video>
+              <img src="game_rooms/c3/c3_empty.png" class="current-room css-vcr" data-curr-room='A1' alt="Current Room" >
+              <div class="css-vcr-tracking"></div>
+              <div class="rec-circle">
+                <span
+                  aria-label="Recording"
+                  role="img"
+                  style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ff1f1f;box-shadow:0 0 8px #ff1f1f;"
+                ></span>
+              </div>
+              <div class="game-border dn">
+              </div>
+             <div class="map-cont">
+               <div class="map">
+                <div class="room" id="a3">
+                   <span>
+                     A3
+                   </span>
+                 </div>
+                <div class="room" id="a2">
+                   <span>
+                     A2
+                   </span>
+                 </div>
+                 <div class="room" id="b2">
+                   <span>
+                     B2
+                   </span>
+                 </div>
+                 <div class="room" id="b3">
+                   <span>
+                     B3
+                   </span>
+                 </div>
+                 <div class="room" id="b5">
+                   <span>
+                     B5
+                   </span>
+                 </div>
+                 <div class="room" id="c1">
+                   <span>
+                     C1
+                   </span>
+                 </div>
+                 <div class="room" id="c2">
+                   <span>
+                     C2
+                   </span>
+                 </div>
+                 <div class="room" id="c3">
+                   <span>
+                      C3
+                   </span>
+                 </div>
+                 <div class="room" id="d3">
+                   <span>
+                     D3
+                   </span>
+                 </div>
+                 <div class="room" id="wkshp">
+                   <span>
+                     WKSHP
+                   </span>
+                 </div>
+                 <div class="room" id="GYM">
+                   <span>
+                     GYM
+                   </span>
+                 </div>
+                 <div class="room" id="lounge">
+                   <span>
+                     ELAB
+                   </span>
+                 </div>
+                  <div class="room" id="office">
+                    <span>
+                      OFC
+                    </span>
+                  </div>
+                <img src="assets/thsmap.png" alt="Map of the school">
+              </div>
+             </div>
+            </div>
           </div>
-          <div class="camera-hole"></div>
+          <div class="camera-hole"></div> 
           <div class="home-button"></div>
         </div>
+        <div class="power-info">
+          <div class="power-remaining">
+            <span id="power-percentage">Power: 100%</span>
+          </div>
+          <div class="usage-cont"> 
+            <span id="power-usage">Usage </span>
+            <div class="usage " id="u1"></div>
+            <div class="usage " id="u2"></div>
+            <div class="usage " id="u3"></div>
+            <div class="usage " id="u4"></div>
+          </div>
+        </div>
       </div>
-      <div class="cameras"></div>
     </div>
   </div>
 
-  <script type="module" src="js/animation.js"></script>
-  <scrip//t type="module" src="js/util.js"></script>
+    <script type="module" src="js/animation.js"></script>
+  <script type="module" src="js/util.js"></script>
   <script type="module" src="js/clock.js"></script>
   <script type="module" src="js/game.js"></script>
 

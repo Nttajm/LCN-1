@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Five Nights at Freddy's - Alpha Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Main Office View -->
+        <div class="office-view">
+            <div class="office-background">
+                <div class="desk"></div>
+                <div class="fan"></div>
+            </div>
+            
+            <!-- Left Door -->
+            <div class="door-area left">
+                <button class="door-btn" data-door="left">DOOR</button>
+                <button class="light-btn" data-light="left">LIGHT</button>
+                <div class="door-frame">
+                    <div class="door closed" id="left-door"></div>
+                    <div class="hallway">
+                        <div class="animatronic-peek" id="left-animatronic"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Door -->
+            <div class="door-area right">
+                <button class="door-btn" data-door="right">DOOR</button>
+                <button class="light-btn" data-light="right">LIGHT</button>
+                <div class="door-frame">
+                    <div class="door closed" id="right-door"></div>
+                    <div class="hallway">
+                        <div class="animatronic-peek" id="right-animatronic"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Clock Display -->
+        <div class="clock-display">
+            <span class="time" id="game-time">12 AM</span>
+            <span class="night" id="game-night">Night 1</span>
+        </div>
+        
+        <!-- Power Display -->
+        <div class="power-display">
+            <span class="power-label">Power left:</span>
+            <span class="power-value" id="power-value">100%</span>
+            <div class="power-bar">
+                <div class="power-fill" id="power-fill"></div>
+            </div>
+            <div class="usage">
+                Usage: <span class="usage-bars" id="usage-bars">▮</span>
+            </div>
+        </div>
+        
+        <!-- iPad / Camera System -->
+        <div class="ipad-container" id="ipad-container">
+            <div class="ipad">
+                <div class="ipad-frame">
+                    <div class="ipad-screen" id="ipad-screen">
+                        <!-- Camera Feed -->
+                        <div class="camera-feed">
+                            <div class="camera-static"></div>
+                            <div class="camera-view" id="camera-view">
+                                <!-- Room Layout -->
+                                <div class="room-scene" id="room-scene">
+                                    <!-- Basic room structure -->
+                                    <div class="room-floor"></div>
+                                    <div class="room-walls"></div>
+                                    
+                                    <!-- Animatronic (Rectangle Person) -->
+                                    <div class="animatronic" id="cam-animatronic">
+                                        <div class="anim-head"></div>
+                                        <div class="anim-body"></div>
+                                        <div class="anim-arm left"></div>
+                                        <div class="anim-arm right"></div>
+                                        <div class="anim-leg left"></div>
+                                        <div class="anim-leg right"></div>
+                                        <div class="anim-eyes">
+                                            <div class="eye left"></div>
+                                            <div class="eye right"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Camera Name -->
+                                <div class="camera-name" id="camera-name">CAM 1A - Show Stage</div>
+                            </div>
+                            
+                            <!-- Scanlines Effect -->
+                            <div class="scanlines"></div>
+                            
+                            <!-- Recording indicator -->
+                            <div class="recording">
+                                <span class="rec-dot"></span> REC
+                            </div>
+                            
+                            <!-- Timestamp -->
+                            <div class="timestamp" id="cam-timestamp">12:00 AM</div>
+                        </div>
+                        
+                        <!-- Camera Map -->
+                        <div class="camera-map">
+                            <div class="map-title">CAMERA MAP</div>
+                            <div class="map-grid">
+                                <button class="cam-btn active" data-cam="1A">1A</button>
+                                <button class="cam-btn" data-cam="1B">1B</button>
+                                <button class="cam-btn" data-cam="1C">1C</button>
+                                <button class="cam-btn" data-cam="2A">2A</button>
+                                <button class="cam-btn" data-cam="2B">2B</button>
+                                <button class="cam-btn" data-cam="3">3</button>
+                                <button class="cam-btn" data-cam="4A">4A</button>
+                                <button class="cam-btn" data-cam="4B">4B</button>
+                                <button class="cam-btn" data-cam="5">5</button>
+                                <button class="cam-btn" data-cam="6">6</button>
+                                <button class="cam-btn" data-cam="7">7</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Camera Toggle Button -->
+        <button class="camera-toggle" id="camera-toggle">
+            <span class="toggle-icon">📹</span>
+            <span class="toggle-text">CAMERAS</span>
+        </button>
+        
+        <!-- Game Over Screen -->
+        <div class="game-over" id="game-over">
+            <div class="jumpscare" id="jumpscare">
+                <div class="jumpscare-animatronic">
+                    <div class="js-head">
+                        <div class="js-eye left"></div>
+                        <div class="js-eye right"></div>
+                        <div class="js-mouth"></div>
+                    </div>
+                    <div class="js-body"></div>
+                </div>
+            </div>
+            <div class="game-over-text">GAME OVER</div>
+        </div>
+        
+        <!-- Win Screen -->
+        <div class="win-screen" id="win-screen">
+            <div class="win-text">6 AM</div>
+            <div class="win-subtext">You survived!</div>
+        </div>
+    </div>
+    
+    <script src="game.js" type="module"></script>
+</body>
+</html>
