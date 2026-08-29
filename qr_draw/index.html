@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Paint Grid — joel.mulonde.com/r</title>
+  <style>
+    :root {
+      --ink: #111;
+      --paper: #fff;
+      --muted: #666;
+      --accent: #2563eb;
+      --border: #ddd;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f5;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    header {
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem;
+    }
+
+    .url {
+      color: var(--muted);
+      font-size: 0.95rem;
+      word-break: break-all;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem 1.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-row input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch {
+      width: 48px;
+      height: 28px;
+      background: #ccc;
+      border-radius: 999px;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle-row input:checked + .switch {
+      background: var(--accent);
+    }
+
+    .toggle-row input:checked + .switch::after {
+      transform: translateX(20px);
+    }
+
+    .toggle-label {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .btn {
+      font: inherit;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--paper);
+      cursor: pointer;
+    }
+
+    .btn:hover { background: #f9fafb; }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    .btn-primary:hover { background: #333; }
+
+    .legend {
+      font-size: 0.85rem;
+      color: var(--muted);
+      flex: 1 1 200px;
+    }
+
+    .canvas-wrap {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    #qr-output {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+    }
+
+    #qr-output canvas,
+    #qr-output table {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .grid-table {
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .grid-table td {
+      border: 1px solid #999;
+      text-align: center;
+      vertical-align: middle;
+      font-weight: 700;
+      line-height: 1;
+      padding: 0;
+      position: relative;
+    }
+
+    .grid-table td.black {
+      background: #000;
+      color: #fff;
+    }
+
+    .grid-table td.white {
+      background: #fff;
+      color: #bbb;
+    }
+
+    .grid-table td.axis {
+      background: #f0f0f0;
+      color: #444;
+      font-weight: 600;
+      border: 1px solid #bbb;
+    }
+
+    .grid-table td.corner {
+      background: transparent;
+      border: none;
+    }
+
+    .stats {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .error {
+      color: #b91c1c;
+      padding: 1rem;
+      background: #fef2f2;
+      border-radius: 8px;
+    }
+
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* Print */
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        max-width: none;
+        padding: 0;
+      }
+
+      .controls,
+      footer,
+      .no-print {
+        display: none !important;
+      }
+
+      .canvas-wrap {
+        border: none;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      header {
+        margin-bottom: 0.75rem;
+        text-align: center;
+      }
+
+      h1 { font-size: 1.1rem; }
+
+      .grid-table td {
+        border-color: #000;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .grid-table td.black {
+        background: #000 !important;
+        color: #fff !important;
+      }
+
+      .grid-table td.white {
+        color: #888 !important;
+      }
+
+      .grid-table td.axis {
+        background: #eee !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      @page {
+        margin: 0.5in;
+        size: letter portrait;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Senior Parking Spot QR</h1>
+      <p class="url">https://joel.mulonde.com/r</p>
+    </header>
+
+    <div class="controls no-print">
+      <label class="toggle-row">
+        <input type="checkbox" id="grid-toggle" aria-label="Show paint grid with numbers">
+        <span class="switch" aria-hidden="true"></span>
+        <span class="toggle-label">Paint grid mode</span>
+      </label>
+      <button type="button" class="btn btn-primary" id="print-btn">Print</button>
+      <p class="legend">
+        Toggle grid mode to see numbered cells. Black cells = paint. White cells = leave blank.
+      </p>
+    </div>
+
+    <div class="canvas-wrap">
+      <div id="qr-output" role="img" aria-label="QR code for joel.mulonde.com/r"></div>
+      <p class="stats" id="stats"></p>
+    </div>
+
+    <footer class="no-print">
+      Print in grid mode for a paint-by-number guide. Scale to fit your parking spot.
+    </footer>
+  </div>
+
+  <script src="qrcode.min.js"></script>
+  <script>
+    const URL = "https://joel.mulonde.com/r";
+    const QUIET_ZONE = 4;
+    const GRID_TARGET_PX = 14;
+
+    const output = document.getElementById("qr-output");
+    const stats = document.getElementById("stats");
+    const gridToggle = document.getElementById("grid-toggle");
+    const printBtn = document.getElementById("print-btn");
+
+    let qrData = null;
+
+    function showError(msg) {
+      output.innerHTML = '<p class="error">' + msg + "</p>";
+    }
+
+    function buildMatrix(text) {
+      if (typeof qrcode !== "function") {
+        throw new Error("QR library failed to load. Make sure qrcode.min.js is in the same folder.");
+      }
+      const qr = qrcode(0, "M");
+      qr.addData(text);
+      qr.make();
+      const size = qr.getModuleCount();
+      const cells = [];
+      for (let r = 0; r < size; r++) {
+        const row = [];
+        for (let c = 0; c < size; c++) {
+          row.push(qr.isDark(r, c));
+        }
+        cells.push(row);
+      }
+      return { size, cells };
+    }
+
+    function renderNormal(data) {
+      const total = data.size + QUIET_ZONE * 2;
+      const px = Math.min(640, Math.max(280, total * 8));
+      const modulePx = px / total;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = px;
+      canvas.height = px;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, px, px);
+      ctx.fillStyle = "#000";
+
+      for (let r = 0; r < data.size; r++) {
+        for (let c = 0; c < data.size; c++) {
+          if (data.cells[r][c]) {
+            const x = (c + QUIET_ZONE) * modulePx;
+            const y = (r + QUIET_ZONE) * modulePx;
+            ctx.fillRect(x, y, modulePx, modulePx);
+          }
+        }
+      }
+
+      output.innerHTML = "";
+      output.appendChild(canvas);
+      updateStats(data, false);
+    }
+
+    function fontSizeForCell(cellPx) {
+      if (cellPx >= 22) return "11px";
+      if (cellPx >= 16) return "9px";
+      if (cellPx >= 12) return "7px";
+      if (cellPx >= 9) return "6px";
+      return "5px";
+    }
+
+    function sizeCell(td, w, h, fontSize) {
+      td.style.width = w + "px";
+      td.style.height = h + "px";
+      td.style.minWidth = w + "px";
+      td.style.minHeight = h + "px";
+      if (fontSize) td.style.fontSize = fontSize;
+    }
+
+    function makeCorner(axisPx) {
+      const td = document.createElement("td");
+      td.className = "corner";
+      sizeCell(td, axisPx, axisPx);
+      return td;
+    }
+
+    function makeAxis(label, axisPx, cellPx, fontSize) {
+      const td = document.createElement("td");
+      td.className = "axis";
+      td.textContent = label;
+      sizeCell(td, cellPx, cellPx, fontSize);
+      if (axisPx > cellPx) {
+        td.style.minWidth = axisPx + "px";
+        td.style.width = axisPx + "px";
+      }
+      return td;
+    }
+
+    function renderGrid(data) {
+      const size = data.size;
+      const table = document.createElement("table");
+      table.className = "grid-table";
+      table.setAttribute("aria-label", "QR paint grid with numbered cells");
+
+      const cellPx = GRID_TARGET_PX;
+      const axisPx = Math.max(cellPx, 20);
+      const cellFontSize = fontSizeForCell(cellPx);
+      const axisFontSize = fontSizeForCell(axisPx);
+
+      const colHeader = document.createElement("tr");
+      colHeader.appendChild(makeCorner(axisPx));
+      for (let c = 0; c < size; c++) {
+        colHeader.appendChild(makeAxis(c + 1, axisPx, cellPx, axisFontSize));
+      }
+      colHeader.appendChild(makeCorner(axisPx));
+      table.appendChild(colHeader);
+
+      let paintNum = 0;
+      let blackCount = 0;
+
+      for (let r = 0; r < size; r++) {
+        const tr = document.createElement("tr");
+        tr.appendChild(makeAxis(r + 1, axisPx, cellPx, axisFontSize));
+
+        for (let c = 0; c < size; c++) {
+          const td = document.createElement("td");
+          const isBlack = data.cells[r][c];
+          td.className = isBlack ? "black" : "white";
+
+          if (isBlack) {
+            paintNum += 1;
+            blackCount += 1;
+            td.textContent = paintNum;
+            td.title = "Paint cell " + paintNum + " (row " + (r + 1) + ", col " + (c + 1) + ")";
+          } else {
+            td.textContent = "·";
+            td.title = "Leave blank (row " + (r + 1) + ", col " + (c + 1) + ")";
+          }
+
+          sizeCell(td, cellPx, cellPx, cellFontSize);
+          tr.appendChild(td);
+        }
+
+        tr.appendChild(makeAxis(r + 1, axisPx, cellPx, axisFontSize));
+        table.appendChild(tr);
+      }
+
+      const colFooter = document.createElement("tr");
+      colFooter.appendChild(makeCorner(axisPx));
+      for (let c = 0; c < size; c++) {
+        colFooter.appendChild(makeAxis(c + 1, axisPx, cellPx, axisFontSize));
+      }
+      colFooter.appendChild(makeCorner(axisPx));
+      table.appendChild(colFooter);
+
+      output.innerHTML = "";
+      output.appendChild(table);
+      updateStats(data, true, blackCount);
+    }
+
+    function updateStats(data, gridMode, blackCount) {
+      if (gridMode) {
+        stats.textContent =
+          data.size + "×" + data.size + " modules · " +
+          blackCount + " cells to paint · numbered in reading order";
+      } else {
+        stats.textContent = data.size + "×" + data.size + " modules";
+      }
+    }
+
+    function render() {
+      if (!qrData) return;
+      if (gridToggle.checked) {
+        renderGrid(qrData);
+      } else {
+        renderNormal(qrData);
+      }
+    }
+
+    gridToggle.addEventListener("change", render);
+    printBtn.addEventListener("click", () => window.print());
+
+    try {
+      qrData = buildMatrix(URL);
+      render();
+    } catch (err) {
+      showError("Could not generate QR code: " + err.message);
+    }
+  </script>
+</body>
+</html>
