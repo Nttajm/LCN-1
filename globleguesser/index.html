@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Globle — Practice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://esm.sh/three",
+        "three/": "https://esm.sh/three/",
+        "globe.gl": "https://cdn.jsdelivr.net/npm/globe.gl/+esm",
+        "topojson-client": "https://cdn.jsdelivr.net/npm/topojson-client@3/+esm"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="app app--start" id="app">
+    <div class="stars" id="stars" aria-hidden="true"></div>
+
+    <header class="start-screen__header">
+      <div class="start-screen__avatars" aria-hidden="true">
+        <span class="start-screen__avatar start-screen__avatar--1"></span>
+        <span class="start-screen__avatar start-screen__avatar--2"></span>
+        <span class="start-screen__avatar start-screen__avatar--3"></span>
+      </div>
+      <p class="start-screen__online">
+        <span class="start-screen__count" id="players-online">12,141</span>
+        players online
+      </p>
+    </header>
+
+    <div
+      class="globe-stage"
+      id="globe-stage"
+      role="button"
+      tabindex="0"
+      aria-label="Start game"
+    >
+      <div class="globe-stage__glow"></div>
+      <div class="globe-stage__viz" id="globe-viz"></div>
+      <p class="start-screen__cta" id="start-cta">Click to play</p>
+    </div>
+
+    <footer class="start-screen__social" id="start-social" aria-label="Social links">
+      <a class="start-screen__social-link" href="#" aria-label="Discord">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.4A17.5 17.5 0 0 0 15.7 3a12 12 0 0 0-.6 1.2 16.2 16.2 0 0 0-4.8 0A11.6 11.6 0 0 0 9.7 3a17.4 17.4 0 0 0-4.6 1.4C2.5 8.5 1.8 12.5 2.1 16.4a17.6 17.6 0 0 0 5.3 2.7 12.5 12.5 0 0 0 1.1-1.8 11.3 11.3 0 0 1-1.7-.8l.4-.3a12.2 12.2 0 0 0 10.4 0l.4.3a11.2 11.2 0 0 1-1.7.8 12.4 12.4 0 0 0 1.1 1.8 17.5 17.5 0 0 0 5.3-2.7c.4-4.5-.6-8.4-2.9-12zM8.7 14.2c-1 0-1.8-1-1.8-2.1s.8-2.1 1.8-2.1 1.8 1 1.8 2.1-.8 2.1-1.8 2.1zm6.6 0c-1 0-1.8-1-1.8-2.1s.8-2.1 1.8-2.1 1.8 1 1.8 2.1-.8 2.1-1.8 2.1z"/></svg>
+      </a>
+      <a class="start-screen__social-link" href="#" aria-label="Twitch">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3l-2 4v13h5v3l3-3h4l6-6V3H4zm15 10-3 3h-4l-3 3v-3H6V5h13v8zm-4-6h2v5h-2V7zm-5 0h2v5h-2V7z"/></svg>
+      </a>
+      <a class="start-screen__social-link" href="#" aria-label="X">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 3H22l-6.8 7.8L23 21h-6.2l-4.8-6.3L6.4 21H3.3l7.3-8.4L1 3h6.4l4.3 5.7L18.9 3zm-1.1 16h1.7L7.1 5H5.3l12.5 14z"/></svg>
+      </a>
+      <a class="start-screen__social-link" href="#" aria-label="TikTok">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.8a5.5 5.5 0 0 0 3.2-1V9a7.8 7.8 0 0 1-3.2-.7v5.8a5.9 5.9 0 1 1-5.9-5.9c.3 0 .6 0 .9.1v2.4a3.5 3.5 0 1 0 2.5 3.4V3h2.5a5.5 5.5 0 0 0 3.2 2.8z"/></svg>
+      </a>
+      <a class="start-screen__social-link" href="#" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm10 2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm-5 3.5A4.5 4.5 0 1 1 7.5 13 4.5 4.5 0 0 1 12 8.5zm0 2A2.5 2.5 0 1 0 14.5 13 2.5 2.5 0 0 0 12 10.5zM17.8 6.7a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"/></svg>
+      </a>
+    </footer>
+
+    <div class="game" id="game-panel" hidden>
+      <header class="game__header">
+        <p class="game__mode">You are playing a practice game.</p>
+        <div class="game__input-row">
+          <div class="game__input-wrap">
+            <input
+              type="text"
+              class="game__input"
+              id="country-input"
+              placeholder="Enter country name here"
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <ul class="game__suggestions" id="suggestions" hidden></ul>
+          </div>
+          <button type="button" class="game__enter-btn" id="enter-btn">Enter</button>
+        </div>
+        <p class="game__hint" id="hint">Enter the name of any country to make your first guess.</p>
+        <p class="game__loading" id="loading">Loading globe...</p>
+      </header>
+
+      <footer class="game__footer">
+        <p class="game__guesses-placeholder" id="guesses-placeholder">Guesses will appear here.</p>
+        <div class="game__guesses" id="guesses" hidden></div>
+        <div class="game__win" id="win-panel" hidden>
+          <p class="game__win-text" id="win-text"></p>
+          <button type="button" class="game__new-btn" id="new-game-btn">New game</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
