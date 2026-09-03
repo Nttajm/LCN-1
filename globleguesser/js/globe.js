@@ -2,14 +2,24 @@ import Globe from "globe.gl";
 import * as THREE from "three";
 
 const IDLE_MS = 600;
-const POLYGON_ALTITUDE = 0.008;
+const POLYGON_ALTITUDE = 0.012;
 const START_LAND = "#7cb85c";
 const START_LAND_STROKE = "#5a9a42";
 const START_OCEAN = "#243d6b";
+const HOVER_HIGHLIGHT = "#c8f07a";
+const HOVER_HIGHLIGHT_STROKE = "#9ed456";
+const HOVER_DIM = "#3a5230";
+const HOVER_DIM_STROKE = "#2a3d22";
 const START_POV = { lat: 18, lng: 0, altitude: 1.55 };
 const GAME_POV = { lat: 18, lng: 0, altitude: 2.05 };
+const REGION_SELECT_POV = { lat: 12, lng: 18, altitude: 1.62 };
+const IDLE_ROTATE_SPEED = 0.35;
+const BURST_ROTATE_SPEED = 2.6;
+const REGION_HOVER_MS = 1000;
+const REGION_RETURN_MS = 900;
+const VIEW_TRANSITION_MS = 1300;
 
-export function createGlobe(container, features) {
+export function createGlobe(container, features, regionMembers = null, regionCentroids = null) {
   const featureByName = new Map(
     features.map((feat) => [feat.properties?.name || "", feat])
   );
@@ -17,17 +27,55 @@ export function createGlobe(container, features) {
   let idleTimer = null;
   let paused = false;
   let inGameplay = false;
+  let inRegionSelect = false;
+  let burstTimer = null;
+  let hoveredRegion = null;
+  let cameraRegion = null;
+  let regionDetailLocked = false;
 
   function getName(feat) {
     return feat.properties?.name || "";
   }
 
+  function isHighlighted(name) {
+    if (!hoveredRegion || !regionMembers) return false;
+    if (hoveredRegion === "world") return true;
+    return regionMembers.get(hoveredRegion)?.has(name) ?? false;
+  }
+
   function capColor(feat) {
-    return guessed.get(getName(feat))?.color ?? START_LAND;
+    const name = getName(feat);
+    const guess = guessed.get(name);
+    if (guess) return guess.color;
+
+    if (hoveredRegion && regionMembers) {
+      return isHighlighted(name) ? HOVER_HIGHLIGHT : HOVER_DIM;
+    }
+
+    return START_LAND;
   }
 
   function strokeColor(feat) {
-    return guessed.get(getName(feat))?.stroke ?? START_LAND_STROKE;
+    const name = getName(feat);
+    const guess = guessed.get(name);
+    if (guess) return guess.stroke;
+
+    if (hoveredRegion && regionMembers) {
+      return isHighlighted(name) ? HOVER_HIGHLIGHT_STROKE : HOVER_DIM_STROKE;
+    }
+
+    return START_LAND_STROKE;
+  }
+
+  function polygonAltitude(feat) {
+    const name = getName(feat);
+    if (guessed.has(name)) return POLYGON_ALTITUDE;
+
+    if (hoveredRegion && regionMembers) {
+      return isHighlighted(name) ? POLYGON_ALTITUDE * 2.2 : POLYGON_ALTITUDE * 0.35;
+    }
+
+    return POLYGON_ALTITUDE;
   }
 
   const w = Math.max(container.clientWidth, 1);
@@ -61,9 +109,9 @@ export function createGlobe(container, features) {
     .polygonCapColor(capColor)
     .polygonSideColor(() => "rgba(0, 0, 0, 0)")
     .polygonStrokeColor(strokeColor)
-    .polygonAltitude(POLYGON_ALTITUDE)
-    .polygonCapCurvatureResolution(8)
-    .polygonsTransitionDuration(0)
+    .polygonAltitude(polygonAltitude)
+    .polygonCapCurvatureResolution(4)
+    .polygonsTransitionDuration(400)
     .pointOfView(START_POV);
 
   const renderer = globe.renderer();
@@ -79,12 +127,12 @@ export function createGlobe(container, features) {
   controls.rotateSpeed = 0.55;
   controls.zoomSpeed = 0.65;
   controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.35;
+  controls.autoRotateSpeed = IDLE_ROTATE_SPEED;
   if (controls.minDistance !== undefined) controls.minDistance = 120;
   if (controls.maxDistance !== undefined) controls.maxDistance = 600;
 
   function schedulePause(delay = IDLE_MS) {
-    if (!inGameplay) return;
+    if (!inGameplay || inRegionSelect) return;
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => {
       globe.pauseAnimation();
@@ -93,7 +141,7 @@ export function createGlobe(container, features) {
   }
 
   function wake() {
-    if (!inGameplay) return;
+    if (!inGameplay || inRegionSelect) return;
     if (paused) {
       globe.resumeAnimation();
       paused = false;
@@ -105,12 +153,14 @@ export function createGlobe(container, features) {
     globe
       .polygonsData(features)
       .polygonCapColor(capColor)
-      .polygonStrokeColor(strokeColor);
+      .polygonStrokeColor(strokeColor)
+      .polygonAltitude(polygonAltitude);
   }
 
   function resize() {
-    const w = Math.max(inGameplay ? window.innerWidth : container.clientWidth, 1);
-    const h = Math.max(inGameplay ? window.innerHeight : container.clientHeight, 1);
+    const fullScreen = inGameplay || inRegionSelect;
+    const w = Math.max(fullScreen ? window.innerWidth : container.clientWidth, 1);
+    const h = Math.max(fullScreen ? window.innerHeight : container.clientHeight, 1);
     globe.width(w).height(h);
   }
 
@@ -126,31 +176,112 @@ export function createGlobe(container, features) {
   controls.addEventListener("start", wake);
   controls.addEventListener("end", () => schedulePause());
 
+  function burstSpin(duration = 650) {
+    clearTimeout(burstTimer);
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = BURST_ROTATE_SPEED;
+    burstTimer = setTimeout(() => {
+      controls.autoRotateSpeed = IDLE_ROTATE_SPEED;
+    }, duration);
+  }
+
+  function regionPov(region) {
+    if (region === "world") return REGION_SELECT_POV;
+    const center = regionCentroids?.get(region);
+    if (!center) return REGION_SELECT_POV;
+    return {
+      lat: center.lat,
+      lng: center.lng,
+      altitude: REGION_SELECT_POV.altitude,
+    };
+  }
+
+  function flyToRegion(region, duration = REGION_HOVER_MS) {
+    controls.autoRotate = false;
+    globe.pointOfView(regionPov(region), duration);
+  }
+
+  function returnToRegionSelectView(duration = REGION_RETURN_MS) {
+    if (!inRegionSelect) return;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = IDLE_ROTATE_SPEED;
+    globe.pointOfView(REGION_SELECT_POV, duration);
+  }
+
   return {
     initStartView() {
       inGameplay = false;
+      inRegionSelect = false;
       clearTimeout(idleTimer);
+      clearTimeout(burstTimer);
       if (paused) {
         globe.resumeAnimation();
         paused = false;
       }
 
       controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.35;
+      controls.autoRotateSpeed = IDLE_ROTATE_SPEED;
       controls.enableRotate = false;
       globe.enablePointerInteraction(false);
 
       refreshPolygons();
       globe.pointOfView(START_POV, 0);
+      hoveredRegion = null;
+      cameraRegion = null;
     },
 
-    transitionToGame(duration = 1100) {
+    transitionToRegionSelect(duration = VIEW_TRANSITION_MS) {
+      inRegionSelect = true;
+      inGameplay = false;
+      regionDetailLocked = false;
+      clearTimeout(idleTimer);
+      if (paused) {
+        globe.resumeAnimation();
+        paused = false;
+      }
+
+      burstSpin(700);
+      controls.autoRotate = true;
+      controls.enableRotate = false;
+      globe.enablePointerInteraction(false);
+      globe.pointOfView(REGION_SELECT_POV, duration);
+      resize();
+    },
+
+    transitionToStartView(duration = VIEW_TRANSITION_MS) {
+      inRegionSelect = false;
+      inGameplay = false;
+      hoveredRegion = null;
+      cameraRegion = null;
+      regionDetailLocked = false;
+      clearTimeout(idleTimer);
+      clearTimeout(burstTimer);
+      if (paused) {
+        globe.resumeAnimation();
+        paused = false;
+      }
+
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = IDLE_ROTATE_SPEED;
+      controls.enableRotate = false;
+      globe.enablePointerInteraction(false);
+      globe.pointOfView(START_POV, duration);
+      resize();
+      refreshPolygons();
+    },
+
+    transitionToGame(duration = VIEW_TRANSITION_MS) {
+      inRegionSelect = false;
       inGameplay = true;
+      hoveredRegion = null;
+      cameraRegion = null;
+      clearTimeout(burstTimer);
       controls.autoRotate = true;
       controls.autoRotateSpeed = 1.15;
 
       globe.pointOfView(GAME_POV, duration);
       resize();
+      refreshPolygons();
 
       setTimeout(() => {
         controls.autoRotate = false;
@@ -162,9 +293,8 @@ export function createGlobe(container, features) {
     },
 
     setGuess(name, color, stroke = "#1a1a1a") {
-      const feature = featureByName.get(name);
-      if (!feature) return;
-      guessed.set(name, { color, stroke, feature });
+      if (!featureByName.has(name)) return;
+      guessed.set(name, { color, stroke });
       refreshPolygons();
       wake();
     },
@@ -180,8 +310,40 @@ export function createGlobe(container, features) {
       schedulePause(900);
     },
 
+    setHoveredRegion(region, { locked = false } = {}) {
+      if (!inRegionSelect || !regionMembers) return;
+      hoveredRegion = region;
+      regionDetailLocked = locked;
+      if (cameraRegion !== region) {
+        cameraRegion = region;
+        flyToRegion(region);
+      }
+      refreshPolygons();
+    },
+
+    clearRegionHighlight() {
+      if (regionDetailLocked || !hoveredRegion) return;
+      hoveredRegion = null;
+      refreshPolygons();
+    },
+
+    unlockRegionDetail() {
+      regionDetailLocked = false;
+    },
+
+    clearHoveredRegion({ restoreView = false } = {}) {
+      hoveredRegion = null;
+      cameraRegion = null;
+      regionDetailLocked = false;
+      refreshPolygons();
+      if (restoreView && inRegionSelect) {
+        returnToRegionSelectView();
+      }
+    },
+
     dispose() {
       clearTimeout(idleTimer);
+      clearTimeout(burstTimer);
       resizeObserver.disconnect();
       window.removeEventListener("resize", resize);
       container.innerHTML = "";

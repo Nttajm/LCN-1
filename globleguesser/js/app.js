@@ -1,15 +1,35 @@
 import { loadCountries } from "./countries.js";
-import { haversineKm, bearing, colorFromDistance, formatDistance } from "./distance.js";
+import { haversineKm, bearing, colorFromDistance, formatDistance, distanceUnitLabel } from "./distance.js";
 import { createGlobe } from "./globe.js";
+import { flagUrl } from "./flags.js";
+import { getLevelMode } from "./levels.js";
 
 const app = document.getElementById("app");
 const starsEl = document.getElementById("stars");
 const globeStage = document.getElementById("globe-stage");
 const gamePanel = document.getElementById("game-panel");
+const playBtn = document.getElementById("btn-play");
+const practiceBtn = document.getElementById("btn-practice");
+const playScreenBack = document.getElementById("play-screen-back");
+const regionPicker = document.getElementById("region-picker");
+const regionList = document.getElementById("region-list");
+const regionOptions = regionList.querySelectorAll(".region-picker__option");
+const regionDetail = document.getElementById("region-detail");
+const regionDetailTitle = document.getElementById("region-detail-title");
+const regionDetailClose = document.getElementById("region-detail-close");
+const gameSetup = document.getElementById("game-setup");
+const roundOptions = gameSetup.querySelectorAll("[data-rounds]");
+const timerOptions = gameSetup.querySelectorAll("[data-timer]");
+const levelOptions = gameSetup.querySelectorAll("[data-level]");
+const levelDescEl = document.getElementById("level-desc");
 const input = document.getElementById("country-input");
 const enterBtn = document.getElementById("enter-btn");
 const suggestionsEl = document.getElementById("suggestions");
 const hintEl = document.getElementById("hint");
+const guessesPanel = document.getElementById("guesses-panel");
+const guessesToolbar = document.getElementById("guesses-toolbar");
+const guessesSort = document.getElementById("guesses-sort");
+const guessesUnitGroup = document.getElementById("guesses-unit");
 const guessesEl = document.getElementById("guesses");
 const guessesPlaceholder = document.getElementById("guesses-placeholder");
 const winPanel = document.getElementById("win-panel");
@@ -27,6 +47,47 @@ let activeSuggestion = -1;
 let errorEl = null;
 let submitting = false;
 let gameStarted = false;
+let regionSelectActive = false;
+let guessSort = "distance";
+let distanceUnit = "km";
+
+const playSetup = {
+  region: "world",
+  level: "easy",
+  rounds: 5,
+  timer: 0,
+};
+
+const HOVER_ACTIVATE_MS = 300;
+const HOVER_CLEAR_MS = 220;
+
+let hoverActivateTimer = null;
+let hoverClearTimer = null;
+
+function cancelRegionHoverTimers() {
+  clearTimeout(hoverActivateTimer);
+  clearTimeout(hoverClearTimer);
+  hoverActivateTimer = null;
+  hoverClearTimer = null;
+}
+
+function scheduleRegionActivate(region) {
+  cancelRegionHoverTimers();
+  hoverActivateTimer = setTimeout(() => {
+    if (!regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
+    globe.setHoveredRegion(region);
+  }, HOVER_ACTIVATE_MS);
+}
+
+function scheduleRegionHighlightClear() {
+  clearTimeout(hoverActivateTimer);
+  hoverActivateTimer = null;
+  clearTimeout(hoverClearTimer);
+  hoverClearTimer = setTimeout(() => {
+    if (!regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
+    globe.clearRegionHighlight();
+  }, HOVER_CLEAR_MS);
+}
 
 function createStars() {
   const count = 140;
@@ -122,15 +183,47 @@ function resolveCountry(raw) {
   return null;
 }
 
+function sortedGuesses() {
+  const list = [...guesses];
+  if (guessSort === "order") {
+    return list.sort((a, b) => b.orderIndex - a.orderIndex);
+  }
+  return list.sort((a, b) => a.distance - b.distance);
+}
+
 function renderGuessPill(guess) {
   const pill = document.createElement("button");
   pill.type = "button";
   pill.className = "game__guess-pill";
   if (guess.correct) pill.classList.add("game__guess-pill--correct");
-  pill.style.backgroundColor = guess.color;
-  pill.textContent = guess.correct
-    ? guess.name
-    : `${guess.name} — ${formatDistance(guess.distance)} km ${guess.direction}`;
+
+  const flagSrc = flagUrl(guess.iso2);
+  if (flagSrc) {
+    const flag = document.createElement("img");
+    flag.className = "game__guess-flag";
+    flag.src = flagSrc;
+    flag.alt = "";
+    flag.width = 20;
+    flag.height = 15;
+    flag.loading = "lazy";
+    flag.decoding = "async";
+    flag.addEventListener("error", () => flag.remove());
+    pill.appendChild(flag);
+  }
+
+  const name = document.createElement("span");
+  name.className = "game__guess-name";
+  name.textContent = guess.name;
+  pill.appendChild(name);
+
+  if (!guess.correct) {
+    const dist = document.createElement("span");
+    dist.className = "game__guess-dist";
+    dist.style.color = guess.color;
+    dist.textContent = `${formatDistance(guess.distance, distanceUnit)} ${distanceUnitLabel(distanceUnit)} ${guess.direction}`;
+    pill.appendChild(dist);
+  }
+
   pill.addEventListener("click", () => {
     globe.flyTo(guess.centroid.lat, guess.centroid.lng);
   });
@@ -139,14 +232,18 @@ function renderGuessPill(guess) {
 
 function renderGuesses() {
   if (!guesses.length) {
+    guessesPanel.hidden = false;
+    guessesToolbar.hidden = true;
     guessesEl.hidden = true;
     guessesPlaceholder.hidden = false;
     return;
   }
+  guessesPanel.hidden = false;
+  guessesToolbar.hidden = false;
   guessesPlaceholder.hidden = true;
   guessesEl.hidden = false;
   guessesEl.innerHTML = "";
-  guesses.forEach(renderGuessPill);
+  sortedGuesses().forEach(renderGuessPill);
 }
 
 function submitGuess(forcedName) {
@@ -174,12 +271,13 @@ function submitGuess(forcedName) {
 
   guesses.push({
     name: country.name,
+    iso2: country.iso2,
     distance,
     direction: dir,
     color,
-    outline,
     correct,
     centroid: country.centroid,
+    orderIndex: guesses.length,
   });
 
   globe.setGuess(country.name, color, outline);
@@ -220,18 +318,87 @@ function startNewGame() {
 function beginGame() {
   if (gameStarted) return;
   gameStarted = true;
+  regionSelectActive = false;
 
-  app.classList.remove("app--start");
+  app.classList.remove("app--start", "app--region-select");
   app.classList.add("app--game");
   gamePanel.hidden = false;
+  guessesPanel.hidden = false;
+  regionPicker.hidden = true;
+  closeRegionDetail();
   globeStage.removeAttribute("role");
   globeStage.removeAttribute("tabindex");
   globeStage.removeAttribute("aria-label");
 
-  globe.transitionToGame(1100);
+  globe.transitionToGame(1300);
   startNewGame();
 
-  setTimeout(() => input.focus(), 1150);
+  setTimeout(() => input.focus(), 1350);
+}
+
+function beginPlayFlow() {
+  if (gameStarted || regionSelectActive) return;
+  regionSelectActive = true;
+  cancelRegionHoverTimers();
+
+  app.classList.remove("app--start");
+  app.classList.add("app--region-select");
+  regionPicker.hidden = false;
+  playScreenBack.hidden = false;
+  closeRegionDetail();
+  globeStage.removeAttribute("role");
+  globeStage.removeAttribute("tabindex");
+  globeStage.removeAttribute("aria-label");
+
+  globe.transitionToRegionSelect(1300);
+}
+
+function exitPlayFlow() {
+  if (!regionSelectActive || gameStarted) return;
+
+  regionSelectActive = false;
+  cancelRegionHoverTimers();
+  closeRegionDetail();
+  globe.clearHoveredRegion({ restoreView: false });
+
+  app.classList.remove("app--region-select");
+  app.classList.add("app--start");
+  regionPicker.hidden = true;
+  playScreenBack.hidden = true;
+
+  globeStage.setAttribute("role", "button");
+  globeStage.setAttribute("tabindex", "0");
+  globeStage.setAttribute("aria-label", "Start game");
+
+  globe.transitionToStartView(1300);
+}
+
+function openRegionDetail(option) {
+  cancelRegionHoverTimers();
+  playSetup.region = option.dataset.region;
+  regionDetailTitle.textContent = option.textContent;
+  regionDetail.setAttribute("aria-hidden", "false");
+  regionList.setAttribute("aria-hidden", "true");
+  regionPicker.classList.add("region-picker--detail");
+  globe.setHoveredRegion(option.dataset.region, { locked: true });
+}
+
+function closeRegionDetail() {
+  regionPicker.classList.remove("region-picker--detail");
+  regionDetail.setAttribute("aria-hidden", "true");
+  regionList.setAttribute("aria-hidden", "false");
+  globe.unlockRegionDetail();
+}
+
+function setActiveSetupOption(options, selected) {
+  options.forEach((btn) => {
+    btn.classList.toggle("game-setup__option--active", btn === selected);
+  });
+}
+
+function updateLevelDescription(levelId) {
+  const mode = getLevelMode(levelId);
+  levelDescEl.textContent = mode.summary;
 }
 
 input.addEventListener("input", () => {
@@ -270,15 +437,70 @@ input.addEventListener("blur", () => {
 enterBtn.addEventListener("click", () => submitGuess());
 newGameBtn.addEventListener("click", startNewGame);
 
-globeStage.addEventListener("click", () => {
-  if (!gameStarted) beginGame();
+function setDistanceUnit(unit) {
+  distanceUnit = unit;
+  guessesUnitGroup.querySelectorAll(".game__guesses-unit-btn").forEach((b) => {
+    b.classList.toggle("game__guesses-unit-btn--active", b.dataset.unit === unit);
+  });
+  renderGuesses();
+}
+
+guessesSort.addEventListener("change", () => {
+  guessSort = guessesSort.value;
+  renderGuesses();
 });
 
-globeStage.addEventListener("keydown", (e) => {
-  if (!gameStarted && (e.key === "Enter" || e.key === " ")) {
-    e.preventDefault();
-    beginGame();
-  }
+guessesUnitGroup.addEventListener("click", (e) => {
+  const btn = e.target.closest(".game__guesses-unit-btn");
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  setDistanceUnit(btn.dataset.unit);
+});
+
+playBtn.addEventListener("click", beginPlayFlow);
+practiceBtn.addEventListener("click", beginGame);
+playScreenBack.addEventListener("click", exitPlayFlow);
+
+regionOptions.forEach((option) => {
+  option.addEventListener("mouseenter", () => {
+    if (!regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
+    scheduleRegionActivate(option.dataset.region);
+  });
+  option.addEventListener("mouseleave", () => {
+    if (!regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
+    scheduleRegionHighlightClear();
+  });
+  option.addEventListener("click", () => openRegionDetail(option));
+});
+
+regionList.addEventListener("mouseleave", () => {
+  if (!regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
+  scheduleRegionHighlightClear();
+});
+
+regionDetailClose.addEventListener("click", closeRegionDetail);
+
+roundOptions.forEach((option) => {
+  option.addEventListener("click", () => {
+    setActiveSetupOption(roundOptions, option);
+    playSetup.rounds = Number(option.dataset.rounds);
+  });
+});
+
+timerOptions.forEach((option) => {
+  option.addEventListener("click", () => {
+    setActiveSetupOption(timerOptions, option);
+    playSetup.timer = Number(option.dataset.timer);
+  });
+});
+
+levelOptions.forEach((option) => {
+  option.addEventListener("click", () => {
+    setActiveSetupOption(levelOptions, option);
+    playSetup.level = option.dataset.level;
+    updateLevelDescription(playSetup.level);
+  });
 });
 
 async function init() {
@@ -286,8 +508,14 @@ async function init() {
   input.disabled = true;
   enterBtn.disabled = true;
   countries = await loadCountries();
-  globe = createGlobe(globeContainer, countries.features);
+  globe = createGlobe(
+    globeContainer,
+    countries.features,
+    countries.regionMembers,
+    countries.regionCentroids
+  );
   globe.initStartView();
+  updateLevelDescription(playSetup.level);
   loadingEl.classList.add("game__loading--hidden");
   input.disabled = false;
   enterBtn.disabled = false;

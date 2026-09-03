@@ -75,6 +75,11 @@ export function colorFromDistance(km) {
   return `rgb(${last[0]}, ${last[1]}, ${last[2]})`;
 }
 
-export function formatDistance(km) {
-  return Math.round(km).toLocaleString("en-US");
+export function formatDistance(km, unit = "km") {
+  const value = unit === "mi" ? km * 0.621371 : km;
+  return Math.round(value).toLocaleString("en-US");
+}
+
+export function distanceUnitLabel(unit) {
+  return unit === "mi" ? "miles" : "km";
 }

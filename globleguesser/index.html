@@ -44,8 +44,77 @@
     >
       <div class="globe-stage__glow"></div>
       <div class="globe-stage__viz" id="globe-viz"></div>
-      <p class="start-screen__cta" id="start-cta">Click to play</p>
     </div>
+
+    <nav class="start-screen__modes" id="start-modes" aria-label="Game modes">
+      <button type="button" class="start-screen__mode-btn" id="btn-multiplayer">Multiplayer</button>
+      <button type="button" class="start-screen__mode-btn start-screen__mode-btn--primary" id="btn-play">Play</button>
+      <button type="button" class="start-screen__mode-btn" id="btn-practice">Practice</button>
+    </nav>
+
+    <button type="button" class="play-screen__back" id="play-screen-back" aria-label="Back to home" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 4.6 8 12l7.4 7.4-1.4 1.4L5.2 12l8.8-8.8 1.4 1.4z"/></svg>
+      <span>Back</span>
+    </button>
+
+    <aside class="region-picker" id="region-picker" aria-label="Choose a region" hidden>
+      <div class="region-picker__views">
+        <nav class="region-picker__list" id="region-list" aria-label="Regions">
+          <button type="button" class="region-picker__option" data-region="world">World</button>
+          <button type="button" class="region-picker__option" data-region="asia">Asia</button>
+          <button type="button" class="region-picker__option" data-region="americas">Americas</button>
+          <button type="button" class="region-picker__option" data-region="europe">Europe</button>
+          <button type="button" class="region-picker__option" data-region="africa">Africa</button>
+          <button type="button" class="region-picker__option" data-region="west-hemisphere">West Hemisphere</button>
+        </nav>
+
+        <div class="region-detail" id="region-detail" aria-hidden="true">
+          <div class="region-detail__header">
+            <button type="button" class="region-detail__close" id="region-detail-close" aria-label="Back to regions">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 4.6 8 12l7.4 7.4-1.4 1.4L5.2 12l8.8-8.8 1.4 1.4z"/></svg>
+            </button>
+            <h2 class="region-detail__title" id="region-detail-title">World</h2>
+          </div>
+
+          <div class="game-setup" id="game-setup">
+            <div class="game-setup__group">
+              <p class="game-setup__label">Level</p>
+              <div class="game-setup__options game-setup__options--levels" role="group" aria-label="Select level">
+                <button type="button" class="game-setup__option game-setup__option--active" data-level="easy">Easy</button>
+                <button type="button" class="game-setup__option" data-level="medium">Medium</button>
+                <button type="button" class="game-setup__option" data-level="hard">Hard</button>
+                <button type="button" class="game-setup__option" data-level="xtra">Xtra</button>
+                <button type="button" class="game-setup__option" data-level="xtra2">Xtra II</button>
+              </div>
+              <p class="game-setup__level-desc" id="level-desc">Full assists — borders, exact distances, autocomplete, unlimited guesses.</p>
+            </div>
+
+            <div class="game-setup__group">
+              <p class="game-setup__label">Rounds</p>
+              <div class="game-setup__options" role="group" aria-label="Select rounds">
+                <button type="button" class="game-setup__option" data-rounds="4">4</button>
+                <button type="button" class="game-setup__option game-setup__option--active" data-rounds="5">5</button>
+                <button type="button" class="game-setup__option" data-rounds="6">6</button>
+                <button type="button" class="game-setup__option" data-rounds="7">7</button>
+                <button type="button" class="game-setup__option" data-rounds="8">8</button>
+              </div>
+            </div>
+
+            <div class="game-setup__group">
+              <p class="game-setup__label">Timer</p>
+              <div class="game-setup__options" role="group" aria-label="Select timer">
+                <button type="button" class="game-setup__option game-setup__option--active" data-timer="0">Off</button>
+                <button type="button" class="game-setup__option" data-timer="30">30s</button>
+                <button type="button" class="game-setup__option" data-timer="60">60s</button>
+                <button type="button" class="game-setup__option" data-timer="90">90s</button>
+              </div>
+            </div>
+
+            <button type="button" class="game-setup__start" id="game-setup-start">Start game</button>
+          </div>
+        </div>
+      </div>
+    </aside>
 
     <footer class="start-screen__social" id="start-social" aria-label="Social links">
       <a class="start-screen__social-link" href="#" aria-label="Discord">
@@ -86,9 +155,22 @@
         <p class="game__loading" id="loading">Loading globe...</p>
       </header>
 
-      <footer class="game__footer">
+      <aside class="game__guesses-panel" id="guesses-panel" hidden>
+        <div class="game__guesses-toolbar" id="guesses-toolbar" hidden>
+          <select class="game__guesses-select" id="guesses-sort" aria-label="Sort guesses">
+            <option value="distance">Closest first</option>
+            <option value="order">Guess order</option>
+          </select>
+          <div class="game__guesses-unit" id="guesses-unit" role="group" aria-label="Distance unit">
+            <button type="button" class="game__guesses-unit-btn game__guesses-unit-btn--active" id="guesses-unit-km" data-unit="km">km</button>
+            <button type="button" class="game__guesses-unit-btn" id="guesses-unit-mi" data-unit="mi">miles</button>
+          </div>
+        </div>
         <p class="game__guesses-placeholder" id="guesses-placeholder">Guesses will appear here.</p>
         <div class="game__guesses" id="guesses" hidden></div>
+      </aside>
+
+      <footer class="game__footer">
         <div class="game__win" id="win-panel" hidden>
           <p class="game__win-text" id="win-text"></p>
           <button type="button" class="game__new-btn" id="new-game-btn">New game</button>
