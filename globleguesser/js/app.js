@@ -2212,22 +2212,23 @@ async function handleJoinPartySubmit(event) {
   showPartyJoinError("");
   partyBusy = true;
 
+  const previousCode = partyCode;
   try {
-    const previousCode = partyCode;
-    if (previousCode && previousCode !== code) {
-      stopPartySubscription();
-      await leaveParty(previousCode, guestProfile.id);
-    }
     const party = await joinParty(code, guestProfile);
     partyJoinInput.value = "";
     partyJoinForm.hidden = true;
     multiplayerActive = true;
     attachPartyListener(party.code);
     applyPartySnapshot(party);
+    if (previousCode && previousCode !== party.code) {
+      leaveParty(previousCode, guestProfile.id).catch((err) => console.error(err));
+    }
   } catch (err) {
     console.error(err);
     showPartyJoinError(err.message || "Could not join party.");
-    if (partyCode) attachPartyListener(partyCode);
+    if (previousCode && previousCode === partyCode) {
+      attachPartyListener(previousCode);
+    }
   } finally {
     partyBusy = false;
     updateLobbyControls(currentParty);

@@ -156,48 +156,73 @@ export async function fetchParty(code) {
   };
 }
 
+function applyJoinToParty(current, guest) {
+  if (!current || typeof current !== "object") {
+    return { error: "Party not found." };
+  }
+  if (current.status === "setup" || ACTIVE_GAME_STATUSES.has(current.status)) {
+    return { error: "That party already started." };
+  }
+
+  const seats = normalizeSeats(current.seats);
+  if (seats.some((s) => s && s.id === guest.id)) {
+    return {
+      party: {
+        ...current,
+        seats: seatsForWrite(seats),
+        updatedAt: Date.now(),
+      },
+    };
+  }
+
+  const emptyIndex = seats.findIndex((s) => !s);
+  if (emptyIndex < 0) {
+    return { error: "Party is full." };
+  }
+
+  seats[emptyIndex] = {
+    id: guest.id,
+    name: guest.name,
+    color: guest.color,
+    joinedAt: Date.now(),
+  };
+  return {
+    party: {
+      ...current,
+      seats: seatsForWrite(seats),
+      updatedAt: Date.now(),
+    },
+  };
+}
+
 export async function joinParty(code, guest) {
   const normalized = String(code || "").trim().toUpperCase();
   if (!/^[A-Z0-9]{6}$/.test(normalized)) {
     throw new Error("Enter a valid 6-character party code.");
   }
 
+  const existing = await get(partyRef(normalized));
+  if (!existing.exists()) {
+    throw new Error("Party not found.");
+  }
+
   let joinError = null;
-  const result = await runTransaction(partyRef(normalized), (current) => {
-    joinError = null;
-    if (!current) {
-      joinError = "Party not found.";
-      return;
-    }
-    if (current.status === "setup" || ACTIVE_GAME_STATUSES.has(current.status)) {
-      joinError = "That party already started.";
-      return;
-    }
-
-    const seats = normalizeSeats(current.seats);
-    const existingIndex = seats.findIndex((s) => s && s.id === guest.id);
-    if (existingIndex >= 0) {
-      current.seats = seatsForWrite(seats);
-      current.updatedAt = Date.now();
-      return current;
-    }
-
-    const emptyIndex = seats.findIndex((s) => !s);
-    if (emptyIndex < 0) {
-      joinError = "Party is full.";
-      return;
-    }
-
-    seats[emptyIndex] = {
-      id: guest.id,
-      name: guest.name,
-      color: guest.color,
-      joinedAt: Date.now(),
-    };
-    current.seats = seatsForWrite(seats);
-    current.updatedAt = Date.now();
-    return current;
-  });
+  const result = await runTransaction(
+    partyRef(normalized),
+    (current) => {
+      joinError = null;
+      // Firebase always invokes this once with null before the real data.
+      // Use the fetched snapshot on that first pass instead of aborting.
+      const base = current ?? existing.val();
+      const next = applyJoinToParty(base, guest);
+      if (next.error) {
+        joinError = next.error;
+        return;
+      }
+      return next.party;
+    },
+    { applyLocally: false }
+  );
 
   if (!result.committed) {
     throw new Error(joinError || "Could not join party.");
