@@ -1,7 +1,9 @@
 import { feature as topoFeature } from "topojson-client";
+import { borderPointsFromGeometry } from "./distance.js";
 import { loadIsoLookup, resolveIso2 } from "./flags.js";
 
-const GEOJSON_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-10m.json";
+const GEO_URL_GLOBE = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const GEO_URL_BORDERS = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
 /** Friendly display names by ISO alpha-2 (overrides Natural Earth / formal ISO labels). */
 const DISPLAY_NAMES = {
@@ -274,6 +276,7 @@ function ringCentroid(ring) {
     sumLng += lng;
     count++;
   }
+  if (!count) return { lat: 0, lng: 0 };
   return { lat: sumLat / count, lng: sumLng / count };
 }
 
@@ -318,18 +321,7 @@ function featurePriority(neName, iso2, isoOfficialName) {
   return 50;
 }
 
-export async function loadCountries() {
-  const [topoRes, isoLookup] = await Promise.all([
-    fetch(GEOJSON_URL),
-    loadIsoLookup(),
-  ]);
-  if (!topoRes.ok) throw new Error("country data fetch failed");
-  const topo = await topoRes.json();
-  const geojson = topoFeature(topo, topo.objects.countries);
-
-  /** @type {Map<string, { name: string, feature: object, centroid: object, iso2: string, priority: number }>} */
-  const byIso2 = new Map();
-
+function ingestTopoFeatures(geojson, isoLookup, into, { forBorders = false } = {}) {
   for (const feature of geojson.features) {
     const neName = feature.properties?.name;
     if (!neName || EXCLUDED_NAMES.has(neName) || EXCLUDED_NE_NAMES.has(neName)) continue;
@@ -345,15 +337,64 @@ export async function loadCountries() {
 
     const name = displayNameFor(iso2, neName, isoOfficialName);
     const priority = featurePriority(neName, iso2, isoOfficialName);
-    const existing = byIso2.get(iso2);
+    const existing = into.get(iso2);
+
+    if (forBorders) {
+      if (!existing) continue;
+      if (existing.borderPriority != null && existing.borderPriority >= priority) continue;
+      const { points: borderPoints, bbox: borderBBox } = borderPointsFromGeometry(feature.geometry);
+      existing.borderPoints = borderPoints;
+      existing.borderBBox = borderBBox;
+      existing.borderPriority = priority;
+      continue;
+    }
+
     if (existing && existing.priority >= priority) continue;
 
     feature.properties = { ...feature.properties, name, neName };
     const centroid = featureCentroid(feature.geometry);
-    byIso2.set(iso2, { name, feature, centroid, iso2, priority });
+    into.set(iso2, {
+      name,
+      feature,
+      centroid,
+      borderPoints: [],
+      borderBBox: null,
+      iso2,
+      priority,
+      borderPriority: null,
+    });
+  }
+}
+
+export async function loadCountries() {
+  const [globeRes, borderRes, isoLookup] = await Promise.all([
+    fetch(GEO_URL_GLOBE),
+    fetch(GEO_URL_BORDERS),
+    loadIsoLookup(),
+  ]);
+  if (!globeRes.ok) throw new Error("country data fetch failed");
+  if (!borderRes.ok) throw new Error("border data fetch failed");
+
+  const [topoGlobe, topoBorders] = await Promise.all([globeRes.json(), borderRes.json()]);
+  const geoGlobe = topoFeature(topoGlobe, topoGlobe.objects.countries);
+  const geoBorders = topoFeature(topoBorders, topoBorders.objects.countries);
+
+  /** @type {Map<string, object>} */
+  const byIso2 = new Map();
+  ingestTopoFeatures(geoGlobe, isoLookup, byIso2, { forBorders: false });
+  ingestTopoFeatures(geoBorders, isoLookup, byIso2, { forBorders: true });
+
+  // Fallback: densify 110m borders if a country was missing from 50m.
+  for (const country of byIso2.values()) {
+    if (country.borderPoints?.length) continue;
+    const { points, bbox } = borderPointsFromGeometry(country.feature.geometry);
+    country.borderPoints = points;
+    country.borderBBox = bbox;
   }
 
-  const countries = [...byIso2.values()].map(({ priority: _p, ...rest }) => rest);
+  const countries = [...byIso2.values()].map(
+    ({ priority: _p, borderPriority: _bp, ...rest }) => rest
+  );
   const byName = new Map();
   const allNames = [];
 

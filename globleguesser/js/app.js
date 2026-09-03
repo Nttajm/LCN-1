@@ -1,5 +1,5 @@
 import { loadCountries } from "./countries.js";
-import { haversineKm, bearing, colorFromDistance, formatDistance, distanceUnitLabel } from "./distance.js";
+import { closestBorder, bearing, colorFromDistance, formatDistance, distanceUnitLabel } from "./distance.js";
 import { createGlobe } from "./globe.js";
 import { flagUrl } from "./flags.js";
 import { getLevelMode } from "./levels.js";
@@ -74,7 +74,7 @@ function cancelRegionHoverTimers() {
 function scheduleRegionActivate(region) {
   cancelRegionHoverTimers();
   hoverActivateTimer = setTimeout(() => {
-    if (!regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
+    if (!globe || !regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
     globe.setHoveredRegion(region);
   }, HOVER_ACTIVATE_MS);
 }
@@ -84,7 +84,7 @@ function scheduleRegionHighlightClear() {
   hoverActivateTimer = null;
   clearTimeout(hoverClearTimer);
   hoverClearTimer = setTimeout(() => {
-    if (!regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
+    if (!globe || !regionSelectActive || regionPicker.classList.contains("region-picker--detail")) return;
     globe.clearRegionHighlight();
   }, HOVER_CLEAR_MS);
 }
@@ -263,11 +263,15 @@ function submitGuess(forcedName) {
 
   submitting = true;
 
-  const distance = country.name === target.name ? 0 : haversineKm(country.centroid, target.centroid);
-  const correct = distance === 0;
-  const color = colorFromDistance(distance);
+  const correct = country.name === target.name;
+  const proximity = correct
+    ? { distance: 0, from: country.centroid, to: target.centroid }
+    : closestBorder(country, target);
+  const distance = proximity.distance;
+  const color = correct ? "rgb(106, 170, 100)" : colorFromDistance(distance);
   const outline = correct ? "#2d5a28" : "#1a1a1a";
-  const dir = correct ? "" : bearing(country.centroid, target.centroid);
+  // Arrow = direction from this guess toward the answer (closest borders).
+  const dir = correct ? "" : `→ ${bearing(proximity.from, proximity.to)}`;
 
   guesses.push({
     name: country.name,
@@ -316,9 +320,10 @@ function startNewGame() {
 }
 
 function beginGame() {
-  if (gameStarted) return;
+  if (gameStarted || !countries || !globe) return;
   gameStarted = true;
   regionSelectActive = false;
+  playScreenBack.hidden = true;
 
   app.classList.remove("app--start", "app--region-select");
   app.classList.add("app--game");
@@ -337,7 +342,7 @@ function beginGame() {
 }
 
 function beginPlayFlow() {
-  if (gameStarted || regionSelectActive) return;
+  if (gameStarted || regionSelectActive || !globe) return;
   regionSelectActive = true;
   cancelRegionHoverTimers();
 
@@ -354,7 +359,7 @@ function beginPlayFlow() {
 }
 
 function exitPlayFlow() {
-  if (!regionSelectActive || gameStarted) return;
+  if (!regionSelectActive || gameStarted || !globe) return;
 
   regionSelectActive = false;
   cancelRegionHoverTimers();
@@ -374,6 +379,7 @@ function exitPlayFlow() {
 }
 
 function openRegionDetail(option) {
+  if (!globe) return;
   cancelRegionHoverTimers();
   playSetup.region = option.dataset.region;
   regionDetailTitle.textContent = option.textContent;
@@ -387,7 +393,7 @@ function closeRegionDetail() {
   regionPicker.classList.remove("region-picker--detail");
   regionDetail.setAttribute("aria-hidden", "true");
   regionList.setAttribute("aria-hidden", "false");
-  globe.unlockRegionDetail();
+  globe?.unlockRegionDetail();
 }
 
 function setActiveSetupOption(options, selected) {
@@ -458,9 +464,12 @@ guessesUnitGroup.addEventListener("click", (e) => {
   setDistanceUnit(btn.dataset.unit);
 });
 
+const gameSetupStart = document.getElementById("game-setup-start");
+
 playBtn.addEventListener("click", beginPlayFlow);
 practiceBtn.addEventListener("click", beginGame);
 playScreenBack.addEventListener("click", exitPlayFlow);
+gameSetupStart.addEventListener("click", beginGame);
 
 regionOptions.forEach((option) => {
   option.addEventListener("mouseenter", () => {
@@ -503,10 +512,17 @@ levelOptions.forEach((option) => {
   });
 });
 
+function setControlsEnabled(enabled) {
+  playBtn.disabled = !enabled;
+  practiceBtn.disabled = !enabled;
+  gameSetupStart.disabled = !enabled;
+  input.disabled = !enabled;
+  enterBtn.disabled = !enabled;
+}
+
 async function init() {
   createStars();
-  input.disabled = true;
-  enterBtn.disabled = true;
+  setControlsEnabled(false);
   countries = await loadCountries();
   globe = createGlobe(
     globeContainer,
@@ -517,14 +533,12 @@ async function init() {
   globe.initStartView();
   updateLevelDescription(playSetup.level);
   loadingEl.classList.add("game__loading--hidden");
-  input.disabled = false;
-  enterBtn.disabled = false;
+  setControlsEnabled(true);
 }
 
 init().catch((err) => {
   loadingEl.classList.add("game__loading--hidden");
-  input.disabled = false;
-  enterBtn.disabled = false;
+  setControlsEnabled(false);
   console.error(err);
   showError("Failed to load game data. Please refresh the page.");
 });

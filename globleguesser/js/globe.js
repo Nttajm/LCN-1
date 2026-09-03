@@ -1,5 +1,4 @@
 import Globe from "globe.gl";
-import * as THREE from "three";
 
 const IDLE_MS = 600;
 const POLYGON_ALTITUDE = 0.012;
@@ -81,12 +80,6 @@ export function createGlobe(container, features, regionMembers = null, regionCen
   const w = Math.max(container.clientWidth, 1);
   const h = Math.max(container.clientHeight, 1);
 
-  const oceanMaterial = new THREE.MeshPhongMaterial({
-    color: START_OCEAN,
-    shininess: 8,
-    specular: new THREE.Color(0x334466),
-  });
-
   const globe = new Globe(container, {
     animateIn: false,
     rendererConfig: {
@@ -98,21 +91,25 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     .width(w)
     .height(h)
     .globeImageUrl(null)
-    .globeMaterial(oceanMaterial)
     .backgroundColor("rgba(0, 0, 0, 0)")
     .enablePointerInteraction(false)
     .showAtmosphere(true)
     .atmosphereColor("rgb(160, 210, 255)")
     .atmosphereAltitude(0.14)
-    .globeCurvatureResolution(4)
     .polygonsData(features)
     .polygonCapColor(capColor)
     .polygonSideColor(() => "rgba(0, 0, 0, 0)")
     .polygonStrokeColor(strokeColor)
     .polygonAltitude(polygonAltitude)
-    .polygonCapCurvatureResolution(4)
-    .polygonsTransitionDuration(400)
+    .polygonCapCurvatureResolution(3)
+    .polygonsTransitionDuration(0)
     .pointOfView(START_POV);
+
+  // Style the globe's own MeshPhongMaterial so we don't import a second Three.js copy.
+  const oceanMaterial = globe.globeMaterial();
+  oceanMaterial.color.set(START_OCEAN);
+  oceanMaterial.shininess = 8;
+  if (oceanMaterial.specular) oceanMaterial.specular.set(0x334466);
 
   const renderer = globe.renderer();
   if (renderer) {
@@ -150,11 +147,9 @@ export function createGlobe(container, features, regionMembers = null, regionCen
   }
 
   function refreshPolygons() {
-    globe
-      .polygonsData(features)
-      .polygonCapColor(capColor)
-      .polygonStrokeColor(strokeColor)
-      .polygonAltitude(polygonAltitude);
+    // Re-assign the same feature list so color/altitude accessors re-evaluate
+    // without rebuilding geometry from a new array copy.
+    globe.polygonsData(features);
   }
 
   function resize() {
