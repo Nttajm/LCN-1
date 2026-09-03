@@ -781,12 +781,13 @@ async function maybeEndRoundIfAllEliminated(game) {
 function beginMultiplayerGame(game) {
   if (!countries || !globe || !game) return;
 
+  multiplayerActive = true;
   multiplayerPhase = "playing";
   mpRoundHandledKey = null;
   mpBoardFingerprint = "";
 
-  const enteringFresh = !gameStarted;
-  if (enteringFresh) {
+  const alreadyInGameUi = gameStarted && app.classList.contains("app--game");
+  if (!alreadyInGameUi) {
     gameStarted = true;
     regionSelectActive = false;
     playScreenBack.hidden = true;
@@ -806,6 +807,9 @@ function beginMultiplayerGame(game) {
     setTimeout(() => input.focus(), 1350);
   }
 
+  const multiMode =
+    game.mode || currentParty?.mode || activeSession.multiMode || null;
+
   activeSession = {
     region: game.region,
     level: game.level,
@@ -814,10 +818,14 @@ function beginMultiplayerGame(game) {
     isPractice: false,
     totalRounds: game.rounds,
     currentRound: game.currentRound,
-    roundResults: enteringFresh ? [] : activeSession.roundResults,
-    totalScore: enteringFresh ? 0 : activeSession.totalScore,
-    multiMode: currentParty?.mode || activeSession.multiMode,
+    roundResults: alreadyInGameUi ? activeSession.roundResults : [],
+    totalScore: alreadyInGameUi ? activeSession.totalScore : 0,
+    multiMode,
   };
+
+  if (guestProfile?.id && game.players && !game.players[guestProfile.id]) {
+    showError("You were not added to this game. Leave and rejoin the party.");
+  }
 
   startMultiplayerRound(game);
 }
@@ -862,7 +870,11 @@ function startMultiplayerRound(game) {
 }
 
 function applyMultiplayerGameSnapshot(game) {
-  if (!game || !multiplayerActive) return;
+  if (!game) return;
+  if (!multiplayerActive) {
+    if (!partyCode) return;
+    multiplayerActive = true;
+  }
 
   if (game.status === "finished") {
     if (gameStarted) {
@@ -877,7 +889,7 @@ function applyMultiplayerGameSnapshot(game) {
     return;
   }
 
-  if (!gameStarted || activeSession.multiMode == null) {
+  if (!gameStarted || activeSession.multiMode == null || !app.classList.contains("app--game")) {
     beginMultiplayerGame(game);
     return;
   }
@@ -935,7 +947,6 @@ async function hostStartMultiplayerGame() {
       rounds: playSetup.rounds,
       timerSec: playSetup.timer,
       targets,
-      seats: currentParty.seats,
       mode: currentParty.mode,
     });
   } catch (err) {
@@ -2071,6 +2082,7 @@ function applyPartySnapshot(party) {
   }
 
   currentParty = party;
+  if (partyCode) multiplayerActive = true;
   renderSeatRow(lobbySeats, party);
   renderSeatRow(modeSeats, party);
   updateLobbyControls(party);
@@ -2209,9 +2221,9 @@ async function handleJoinPartySubmit(event) {
     const party = await joinParty(code, guestProfile);
     partyJoinInput.value = "";
     partyJoinForm.hidden = true;
+    multiplayerActive = true;
     attachPartyListener(party.code);
     applyPartySnapshot(party);
-    showMultiplayerLobbyView();
   } catch (err) {
     console.error(err);
     showPartyJoinError(err.message || "Could not join party.");

@@ -31,7 +31,15 @@ function generateCode() {
 }
 
 export function normalizeSeats(seats) {
-  const list = Array.isArray(seats) ? seats : [];
+  // Firebase may return seats as an array OR as an object with numeric keys.
+  const list = [];
+  if (Array.isArray(seats)) {
+    for (let i = 0; i < MAX_SEATS; i += 1) list[i] = seats[i];
+  } else if (seats && typeof seats === "object") {
+    for (let i = 0; i < MAX_SEATS; i += 1) {
+      list[i] = seats[i] ?? seats[String(i)];
+    }
+  }
   const out = [];
   for (let i = 0; i < MAX_SEATS; i += 1) {
     const seat = list[i];
@@ -72,6 +80,7 @@ export function normalizeGame(game) {
   });
   return {
     status: game.status || "playing",
+    mode: game.mode || null,
     region: game.region || "world",
     level: game.level || "easy",
     rounds: Number(game.rounds) || 5,
@@ -148,33 +157,61 @@ export async function fetchParty(code) {
 }
 
 export async function joinParty(code, guest) {
-  const party = await fetchParty(code);
-  if (party.status === "setup" || ACTIVE_GAME_STATUSES.has(party.status)) {
-    throw new Error("That party already started.");
+  const normalized = String(code || "").trim().toUpperCase();
+  if (!/^[A-Z0-9]{6}$/.test(normalized)) {
+    throw new Error("Enter a valid 6-character party code.");
   }
 
-  const seats = normalizeSeats(party.seats);
-  const existingIndex = seats.findIndex((s) => s && s.id === guest.id);
-  if (existingIndex >= 0) {
-    return { ...party, seats };
-  }
+  let joinError = null;
+  const result = await runTransaction(partyRef(normalized), (current) => {
+    joinError = null;
+    if (!current) {
+      joinError = "Party not found.";
+      return;
+    }
+    if (current.status === "setup" || ACTIVE_GAME_STATUSES.has(current.status)) {
+      joinError = "That party already started.";
+      return;
+    }
 
-  const emptyIndex = seats.findIndex((s) => !s);
-  if (emptyIndex < 0) throw new Error("Party is full.");
+    const seats = normalizeSeats(current.seats);
+    const existingIndex = seats.findIndex((s) => s && s.id === guest.id);
+    if (existingIndex >= 0) {
+      current.seats = seatsForWrite(seats);
+      current.updatedAt = Date.now();
+      return current;
+    }
 
-  seats[emptyIndex] = {
-    id: guest.id,
-    name: guest.name,
-    color: guest.color,
-    joinedAt: Date.now(),
-  };
+    const emptyIndex = seats.findIndex((s) => !s);
+    if (emptyIndex < 0) {
+      joinError = "Party is full.";
+      return;
+    }
 
-  await update(partyRef(party.code), {
-    seats: seatsForWrite(seats),
-    updatedAt: Date.now(),
+    seats[emptyIndex] = {
+      id: guest.id,
+      name: guest.name,
+      color: guest.color,
+      joinedAt: Date.now(),
+    };
+    current.seats = seatsForWrite(seats);
+    current.updatedAt = Date.now();
+    return current;
   });
 
-  return { ...party, seats };
+  if (!result.committed) {
+    throw new Error(joinError || "Could not join party.");
+  }
+
+  const data = result.snapshot.val();
+  if (!data) throw new Error("Party not found.");
+  return {
+    ...data,
+    code: normalized,
+    seats: normalizeSeats(data.seats),
+    mode: data.mode || null,
+    game: normalizeGame(data.game),
+  };
 }
 
 export async function leaveParty(code, guestId) {
@@ -230,18 +267,30 @@ export async function setPartyStatus(code, status, extra = {}) {
 }
 
 export async function startPartyGame(code, config) {
-  const seats = normalizeSeats(config.seats);
+  // Always read seats from the server so late joiners are not dropped.
+  const snap = await get(partyRef(code));
+  if (!snap.exists()) throw new Error("Party not found.");
+  const party = snap.val();
+  const seats = normalizeSeats(party.seats);
   const players = {};
   seats.forEach((seat) => {
     if (!seat) return;
     players[seat.id] = emptyPlayerState(seat);
   });
 
+  if (Object.keys(players).length < 2) {
+    throw new Error("Need at least 2 players to start.");
+  }
+
+  const mode = config.mode || party.mode || null;
+  if (!mode) throw new Error("Pick a mode before starting.");
+
   await update(partyRef(code), {
     status: "playing",
-    mode: config.mode,
+    mode,
     game: {
       status: "playing",
+      mode,
       region: config.region,
       level: config.level,
       rounds: config.rounds,
