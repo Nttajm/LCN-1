@@ -121,8 +121,8 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     .pathPoints("coords")
     .pathPointLat((p) => p[0])
     .pathPointLng((p) => p[1])
-    .pathColor((d) => (d.kind === "spoke" ? "rgba(255, 236, 180, 0.7)" : "rgba(255, 214, 90, 0.95)"))
-    .pathPointAlt(0.012)
+    .pathColor((d) => (d.kind === "spoke" ? "rgba(255, 236, 180, 0.85)" : "#ffe27a"))
+    .pathPointAlt(0.028)
     .pathResolution(2)
     .pathTransitionDuration(0)
     .htmlElement((d) => {
@@ -176,7 +176,7 @@ export function createGlobe(container, features, regionMembers = null, regionCen
   if (controls.maxDistance !== undefined) controls.maxDistance = 600;
 
   function schedulePause(delay = IDLE_MS) {
-    if (!inGameplay || inRegionSelect) return;
+    if (!inGameplay || inRegionSelect || radiusToolActive || radiusDragging) return;
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => {
       globe.pauseAnimation();
@@ -302,16 +302,32 @@ export function createGlobe(container, features, regionMembers = null, regionCen
   }
 
   function geoFromPointer(event) {
-    const cam = globe.camera();
     const renderer = globe.renderer();
-    if (!cam || !renderer) return null;
-    const Vector3 = cam.position.constructor;
-    const rect = renderer.domElement.getBoundingClientRect();
+    const el = renderer?.domElement || container;
+    const rect = el.getBoundingClientRect();
     if (!rect.width || !rect.height) return null;
-    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    const world = new Vector3(x, y, 0.5).unproject(cam);
-    const origin = cam.position.clone();
+    const px = event.clientX - rect.left;
+    const py = event.clientY - rect.top;
+
+    if (typeof globe.toGlobeCoords === "function") {
+      const hit = globe.toGlobeCoords(px, py);
+      if (hit && Number.isFinite(hit.lat) && Number.isFinite(hit.lng)) {
+        return { lat: hit.lat, lng: hit.lng };
+      }
+    }
+
+    const cam = globe.camera();
+    if (!cam) return null;
+    const Vector3 = cam.position.constructor;
+    const ndcX = (px / rect.width) * 2 - 1;
+    const ndcY = -(py / rect.height) * 2 + 1;
+    const origin = new Vector3();
+    if (typeof cam.getWorldPosition === "function") {
+      cam.getWorldPosition(origin);
+    } else {
+      origin.copy(cam.position);
+    }
+    const world = new Vector3(ndcX, ndcY, 0.5).unproject(cam);
     const dir = world.sub(origin).normalize();
     const radius = typeof globe.getGlobeRadius === "function" ? globe.getGlobeRadius() : 100;
     const a = dir.dot(dir);
@@ -324,7 +340,9 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     if (t < 0) t = (-b + sqrtDisc) / (2 * a);
     if (t < 0) return null;
     const hit = origin.add(dir.multiplyScalar(t));
-    return globe.toGeoCoords({ x: hit.x, y: hit.y, z: hit.z });
+    const geo = globe.toGeoCoords({ x: hit.x, y: hit.y, z: hit.z });
+    if (!geo || !Number.isFinite(geo.lat) || !Number.isFinite(geo.lng)) return null;
+    return { lat: geo.lat, lng: geo.lng };
   }
 
   function applyRadiusFromCoords(coords) {
@@ -494,9 +512,12 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     setRadiusToolActive(active) {
       radiusToolActive = Boolean(active) && inGameplay;
       container.classList.toggle("globe-stage__viz--radius", radiusToolActive);
-      if (!radiusToolActive) {
+      if (radiusToolActive) {
+        controls.enableRotate = false;
+      } else {
         if (radiusDragging) endRadiusDrag();
         clearRadiusCircle();
+        if (inGameplay) controls.enableRotate = true;
       }
     },
 
