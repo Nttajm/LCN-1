@@ -1,0 +1,3 @@
+{"sessionId":"82c3ac","runId":"pre-fix","hypothesisId":"A","location":"globe.js:afterChain","message":"globe chain completed","data":{"ok":true},"timestamp":1788418620600}
+{"sessionId":"82c3ac","runId":"pre-fix","hypothesisId":"B","location":"app.js:init","message":"init enabled controls","data":{"playDisabled":false,"mpDisabled":false,"practiceDisabled":false,"appClass":"app app--start"},"timestamp":1788418620604}
+{"sessionId":"82c3ac","runId":"pre-fix","hypothesisId":"B","location":"app.js:init","message":"init enabled controls","data":{"playDisabled":false,"mpDisabled":false,"practiceDisabled":false,"appClass":"app app--start"},"timestamp":1788418625306}

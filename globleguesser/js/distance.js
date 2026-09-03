@@ -46,6 +46,36 @@ export function haversineKm(a, b) {
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
 }
 
+export function destinationPoint(origin, distanceKm, bearingDeg) {
+  const δ = distanceKm / EARTH_RADIUS_KM;
+  const θ = toRad(bearingDeg);
+  const φ1 = toRad(origin.lat);
+  const λ1 = toRad(origin.lng);
+  const sinφ1 = Math.sin(φ1);
+  const cosφ1 = Math.cos(φ1);
+  const sinδ = Math.sin(δ);
+  const cosδ = Math.cos(δ);
+  const φ2 = Math.asin(sinφ1 * cosδ + cosφ1 * sinδ * Math.cos(θ));
+  const λ2 =
+    λ1 +
+    Math.atan2(Math.sin(θ) * sinδ * cosφ1, cosδ - sinφ1 * Math.sin(φ2));
+  return {
+    lat: toDeg(φ2),
+    lng: ((toDeg(λ2) + 540) % 360) - 180,
+  };
+}
+
+export function greatCircleRing(center, radiusKm, steps = 72) {
+  if (!(radiusKm > 0) || !center) return [];
+  const n = Math.max(8, Math.floor(steps));
+  const points = [];
+  for (let i = 0; i <= n; i += 1) {
+    const bearingDeg = (i / n) * 360;
+    points.push(destinationPoint(center, radiusKm, bearingDeg));
+  }
+  return points;
+}
+
 export function bearing(from, to) {
   const lat1 = toRad(from.lat);
   const lat2 = toRad(to.lat);

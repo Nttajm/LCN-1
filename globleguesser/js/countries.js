@@ -205,7 +205,7 @@ const EXCLUDED_NE_NAMES = new Set([
   "Clipperton I.",
 ]);
 
-const REGION_IDS = ["world", "asia", "americas", "europe", "africa", "west-hemisphere"];
+const REGION_IDS = ["world", "asia", "americas", "europe", "africa", "east-hemisphere"];
 
 function classifyRegions(centroid) {
   const { lat, lng } = centroid;
@@ -231,8 +231,8 @@ function classifyRegions(centroid) {
     regions.add("asia");
   }
 
-  if (lng < 0) {
-    regions.add("west-hemisphere");
+  if (lng >= 0) {
+    regions.add("east-hemisphere");
   }
 
   return regions;
@@ -454,8 +454,28 @@ export async function loadCountries() {
       }
       return results;
     },
-    randomTarget() {
-      const pool = uniqueNames.map((n) => byName.get(normalizeKey(n))).filter(Boolean);
+    randomTarget(regionId = "world", excludeNames = []) {
+      const excluded = new Set(excludeNames);
+      const memberSet = regionId && regionId !== "world"
+        ? regionMembers.get(regionId)
+        : null;
+      const pool = uniqueNames
+        .map((n) => byName.get(normalizeKey(n)))
+        .filter((country) => {
+          if (!country) return false;
+          if (excluded.has(country.name)) return false;
+          if (!memberSet) return true;
+          return memberSet.has(country.name);
+        });
+      if (!pool.length) {
+        const fallback = uniqueNames
+          .map((n) => byName.get(normalizeKey(n)))
+          .filter((country) => country && !excluded.has(country.name));
+        const list = fallback.length
+          ? fallback
+          : uniqueNames.map((n) => byName.get(normalizeKey(n))).filter(Boolean);
+        return list[Math.floor(Math.random() * list.length)];
+      }
       return pool[Math.floor(Math.random() * pool.length)];
     },
   };

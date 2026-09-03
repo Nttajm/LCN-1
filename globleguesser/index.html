@@ -22,15 +22,8 @@
     <div class="stars" id="stars" aria-hidden="true"></div>
 
     <header class="start-screen__header">
-      <div class="start-screen__avatars" aria-hidden="true">
-        <span class="start-screen__avatar start-screen__avatar--1"></span>
-        <span class="start-screen__avatar start-screen__avatar--2"></span>
-        <span class="start-screen__avatar start-screen__avatar--3"></span>
-      </div>
-      <p class="start-screen__online">
-        <span class="start-screen__count" id="players-online">12,141</span>
-        players online
-      </p>
+      <p class="start-screen__logo">Orble</p>
+      <p class="start-screen__nick" id="start-nickname" hidden></p>
     </header>
 
     <div
@@ -55,6 +48,82 @@
       <span>Back</span>
     </button>
 
+    <button type="button" class="game__exit" id="game-exit" aria-label="Exit to home" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 4.6 8 12l7.4 7.4-1.4 1.4L5.2 12l8.8-8.8 1.4 1.4z"/></svg>
+      <span>Exit</span>
+    </button>
+
+    <div class="guest-prompt" id="guest-prompt" hidden>
+      <form class="guest-prompt__card" id="guest-prompt-form">
+        <h2 class="guest-prompt__title">Choose a nickname</h2>
+        <p class="guest-prompt__hint">Shown in your party seats. No account needed.</p>
+        <input
+          type="text"
+          class="guest-prompt__input"
+          id="guest-name-input"
+          maxlength="12"
+          minlength="2"
+          placeholder="Nickname"
+          autocomplete="off"
+          spellcheck="false"
+          required
+        >
+        <p class="guest-prompt__error" id="guest-name-error" hidden></p>
+        <button type="submit" class="guest-prompt__submit" id="guest-name-submit">Continue</button>
+      </form>
+    </div>
+
+    <aside class="party-panel" id="multiplayer-lobby" aria-label="Party lobby" hidden>
+      <p class="party-panel__label">Party code</p>
+      <button type="button" class="party-code" id="party-code" aria-label="Copy party code" title="Copy code">
+        <span class="party-code__value" id="party-code-value">------</span>
+        <span class="party-code__hint" id="party-code-hint">Tap to copy</span>
+      </button>
+
+      <div class="party-seats" id="lobby-seats" aria-label="Party seats"></div>
+
+      <p class="party-panel__status" id="lobby-status"></p>
+
+      <div class="party-panel__actions">
+        <button type="button" class="party-panel__btn party-panel__btn--primary" id="party-play-btn" hidden>Play</button>
+        <button type="button" class="party-panel__btn" id="party-join-toggle">Join a party</button>
+      </div>
+
+      <form class="party-join" id="party-join-form" hidden>
+        <label class="party-join__label" for="party-join-input">Enter party code</label>
+        <div class="party-join__row">
+          <input
+            type="text"
+            class="party-join__input"
+            id="party-join-input"
+            maxlength="6"
+            placeholder="AB12CD"
+            autocomplete="off"
+            spellcheck="false"
+            autocapitalize="characters"
+          >
+          <button type="submit" class="party-panel__btn party-panel__btn--primary" id="party-join-submit">Join</button>
+        </div>
+        <p class="party-join__error" id="party-join-error" hidden></p>
+      </form>
+    </aside>
+
+    <aside class="party-panel party-panel--mode" id="multiplayer-mode" aria-label="Choose multiplayer mode" hidden>
+      <div class="party-seats party-seats--top" id="mode-seats" aria-label="Party seats"></div>
+      <p class="party-panel__label">Choose a mode</p>
+      <div class="party-modes" role="group" aria-label="Multiplayer modes">
+        <button type="button" class="party-mode-option" id="mode-coop" data-mode="coop">
+          <span class="party-mode-option__title">Co-op</span>
+          <span class="party-mode-option__desc">Play together toward the same goal</span>
+        </button>
+        <button type="button" class="party-mode-option" id="mode-pvp" data-mode="pvp">
+          <span class="party-mode-option__title">PvP</span>
+          <span class="party-mode-option__desc">Compete head to head</span>
+        </button>
+      </div>
+      <p class="party-panel__status" id="mode-status"></p>
+    </aside>
+
     <aside class="region-picker" id="region-picker" aria-label="Choose a region" hidden>
       <div class="region-picker__views">
         <nav class="region-picker__list" id="region-list" aria-label="Regions">
@@ -63,7 +132,7 @@
           <button type="button" class="region-picker__option" data-region="americas">Americas</button>
           <button type="button" class="region-picker__option" data-region="europe">Europe</button>
           <button type="button" class="region-picker__option" data-region="africa">Africa</button>
-          <button type="button" class="region-picker__option" data-region="west-hemisphere">West Hemisphere</button>
+          <button type="button" class="region-picker__option" data-region="east-hemisphere">East Hemisphere</button>
         </nav>
 
         <div class="region-detail" id="region-detail" aria-hidden="true">
@@ -84,7 +153,7 @@
                 <button type="button" class="game-setup__option" data-level="xtra">Xtra</button>
                 <button type="button" class="game-setup__option" data-level="xtra2">Xtra II</button>
               </div>
-              <p class="game-setup__level-desc" id="level-desc">Full assists — borders, exact distances, autocomplete, unlimited guesses.</p>
+              <p class="game-setup__level-desc" id="level-desc">Full assists — borders, exact distances, autocomplete, radius tool, unlimited guesses. Up to 3,500 pts/round (×0.7).</p>
             </div>
 
             <div class="game-setup__group">
@@ -96,6 +165,7 @@
                 <button type="button" class="game-setup__option" data-rounds="7">7</button>
                 <button type="button" class="game-setup__option" data-rounds="8">8</button>
               </div>
+              <p class="game-setup__hint" id="setup-max-score">Max score 17,500 (5 × 3,500).</p>
             </div>
 
             <div class="game-setup__group">
@@ -106,9 +176,11 @@
                 <button type="button" class="game-setup__option" data-timer="60">60s</button>
                 <button type="button" class="game-setup__option" data-timer="90">90s</button>
               </div>
+              <p class="game-setup__hint" id="setup-timer-hint">Timer off — no speed bonus. Time out scores 0 for that round.</p>
             </div>
 
             <button type="button" class="game-setup__start" id="game-setup-start">Start game</button>
+            <p class="game-setup__host-wait" id="setup-host-wait" hidden>Waiting for host to start…</p>
           </div>
         </div>
       </div>
@@ -134,26 +206,35 @@
 
     <div class="game" id="game-panel" hidden>
       <header class="game__header">
-        <p class="game__mode">You are playing a practice game.</p>
-        <div class="game__input-row">
-          <div class="game__input-wrap">
-            <input
-              type="text"
-              class="game__input"
-              id="country-input"
-              placeholder="Enter country name here"
-              autocomplete="off"
-              spellcheck="false"
-            >
-            <ul class="game__suggestions" id="suggestions" hidden></ul>
+        <p class="game__mode" id="game-mode">You are playing a practice game.</p>
+        <div class="game__scorebar" id="game-scorebar" hidden>
+          <span class="game__scorebar-round" id="scorebar-round">Round 1 / 5</span>
+          <div class="game__scorebar-center">
+            <span class="game__scorebar-award" id="scorebar-award" hidden></span>
+            <span class="game__scorebar-total">
+              <span class="game__scorebar-total-value" id="scorebar-total">0</span>
+              <span class="game__scorebar-total-max" id="scorebar-max">/ 17,500</span>
+            </span>
           </div>
-          <button type="button" class="game__enter-btn" id="enter-btn">Enter</button>
+          <div class="game__scorebar-meta">
+            <span class="game__scorebar-meta-item" id="scorebar-level">Easy ×0.7</span>
+            <span class="game__scorebar-meta-item" id="scorebar-timer" hidden>Timer +10%</span>
+          </div>
         </div>
-        <p class="game__hint" id="hint">Enter the name of any country to make your first guess.</p>
+        <div class="mp-rivals" id="mp-rivals" hidden aria-label="Opponent proximity"></div>
+        <div class="game__status" id="game-status" hidden>
+          <p class="game__status-item" id="guesses-left" hidden></p>
+          <p class="game__status-item" id="game-timer" hidden></p>
+        </div>
         <p class="game__loading" id="loading">Loading globe...</p>
       </header>
 
       <aside class="game__guesses-panel" id="guesses-panel" hidden>
+        <div class="game__tools" id="game-tools" hidden>
+          <button type="button" class="game__tools-btn" id="radius-tool-btn" aria-pressed="false">Radius</button>
+          <button type="button" class="game__tools-btn" id="radius-clear-btn" hidden>Clear</button>
+          <span class="game__tools-readout" id="radius-readout" hidden></span>
+        </div>
         <div class="game__guesses-toolbar" id="guesses-toolbar" hidden>
           <select class="game__guesses-select" id="guesses-sort" aria-label="Sort guesses">
             <option value="distance">Closest first</option>
@@ -169,9 +250,62 @@
       </aside>
 
       <footer class="game__footer">
+        <div class="game__prompt" id="game-prompt">
+          <p class="game__hint" id="hint">Enter the name of any country to make your first guess.</p>
+          <div class="game__input-row">
+            <div class="game__input-wrap">
+              <ul class="game__suggestions" id="suggestions" hidden></ul>
+              <input
+                type="text"
+                class="game__input"
+                id="country-input"
+                placeholder="Enter country name here"
+                autocomplete="off"
+                spellcheck="false"
+              >
+            </div>
+            <button type="button" class="game__enter-btn" id="enter-btn">Enter</button>
+          </div>
+        </div>
+
         <div class="game__win" id="win-panel" hidden>
-          <p class="game__win-text" id="win-text"></p>
-          <button type="button" class="game__new-btn" id="new-game-btn">New game</button>
+          <div class="game__sheet" id="practice-end" hidden>
+            <p class="game__win-text" id="win-text"></p>
+            <div class="game__sheet-actions">
+              <button type="button" class="game__new-btn game__new-btn--ghost" id="practice-exit-btn">Exit</button>
+              <button type="button" class="game__new-btn" id="new-game-btn">New game</button>
+            </div>
+          </div>
+
+          <div class="game__sheet" id="score-sheet-round" hidden>
+            <p class="game__sheet-kicker" id="round-sheet-kicker">Round complete</p>
+            <div class="game__sheet-country" id="round-sheet-country"></div>
+            <p class="game__sheet-status" id="round-sheet-status"></p>
+            <p class="game__sheet-meta" id="round-sheet-meta"></p>
+            <div class="game__sheet-score" id="round-sheet-score">
+              <span class="game__sheet-score-value" id="round-sheet-points">0</span>
+              <span class="game__sheet-score-label">points</span>
+            </div>
+            <p class="game__sheet-breakdown" id="round-sheet-breakdown"></p>
+            <div class="game__sheet-actions">
+              <button type="button" class="game__new-btn game__new-btn--ghost" id="round-exit-btn">Exit</button>
+              <button type="button" class="game__new-btn" id="round-sheet-btn">Next round</button>
+            </div>
+          </div>
+
+          <div class="game__sheet" id="score-sheet-final" hidden>
+            <p class="game__sheet-kicker">Game over</p>
+            <div class="game__sheet-score game__sheet-score--final">
+              <span class="game__sheet-score-value" id="final-sheet-total">0</span>
+              <span class="game__sheet-score-label" id="final-sheet-max">of 0</span>
+            </div>
+            <p class="game__sheet-meta" id="final-sheet-best"></p>
+            <ul class="game__sheet-list" id="final-sheet-list"></ul>
+            <div class="game__sheet-actions">
+              <button type="button" class="game__new-btn game__new-btn--ghost" id="final-exit-btn">Exit</button>
+              <button type="button" class="game__new-btn" id="final-sheet-btn">Play again</button>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

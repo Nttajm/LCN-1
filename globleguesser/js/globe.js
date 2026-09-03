@@ -1,4 +1,5 @@
 import Globe from "globe.gl";
+import { haversineKm, greatCircleRing } from "./distance.js";
 
 const IDLE_MS = 600;
 const POLYGON_ALTITUDE = 0.012;
@@ -23,6 +24,7 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     features.map((feat) => [feat.properties?.name || "", feat])
   );
   const guessed = new Map();
+  let playerMarkers = [];
   let idleTimer = null;
   let paused = false;
   let inGameplay = false;
@@ -31,6 +33,14 @@ export function createGlobe(container, features, regionMembers = null, regionCen
   let hoveredRegion = null;
   let cameraRegion = null;
   let regionDetailLocked = false;
+  let radiusToolActive = false;
+  let radiusDragging = false;
+  let radiusCenter = null;
+  let radiusKm = 0;
+  let radiusLocked = null;
+  let lastHover = null;
+  let radiusDragHandler = null;
+  let rotateBeforeDrag = true;
 
   function getName(feat) {
     return feat.properties?.name || "";
@@ -103,6 +113,43 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     .polygonAltitude(polygonAltitude)
     .polygonCapCurvatureResolution(3)
     .polygonsTransitionDuration(0)
+    .htmlElementsData([])
+    .htmlLat((d) => d.lat)
+    .htmlLng((d) => d.lng)
+    .htmlAltitude((d) => 0.06)
+    .pathsData([])
+    .pathPoints("coords")
+    .pathPointLat((p) => p[0])
+    .pathPointLng((p) => p[1])
+    .pathColor((d) => (d.kind === "spoke" ? "rgba(255, 236, 180, 0.7)" : "rgba(255, 214, 90, 0.95)"))
+    .pathPointAlt(0.012)
+    .pathResolution(2)
+    .pathTransitionDuration(0)
+    .htmlElement((d) => {
+      const wrap = document.createElement("div");
+      wrap.className = "globe-pfp-cluster";
+      const players = Array.isArray(d.players) ? d.players : [];
+      const count = Math.max(players.length, 1);
+      players.forEach((player, index) => {
+        const chip = document.createElement("div");
+        chip.className = "globe-pfp";
+        chip.style.background = player.color || "#5b6cf0";
+        if (count > 1) {
+          const spread = 0.72;
+          const offset = (index - (count - 1) / 2) * spread;
+          chip.style.marginLeft = index === 0 ? "0" : "-0.35rem";
+          chip.style.position = "relative";
+          chip.style.left = `${offset}rem`;
+        }
+        const initial = document.createElement("span");
+        initial.className = "globe-pfp__initial";
+        initial.textContent = (player.name || "?").charAt(0).toUpperCase();
+        chip.appendChild(initial);
+        chip.title = player.name || "";
+        wrap.appendChild(chip);
+      });
+      return wrap;
+    })
     .pointOfView(START_POV);
 
   // Style the globe's own MeshPhongMaterial so we don't import a second Three.js copy.
@@ -196,6 +243,145 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     globe.pointOfView(regionPov(region), duration);
   }
 
+  function emitRadiusDrag() {
+    if (!radiusDragHandler) return;
+    const circle = radiusDragging
+      ? radiusCenter
+        ? { center: radiusCenter, radiusKm, dragging: true }
+        : null
+      : radiusLocked
+        ? { ...radiusLocked, dragging: false }
+        : null;
+    radiusDragHandler(circle);
+  }
+
+  function refreshRadiusPaths() {
+    const circle = radiusDragging
+      ? radiusCenter
+        ? { center: radiusCenter, radiusKm }
+        : null
+      : radiusLocked;
+    if (!circle || !(circle.radiusKm > 0)) {
+      globe.pathsData([]);
+      return;
+    }
+    const ring = greatCircleRing(circle.center, circle.radiusKm, 80);
+    const paths = [
+      {
+        kind: "ring",
+        coords: ring.map((p) => [p.lat, p.lng]),
+      },
+    ];
+    const tip = radiusDragging ? lastHover : null;
+    if (tip && circle.center) {
+      paths.push({
+        kind: "spoke",
+        coords: [
+          [circle.center.lat, circle.center.lng],
+          [tip.lat, tip.lng],
+        ],
+      });
+    }
+    globe.pathsData(paths);
+  }
+
+  function clearRadiusCircle(emit = true) {
+    if (radiusDragging) {
+      radiusDragging = false;
+      controls.enableRotate = rotateBeforeDrag;
+      window.removeEventListener("pointermove", onRadiusPointerMove);
+      window.removeEventListener("pointerup", endRadiusDrag);
+      window.removeEventListener("pointercancel", endRadiusDrag);
+    }
+    radiusCenter = null;
+    radiusKm = 0;
+    radiusLocked = null;
+    lastHover = null;
+    globe.pathsData([]);
+    if (emit) emitRadiusDrag();
+  }
+
+  function geoFromPointer(event) {
+    const cam = globe.camera();
+    const renderer = globe.renderer();
+    if (!cam || !renderer) return null;
+    const Vector3 = cam.position.constructor;
+    const rect = renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    const world = new Vector3(x, y, 0.5).unproject(cam);
+    const origin = cam.position.clone();
+    const dir = world.sub(origin).normalize();
+    const radius = typeof globe.getGlobeRadius === "function" ? globe.getGlobeRadius() : 100;
+    const a = dir.dot(dir);
+    const b = 2 * origin.dot(dir);
+    const c = origin.dot(origin) - radius * radius;
+    const disc = b * b - 4 * a * c;
+    if (disc < 0) return null;
+    const sqrtDisc = Math.sqrt(disc);
+    let t = (-b - sqrtDisc) / (2 * a);
+    if (t < 0) t = (-b + sqrtDisc) / (2 * a);
+    if (t < 0) return null;
+    const hit = origin.add(dir.multiplyScalar(t));
+    return globe.toGeoCoords({ x: hit.x, y: hit.y, z: hit.z });
+  }
+
+  function applyRadiusFromCoords(coords) {
+    if (!radiusDragging || !radiusCenter || !coords) return;
+    lastHover = coords;
+    radiusKm = haversineKm(radiusCenter, coords);
+    refreshRadiusPaths();
+    emitRadiusDrag();
+    wake();
+  }
+
+  function onRadiusPointerMove(event) {
+    if (!radiusDragging) return;
+    event.preventDefault();
+    const coords = geoFromPointer(event);
+    if (coords) applyRadiusFromCoords(coords);
+  }
+
+  function endRadiusDrag() {
+    if (!radiusDragging) return;
+    radiusDragging = false;
+    controls.enableRotate = rotateBeforeDrag;
+    if (radiusKm > 0 && radiusCenter) {
+      radiusLocked = { center: radiusCenter, radiusKm };
+    } else {
+      radiusLocked = null;
+      radiusCenter = null;
+      radiusKm = 0;
+    }
+    refreshRadiusPaths();
+    emitRadiusDrag();
+    window.removeEventListener("pointermove", onRadiusPointerMove);
+    window.removeEventListener("pointerup", endRadiusDrag);
+    window.removeEventListener("pointercancel", endRadiusDrag);
+  }
+
+  container.addEventListener("pointerdown", (event) => {
+    if (!radiusToolActive || !inGameplay || event.button !== 0) return;
+    const coords = geoFromPointer(event) || lastHover;
+    if (!coords) return;
+    event.preventDefault();
+    event.stopPropagation();
+    rotateBeforeDrag = controls.enableRotate;
+    controls.enableRotate = false;
+    radiusDragging = true;
+    lastHover = coords;
+    radiusCenter = { lat: coords.lat, lng: coords.lng };
+    radiusKm = 0;
+    radiusLocked = null;
+    refreshRadiusPaths();
+    emitRadiusDrag();
+    wake();
+    window.addEventListener("pointermove", onRadiusPointerMove, { passive: false });
+    window.addEventListener("pointerup", endRadiusDrag);
+    window.addEventListener("pointercancel", endRadiusDrag);
+  }, true);
+
   function returnToRegionSelectView(duration = REGION_RETURN_MS) {
     if (!inRegionSelect) return;
     controls.autoRotate = true;
@@ -218,6 +404,9 @@ export function createGlobe(container, features, regionMembers = null, regionCen
       controls.autoRotateSpeed = IDLE_ROTATE_SPEED;
       controls.enableRotate = false;
       globe.enablePointerInteraction(false);
+      radiusToolActive = false;
+      container.classList.remove("globe-stage__viz--radius");
+      clearRadiusCircle(false);
 
       refreshPolygons();
       globe.pointOfView(START_POV, 0);
@@ -260,6 +449,9 @@ export function createGlobe(container, features, regionMembers = null, regionCen
       controls.autoRotateSpeed = IDLE_ROTATE_SPEED;
       controls.enableRotate = false;
       globe.enablePointerInteraction(false);
+      radiusToolActive = false;
+      container.classList.remove("globe-stage__viz--radius");
+      clearRadiusCircle(false);
       globe.pointOfView(START_POV, duration);
       resize();
       refreshPolygons();
@@ -297,6 +489,47 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     clearGuesses() {
       guessed.clear();
       refreshPolygons();
+    },
+
+    setRadiusToolActive(active) {
+      radiusToolActive = Boolean(active) && inGameplay;
+      container.classList.toggle("globe-stage__viz--radius", radiusToolActive);
+      if (!radiusToolActive) {
+        if (radiusDragging) endRadiusDrag();
+        clearRadiusCircle();
+      }
+    },
+
+    setRadiusCircle(circle) {
+      if (radiusDragging) endRadiusDrag();
+      if (!circle || !circle.center || !(circle.radiusKm > 0)) {
+        clearRadiusCircle();
+        return;
+      }
+      radiusLocked = {
+        center: { lat: circle.center.lat, lng: circle.center.lng },
+        radiusKm: circle.radiusKm,
+      };
+      radiusCenter = radiusLocked.center;
+      radiusKm = radiusLocked.radiusKm;
+      refreshRadiusPaths();
+      emitRadiusDrag();
+      wake();
+    },
+
+    onRadiusDrag(handler) {
+      radiusDragHandler = typeof handler === "function" ? handler : null;
+    },
+
+    setPlayerMarkers(groups) {
+      playerMarkers = Array.isArray(groups) ? groups : [];
+      globe.htmlElementsData(playerMarkers);
+      wake();
+    },
+
+    clearPlayerMarkers() {
+      playerMarkers = [];
+      globe.htmlElementsData([]);
     },
 
     flyTo(lat, lng, altitude = 1.8) {
@@ -339,6 +572,9 @@ export function createGlobe(container, features, regionMembers = null, regionCen
     dispose() {
       clearTimeout(idleTimer);
       clearTimeout(burstTimer);
+      window.removeEventListener("pointermove", onRadiusPointerMove);
+      window.removeEventListener("pointerup", endRadiusDrag);
+      window.removeEventListener("pointercancel", endRadiusDrag);
       resizeObserver.disconnect();
       window.removeEventListener("resize", resize);
       container.innerHTML = "";
