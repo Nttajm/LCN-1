@@ -67,6 +67,38 @@
     document.body.insertAdjacentElement('afterbegin', dropdown);
     document.body.insertAdjacentElement('afterbegin', nav);
 
+    if (!sessionStorage.getItem('lcn-wip-banner-dismissed')) {
+        const banner = document.createElement('div');
+        banner.className = 'wip-banner';
+        banner.setAttribute('role', 'status');
+        banner.innerHTML = `
+        <div class="wip-banner-inner">
+          <div class="wip-banner-copy">
+            <strong class="wip-banner-title">This site isn't finished yet</strong>
+            <p class="wip-banner-text">Many projects and games aren't uploaded yet. Some features and reports are still being transferred from the old site, so a few things may be broken.</p>
+          </div>
+          <button type="button" class="wip-banner-close" aria-label="Dismiss notice">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>`;
+        dropdown.insertAdjacentElement('afterend', banner);
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                banner.classList.add('is-visible');
+            });
+        });
+        banner.querySelector('.wip-banner-close').addEventListener('click', function () {
+            banner.classList.remove('is-visible');
+            banner.classList.add('is-dismissed');
+            sessionStorage.setItem('lcn-wip-banner-dismissed', '1');
+            setTimeout(function () {
+                banner.remove();
+            }, 280);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const footer = document.createElement('footer');
         footer.className = 'site-footer';

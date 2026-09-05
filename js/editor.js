@@ -624,7 +624,7 @@
         return {
             title: els.titleInput.value.trim() || 'Untitled',
             subDesc: els.subDescInput.value.trim(),
-            goToUrl: els.goToUrlInput.value.trim(),
+            goToUrl: resolveSiteUrl(els.goToUrlInput.value.trim()),
             date: normalizeDateInput(els.dateInput.value),
             category: cat,
             subCategory: subCat,
@@ -732,6 +732,17 @@
         scheduleAutoSave();
     }
 
+    function resolveSiteUrl(url) {
+        if (!url) return url;
+        var trimmed = String(url).trim();
+        if (!trimmed) return trimmed;
+        if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed) || trimmed.charAt(0) === '/' || trimmed.charAt(0) === '#' || trimmed.indexOf('//') === 0) {
+            return trimmed;
+        }
+        if (trimmed.indexOf('./') === 0) trimmed = trimmed.slice(2);
+        return '/' + trimmed.replace(/^\/+/, '');
+    }
+
     function insertLink(url, text, isGoto) {
         els.editor.focus();
         var sel = window.getSelection();
@@ -742,7 +753,7 @@
 
         if (isGoto) {
             var a = document.createElement('a');
-            a.href = url;
+            a.setAttribute('href', resolveSiteUrl(url));
             a.className = 'ed-goto-link';
             a.target = '_blank';
             a.rel = 'noopener';

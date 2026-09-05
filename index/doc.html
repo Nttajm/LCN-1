@@ -88,6 +88,17 @@
             return src;
         }
 
+        function resolveSiteUrl(url) {
+            if (!url) return url;
+            var trimmed = String(url).trim();
+            if (!trimmed) return trimmed;
+            if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed) || trimmed.charAt(0) === '/' || trimmed.charAt(0) === '#' || trimmed.indexOf('//') === 0) {
+                return trimmed;
+            }
+            if (trimmed.indexOf('./') === 0) trimmed = trimmed.slice(2);
+            return '/' + trimmed.replace(/^\/+/, '');
+        }
+
         function formatDate(ts) {
             if (!ts) return '';
             var d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -126,7 +137,7 @@
             if (doc.goToUrl) {
                 var gotoWrap = document.getElementById('doc-goto-wrap');
                 var gotoBtn = document.getElementById('doc-goto-btn');
-                gotoBtn.href = doc.goToUrl;
+                gotoBtn.href = resolveSiteUrl(doc.goToUrl);
                 gotoWrap.style.display = 'flex';
             }
 
@@ -155,6 +166,9 @@
             var imgs = tmp.querySelectorAll('img');
             imgs.forEach(function (img) {
                 img.src = resolveImg(img.getAttribute('src'));
+            });
+            tmp.querySelectorAll('a.ed-goto-link').forEach(function (link) {
+                link.setAttribute('href', resolveSiteUrl(link.getAttribute('href')));
             });
             document.getElementById('doc-body').innerHTML = tmp.innerHTML;
             if (window.EdChart) EdChart.renderAll(document.getElementById('doc-body'));
