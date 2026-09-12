@@ -9,6 +9,11 @@
         measurementId: "G-FJB125MV97"
     };
 
+    const ASK_AI_URL = 'https://us-central1-lcn-apps.cloudfunctions.net/editorAskAi';
+    const OPENAI_KEY_STORAGE = 'ed-openai-key';
+    const UPLOAD_FOLDER_STORAGE = 'ed-upload-folder';
+    const IMAGE_UPLOAD_BASE = 'http://127.0.0.1:3927';
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     
@@ -48,10 +53,17 @@
     function initEditor() {
         const db = firebase.firestore();
         const docsCol = db.collection('editor_docs');
+        const collectionsCol = db.collection('editor_doc_collections');
         const TS = function () { return firebase.firestore.FieldValue.serverTimestamp(); };
+        const DL = window.DocListings;
 
     let currentDocId = null;
     let docs = {};
+    let collections = {};
+    let expandedCollections = {};
+    let expandedSections = {};
+    let openColMenu = null;
+    let editingSectionRef = null;
     let categories = [];
     let subCategories = [];
     let autoSaveTimer = null;
@@ -61,6 +73,13 @@
     let activeCategoryFilter = localStorage.getItem('ed-doc-cat') || 'all';
     let lastRenderedSort = docListSort;
 
+    try {
+        expandedCollections = JSON.parse(localStorage.getItem('ed-col-expanded') || '{}') || {};
+    } catch (e) { expandedCollections = {}; }
+    try {
+        expandedSections = JSON.parse(localStorage.getItem('ed-sec-expanded') || '{}') || {};
+    } catch (e) { expandedSections = {}; }
+
     const els = {
         docList: document.getElementById('ed-doclist'),
         filterInput: document.getElementById('ed-filter'),
@@ -68,8 +87,31 @@
         sortSelect: document.getElementById('ed-sort'),
         editor: document.getElementById('ed-editor'),
         titleInput: document.getElementById('ed-title'),
+        navLabelInput: document.getElementById('ed-navlabel'),
+        navLabelRow: document.getElementById('ed-navlabel-row'),
         subDescInput: document.getElementById('ed-subdesc'),
         goToUrlInput: document.getElementById('ed-goto-url'),
+        publicUrlInput: document.getElementById('ed-public-url'),
+        publicUrlRow: document.getElementById('ed-public-url-row'),
+        copyUrlBtn: document.getElementById('ed-copy-url'),
+        listOnBlock: document.getElementById('ed-liston-block'),
+        listOnProjects: document.getElementById('ed-liston-projects'),
+        listOnDevelopment: document.getElementById('ed-liston-development'),
+        listOnUpdates: document.getElementById('ed-liston-updates'),
+        collectionActions: document.getElementById('ed-collection-actions'),
+        makeCollectionBtn: document.getElementById('ed-make-collection'),
+        moveIntoCollectionBtn: document.getElementById('ed-move-into-collection'),
+        dissolveCollectionBtn: document.getElementById('ed-dissolve-collection'),
+        moveModal: document.getElementById('ed-move-modal'),
+        moveTitle: document.getElementById('ed-move-title'),
+        moveHelp: document.getElementById('ed-move-help'),
+        moveDocField: document.getElementById('ed-move-doc-field'),
+        moveDocSelect: document.getElementById('ed-move-doc'),
+        moveCollectionField: document.getElementById('ed-move-collection-field'),
+        moveCollectionSelect: document.getElementById('ed-move-collection'),
+        movePlacementSelect: document.getElementById('ed-move-placement'),
+        moveCancelBtn: document.getElementById('ed-move-cancel'),
+        moveConfirmBtn: document.getElementById('ed-move-confirm'),
         dateInput: document.getElementById('ed-date'),
         catSelect: document.getElementById('ed-category'),
         catCustom: document.getElementById('ed-cat-custom'),
@@ -91,7 +133,33 @@
         sidebar: document.getElementById('ed-sidebar'),
         mobileToggle: document.getElementById('ed-mobile-toggle'),
         mobileOverlay: document.getElementById('ed-mobile-overlay'),
-        toast: document.getElementById('ed-toast')
+        toast: document.getElementById('ed-toast'),
+        settingsBtn: document.getElementById('ed-settings-btn'),
+        settingsModal: document.getElementById('ed-settings-modal'),
+        openaiKeyInput: document.getElementById('ed-openai-key'),
+        settingsSave: document.getElementById('ed-settings-save'),
+        settingsCancel: document.getElementById('ed-settings-cancel'),
+        settingsClear: document.getElementById('ed-settings-clear'),
+        uploadFolderSelect: document.getElementById('ed-upload-folder'),
+        uploadFolderNew: document.getElementById('ed-upload-folder-new'),
+        imgUploadFolder: document.getElementById('ed-img-upload-folder'),
+        imgUploadFolderNew: document.getElementById('ed-img-upload-folder-new'),
+        imgUploadFile: document.getElementById('ed-img-upload-file'),
+        imgUploadFileName: document.getElementById('ed-img-upload-file-name'),
+        imgUploadHint: document.getElementById('ed-img-upload-hint'),
+        imgUploadWidth: document.getElementById('ed-img-upload-width'),
+        imgUrlFields: document.getElementById('ed-img-url-fields'),
+        imgUploadFields: document.getElementById('ed-img-upload-fields'),
+        uploadImageBtn: document.getElementById('ed-upload-image-btn'),
+        uploadImageInput: document.getElementById('ed-upload-image-input'),
+        aiPopup: document.getElementById('ed-ai-popup'),
+        aiInput: document.getElementById('ed-ai-input'),
+        aiSend: document.getElementById('ed-ai-send'),
+        aiStatus: document.getElementById('ed-ai-status'),
+        aiPreview: document.getElementById('ed-ai-preview'),
+        aiAskBtn: document.getElementById('ed-ai-ask-btn'),
+        aiPromptStage: document.getElementById('ed-ai-prompt-stage'),
+        aiComposeStage: document.getElementById('ed-ai-compose-stage')
     };
 
     function showToast(msg, type) {
@@ -262,9 +330,105 @@
         return Object.keys(docs)
             .filter(function (id) {
                 var doc = docs[id];
+                if (doc.collectionId) return false;
                 return docMatchesCategory(doc, cat) && docMatchesFilter(doc, fl);
             })
             .sort(function (a, b) { return compareDocIds(a, b, sortKey); });
+    }
+
+    function persistExpandedState() {
+        localStorage.setItem('ed-col-expanded', JSON.stringify(expandedCollections));
+        localStorage.setItem('ed-sec-expanded', JSON.stringify(expandedSections));
+    }
+
+    function closeOpenColMenu() {
+        if (openColMenu) {
+            openColMenu.classList.remove('open');
+            if (openColMenu.parentNode) openColMenu.parentNode.removeChild(openColMenu);
+            openColMenu = null;
+        }
+    }
+
+    function collectionPageIds(col) {
+        return DL.collectPageIdsFromTree((col && col.tree) || []);
+    }
+
+    function collectionMatchesFilter(colId, col, filterText, categoryFilter) {
+        var cat = categoryFilter || activeCategoryFilter || 'all';
+        var fl = (filterText || '').toLowerCase().trim();
+        var pageIds = collectionPageIds(col);
+        for (var i = 0; i < pageIds.length; i++) {
+            var doc = docs[pageIds[i]];
+            if (!doc) continue;
+            if (docMatchesCategory(doc, cat) && docMatchesFilter(doc, fl)) return true;
+        }
+        if (fl && col && (col.title || '').toLowerCase().indexOf(fl) !== -1) {
+            if (cat === 'all') return true;
+            for (var j = 0; j < pageIds.length; j++) {
+                if (docs[pageIds[j]] && docMatchesCategory(docs[pageIds[j]], cat)) return true;
+            }
+        }
+        return pageIds.length === 0 && cat === 'all' && (!fl || (col.title || '').toLowerCase().indexOf(fl) !== -1);
+    }
+
+    function getSortedCollectionIds(filterText, sortKey, categoryFilter) {
+        return Object.keys(collections)
+            .filter(function (id) {
+                return collectionMatchesFilter(id, collections[id], filterText, categoryFilter);
+            })
+            .sort(function (a, b) {
+                var colA = collections[a];
+                var colB = collections[b];
+                var docA = docs[colA.overviewId] || { title: colA.title, createdAt: colA.createdAt, updatedAt: colA.updatedAt };
+                var docB = docs[colB.overviewId] || { title: colB.title, createdAt: colB.createdAt, updatedAt: colB.updatedAt };
+                var cmp = 0;
+                switch (sortKey) {
+                    case 'created-asc':
+                        cmp = tsValue(docA.createdAt) - tsValue(docB.createdAt);
+                        break;
+                    case 'modified-desc':
+                        cmp = tsValue(docB.updatedAt) - tsValue(docA.updatedAt);
+                        break;
+                    case 'modified-asc':
+                        cmp = tsValue(docA.updatedAt) - tsValue(docB.updatedAt);
+                        break;
+                    case 'date-desc':
+                        cmp = docDateValue(docB) - docDateValue(docA);
+                        break;
+                    case 'date-asc':
+                        cmp = docDateValue(docA) - docDateValue(docB);
+                        break;
+                    case 'title-asc':
+                        cmp = (colA.title || docA.title || '').localeCompare(colB.title || docB.title || '', undefined, { sensitivity: 'base' });
+                        break;
+                    case 'title-desc':
+                        cmp = (colB.title || docB.title || '').localeCompare(colA.title || docA.title || '', undefined, { sensitivity: 'base' });
+                        break;
+                    case 'created-desc':
+                    default:
+                        cmp = tsValue(docB.createdAt) - tsValue(docA.createdAt);
+                        break;
+                }
+                if (cmp !== 0) return cmp;
+                return (colA.title || '').localeCompare(colB.title || '', undefined, { sensitivity: 'base' });
+            });
+    }
+
+    function saveCollectionTree(colId, tree, extra) {
+        var payload = Object.assign({ tree: tree, updatedAt: TS() }, extra || {});
+        return collectionsCol.doc(colId).update(payload);
+    }
+
+    function ensureOverviewFirst(tree, overviewId) {
+        var next = (tree || []).slice();
+        var overviewNode = null;
+        var rest = [];
+        next.forEach(function (node) {
+            if (node.type === 'page' && node.id === overviewId) overviewNode = node;
+            else rest.push(node);
+        });
+        if (!overviewNode) overviewNode = { type: 'page', id: overviewId };
+        return [overviewNode].concat(rest);
     }
 
     function createDocListItem(id) {
@@ -337,6 +501,1107 @@
         els.docList.querySelectorAll('.ed-doc-item').forEach(function (el) {
             el.classList.toggle('ed-doc-item--active', el.getAttribute('data-id') === id);
         });
+        els.docList.querySelectorAll('.ed-col-page-row').forEach(function (el) {
+            el.classList.toggle('ed-col-page-row--active', el.getAttribute('data-page-id') === id);
+        });
+        els.docList.querySelectorAll('.ed-col-group').forEach(function (el) {
+            var colId = el.getAttribute('data-col-id');
+            var col = collections[colId];
+            var member = !!(col && collectionPageIds(col).indexOf(id) !== -1);
+            el.classList.toggle('ed-col-group--active', member);
+        });
+    }
+
+    function makeMoveButtons(onUp, onDown) {
+        var wrap = document.createElement('div');
+        wrap.className = 'ed-col-move';
+        var up = document.createElement('button');
+        up.type = 'button';
+        up.title = 'Move up';
+        up.textContent = '▲';
+        up.addEventListener('click', function (e) {
+            e.stopPropagation();
+            onUp();
+        });
+        var down = document.createElement('button');
+        down.type = 'button';
+        down.title = 'Move down';
+        down.textContent = '▼';
+        down.addEventListener('click', function (e) {
+            e.stopPropagation();
+            onDown();
+        });
+        wrap.appendChild(up);
+        wrap.appendChild(down);
+        return wrap;
+    }
+
+    function moveTreeNode(colId, locator, direction) {
+        var col = collections[colId];
+        if (!col) return;
+        var tree = JSON.parse(JSON.stringify(col.tree || []));
+        var arr;
+        var index;
+        if (locator.kind === 'root') {
+            arr = tree;
+            index = locator.index;
+        } else if (locator.kind === 'section-child') {
+            var section = DL.findSectionInTree(tree, locator.sectionId);
+            if (!section) return;
+            if (!section.children) section.children = [];
+            arr = section.children;
+            index = locator.index;
+        } else return;
+
+        var target = index + direction;
+        if (target < 0 || target >= arr.length) return;
+
+        if (locator.kind === 'root') {
+            if (arr[index] && arr[index].type === 'page' && arr[index].id === col.overviewId) return;
+            if (arr[target] && arr[target].type === 'page' && arr[target].id === col.overviewId) return;
+        }
+
+        var tmp = arr[index];
+        arr[index] = arr[target];
+        arr[target] = tmp;
+        tree = ensureOverviewFirst(tree, col.overviewId);
+        saveCollectionTree(colId, tree).then(function () {
+            showToast('Order updated', 'success');
+        });
+    }
+
+    function showAddMenu(anchorBtn, colId, sectionId) {
+        closeOpenColMenu();
+        var menu = document.createElement('div');
+        menu.className = 'ed-col-menu open';
+        var rect = anchorBtn.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.left = Math.max(8, rect.right - 160) + 'px';
+
+        var pageBtn = document.createElement('button');
+        pageBtn.type = 'button';
+        pageBtn.textContent = 'New Doc Page';
+        pageBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            closeOpenColMenu();
+            createCollectionPage(colId, sectionId || null);
+        });
+        menu.appendChild(pageBtn);
+
+        var existingBtn = document.createElement('button');
+        existingBtn.type = 'button';
+        existingBtn.textContent = 'Add existing doc…';
+        existingBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            closeOpenColMenu();
+            openMoveModal({
+                mode: 'pick-doc',
+                targetColId: colId,
+                targetSectionId: sectionId || null
+            });
+        });
+        menu.appendChild(existingBtn);
+
+        if (!sectionId) {
+            var secBtn = document.createElement('button');
+            secBtn.type = 'button';
+            secBtn.textContent = 'New Section';
+            secBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                closeOpenColMenu();
+                createCollectionSection(colId);
+            });
+            menu.appendChild(secBtn);
+        }
+
+        document.body.appendChild(menu);
+        openColMenu = menu;
+    }
+
+    function createPageRow(colId, pageId, locator) {
+        var doc = docs[pageId] || {};
+        var row = document.createElement('div');
+        row.className = 'ed-col-page-row' + (pageId === currentDocId ? ' ed-col-page-row--active' : '');
+        row.setAttribute('data-page-id', pageId);
+
+        var label = document.createElement('span');
+        label.className = 'ed-col-page-label';
+        label.textContent = DL.navLabelFor(doc);
+        row.appendChild(label);
+
+        if (doc.role === 'overview' || (collections[colId] && collections[colId].overviewId === pageId)) {
+            var role = document.createElement('span');
+            role.className = 'ed-col-page-role';
+            role.textContent = 'Overview';
+            row.appendChild(role);
+        }
+
+        row.appendChild(makeMoveButtons(
+            function () { moveTreeNode(colId, locator, -1); },
+            function () { moveTreeNode(colId, locator, 1); }
+        ));
+
+        row.addEventListener('click', function () {
+            loadDoc(pageId);
+            closeMobileSidebar();
+        });
+
+        return row;
+    }
+
+    function createSectionBlock(colId, section, rootIndex) {
+        var secKey = colId + ':' + section.id;
+        var open = expandedSections[secKey] !== false;
+        var block = document.createElement('div');
+        block.className = 'ed-col-section' + (open ? ' ed-col-section--open' : '');
+        block.setAttribute('data-section-id', section.id);
+
+        var row = document.createElement('div');
+        row.className = 'ed-col-section-row';
+
+        var chevron = document.createElement('span');
+        chevron.className = 'ed-col-chevron';
+        chevron.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+        row.appendChild(chevron);
+
+        var label = document.createElement('span');
+        label.className = 'ed-col-page-label';
+        label.textContent = section.title || 'Untitled section';
+        row.appendChild(label);
+
+        var addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'ed-col-add';
+        addBtn.title = 'Add page';
+        addBtn.textContent = '+';
+        addBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            showAddMenu(addBtn, colId, section.id);
+        });
+        row.appendChild(addBtn);
+
+        var gear = document.createElement('button');
+        gear.type = 'button';
+        gear.className = 'ed-col-add';
+        gear.title = 'Section settings';
+        gear.textContent = '⚙';
+        gear.addEventListener('click', function (e) {
+            e.stopPropagation();
+            openSectionModal(colId, section.id);
+        });
+        row.appendChild(gear);
+
+        row.appendChild(makeMoveButtons(
+            function () { moveTreeNode(colId, { kind: 'root', index: rootIndex }, -1); },
+            function () { moveTreeNode(colId, { kind: 'root', index: rootIndex }, 1); }
+        ));
+
+        row.addEventListener('click', function () {
+            expandedSections[secKey] = !block.classList.contains('ed-col-section--open');
+            persistExpandedState();
+            block.classList.toggle('ed-col-section--open');
+        });
+
+        block.appendChild(row);
+
+        var children = document.createElement('div');
+        children.className = 'ed-col-section-children';
+        (section.children || []).forEach(function (child, idx) {
+            if (child.type === 'page') {
+                children.appendChild(createPageRow(colId, child.id, {
+                    kind: 'section-child',
+                    sectionId: section.id,
+                    index: idx
+                }));
+            }
+        });
+        block.appendChild(children);
+        return block;
+    }
+
+    function createCollectionGroup(colId) {
+        var col = collections[colId];
+        if (!col) return null;
+        var isOpen = expandedCollections[colId] !== false;
+        var group = document.createElement('div');
+        group.className = 'ed-col-group' + (isOpen ? ' ed-col-group--open' : '');
+        group.setAttribute('data-col-id', colId);
+        if (currentDocId && collectionPageIds(col).indexOf(currentDocId) !== -1) {
+            group.classList.add('ed-col-group--active');
+            group.classList.add('ed-col-group--open');
+        }
+
+        var header = document.createElement('div');
+        header.className = 'ed-col-header';
+
+        var chevron = document.createElement('span');
+        chevron.className = 'ed-col-chevron';
+        chevron.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+        header.appendChild(chevron);
+
+        var title = document.createElement('span');
+        title.className = 'ed-col-title';
+        title.textContent = col.title || 'Untitled collection';
+        title.title = 'Double-click to rename';
+        title.addEventListener('dblclick', function (e) {
+            e.stopPropagation();
+            var next = prompt('Collection name', col.title || '');
+            if (next === null) return;
+            next = next.trim();
+            if (!next) return;
+            collectionsCol.doc(colId).update({ title: next, updatedAt: TS() }).then(function () {
+                showToast('Collection renamed', 'success');
+            });
+        });
+        header.appendChild(title);
+
+        var badge = document.createElement('span');
+        badge.className = 'ed-col-badge';
+        badge.textContent = 'Docs';
+        header.appendChild(badge);
+
+        var addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'ed-col-add';
+        addBtn.title = 'Add page or section';
+        addBtn.textContent = '+';
+        addBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            expandedCollections[colId] = true;
+            persistExpandedState();
+            showAddMenu(addBtn, colId, null);
+        });
+        header.appendChild(addBtn);
+
+        header.addEventListener('click', function () {
+            var open = !group.classList.contains('ed-col-group--open');
+            expandedCollections[colId] = open;
+            persistExpandedState();
+            group.classList.toggle('ed-col-group--open', open);
+        });
+
+        group.appendChild(header);
+
+        var body = document.createElement('div');
+        body.className = 'ed-col-body';
+        var tree = ensureOverviewFirst(col.tree || [], col.overviewId);
+        tree.forEach(function (node, idx) {
+            if (node.type === 'page') {
+                body.appendChild(createPageRow(colId, node.id, { kind: 'root', index: idx }));
+            } else if (node.type === 'section') {
+                body.appendChild(createSectionBlock(colId, node, idx));
+            }
+        });
+        group.appendChild(body);
+        return group;
+    }
+
+    function renderDocList(filter) {
+        lastRenderedSort = docListSort;
+        var standaloneIds = getFilteredSortedIds(filter, docListSort);
+        var collectionIds = getSortedCollectionIds(filter, docListSort);
+        els.docList.innerHTML = '';
+        collectionIds.forEach(function (colId) {
+            var group = createCollectionGroup(colId);
+            if (group) els.docList.appendChild(group);
+        });
+        standaloneIds.forEach(function (id) {
+            var item = createDocListItem(id);
+            updateDocListItem(item, id);
+            els.docList.appendChild(item);
+        });
+    }
+
+    function updateCollectionMetaUI(doc) {
+        if (!doc || !currentDocId) {
+            if (els.navLabelRow) els.navLabelRow.style.display = 'none';
+            if (els.listOnBlock) els.listOnBlock.style.display = 'none';
+            if (els.publicUrlRow) els.publicUrlRow.style.display = 'none';
+            if (els.collectionActions) els.collectionActions.style.display = 'none';
+            return;
+        }
+
+        var inCollection = !!doc.collectionId;
+        var isStandalone = !doc.collectionId;
+
+        if (els.navLabelRow) els.navLabelRow.style.display = inCollection ? 'flex' : 'none';
+        if (els.listOnBlock) els.listOnBlock.style.display = inCollection ? '' : 'none';
+        if (els.publicUrlRow) els.publicUrlRow.style.display = 'flex';
+        if (els.collectionActions) els.collectionActions.style.display = '';
+
+        if (els.makeCollectionBtn) {
+            els.makeCollectionBtn.style.display = isStandalone ? '' : 'none';
+        }
+        if (els.moveIntoCollectionBtn) {
+            var canMove = isStandalone || (inCollection && doc.role !== 'overview');
+            els.moveIntoCollectionBtn.style.display = canMove ? '' : 'none';
+            els.moveIntoCollectionBtn.textContent = isStandalone
+                ? 'Move into collection…'
+                : 'Move within / to collection…';
+        }
+        if (els.dissolveCollectionBtn) {
+            els.dissolveCollectionBtn.style.display = (inCollection && doc.role === 'overview') ? '' : 'none';
+        }
+
+        if (els.navLabelInput) {
+            els.navLabelInput.value = doc.navLabel || '';
+        }
+        if (els.publicUrlInput) {
+            els.publicUrlInput.value = 'index/doc.html?v=' + currentDocId;
+        }
+
+        var listOn = DL.normalizeListOn(doc.listOn);
+        if (els.listOnProjects) els.listOnProjects.checked = !!listOn.projects;
+        if (els.listOnDevelopment) els.listOnDevelopment.checked = !!listOn.development;
+        if (els.listOnUpdates) els.listOnUpdates.checked = !!listOn.updates;
+    }
+
+    function convertToCollection(name) {
+        if (!currentDocId) return;
+        var doc = docs[currentDocId];
+        if (!doc || doc.collectionId) return;
+        var colId = generateId();
+        var overviewId = currentDocId;
+        var title = (name || doc.title || 'Untitled').trim() || 'Untitled';
+        var listOn = DL.listOnFromCategory(doc.category || '');
+
+        var colData = {
+            title: title,
+            overviewId: overviewId,
+            tree: [{ type: 'page', id: overviewId }],
+            createdAt: TS(),
+            updatedAt: TS()
+        };
+
+        collectionsCol.doc(colId).set(colData).then(function () {
+            return docsCol.doc(overviewId).update({
+                collectionId: colId,
+                role: 'overview',
+                navLabel: doc.navLabel || doc.title || 'Overview',
+                listOn: listOn,
+                updatedAt: TS()
+            });
+        }).then(function () {
+            expandedCollections[colId] = true;
+            persistExpandedState();
+            closeModal('ed-collection-modal');
+            showToast('Document collection created', 'success');
+            loadDoc(overviewId);
+        }).catch(function (err) {
+            console.error(err);
+            showToast('Failed to create collection', 'error');
+        });
+    }
+
+    function createCollectionPage(colId, sectionId) {
+        var col = collections[colId];
+        if (!col) return;
+        var pageId = generateId();
+        var overview = docs[col.overviewId] || {};
+        var data = {
+            title: 'Untitled',
+            navLabel: 'Untitled',
+            subDesc: '',
+            goToUrl: '',
+            date: '',
+            category: overview.category || '',
+            subCategory: overview.subCategory || '',
+            content: '',
+            images: [],
+            published: false,
+            collectionId: colId,
+            role: 'page',
+            listOn: DL.emptyListOn(),
+            createdAt: TS(),
+            updatedAt: TS()
+        };
+
+        docsCol.doc(pageId).set(data).then(function () {
+            var tree = JSON.parse(JSON.stringify(col.tree || []));
+            tree = ensureOverviewFirst(tree, col.overviewId);
+            var node = { type: 'page', id: pageId };
+            if (sectionId) {
+                var section = DL.findSectionInTree(tree, sectionId);
+                if (!section) {
+                    tree.push(node);
+                } else {
+                    if (!section.children) section.children = [];
+                    section.children.push(node);
+                    expandedSections[colId + ':' + sectionId] = true;
+                    persistExpandedState();
+                }
+            } else {
+                tree.push(node);
+            }
+            expandedCollections[colId] = true;
+            persistExpandedState();
+            return saveCollectionTree(colId, tree);
+        }).then(function () {
+            loadDoc(pageId);
+            showToast('Doc page created', 'success');
+        }).catch(function (err) {
+            console.error(err);
+            showToast('Failed to create page', 'error');
+        });
+    }
+
+    function createCollectionSection(colId) {
+        var col = collections[colId];
+        if (!col) return;
+        var title = prompt('Section name', 'New Section');
+        if (title === null) return;
+        title = title.trim() || 'New Section';
+        var sectionId = 'sec_' + generateId();
+        var tree = JSON.parse(JSON.stringify(col.tree || []));
+        tree = ensureOverviewFirst(tree, col.overviewId);
+        tree.push({
+            type: 'section',
+            id: sectionId,
+            title: title,
+            listOn: DL.emptyListOn(),
+            children: []
+        });
+        expandedCollections[colId] = true;
+        expandedSections[colId + ':' + sectionId] = true;
+        persistExpandedState();
+        saveCollectionTree(colId, tree).then(function () {
+            showToast('Section created', 'success');
+            openSectionModal(colId, sectionId);
+        });
+    }
+
+    function openSectionModal(colId, sectionId) {
+        var col = collections[colId];
+        if (!col) return;
+        var section = DL.findSectionInTree(col.tree || [], sectionId);
+        if (!section) return;
+        editingSectionRef = { colId: colId, sectionId: sectionId };
+        document.getElementById('ed-section-title').value = section.title || '';
+        var listOn = DL.normalizeListOn(section.listOn);
+        document.getElementById('ed-sec-liston-projects').checked = !!listOn.projects;
+        document.getElementById('ed-sec-liston-development').checked = !!listOn.development;
+        document.getElementById('ed-sec-liston-updates').checked = !!listOn.updates;
+        openModal('ed-section-modal');
+    }
+
+    function saveSectionModal() {
+        if (!editingSectionRef) return;
+        var colId = editingSectionRef.colId;
+        var sectionId = editingSectionRef.sectionId;
+        var col = collections[colId];
+        if (!col) return;
+        var tree = JSON.parse(JSON.stringify(col.tree || []));
+        var section = DL.findSectionInTree(tree, sectionId);
+        if (!section) return;
+        section.title = document.getElementById('ed-section-title').value.trim() || 'Untitled section';
+        section.listOn = {
+            projects: document.getElementById('ed-sec-liston-projects').checked,
+            development: document.getElementById('ed-sec-liston-development').checked,
+            updates: document.getElementById('ed-sec-liston-updates').checked
+        };
+        saveCollectionTree(colId, tree).then(function () {
+            closeModal('ed-section-modal');
+            editingSectionRef = null;
+            showToast('Section saved', 'success');
+        });
+    }
+
+    function deleteSectionFromModal() {
+        if (!editingSectionRef) return;
+        if (!confirm('Delete this section? Pages inside will move to the collection root.')) return;
+        var colId = editingSectionRef.colId;
+        var sectionId = editingSectionRef.sectionId;
+        var col = collections[colId];
+        if (!col) return;
+        var tree = JSON.parse(JSON.stringify(col.tree || []));
+        var next = [];
+        var orphaned = [];
+        tree.forEach(function (node) {
+            if (node.type === 'section' && node.id === sectionId) {
+                orphaned = (node.children || []).slice();
+            } else {
+                next.push(node);
+            }
+        });
+        next = next.concat(orphaned);
+        next = ensureOverviewFirst(next, col.overviewId);
+        saveCollectionTree(colId, next).then(function () {
+            delete expandedSections[colId + ':' + sectionId];
+            persistExpandedState();
+            closeModal('ed-section-modal');
+            editingSectionRef = null;
+            showToast('Section deleted', 'success');
+        });
+    }
+
+    function dissolveCurrentCollection() {
+        if (!currentDocId) return;
+        var doc = docs[currentDocId];
+        if (!doc || !doc.collectionId) return;
+        var colId = doc.collectionId;
+        var col = collections[colId];
+        if (!col) return;
+        var pageIds = collectionPageIds(col);
+        var batch = db.batch();
+        pageIds.forEach(function (id) {
+            batch.update(docsCol.doc(id), {
+                collectionId: firebase.firestore.FieldValue.delete(),
+                role: firebase.firestore.FieldValue.delete(),
+                updatedAt: TS()
+            });
+        });
+        batch.delete(collectionsCol.doc(colId));
+        batch.commit().then(function () {
+            closeModal('ed-dissolve-modal');
+            delete expandedCollections[colId];
+            persistExpandedState();
+            showToast('Collection dissolved', 'success');
+            loadDoc(col.overviewId || currentDocId);
+        }).catch(function (err) {
+            console.error(err);
+            showToast('Failed to dissolve collection', 'error');
+        });
+    }
+
+    function removePageFromCollectionTree(colId, pageId) {
+        var col = collections[colId];
+        if (!col) return Promise.resolve();
+        var tree = JSON.parse(JSON.stringify(col.tree || []));
+        var next = [];
+        tree.forEach(function (node) {
+            if (node.type === 'page' && node.id === pageId) return;
+            if (node.type === 'section') {
+                node.children = (node.children || []).filter(function (c) {
+                    return !(c.type === 'page' && c.id === pageId);
+                });
+                next.push(node);
+                return;
+            }
+            next.push(node);
+        });
+        return saveCollectionTree(colId, next);
+    }
+
+    function stripPageFromTree(tree, pageId) {
+        var next = [];
+        (tree || []).forEach(function (node) {
+            if (node.type === 'page' && node.id === pageId) return;
+            if (node.type === 'section') {
+                var copy = Object.assign({}, node, {
+                    children: (node.children || []).filter(function (c) {
+                        return !(c.type === 'page' && c.id === pageId);
+                    })
+                });
+                next.push(copy);
+                return;
+            }
+            next.push(node);
+        });
+        return next;
+    }
+
+    function insertPageIntoTree(tree, overviewId, pageId, sectionId) {
+        var next = ensureOverviewFirst(JSON.parse(JSON.stringify(tree || [])), overviewId);
+        next = stripPageFromTree(next, pageId);
+        var node = { type: 'page', id: pageId };
+        if (sectionId) {
+            var section = DL.findSectionInTree(next, sectionId);
+            if (!section) {
+                next.push(node);
+            } else {
+                if (!section.children) section.children = [];
+                section.children.push(node);
+            }
+        } else {
+            next.push(node);
+        }
+        return ensureOverviewFirst(next, overviewId);
+    }
+
+    function getMovableDocIds(excludeId) {
+        return Object.keys(docs)
+            .filter(function (id) {
+                if (excludeId && id === excludeId) return false;
+                var doc = docs[id];
+                if (!doc) return false;
+                if (!doc.collectionId) return true;
+                if (doc.role === 'overview') return false;
+                var col = collections[doc.collectionId];
+                if (col && col.overviewId === id) return false;
+                return true;
+            })
+            .sort(function (a, b) {
+                var ta = (docs[a].title || '').toLowerCase();
+                var tb = (docs[b].title || '').toLowerCase();
+                return ta.localeCompare(tb);
+            });
+    }
+
+    function getSortedCollectionsForPicker() {
+        return Object.keys(collections).sort(function (a, b) {
+            var ta = (collections[a].title || docs[collections[a].overviewId] && docs[collections[a].overviewId].title || '').toLowerCase();
+            var tb = (collections[b].title || docs[collections[b].overviewId] && docs[collections[b].overviewId].title || '').toLowerCase();
+            return ta.localeCompare(tb);
+        });
+    }
+
+    function collectionDisplayTitle(colId) {
+        var col = collections[colId];
+        if (!col) return 'Untitled';
+        return col.title || (docs[col.overviewId] && docs[col.overviewId].title) || 'Untitled';
+    }
+
+    var moveModalState = {
+        mode: 'current-doc',
+        lockedDocId: null,
+        lockedColId: null,
+        lockedSectionId: null
+    };
+
+    function fillMoveDocSelect(preferredId) {
+        if (!els.moveDocSelect) return;
+        var ids = getMovableDocIds();
+        els.moveDocSelect.innerHTML = '';
+        if (!ids.length) {
+            var empty = document.createElement('option');
+            empty.value = '';
+            empty.textContent = 'No movable documents';
+            els.moveDocSelect.appendChild(empty);
+            return;
+        }
+        ids.forEach(function (id) {
+            var doc = docs[id];
+            var opt = document.createElement('option');
+            opt.value = id;
+            var label = doc.title || 'Untitled';
+            if (doc.collectionId) {
+                label += ' · ' + collectionDisplayTitle(doc.collectionId);
+            } else {
+                label += ' · standalone';
+            }
+            opt.textContent = label;
+            els.moveDocSelect.appendChild(opt);
+        });
+        if (preferredId && ids.indexOf(preferredId) !== -1) {
+            els.moveDocSelect.value = preferredId;
+        }
+    }
+
+    function fillMoveCollectionSelect(preferredId) {
+        if (!els.moveCollectionSelect) return;
+        var ids = getSortedCollectionsForPicker();
+        els.moveCollectionSelect.innerHTML = '';
+        if (!ids.length) {
+            var empty = document.createElement('option');
+            empty.value = '';
+            empty.textContent = 'No collections yet';
+            els.moveCollectionSelect.appendChild(empty);
+            return;
+        }
+        ids.forEach(function (id) {
+            var opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = collectionDisplayTitle(id);
+            els.moveCollectionSelect.appendChild(opt);
+        });
+        if (preferredId && ids.indexOf(preferredId) !== -1) {
+            els.moveCollectionSelect.value = preferredId;
+        }
+    }
+
+    function fillMovePlacementSelect(colId, preferredSectionId) {
+        if (!els.movePlacementSelect) return;
+        els.movePlacementSelect.innerHTML = '';
+        var rootOpt = document.createElement('option');
+        rootOpt.value = 'root';
+        rootOpt.textContent = 'Collection root (with Overview)';
+        els.movePlacementSelect.appendChild(rootOpt);
+
+        var col = collections[colId];
+        if (!col) return;
+
+        (col.tree || []).forEach(function (node) {
+            if (node.type !== 'section') return;
+            var opt = document.createElement('option');
+            opt.value = 'section:' + node.id;
+            opt.textContent = 'Section · ' + (node.title || 'Untitled');
+            els.movePlacementSelect.appendChild(opt);
+        });
+
+        if (preferredSectionId) {
+            els.movePlacementSelect.value = 'section:' + preferredSectionId;
+        } else {
+            els.movePlacementSelect.value = 'root';
+        }
+    }
+
+    function parseMovePlacement(value) {
+        if (!value || value === 'root') return null;
+        if (value.indexOf('section:') === 0) return value.slice('section:'.length);
+        return null;
+    }
+
+    function openMoveModal(opts) {
+        opts = opts || {};
+        moveModalState.mode = opts.mode || 'current-doc';
+        moveModalState.lockedDocId = opts.docId || null;
+        moveModalState.lockedColId = opts.targetColId || null;
+        moveModalState.lockedSectionId = opts.targetSectionId || null;
+
+        var hasCollections = Object.keys(collections).length > 0;
+        if (!hasCollections) {
+            showToast('Create a collection first', 'error');
+            return;
+        }
+
+        if (moveModalState.mode === 'pick-doc') {
+            if (els.moveTitle) els.moveTitle.textContent = 'Add Existing Document';
+            if (els.moveHelp) els.moveHelp.textContent = 'Pick a standalone doc (or a page from another collection) to place here.';
+            if (els.moveDocField) els.moveDocField.style.display = '';
+            if (els.moveCollectionField) els.moveCollectionField.style.display = 'none';
+            if (els.moveConfirmBtn) els.moveConfirmBtn.textContent = 'Add';
+            fillMoveDocSelect();
+            fillMovePlacementSelect(moveModalState.lockedColId, moveModalState.lockedSectionId);
+        } else {
+            var docId = moveModalState.lockedDocId || currentDocId;
+            var doc = docs[docId];
+            if (!doc) return;
+            if (doc.role === 'overview' || (doc.collectionId && collections[doc.collectionId] && collections[doc.collectionId].overviewId === docId)) {
+                showToast('Overview pages stay with their collection', 'error');
+                return;
+            }
+            if (els.moveTitle) els.moveTitle.textContent = 'Move into Collection';
+            if (els.moveHelp) els.moveHelp.textContent = 'Place this document under a collection, or inside one of its sections.';
+            if (els.moveDocField) els.moveDocField.style.display = 'none';
+            if (els.moveCollectionField) els.moveCollectionField.style.display = '';
+            if (els.moveConfirmBtn) els.moveConfirmBtn.textContent = 'Move';
+            fillMoveCollectionSelect(doc.collectionId || null);
+            var preferredSection = null;
+            if (doc.collectionId && collections[doc.collectionId]) {
+                var parent = DL.findPageParent(collections[doc.collectionId].tree || [], docId);
+                if (parent && parent.sectionId) preferredSection = parent.sectionId;
+            }
+            var colId = els.moveCollectionSelect ? els.moveCollectionSelect.value : '';
+            fillMovePlacementSelect(colId, preferredSection);
+        }
+
+        openModal('ed-move-modal');
+    }
+
+    function closeMoveModal() {
+        closeModal('ed-move-modal');
+    }
+
+    function moveDocIntoCollection(docId, targetColId, sectionId) {
+        var doc = docs[docId];
+        var targetCol = collections[targetColId];
+        if (!doc || !targetCol) {
+            return Promise.reject(new Error('Missing doc or collection'));
+        }
+        if (doc.role === 'overview' || targetCol.overviewId === docId) {
+            return Promise.reject(new Error('Cannot move overview'));
+        }
+
+        var sourceColId = doc.collectionId || null;
+        var sourceCol = sourceColId ? collections[sourceColId] : null;
+
+        if (sourceColId === targetColId) {
+            var currentParent = DL.findPageParent(sourceCol.tree || [], docId);
+            var currentSection = currentParent ? currentParent.sectionId : null;
+            if ((currentSection || null) === (sectionId || null)) {
+                return Promise.resolve({ unchanged: true });
+            }
+            var sameTree = insertPageIntoTree(sourceCol.tree || [], targetCol.overviewId, docId, sectionId);
+            return saveCollectionTree(targetColId, sameTree).then(function () {
+                return { unchanged: false };
+            });
+        }
+
+        var writes = [];
+
+        if (sourceColId && sourceCol) {
+            var stripped = ensureOverviewFirst(
+                stripPageFromTree(JSON.parse(JSON.stringify(sourceCol.tree || [])), docId),
+                sourceCol.overviewId
+            );
+            writes.push(saveCollectionTree(sourceColId, stripped));
+        }
+
+        var targetTree = insertPageIntoTree(targetCol.tree || [], targetCol.overviewId, docId, sectionId);
+        writes.push(saveCollectionTree(targetColId, targetTree));
+
+        var docUpdate = {
+            collectionId: targetColId,
+            role: 'page',
+            updatedAt: TS()
+        };
+        if (!doc.navLabel) {
+            docUpdate.navLabel = doc.title || 'Untitled';
+        }
+        if (!doc.listOn) {
+            docUpdate.listOn = DL.listOnFromCategory(doc.category || '');
+        }
+        writes.push(docsCol.doc(docId).update(docUpdate));
+
+        return Promise.all(writes).then(function () {
+            return { unchanged: false };
+        });
+    }
+
+    function confirmMoveModal() {
+        var docId;
+        var colId;
+        var sectionId;
+
+        if (moveModalState.mode === 'pick-doc') {
+            docId = els.moveDocSelect ? els.moveDocSelect.value : '';
+            colId = moveModalState.lockedColId;
+            sectionId = parseMovePlacement(els.movePlacementSelect ? els.movePlacementSelect.value : 'root');
+        } else {
+            docId = moveModalState.lockedDocId || currentDocId;
+            colId = els.moveCollectionSelect ? els.moveCollectionSelect.value : '';
+            sectionId = parseMovePlacement(els.movePlacementSelect ? els.movePlacementSelect.value : 'root');
+        }
+
+        if (!docId || !colId) {
+            showToast('Pick a document and collection', 'error');
+            return;
+        }
+
+        var moving = docs[docId];
+        if (!moving) {
+            showToast('Document not found', 'error');
+            return;
+        }
+        if (moving.role === 'overview' || (moving.collectionId && collections[moving.collectionId] && collections[moving.collectionId].overviewId === docId)) {
+            showToast('Overview pages stay with their collection', 'error');
+            return;
+        }
+
+        if (els.moveConfirmBtn) els.moveConfirmBtn.disabled = true;
+
+        moveDocIntoCollection(docId, colId, sectionId).then(function (result) {
+            if (els.moveConfirmBtn) els.moveConfirmBtn.disabled = false;
+            if (result && result.unchanged) {
+                closeMoveModal();
+                showToast('Already in that place', 'success');
+                return;
+            }
+            expandedCollections[colId] = true;
+            if (sectionId) {
+                expandedSections[colId + ':' + sectionId] = true;
+            }
+            persistExpandedState();
+            closeMoveModal();
+            showToast(moveModalState.mode === 'pick-doc' ? 'Document added' : 'Document moved', 'success');
+            loadDoc(docId);
+        }).catch(function (err) {
+            if (els.moveConfirmBtn) els.moveConfirmBtn.disabled = false;
+            console.error(err);
+            showToast('Failed to move document', 'error');
+        });
+    }
+
+    function loadDoc(id) {
+        if (currentDocId && currentDocId !== id) {
+            saveCurrentDoc(true);
+        }
+
+        currentDocId = id;
+        var doc = docs[id];
+        if (!doc) return;
+
+        els.editorView.style.display = 'flex';
+        els.emptyView.style.display = 'none';
+
+        els.titleInput.value = doc.title || '';
+        els.subDescInput.value = doc.subDesc || '';
+        els.goToUrlInput.value = doc.goToUrl || '';
+        els.dateInput.value = normalizeDateInput(doc.date || '');
+        els.catSelect.value = doc.category || '';
+        els.catCustom.style.display = 'none';
+        els.catCustom.value = '';
+        els.subCatSelect.value = doc.subCategory || '';
+        els.subCatCustom.style.display = 'none';
+        els.subCatCustom.value = '';
+        els.editor.innerHTML = doc.content || '';
+        lastSavedContent = doc.content || '';
+        deselectEditorImage();
+
+        renderImages(doc.images || []);
+        updateTopbar(doc);
+        updateCollectionMetaUI(doc);
+        updateWordCount();
+        setActiveDocInList(id);
+        if (doc.collectionId) {
+            expandedCollections[doc.collectionId] = true;
+            persistExpandedState();
+        }
+        rebindCharts();
+        rebindMath();
+    }
+
+    function renderImages(images) {
+        els.imagesList.innerHTML = '';
+        images.forEach(function (url, i) {
+            addImageRow(url, i);
+        });
+    }
+
+    function addImageRow(url, index) {
+        var isLocal = !!(url && url.startsWith('a_home_assets/'));
+        var displayVal = isLocal ? url.replace(/^a_home_assets\//, '') : (url || '');
+
+        var row = document.createElement('div');
+        row.className = 'ed-image-entry';
+
+        var localBtn = document.createElement('button');
+        localBtn.type = 'button';
+        localBtn.className = 'ed-image-local-btn' + (isLocal ? ' ed-image-local-btn--active' : '');
+        localBtn.title = 'Toggle local path (from a_home_assets/)';
+        localBtn.textContent = 'local';
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = isLocal ? 'content/img.png' : 'https://example.com/image.jpg';
+        input.value = displayVal;
+        input.setAttribute('data-index', index !== undefined ? index : -1);
+
+        var preview = document.createElement('div');
+        preview.className = 'ed-image-preview';
+
+        function updatePreview(val) {
+            preview.innerHTML = '';
+            if (val) {
+                var src = localBtn.classList.contains('ed-image-local-btn--active')
+                    ? '../a_home_assets/' + val
+                    : val;
+                var img = document.createElement('img');
+                img.src = src;
+                img.alt = '';
+                img.onerror = function () { this.style.display = 'none'; };
+                preview.appendChild(img);
+            }
+        }
+        updatePreview(displayVal);
+
+        localBtn.addEventListener('click', function () {
+            isLocal = !isLocal;
+            this.classList.toggle('ed-image-local-btn--active', isLocal);
+            input.placeholder = isLocal ? 'content/img.png' : 'https://example.com/image.jpg';
+            updatePreview(input.value.trim());
+            scheduleAutoSave();
+        });
+
+        var remove = document.createElement('button');
+        remove.className = 'ed-image-remove';
+        remove.innerHTML = '&times;';
+        remove.type = 'button';
+
+        input.addEventListener('input', function () {
+            updatePreview(this.value.trim());
+            scheduleAutoSave();
+        });
+
+        remove.addEventListener('click', function () {
+            row.remove();
+            scheduleAutoSave();
+        });
+
+        row.appendChild(localBtn);
+        row.appendChild(input);
+        row.appendChild(preview);
+        row.appendChild(remove);
+        els.imagesList.appendChild(row);
+    }
+
+    function collectImages() {
+        var imgs = [];
+        var entries = els.imagesList.querySelectorAll('.ed-image-entry');
+        entries.forEach(function (entry) {
+            var inp = entry.querySelector('input');
+            var btn = entry.querySelector('.ed-image-local-btn');
+            var v = inp ? inp.value.trim() : '';
+            if (v) {
+                imgs.push(btn && btn.classList.contains('ed-image-local-btn--active')
+                    ? 'a_home_assets/' + v
+                    : v);
+            }
+        });
+        return imgs;
+    }
+
+    function getCurrentDocData() {
+        var cat = els.catSelect.value;
+        if (cat === '__new__') {
+            cat = els.catCustom.value.trim();
+        }
+        var subCat = els.subCatSelect.value;
+        if (subCat === '__new__') {
+            subCat = els.subCatCustom.value.trim();
+        }
+        var data = {
+            title: els.titleInput.value.trim() || 'Untitled',
+            subDesc: els.subDescInput.value.trim(),
+            goToUrl: resolveSiteUrl(els.goToUrlInput.value.trim()),
+            date: normalizeDateInput(els.dateInput.value),
+            category: cat,
+            subCategory: subCat,
+            content: getEditorHtmlForSave(),
+            images: collectImages(),
+            updatedAt: TS()
+        };
+        var existing = docs[currentDocId] || {};
+        if (existing.collectionId) {
+            data.collectionId = existing.collectionId;
+            data.role = existing.role || 'page';
+            data.navLabel = (els.navLabelInput && els.navLabelInput.value.trim()) || '';
+            data.listOn = {
+                projects: !!(els.listOnProjects && els.listOnProjects.checked),
+                development: !!(els.listOnDevelopment && els.listOnDevelopment.checked),
+                updates: !!(els.listOnUpdates && els.listOnUpdates.checked)
+            };
+        }
+        return data;
+    }
+
+    function saveCurrentDoc(silent) {
+        if (!currentDocId) return;
+        var data = getCurrentDocData();
+        docsCol.doc(currentDocId).update(data).then(function () {
+            lastSavedContent = data.content;
+            setStatus('saved');
+            if (!silent) showToast('Saved', 'success');
+        }).catch(function () {
+            setStatus('');
+            if (!silent) showToast('Save failed', 'error');
+        });
+        setStatus('saving');
+    }
+
+    function scheduleAutoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(function () {
+            if (currentDocId) saveCurrentDoc(true);
+        }, 1500);
+    }
+
+    function setStatus(state) {
+        if (state === 'saving') {
+            els.topbarStatus.textContent = 'Saving...';
+            els.topbarStatus.className = 'ed-topbar-status ed-topbar-status--saving';
+        } else if (state === 'saved') {
+            els.topbarStatus.textContent = 'Saved';
+            els.topbarStatus.className = 'ed-topbar-status ed-topbar-status--saved';
+        } else {
+            els.topbarStatus.textContent = '';
+            els.topbarStatus.className = 'ed-topbar-status';
+        }
+    }
+
+    function updateTopbar(doc) {
+        els.topbarTitle.textContent = doc.title || 'Untitled';
     }
 
     function getWordCount(html) {
@@ -454,224 +1719,6 @@
         if (current) els.subCatSelect.value = current;
     }
 
-    function renderDocList(filter) {
-        var sortChanged = docListSort !== lastRenderedSort;
-        lastRenderedSort = docListSort;
-        var sortedIds = getFilteredSortedIds(filter, docListSort);
-        var existingItems = {};
-        var currentOrder = [];
-        els.docList.querySelectorAll('.ed-doc-item').forEach(function (el) {
-            var id = el.getAttribute('data-id');
-            existingItems[id] = el;
-            currentOrder.push(id);
-        });
-
-        var idsAdded = sortedIds.some(function (id) { return !existingItems[id]; });
-        var idsRemoved = currentOrder.some(function (id) { return sortedIds.indexOf(id) === -1; });
-        var orderChanged = sortedIds.length !== currentOrder.length ||
-            sortedIds.some(function (id, i) { return id !== currentOrder[i]; });
-
-        if (idsAdded || idsRemoved || orderChanged || sortChanged) {
-            var seen = {};
-            sortedIds.forEach(function (id) {
-                seen[id] = true;
-                var item = existingItems[id] || createDocListItem(id);
-                updateDocListItem(item, id);
-                els.docList.appendChild(item);
-            });
-            Object.keys(existingItems).forEach(function (id) {
-                if (!seen[id]) existingItems[id].remove();
-            });
-        } else {
-            sortedIds.forEach(function (id) {
-                updateDocListItem(existingItems[id], id);
-            });
-        }
-    }
-
-    function loadDoc(id) {
-        if (currentDocId && currentDocId !== id) {
-            saveCurrentDoc(true);
-        }
-
-        currentDocId = id;
-        var doc = docs[id];
-        if (!doc) return;
-
-        els.editorView.style.display = 'flex';
-        els.emptyView.style.display = 'none';
-
-        els.titleInput.value = doc.title || '';
-        els.subDescInput.value = doc.subDesc || '';
-        els.goToUrlInput.value = doc.goToUrl || '';
-        els.dateInput.value = normalizeDateInput(doc.date || '');
-        els.catSelect.value = doc.category || '';
-        els.catCustom.style.display = 'none';
-        els.catCustom.value = '';
-        els.subCatSelect.value = doc.subCategory || '';
-        els.subCatCustom.style.display = 'none';
-        els.subCatCustom.value = '';
-        els.editor.innerHTML = doc.content || '';
-        lastSavedContent = doc.content || '';
-        deselectEditorImage();
-
-        renderImages(doc.images || []);
-        updateTopbar(doc);
-        updateWordCount();
-        setActiveDocInList(id);
-        rebindCharts();
-    }
-
-    function renderImages(images) {
-        els.imagesList.innerHTML = '';
-        images.forEach(function (url, i) {
-            addImageRow(url, i);
-        });
-    }
-
-    function addImageRow(url, index) {
-        var isLocal = !!(url && url.startsWith('a_home_assets/'));
-        var displayVal = isLocal ? url.replace(/^a_home_assets\//, '') : (url || '');
-
-        var row = document.createElement('div');
-        row.className = 'ed-image-entry';
-
-        var localBtn = document.createElement('button');
-        localBtn.type = 'button';
-        localBtn.className = 'ed-image-local-btn' + (isLocal ? ' ed-image-local-btn--active' : '');
-        localBtn.title = 'Toggle local path (from a_home_assets/)';
-        localBtn.textContent = 'local';
-
-        var input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = isLocal ? 'content/img.png' : 'https://example.com/image.jpg';
-        input.value = displayVal;
-        input.setAttribute('data-index', index !== undefined ? index : -1);
-
-        var preview = document.createElement('div');
-        preview.className = 'ed-image-preview';
-
-        function updatePreview(val) {
-            preview.innerHTML = '';
-            if (val) {
-                var src = localBtn.classList.contains('ed-image-local-btn--active')
-                    ? '../a_home_assets/' + val
-                    : val;
-                var img = document.createElement('img');
-                img.src = src;
-                img.alt = '';
-                img.onerror = function () { this.style.display = 'none'; };
-                preview.appendChild(img);
-            }
-        }
-        updatePreview(displayVal);
-
-        localBtn.addEventListener('click', function () {
-            isLocal = !isLocal;
-            this.classList.toggle('ed-image-local-btn--active', isLocal);
-            input.placeholder = isLocal ? 'content/img.png' : 'https://example.com/image.jpg';
-            updatePreview(input.value.trim());
-            scheduleAutoSave();
-        });
-
-        var remove = document.createElement('button');
-        remove.className = 'ed-image-remove';
-        remove.innerHTML = '&times;';
-        remove.type = 'button';
-
-        input.addEventListener('input', function () {
-            updatePreview(this.value.trim());
-            scheduleAutoSave();
-        });
-
-        remove.addEventListener('click', function () {
-            row.remove();
-            scheduleAutoSave();
-        });
-
-        row.appendChild(localBtn);
-        row.appendChild(input);
-        row.appendChild(preview);
-        row.appendChild(remove);
-        els.imagesList.appendChild(row);
-    }
-
-    function collectImages() {
-        var imgs = [];
-        var entries = els.imagesList.querySelectorAll('.ed-image-entry');
-        entries.forEach(function (entry) {
-            var inp = entry.querySelector('input');
-            var btn = entry.querySelector('.ed-image-local-btn');
-            var v = inp ? inp.value.trim() : '';
-            if (v) {
-                imgs.push(btn && btn.classList.contains('ed-image-local-btn--active')
-                    ? 'a_home_assets/' + v
-                    : v);
-            }
-        });
-        return imgs;
-    }
-
-    function getCurrentDocData() {
-        var cat = els.catSelect.value;
-        if (cat === '__new__') {
-            cat = els.catCustom.value.trim();
-        }
-        var subCat = els.subCatSelect.value;
-        if (subCat === '__new__') {
-            subCat = els.subCatCustom.value.trim();
-        }
-        return {
-            title: els.titleInput.value.trim() || 'Untitled',
-            subDesc: els.subDescInput.value.trim(),
-            goToUrl: resolveSiteUrl(els.goToUrlInput.value.trim()),
-            date: normalizeDateInput(els.dateInput.value),
-            category: cat,
-            subCategory: subCat,
-            content: getEditorHtmlForSave(),
-            images: collectImages(),
-            updatedAt: TS()
-        };
-    }
-
-    function saveCurrentDoc(silent) {
-        if (!currentDocId) return;
-        var data = getCurrentDocData();
-        docsCol.doc(currentDocId).update(data).then(function () {
-            lastSavedContent = data.content;
-            setStatus('saved');
-            if (!silent) showToast('Saved', 'success');
-        }).catch(function () {
-            setStatus('');
-            if (!silent) showToast('Save failed', 'error');
-        });
-        setStatus('saving');
-    }
-
-    function scheduleAutoSave() {
-        clearTimeout(autoSaveTimer);
-        autoSaveTimer = setTimeout(function () {
-            if (currentDocId) saveCurrentDoc(true);
-        }, 1500);
-    }
-
-    function setStatus(state) {
-        if (state === 'saving') {
-            els.topbarStatus.textContent = 'Saving...';
-            els.topbarStatus.className = 'ed-topbar-status ed-topbar-status--saving';
-        } else if (state === 'saved') {
-            els.topbarStatus.textContent = 'Saved';
-            els.topbarStatus.className = 'ed-topbar-status ed-topbar-status--saved';
-        } else {
-            els.topbarStatus.textContent = '';
-            els.topbarStatus.className = 'ed-topbar-status';
-        }
-    }
-
-    function updateTopbar(doc) {
-        els.topbarTitle.textContent = doc.title || 'Untitled';
-    }
-
     function updateWordCount() {
         var count = getWordCount(els.editor.innerHTML);
         els.wordCount.textContent = count + ' word' + (count !== 1 ? 's' : '');
@@ -701,13 +1748,36 @@
     function deleteCurrentDoc() {
         if (!currentDocId) return;
         var id = currentDocId;
-        docsCol.doc(id).delete().then(function () {
+        var doc = docs[id];
+        if (doc && doc.collectionId) {
+            var col = collections[doc.collectionId];
+            if (col && col.overviewId === id) {
+                showToast('Dissolve the collection or promote another page before deleting Overview', 'error');
+                closeModal('ed-delete-modal');
+                return;
+            }
+        }
+
+        var afterDelete = function () {
             currentDocId = null;
             els.editorView.style.display = 'none';
             els.emptyView.style.display = 'flex';
+            updateCollectionMetaUI(null);
             closeModal('ed-delete-modal');
             showToast('Document deleted', 'success');
-        });
+        };
+
+        if (doc && doc.collectionId) {
+            removePageFromCollectionTree(doc.collectionId, id).then(function () {
+                return docsCol.doc(id).delete();
+            }).then(afterDelete).catch(function (err) {
+                console.error(err);
+                showToast('Delete failed', 'error');
+            });
+            return;
+        }
+
+        docsCol.doc(id).delete().then(afterDelete);
     }
 
     function publishCurrentDoc() {
@@ -849,6 +1919,165 @@
         setEditorSelection(range);
         selectEditorImage(img);
         scheduleAutoSave();
+    }
+
+    // ─── Local asset upload helper ─────────────────────────────────────────────
+    function getStoredUploadFolder() {
+        try {
+            return (localStorage.getItem(UPLOAD_FOLDER_STORAGE) || 'screenshots').trim() || 'screenshots';
+        } catch (e) {
+            return 'screenshots';
+        }
+    }
+
+    function setStoredUploadFolder(folder) {
+        var clean = String(folder || '').trim().replace(/\\/g, '/');
+        if (!clean || clean.indexOf('..') !== -1 || clean.indexOf('/') !== -1) return;
+        try {
+            localStorage.setItem(UPLOAD_FOLDER_STORAGE, clean);
+        } catch (e) { /* ignore */ }
+    }
+
+    function resolveUploadFolderFromInputs(selectEl, newEl) {
+        var typed = (newEl && newEl.value || '').trim();
+        if (typed) return typed.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+        return (selectEl && selectEl.value || getStoredUploadFolder()).trim();
+    }
+
+    function fillFolderSelect(selectEl, folders, selected) {
+        if (!selectEl) return;
+        var list = (folders || []).slice();
+        if (selected && list.indexOf(selected) === -1) list.push(selected);
+        list.sort();
+        if (!list.length) list = [selected || 'screenshots'];
+        selectEl.innerHTML = list.map(function (f) {
+            return '<option value="' + f + '"' + (f === selected ? ' selected' : '') + '>' + f + '</option>';
+        }).join('');
+    }
+
+    function checkUploadHelper() {
+        return fetch(IMAGE_UPLOAD_BASE + '/health')
+            .then(function (res) {
+                if (!res.ok) throw new Error('offline');
+                return res.json();
+            })
+            .then(function () { return true; })
+            .catch(function () { return false; });
+    }
+
+    function fetchUploadFolders() {
+        return fetch(IMAGE_UPLOAD_BASE + '/folders')
+            .then(function (res) {
+                if (!res.ok) throw new Error('offline');
+                return res.json();
+            })
+            .then(function (data) { return data.folders || []; })
+            .catch(function () {
+                return loadPicManifest(true).then(function (manifest) {
+                    return (manifest && manifest.folders) || [];
+                });
+            });
+    }
+
+    function refreshUploadFolderUI() {
+        var selected = getStoredUploadFolder();
+        return fetchUploadFolders().then(function (folders) {
+            fillFolderSelect(els.uploadFolderSelect, folders, selected);
+            fillFolderSelect(els.imgUploadFolder, folders, selected);
+            return folders;
+        });
+    }
+
+    function updateUploadHint(online) {
+        if (!els.imgUploadHint) return;
+        if (online) {
+            els.imgUploadHint.innerHTML = 'Helper online — files save to <code>a_home_assets/content/&lt;folder&gt;/</code>';
+        } else {
+            els.imgUploadHint.innerHTML = 'Requires local helper: <code>node scripts/image-upload-server.js</code>';
+        }
+    }
+
+    function uploadImageToAssets(file, folderOverride) {
+        if (!file) return Promise.reject(new Error('No file'));
+        var folder = (folderOverride || getStoredUploadFolder() || 'screenshots').trim();
+        if (!folder || folder.indexOf('..') !== -1 || folder.indexOf('/') !== -1) {
+            return Promise.reject(new Error('Invalid folder name'));
+        }
+
+        var form = new FormData();
+        form.append('folder', folder);
+        form.append('file', file, file.name || 'paste.png');
+
+        return fetch(IMAGE_UPLOAD_BASE + '/upload', {
+            method: 'POST',
+            headers: {
+                'X-Upload-Folder': folder,
+                'X-Upload-Filename': file.name || 'paste.png'
+            },
+            body: form
+        }).then(function (res) {
+            return res.json().then(function (data) {
+                if (!res.ok || !data || !data.path) {
+                    throw new Error((data && data.error) || 'Upload failed');
+                }
+                return data.path;
+            });
+        }).then(function (assetPath) {
+            setStoredUploadFolder(folder);
+            picManifest = null;
+            return loadPicManifest(true).then(function () {
+                return assetPath;
+            });
+        });
+    }
+
+    function handleUploadedImageFile(file, width) {
+        var folder = resolveUploadFolderFromInputs(els.imgUploadFolder, els.imgUploadFolderNew)
+            || resolveUploadFolderFromInputs(els.uploadFolderSelect, els.uploadFolderNew)
+            || getStoredUploadFolder();
+
+        showToast('Uploading image…');
+        return uploadImageToAssets(file, folder).then(function (assetPath) {
+            insertImageInEditor('../a_home_assets/' + assetPath, width >= 50 ? width : 0);
+            showToast('Saved to a_home_assets/' + assetPath, 'success');
+            if (els.imgUploadFolderNew) els.imgUploadFolderNew.value = '';
+            if (els.uploadFolderNew) els.uploadFolderNew.value = '';
+            refreshUploadFolderUI();
+            return assetPath;
+        }).catch(function (err) {
+            var msg = (err && err.message) || 'Upload failed';
+            if (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1) {
+                msg = 'Start helper: node scripts/image-upload-server.js';
+            }
+            showToast(msg, 'error');
+            return null;
+        });
+    }
+
+    function getClipboardImageFile(clipboardData) {
+        if (!clipboardData) return null;
+        try {
+            var files = clipboardData.files;
+            if (files && files.length) {
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i].type && files[i].type.indexOf('image/') === 0) {
+                        return files[i];
+                    }
+                }
+            }
+            var items = clipboardData.items;
+            if (items && items.length) {
+                for (var j = 0; j < items.length; j++) {
+                    if (items[j].kind === 'file' && items[j].type && items[j].type.indexOf('image/') === 0) {
+                        var f = items[j].getAsFile();
+                        if (f) return f;
+                    }
+                }
+            }
+        } catch (err) {
+            return null;
+        }
+        return null;
     }
 
     // ─── In-editor image resize ────────────────────────────────────────────────
@@ -1052,7 +2281,106 @@
         renderDocList(els.filterInput.value);
         if (currentDocId && docs[currentDocId]) {
             updateTopbar(docs[currentDocId]);
+            updateCollectionMetaUI(docs[currentDocId]);
         }
+    });
+
+    collectionsCol.onSnapshot(function (snap) {
+        collections = {};
+        snap.forEach(function (colSnap) {
+            collections[colSnap.id] = colSnap.data();
+        });
+        renderDocList(els.filterInput.value);
+        if (currentDocId && docs[currentDocId]) {
+            updateCollectionMetaUI(docs[currentDocId]);
+        }
+    });
+
+    document.addEventListener('click', function () {
+        closeOpenColMenu();
+    });
+
+    if (els.makeCollectionBtn) {
+        els.makeCollectionBtn.addEventListener('click', function () {
+            if (!currentDocId || !docs[currentDocId] || docs[currentDocId].collectionId) return;
+            var nameInput = document.getElementById('ed-collection-name');
+            nameInput.value = docs[currentDocId].title || '';
+            openModal('ed-collection-modal');
+            nameInput.focus();
+        });
+    }
+
+    document.getElementById('ed-collection-cancel').addEventListener('click', function () {
+        closeModal('ed-collection-modal');
+    });
+    document.getElementById('ed-collection-confirm').addEventListener('click', function () {
+        var name = document.getElementById('ed-collection-name').value.trim();
+        convertToCollection(name);
+    });
+
+    if (els.dissolveCollectionBtn) {
+        els.dissolveCollectionBtn.addEventListener('click', function () {
+            openModal('ed-dissolve-modal');
+        });
+    }
+    document.getElementById('ed-dissolve-cancel').addEventListener('click', function () {
+        closeModal('ed-dissolve-modal');
+    });
+    document.getElementById('ed-dissolve-confirm').addEventListener('click', dissolveCurrentCollection);
+
+    if (els.moveIntoCollectionBtn) {
+        els.moveIntoCollectionBtn.addEventListener('click', function () {
+            if (!currentDocId || !docs[currentDocId]) return;
+            openMoveModal({ mode: 'current-doc', docId: currentDocId });
+        });
+    }
+    if (els.moveCancelBtn) {
+        els.moveCancelBtn.addEventListener('click', closeMoveModal);
+    }
+    if (els.moveConfirmBtn) {
+        els.moveConfirmBtn.addEventListener('click', confirmMoveModal);
+    }
+    if (els.moveModal) {
+        els.moveModal.addEventListener('click', function (e) {
+            if (e.target === this) closeMoveModal();
+        });
+    }
+    if (els.moveCollectionSelect) {
+        els.moveCollectionSelect.addEventListener('change', function () {
+            fillMovePlacementSelect(this.value, null);
+        });
+    }
+
+    document.getElementById('ed-section-cancel').addEventListener('click', function () {
+        closeModal('ed-section-modal');
+        editingSectionRef = null;
+    });
+    document.getElementById('ed-section-save').addEventListener('click', saveSectionModal);
+    document.getElementById('ed-section-delete').addEventListener('click', deleteSectionFromModal);
+
+    if (els.copyUrlBtn) {
+        els.copyUrlBtn.addEventListener('click', function () {
+            var val = els.publicUrlInput ? els.publicUrlInput.value : '';
+            if (!val) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(val).then(function () {
+                    showToast('URL copied', 'success');
+                }).catch(function () {
+                    showToast(val, 'success');
+                });
+            } else {
+                els.publicUrlInput.select();
+                document.execCommand('copy');
+                showToast('URL copied', 'success');
+            }
+        });
+    }
+
+    if (els.navLabelInput) {
+        els.navLabelInput.addEventListener('input', scheduleAutoSave);
+    }
+    [els.listOnProjects, els.listOnDevelopment, els.listOnUpdates].forEach(function (el) {
+        if (el) el.addEventListener('change', scheduleAutoSave);
     });
 
     els.filterInput.addEventListener('input', function () {
@@ -1139,56 +2467,81 @@
 
     els.editor.addEventListener('paste', function (e) {
         e.preventDefault();
-        var html = e.clipboardData.getData('text/html');
-        var text = e.clipboardData.getData('text/plain');
 
-        if (html) {
-            var tmp = document.createElement('div');
-            tmp.innerHTML = html;
+        try {
+            var cd = e.clipboardData;
+            if (!cd) return;
 
-            tmp.querySelectorAll('script, style, meta, link').forEach(function (el) {
-                el.remove();
-            });
+            var html = '';
+            var text = '';
+            try {
+                html = cd.getData('text/html') || '';
+                text = cd.getData('text/plain') || '';
+            } catch (ignore) { /* some browsers restrict clipboard types */ }
 
-            tmp.querySelectorAll('*').forEach(function (el) {
-                var tag = el.tagName.toLowerCase();
-                var allowed = ['p','br','b','strong','i','em','u','a','h1','h2','h3',
-                               'ul','ol','li','blockquote','pre','code','img','hr','span','div'];
-                if (allowed.indexOf(tag) === -1) {
-                    var frag = document.createDocumentFragment();
-                    while (el.firstChild) frag.appendChild(el.firstChild);
-                    el.parentNode.replaceChild(frag, el);
-                }
-            });
+            var imageFile = getClipboardImageFile(cd);
+            var hasRemoteImg = !!(html && /<img[^>]+src\s*=\s*["']https?:\/\//i.test(html));
+            var hasTextContent = !!(text && text.trim()) || !!(html && html.replace(/<[^>]+>/g, '').trim());
 
-            tmp.querySelectorAll('*').forEach(function (el) {
-                var tag = el.tagName.toLowerCase();
-                if (tag === 'img') {
-                    var w = el.style.width;
-                    var h = el.style.height;
+            // Only auto-upload pure image pastes (screenshots). Text/HTML pastes stay normal.
+            // Avoid writing assets on every paste — that refreshes live-reload pages.
+            if (imageFile && !hasRemoteImg && !hasTextContent) {
+                handleUploadedImageFile(imageFile, 0);
+                return;
+            }
+
+            if (html) {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = html;
+
+                tmp.querySelectorAll('script, style, meta, link').forEach(function (el) {
+                    el.remove();
+                });
+
+                tmp.querySelectorAll('*').forEach(function (el) {
+                    var tag = el.tagName.toLowerCase();
+                    var allowed = ['p','br','b','strong','i','em','u','a','h1','h2','h3',
+                                   'ul','ol','li','blockquote','pre','code','img','hr','span','div'];
+                    if (allowed.indexOf(tag) === -1) {
+                        if (!el.parentNode) return;
+                        var frag = document.createDocumentFragment();
+                        while (el.firstChild) frag.appendChild(el.firstChild);
+                        el.parentNode.replaceChild(frag, el);
+                    }
+                });
+
+                tmp.querySelectorAll('*').forEach(function (el) {
+                    var tag = el.tagName.toLowerCase();
+                    if (tag === 'img') {
+                        var w = el.style.width;
+                        var h = el.style.height;
+                        el.removeAttribute('style');
+                        el.removeAttribute('class');
+                        el.removeAttribute('id');
+                        if (w) el.style.width = w;
+                        if (h) el.style.height = h;
+                        return;
+                    }
                     el.removeAttribute('style');
                     el.removeAttribute('class');
                     el.removeAttribute('id');
-                    if (w) el.style.width = w;
-                    if (h) el.style.height = h;
-                    return;
-                }
-                el.removeAttribute('style');
-                el.removeAttribute('class');
-                el.removeAttribute('id');
-            });
+                });
 
-            tmp.querySelectorAll('a').forEach(function (a) {
-                a.setAttribute('target', '_blank');
-                a.setAttribute('rel', 'noopener');
-            });
+                tmp.querySelectorAll('a').forEach(function (a) {
+                    a.setAttribute('target', '_blank');
+                    a.setAttribute('rel', 'noopener');
+                });
 
-            document.execCommand('insertHTML', false, tmp.innerHTML);
-        } else if (text) {
-            document.execCommand('insertText', false, text);
+                document.execCommand('insertHTML', false, tmp.innerHTML);
+            } else if (text) {
+                document.execCommand('insertText', false, text);
+            }
+            scheduleAutoSave();
+            saveEditorSelection();
+        } catch (err) {
+            console.error('Paste failed', err);
+            showToast('Paste failed', 'error');
         }
-        scheduleAutoSave();
-        saveEditorSelection();
     });
 
     document.querySelectorAll('.ed-toolbar-btn[data-cmd]').forEach(function (btn) {
@@ -1234,12 +2587,17 @@
         openModal('ed-img-modal');
         document.getElementById('ed-img-url').value = '';
         document.getElementById('ed-img-insert-width').value = '';
+        if (els.imgUploadFile) els.imgUploadFile.value = '';
+        if (els.imgUploadFileName) els.imgUploadFileName.textContent = 'No file chosen';
+        if (els.imgUploadWidth) els.imgUploadWidth.value = '';
+        if (els.imgUploadFolderNew) els.imgUploadFolderNew.value = '';
         activateImgTab('url');
         setTimeout(function () { document.getElementById('ed-img-url').focus(); }, 50);
     });
 
-    var imgTabs = document.querySelectorAll('[data-img-type]');
+    var imgTabs = document.querySelectorAll('#ed-img-modal [data-img-type]');
     var currentImgType = 'url';
+    var pendingUploadFile = null;
 
     function activateImgTab(type) {
         currentImgType = type;
@@ -1248,20 +2606,63 @@
         });
         var label = document.getElementById('ed-img-label');
         var input = document.getElementById('ed-img-url');
+        var isUpload = type === 'upload';
+        if (els.imgUrlFields) els.imgUrlFields.style.display = isUpload ? 'none' : '';
+        if (els.imgUploadFields) els.imgUploadFields.style.display = isUpload ? '' : 'none';
+        var insertBtn = document.getElementById('ed-img-insert');
+        if (insertBtn) insertBtn.textContent = isUpload ? 'Upload & Insert' : 'Insert';
+
         if (type === 'local') {
             label.textContent = 'Path from a_home_assets/';
             input.placeholder = 'content/img.png';
-        } else {
+        } else if (!isUpload) {
             label.textContent = 'Image URL';
             input.placeholder = 'https://';
+        }
+
+        if (isUpload) {
+            refreshUploadFolderUI();
+            checkUploadHelper().then(updateUploadHint);
         }
     }
 
     imgTabs.forEach(function (tab) {
-        tab.addEventListener('click', function () { activateImgTab(this.getAttribute('data-img-type')); });
+        tab.addEventListener('click', function () {
+            var type = this.getAttribute('data-img-type');
+            if (type === 'browse') {
+                closeModal('ed-img-modal');
+                openPicBrowser('editor');
+            } else {
+                activateImgTab(type);
+            }
+        });
     });
 
+    if (els.imgUploadFile) {
+        els.imgUploadFile.addEventListener('change', function () {
+            pendingUploadFile = (this.files && this.files[0]) || null;
+            if (els.imgUploadFileName) {
+                els.imgUploadFileName.textContent = pendingUploadFile
+                    ? pendingUploadFile.name
+                    : 'No file chosen';
+            }
+        });
+    }
+
     document.getElementById('ed-img-insert').addEventListener('click', function () {
+        if (currentImgType === 'upload') {
+            var file = pendingUploadFile || (els.imgUploadFile && els.imgUploadFile.files && els.imgUploadFile.files[0]);
+            if (!file) {
+                showToast('Choose an image file first', 'error');
+                return;
+            }
+            var uploadWidth = parseInt(els.imgUploadWidth && els.imgUploadWidth.value, 10);
+            closeModal('ed-img-modal');
+            handleUploadedImageFile(file, uploadWidth);
+            pendingUploadFile = null;
+            return;
+        }
+
         var val = document.getElementById('ed-img-url').value.trim();
         var width = parseInt(document.getElementById('ed-img-insert-width').value, 10);
         closeModal('ed-img-modal');
@@ -1277,6 +2678,20 @@
     document.getElementById('ed-img-modal').addEventListener('click', function (e) {
         if (e.target === this) closeModal('ed-img-modal');
     });
+
+    if (els.uploadImageBtn && els.uploadImageInput) {
+        els.uploadImageBtn.addEventListener('mousedown', saveEditorSelection);
+        els.uploadImageBtn.addEventListener('click', function () {
+            els.uploadImageInput.value = '';
+            els.uploadImageInput.click();
+        });
+        els.uploadImageInput.addEventListener('change', function () {
+            var file = this.files && this.files[0];
+            if (!file) return;
+            handleUploadedImageFile(file, 0);
+            this.value = '';
+        });
+    }
 
     // ─── Picture Browser ───────────────────────────────────────────────────────
     var picManifest = null;
@@ -1298,9 +2713,9 @@
         browseBtn: document.getElementById('ed-browse-images')
     };
 
-    function loadPicManifest() {
-        if (picManifest) return Promise.resolve(picManifest);
-        return fetch('../a_home_assets/manifest.json')
+    function loadPicManifest(force) {
+        if (picManifest && !force) return Promise.resolve(picManifest);
+        return fetch('../a_home_assets/manifest.json?t=' + Date.now())
             .then(function (res) {
                 if (!res.ok) throw new Error('Manifest not found');
                 return res.json();
@@ -1449,19 +2864,6 @@
             openPicBrowser('list');
         });
     }
-
-    // Update image tab to handle 'browse' type
-    imgTabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-            var type = this.getAttribute('data-img-type');
-            if (type === 'browse') {
-                closeModal('ed-img-modal');
-                openPicBrowser('editor');
-            } else {
-                activateImgTab(type);
-            }
-        });
-    });
 
     document.getElementById('ed-insert-hr-btn').addEventListener('click', function () {
         execCmd('insertHorizontalRule');
@@ -1911,12 +3313,20 @@
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Delete' || e.key === 'Backspace') {
-            var selected = document.querySelector('.ed-chart-container.ed-chart--selected');
-            if (selected && els.editor.contains(selected)) {
+            var selectedChart = document.querySelector('.ed-chart-container.ed-chart--selected');
+            if (selectedChart && els.editor.contains(selectedChart)) {
                 e.preventDefault();
-                selected.remove();
+                selectedChart.remove();
                 scheduleAutoSave();
                 showToast('Chart deleted', 'success');
+                return;
+            }
+            var selectedMath = document.querySelector('.ed-math.ed-math--selected');
+            if (selectedMath && els.editor.contains(selectedMath)) {
+                e.preventDefault();
+                selectedMath.remove();
+                scheduleAutoSave();
+                showToast('Math deleted', 'success');
             }
         }
     });
@@ -1934,6 +3344,7 @@
         clone.querySelectorAll('.ed-chart-container').forEach(function (el) {
             el.innerHTML = '';
         });
+        if (window.EdLatex) EdLatex.stripRendered(clone);
         return clone.innerHTML;
     }
 
@@ -2018,6 +3429,766 @@
 
     document.getElementById('ed-insert-chart-btn').addEventListener('mousedown', saveEditorSelection);
     document.getElementById('ed-insert-chart-btn').addEventListener('click', openChartModal);
+
+    // ─── LaTeX / Math Feature ─────────────────────────────────────────────────
+    var mathEls = {
+        modal: document.getElementById('ed-math-modal'),
+        source: document.getElementById('ed-math-source'),
+        preview: document.getElementById('ed-math-preview'),
+        insertBtn: document.getElementById('ed-math-insert'),
+        cancelBtn: document.getElementById('ed-math-cancel'),
+        modeTabs: document.getElementById('ed-math-mode-tabs')
+    };
+    var mathDisplayMode = false;
+    var editingMathEl = null;
+
+    function getMathMode() {
+        return mathDisplayMode;
+    }
+
+    function setMathMode(display) {
+        mathDisplayMode = !!display;
+        if (!mathEls.modeTabs) return;
+        mathEls.modeTabs.querySelectorAll('[data-math-mode]').forEach(function (tab) {
+            var isActive = (tab.getAttribute('data-math-mode') === 'display') === mathDisplayMode;
+            tab.classList.toggle('ed-link-type-tab--active', isActive);
+        });
+        updateMathPreview();
+    }
+
+    function updateMathPreview() {
+        if (!mathEls.preview) return;
+        var src = (mathEls.source && mathEls.source.value || '').trim();
+        if (!src) {
+            mathEls.preview.innerHTML = '<span class="ed-math-preview-placeholder">Type LaTeX to preview</span>';
+            mathEls.preview.classList.toggle('ed-math-preview--display', mathDisplayMode);
+            return;
+        }
+        mathEls.preview.innerHTML = '';
+        mathEls.preview.classList.toggle('ed-math-preview--display', mathDisplayMode);
+        if (!window.katex) {
+            mathEls.preview.textContent = src;
+            return;
+        }
+        try {
+            katex.render(src, mathEls.preview, {
+                displayMode: mathDisplayMode,
+                throwOnError: false,
+                strict: 'ignore'
+            });
+        } catch (err) {
+            mathEls.preview.textContent = err && err.message ? err.message : 'Invalid LaTeX';
+        }
+    }
+
+    function closeMathModal() {
+        editingMathEl = null;
+        if (mathEls.insertBtn) {
+            mathEls.insertBtn.textContent = 'Insert';
+            mathEls.insertBtn.onclick = insertMath;
+        }
+        closeModal('ed-math-modal');
+    }
+
+    function openMathModal(prefill) {
+        editingMathEl = null;
+        if (mathEls.source) {
+            mathEls.source.value = prefill || '';
+        }
+        setMathMode(false);
+        updateMathPreview();
+        if (mathEls.insertBtn) {
+            mathEls.insertBtn.textContent = 'Insert';
+            mathEls.insertBtn.onclick = insertMath;
+        }
+        openModal('ed-math-modal');
+        if (mathEls.source) {
+            setTimeout(function () { mathEls.source.focus(); }, 30);
+        }
+    }
+
+    function insertMath() {
+        if (!window.EdLatex) {
+            showToast('LaTeX engine not loaded', 'error');
+            return;
+        }
+        var src = (mathEls.source && mathEls.source.value || '').trim();
+        if (!src) {
+            showToast('Enter LaTeX first', 'error');
+            return;
+        }
+
+        var mathEl = EdLatex.createElement(src, getMathMode());
+        var range = getEditorInsertionRange();
+        els.editor.focus();
+        range.deleteContents();
+        range.insertNode(mathEl);
+
+        if (!getMathMode()) {
+            var spacer = document.createTextNode('\u00A0');
+            range.setStartAfter(mathEl);
+            range.insertNode(spacer);
+            range.setStartAfter(spacer);
+        } else {
+            range.setStartAfter(mathEl);
+        }
+        range.collapse(true);
+        setEditorSelection(range);
+
+        bindMathEditorEvents(mathEl);
+        closeMathModal();
+        scheduleAutoSave();
+        showToast('Math inserted', 'success');
+    }
+
+    function bindMathEditorEvents(mathEl) {
+        if (!mathEl || mathEl._edMathBound) return;
+        mathEl._edMathBound = true;
+
+        mathEl.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.querySelectorAll('.ed-math.ed-math--selected').forEach(function (m) {
+                m.classList.remove('ed-math--selected');
+            });
+            this.classList.add('ed-math--selected');
+        });
+
+        mathEl.addEventListener('dblclick', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            editMath(this);
+        });
+    }
+
+    function editMath(mathEl) {
+        if (!window.EdLatex || !mathEl) return;
+        editingMathEl = mathEl;
+        if (mathEls.source) mathEls.source.value = EdLatex.getSource(mathEl);
+        setMathMode(EdLatex.isDisplay(mathEl));
+        updateMathPreview();
+        if (mathEls.insertBtn) {
+            mathEls.insertBtn.textContent = 'Update';
+            mathEls.insertBtn.onclick = function () {
+                var src = (mathEls.source && mathEls.source.value || '').trim();
+                if (!src) {
+                    showToast('Enter LaTeX first', 'error');
+                    return;
+                }
+                var display = getMathMode();
+                var wasDisplay = EdLatex.isDisplay(mathEl);
+                if (wasDisplay !== display) {
+                    var replacement = EdLatex.createElement(src, display);
+                    mathEl.parentNode.replaceChild(replacement, mathEl);
+                    bindMathEditorEvents(replacement);
+                } else {
+                    EdLatex.render(mathEl, { source: src, display: display });
+                    mathEl._edMathBound = false;
+                    bindMathEditorEvents(mathEl);
+                }
+                closeMathModal();
+                scheduleAutoSave();
+                showToast('Math updated', 'success');
+            };
+        }
+        openModal('ed-math-modal');
+        if (mathEls.source) {
+            setTimeout(function () { mathEls.source.focus(); }, 30);
+        }
+    }
+
+    function rebindMath() {
+        if (!window.EdLatex) return;
+        EdLatex.renderAll(els.editor);
+        els.editor.querySelectorAll('.ed-math').forEach(function (mathEl) {
+            mathEl._edMathBound = false;
+            bindMathEditorEvents(mathEl);
+        });
+    }
+
+    els.editor.addEventListener('click', function (e) {
+        if (!e.target.closest('.ed-math')) {
+            document.querySelectorAll('.ed-math.ed-math--selected').forEach(function (m) {
+                m.classList.remove('ed-math--selected');
+            });
+        }
+    });
+
+    if (mathEls.modeTabs) {
+        mathEls.modeTabs.querySelectorAll('[data-math-mode]').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                setMathMode(this.getAttribute('data-math-mode') === 'display');
+            });
+        });
+    }
+
+    if (mathEls.source) {
+        mathEls.source.addEventListener('input', updateMathPreview);
+    }
+
+    if (mathEls.insertBtn) {
+        mathEls.insertBtn.addEventListener('click', insertMath);
+    }
+
+    if (mathEls.cancelBtn) {
+        mathEls.cancelBtn.addEventListener('click', closeMathModal);
+    }
+
+    if (mathEls.modal) {
+        mathEls.modal.addEventListener('click', function (e) {
+            if (e.target === this) closeMathModal();
+        });
+    }
+
+    var mathToolbarBtn = document.getElementById('ed-insert-math-btn');
+    if (mathToolbarBtn) {
+        mathToolbarBtn.addEventListener('mousedown', saveEditorSelection);
+        mathToolbarBtn.addEventListener('click', function () {
+            var sel = window.getSelection();
+            var prefill = '';
+            if (sel && sel.rangeCount && els.editor.contains(sel.anchorNode)) {
+                prefill = sel.toString();
+            }
+            openMathModal(prefill);
+        });
+    }
+
+    // ─── Settings (OpenAI BYOK) ───────────────────────────────────────────────
+    function getStoredOpenAiKey() {
+        try {
+            return (localStorage.getItem(OPENAI_KEY_STORAGE) || '').trim();
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function setStoredOpenAiKey(key) {
+        try {
+            if (key) localStorage.setItem(OPENAI_KEY_STORAGE, key);
+            else localStorage.removeItem(OPENAI_KEY_STORAGE);
+        } catch (e) { /* ignore */ }
+    }
+
+    function openSettingsModal() {
+        if (!els.settingsModal) return;
+        if (els.openaiKeyInput) els.openaiKeyInput.value = getStoredOpenAiKey();
+        if (els.uploadFolderNew) els.uploadFolderNew.value = '';
+        refreshUploadFolderUI();
+        els.settingsModal.classList.add('open');
+        if (els.openaiKeyInput) {
+            setTimeout(function () { els.openaiKeyInput.focus(); }, 30);
+        }
+    }
+
+    function closeSettingsModal() {
+        if (els.settingsModal) els.settingsModal.classList.remove('open');
+    }
+
+    if (els.settingsBtn) {
+        els.settingsBtn.addEventListener('click', openSettingsModal);
+    }
+    if (els.settingsCancel) {
+        els.settingsCancel.addEventListener('click', closeSettingsModal);
+    }
+    if (els.settingsSave) {
+        els.settingsSave.addEventListener('click', function () {
+            var key = (els.openaiKeyInput && els.openaiKeyInput.value || '').trim();
+            setStoredOpenAiKey(key);
+            var folder = resolveUploadFolderFromInputs(els.uploadFolderSelect, els.uploadFolderNew);
+            if (folder) setStoredUploadFolder(folder);
+            if (els.uploadFolderNew) els.uploadFolderNew.value = '';
+            refreshUploadFolderUI();
+            closeSettingsModal();
+            showToast('Settings saved', 'success');
+        });
+    }
+    if (els.settingsClear) {
+        els.settingsClear.addEventListener('click', function () {
+            if (els.openaiKeyInput) els.openaiKeyInput.value = '';
+            setStoredOpenAiKey('');
+            showToast('API key cleared', 'success');
+        });
+    }
+    if (els.settingsModal) {
+        els.settingsModal.addEventListener('click', function (e) {
+            if (e.target === els.settingsModal) closeSettingsModal();
+        });
+    }
+
+    refreshUploadFolderUI();
+
+    // ─── Ask AI popup ─────────────────────────────────────────────────────────
+    var aiSelectionRange = null;
+    var aiSelectionText = '';
+    var aiHighlightEl = null;
+    var aiLoading = false;
+    var aiHideTimer = null;
+    // 'hidden' | 'chip' | 'compose'
+    var aiMode = 'hidden';
+
+    function isAiPopupTarget(node) {
+        return !!(els.aiPopup && node && (node === els.aiPopup || els.aiPopup.contains(node)));
+    }
+
+    function setAiStatus(msg, isError) {
+        if (!els.aiStatus) return;
+        if (!msg) {
+            els.aiStatus.hidden = true;
+            els.aiStatus.textContent = '';
+            els.aiStatus.classList.remove('ed-ai-popup-status--error');
+            return;
+        }
+        els.aiStatus.hidden = false;
+        els.aiStatus.textContent = msg;
+        els.aiStatus.classList.toggle('ed-ai-popup-status--error', !!isError);
+    }
+
+    function setAiPreview(text) {
+        if (!els.aiPreview) return;
+        if (!text) {
+            els.aiPreview.hidden = true;
+            els.aiPreview.textContent = '';
+            return;
+        }
+        var shown = text.length > 180 ? text.slice(0, 177) + '…' : text;
+        els.aiPreview.hidden = false;
+        els.aiPreview.textContent = shown;
+        els.aiPreview.title = text;
+    }
+
+    function setAiStages(mode) {
+        aiMode = mode;
+        if (els.aiPopup) {
+            els.aiPopup.classList.toggle('is-compose', mode === 'compose');
+        }
+        if (els.aiPromptStage) els.aiPromptStage.hidden = mode !== 'chip';
+        if (els.aiComposeStage) els.aiComposeStage.hidden = mode !== 'compose';
+    }
+
+    function unwrapAiHighlight() {
+        if (!aiHighlightEl || !aiHighlightEl.parentNode) {
+            aiHighlightEl = null;
+            return;
+        }
+        var parent = aiHighlightEl.parentNode;
+        while (aiHighlightEl.firstChild) {
+            parent.insertBefore(aiHighlightEl.firstChild, aiHighlightEl);
+        }
+        parent.removeChild(aiHighlightEl);
+        parent.normalize();
+        aiHighlightEl = null;
+    }
+
+    function wrapRangeInHighlight(range) {
+        unwrapAiHighlight();
+        var mark = document.createElement('mark');
+        mark.className = 'ed-ai-highlight';
+        try {
+            range.surroundContents(mark);
+        } catch (err) {
+            var contents = range.extractContents();
+            mark.appendChild(contents);
+            range.insertNode(mark);
+        }
+        return mark;
+    }
+
+    function hideAiPopup() {
+        if (aiLoading) return;
+        if (!els.aiPopup) return;
+        unwrapAiHighlight();
+        els.aiPopup.hidden = true;
+        setAiStages('hidden');
+        if (els.aiInput) els.aiInput.value = '';
+        setAiStatus('');
+        setAiPreview('');
+        aiSelectionRange = null;
+        aiSelectionText = '';
+    }
+
+    function getEditorSelectionText() {
+        var sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.rangeCount) return '';
+        var range = sel.getRangeAt(0);
+        if (!isRangeInEditor(range)) return '';
+        return (sel.toString() || '').replace(/\u00a0/g, ' ');
+    }
+
+    function positionAiPopupFromRect(rect) {
+        if (!els.aiPopup || !rect) return;
+        els.aiPopup.hidden = false;
+        var popupW = els.aiPopup.offsetWidth || (aiMode === 'compose' ? 352 : 150);
+        var popupH = els.aiPopup.offsetHeight || (aiMode === 'compose' ? 110 : 40);
+        var gap = 10;
+        var left = rect.left + rect.width / 2 - popupW / 2;
+        var top = rect.top - popupH - gap;
+
+        if (top < 8) top = rect.bottom + gap;
+        left = Math.max(8, Math.min(left, window.innerWidth - popupW - 8));
+        top = Math.max(8, Math.min(top, window.innerHeight - popupH - 8));
+
+        els.aiPopup.style.left = left + 'px';
+        els.aiPopup.style.top = top + 'px';
+    }
+
+    function positionAiPopup() {
+        if (aiHighlightEl && aiHighlightEl.parentNode) {
+            positionAiPopupFromRect(aiHighlightEl.getBoundingClientRect());
+            return;
+        }
+        if (aiSelectionRange) {
+            try {
+                var rect = aiSelectionRange.getBoundingClientRect();
+                if (rect && (rect.width || rect.height)) {
+                    positionAiPopupFromRect(rect);
+                    return;
+                }
+                var rects = aiSelectionRange.getClientRects();
+                if (rects && rects.length) positionAiPopupFromRect(rects[0]);
+            } catch (e) { /* stale range */ }
+        }
+    }
+
+    // Stage 1: lightweight chip only — keeps native selection so delete/edit still work.
+    function showAiChipFromSelection() {
+        if (aiLoading) return;
+        if (aiMode === 'compose') return;
+
+        var sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.rangeCount) {
+            hideAiPopup();
+            return;
+        }
+        var range = sel.getRangeAt(0);
+        if (!isRangeInEditor(range)) {
+            hideAiPopup();
+            return;
+        }
+        var text = (sel.toString() || '').replace(/\u00a0/g, ' ');
+        if (!text.trim()) {
+            hideAiPopup();
+            return;
+        }
+
+        unwrapAiHighlight();
+        aiSelectionRange = range.cloneRange();
+        lastEditorRange = range.cloneRange();
+        aiSelectionText = text;
+        if (els.aiInput) els.aiInput.value = '';
+        setAiStatus('');
+        setAiPreview('');
+        setAiStages('chip');
+        positionAiPopup();
+    }
+
+    // Stage 2: lock selection + open input after explicit click.
+    function openAiCompose() {
+        if (aiLoading) return;
+
+        var range = null;
+        var text = '';
+        var sel = window.getSelection();
+        if (sel && !sel.isCollapsed && sel.rangeCount) {
+            var live = sel.getRangeAt(0);
+            if (isRangeInEditor(live)) {
+                range = live.cloneRange();
+                text = (sel.toString() || '').replace(/\u00a0/g, ' ');
+            }
+        }
+        if ((!range || !text.trim()) && aiSelectionRange && isRangeInEditor(aiSelectionRange)) {
+            range = aiSelectionRange.cloneRange();
+            text = aiSelectionText || '';
+        }
+        if (!range || !String(text).trim()) {
+            showToast('Select text first', 'error');
+            hideAiPopup();
+            return;
+        }
+
+        aiHighlightEl = wrapRangeInHighlight(range);
+        aiSelectionText = (aiHighlightEl.textContent || text).replace(/\u00a0/g, ' ');
+        var locked = document.createRange();
+        locked.selectNodeContents(aiHighlightEl);
+        aiSelectionRange = locked;
+        lastEditorRange = locked.cloneRange();
+
+        setAiStages('compose');
+        setAiPreview(aiSelectionText.trim());
+        setAiStatus('');
+        if (els.aiInput) els.aiInput.value = '';
+        positionAiPopup();
+
+        if (sel) sel.removeAllRanges();
+        if (els.aiInput) {
+            setTimeout(function () {
+                if (aiMode === 'compose' && !els.aiPopup.hidden) els.aiInput.focus();
+            }, 0);
+        }
+    }
+
+    function insertAiReplacement(text) {
+        if (aiHighlightEl && aiHighlightEl.parentNode) {
+            var parent = aiHighlightEl.parentNode;
+            var frag = document.createDocumentFragment();
+            var parts = String(text).split(/\n/);
+            var lastNode = null;
+            parts.forEach(function (part, idx) {
+                if (idx > 0) {
+                    lastNode = document.createElement('br');
+                    frag.appendChild(lastNode);
+                }
+                if (part) {
+                    lastNode = document.createTextNode(part);
+                    frag.appendChild(lastNode);
+                }
+            });
+            parent.insertBefore(frag, aiHighlightEl);
+            parent.removeChild(aiHighlightEl);
+            parent.normalize();
+            aiHighlightEl = null;
+
+            if (lastNode) {
+                var after = document.createRange();
+                after.setStartAfter(lastNode);
+                after.collapse(true);
+                els.editor.focus();
+                setEditorSelection(after);
+            }
+            scheduleAutoSave();
+            return true;
+        }
+
+        var range = aiSelectionRange;
+        if (!range || !isRangeInEditor(range)) {
+            range = lastEditorRange && isRangeInEditor(lastEditorRange) ? lastEditorRange.cloneRange() : null;
+        }
+        if (!range) return false;
+
+        els.editor.focus();
+        setEditorSelection(range);
+        range = getEditorInsertionRange();
+        range.deleteContents();
+
+        var frag2 = document.createDocumentFragment();
+        var parts2 = String(text).split(/\n/);
+        parts2.forEach(function (part, idx) {
+            if (idx > 0) frag2.appendChild(document.createElement('br'));
+            if (part) frag2.appendChild(document.createTextNode(part));
+        });
+        var last = frag2.lastChild;
+        range.insertNode(frag2);
+
+        if (last) {
+            var after2 = document.createRange();
+            after2.setStartAfter(last);
+            after2.collapse(true);
+            setEditorSelection(after2);
+        }
+
+        scheduleAutoSave();
+        return true;
+    }
+
+    function runAskAi() {
+        if (aiLoading) return;
+        var instruction = (els.aiInput && els.aiInput.value || '').trim();
+        if (!instruction) {
+            setAiStatus('Type what you want changed', true);
+            if (els.aiInput) els.aiInput.focus();
+            return;
+        }
+
+        if (aiHighlightEl && aiHighlightEl.parentNode) {
+            aiSelectionText = (aiHighlightEl.textContent || '').replace(/\u00a0/g, ' ');
+        }
+        if (!aiSelectionText || !aiSelectionText.trim()) {
+            setAiStatus('Select text first', true);
+            return;
+        }
+
+        var apiKey = getStoredOpenAiKey();
+        if (!apiKey) {
+            hideAiPopup();
+            openSettingsModal();
+            showToast('Add your OpenAI API key', 'error');
+            return;
+        }
+
+        var user = auth.currentUser;
+        if (!user) {
+            showToast('Sign in required', 'error');
+            return;
+        }
+
+        aiLoading = true;
+        if (els.aiPopup) els.aiPopup.classList.add('is-loading');
+        if (els.aiSend) els.aiSend.disabled = true;
+        if (els.aiInput) els.aiInput.disabled = true;
+        if (els.aiAskBtn) els.aiAskBtn.disabled = true;
+        setAiStatus('Thinking…');
+
+        var selectionPayload = aiSelectionText;
+
+        user.getIdToken().then(function (token) {
+            return fetch(ASK_AI_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    apiKey: apiKey,
+                    selection: selectionPayload,
+                    instruction: instruction
+                })
+            });
+        }).then(function (res) {
+            return res.json().then(function (data) {
+                return { ok: res.ok, status: res.status, data: data || {} };
+            }).catch(function () {
+                return { ok: false, status: res.status, data: { error: 'Invalid response' } };
+            });
+        }).then(function (result) {
+            if (!result.ok || !result.data.text) {
+                throw new Error((result.data && result.data.error) || 'Ask AI failed');
+            }
+            var ok = insertAiReplacement(result.data.text);
+            aiLoading = false;
+            if (els.aiPopup) els.aiPopup.classList.remove('is-loading');
+            if (els.aiSend) els.aiSend.disabled = false;
+            if (els.aiInput) els.aiInput.disabled = false;
+            if (els.aiAskBtn) els.aiAskBtn.disabled = false;
+            aiSelectionRange = null;
+            aiSelectionText = '';
+            if (els.aiPopup) els.aiPopup.hidden = true;
+            setAiStages('hidden');
+            if (els.aiInput) els.aiInput.value = '';
+            setAiStatus('');
+            setAiPreview('');
+            if (ok) showToast('Updated selection', 'success');
+            else showToast('Could not apply edit', 'error');
+        }).catch(function (err) {
+            aiLoading = false;
+            if (els.aiPopup) els.aiPopup.classList.remove('is-loading');
+            if (els.aiSend) els.aiSend.disabled = false;
+            if (els.aiInput) els.aiInput.disabled = false;
+            if (els.aiAskBtn) els.aiAskBtn.disabled = false;
+            setAiStatus(err && err.message ? err.message : 'Ask AI failed', true);
+        });
+    }
+
+    if (els.editor) {
+        els.editor.addEventListener('mouseup', function (e) {
+            if (isAiPopupTarget(e.target)) return;
+            clearTimeout(aiHideTimer);
+            aiHideTimer = setTimeout(function () {
+                if (aiLoading) return;
+                if (aiMode === 'compose') return;
+                if (getEditorSelectionText().trim()) showAiChipFromSelection();
+                else hideAiPopup();
+            }, 10);
+        });
+
+        els.editor.addEventListener('contextmenu', function (e) {
+            var text = getEditorSelectionText();
+            if (!text.trim()) return;
+            e.preventDefault();
+            if (aiMode === 'compose') return;
+            showAiChipFromSelection();
+        });
+    }
+
+    if (els.aiAskBtn) {
+        els.aiAskBtn.addEventListener('mousedown', function (e) {
+            // Keep the native selection until compose locks it.
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        els.aiAskBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openAiCompose();
+        });
+    }
+    if (els.aiSend) {
+        els.aiSend.addEventListener('click', function (e) {
+            e.preventDefault();
+            runAskAi();
+        });
+    }
+    if (els.aiPopup) {
+        els.aiPopup.addEventListener('mousedown', function (e) {
+            e.stopPropagation();
+        });
+    }
+    if (els.aiInput) {
+        els.aiInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                runAskAi();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                if (!aiLoading) hideAiPopup();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && els.aiPopup && !els.aiPopup.hidden && !aiLoading) {
+            hideAiPopup();
+            return;
+        }
+        // While only the chip is showing, typing/deleting should work normally.
+        if (aiMode === 'chip' && !isAiPopupTarget(e.target)) {
+            if (e.key === 'Backspace' || e.key === 'Delete' || (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey)) {
+                // Let the edit happen; hide chip shortly if selection collapses.
+                clearTimeout(aiHideTimer);
+                aiHideTimer = setTimeout(function () {
+                    if (aiMode !== 'chip') return;
+                    if (!getEditorSelectionText().trim()) hideAiPopup();
+                    else showAiChipFromSelection();
+                }, 30);
+            }
+        }
+    });
+
+    document.addEventListener('mousedown', function (e) {
+        if (!els.aiPopup || els.aiPopup.hidden || aiLoading) return;
+        if (isAiPopupTarget(e.target)) return;
+        if (els.editor && els.editor.contains(e.target)) {
+            if (aiMode === 'compose') {
+                unwrapAiHighlight();
+                setAiStages('hidden');
+                els.aiPopup.hidden = true;
+                if (els.aiInput) els.aiInput.value = '';
+                setAiStatus('');
+                setAiPreview('');
+                aiSelectionRange = null;
+                aiSelectionText = '';
+            }
+            return;
+        }
+        hideAiPopup();
+    });
+
+    document.addEventListener('selectionchange', function () {
+        if (!els.aiPopup || els.aiPopup.hidden || aiLoading) return;
+        if (aiMode === 'compose') return;
+        if (isAiPopupTarget(document.activeElement)) return;
+        clearTimeout(aiHideTimer);
+        aiHideTimer = setTimeout(function () {
+            if (aiLoading || aiMode === 'compose') return;
+            if (isAiPopupTarget(document.activeElement)) return;
+            if (!getEditorSelectionText().trim()) hideAiPopup();
+        }, 80);
+    });
+
+    window.addEventListener('scroll', function () {
+        if (!els.aiPopup || els.aiPopup.hidden) return;
+        try {
+            positionAiPopup();
+        } catch (e) { /* range may be stale */ }
+    }, true);
     
     } // End initEditor function
 })();

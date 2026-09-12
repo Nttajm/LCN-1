@@ -4,5 +4,18 @@
   },
   "database": {
     "rules": "crossshare/database.rules.json"
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "editor",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
 }

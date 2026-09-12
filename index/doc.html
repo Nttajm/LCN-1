@@ -7,7 +7,11 @@
     <link rel="stylesheet" href="../css/home_2026/home.css">
     <link rel="stylesheet" href="../css/standard.css">
     <link rel="stylesheet" href="../css/doc.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
     <script src="../js/chart.js"></script>
+    <script src="../js/latex.js"></script>
+    <script src="../js/doc-listings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
@@ -22,27 +26,40 @@
             <span class="doc-error-text">Document not found.</span>
             <a href="../index.html" class="doc-back" data-back>&larr; Back to home</a>
         </div>
-        <article class="doc-article" id="doc-article" style="display:none;">
-            <header class="doc-header">
-                <a href="../index.html" class="doc-back" data-back>&larr; Back</a>
-                <div class="doc-meta">
-                    <span class="doc-cat" id="doc-cat"></span>
-                    <span class="doc-subcat" id="doc-subcat"></span>
-                    <span class="doc-read" id="doc-read"></span>
-                    <span class="doc-date" id="doc-date"></span>
+
+        <div class="doc-shell" id="doc-shell" style="display:none;">
+            <button type="button" class="doc-nav-toggle" id="doc-nav-toggle" aria-label="Toggle documentation menu">Docs</button>
+            <div class="doc-nav-backdrop" id="doc-nav-backdrop"></div>
+            <aside class="doc-toc" id="doc-nav" aria-label="Documentation">
+                <div class="doc-toc-head">
+                    <span class="doc-toc-collection" id="doc-nav-collection"></span>
                 </div>
-                <h1 class="doc-title" id="doc-title"></h1>
-                <p class="doc-subdesc" id="doc-subdesc" style="display:none;"></p>
-                <div class="doc-goto-wrap" id="doc-goto-wrap" style="display:none;">
-                    <a class="doc-goto-btn" id="doc-goto-btn" href="#" target="_blank" rel="noopener">Visit Project</a>
-                </div>
-            </header>
-            <div class="doc-hero" id="doc-hero" style="display:none;">
-                <img id="doc-hero-img" src="" alt="">
+                <div class="doc-toc-tree" id="doc-nav-tree"></div>
+            </aside>
+            <div class="doc-main">
+                <article class="doc-article" id="doc-article">
+                    <header class="doc-header">
+                        <a href="../index.html" class="doc-back" data-back>&larr; Back</a>
+                        <div class="doc-meta">
+                            <span class="doc-cat" id="doc-cat"></span>
+                            <span class="doc-subcat" id="doc-subcat"></span>
+                            <span class="doc-read" id="doc-read"></span>
+                            <span class="doc-date" id="doc-date"></span>
+                        </div>
+                        <h1 class="doc-title" id="doc-title"></h1>
+                        <p class="doc-subdesc" id="doc-subdesc" style="display:none;"></p>
+                        <div class="doc-goto-wrap" id="doc-goto-wrap" style="display:none;">
+                            <a class="doc-goto-btn" id="doc-goto-btn" href="#" target="_blank" rel="noopener">Visit Project</a>
+                        </div>
+                    </header>
+                    <div class="doc-hero" id="doc-hero" style="display:none;">
+                        <img id="doc-hero-img" src="" alt="">
+                    </div>
+                    <div class="doc-body" id="doc-body"></div>
+                    <div class="doc-images" id="doc-images" style="display:none;"></div>
+                </article>
             </div>
-            <div class="doc-body" id="doc-body"></div>
-            <div class="doc-images" id="doc-images" style="display:none;"></div>
-        </article>
+        </div>
     </div>
 
     <script>
@@ -59,13 +76,22 @@
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         var db = firebase.firestore();
-
-        var params = new URLSearchParams(window.location.search);
-        var docId = params.get('v');
+        var DL = window.DocListings;
 
         var loadingEl = document.getElementById('doc-loading');
         var errorEl = document.getElementById('doc-error');
+        var shellEl = document.getElementById('doc-shell');
         var articleEl = document.getElementById('doc-article');
+        var navEl = document.getElementById('doc-nav');
+        var navTreeEl = document.getElementById('doc-nav-tree');
+        var navCollectionEl = document.getElementById('doc-nav-collection');
+        var navToggle = document.getElementById('doc-nav-toggle');
+        var navBackdrop = document.getElementById('doc-nav-backdrop');
+        var pageEl = document.getElementById('doc-page');
+
+        var currentDocId = null;
+        var currentCollection = null;
+        var collectionDocs = {};
 
         document.querySelectorAll('[data-back]').forEach(function (link) {
             link.addEventListener('click', function (e) {
@@ -76,12 +102,6 @@
                 }
             });
         });
-
-        if (!docId) {
-            loadingEl.style.display = 'none';
-            errorEl.style.display = 'flex';
-            return;
-        }
 
         function resolveImg(src) {
             if (src && src.startsWith('a_home_assets/')) return '../' + src;
@@ -115,56 +135,195 @@
             return Math.max(1, Math.ceil(words.length / 200)) + ' min read';
         }
 
-        db.collection('editor_docs').doc(docId).get().then(function (snap) {
+        function showError() {
             loadingEl.style.display = 'none';
+            shellEl.style.display = 'none';
+            errorEl.style.display = 'flex';
+        }
 
-            if (!snap.exists) {
-                errorEl.style.display = 'flex';
+        function setNavOpen(open) {
+            navEl.classList.toggle('open', open);
+            navBackdrop.classList.toggle('open', open);
+        }
+
+        if (navToggle) {
+            navToggle.addEventListener('click', function () {
+                setNavOpen(!navEl.classList.contains('open'));
+            });
+        }
+        if (navBackdrop) {
+            navBackdrop.addEventListener('click', function () {
+                setNavOpen(false);
+            });
+        }
+
+        function nodeType(node) {
+            return String((node && node.type) || '').toLowerCase();
+        }
+
+        function pageIsActiveInSection(section, activeId) {
+            var kids = (section && section.children) || [];
+            for (var i = 0; i < kids.length; i++) {
+                if (nodeType(kids[i]) === 'page' && kids[i].id === activeId) return true;
+            }
+            return false;
+        }
+
+        function buildNavTree() {
+            var tree = JSON.parse(JSON.stringify((currentCollection && currentCollection.tree) || []));
+            var known = {};
+            (function walk(nodes) {
+                (nodes || []).forEach(function (node) {
+                    if (nodeType(node) === 'page' && node.id) known[node.id] = true;
+                    if (nodeType(node) === 'section') walk(node.children);
+                });
+            })(tree);
+
+            var extras = [];
+            Object.keys(collectionDocs).forEach(function (id) {
+                if (known[id]) return;
+                extras.push({ type: 'page', id: id });
+            });
+            extras.sort(function (a, b) {
+                var da = collectionDocs[a.id] || {};
+                var db = collectionDocs[b.id] || {};
+                if (da.role === 'overview') return -1;
+                if (db.role === 'overview') return 1;
+                return DL.navLabelFor(da).localeCompare(DL.navLabelFor(db));
+            });
+            return tree.concat(extras);
+        }
+
+        function renderNav(activeId) {
+            if (!currentCollection) {
+                pageEl.classList.remove('doc-page--collection');
+                navEl.style.display = 'none';
+                if (navToggle) navToggle.style.display = 'none';
                 return;
             }
 
-            var doc = snap.data();
-            document.title = (doc.title || 'Untitled') + ' — LCN';
+            pageEl.classList.add('doc-page--collection');
+            navEl.style.display = '';
+            if (navToggle) navToggle.style.display = '';
+            navCollectionEl.textContent = currentCollection.title || 'Documentation';
 
+            navTreeEl.innerHTML = '';
+            var overviewId = currentCollection.overviewId;
+
+            buildNavTree().forEach(function (node) {
+                var type = nodeType(node);
+                if (type === 'page' && node.id) {
+                    var isOverview = node.id === overviewId || (collectionDocs[node.id] && collectionDocs[node.id].role === 'overview');
+                    navTreeEl.appendChild(makeNavPageLink(node.id, activeId, isOverview ? 'top' : 'page'));
+                } else if (type === 'section') {
+                    var shouldOpen = true;
+                    var sec = document.createElement('div');
+                    sec.className = 'doc-toc-section' + (shouldOpen ? ' is-open' : '');
+
+                    var head = document.createElement('button');
+                    head.type = 'button';
+                    head.className = 'doc-toc-section-toggle';
+                    head.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+                    head.innerHTML =
+                        '<span class="doc-toc-section-name">' + escapeHtml(node.title || 'Section') + '</span>' +
+                        '<span class="doc-toc-caret" aria-hidden="true"></span>';
+                    head.addEventListener('click', function () {
+                        var isOpen = sec.classList.toggle('is-open');
+                        head.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    });
+                    sec.appendChild(head);
+
+                    var kids = document.createElement('div');
+                    kids.className = 'doc-toc-section-list';
+                    (node.children || []).forEach(function (child) {
+                        if (nodeType(child) === 'page' && child.id) {
+                            kids.appendChild(makeNavPageLink(child.id, activeId, 'child'));
+                        }
+                    });
+                    sec.appendChild(kids);
+                    navTreeEl.appendChild(sec);
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function makeNavPageLink(pageId, activeId, kind) {
+            var doc = collectionDocs[pageId] || {};
+            var a = document.createElement('a');
+            a.className = 'doc-toc-link doc-toc-link--' + (kind || 'page');
+            if (pageId === activeId) a.classList.add('is-active');
+            a.href = 'doc.html?v=' + encodeURIComponent(pageId);
+            a.textContent = DL.navLabelFor(doc);
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (pageId === currentDocId) {
+                    setNavOpen(false);
+                    return;
+                }
+                navigateToDoc(pageId, true);
+                setNavOpen(false);
+            });
+            return a;
+        }
+
+        function renderArticle(doc) {
+            document.title = (doc.title || 'Untitled') + ' — LCN';
             document.getElementById('doc-title').textContent = doc.title || 'Untitled';
 
+            var subEl = document.getElementById('doc-subdesc');
             if (doc.subDesc) {
-                var subEl = document.getElementById('doc-subdesc');
                 subEl.textContent = doc.subDesc;
                 subEl.style.display = 'block';
+            } else {
+                subEl.textContent = '';
+                subEl.style.display = 'none';
             }
 
+            var gotoWrap = document.getElementById('doc-goto-wrap');
+            var gotoBtn = document.getElementById('doc-goto-btn');
             if (doc.goToUrl) {
-                var gotoWrap = document.getElementById('doc-goto-wrap');
-                var gotoBtn = document.getElementById('doc-goto-btn');
                 gotoBtn.href = resolveSiteUrl(doc.goToUrl);
                 gotoWrap.style.display = 'flex';
+            } else {
+                gotoWrap.style.display = 'none';
             }
 
-            document.getElementById('doc-cat').textContent = doc.category || '';
+            var catEl = document.getElementById('doc-cat');
+            catEl.textContent = doc.category || '';
+            catEl.style.display = doc.category ? '' : 'none';
+
             document.getElementById('doc-read').textContent = getReadTime(doc.content);
             document.getElementById('doc-date').textContent = doc.date || formatDate(doc.updatedAt);
 
-            if (!doc.category) document.getElementById('doc-cat').style.display = 'none';
-
+            var subCatEl = document.getElementById('doc-subcat');
             if (doc.subCategory) {
-                document.getElementById('doc-subcat').textContent = doc.subCategory;
+                subCatEl.textContent = doc.subCategory;
+                subCatEl.style.display = '';
             } else {
-                document.getElementById('doc-subcat').style.display = 'none';
+                subCatEl.style.display = 'none';
             }
 
             var images = doc.images || [];
+            var heroWrap = document.getElementById('doc-hero');
             if (images.length > 0) {
-                var heroWrap = document.getElementById('doc-hero');
                 heroWrap.style.display = 'block';
                 document.getElementById('doc-hero-img').src = resolveImg(images[0]);
+            } else {
+                heroWrap.style.display = 'none';
+                document.getElementById('doc-hero-img').src = '';
             }
 
             var bodyHTML = doc.content || '';
             var tmp = document.createElement('div');
             tmp.innerHTML = bodyHTML;
-            var imgs = tmp.querySelectorAll('img');
-            imgs.forEach(function (img) {
+            tmp.querySelectorAll('img').forEach(function (img) {
                 img.src = resolveImg(img.getAttribute('src'));
             });
             tmp.querySelectorAll('a.ed-goto-link').forEach(function (link) {
@@ -172,9 +331,11 @@
             });
             document.getElementById('doc-body').innerHTML = tmp.innerHTML;
             if (window.EdChart) EdChart.renderAll(document.getElementById('doc-body'));
+            if (window.EdLatex) EdLatex.renderAll(document.getElementById('doc-body'));
 
+            var imagesEl = document.getElementById('doc-images');
+            imagesEl.innerHTML = '';
             if (images.length > 1) {
-                var imagesEl = document.getElementById('doc-images');
                 imagesEl.style.display = 'grid';
                 for (var i = 1; i < images.length; i++) {
                     var imgEl = document.createElement('img');
@@ -182,13 +343,111 @@
                     imgEl.alt = '';
                     imagesEl.appendChild(imgEl);
                 }
+            } else {
+                imagesEl.style.display = 'none';
             }
+        }
 
-            articleEl.style.display = 'block';
-        }).catch(function () {
+        function loadCollectionContext(doc, docId) {
+            if (!doc.collectionId) {
+                currentCollection = null;
+                collectionDocs = {};
+                return Promise.resolve();
+            }
+            collectionDocs = {};
+            collectionDocs[docId] = doc;
+            return db.collection('editor_doc_collections').doc(doc.collectionId).get().then(function (colSnap) {
+                if (!colSnap.exists) {
+                    currentCollection = null;
+                    collectionDocs = {};
+                    return;
+                }
+                currentCollection = Object.assign({ id: colSnap.id }, colSnap.data());
+                var pageIds = DL.collectPageIdsFromTree(currentCollection.tree || []);
+                return db.collection('editor_docs').where('collectionId', '==', doc.collectionId).get()
+                    .then(function (snap) {
+                        snap.forEach(function (pageSnap) {
+                            collectionDocs[pageSnap.id] = pageSnap.data();
+                        });
+                    })
+                    .catch(function () {
+                        var unique = [];
+                        pageIds.forEach(function (id) {
+                            if (unique.indexOf(id) === -1) unique.push(id);
+                        });
+                        return Promise.all(unique.map(function (id) {
+                            if (id === docId) return null;
+                            return db.collection('editor_docs').doc(id).get().then(function (pageSnap) {
+                                if (pageSnap.exists) collectionDocs[pageSnap.id] = pageSnap.data();
+                            });
+                        }));
+                    });
+            });
+        }
+
+        function showDoc(docId, doc, pushState) {
+            currentDocId = docId;
+            collectionDocs[docId] = doc;
+            renderArticle(doc);
+            renderNav(docId);
             loadingEl.style.display = 'none';
-            errorEl.style.display = 'flex';
+            errorEl.style.display = 'none';
+            shellEl.style.display = '';
+            shellEl.classList.add('is-ready');
+            if (pushState) {
+                var url = 'doc.html?v=' + encodeURIComponent(docId);
+                window.history.pushState({ docId: docId }, '', url);
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function navigateToDoc(docId, pushState) {
+            if (collectionDocs[docId]) {
+                showDoc(docId, collectionDocs[docId], pushState);
+                return;
+            }
+            loadingEl.style.display = 'flex';
+            db.collection('editor_docs').doc(docId).get().then(function (snap) {
+                if (!snap.exists) {
+                    showError();
+                    return;
+                }
+                var doc = snap.data();
+                if (currentCollection && doc.collectionId === currentCollection.id) {
+                    collectionDocs[docId] = doc;
+                    showDoc(docId, doc, pushState);
+                    return;
+                }
+                bootstrap(docId, doc, pushState);
+            }).catch(showError);
+        }
+
+        function bootstrap(docId, doc, pushState) {
+            loadCollectionContext(doc, docId).then(function () {
+                showDoc(docId, doc, !!pushState);
+            }).catch(showError);
+        }
+
+        window.addEventListener('popstate', function (e) {
+            var params = new URLSearchParams(window.location.search);
+            var id = (e.state && e.state.docId) || params.get('v');
+            if (id) navigateToDoc(id, false);
         });
+
+        var params = new URLSearchParams(window.location.search);
+        var initialId = params.get('v');
+        if (!initialId) {
+            showError();
+            return;
+        }
+
+        db.collection('editor_docs').doc(initialId).get().then(function (snap) {
+            if (!snap.exists) {
+                showError();
+                return;
+            }
+            bootstrap(initialId, snap.data(), false);
+        }).catch(showError);
     })();
     </script>
 </body>

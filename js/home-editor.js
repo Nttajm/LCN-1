@@ -55,7 +55,9 @@
         pickerCat: document.getElementById('he-picker-cat'),
         pickerList: document.getElementById('he-picker-list'),
         pickerClear: document.getElementById('he-picker-clear'),
-        toast: document.getElementById('he-toast')
+        toast: document.getElementById('he-toast'),
+        sideSlots: document.getElementById('he-side-slots'),
+        addSideBtn: document.getElementById('he-add-side')
     };
 
     function showToast(msg, type) {
@@ -99,15 +101,68 @@
         return '';
     }
 
+    function bindSlotClick(slotEl) {
+        slotEl.addEventListener('click', function (e) {
+            if (e.target.closest('.he-slot-remove') || e.target.closest('.he-slot-delete')) return;
+            openPicker(slotEl.getAttribute('data-slot'));
+        });
+    }
+
+    function rebuildSideSlots() {
+        if (!els.sideSlots) return;
+        if (!Array.isArray(layout.side) || layout.side.length < 2) {
+            layout.side = (layout.side || []).slice();
+            while (layout.side.length < 2) layout.side.push(null);
+        }
+        els.sideSlots.innerHTML = '';
+        layout.side.forEach(function (docId, i) {
+            var slotEl = document.createElement('div');
+            slotEl.className = 'he-slot he-slot--side';
+            slotEl.setAttribute('data-slot', 'side-' + i);
+            bindSlotClick(slotEl);
+            els.sideSlots.appendChild(slotEl);
+            renderSlot(slotEl, docId ? allDocs[docId] : null, { group: 'side', index: i });
+        });
+    }
+
+    function addSideSlot() {
+        layout.side.push(null);
+        rebuildSideSlots();
+        saveLayout();
+    }
+
+    function removeSideSlot(index) {
+        if (layout.side.length <= 2) return;
+        layout.side.splice(index, 1);
+        rebuildSideSlots();
+        saveLayout();
+    }
+
     function renderAllSlots() {
+        rebuildSideSlots();
         document.querySelectorAll('.he-slot').forEach(function (slotEl) {
             var key = parseSlotKey(slotEl.getAttribute('data-slot'));
+            if (key.group === 'side') return;
             var arr = layout[key.group];
             if (!arr) return;
             var docId = arr[key.index];
             var doc = docId ? allDocs[docId] : null;
             renderSlot(slotEl, doc, key);
         });
+    }
+
+    function maybeAddSideDelete(slotEl, key) {
+        if (key.group !== 'side' || layout.side.length <= 2) return;
+        var delSlot = document.createElement('button');
+        delSlot.className = 'he-slot-delete';
+        delSlot.type = 'button';
+        delSlot.title = 'Remove this slot';
+        delSlot.textContent = 'Remove slot';
+        delSlot.addEventListener('click', function (e) {
+            e.stopPropagation();
+            removeSideSlot(key.index);
+        });
+        slotEl.appendChild(delSlot);
     }
 
     function renderSlot(slotEl, doc, key) {
@@ -135,6 +190,7 @@
             empty.appendChild(plus);
             empty.appendChild(hint);
             slotEl.appendChild(empty);
+            maybeAddSideDelete(slotEl, key);
             return;
         }
 
@@ -202,6 +258,7 @@
 
         slotEl.appendChild(filled);
         slotEl.appendChild(removeBtn);
+        maybeAddSideDelete(slotEl, key);
     }
 
     function openPicker(slotAttr) {
@@ -339,7 +396,10 @@
             if (snap.exists) {
                 var d = snap.data();
                 if (d.featured) layout.featured = d.featured;
-                if (d.side) layout.side = d.side;
+                if (d.side) {
+                    layout.side = d.side.slice();
+                    while (layout.side.length < 2) layout.side.push(null);
+                }
                 if (d.recent) layout.recent = d.recent;
             }
             renderAllSlots();
@@ -356,11 +416,13 @@
     });
 
     document.querySelectorAll('.he-slot').forEach(function (slotEl) {
-        slotEl.addEventListener('click', function (e) {
-            if (e.target.closest('.he-slot-remove')) return;
-            openPicker(slotEl.getAttribute('data-slot'));
-        });
+        if (slotEl.classList.contains('he-slot--side')) return;
+        bindSlotClick(slotEl);
     });
+
+    if (els.addSideBtn) {
+        els.addSideBtn.addEventListener('click', addSideSlot);
+    }
 
     els.pickerClose.addEventListener('click', closePicker);
     els.pickerOverlay.addEventListener('click', function (e) {

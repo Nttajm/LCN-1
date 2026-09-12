@@ -11,6 +11,7 @@
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
+    var DL = window.DocListings;
 
     var list = document.getElementById('dev-list');
     var tabsEl = document.getElementById('dev-tabs');
@@ -24,19 +25,7 @@
         return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
     }
 
-    function getSortTime(doc) {
-        if (doc.date) {
-            var articleDate = new Date(doc.date + 'T00:00:00').getTime();
-            if (!isNaN(articleDate)) return articleDate;
-        }
-        if (doc.updatedAt) {
-            var updated = doc.updatedAt.toDate ? doc.updatedAt.toDate() : new Date(doc.updatedAt);
-            return updated.getTime();
-        }
-        return 0;
-    }
-
-    function buildItem(id, doc) {
+    function buildItem(id, doc, hrefId) {
         var cat = doc.subCategory ? doc.subCategory.toLowerCase() : 'development';
         var dateStr = '';
         if (doc.date) {
@@ -49,7 +38,7 @@
         var item = document.createElement('a');
         item.className = 'dev-item';
         item.dataset.cat = cat;
-        item.href = 'doc.html?v=' + encodeURIComponent(id);
+        item.href = 'doc.html?v=' + encodeURIComponent(hrefId || id);
         item.innerHTML =
             '<div class="dev-item-left">' +
                 '<span class="pg-item-cat">' + (doc.subCategory || 'Development') + '</span>' +
@@ -109,35 +98,38 @@
         setView('card');
     }
 
-    db.collection('editor_docs')
-        .where('category', '==', 'development')
-        .where('published', '==', true)
-        .get()
-        .then(function (snap) {
-            list.innerHTML = '';
-            if (snap.empty) {
-                list.innerHTML = '<p style="padding:3rem;text-align:center;color:#71717a;">No development entries found.</p>';
-                buildTabs([]);
-                return;
-            }
-            var seen = [];
-            var items = [];
-            snap.forEach(function (docSnap) {
-                items.push({ id: docSnap.id, data: docSnap.data() });
-            });
-            items.sort(function (a, b) {
-                return getSortTime(b.data) - getSortTime(a.data);
-            });
-            items.forEach(function (item) {
-                var data = item.data;
-                var cat = data.subCategory || 'Development';
-                if (seen.indexOf(cat) === -1) seen.push(cat);
-                list.appendChild(buildItem(item.id, data));
-            });
-            buildTabs(seen);
-        })
-        .catch(function (err) {
-            list.innerHTML = '<p style="padding:3rem;text-align:center;color:#71717a;">Failed to load entries.</p>';
-            console.error(err);
+    Promise.all([
+        db.collection('editor_docs').where('published', '==', true).get(),
+        db.collection('editor_doc_collections').get()
+    ]).then(function (results) {
+        var docsSnap = results[0];
+        var colsSnap = results[1];
+        var docsById = {};
+        docsSnap.forEach(function (docSnap) {
+            docsById[docSnap.id] = docSnap.data();
         });
+        var collectionsById = {};
+        colsSnap.forEach(function (colSnap) {
+            collectionsById[colSnap.id] = colSnap.data();
+        });
+
+        list.innerHTML = '';
+        var items = DL.buildListingItems('development', docsById, collectionsById);
+        if (!items.length) {
+            list.innerHTML = '<p style="padding:3rem;text-align:center;color:#71717a;">No development entries found.</p>';
+            buildTabs([]);
+            return;
+        }
+        var seen = [];
+        items.forEach(function (item) {
+            var data = item.data;
+            var cat = data.subCategory || 'Development';
+            if (seen.indexOf(cat) === -1) seen.push(cat);
+            list.appendChild(buildItem(item.id, data, item.hrefId));
+        });
+        buildTabs(seen);
+    }).catch(function (err) {
+        list.innerHTML = '<p style="padding:3rem;text-align:center;color:#71717a;">Failed to load entries.</p>';
+        console.error(err);
+    });
 })();

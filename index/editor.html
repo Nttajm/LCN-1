@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editor — LCN</title>
     <link rel="stylesheet" href="../css/editor.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
 </head>
 <body style="margin:0;background:#0a0a0a;color:#e4e4e7;">
     <div class="ed-mobile-overlay" id="ed-mobile-overlay"></div>
@@ -40,6 +42,7 @@
             <div class="ed-doclist" id="ed-doclist"></div>
             <div class="ed-sidebar-bottom">
                 <a href="../index.html">&larr; Home</a>
+                <button type="button" class="ed-btn ed-btn--small" id="ed-settings-btn">Settings</button>
             </div>
         </aside>
 
@@ -78,9 +81,31 @@
                         <span class="ed-meta-label">Title</span>
                         <input type="text" class="ed-meta-input" id="ed-title" placeholder="Document title">
                     </div>
+                    <div class="ed-meta-row" id="ed-navlabel-row" style="display:none;">
+                        <span class="ed-meta-label">Sidebar Name</span>
+                        <input type="text" class="ed-meta-input" id="ed-navlabel" placeholder="Short name in docs nav">
+                    </div>
                     <div class="ed-meta-row">
                         <span class="ed-meta-label">Sub Description</span>
                         <input type="text" class="ed-meta-input" id="ed-subdesc" placeholder="Short description or subtitle">
+                    </div>
+                    <div class="ed-meta-row" id="ed-public-url-row" style="display:none;">
+                        <span class="ed-meta-label">Public URL</span>
+                        <input type="text" class="ed-meta-input" id="ed-public-url" readonly>
+                        <button type="button" class="ed-btn ed-btn--small" id="ed-copy-url" title="Copy URL">Copy</button>
+                    </div>
+                    <div class="ed-meta-block" id="ed-liston-block" style="display:none;">
+                        <span class="ed-meta-label">Show on listing pages</span>
+                        <div class="ed-liston-checks">
+                            <label class="ed-check"><input type="checkbox" id="ed-liston-projects" data-liston="projects"> Projects</label>
+                            <label class="ed-check"><input type="checkbox" id="ed-liston-development" data-liston="development"> Developments</label>
+                            <label class="ed-check"><input type="checkbox" id="ed-liston-updates" data-liston="updates"> Updates</label>
+                        </div>
+                    </div>
+                    <div class="ed-meta-block" id="ed-collection-actions" style="display:none;">
+                        <button type="button" class="ed-btn ed-btn--small" id="ed-make-collection">Make document collection</button>
+                        <button type="button" class="ed-btn ed-btn--small" id="ed-move-into-collection">Move into collection…</button>
+                        <button type="button" class="ed-btn ed-btn--small" id="ed-dissolve-collection" style="display:none;">Dissolve collection</button>
                     </div>
                     <div class="ed-meta-row">
                         <span class="ed-meta-label">Date</span>
@@ -172,6 +197,10 @@
                     <button class="ed-toolbar-btn" id="ed-insert-image-btn" title="Insert Image">
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     </button>
+                    <button class="ed-toolbar-btn" id="ed-upload-image-btn" title="Upload Image to assets">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </button>
+                    <input type="file" id="ed-upload-image-input" accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp" hidden>
                     <div class="ed-toolbar-img-resize" id="ed-toolbar-img-resize" hidden>
                         <span class="ed-toolbar-img-resize-label">Width</span>
                         <input type="number" class="ed-toolbar-img-resize-input" id="ed-img-resize-width" min="50" max="2000" placeholder="auto">
@@ -187,6 +216,9 @@
                     </button>
                     <button class="ed-toolbar-btn" id="ed-insert-chart-btn" title="Insert Chart">
                         <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="8" width="4" height="13"/><rect x="17" y="4" width="4" height="17"/></svg>
+                    </button>
+                    <button class="ed-toolbar-btn" id="ed-insert-math-btn" title="Insert LaTeX">
+                        ∑
                     </button>
 
                     <span class="ed-toolbar-sep"></span>
@@ -241,21 +273,118 @@
         </div>
     </div>
 
+    <div class="ed-modal-overlay" id="ed-collection-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title">Make Document Collection</div>
+            <p class="ed-confirm-text">This article becomes the Overview. You can add Doc Pages and sections under it.</p>
+            <div class="ed-modal-field">
+                <label>Collection name</label>
+                <input type="text" id="ed-collection-name" placeholder="Collection name">
+            </div>
+            <div class="ed-modal-actions">
+                <button class="ed-btn" id="ed-collection-cancel">Cancel</button>
+                <button class="ed-btn ed-btn--accent" id="ed-collection-confirm">Create Collection</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ed-modal-overlay" id="ed-dissolve-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title">Dissolve Collection</div>
+            <p class="ed-confirm-text">Removes the collection structure. Doc Pages become standalone articles. The Overview keeps its content.</p>
+            <div class="ed-modal-actions">
+                <button class="ed-btn" id="ed-dissolve-cancel">Cancel</button>
+                <button class="ed-btn ed-btn--danger" id="ed-dissolve-confirm">Dissolve</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ed-modal-overlay" id="ed-move-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title" id="ed-move-title">Move into Collection</div>
+            <p class="ed-confirm-text" id="ed-move-help">Place this document under a collection, or inside one of its sections.</p>
+            <div class="ed-modal-field" id="ed-move-doc-field" style="display:none;">
+                <label for="ed-move-doc">Document</label>
+                <select class="ed-meta-select" id="ed-move-doc"></select>
+            </div>
+            <div class="ed-modal-field" id="ed-move-collection-field">
+                <label for="ed-move-collection">Collection</label>
+                <select class="ed-meta-select" id="ed-move-collection"></select>
+            </div>
+            <div class="ed-modal-field">
+                <label for="ed-move-placement">Place under</label>
+                <select class="ed-meta-select" id="ed-move-placement"></select>
+            </div>
+            <div class="ed-modal-actions">
+                <button type="button" class="ed-btn" id="ed-move-cancel">Cancel</button>
+                <button type="button" class="ed-btn ed-btn--accent" id="ed-move-confirm">Move</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ed-modal-overlay" id="ed-section-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title">Section Settings</div>
+            <div class="ed-modal-field">
+                <label>Section name</label>
+                <input type="text" id="ed-section-title" placeholder="Section name">
+            </div>
+            <div class="ed-modal-field">
+                <label>Show on listing pages</label>
+                <div class="ed-liston-checks">
+                    <label class="ed-check"><input type="checkbox" id="ed-sec-liston-projects" data-liston="projects"> Projects</label>
+                    <label class="ed-check"><input type="checkbox" id="ed-sec-liston-development" data-liston="development"> Developments</label>
+                    <label class="ed-check"><input type="checkbox" id="ed-sec-liston-updates" data-liston="updates"> Updates</label>
+                </div>
+            </div>
+            <div class="ed-modal-actions">
+                <button class="ed-btn ed-btn--danger" id="ed-section-delete" style="margin-right:auto;">Delete Section</button>
+                <button class="ed-btn" id="ed-section-cancel">Cancel</button>
+                <button class="ed-btn ed-btn--accent" id="ed-section-save">Save</button>
+            </div>
+        </div>
+    </div>
+
     <div class="ed-modal-overlay" id="ed-img-modal">
         <div class="ed-modal">
             <div class="ed-modal-title">Insert Image</div>
             <div class="ed-link-type-tabs">
                 <button class="ed-link-type-tab ed-link-type-tab--active" data-img-type="url">URL</button>
                 <button class="ed-link-type-tab" data-img-type="local">Local (a_home_assets/)</button>
+                <button class="ed-link-type-tab" data-img-type="upload">Upload</button>
                 <button class="ed-link-type-tab" data-img-type="browse">Browse</button>
             </div>
-            <div class="ed-modal-field">
-                <label id="ed-img-label">Image URL</label>
-                <input type="text" id="ed-img-url" placeholder="https://">
+            <div id="ed-img-url-fields">
+                <div class="ed-modal-field">
+                    <label id="ed-img-label">Image URL</label>
+                    <input type="text" id="ed-img-url" placeholder="https://">
+                </div>
+                <div class="ed-modal-field">
+                    <label>Width (optional)</label>
+                    <input type="number" id="ed-img-insert-width" placeholder="auto" min="50" max="2000">
+                </div>
             </div>
-            <div class="ed-modal-field">
-                <label>Width (optional)</label>
-                <input type="number" id="ed-img-insert-width" placeholder="auto" min="50" max="2000">
+            <div id="ed-img-upload-fields" style="display:none;">
+                <div class="ed-modal-field">
+                    <label for="ed-img-upload-folder">Save to folder</label>
+                    <div class="ed-upload-folder-row">
+                        <select id="ed-img-upload-folder"></select>
+                        <input type="text" id="ed-img-upload-folder-new" placeholder="or new folder name" autocomplete="off">
+                    </div>
+                </div>
+                <div class="ed-modal-field">
+                    <label>Image file</label>
+                    <label class="ed-btn ed-btn--small ed-upload-pick-label">
+                        Choose file
+                        <input type="file" id="ed-img-upload-file" accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp" hidden>
+                    </label>
+                    <span class="ed-upload-file-name" id="ed-img-upload-file-name">No file chosen</span>
+                </div>
+                <p class="ed-upload-hint" id="ed-img-upload-hint">Requires local helper: <code>node scripts/image-upload-server.js</code></p>
+                <div class="ed-modal-field">
+                    <label>Width (optional)</label>
+                    <input type="number" id="ed-img-upload-width" placeholder="auto" min="50" max="2000">
+                </div>
             </div>
             <div class="ed-modal-actions">
                 <button class="ed-btn" id="ed-img-cancel">Cancel</button>
@@ -306,6 +435,49 @@
     </div>
 
     <div class="ed-toast" id="ed-toast"></div>
+
+    <div class="ed-modal-overlay" id="ed-settings-modal">
+        <div class="ed-modal">
+            <div class="ed-modal-title">Settings</div>
+            <p class="ed-confirm-text">Your OpenAI key stays in this browser only and is sent only when you run Ask AI.</p>
+            <div class="ed-modal-field">
+                <label for="ed-openai-key">OpenAI API key</label>
+                <input type="password" id="ed-openai-key" placeholder="sk-..." autocomplete="off" spellcheck="false">
+            </div>
+            <div class="ed-modal-field">
+                <label for="ed-upload-folder">Image upload folder</label>
+                <div class="ed-upload-folder-row">
+                    <select id="ed-upload-folder"></select>
+                    <input type="text" id="ed-upload-folder-new" placeholder="or new folder name" autocomplete="off">
+                </div>
+                <p class="ed-upload-hint">Paste/upload saves into <code>a_home_assets/content/&lt;folder&gt;/</code>. Start helper with <code>node scripts/image-upload-server.js</code>.</p>
+            </div>
+            <div class="ed-modal-actions">
+                <button type="button" class="ed-btn" id="ed-settings-clear">Clear</button>
+                <button type="button" class="ed-btn" id="ed-settings-cancel">Cancel</button>
+                <button type="button" class="ed-btn ed-btn--accent" id="ed-settings-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ed-ai-popup" id="ed-ai-popup" hidden>
+        <div class="ed-ai-popup-inner">
+            <div class="ed-ai-prompt-stage" id="ed-ai-prompt-stage">
+                <button type="button" class="ed-ai-ask-btn" id="ed-ai-ask-btn">Ask for changes</button>
+            </div>
+            <div class="ed-ai-compose-stage" id="ed-ai-compose-stage" hidden>
+                <div class="ed-ai-popup-label">Ask AI</div>
+                <div class="ed-ai-preview" id="ed-ai-preview" hidden></div>
+                <div class="ed-ai-popup-row">
+                    <input type="text" class="ed-ai-popup-input" id="ed-ai-input" placeholder="Ask AI to edit selection…" autocomplete="off">
+                    <button type="button" class="ed-btn ed-btn--accent ed-ai-popup-send" id="ed-ai-send" title="Send">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </button>
+                </div>
+                <div class="ed-ai-popup-status" id="ed-ai-status" hidden></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Chart Modal -->
     <div class="ed-modal-overlay" id="ed-chart-modal">
@@ -447,7 +619,34 @@
         </div>
     </div>
 
+    <!-- Math / LaTeX Modal -->
+    <div class="ed-modal-overlay" id="ed-math-modal">
+        <div class="ed-modal ed-math-modal">
+            <div class="ed-modal-title">Insert LaTeX</div>
+            <div class="ed-link-type-tabs" id="ed-math-mode-tabs">
+                <button type="button" class="ed-link-type-tab ed-link-type-tab--active" data-math-mode="inline">Inline</button>
+                <button type="button" class="ed-link-type-tab" data-math-mode="display">Display</button>
+            </div>
+            <div class="ed-modal-field">
+                <label for="ed-math-source">LaTeX</label>
+                <textarea id="ed-math-source" class="ed-math-source" rows="4" placeholder="e.g. E = mc^2 or \frac{a}{b}" spellcheck="false"></textarea>
+            </div>
+            <div class="ed-modal-field">
+                <label>Preview</label>
+                <div class="ed-math-preview" id="ed-math-preview">
+                    <span class="ed-math-preview-placeholder">Type LaTeX to preview</span>
+                </div>
+            </div>
+            <div class="ed-modal-actions">
+                <button type="button" class="ed-btn" id="ed-math-cancel">Cancel</button>
+                <button type="button" class="ed-btn ed-btn--accent" id="ed-math-insert">Insert</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/chart.js"></script>
+    <script src="../js/latex.js"></script>
+    <script src="../js/doc-listings.js"></script>
     <script src="../js/editor.js"></script>
 </body>
 </html>

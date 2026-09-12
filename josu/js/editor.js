@@ -46,7 +46,7 @@
     // ══════════════════════════════════════════════════════════════
     const state = {
         songData: [],
-        selectedNotes: new Set(),
+        selectedNotes: new Set(), // note ids
         isPlaying: false,
         isRecording: false,
         waitingForStart: false,
@@ -55,12 +55,57 @@
         zoom: 50,
         bpm: 120,
         snapToGrid: true,
+        snapDivisor: 4,
         audioLoaded: false,
         mode: 'taiko',
         rangeStart: 0,
         rangeEnd: 90000,
         isPreviewing: false
     };
+
+    const SNAP_DIVISORS = [1, 2, 3, 4, 6, 8];
+    let nextNoteId = 1;
+    let selectionAnchorId = null;
+
+    function createNote(key, time, id) {
+        return { id: id != null ? id : nextNoteId++, key, time: Math.round(time) };
+    }
+
+    function ensureNoteIds(notes) {
+        return (notes || []).map(n => {
+            if (n.id == null) n.id = nextNoteId++;
+            else if (n.id >= nextNoteId) nextNoteId = n.id + 1;
+            return n;
+        });
+    }
+
+    function stripNoteIds(notes) {
+        return (notes || []).map(n => ({ key: n.key, time: n.time }));
+    }
+
+    function getNoteById(id) {
+        return state.songData.find(n => n.id === id);
+    }
+
+    function getSelectedNotes() {
+        return state.songData.filter(n => state.selectedNotes.has(n.id));
+    }
+
+    function setSelectionByIds(ids, anchorId) {
+        state.selectedNotes = new Set(ids);
+        if (anchorId != null) selectionAnchorId = anchorId;
+        else if (state.selectedNotes.size === 0) selectionAnchorId = null;
+    }
+
+    function getLaneOrder() {
+        return state.mode === 'arrow'
+            ? ['left', 'down', 'up', 'right']
+            : ['d', 'f'];
+    }
+
+    function getSnapInterval() {
+        return (60000 / state.bpm) / state.snapDivisor;
+    }
 
     // ══════════════════════════════════════════════════════════════
     // HISTORY SYSTEM (Undo/Redo)
@@ -125,14 +170,23 @@
     let clipboard = [];
     let clipboardBaseTime = 0;
 
+    function notesToClipboardPayload(notes) {
+        return notes.map(n => ({ key: n.key, time: n.time }));
+    }
+
     function copySelectedNotes() {
-        if (state.selectedNotes.size === 0) {
+        const selected = getSelectedNotes();
+        if (selected.length === 0) {
             updateStatus('No notes selected to copy');
             return;
         }
-        const selectedIndices = Array.from(state.selectedNotes).sort((a, b) => a - b);
-        clipboard = selectedIndices.map(i => ({ ...state.songData[i] }));
+        selected.sort((a, b) => a.time - b.time);
+        clipboard = notesToClipboardPayload(selected);
         clipboardBaseTime = Math.min(...clipboard.map(n => n.time));
+        const payload = JSON.stringify(clipboard);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(payload).catch(() => {});
+        }
         updateStatus(`Copied ${clipboard.length} note(s)`);
     }
 
@@ -143,34 +197,53 @@
         }
         pushHistory('cut');
         copySelectedNotes();
-        const indices = Array.from(state.selectedNotes).sort((a, b) => b - a);
-        indices.forEach(i => state.songData.splice(i, 1));
+        state.songData = state.songData.filter(n => !state.selectedNotes.has(n.id));
         state.selectedNotes.clear();
+        selectionAnchorId = null;
         renderNotes();
         updateStatus(`Cut ${clipboard.length} note(s)`);
     }
 
-    function pasteNotes() {
-        if (clipboard.length === 0) {
+    function applyPasteNotes(sourceNotes) {
+        if (!sourceNotes || sourceNotes.length === 0) {
             updateStatus('Clipboard is empty');
             return;
         }
         pushHistory('paste');
+        const baseTime = Math.min(...sourceNotes.map(n => n.time));
         const pasteTime = state.currentTime;
-        const newNotes = clipboard.map(n => ({
-            key: n.key,
-            time: Math.round(pasteTime + (n.time - clipboardBaseTime))
-        }));
+        const newNotes = sourceNotes.map(n =>
+            createNote(n.key, Math.round(pasteTime + (n.time - baseTime)))
+        );
         state.songData.push(...newNotes);
         state.songData.sort((a, b) => a.time - b.time);
-        state.selectedNotes.clear();
-        const startIdx = state.songData.findIndex(n => n.time === newNotes[0].time && n.key === newNotes[0].key);
-        newNotes.forEach((_, i) => {
-            const idx = state.songData.findIndex((n, j) => j >= startIdx && n.time === newNotes[i].time && n.key === newNotes[i].key);
-            if (idx !== -1) state.selectedNotes.add(idx);
-        });
+        setSelectionByIds(newNotes.map(n => n.id), newNotes[0].id);
         renderNotes();
+        updatePlayheadPosition();
         updateStatus(`Pasted ${newNotes.length} note(s) at ${msToTimeString(pasteTime)}`);
+    }
+
+    function pasteNotes() {
+        if (clipboard.length > 0) {
+            applyPasteNotes(clipboard);
+            return;
+        }
+        if (navigator.clipboard && navigator.clipboard.readText) {
+            navigator.clipboard.readText().then(text => {
+                try {
+                    const parsed = JSON.parse(text);
+                    if (Array.isArray(parsed) && parsed.length && parsed.every(n => n.key != null && n.time != null)) {
+                        clipboard = notesToClipboardPayload(parsed);
+                        clipboardBaseTime = Math.min(...clipboard.map(n => n.time));
+                        applyPasteNotes(clipboard);
+                        return;
+                    }
+                } catch (_) { /* not note JSON */ }
+                updateStatus('Clipboard is empty');
+            }).catch(() => updateStatus('Clipboard is empty'));
+            return;
+        }
+        updateStatus('Clipboard is empty');
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -220,6 +293,8 @@
         tracksPlayhead: document.getElementById('tracksPlayhead'),
         modeTaikoBtn: document.getElementById('modeTaikoBtn'),
         modeArrowBtn: document.getElementById('modeArrowBtn'),
+        midiBtn: document.getElementById('midiBtn'),
+        midiFileInput: document.getElementById('midiFileInput'),
         waveformArea: document.getElementById('waveformArea'),
         waveformCanvas: document.getElementById('waveformCanvas'),
         waveformPlayhead: document.getElementById('waveformPlayhead'),
@@ -245,7 +320,10 @@
         rangeHandleStart: document.getElementById('rangeHandleStart'),
         rangeHandleEnd: document.getElementById('rangeHandleEnd'),
         rangePreviewBtn: document.getElementById('rangePreviewBtn'),
-        rangePreviewIcon: document.getElementById('rangePreviewIcon')
+        rangePreviewIcon: document.getElementById('rangePreviewIcon'),
+        snapDivisorLabel: document.getElementById('snapDivisorLabel'),
+        snapDivisorPrev: document.getElementById('snapDivisorPrev'),
+        snapDivisorNext: document.getElementById('snapDivisorNext')
     };
 
     // Audio
@@ -260,13 +338,26 @@
     // Dragging
     let isDragging = false;
     let draggedNote = null;
+    let draggedNoteId = null;
     let dragStartX = 0;
+    let dragStartY = 0;
     let dragStartTime = 0;
+    let dragStartKey = null;
     let isDraggingMultiple = false;
     let multiDragStartTimes = new Map();
+    let multiDragStartKeys = new Map();
+    let dragDidMove = false;
+    let dragHistoryPushed = false;
+
+    // Box select pending (mousedown without shift; becomes box select after threshold)
+    let boxSelectPending = false;
+    let boxSelectAdditive = false;
+    let boxSelectDidDrag = false;
+    let pendingSeekTime = null;
+    let suppressClick = false;
 
     // Context menu
-    let contextNoteIndex = null;
+    let contextNoteId = null;
 
     // Create box selection element
     function createBoxSelectElement() {
@@ -274,8 +365,9 @@
         el.id = 'boxSelectRect';
         el.style.cssText = `
             position: absolute;
-            border: 2px dashed #4ecdc4;
-            background: rgba(78, 205, 196, 0.15);
+            border: 2px solid #ffd166;
+            background: rgba(255, 209, 102, 0.18);
+            box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.4);
             pointer-events: none;
             z-index: 100;
             display: none;
@@ -314,12 +406,46 @@
 
     function snapTime(time) {
         if (!state.snapToGrid) return time;
-        const beatInterval = (60000 / state.bpm) / 4;
+        const beatInterval = getSnapInterval();
         return Math.round(time / beatInterval) * beatInterval;
     }
 
+    function updateSnapDivisorUI() {
+        if (elements.snapDivisorLabel) {
+            elements.snapDivisorLabel.textContent = `1/${state.snapDivisor}`;
+        }
+    }
+
+    function cycleSnapDivisor(direction) {
+        const idx = SNAP_DIVISORS.indexOf(state.snapDivisor);
+        const safeIdx = idx < 0 ? SNAP_DIVISORS.indexOf(4) : idx;
+        const next = SNAP_DIVISORS[(safeIdx + direction + SNAP_DIVISORS.length) % SNAP_DIVISORS.length];
+        state.snapDivisor = next;
+        updateSnapDivisorUI();
+        drawGridLines();
+        drawTimeRuler();
+        updateStatus(`Snap: 1/${state.snapDivisor}`);
+    }
+
     function updateStatus(text) {
-        elements.statusText.textContent = text;
+        const sel = state.selectedNotes.size;
+        elements.statusText.textContent = sel > 0 ? `${text} · ${sel} selected` : text;
+    }
+
+    function laneKeyFromPoint(clientX, clientY) {
+        const el = document.elementFromPoint(clientX, clientY);
+        const lane = el && el.closest ? el.closest('.track-lane') : null;
+        if (!lane) return null;
+        const key = lane.dataset.key;
+        const order = getLaneOrder();
+        return order.includes(key) ? key : null;
+    }
+
+    function shiftLaneKey(key, delta) {
+        const order = getLaneOrder();
+        const idx = order.indexOf(key);
+        if (idx === -1) return key;
+        return order[Math.max(0, Math.min(order.length - 1, idx + delta))];
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -469,17 +595,20 @@
         elements.trackUp.innerHTML = '';
         elements.trackRight.innerHTML = '';
         drawGridLines();
-        state.songData.forEach((note, index) => {
+        const hasSelection = state.selectedNotes.size > 0;
+        elements.tracksScroll.classList.toggle('has-selection', hasSelection);
+        state.songData.forEach((note) => {
             if (note.time < state.rangeStart || note.time > state.rangeEnd) return;
+            const selected = state.selectedNotes.has(note.id);
             const noteEl = document.createElement('div');
-            noteEl.className = `note note-${note.key}${state.selectedNotes.has(index) ? ' selected' : ''}`;
+            noteEl.className = `note note-${note.key}${selected ? ' selected' : ''}`;
             noteEl.style.left = `${timeToX(note.time) - TRACK_OFFSET - 18}px`;
             const labelMap = {
                 'd': 'D', 'f': 'F',
                 'left': '←', 'down': '↓', 'up': '↑', 'right': '→'
             };
             noteEl.textContent = labelMap[note.key] || note.key.toUpperCase();
-            noteEl.dataset.index = index;
+            noteEl.dataset.id = String(note.id);
             const trackMap = {
                 'd': elements.trackD, 'f': elements.trackF,
                 'left': elements.trackLeft, 'down': elements.trackDown,
@@ -493,14 +622,15 @@
 
     function drawGridLines() {
         const beatInterval = 60000 / state.bpm;
+        const snapInterval = getSnapInterval();
         const measureInterval = beatInterval * 4;
         let gridHTML = '';
-        const gridStart = Math.floor(state.rangeStart / (beatInterval / 4)) * (beatInterval / 4);
-        for (let t = gridStart; t <= state.rangeEnd; t += beatInterval / 4) {
+        const gridStart = Math.floor(state.rangeStart / snapInterval) * snapInterval;
+        for (let t = gridStart; t <= state.rangeEnd; t += snapInterval) {
             const x = ((t - state.rangeStart) / 1000) * state.zoom;
             let cls = 'grid-line';
-            if (t % measureInterval < 1) cls += ' measure';
-            else if (t % beatInterval < 1) cls += ' beat';
+            if (Math.abs(t % measureInterval) < 0.5 || Math.abs(t % measureInterval - measureInterval) < 0.5) cls += ' measure';
+            else if (Math.abs(t % beatInterval) < 0.5 || Math.abs(t % beatInterval - beatInterval) < 0.5) cls += ' beat';
             gridHTML += `<div class="${cls}" style="left: ${x}px;"></div>`;
         }
         const allTracks = [
@@ -508,13 +638,15 @@
             elements.trackLeft, elements.trackDown, elements.trackUp, elements.trackRight
         ];
         allTracks.forEach(track => {
-            if (!track.querySelector('.grid-container')) {
-                const gridContainer = document.createElement('div');
+            if (!track) return;
+            let gridContainer = track.querySelector('.grid-container');
+            if (!gridContainer) {
+                gridContainer = document.createElement('div');
                 gridContainer.className = 'grid-container';
                 gridContainer.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;';
-                gridContainer.innerHTML = gridHTML;
                 track.appendChild(gridContainer);
             }
+            gridContainer.innerHTML = gridHTML;
         });
     }
 
@@ -772,23 +904,21 @@
     function addNote(key, time, skipHistory = false) {
         if (!skipHistory) pushHistory('add note');
         const snappedTime = snapTime(time);
-        state.songData.push({ key, time: Math.round(snappedTime) });
+        const note = createNote(key, snappedTime);
+        state.songData.push(note);
         state.songData.sort((a, b) => a.time - b.time);
         renderNotes();
         updateStatus(`Added ${key.toUpperCase()} note at ${msToTimeString(snappedTime)}`);
+        return note;
     }
 
-    function removeNote(index, skipHistory = false) {
-        if (index < 0 || index >= state.songData.length) return;
+    function removeNoteById(id, skipHistory = false) {
+        const index = state.songData.findIndex(n => n.id === id);
+        if (index < 0) return;
         if (!skipHistory) pushHistory('delete note');
         state.songData.splice(index, 1);
-        state.selectedNotes.delete(index);
-        const newSelected = new Set();
-        state.selectedNotes.forEach(i => {
-            if (i > index) newSelected.add(i - 1);
-            else if (i < index) newSelected.add(i);
-        });
-        state.selectedNotes = newSelected;
+        state.selectedNotes.delete(id);
+        if (selectionAnchorId === id) selectionAnchorId = null;
         renderNotes();
         updateStatus('Note removed');
     }
@@ -796,11 +926,12 @@
     function removeSelectedNotes() {
         if (state.selectedNotes.size === 0) return;
         pushHistory('delete notes');
-        const indices = Array.from(state.selectedNotes).sort((a, b) => b - a);
-        indices.forEach(i => state.songData.splice(i, 1));
+        const count = state.selectedNotes.size;
+        state.songData = state.songData.filter(n => !state.selectedNotes.has(n.id));
         state.selectedNotes.clear();
+        selectionAnchorId = null;
         renderNotes();
-        updateStatus(`Removed ${indices.length} note(s)`);
+        updateStatus(`Removed ${count} note(s)`);
     }
 
     function clearAllNotes() {
@@ -809,111 +940,121 @@
         pushHistory('clear all');
         state.songData = [];
         state.selectedNotes.clear();
+        selectionAnchorId = null;
         renderNotes();
         updateStatus('All notes cleared');
     }
 
-    function duplicateNote(index, skipHistory = false) {
-        if (index < 0 || index >= state.songData.length) return;
+    function duplicateNoteById(id, skipHistory = false) {
+        const note = getNoteById(id);
+        if (!note) return;
         if (!skipHistory) pushHistory('duplicate note');
-        const note = state.songData[index];
-        const beatInterval = 60000 / state.bpm;
-        addNote(note.key, note.time + beatInterval, true);
+        addNote(note.key, note.time + getSnapInterval(), true);
     }
 
     function duplicateSelectedNotes() {
-        if (state.selectedNotes.size === 0) {
+        const selected = getSelectedNotes();
+        if (selected.length === 0) {
             updateStatus('No notes selected to duplicate');
             return;
         }
         pushHistory('duplicate notes');
-        const beatInterval = 60000 / state.bpm;
-        const selectedIndices = Array.from(state.selectedNotes).sort((a, b) => a - b);
-        const newNotes = selectedIndices.map(i => ({
-            key: state.songData[i].key,
-            time: Math.round(state.songData[i].time + beatInterval)
-        }));
+        const offset = getSnapInterval();
+        const newNotes = selected.map(n => createNote(n.key, n.time + offset));
         state.songData.push(...newNotes);
         state.songData.sort((a, b) => a.time - b.time);
-        state.selectedNotes.clear();
-        newNotes.forEach(newNote => {
-            const idx = state.songData.findIndex(n => n.time === newNote.time && n.key === newNote.key);
-            if (idx !== -1) state.selectedNotes.add(idx);
-        });
+        setSelectionByIds(newNotes.map(n => n.id), newNotes[0].id);
         renderNotes();
         updateStatus(`Duplicated ${newNotes.length} note(s)`);
     }
 
-    function toggleNoteType(index, skipHistory = false) {
-        if (index < 0 || index >= state.songData.length) return;
+    function toggleNoteTypeById(id, skipHistory = false) {
+        const note = getNoteById(id);
+        if (!note) return;
         if (!skipHistory) pushHistory('toggle type');
-        const note = state.songData[index];
-        const taikoKeys = ['d', 'f'];
-        const arrowKeys = ['left', 'down', 'up', 'right'];
-        if (taikoKeys.includes(note.key)) {
-            const currentIdx = taikoKeys.indexOf(note.key);
-            note.key = taikoKeys[(currentIdx + 1) % taikoKeys.length];
-        } else if (arrowKeys.includes(note.key)) {
-            const currentIdx = arrowKeys.indexOf(note.key);
-            note.key = arrowKeys[(currentIdx + 1) % arrowKeys.length];
-        }
+        const order = getLaneOrder().includes(note.key) ? getLaneOrder()
+            : (['d', 'f'].includes(note.key) ? ['d', 'f'] : ['left', 'down', 'up', 'right']);
+        const currentIdx = order.indexOf(note.key);
+        if (currentIdx >= 0) note.key = order[(currentIdx + 1) % order.length];
         renderNotes();
         updateStatus('Note type toggled');
     }
 
     function mirrorSelectedNotes() {
-        if (state.selectedNotes.size === 0) {
+        const selected = getSelectedNotes();
+        if (selected.length === 0) {
             updateStatus('No notes selected to mirror');
             return;
         }
         pushHistory('mirror notes');
-        const taikoKeys = ['d', 'f'];
-        const arrowKeys = ['left', 'down', 'up', 'right'];
         const arrowMirror = { 'left': 'right', 'right': 'left', 'down': 'up', 'up': 'down' };
-        state.selectedNotes.forEach(i => {
-            const note = state.songData[i];
-            if (taikoKeys.includes(note.key)) {
+        selected.forEach(note => {
+            if (note.key === 'd' || note.key === 'f') {
                 note.key = note.key === 'd' ? 'f' : 'd';
-            } else if (arrowKeys.includes(note.key)) {
+            } else if (arrowMirror[note.key]) {
                 note.key = arrowMirror[note.key];
             }
         });
         renderNotes();
-        updateStatus(`Mirrored ${state.selectedNotes.size} note(s)`);
+        updateStatus(`Mirrored ${selected.length} note(s)`);
+    }
+
+    function moveSelectedNotesLane(delta) {
+        const selected = getSelectedNotes();
+        if (selected.length === 0) return;
+        pushHistory('move lane');
+        selected.forEach(note => {
+            note.key = shiftLaneKey(note.key, delta);
+        });
+        renderNotes();
+        updateStatus(`Moved ${selected.length} note(s) ${delta < 0 ? 'up' : 'down'}`);
     }
 
     function quantizeSelectedNotes() {
-        if (state.selectedNotes.size === 0) {
+        const selected = getSelectedNotes();
+        if (selected.length === 0) {
             updateStatus('No notes selected to quantize');
             return;
         }
         pushHistory('quantize notes');
-        state.selectedNotes.forEach(i => {
-            state.songData[i].time = Math.round(snapTime(state.songData[i].time));
+        const prev = state.snapToGrid;
+        state.snapToGrid = true;
+        selected.forEach(note => {
+            note.time = Math.round(snapTime(note.time));
         });
+        state.snapToGrid = prev;
         state.songData.sort((a, b) => a.time - b.time);
         renderNotes();
-        updateStatus(`Quantized ${state.selectedNotes.size} note(s) to grid`);
+        updateStatus(`Quantized ${selected.length} note(s) to 1/${state.snapDivisor}`);
     }
 
     function nudgeSelectedNotes(deltaMs) {
-        if (state.selectedNotes.size === 0) return;
+        const selected = getSelectedNotes();
+        if (selected.length === 0) return;
         pushHistory('nudge notes');
-        state.selectedNotes.forEach(i => {
-            state.songData[i].time = Math.max(0, state.songData[i].time + deltaMs);
+        selected.forEach(note => {
+            note.time = Math.max(0, note.time + deltaMs);
         });
         state.songData.sort((a, b) => a.time - b.time);
         renderNotes();
         const direction = deltaMs > 0 ? 'forward' : 'backward';
-        updateStatus(`Nudged ${state.selectedNotes.size} note(s) ${direction}`);
+        updateStatus(`Nudged ${selected.length} note(s) ${direction}`);
     }
 
-    function selectNotesInTimeRange(startTime, endTime) {
+    function seekByDelta(deltaMs) {
+        state.currentTime = Math.max(state.rangeStart, Math.min(state.rangeEnd, state.currentTime + deltaMs));
+        if (state.snapToGrid) state.currentTime = snapTime(state.currentTime);
+        if (state.audioLoaded) audioElement.currentTime = state.currentTime / 1000;
+        updatePlayheadPosition();
+        updateTimeDisplay();
+    }
+
+    function selectNotesInTimeRange(startTime, endTime, laneFilter) {
         state.selectedNotes.clear();
-        state.songData.forEach((note, i) => {
-            if (note.time >= startTime && note.time <= endTime) {
-                state.selectedNotes.add(i);
-            }
+        state.songData.forEach((note) => {
+            if (note.time < startTime || note.time > endTime) return;
+            if (laneFilter && !laneFilter.includes(note.key)) return;
+            state.selectedNotes.add(note.id);
         });
         renderNotes();
         updateStatus(`Selected ${state.selectedNotes.size} note(s) in range`);
@@ -925,14 +1066,34 @@
 
     function invertSelection() {
         const newSelected = new Set();
-        state.songData.forEach((_, i) => {
-            if (!state.selectedNotes.has(i)) {
-                newSelected.add(i);
-            }
+        state.songData.forEach((note) => {
+            if (!state.selectedNotes.has(note.id)) newSelected.add(note.id);
         });
         state.selectedNotes = newSelected;
         renderNotes();
         updateStatus(`Inverted selection: ${state.selectedNotes.size} note(s)`);
+    }
+
+    function selectTimeRangeBetween(anchorId, targetId) {
+        const anchor = getNoteById(anchorId);
+        const target = getNoteById(targetId);
+        if (!anchor || !target) {
+            setSelectionByIds([targetId], targetId);
+            renderNotes();
+            return;
+        }
+        const t0 = Math.min(anchor.time, target.time);
+        const t1 = Math.max(anchor.time, target.time);
+        const lanes = getLaneOrder();
+        state.selectedNotes.clear();
+        state.songData.forEach(note => {
+            if (note.time >= t0 && note.time <= t1 && lanes.includes(note.key)) {
+                state.selectedNotes.add(note.id);
+            }
+        });
+        selectionAnchorId = anchorId;
+        renderNotes();
+        updateStatus(`Selected ${state.selectedNotes.size} note(s)`);
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -998,6 +1159,13 @@
         elements.snapToggle.classList.toggle('active', state.snapToGrid);
     });
 
+    if (elements.snapDivisorPrev) {
+        elements.snapDivisorPrev.addEventListener('click', () => cycleSnapDivisor(-1));
+    }
+    if (elements.snapDivisorNext) {
+        elements.snapDivisorNext.addEventListener('click', () => cycleSnapDivisor(1));
+    }
+
     elements.clearBtn.addEventListener('click', clearAllNotes);
 
     elements.startPromptBtn.addEventListener('click', () => {
@@ -1014,16 +1182,11 @@
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         const key = e.key.toLowerCase();
 
-        // Ctrl/Cmd shortcuts
         if (e.ctrlKey || e.metaKey) {
             switch (key) {
                 case 'z':
                     e.preventDefault();
-                    if (e.shiftKey) {
-                        redo();
-                    } else {
-                        undo();
-                    }
+                    if (e.shiftKey) redo(); else undo();
                     return;
                 case 'y':
                     e.preventDefault();
@@ -1049,12 +1212,16 @@
                     e.preventDefault();
                     mirrorSelectedNotes();
                     return;
+                case 's':
+                    e.preventDefault();
+                    saveProject();
+                    return;
                 case 'a':
                     e.preventDefault();
                     if (e.shiftKey) {
                         selectAllNotesInVisibleRange();
                     } else {
-                        state.songData.forEach((_, i) => state.selectedNotes.add(i));
+                        state.songData.forEach(n => state.selectedNotes.add(n.id));
                         renderNotes();
                         updateStatus(`Selected all ${state.songData.length} note(s)`);
                     }
@@ -1066,7 +1233,6 @@
             }
         }
 
-        // Non-modifier shortcuts
         switch (key) {
             case ' ':
                 e.preventDefault();
@@ -1087,20 +1253,15 @@
                     break;
                 }
                 if (state.isRecording || !state.isPlaying) {
-                    if (state.mode === 'taiko') {
-                        addNote(key, state.currentTime);
-                    } else {
-                        const arrowKey = key === 'd' ? 'left' : 'down';
-                        addNote(arrowKey, state.currentTime);
-                    }
+                    if (state.mode === 'taiko') addNote(key, state.currentTime);
+                    else addNote(key === 'd' ? 'left' : 'down', state.currentTime);
                 }
                 break;
             }
             case 'j':
             case 'k':
                 if (state.mode === 'arrow' && (state.isRecording || !state.isPlaying)) {
-                    const arrowKey = key === 'j' ? 'up' : 'right';
-                    addNote(arrowKey, state.currentTime);
+                    addNote(key === 'j' ? 'up' : 'right', state.currentTime);
                 }
                 break;
             case 'r':
@@ -1108,6 +1269,14 @@
                 break;
             case 'q':
                 quantizeSelectedNotes();
+                break;
+            case '[':
+                e.preventDefault();
+                cycleSnapDivisor(-1);
+                break;
+            case ']':
+                e.preventDefault();
+                cycleSnapDivisor(1);
                 break;
             case 'delete':
             case 'backspace':
@@ -1119,70 +1288,58 @@
                 break;
             case 'escape':
                 state.selectedNotes.clear();
+                selectionAnchorId = null;
                 renderNotes();
                 hideContextMenu();
-                if (isBoxSelecting) {
+                if (isBoxSelecting || boxSelectPending) {
                     isBoxSelecting = false;
+                    boxSelectPending = false;
                     if (boxSelectElement) boxSelectElement.style.display = 'none';
                 }
+                updateStatus('Selection cleared');
                 break;
-            case 'arrowleft':
-                if (state.selectedNotes.size > 0) {
-                    e.preventDefault();
-                    const nudgeAmount = e.shiftKey ? -100 : -(60000 / state.bpm / 4);
-                    nudgeSelectedNotes(nudgeAmount);
-                }
+            case 'arrowleft': {
+                e.preventDefault();
+                const amount = e.shiftKey ? -100 : -getSnapInterval();
+                if (state.selectedNotes.size > 0) nudgeSelectedNotes(amount);
+                else seekByDelta(amount);
                 break;
-            case 'arrowright':
-                if (state.selectedNotes.size > 0) {
-                    e.preventDefault();
-                    const nudgeAmount = e.shiftKey ? 100 : (60000 / state.bpm / 4);
-                    nudgeSelectedNotes(nudgeAmount);
-                }
+            }
+            case 'arrowright': {
+                e.preventDefault();
+                const amount = e.shiftKey ? 100 : getSnapInterval();
+                if (state.selectedNotes.size > 0) nudgeSelectedNotes(amount);
+                else seekByDelta(amount);
                 break;
+            }
             case 'arrowup':
+                if (state.selectedNotes.size > 0) {
+                    e.preventDefault();
+                    moveSelectedNotesLane(-1);
+                }
+                break;
             case 'arrowdown':
                 if (state.selectedNotes.size > 0) {
                     e.preventDefault();
-                    mirrorSelectedNotes();
+                    moveSelectedNotesLane(1);
                 }
                 break;
         }
     });
 
-    // Track click
+    // Track click: empty-lane deselect only (note selection is handled on mousedown)
     elements.tracksArea.addEventListener('click', (e) => {
-        if (isDragging || isBoxSelecting) return;
-        const note = e.target.closest('.note');
-        if (note) {
-            const index = parseInt(note.dataset.index);
-            if (e.ctrlKey || e.metaKey) {
-                if (state.selectedNotes.has(index)) state.selectedNotes.delete(index);
-                else state.selectedNotes.add(index);
-            } else if (e.shiftKey && state.selectedNotes.size > 0) {
-                const lastSelected = Math.max(...state.selectedNotes);
-                const start = Math.min(lastSelected, index);
-                const end = Math.max(lastSelected, index);
-                for (let i = start; i <= end; i++) state.selectedNotes.add(i);
-            } else {
-                state.selectedNotes.clear();
-                state.selectedNotes.add(index);
-            }
+        if (suppressClick) {
+            suppressClick = false;
+            return;
+        }
+        if (isDragging || isBoxSelecting || boxSelectDidDrag) return;
+        if (e.target.closest('.note')) return;
+        if (e.target.closest('.track-content') && !e.ctrlKey && !e.metaKey) {
+            state.selectedNotes.clear();
+            selectionAnchorId = null;
             renderNotes();
-        } else {
-            const trackContent = e.target.closest('.track-content');
-            if (trackContent && !e.shiftKey) {
-                const rect = trackContent.getBoundingClientRect();
-                const x = e.clientX - rect.left + elements.tracksArea.scrollLeft;
-                state.currentTime = Math.max(0, xToTime(x + TRACK_OFFSET));
-                if (state.snapToGrid) state.currentTime = snapTime(state.currentTime);
-                updatePlayheadPosition();
-                updateTimeDisplay();
-                if (!e.ctrlKey && !e.metaKey) {
-                    state.selectedNotes.clear();
-                    renderNotes();
-                }
-            }
+            updateStatus('Selection cleared');
         }
     });
 
@@ -1198,166 +1355,248 @@
         addNote(key, time);
     });
 
+    function beginBoxSelect(e) {
+        isBoxSelecting = true;
+        boxSelectDidDrag = true;
+        if (!boxSelectElement) boxSelectElement = createBoxSelectElement();
+        const scrollRect = elements.tracksScroll.getBoundingClientRect();
+        boxSelectStart = {
+            x: e.clientX - scrollRect.left + elements.tracksArea.scrollLeft,
+            y: e.clientY - scrollRect.top
+        };
+        boxSelectElement.style.left = `${boxSelectStart.x}px`;
+        boxSelectElement.style.top = `${boxSelectStart.y}px`;
+        boxSelectElement.style.width = '0px';
+        boxSelectElement.style.height = '0px';
+        boxSelectElement.style.display = 'block';
+        if (!boxSelectAdditive) state.selectedNotes.clear();
+    }
+
+    function applyBoxSelectPreview(left, top, width, height, additive) {
+        const boxLeft = left;
+        const boxRight = left + width;
+        const boxTop = top;
+        const boxBottom = top + height;
+        const hitIds = new Set();
+        document.querySelectorAll('.note').forEach(noteEl => {
+            const noteRect = noteEl.getBoundingClientRect();
+            const noteScrollRect = elements.tracksScroll.getBoundingClientRect();
+            const noteX = noteRect.left - noteScrollRect.left + elements.tracksArea.scrollLeft + noteRect.width / 2;
+            const noteY = noteRect.top - noteScrollRect.top + noteRect.height / 2;
+            if (noteX >= boxLeft && noteX <= boxRight && noteY >= boxTop && noteY <= boxBottom) {
+                hitIds.add(parseInt(noteEl.dataset.id, 10));
+            }
+        });
+        if (!additive) {
+            state.selectedNotes = hitIds;
+        } else {
+            hitIds.forEach(id => state.selectedNotes.add(id));
+        }
+        elements.tracksScroll.classList.toggle('has-selection', state.selectedNotes.size > 0);
+        document.querySelectorAll('.note').forEach(noteEl => {
+            const id = parseInt(noteEl.dataset.id, 10);
+            noteEl.classList.toggle('selected', state.selectedNotes.has(id));
+        });
+    }
+
     // Note dragging and box selection
     elements.tracksArea.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;
-        
         const note = e.target.closest('.note');
-        
+
         if (note) {
-            // Note dragging
             e.preventDefault();
-            const index = parseInt(note.dataset.index);
-            
-            // If clicking on an unselected note without modifier, select only this note
-            if (!state.selectedNotes.has(index) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+            const id = parseInt(note.dataset.id, 10);
+            const dataNote = getNoteById(id);
+            if (!dataNote) return;
+
+            if (!state.selectedNotes.has(id) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
                 state.selectedNotes.clear();
-                state.selectedNotes.add(index);
+                state.selectedNotes.add(id);
+                selectionAnchorId = id;
+                renderNotes();
+                updateStatus(`Selected 1 note`);
+            } else if (e.ctrlKey || e.metaKey) {
+                if (state.selectedNotes.has(id)) state.selectedNotes.delete(id);
+                else state.selectedNotes.add(id);
+                selectionAnchorId = id;
+                renderNotes();
+                updateStatus(`Selected ${state.selectedNotes.size} note(s)`);
+                suppressClick = true;
+            } else if (e.shiftKey && selectionAnchorId != null) {
+                selectTimeRangeBetween(selectionAnchorId, id);
+                suppressClick = true;
+            } else if (!state.selectedNotes.has(id)) {
+                state.selectedNotes.clear();
+                state.selectedNotes.add(id);
+                selectionAnchorId = id;
                 renderNotes();
             }
-            
-            // Multi-note dragging if multiple notes are selected
-            if (state.selectedNotes.size > 1 && state.selectedNotes.has(index)) {
+
+            if (state.selectedNotes.size > 1 && state.selectedNotes.has(id)) {
                 isDraggingMultiple = true;
                 multiDragStartTimes.clear();
-                state.selectedNotes.forEach(i => {
-                    multiDragStartTimes.set(i, state.songData[i].time);
+                multiDragStartKeys.clear();
+                getSelectedNotes().forEach(n => {
+                    multiDragStartTimes.set(n.id, n.time);
+                    multiDragStartKeys.set(n.id, n.key);
                 });
-                pushHistory('move notes');
-            } else {
+            } else if (state.selectedNotes.has(id)) {
                 isDraggingMultiple = false;
-                pushHistory('move note');
+            } else {
+                return;
             }
-            
+
             isDragging = true;
+            dragDidMove = false;
+            dragHistoryPushed = false;
             draggedNote = note;
+            draggedNoteId = id;
             dragStartX = e.clientX;
-            dragStartTime = state.songData[index].time;
+            dragStartY = e.clientY;
+            dragStartTime = dataNote.time;
+            dragStartKey = dataNote.key;
             note.classList.add('dragging');
             document.body.style.cursor = 'grabbing';
         } else {
-            // Box selection - start on empty track area
             const trackContent = e.target.closest('.track-content');
-            if (trackContent && e.shiftKey) {
-                e.preventDefault();
-                isBoxSelecting = true;
-                if (!boxSelectElement) {
-                    boxSelectElement = createBoxSelectElement();
-                }
-                const scrollRect = elements.tracksScroll.getBoundingClientRect();
-                boxSelectStart = {
-                    x: e.clientX - scrollRect.left + elements.tracksArea.scrollLeft,
-                    y: e.clientY - scrollRect.top
-                };
-                boxSelectElement.style.left = `${boxSelectStart.x}px`;
-                boxSelectElement.style.top = `${boxSelectStart.y}px`;
-                boxSelectElement.style.width = '0px';
-                boxSelectElement.style.height = '0px';
-                boxSelectElement.style.display = 'block';
-            }
+            if (!trackContent) return;
+            e.preventDefault();
+            boxSelectPending = true;
+            boxSelectAdditive = e.ctrlKey || e.metaKey;
+            boxSelectDidDrag = false;
+            const scrollRect = elements.tracksScroll.getBoundingClientRect();
+            boxSelectStart = {
+                x: e.clientX - scrollRect.left + elements.tracksArea.scrollLeft,
+                y: e.clientY - scrollRect.top,
+                originX: e.clientX,
+                originY: e.clientY
+            };
+            const x = e.clientX - trackContent.getBoundingClientRect().left + elements.tracksArea.scrollLeft;
+            pendingSeekTime = Math.max(0, xToTime(x + TRACK_OFFSET));
+            if (state.snapToGrid) pendingSeekTime = snapTime(pendingSeekTime);
         }
     });
 
     document.addEventListener('mousemove', (e) => {
-        // Box selection
+        if (boxSelectPending && !isBoxSelecting) {
+            const ox = boxSelectStart.originX;
+            const oy = boxSelectStart.originY;
+            if (ox != null && Math.hypot(e.clientX - ox, e.clientY - oy) > 5) {
+                beginBoxSelect(e);
+            }
+        }
+
         if (isBoxSelecting && boxSelectElement) {
             const scrollRect = elements.tracksScroll.getBoundingClientRect();
             const currentX = e.clientX - scrollRect.left + elements.tracksArea.scrollLeft;
             const currentY = e.clientY - scrollRect.top;
-            
             const left = Math.min(boxSelectStart.x, currentX);
             const top = Math.min(boxSelectStart.y, currentY);
             const width = Math.abs(currentX - boxSelectStart.x);
             const height = Math.abs(currentY - boxSelectStart.y);
-            
             boxSelectElement.style.left = `${left}px`;
             boxSelectElement.style.top = `${top}px`;
             boxSelectElement.style.width = `${width}px`;
             boxSelectElement.style.height = `${height}px`;
-            
-            // Live preview selection
-            const boxLeft = left;
-            const boxRight = left + width;
-            const boxTop = top;
-            const boxBottom = top + height;
-            
-            if (!e.ctrlKey && !e.metaKey) {
-                state.selectedNotes.clear();
-            }
-            
-            document.querySelectorAll('.note').forEach(noteEl => {
-                const noteRect = noteEl.getBoundingClientRect();
-                const noteScrollRect = elements.tracksScroll.getBoundingClientRect();
-                const noteX = noteRect.left - noteScrollRect.left + elements.tracksArea.scrollLeft + noteRect.width / 2;
-                const noteY = noteRect.top - noteScrollRect.top + noteRect.height / 2;
-                
-                if (noteX >= boxLeft && noteX <= boxRight && noteY >= boxTop && noteY <= boxBottom) {
-                    state.selectedNotes.add(parseInt(noteEl.dataset.index));
-                }
-            });
-            renderNotes();
+            applyBoxSelectPreview(left, top, width, height, boxSelectAdditive);
             return;
         }
-        
-        // Note dragging
-        if (!isDragging || !draggedNote) return;
-        
+
+        if (!isDragging || draggedNoteId == null) return;
+
         const deltaX = e.clientX - dragStartX;
+        const deltaY = e.clientY - dragStartY;
+        if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+            if (!dragDidMove && !dragHistoryPushed) {
+                pushHistory(isDraggingMultiple ? 'move notes' : 'move note');
+                dragHistoryPushed = true;
+            }
+            dragDidMove = true;
+        }
         const deltaTime = (deltaX / state.zoom) * 1000;
-        
+        const hoverKey = laneKeyFromPoint(e.clientX, e.clientY);
+        const order = getLaneOrder();
+        const startLaneIdx = order.indexOf(dragStartKey);
+        const hoverLaneIdx = hoverKey != null ? order.indexOf(hoverKey) : startLaneIdx;
+        const laneDelta = (startLaneIdx >= 0 && hoverLaneIdx >= 0) ? (hoverLaneIdx - startLaneIdx) : 0;
+
         if (isDraggingMultiple) {
-            // Move all selected notes
-            multiDragStartTimes.forEach((startTime, index) => {
+            multiDragStartTimes.forEach((startTime, id) => {
+                const note = getNoteById(id);
+                if (!note) return;
                 let newTime = Math.max(0, startTime + deltaTime);
                 if (state.snapToGrid) newTime = snapTime(newTime);
-                state.songData[index].time = Math.round(newTime);
+                note.time = Math.round(newTime);
+                const startKey = multiDragStartKeys.get(id);
+                note.key = shiftLaneKey(startKey, laneDelta);
             });
             renderNotes();
+            const el = document.querySelector(`.note[data-id="${draggedNoteId}"]`);
+            if (el) {
+                draggedNote = el;
+                el.classList.add('dragging');
+            }
         } else {
-            // Move single note
+            const note = getNoteById(draggedNoteId);
+            if (!note) return;
             let newTime = Math.max(0, dragStartTime + deltaTime);
             if (state.snapToGrid) newTime = snapTime(newTime);
-            const index = parseInt(draggedNote.dataset.index);
-            state.songData[index].time = Math.round(newTime);
-            draggedNote.style.left = `${timeToX(newTime) - TRACK_OFFSET - 18}px`;
+            note.time = Math.round(newTime);
+            if (hoverKey) note.key = hoverKey;
+            if (draggedNote) {
+                draggedNote.style.left = `${timeToX(newTime) - TRACK_OFFSET - 18}px`;
+                if (note.key !== dragStartKey) {
+                    renderNotes();
+                    const el = document.querySelector(`.note[data-id="${draggedNoteId}"]`);
+                    if (el) {
+                        draggedNote = el;
+                        el.classList.add('dragging');
+                    }
+                    dragStartKey = note.key;
+                }
+            }
         }
     });
 
     document.addEventListener('mouseup', (e) => {
-        // Box selection end
-        if (isBoxSelecting) {
-            isBoxSelecting = false;
-            if (boxSelectElement) {
-                boxSelectElement.style.display = 'none';
+        if (boxSelectPending && !isBoxSelecting) {
+            boxSelectPending = false;
+            if (!boxSelectAdditive && pendingSeekTime != null) {
+                state.currentTime = pendingSeekTime;
+                if (state.audioLoaded) audioElement.currentTime = state.currentTime / 1000;
+                updatePlayheadPosition();
+                updateTimeDisplay();
+                state.selectedNotes.clear();
+                selectionAnchorId = null;
+                renderNotes();
             }
-            updateStatus(`Selected ${state.selectedNotes.size} note(s)`);
+            pendingSeekTime = null;
             return;
         }
-        
-        // Note dragging end
+
+        if (isBoxSelecting) {
+            isBoxSelecting = false;
+            boxSelectPending = false;
+            boxSelectDidDrag = true;
+            if (boxSelectElement) boxSelectElement.style.display = 'none';
+            suppressClick = true;
+            updateStatus(`Selected ${state.selectedNotes.size} note(s)`);
+            setTimeout(() => { boxSelectDidDrag = false; }, 0);
+            return;
+        }
+
         if (!isDragging) return;
         isDragging = false;
         isDraggingMultiple = false;
         multiDragStartTimes.clear();
+        multiDragStartKeys.clear();
         if (draggedNote) draggedNote.classList.remove('dragging');
         draggedNote = null;
+        draggedNoteId = null;
         document.body.style.cursor = '';
         state.songData.sort((a, b) => a.time - b.time);
-        
-        // Recalculate selected indices after sort
-        const selectedTimes = new Set();
-        state.selectedNotes.forEach(i => {
-            if (state.songData[i]) {
-                selectedTimes.add(`${state.songData[i].key}_${state.songData[i].time}`);
-            }
-        });
-        state.selectedNotes.clear();
-        state.songData.forEach((note, i) => {
-            if (selectedTimes.has(`${note.key}_${note.time}`)) {
-                state.selectedNotes.add(i);
-            }
-        });
-        
+        if (dragDidMove) suppressClick = true;
         renderNotes();
     });
 
@@ -1366,16 +1605,15 @@
         e.preventDefault();
         const note = e.target.closest('.note');
         if (note) {
-            contextNoteIndex = parseInt(note.dataset.index);
-            // If right-clicking on unselected note, select it
-            if (!state.selectedNotes.has(contextNoteIndex)) {
+            contextNoteId = parseInt(note.dataset.id, 10);
+            if (!state.selectedNotes.has(contextNoteId)) {
                 state.selectedNotes.clear();
-                state.selectedNotes.add(contextNoteIndex);
+                state.selectedNotes.add(contextNoteId);
+                selectionAnchorId = contextNoteId;
                 renderNotes();
             }
             elements.contextMenu.style.left = `${e.clientX}px`;
             elements.contextMenu.style.top = `${e.clientY}px`;
-            // Update context menu text based on selection
             const count = state.selectedNotes.size;
             const deleteEl = document.getElementById('contextDelete');
             const dupEl = document.getElementById('contextDuplicate');
@@ -1391,7 +1629,7 @@
 
     function hideContextMenu() {
         elements.contextMenu.classList.remove('active');
-        contextNoteIndex = null;
+        contextNoteId = null;
     }
 
     document.addEventListener('click', (e) => {
@@ -1401,8 +1639,8 @@
     elements.contextDelete.addEventListener('click', () => {
         if (state.selectedNotes.size > 0) {
             removeSelectedNotes();
-        } else if (contextNoteIndex !== null) {
-            removeNote(contextNoteIndex);
+        } else if (contextNoteId !== null) {
+            removeNoteById(contextNoteId);
         }
         hideContextMenu();
     });
@@ -1410,8 +1648,8 @@
     elements.contextDuplicate.addEventListener('click', () => {
         if (state.selectedNotes.size > 1) {
             duplicateSelectedNotes();
-        } else if (contextNoteIndex !== null) {
-            duplicateNote(contextNoteIndex);
+        } else if (contextNoteId !== null) {
+            duplicateNoteById(contextNoteId);
         }
         hideContextMenu();
     });
@@ -1419,8 +1657,8 @@
     elements.contextToggleType.addEventListener('click', () => {
         if (state.selectedNotes.size > 1) {
             mirrorSelectedNotes();
-        } else if (contextNoteIndex !== null) {
-            toggleNoteType(contextNoteIndex);
+        } else if (contextNoteId !== null) {
+            toggleNoteTypeById(contextNoteId);
         }
         hideContextMenu();
     });
@@ -1462,8 +1700,9 @@
 
     if (contextSelectAll) {
         contextSelectAll.addEventListener('click', () => {
-            state.songData.forEach((_, i) => state.selectedNotes.add(i));
+            state.songData.forEach(n => state.selectedNotes.add(n.id));
             renderNotes();
+            updateStatus(`Selected all ${state.songData.length} note(s)`);
             hideContextMenu();
         });
     }
@@ -1510,10 +1749,79 @@
         const artist = elements.songArtist.value || 'Unknown';
         const difficulty = elements.difficultyName.value || 'Normal';
         const modeLabel = state.mode === 'taiko' ? 'Taiko' : 'Arrow (updown)';
-        const notesStr = state.songData.map(n =>
+        const notesStr = stripNoteIds(state.songData).map(n =>
             `    { key: '${n.key}', time: ${n.time} }`
         ).join(',\n');
         return `// ${title} - ${artist} [${difficulty}]\n// Mode: ${modeLabel}\n// Total notes: ${state.songData.length}\n// Duration: ${msToTimeString(state.duration)}\n\n[\n${notesStr}\n]`;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // MIDI → ARROWS
+    // ══════════════════════════════════════════════════════════════
+    function openMidiPicker() {
+        if (elements.midiFileInput) elements.midiFileInput.click();
+    }
+
+    if (elements.midiBtn) {
+        elements.midiBtn.addEventListener('click', openMidiPicker);
+    }
+
+    if (elements.midiFileInput) {
+        elements.midiFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
+            await importMidiFile(file);
+        });
+    }
+
+    async function importMidiFile(file) {
+        if (typeof JosuMidi === 'undefined') {
+            updateStatus('MIDI converter failed to load');
+            return;
+        }
+        updateStatus('Reading MIDI...');
+        try {
+            const parsed = JosuMidi.parse(await file.arrayBuffer());
+            if (!parsed.notes.length) {
+                updateStatus('No notes found in that MIDI');
+                return;
+            }
+            if (state.songData.length && !confirm(`Replace ${state.songData.length} notes with arrows from this MIDI?`)) {
+                updateStatus('MIDI import cancelled');
+                return;
+            }
+            const bpm = parsed.bpm || state.bpm;
+            const arrows = JosuMidi.toArrows(parsed, { bpm, snap: state.snapToGrid });
+            if (!arrows.length) {
+                updateStatus('MIDI had notes, but none mapped to arrows');
+                return;
+            }
+            pushHistory('midi import');
+            state.songData = ensureNoteIds(arrows.slice().sort((a, b) => a.time - b.time));
+            state.selectedNotes.clear();
+            selectionAnchorId = null;
+            if (parsed.bpm) {
+                state.bpm = parsed.bpm;
+                elements.bpmInput.value = parsed.bpm;
+            }
+            const maxTime = arrows[arrows.length - 1].time;
+            if (maxTime + 3000 > state.duration) {
+                state.duration = maxTime + 3000;
+                elements.durationInput.value = msToTimeString(state.duration);
+            }
+            state.rangeStart = 0;
+            state.rangeEnd = state.duration;
+            setMode('arrow');
+            updateTrackWidth();
+            drawTimeRuler();
+            updateRangeUI();
+            const bpmBit = parsed.bpm ? ` · ${parsed.bpm} BPM` : '';
+            updateStatus(`Placed ${arrows.length} arrows from MIDI${bpmBit}`);
+        } catch (err) {
+            console.error('MIDI import failed:', err);
+            updateStatus('Could not read that MIDI file');
+        }
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1538,8 +1846,11 @@
                 if (match) parsed = eval(match[1]);
             }
             if (Array.isArray(parsed) && parsed.length > 0) {
-                state.songData = parsed.map(n => ({ key: n.key, time: n.time }));
+                pushHistory('import');
+                state.songData = ensureNoteIds(parsed.map(n => ({ key: n.key, time: n.time })));
                 state.songData.sort((a, b) => a.time - b.time);
+                state.selectedNotes.clear();
+                selectionAnchorId = null;
                 const maxTime = Math.max(...state.songData.map(n => n.time));
                 if (maxTime > state.duration) {
                     state.duration = maxTime + 5000;
@@ -1650,7 +1961,7 @@
         if (songId && diffId) {
             // Save back to the store
             JosuStore.updateDifficulty(songId, diffId, {
-                songData: state.songData,
+                songData: stripNoteIds(state.songData),
                 mode: state.mode,
                 bpm: state.bpm,
                 duration: state.duration,
@@ -1667,7 +1978,7 @@
         } else {
             // Fallback: old-style single-project save
             const projectData = {
-                songData: state.songData,
+                songData: stripNoteIds(state.songData),
                 mode: state.mode,
                 bpm: state.bpm,
                 duration: state.duration,
@@ -1696,12 +2007,14 @@
         elements.songArtist.value = projectSong.artist || '';
         elements.difficultyName.value = projectDiff.name || 'Normal';
 
-        state.songData = projectDiff.songData || projectDiff.notes || [];
+        state.songData = ensureNoteIds(projectDiff.songData || projectDiff.notes || []);
         state.mode = projectDiff.mode || 'taiko';
         state.bpm = projectDiff.bpm || 120;
         state.duration = projectDiff.duration || 60000;
         state.rangeStart = projectDiff.rangeStart || 0;
         state.rangeEnd = projectDiff.rangeEnd || state.duration;
+        state.selectedNotes.clear();
+        selectionAnchorId = null;
 
         elements.bpmInput.value = state.bpm;
         elements.durationInput.value = msToTimeString(state.duration);
@@ -1775,12 +2088,14 @@
             const saved = localStorage.getItem('josu_editor_project');
             if (!saved) return false;
             const projectData = JSON.parse(saved);
-            state.songData = projectData.songData || projectData.notes || [];
+            state.songData = ensureNoteIds(projectData.songData || projectData.notes || []);
             state.mode = projectData.mode || 'taiko';
             state.bpm = projectData.bpm || 120;
             state.duration = projectData.duration || 60000;
             state.rangeStart = projectData.rangeStart || 0;
             state.rangeEnd = projectData.rangeEnd || state.duration;
+            state.selectedNotes.clear();
+            selectionAnchorId = null;
             if (projectData.songTitle) elements.songTitle.value = projectData.songTitle;
             if (projectData.songArtist) elements.songArtist.value = projectData.songArtist;
             if (projectData.difficultyName) elements.difficultyName.value = projectData.difficultyName;
@@ -1836,7 +2151,7 @@
                 bpm: state.bpm,
                 stars: 1.0,
                 speed: 1.0,
-                songData: state.songData
+                songData: stripNoteIds(state.songData)
             };
             console.log('Upload: Using fallback song data');
         }
@@ -1847,9 +2162,11 @@
         }
 
         // Filter and offset notes to the selected range for game playback
-        const rangedNotes = (diffData.songData || [])
-            .filter(n => n.time >= state.rangeStart && n.time <= state.rangeEnd)
-            .map(n => ({ ...n, time: n.time - state.rangeStart }));
+        const rangedNotes = stripNoteIds(
+            (diffData.songData || [])
+                .filter(n => n.time >= state.rangeStart && n.time <= state.rangeEnd)
+                .map(n => ({ ...n, time: n.time - state.rangeStart }))
+        );
 
         if (rangedNotes.length === 0) {
             alert('No notes in the selected range! Add some notes or adjust the range.');
@@ -1967,6 +2284,7 @@
         updateRangeUI();
         updatePlayheadPosition();
         updateTimeDisplay();
+        updateSnapDivisorUI();
     }
 
     init();

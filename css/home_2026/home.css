@@ -463,8 +463,49 @@ nav a:hover {
 .cont {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 60px 20px 0;
-    height: 89vh;
+    padding: 28px 20px 0;
+    height: auto;
+}
+
+#main-cont > .cont:first-child {
+    height: 45vh;
+    min-height: 280px;
+    max-height: 45vh;
+    padding-top: 16px;
+    padding-bottom: 8px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+#main-cont > .cont:first-child .explainer {
+    flex: 1;
+    min-height: 0;
+    gap: 12px;
+}
+
+#main-cont > .cont:first-child .explainer-heading {
+    font-size: 2.6rem;
+}
+
+#main-cont > .cont:first-child .explainer-body {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+#main-cont > .cont:first-child .recents {
+    flex: 1;
+    min-height: 0;
+    gap: 1.25rem;
+}
+
+#main-cont > .cont:first-child .cge.normal {
+    aspect-ratio: auto;
+    height: 100%;
 }
 
 .cont.main-infos {
@@ -546,6 +587,11 @@ a.ritem {
     flex-direction: column;
     gap: 12px;
     min-width: 0;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.18) transparent;
 }
 
 .mi-sitem {
@@ -553,7 +599,7 @@ a.ritem {
     flex-direction: column;
     gap: 12px;
     cursor: pointer;
-    flex: 1;
+    flex: 0 0 auto;
 }
 
 .mi-sitem-img {
@@ -1157,6 +1203,30 @@ button.s2.expanded {
         padding: 28px 14px 0;
         height: auto;
         min-height: auto;
+        max-height: none;
+    }
+
+    #main-cont > .cont:first-child {
+        height: auto;
+        max-height: none;
+        min-height: 0;
+        padding-top: 16px;
+    }
+
+    #main-cont > .cont:first-child .explainer-heading {
+        font-size: 2.35rem;
+    }
+
+    #main-cont > .cont:first-child .explainer-body {
+        font-size: 1.2rem;
+        -webkit-line-clamp: unset;
+        display: block;
+        overflow: visible;
+    }
+
+    #main-cont > .cont:first-child .cge.normal {
+        aspect-ratio: 16 / 9;
+        height: auto;
     }
 
     .explainer {

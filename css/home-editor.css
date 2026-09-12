@@ -178,10 +178,37 @@ body {
     align-items: stretch;
 }
 
+.he-side-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+}
+
 .he-side-col {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    max-height: 32rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.he-add-side {
+    align-self: stretch;
+    background: transparent;
+    border: 1px dashed var(--he-slot-border);
+    color: var(--he-text-dim);
+    font-size: 0.8rem;
+    padding: 0.65rem 0.75rem;
+    cursor: pointer;
+    border-radius: var(--he-radius-lg);
+}
+
+.he-add-side:hover {
+    border-color: var(--he-slot-border-hover);
+    color: var(--he-text);
+    background: var(--he-accent-glow);
 }
 
 .he-recents-grid {
@@ -382,6 +409,25 @@ body {
 .he-slot-remove:hover {
     background: var(--he-danger);
     color: #fff;
+}
+
+.he-slot-delete {
+    position: absolute;
+    bottom: 0.45rem;
+    right: 0.45rem;
+    z-index: 3;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.65rem;
+    padding: 0.25rem 0.45rem;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    display: none;
+}
+
+.he-slot--side:hover .he-slot-delete {
+    display: block;
 }
 
 .he-slot--recent .he-slot-remove {
