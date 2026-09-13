@@ -5,6 +5,276 @@
     min-height: 60vh;
 }
 
+.doc-page--collection {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 2.5rem 24px 6rem;
+}
+
+.doc-shell {
+    display: none;
+    position: relative;
+    min-height: 60vh;
+    width: 100%;
+}
+
+.doc-shell.is-ready {
+    display: block;
+}
+
+.doc-page--collection .doc-shell.is-ready {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 720px);
+    column-gap: 64px;
+    justify-content: start;
+    align-items: start;
+}
+
+.doc-page--collection .doc-main {
+    width: 100%;
+    max-width: 720px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.doc-page--collection .doc-article {
+    max-width: 720px;
+    width: 100%;
+    margin: 0;
+}
+
+.doc-page--collection .doc-body {
+    font-size: 17px;
+}
+
+.doc-page--collection .doc-title {
+    font-size: 36px;
+}
+
+.doc-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 60;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(20,20,22,0.95);
+    color: rgba(255,255,255,0.85);
+    border-radius: 999px;
+    padding: 0.65rem 1.1rem;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.doc-nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 40;
+}
+
+.doc-nav-backdrop.open {
+    display: block;
+}
+
+.doc-toc {
+    position: sticky;
+    top: 5.5rem;
+    width: 220px;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.2rem 0 2rem;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.doc-toc-head {
+    margin: 0 0 1.75rem;
+}
+
+.doc-toc-collection {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.38);
+    line-height: 1.3;
+}
+
+.doc-toc-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: 220px;
+    max-width: 220px;
+}
+
+.doc-toc a,
+.doc-toc-tree a,
+.doc-toc-link {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    color: rgba(255,255,255,0.48);
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    padding: 0.28rem 0;
+    opacity: 1;
+    background: none;
+    border: none;
+    border-radius: 0;
+}
+
+.doc-toc-link--top {
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.88);
+    padding: 0.35rem 0 0.55rem;
+}
+
+.doc-toc-link--child {
+    font-size: 14px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.48);
+    padding: 0.22rem 0;
+}
+
+.doc-toc-link:hover,
+.doc-toc a:hover {
+    color: rgba(255,255,255,0.92);
+    opacity: 1;
+    background: none;
+}
+
+.doc-toc-link.is-active {
+    color: #fff;
+    font-weight: 500;
+    opacity: 1;
+    background: none;
+}
+
+.doc-toc-section {
+    margin: 1.15rem 0 0.15rem;
+    width: 220px;
+}
+
+.doc-toc-section:first-child {
+    margin-top: 0.25rem;
+}
+
+.doc-toc-section-toggle {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    width: 220px;
+    max-width: 220px;
+    margin: 0;
+    border: none;
+    background: none;
+    color: rgba(255,255,255,0.92);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    text-align: left;
+    padding: 0.2rem 0 0.4rem;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1.35;
+}
+
+.doc-toc-section-toggle:hover {
+    color: #fff;
+    background: none;
+}
+
+.doc-toc-section-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.doc-toc-caret {
+    width: 7px;
+    height: 7px;
+    margin-top: 0.4rem;
+    border-right: 1.5px solid rgba(255,255,255,0.45);
+    border-bottom: 1.5px solid rgba(255,255,255,0.45);
+    transform: rotate(-45deg);
+    transition: transform 0.16s ease;
+    flex-shrink: 0;
+}
+
+.doc-toc-section.is-open > .doc-toc-section-toggle .doc-toc-caret {
+    transform: rotate(45deg);
+}
+
+.doc-toc-section-list {
+    display: none;
+    padding: 0.1rem 0 0.35rem 0.9rem;
+}
+
+.doc-toc-section.is-open > .doc-toc-section-list {
+    display: block;
+}
+
+.doc-main {
+    min-width: 0;
+}
+
+@media (max-width: 960px) {
+    .doc-nav-toggle {
+        display: inline-flex;
+    }
+
+    .doc-page--collection {
+        max-width: 720px;
+        padding: 2rem 20px 6rem;
+    }
+
+    .doc-page--collection .doc-shell.is-ready {
+        display: block;
+    }
+
+    .doc-page--collection .doc-main {
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .doc-toc {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 50;
+        width: 18rem;
+        max-width: 85vw;
+        max-height: none;
+        padding: 4.5rem 1.4rem 3rem;
+        background: #050505;
+        border-right: 1px solid rgba(255,255,255,0.08);
+        transform: translateX(-105%);
+        transition: transform 0.2s ease;
+    }
+
+    .doc-toc.open {
+        transform: translateX(0);
+    }
+
+    .doc-toc-tree,
+    .doc-toc-section,
+    .doc-toc-section-toggle {
+        width: 100%;
+        max-width: none;
+    }
+}
+
 /* Loading */
 .doc-loading {
     display: flex;
@@ -321,6 +591,39 @@
 .ed-chart-tooltip-value {
     color: rgba(255,255,255,0.95);
     font-weight: 500;
+}
+
+/* LaTeX / Math */
+.doc-body .ed-math--inline {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0 0.1em;
+}
+
+.doc-body .ed-math--display {
+    display: block;
+    margin: 1.75rem 0;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    overflow-x: auto;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+}
+
+.doc-body .ed-math--error {
+    color: #f87171;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9rem;
+}
+
+.doc-body .katex {
+    font-size: 1.08em;
+    color: var(--bswhite);
+}
+
+.doc-body .ed-math--display .katex {
+    font-size: 1.2em;
 }
 
 /* Extra images grid */

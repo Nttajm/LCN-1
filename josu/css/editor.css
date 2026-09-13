@@ -313,6 +313,43 @@ body {
     display: none;
 }
 
+.snap-divisor {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    background: #0f3460;
+    border-radius: 4px;
+}
+
+.snap-divisor-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 3px;
+    background: #16213e;
+    color: #4ecdc4;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.snap-divisor-btn:hover {
+    background: #1a4a7a;
+    color: #fff;
+}
+
+.snap-divisor-label {
+    min-width: 32px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
 /* ══════════════════════════════════════════════════════════════
    RANGE SELECTOR
    ══════════════════════════════════════════════════════════════ */
@@ -575,19 +612,42 @@ body {
 }
 
 .note:hover {
-    transform: translateY(-50%) scale(1.15);
+    transform: translateY(-50%) scale(1.12);
     z-index: 20;
 }
 
 .note.selected {
-    box-shadow: 0 0 0 3px #fff, 0 0 20px rgba(255, 255, 255, 0.5);
+    box-shadow:
+        0 0 0 3px #ffd166,
+        0 0 0 6px rgba(255, 209, 102, 0.35),
+        0 0 18px rgba(255, 209, 102, 0.55);
+    transform: translateY(-50%) scale(1.18);
     z-index: 25;
+    filter: brightness(1.12) saturate(1.1);
+}
+
+.note.selected:hover {
+    transform: translateY(-50%) scale(1.22);
+}
+
+.tracks-scroll.has-selection .note:not(.selected) {
+    opacity: 0.42;
+    filter: saturate(0.7);
+}
+
+.tracks-scroll.has-selection .note:not(.selected):hover {
+    opacity: 0.85;
+    filter: none;
 }
 
 .note.dragging {
     cursor: grabbing;
-    opacity: 0.8;
+    opacity: 1;
     z-index: 30;
+    box-shadow:
+        0 0 0 3px #fff,
+        0 0 0 6px rgba(233, 69, 96, 0.45),
+        0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
 /* Playhead */
@@ -779,7 +839,8 @@ body {
 }
 
 /* Hidden file input */
-#audioFileInput {
+#audioFileInput,
+#midiFileInput {
     display: none;
 }
 
@@ -879,8 +940,9 @@ body {
 /* Box Selection Rectangle */
 #boxSelectRect {
     position: absolute;
-    border: 2px dashed #4ecdc4;
-    background: rgba(78, 205, 196, 0.15);
+    border: 2px solid #ffd166;
+    background: rgba(255, 209, 102, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.4);
     pointer-events: none;
     z-index: 100;
 }
@@ -923,6 +985,32 @@ body {
 .mode-btn svg {
     width: 20px;
     height: 20px;
+}
+
+.midi-import-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    margin-left: 4px;
+    background: linear-gradient(135deg, #7a1f4a, #c7366b);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.midi-import-btn:hover {
+    background: linear-gradient(135deg, #9a2860, #e94580);
+    box-shadow: 0 0 12px rgba(255, 51, 153, 0.35);
+}
+
+.midi-import-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
 /* Arrow mode track colors */

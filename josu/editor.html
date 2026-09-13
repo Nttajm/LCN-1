@@ -109,6 +109,14 @@
                     </svg>
                     Arrow
                 </button>
+                <button class="midi-import-btn" id="midiBtn" title="Upload MIDI to auto-place arrow notes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="16" rx="2"/>
+                        <path d="M8 4v9M12 4v9M16 4v9"/>
+                        <path d="M8 13v7M16 13v7"/>
+                    </svg>
+                    MIDI
+                </button>
             </div>
         </div>
 
@@ -149,8 +157,13 @@
 
             <label class="snap-toggle" id="snapToggle">
                 <input type="checkbox" checked>
-                <span>Snap to Grid</span>
+                <span>Snap</span>
             </label>
+            <div class="snap-divisor" id="snapDivisorControl" title="Snap divisor ([ / ])">
+                <button type="button" class="snap-divisor-btn" id="snapDivisorPrev" title="Coarser snap">[</button>
+                <span class="snap-divisor-label" id="snapDivisorLabel">1/4</span>
+                <button type="button" class="snap-divisor-btn" id="snapDivisorNext" title="Finer snap">]</button>
+            </div>
 
             <!-- Range Preview Selector -->
             <div class="range-selector" id="rangeSelector">
@@ -247,11 +260,13 @@
                 <div class="key-hint"><kbd>Space</kbd> Play</div>
                 <div class="key-hint taiko-hint"><kbd>D</kbd><kbd>F</kbd> Notes</div>
                 <div class="key-hint arrow-hint" style="display:none"><kbd>D</kbd><kbd>F</kbd><kbd>J</kbd><kbd>K</kbd> Arrows</div>
-                <div class="key-hint"><kbd>Ctrl+Z</kbd> Undo</div>
-                <div class="key-hint"><kbd>Ctrl+C/V</kbd> Copy/Paste</div>
-                <div class="key-hint"><kbd>Shift+Drag</kbd> Box Select</div>
+                <div class="key-hint"><kbd>Drag</kbd> Box Select</div>
                 <div class="key-hint"><kbd>←→</kbd> Nudge</div>
+                <div class="key-hint"><kbd>↑↓</kbd> Lane</div>
+                <div class="key-hint"><kbd>Ctrl+C/V</kbd> Copy/Paste</div>
+                <div class="key-hint"><kbd>[ ]</kbd> Snap</div>
                 <div class="key-hint"><kbd>Q</kbd> Quantize</div>
+                <div class="key-hint"><kbd>Ctrl+S</kbd> Save</div>
             </div>
             <div class="status-info">
                 <span id="statusText">Ready</span>
@@ -309,8 +324,9 @@
         <div class="context-menu-item danger" id="contextDelete">Delete Note <span class="shortcut">Del</span></div>
     </div>
 
-    <!-- Hidden Audio Input -->
+    <!-- Hidden file inputs -->
     <input type="file" id="audioFileInput" accept="audio/*">
+    <input type="file" id="midiFileInput" accept=".mid,.midi,audio/midi,audio/x-midi">
 
     <!-- Firebase compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -320,6 +336,7 @@
     <script src="js/josu-auth.js"></script>
     <script src="js/audio-store.js"></script>
     <script src="js/store.js"></script>
+    <script src="js/midi-to-arrows.js"></script>
     <script src="js/editor.js"></script>
 </body>
 </html>
