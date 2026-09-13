@@ -1,7 +1,7 @@
 import Globe from "globe.gl";
 import { haversineKm, greatCircleRing } from "./distance.js";
 
-const IDLE_MS = 3500;
+const IDLE_MS = 600;
 const POLYGON_ALTITUDE = 0.01;
 const ISLAND_ALTITUDE = 0.013;
 const START_LAND = "#7cb85c";
@@ -13,42 +13,21 @@ const HOVER_DIM = "#3a5230";
 const HOVER_DIM_STROKE = "#2a3d22";
 const ISLAND_STROKE = "#c5e89a";
 const ISLAND_SIDE = "rgba(140, 190, 90, 0.22)";
-const START_STAT_HIGHLIGHT = "#4a9eff";
-const START_STAT_HIGHLIGHT_STROKE = "#2f7fd6";
 const START_POV = { lat: 18, lng: 0, altitude: 1.55 };
 const GAME_POV = { lat: 18, lng: 0, altitude: 2.05 };
 const REGION_SELECT_POV = { lat: 12, lng: 18, altitude: 1.62 };
-const US_STATES_POV = { lat: 39.5, lng: -98.35, altitude: 1.28 };
-const CA_PROVINCES_POV = { lat: 56.1, lng: -96.5, altitude: 1.35 };
-const US_CA_POV = { lat: 48, lng: -96, altitude: 1.55 };
 const IDLE_ROTATE_SPEED = 0.35;
 const BURST_ROTATE_SPEED = 2.6;
 const REGION_HOVER_MS = 1000;
 const REGION_RETURN_MS = 900;
 const VIEW_TRANSITION_MS = 1300;
 
-export function createGlobe(
-  container,
-  initialFeatures,
-  initialRegionMembers = null,
-  initialRegionCentroids = null
-) {
-  let features = initialFeatures;
-  let regionMembers = initialRegionMembers;
-  let regionCentroids = initialRegionCentroids;
-  let featureByName = new Map(
+export function createGlobe(container, features, regionMembers = null, regionCentroids = null) {
+  const featureByName = new Map(
     features.map((feat) => [feat.properties?.name || "", feat])
   );
-  // Stable ids so three-globe can digest without regenerating geometry.
-  features.forEach((feat, index) => {
-    if (!feat.__id) feat.__id = feat.properties?.name || `country-${index}`;
-  });
-
   const guessed = new Map();
-  const startHighlight = new Set();
-  let startStatMarkers = [];
   let playerMarkers = [];
-  let polygonByName = new Map();
   let idleTimer = null;
   let paused = false;
   let inGameplay = false;
@@ -65,7 +44,6 @@ export function createGlobe(
   let lastHover = null;
   let radiusDragHandler = null;
   let rotateBeforeDrag = true;
-  let regionRefreshTimer = null;
 
   function getName(feat) {
     return feat.properties?.name || "";
@@ -86,8 +64,6 @@ export function createGlobe(
     const guess = guessed.get(name);
     if (guess) return guess.color;
 
-    if (startHighlight.has(name)) return START_STAT_HIGHLIGHT;
-
     if (hoveredRegion && regionMembers) {
       return isHighlighted(name) ? HOVER_HIGHLIGHT : HOVER_DIM;
     }
@@ -100,8 +76,6 @@ export function createGlobe(
     const guess = guessed.get(name);
     if (guess) return guess.stroke;
 
-    if (startHighlight.has(name)) return START_STAT_HIGHLIGHT_STROKE;
-
     if (hoveredRegion && regionMembers) {
       return isHighlighted(name) ? HOVER_HIGHLIGHT_STROKE : HOVER_DIM_STROKE;
     }
@@ -110,8 +84,7 @@ export function createGlobe(
   }
 
   function sideColor(feat) {
-    const name = getName(feat);
-    if (guessed.has(name) || startHighlight.has(name)) return "rgba(0, 0, 0, 0)";
+    if (guessed.has(getName(feat))) return "rgba(0, 0, 0, 0)";
     return isIsland(feat) ? ISLAND_SIDE : "rgba(0, 0, 0, 0)";
   }
 
@@ -120,7 +93,6 @@ export function createGlobe(
     const base = isIsland(feat) ? ISLAND_ALTITUDE : POLYGON_ALTITUDE;
 
     if (guessed.has(name)) return base;
-    if (startHighlight.has(name)) return base * 1.55;
 
     if (hoveredRegion && regionMembers) {
       return isHighlighted(name) ? base * 1.55 : base * 0.45;
@@ -153,13 +125,12 @@ export function createGlobe(
     .polygonSideColor(sideColor)
     .polygonStrokeColor(strokeColor)
     .polygonAltitude(polygonAltitude)
-    .polygonCapCurvatureResolution(5)
+    .polygonCapCurvatureResolution(3)
     .polygonsTransitionDuration(0)
     .htmlElementsData([])
     .htmlLat((d) => d.lat)
     .htmlLng((d) => d.lng)
     .htmlAltitude((d) => 0.06)
-    .htmlTransitionDuration(0)
     .pathsData([])
     .pathPoints("coords")
     .pathPointLat((p) => p[0])
@@ -169,23 +140,6 @@ export function createGlobe(
     .pathResolution(2)
     .pathTransitionDuration(0)
     .htmlElement((d) => {
-      if (d.kind === "stat") {
-        const wrap = document.createElement("div");
-        wrap.className = "globe-stat-bubble-wrap";
-        const bubble = document.createElement("div");
-        bubble.className = "globe-stat-bubble";
-        const label = document.createElement("span");
-        label.className = "globe-stat-bubble__label";
-        label.textContent = d.label || "";
-        const country = document.createElement("span");
-        country.className = "globe-stat-bubble__country";
-        country.textContent = d.name || "";
-        bubble.appendChild(label);
-        bubble.appendChild(country);
-        wrap.appendChild(bubble);
-        return wrap;
-      }
-
       const wrap = document.createElement("div");
       wrap.className = "globe-pfp-cluster";
       const players = Array.isArray(d.players) ? d.players : [];
@@ -212,8 +166,7 @@ export function createGlobe(
     })
     .pointOfView(START_POV);
 
-  queuePolygonIndex();
-
+  // Style the globe's own MeshPhongMaterial so we don't import a second Three.js copy.
   const oceanMaterial = globe.globeMaterial();
   oceanMaterial.color.set(START_OCEAN);
   oceanMaterial.shininess = 8;
@@ -245,187 +198,26 @@ export function createGlobe(
     }, delay);
   }
 
-  function wake({ armIdle = true } = {}) {
+  function wake() {
     if (!inGameplay || inRegionSelect) return;
-    clearTimeout(idleTimer);
     if (paused) {
-      paused = false;
       globe.resumeAnimation();
+      paused = false;
     }
-    if (armIdle) schedulePause();
+    schedulePause();
   }
 
   function refreshPolygons() {
-    polygonByName.clear();
+    // Re-assign the same feature list so color/altitude accessors re-evaluate
+    // without rebuilding geometry from a new array copy.
     globe.polygonsData(features);
-    queuePolygonIndex();
-  }
-
-  function rebuildPolygonIndex() {
-    polygonByName.clear();
-    const root = typeof globe.scene === "function" ? globe.scene() : null;
-    if (!root) return;
-    root.traverse((obj) => {
-      if (obj.__globeObjType !== "polygon") return;
-      const feature = obj.__data?.data || obj.__data;
-      const name = feature ? getName(feature) : "";
-      if (!name || polygonByName.has(name)) return;
-      polygonByName.set(name, obj);
-    });
-  }
-
-  function queuePolygonIndex() {
-    requestAnimationFrame(() => {
-      rebuildPolygonIndex();
-    });
-  }
-
-  function scheduleRegionPolygonRefresh() {
-    clearTimeout(regionRefreshTimer);
-    regionRefreshTimer = setTimeout(() => {
-      regionRefreshTimer = null;
-      refreshPolygons();
-    }, 70);
-  }
-
-  function defaultLandStyle(feat) {
-    const name = getName(feat);
-    if (startHighlight.has(name)) {
-      return {
-        color: START_STAT_HIGHLIGHT,
-        stroke: START_STAT_HIGHLIGHT_STROKE,
-        side: "rgba(0, 0, 0, 0)",
-        altitude: (isIsland(feat) ? ISLAND_ALTITUDE : POLYGON_ALTITUDE) * 1.55,
-      };
-    }
-    if (hoveredRegion && regionMembers) {
-      const on = isHighlighted(name);
-      return {
-        color: on ? HOVER_HIGHLIGHT : HOVER_DIM,
-        stroke: on ? HOVER_HIGHLIGHT_STROKE : HOVER_DIM_STROKE,
-        side: "rgba(0, 0, 0, 0)",
-        altitude: isIsland(feat)
-          ? (on ? ISLAND_ALTITUDE * 1.55 : ISLAND_ALTITUDE * 0.45)
-          : (on ? POLYGON_ALTITUDE * 1.55 : POLYGON_ALTITUDE * 0.45),
-      };
-    }
-    return {
-      color: START_LAND,
-      stroke: isIsland(feat) ? ISLAND_STROKE : START_LAND_STROKE,
-      side: isIsland(feat) ? ISLAND_SIDE : "rgba(0, 0, 0, 0)",
-      altitude: isIsland(feat) ? ISLAND_ALTITUDE : POLYGON_ALTITUDE,
-    };
-  }
-
-  function styleForFeature(feat) {
-    const name = getName(feat);
-    const guess = guessed.get(name);
-    if (guess) {
-      return {
-        color: guess.color,
-        stroke: guess.stroke,
-        side: "rgba(0, 0, 0, 0)",
-        altitude: isIsland(feat) ? ISLAND_ALTITUDE : POLYGON_ALTITUDE,
-      };
-    }
-    return defaultLandStyle(feat);
-  }
-
-  function applyStyleToPolygonGroup(obj, style) {
-    const conicObj = obj.children?.[0];
-    const strokeObj = obj.children?.[1];
-    if (!conicObj?.material) return;
-
-    const materials = Array.isArray(conicObj.material)
-      ? conicObj.material
-      : [conicObj.material];
-
-    // Cap is usually last material when sides exist; otherwise the only one.
-    const capMaterial = materials[materials.length - 1];
-    if (capMaterial?.color && style.color) {
-      capMaterial.color.set(style.color);
-      const opacity = 1;
-      capMaterial.transparent = opacity < 1;
-      capMaterial.opacity = opacity;
-    }
-
-    if (materials.length > 1 && materials[0]?.color) {
-      if (style.side && style.side !== "rgba(0, 0, 0, 0)") {
-        materials[0].color.set(style.side);
-        materials[0].transparent = true;
-        materials[0].opacity = 0.22;
-      } else {
-        materials[0].opacity = 0;
-        materials[0].transparent = true;
-      }
-    }
-
-    if (strokeObj) {
-      if (style.stroke) {
-        strokeObj.visible = true;
-        if (strokeObj.material?.color) strokeObj.material.color.set(style.stroke);
-      } else {
-        strokeObj.visible = false;
-      }
-    }
-
-    // Do not touch mesh scale here — three-globe owns altitude via polygonAltitude.
-    // Manual scaling fought camera/CSS2D updates and could NaN the orbit distance.
-  }
-
-  function paintCountry(name) {
-    const feat = featureByName.get(name);
-    if (!feat) return;
-    const style = styleForFeature(feat);
-    let obj = polygonByName.get(name);
-    if (!obj || obj.__globeObjType !== "polygon") {
-      rebuildPolygonIndex();
-      obj = polygonByName.get(name);
-    }
-    if (obj) {
-      applyStyleToPolygonGroup(obj, style);
-      return;
-    }
-    refreshPolygons();
-  }
-
-  function paintCountries(names) {
-    const wanted = [...new Set(names)].filter(Boolean);
-    if (!wanted.length) return;
-    if (polygonByName.size < Math.min(32, features.length)) {
-      rebuildPolygonIndex();
-    }
-    let missing = 0;
-    for (const name of wanted) {
-      const feat = featureByName.get(name);
-      if (!feat) continue;
-      const obj = polygonByName.get(name);
-      if (!obj) {
-        missing += 1;
-        continue;
-      }
-      applyStyleToPolygonGroup(obj, styleForFeature(feat));
-    }
-    if (missing) refreshPolygons();
-  }
-
-  let lastW = 0;
-  let lastH = 0;
-  let resizeRaf = 0;
-
-  function applyResize() {
-    resizeRaf = 0;
-    const fullScreen = inGameplay || inRegionSelect;
-    const nextW = Math.round(Math.max(fullScreen ? window.innerWidth : container.clientWidth, 1));
-    const nextH = Math.round(Math.max(fullScreen ? window.innerHeight : container.clientHeight, 1));
-    if (nextW === lastW && nextH === lastH) return;
-    lastW = nextW;
-    lastH = nextH;
-    globe.width(nextW).height(nextH);
   }
 
   function resize() {
-    if (!resizeRaf) resizeRaf = requestAnimationFrame(applyResize);
+    const fullScreen = inGameplay || inRegionSelect;
+    const w = Math.max(fullScreen ? window.innerWidth : container.clientWidth, 1);
+    const h = Math.max(fullScreen ? window.innerHeight : container.clientHeight, 1);
+    globe.width(w).height(h);
   }
 
   resize();
@@ -435,13 +227,10 @@ export function createGlobe(
   if (container.parentElement) resizeObserver.observe(container.parentElement);
   window.addEventListener("resize", resize);
 
-  container.addEventListener("pointerdown", () => wake({ armIdle: false }), true);
-  container.addEventListener("wheel", () => wake({ armIdle: true }), { passive: true, capture: true });
-  controls.addEventListener("start", () => wake({ armIdle: false }));
-  controls.addEventListener("change", () => {
-    if (paused) wake({ armIdle: false });
-  });
-  controls.addEventListener("end", () => schedulePause(IDLE_MS));
+  container.addEventListener("pointerdown", wake, true);
+  container.addEventListener("wheel", wake, { passive: true, capture: true });
+  controls.addEventListener("start", wake);
+  controls.addEventListener("end", () => schedulePause());
 
   function burstSpin(duration = 650) {
     clearTimeout(burstTimer);
@@ -452,42 +241,8 @@ export function createGlobe(
     }, duration);
   }
 
-  function rebuildFeatureIndex(nextFeatures) {
-    features = nextFeatures || [];
-    featureByName = new Map(
-      features.map((feat) => [feat.properties?.name || "", feat])
-    );
-    features.forEach((feat, index) => {
-      if (!feat.__id) feat.__id = feat.properties?.name || `unit-${index}`;
-    });
-  }
-
-function regionPov(region) {
+  function regionPov(region) {
     if (region === "world") return REGION_SELECT_POV;
-    if (region === "us-states" || region === "provinces") {
-      const center = regionCentroids?.get("us-states");
-      return {
-        lat: center?.lat ?? US_STATES_POV.lat,
-        lng: center?.lng ?? US_STATES_POV.lng,
-        altitude: US_STATES_POV.altitude,
-      };
-    }
-    if (region === "ca-provinces") {
-      const center = regionCentroids?.get("ca-provinces");
-      return {
-        lat: center?.lat ?? CA_PROVINCES_POV.lat,
-        lng: center?.lng ?? CA_PROVINCES_POV.lng,
-        altitude: CA_PROVINCES_POV.altitude,
-      };
-    }
-    if (region === "us-ca") {
-      const center = regionCentroids?.get("us-ca");
-      return {
-        lat: center?.lat ?? US_CA_POV.lat,
-        lng: center?.lng ?? US_CA_POV.lng,
-        altitude: US_CA_POV.altitude,
-      };
-    }
     const center = regionCentroids?.get(region);
     if (!center) return REGION_SELECT_POV;
     return {
@@ -666,16 +421,6 @@ function regionPov(region) {
     globe.pointOfView(REGION_SELECT_POV, duration);
   }
 
-  function clearStartStatsInternal({ refresh = true } = {}) {
-    const hadHighlight = startHighlight.size > 0;
-    startHighlight.clear();
-    startStatMarkers = [];
-    if (playerMarkers.length === 0) {
-      globe.htmlElementsData([]);
-    }
-    if (refresh && hadHighlight) refreshPolygons();
-  }
-
   return {
     initStartView() {
       inGameplay = false;
@@ -711,7 +456,6 @@ function regionPov(region) {
         paused = false;
       }
 
-      clearStartStatsInternal();
       burstSpin(700);
       controls.autoRotate = true;
       controls.enableRotate = false;
@@ -745,52 +489,16 @@ function regionPov(region) {
       refreshPolygons();
     },
 
-    transitionToGame(duration = VIEW_TRANSITION_MS, options = {}) {
-      const region = options.region || "world";
-      const isAdminPack =
-        region === "us-states" ||
-        region === "ca-provinces" ||
-        region === "us-ca";
-      let pov = options.pov;
-      if (!pov) {
-        if (region === "us-states") {
-          pov = US_STATES_POV;
-        } else if (region === "ca-provinces") {
-          pov = CA_PROVINCES_POV;
-        } else if (region === "us-ca") {
-          pov = US_CA_POV;
-        } else if (region !== "world") {
-          const center = regionCentroids?.get(region);
-          pov = center
-            ? {
-                lat: center.lat,
-                lng: center.lng,
-                altitude: GAME_POV.altitude,
-              }
-            : GAME_POV;
-        } else {
-          pov = GAME_POV;
-        }
-      }
-
+    transitionToGame(duration = VIEW_TRANSITION_MS) {
       inRegionSelect = false;
       inGameplay = true;
-      hoveredRegion = isAdminPack ? region : null;
-      cameraRegion = isAdminPack ? region : region !== "world" ? region : null;
-      regionDetailLocked = isAdminPack;
+      hoveredRegion = null;
+      cameraRegion = null;
       clearTimeout(burstTimer);
-      clearStartStatsInternal({ refresh: false });
-      playerMarkers = [];
-      globe.htmlElementsData([]);
       controls.autoRotate = true;
       controls.autoRotateSpeed = 1.15;
 
-      const safePov = {
-        lat: Number.isFinite(pov.lat) ? pov.lat : GAME_POV.lat,
-        lng: Number.isFinite(pov.lng) ? pov.lng : GAME_POV.lng,
-        altitude: Number.isFinite(pov.altitude) ? pov.altitude : GAME_POV.altitude,
-      };
-      globe.pointOfView(safePov, duration);
+      globe.pointOfView(GAME_POV, duration);
       resize();
       refreshPolygons();
 
@@ -805,56 +513,14 @@ function regionPov(region) {
 
     setGuess(name, color, stroke = "#1a1a1a") {
       if (!featureByName.has(name)) return;
-      wake({ armIdle: false });
       guessed.set(name, { color, stroke });
-      paintCountry(name);
-      schedulePause();
-    },
-
-    setGuesses(entries) {
-      const previous = [...guessed.keys()];
-      guessed.clear();
-      (entries || []).forEach((entry) => {
-        if (!entry?.name || !featureByName.has(entry.name)) return;
-        guessed.set(entry.name, {
-          color: entry.color,
-          stroke: entry.stroke || "#1a1a1a",
-        });
-      });
-      wake({ armIdle: false });
-      paintCountries([...previous, ...guessed.keys()]);
-      schedulePause();
+      refreshPolygons();
+      wake();
     },
 
     clearGuesses() {
-      const names = [...guessed.keys()];
       guessed.clear();
-      if (names.length) {
-        paintCountries(names);
-      }
-      wake({ armIdle: false });
-      schedulePause();
-    },
-
-    setGeography({
-      features: nextFeatures,
-      regionMembers: nextMembers = null,
-      regionCentroids: nextCentroids = null,
-    } = {}) {
-      guessed.clear();
-      playerMarkers = [];
-      startHighlight.clear();
-      startStatMarkers = [];
-      globe.htmlElementsData([]);
-      regionMembers = nextMembers;
-      regionCentroids = nextCentroids;
-      hoveredRegion = null;
-      cameraRegion = null;
-      regionDetailLocked = false;
-      rebuildFeatureIndex(nextFeatures);
-      polygonByName.clear();
-      globe.polygonsData(features);
-      queuePolygonIndex();
+      refreshPolygons();
     },
 
     setRadiusToolActive(active) {
@@ -890,35 +556,9 @@ function regionPov(region) {
       radiusDragHandler = typeof handler === "function" ? handler : null;
     },
 
-    setStartStats(items) {
-      startHighlight.clear();
-      startStatMarkers = [];
-      (items || []).forEach((item) => {
-        if (!item?.name || !featureByName.has(item.name)) return;
-        startHighlight.add(item.name);
-        startStatMarkers.push({
-          kind: "stat",
-          name: item.name,
-          label: item.label || "",
-          lat: item.lat,
-          lng: item.lng,
-        });
-      });
-      playerMarkers = [];
-      globe.htmlElementsData(startStatMarkers);
-      refreshPolygons();
-    },
-
-    clearStartStats() {
-      clearStartStatsInternal();
-    },
-
     setPlayerMarkers(groups) {
-      const hadStart = startHighlight.size > 0;
-      clearStartStatsInternal({ refresh: false });
       playerMarkers = Array.isArray(groups) ? groups : [];
       globe.htmlElementsData(playerMarkers);
-      if (hadStart) refreshPolygons();
       wake();
     },
 
@@ -928,33 +568,26 @@ function regionPov(region) {
     },
 
     flyTo(lat, lng, altitude = 1.8) {
-      const nextLat = Number(lat);
-      const nextLng = Number(lng);
-      const nextAlt = Number(altitude);
-      if (!Number.isFinite(nextLat) || !Number.isFinite(nextLng) || !Number.isFinite(nextAlt)) {
-        return;
-      }
-      wake({ armIdle: false });
-      globe.pointOfView({ lat: nextLat, lng: nextLng, altitude: nextAlt }, 800);
-      schedulePause(Math.max(IDLE_MS, 1600));
+      wake();
+      globe.pointOfView({ lat, lng, altitude }, 800);
+      schedulePause(900);
     },
 
     setHoveredRegion(region, { locked = false } = {}) {
-      if (!regionMembers) return;
-      if (!inRegionSelect && !inGameplay) return;
+      if (!inRegionSelect || !regionMembers) return;
       hoveredRegion = region;
       regionDetailLocked = locked;
-      if (inRegionSelect && cameraRegion !== region) {
+      if (cameraRegion !== region) {
         cameraRegion = region;
         flyToRegion(region);
       }
-      scheduleRegionPolygonRefresh();
+      refreshPolygons();
     },
 
     clearRegionHighlight() {
       if (regionDetailLocked || !hoveredRegion) return;
       hoveredRegion = null;
-      scheduleRegionPolygonRefresh();
+      refreshPolygons();
     },
 
     unlockRegionDetail() {
@@ -965,8 +598,6 @@ function regionPov(region) {
       hoveredRegion = null;
       cameraRegion = null;
       regionDetailLocked = false;
-      clearTimeout(regionRefreshTimer);
-      regionRefreshTimer = null;
       refreshPolygons();
       if (restoreView && inRegionSelect) {
         returnToRegionSelectView();
@@ -976,11 +607,6 @@ function regionPov(region) {
     dispose() {
       clearTimeout(idleTimer);
       clearTimeout(burstTimer);
-      clearTimeout(regionRefreshTimer);
-      if (resizeRaf) {
-        cancelAnimationFrame(resizeRaf);
-        resizeRaf = 0;
-      }
       window.removeEventListener("pointermove", onRadiusPointerMove);
       window.removeEventListener("pointerup", endRadiusDrag);
       window.removeEventListener("pointercancel", endRadiusDrag);

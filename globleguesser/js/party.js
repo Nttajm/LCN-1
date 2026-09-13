@@ -13,6 +13,7 @@ import { db } from "./firebase.js";
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const MAX_SEATS = 4;
 const ACTIVE_GAME_STATUSES = new Set(["playing", "roundEnd", "finished"]);
+const LOBBY_LIKE_STATUSES = new Set(["mode", "pvp-format", "teams"]);
 
 function partyRef(code) {
   return ref(db, `parties/${code}`);
@@ -30,8 +31,24 @@ function generateCode() {
   return code;
 }
 
+function normalizeTeam(team) {
+  return team === "A" || team === "B" ? team : null;
+}
+
+function normalizeSeat(seat) {
+  if (!seat || typeof seat !== "object" || !seat.id) return null;
+  const out = {
+    id: seat.id,
+    name: seat.name || "Player",
+    color: seat.color || "#5b6cf0",
+    joinedAt: Number(seat.joinedAt) || Date.now(),
+  };
+  const team = normalizeTeam(seat.team);
+  if (team) out.team = team;
+  return out;
+}
+
 export function normalizeSeats(seats) {
-  // Firebase may return seats as an array OR as an object with numeric keys.
   const list = [];
   if (Array.isArray(seats)) {
     for (let i = 0; i < MAX_SEATS; i += 1) list[i] = seats[i];
@@ -42,8 +59,7 @@ export function normalizeSeats(seats) {
   }
   const out = [];
   for (let i = 0; i < MAX_SEATS; i += 1) {
-    const seat = list[i];
-    out.push(seat && typeof seat === "object" && seat.id ? seat : null);
+    out.push(normalizeSeat(list[i]));
   }
   return out;
 }
@@ -53,7 +69,29 @@ export function occupiedCount(seats) {
 }
 
 export function seatsForWrite(seats) {
-  return normalizeSeats(seats).map((seat) => seat || false);
+  return normalizeSeats(seats).map((seat) => {
+    if (!seat) return false;
+    return {
+      id: seat.id,
+      name: seat.name,
+      color: seat.color,
+      joinedAt: seat.joinedAt,
+      team: seat.team || false,
+    };
+  });
+}
+
+export function clearSeatTeams(seats) {
+  return normalizeSeats(seats).map((seat) => (seat ? { ...seat, team: null } : null));
+}
+
+export function teamsReady(seats) {
+  const occupied = normalizeSeats(seats).filter(Boolean);
+  if (occupied.length < 2) return false;
+  if (!occupied.every((s) => s.team === "A" || s.team === "B")) return false;
+  const hasA = occupied.some((s) => s.team === "A");
+  const hasB = occupied.some((s) => s.team === "B");
+  return hasA && hasB;
 }
 
 function normalizeGuesses(guesses) {
@@ -70,6 +108,7 @@ export function normalizeGame(game) {
     players[id] = {
       name: player.name || "Player",
       color: player.color || "#5b6cf0",
+      team: normalizeTeam(player.team),
       guesses: normalizeGuesses(player.guesses),
       bestKm: typeof player.bestKm === "number" ? player.bestKm : null,
       wonRound: Boolean(player.wonRound),
@@ -85,6 +124,7 @@ export function normalizeGame(game) {
     level: game.level || "easy",
     rounds: Number(game.rounds) || 5,
     timerSec: Number(game.timerSec) || 0,
+    allCountries: Boolean(game.allCountries),
     currentRound: Number(game.currentRound) || 1,
     targets: Array.isArray(game.targets) ? game.targets.filter(Boolean) : [],
     players,
@@ -97,6 +137,7 @@ function emptyPlayerState(seat) {
   return {
     name: seat.name,
     color: seat.color,
+    team: seat.team || false,
     guesses: false,
     bestKm: false,
     wonRound: false,
@@ -211,8 +252,6 @@ export async function joinParty(code, guest) {
     partyRef(normalized),
     (current) => {
       joinError = null;
-      // Firebase always invokes this once with null before the real data.
-      // Use the fetched snapshot on that first pass instead of aborting.
       const base = current ?? existing.val();
       const next = applyJoinToParty(base, guest);
       if (next.error) {
@@ -264,16 +303,17 @@ export async function leaveParty(code, guestId) {
     updatedAt: Date.now(),
   };
 
-  if (data.status === "mode" && remaining.length < 2) {
+  if (LOBBY_LIKE_STATUSES.has(data.status) && remaining.length < 2) {
     next.status = "lobby";
     next.mode = false;
+    next.seats = seatsForWrite(clearSeatTeams(seats));
   }
 
   await update(partyRef(code), next);
   return {
     ...data,
     ...next,
-    seats,
+    seats: normalizeSeats(next.seats),
     mode: next.mode === false ? null : data.mode || null,
     game: normalizeGame(data.game),
   };
@@ -288,11 +328,38 @@ export async function setPartyStatus(code, status, extra = {}) {
   if (Object.prototype.hasOwnProperty.call(extra, "mode") && extra.mode == null) {
     payload.mode = false;
   }
+  if (extra.clearTeams) {
+    const snap = await get(partyRef(code));
+    if (snap.exists()) {
+      payload.seats = seatsForWrite(clearSeatTeams(snap.val().seats));
+    }
+    delete payload.clearTeams;
+  }
   await update(partyRef(code), payload);
 }
 
+export async function assignSeatTeam(code, guestId, team) {
+  const normalizedTeam = normalizeTeam(team);
+  if (!normalizedTeam) throw new Error("Pick Team A or Team B.");
+  if (!guestId) throw new Error("Missing player.");
+
+  const snap = await get(partyRef(code));
+  if (!snap.exists()) throw new Error("Party not found.");
+  const data = snap.val();
+  if (data.status !== "teams") throw new Error("Team pick is not open.");
+
+  const seats = normalizeSeats(data.seats);
+  const index = seats.findIndex((s) => s && s.id === guestId);
+  if (index < 0) throw new Error("You are not in this party.");
+
+  seats[index] = { ...seats[index], team: normalizedTeam };
+  await update(partyRef(code), {
+    seats: seatsForWrite(seats),
+    updatedAt: Date.now(),
+  });
+}
+
 export async function startPartyGame(code, config) {
-  // Always read seats from the server so late joiners are not dropped.
   const snap = await get(partyRef(code));
   if (!snap.exists()) throw new Error("Party not found.");
   const party = snap.val();
@@ -310,6 +377,10 @@ export async function startPartyGame(code, config) {
   const mode = config.mode || party.mode || null;
   if (!mode) throw new Error("Pick a mode before starting.");
 
+  if (mode === "teams" && !teamsReady(seats)) {
+    throw new Error("Both teams need at least one player.");
+  }
+
   await update(partyRef(code), {
     status: "playing",
     mode,
@@ -320,6 +391,7 @@ export async function startPartyGame(code, config) {
       level: config.level,
       rounds: config.rounds,
       timerSec: config.timerSec,
+      allCountries: Boolean(config.allCountries),
       currentRound: 1,
       targets: config.targets,
       players,
@@ -368,13 +440,28 @@ export async function claimRoundWin(code, playerId, roundScore) {
     const players = game.players || {};
     const me = players[playerId];
     if (!me) return;
-    const totalScore = (Number(me.totalScore) || 0) + (Number(roundScore) || 0);
-    players[playerId] = {
-      ...me,
-      wonRound: true,
-      roundScore: Number(roundScore) || 0,
-      totalScore,
-    };
+    const points = Number(roundScore) || 0;
+    const winnerTeam = normalizeTeam(me.team);
+
+    if (game.mode === "teams" && winnerTeam) {
+      Object.entries(players).forEach(([id, player]) => {
+        if (!player || normalizeTeam(player.team) !== winnerTeam) return;
+        players[id] = {
+          ...player,
+          wonRound: id === playerId,
+          roundScore: points,
+          totalScore: (Number(player.totalScore) || 0) + points,
+        };
+      });
+    } else {
+      players[playerId] = {
+        ...me,
+        wonRound: true,
+        roundScore: points,
+        totalScore: (Number(me.totalScore) || 0) + points,
+      };
+    }
+
     game.players = players;
     game.status = "roundEnd";
     game.roundWinnerId = playerId;
@@ -419,6 +506,7 @@ export async function advanceRound(code) {
     players[id] = {
       name: player.name,
       color: player.color,
+      team: player.team || false,
       guesses: false,
       bestKm: false,
       wonRound: false,

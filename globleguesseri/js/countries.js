@@ -1,9 +1,6 @@
 import { feature as topoFeature } from "topojson-client";
 import { borderPointsFromGeometry } from "./distance.js";
 import { loadIsoLookup, resolveIso2 } from "./flags.js";
-import { isUnMemberIso2 } from "./un-members.js";
-import { groupAliasesByTarget, pickDisplayAliases } from "./alias-display.js";
-import { buildBorderGraph, checkBorderGraph, createConnectorIndex } from "./borders.js";
 
 // 110m for the globe mesh (FPS); 50m for scoring borders + small-island fill-ins.
 const GEO_URL_GLOBE = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -212,26 +209,7 @@ const EXCLUDED_NE_NAMES = new Set([
   "Clipperton I.",
 ]);
 
-/** Island / archipelago nations (display boost + Islands game mode pool). */
-const ISLAND_ISO2 = new Set([
-  "ag", "ai", "as", "aw", "ax", "bb", "bh", "bm", "bs", "bv", "cc", "ck", "cv",
-  "cw", "cx", "cy", "dm", "fj", "fk", "fm", "fo", "gd", "gg", "gp", "gu", "hm",
-  "ht", "id", "ie", "im", "is", "je", "jm", "jp", "ki", "kn", "ky", "lc", "lk",
-  "mh", "mp", "mq", "ms", "mt", "mu", "mv", "nc", "nf", "nr", "nu", "nz", "pf",
-  "ph", "pn", "pr", "pw", "re", "sb", "sc", "sg", "sh", "sj", "st", "sx", "tc",
-  "tk", "tl", "to", "tt", "tv", "tw", "um", "vc", "vg", "vi", "vu", "wf", "ws",
-  "yt",
-]);
-
-const REGION_IDS = [
-  "world",
-  "asia",
-  "americas",
-  "europe",
-  "africa",
-  "east-hemisphere",
-  "islands",
-];
+const REGION_IDS = ["world", "asia", "americas", "europe", "africa", "east-hemisphere"];
 
 function classifyRegions(centroid) {
   const { lat, lng } = centroid;
@@ -292,14 +270,6 @@ function buildRegionMembers(countries) {
       acc.lngSum += country.centroid.lng;
       acc.count += 1;
     }
-
-    if (country.iso2 && ISLAND_ISO2.has(country.iso2)) {
-      members.get("islands").add(country.name);
-      const acc = centroidAcc.get("islands");
-      acc.latSum += country.centroid.lat;
-      acc.lngSum += country.centroid.lng;
-      acc.count += 1;
-    }
   }
 
   const regionCentroids = new Map();
@@ -309,11 +279,6 @@ function buildRegionMembers(countries) {
       lat: acc.count ? acc.latSum / acc.count : 0,
       lng: acc.count ? acc.lngSum / acc.count : 0,
     });
-  }
-
-  // Islands are scattered — prefer a Pacific-facing overview over a raw average.
-  if (members.get("islands")?.size) {
-    regionCentroids.set("islands", { lat: 8, lng: 168 });
   }
 
   return { members, regionCentroids };
@@ -353,6 +318,17 @@ function featureCentroid(geometry) {
   }
   return { lat: 0, lng: 0 };
 }
+
+/** Island / archipelago nations that need a slight visibility boost on the globe. */
+const ISLAND_ISO2 = new Set([
+  "ag", "ai", "as", "aw", "ax", "bb", "bh", "bm", "bs", "bv", "cc", "ck", "cv",
+  "cw", "cx", "cy", "dm", "fj", "fk", "fm", "fo", "gd", "gg", "gp", "gu", "hm",
+  "ht", "id", "ie", "im", "is", "je", "jm", "jp", "ki", "kn", "ky", "lc", "lk",
+  "mh", "mp", "mq", "ms", "mt", "mu", "mv", "nc", "nf", "nr", "nu", "nz", "pf",
+  "ph", "pn", "pr", "pw", "re", "sb", "sc", "sg", "sh", "sj", "st", "sx", "tc",
+  "tk", "tl", "to", "tt", "tv", "tw", "um", "vc", "vg", "vi", "vu", "wf", "ws",
+  "yt",
+]);
 
 function ringSpanDeg(ring) {
   if (!ring?.length) return 0;
@@ -612,18 +588,42 @@ function mergeIslandDisplayFeatures(byIso2, islandCandidates) {
   }
 }
 
-function densifyMissingBorders(byIso2) {
+export async function loadCountries() {
+  const [globeRes, borderRes, isoLookup] = await Promise.all([
+    fetch(GEO_URL_GLOBE),
+    fetch(GEO_URL_BORDERS),
+    loadIsoLookup(),
+  ]);
+  if (!globeRes.ok) throw new Error("country data fetch failed");
+  if (!borderRes.ok) throw new Error("border data fetch failed");
+
+  const [topoGlobe, topoBorders] = await Promise.all([globeRes.json(), borderRes.json()]);
+  const geoGlobe = topoFeature(topoGlobe, topoGlobe.objects.countries);
+  const geoBorders = topoFeature(topoBorders, topoBorders.objects.countries);
+
+  /** @type {Map<string, object>} */
+  const byIso2 = new Map();
+  // 110m = light display mesh
+  ingestTopoFeatures(geoGlobe, isoLookup, byIso2, { forBorders: false });
+  // 50m island polygons fill gaps / replace tiny 110m island shapes
+  mergeIslandDisplayFeatures(
+    byIso2,
+    collectIslandDisplayCandidates(geoBorders, isoLookup)
+  );
+  // 50m = accurate borders for scoring
+  ingestTopoFeatures(geoBorders, isoLookup, byIso2, { forBorders: true });
+
+  // Fallback: densify from display geometry if a country lacked 50m borders.
   for (const country of byIso2.values()) {
     if (country.borderPoints?.length) continue;
     const { points, bbox } = borderPointsFromGeometry(country.feature.geometry);
     country.borderPoints = points;
     country.borderBBox = bbox;
   }
-}
 
-function buildCountriesPack(byIso2, isoLookup) {
-  // Keep the same object refs as `byIso2` so background border enrich mutates gameplay units.
-  const countries = [...byIso2.values()];
+  const countries = [...byIso2.values()].map(
+    ({ priority: _p, borderPriority: _bp, ...rest }) => rest
+  );
   const byName = new Map();
   const allNames = [];
 
@@ -651,14 +651,6 @@ function buildCountriesPack(byIso2, isoLookup) {
     }
   }
 
-  const aliasesByTarget = groupAliasesByTarget(ALIASES);
-  for (const country of countries) {
-    country.aliases = pickDisplayAliases(
-      country.name,
-      aliasesByTarget.get(country.name) || []
-    );
-  }
-
   const uniqueNames = [...new Set(allNames)].sort((a, b) => a.localeCompare(b));
   // Display-only: slight size bump for island nations. borderPoints stay untouched.
   const features = countries.map((c) => {
@@ -668,47 +660,35 @@ function buildCountriesPack(byIso2, isoLookup) {
   });
   const { members: regionMembers, regionCentroids } = buildRegionMembers(countries);
 
-  /** iso2 → country object for Connector lookups */
-  const byIso2Lookup = new Map(countries.map((c) => [c.iso2, c]));
-
   return {
     features,
     regionMembers,
     regionCentroids,
     byName,
-    byIso2: byIso2Lookup,
     allNames: uniqueNames,
-    borderGraph: null,
-    connectorIndex: null,
-    countryByIso2(iso2) {
-      if (!iso2) return null;
-      return byIso2Lookup.get(String(iso2).toLowerCase()) || null;
-    },
-    lookup(query, { unOnly = false } = {}) {
+    lookup(query) {
       const key = normalizeKey(query);
       if (!key) return null;
-      const country = byName.get(key) || null;
-      if (!country) return null;
-      if (unOnly && !isUnMemberIso2(country.iso2)) return null;
-      return country;
+      return byName.get(key) || null;
     },
-    search(query, limit = 8, { unOnly = false } = {}) {
+    search(query, limit = 8) {
       const key = normalizeKey(query);
       if (!key) return [];
       const results = [];
       const seen = new Set();
       for (const name of uniqueNames) {
-        if (!name.toLowerCase().includes(key)) continue;
-        const country = byName.get(normalizeKey(name));
-        if (!country || seen.has(country.name)) continue;
-        if (unOnly && !isUnMemberIso2(country.iso2)) continue;
-        seen.add(country.name);
-        results.push(country);
-        if (results.length >= limit) break;
+        if (name.toLowerCase().includes(key)) {
+          const country = byName.get(normalizeKey(name));
+          if (country && !seen.has(country.name)) {
+            seen.add(country.name);
+            results.push(country);
+            if (results.length >= limit) break;
+          }
+        }
       }
       return results;
     },
-    randomTarget(regionId = "world", excludeNames = [], { unOnly = false } = {}) {
+    randomTarget(regionId = "world", excludeNames = []) {
       const excluded = new Set(excludeNames);
       const memberSet = regionId && regionId !== "world"
         ? regionMembers.get(regionId)
@@ -718,18 +698,13 @@ function buildCountriesPack(byIso2, isoLookup) {
         .filter((country) => {
           if (!country) return false;
           if (excluded.has(country.name)) return false;
-          if (unOnly && !isUnMemberIso2(country.iso2)) return false;
           if (!memberSet) return true;
           return memberSet.has(country.name);
         });
       if (!pool.length) {
         const fallback = uniqueNames
           .map((n) => byName.get(normalizeKey(n)))
-          .filter((country) => {
-            if (!country || excluded.has(country.name)) return false;
-            if (unOnly && !isUnMemberIso2(country.iso2)) return false;
-            return true;
-          });
+          .filter((country) => country && !excluded.has(country.name));
         const list = fallback.length
           ? fallback
           : uniqueNames.map((n) => byName.get(normalizeKey(n))).filter(Boolean);
@@ -737,95 +712,5 @@ function buildCountriesPack(byIso2, isoLookup) {
       }
       return pool[Math.floor(Math.random() * pool.length)];
     },
-    ensureConnectorIndex({ unOnly = false } = {}) {
-      if (!this.borderGraph) return null;
-      if (this.connectorIndex && this.connectorIndex.unOnly === Boolean(unOnly)) {
-        return this.connectorIndex;
-      }
-      this.connectorIndex = createConnectorIndex(this.borderGraph, {
-        unOnly,
-        knownIsos: this.byIso2.keys(),
-      });
-      return this.connectorIndex;
-    },
   };
-}
-
-/**
- * Load the light display mesh first so the globe can appear quickly.
- * Precise 50m borders + island shapes continue in the background via `bordersReady`.
- */
-export async function loadCountries() {
-  const [globeRes, isoLookup] = await Promise.all([
-    fetch(GEO_URL_GLOBE),
-    loadIsoLookup(),
-  ]);
-  if (!globeRes.ok) throw new Error("country data fetch failed");
-
-  const topoGlobe = await globeRes.json();
-  const geoGlobe = topoFeature(topoGlobe, topoGlobe.objects.countries);
-
-  /** @type {Map<string, object>} */
-  const byIso2 = new Map();
-  ingestTopoFeatures(geoGlobe, isoLookup, byIso2, { forBorders: false });
-  densifyMissingBorders(byIso2);
-
-  const pack = buildCountriesPack(byIso2, isoLookup);
-
-  pack.bordersReady = (async () => {
-    const borderRes = await fetch(GEO_URL_BORDERS);
-    if (!borderRes.ok) throw new Error("border data fetch failed");
-    const topoBorders = await borderRes.json();
-    const geoBorders = topoFeature(topoBorders, topoBorders.objects.countries);
-
-    mergeIslandDisplayFeatures(
-      byIso2,
-      collectIslandDisplayCandidates(geoBorders, isoLookup)
-    );
-    ingestTopoFeatures(geoBorders, isoLookup, byIso2, { forBorders: true });
-    densifyMissingBorders(byIso2);
-
-    // Refresh display features after island mesh upgrades.
-    const boosted = [...byIso2.values()].map((country) => {
-      const { feature } = boostTinyDisplayGeometry(
-        country.feature,
-        country.centroid,
-        country.iso2
-      );
-      country.feature = feature;
-      return feature;
-    });
-    pack.features.length = 0;
-    pack.features.push(...boosted);
-
-    // Border adjacency for Connector (shared TopoJSON arcs).
-    try {
-      // Keep iso2 lookup in sync with any 50m island fill-ins.
-      for (const [iso2, country] of byIso2) {
-        if (!pack.byIso2.has(iso2)) pack.byIso2.set(iso2, country);
-        const key = normalizeKey(country.name);
-        if (!pack.byName.has(key)) {
-          pack.byName.set(key, country);
-          if (!pack.allNames.includes(country.name)) {
-            pack.allNames.push(country.name);
-          }
-        }
-      }
-      pack.allNames.sort((a, b) => a.localeCompare(b));
-
-      pack.borderGraph = buildBorderGraph(topoBorders, isoLookup);
-      pack.connectorIndex = null;
-      const check = checkBorderGraph(pack.borderGraph);
-      if (!check.ok) {
-        console.warn("[borders] graph self-check failures:", check.failures);
-      }
-    } catch (err) {
-      console.error("[borders] failed to build graph", err);
-      pack.borderGraph = null;
-    }
-
-    return pack;
-  })();
-
-  return pack;
 }

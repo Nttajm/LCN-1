@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+    <script src="../js/asset-url.js"></script>
     <script src="../js/nav.js" data-root="../"></script>
 
     <div class="doc-page" id="doc-page">
@@ -84,6 +85,9 @@
         }
 
         function resolveImg(src) {
+            if (window.LCN && LCN.resolveAssetUrl) {
+                return LCN.resolveAssetUrl(src, { root: '../' });
+            }
             if (src && src.startsWith('a_home_assets/')) return '../' + src;
             return src;
         }
@@ -150,13 +154,10 @@
             }
 
             var bodyHTML = doc.content || '';
-            var tmp = document.createElement('div');
-            tmp.innerHTML = bodyHTML;
-            var imgs = tmp.querySelectorAll('img');
-            imgs.forEach(function (img) {
-                img.src = resolveImg(img.getAttribute('src'));
-            });
-            document.getElementById('doc-body').innerHTML = tmp.innerHTML;
+            if (window.LCN && LCN.rewriteContentHtml) {
+                bodyHTML = LCN.rewriteContentHtml(bodyHTML, { root: '../' });
+            }
+            document.getElementById('doc-body').innerHTML = bodyHTML;
             if (window.EdChart) EdChart.renderAll(document.getElementById('doc-body'));
 
             if (images.length > 1) {

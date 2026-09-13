@@ -140,14 +140,14 @@ export function distanceLabel(mode, km, unit = "km", direction = "") {
   return `${dist} ${direction}`;
 }
 
-export function guessFillColor(mode, km, correct) {
-  if (correct) return "rgb(106, 170, 100)";
+export function guessFillColor(mode, km, correct, distancePack = "world") {
+  if (correct) return "rgb(70, 140, 220)";
   if (mode.grayFill) return GRAY_FILL;
-  return colorFromDistance(km);
+  return colorFromDistance(km, distancePack);
 }
 
 export function guessStrokeColor(mode, correct) {
-  if (correct) return "#2d5a28";
+  if (correct) return "#1e4a7a";
   if (mode.looseBorders) return "rgba(0,0,0,0)";
   if (mode.grayFill) return GRAY_STROKE;
   return "#1a1a1a";

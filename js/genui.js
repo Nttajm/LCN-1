@@ -15,8 +15,13 @@
     var arrowSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H9M17 7v8"/></svg>';
 
     function getDocImage(doc) {
-        if (doc.images && doc.images.length > 0) return doc.images[0];
-        return 'a_home_assets/gradients/g_2_gray.jpg';
+        var fallback = (window.LCN && LCN.DEFAULT_ASSET_IMAGE) || 'a_home_assets/gradients/g_2_gray.jpg';
+        if (!doc.images || !doc.images.length) return fallback;
+        if (window.LCN && LCN.resolveAssetUrl) {
+            return LCN.resolveAssetUrl(doc.images[0], { root: '' });
+        }
+        var img = doc.images[0];
+        return img.indexOf('a_home_assets/') === 0 ? img : fallback;
     }
 
     function formatDate(ts) {

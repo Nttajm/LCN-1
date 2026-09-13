@@ -92,11 +92,12 @@
     }
 
     function getDocImage(doc) {
-        if (doc.images && doc.images.length > 0) {
-            var src = doc.images[0];
-            return src.startsWith('a_home_assets/') ? '../' + src : src;
+        if (!doc.images || !doc.images.length) return '';
+        if (window.LCN && LCN.resolveAssetUrl) {
+            return LCN.resolveAssetUrl(doc.images[0], { root: '../' });
         }
-        return '';
+        var src = doc.images[0];
+        return src.startsWith('a_home_assets/') ? '../' + src : src;
     }
 
     function renderAllSlots() {
