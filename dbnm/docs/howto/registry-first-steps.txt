@@ -1,0 +1,66 @@
+Registry — first steps
+======================
+
+The registry foundation module connects DBNM to the dbnm-lcn cloud project so
+you can publish JavaScript packages and install them by name.
+
+
+Install the registry module
+---------------------------
+
+  / i f registry
+
+After load, the reg command (and registry info) becomes available.
+
+
+Sign in
+-------
+
+  reg login
+
+Complete the Google sign-in popup. Check status anytime:
+
+  reg status
+
+
+Install a published package
+---------------------------
+
+Example using the joke package name funny:
+
+  reg i funny
+  joke
+
+
+Publish your own module
+-----------------------
+
+Prepare a module file locally (for example a copy of funny.js), then from the
+registry workflow:
+
+  reg publish
+
+Follow the prompts. Others install with reg i <name>.
+
+
+Update an existing package
+--------------------------
+
+  reg update
+
+Only works for packages you own.
+
+
+Sign out
+--------
+
+  reg logout
+
+
+Tips
+----
+
+- Run registry info for project and bucket details.
+- Remote installs still require CORS-friendly hosting for script loads when
+  not using reg i.
+- Keep / dir in sync — failed registry loads show as errors in the package list.

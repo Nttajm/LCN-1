@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-20",
+  "pages": [
+    {
+      "id": "dbnm_doc_install_joke_txt",
+      "file": "install-joke-module.txt",
+      "title": "Install the joke module",
+      "navLabel": "Joke module walkthrough",
+      "section": "guides",
+      "subDesc": "Plain-language steps for / i ** funny and joke."
+    },
+    {
+      "id": "dbnm_doc_registry_steps_txt",
+      "file": "registry-first-steps.txt",
+      "title": "Registry first steps",
+      "navLabel": "Registry walkthrough",
+      "section": "guides",
+      "subDesc": "Login, reg i, publish, and update."
+    },
+    {
+      "id": "dbnm_doc_troubleshooting",
+      "file": "troubleshooting.txt",
+      "title": "Troubleshooting",
+      "navLabel": "Troubleshooting",
+      "section": "guides",
+      "subDesc": "Imports, vars, CORS, and reset tips."
+    }
+  ]
+}

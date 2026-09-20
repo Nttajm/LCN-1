@@ -1,0 +1,78 @@
+DBNM troubleshooting
+====================
+
+Common issues when using the shell, imports, and local storage.
+
+
+Prompt still shows $
+--------------------
+
+You have not set a username yet, or local storage was cleared.
+
+  /user set Your Name
+  local u
+
+If the prompt does not update, reload with r.
+
+
+Command not found after install
+-------------------------------
+
+The module may have failed to load. Check:
+
+  / dir
+
+Failed entries are highlighted. Remove and retry:
+
+  / rm funny
+  / i ** funny
+
+Reload the page if a stale command name still appears in help.
+
+
+Import fails (burl or remote URL)
+---------------------------------
+
+The host must send CORS headers that allow your origin to fetch the script.
+Try the same URL in the browser network tab, or host the file on a bucket with
+a permissive cors.json.
+
+
+Variables missing after refresh
+-------------------------------
+
+Vars live in dbnm_userData (dbnm_vars). If you ran clear, everything was wiped.
+Tools like PaKeger may store secrets separately — reinstall those modules and
+re-import keys.
+
+
+Database / Textos not connecting
+--------------------------------
+
+Create and select a database first:
+
+  database create myapp
+  database select myapp
+  database server firebase
+
+Paste valid config when prompted. For Textos:
+
+  / i f textos
+  textos setup
+
+
+Suggestions not appearing
+-----------------------
+
+  settings suggestions on
+
+Or open settings and toggle suggestions in the tab UI.
+
+
+Reset everything
+----------------
+
+  clear
+
+This removes dbnm_userData and reloads. Username, packages, vars, and database
+entries are all reset.
