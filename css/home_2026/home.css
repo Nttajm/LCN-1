@@ -544,8 +544,7 @@ a.ritem {
     flex-direction: column;
     gap: 16px;
     min-width: 0;
-    position: sticky;
-    top: 20px;
+    position: static;
 }
 
 .mi-featured-img {
@@ -587,11 +586,9 @@ a.ritem {
     flex-direction: column;
     gap: 12px;
     min-width: 0;
-    max-height: calc(100vh - 110px);
-    overflow-y: auto;
-    padding-right: 4px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.18) transparent;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
 }
 
 .mi-sitem {
@@ -1042,6 +1039,22 @@ button.s2.expanded {
     padding: 0;
 }
 
+/* —— Desktop: featured sticky + side panel scroll —— */
+@media (min-width: 901px) {
+    .mi-featured {
+        position: sticky;
+        top: 20px;
+    }
+
+    .mi-side {
+        max-height: calc(100vh - 110px);
+        overflow-y: auto;
+        padding-right: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.18) transparent;
+    }
+}
+
 /* —— Tablet —— */
 @media (max-width: 900px) {
     .cont.main-infos {
@@ -1051,11 +1064,15 @@ button.s2.expanded {
 
     .mi-featured {
         position: static;
+        top: auto;
     }
 
     .mi-side {
         flex-direction: row;
         gap: 1rem;
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
     }
 
     .mi-sitem {
@@ -1275,6 +1292,13 @@ button.s2.expanded {
     /* Featured / side stack */
     .mi-side {
         flex-direction: column;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .mi-featured {
+        position: static;
+        top: auto;
     }
 
     .mi-featured-title {
