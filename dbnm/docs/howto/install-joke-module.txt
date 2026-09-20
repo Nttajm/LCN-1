@@ -1,0 +1,60 @@
+Install the joke module (funny)
+=================================
+
+The joke tool is a small base module that registers the joke command. It is
+the standard example for learning how / i imports work.
+
+
+Before you start
+----------------
+
+Open DBNM at /dbnm and confirm the shell responds to help.
+
+
+Install the module
+------------------
+
+  / i ** funny
+
+The ** class (alias base) loads public/base-modules/funny.js. When the script
+finishes, DBNM adds funny to your loaded package list.
+
+
+Run a joke
+----------
+
+  joke
+
+Each run prints a random joke in the output area.
+
+
+Confirm it loaded
+-----------------
+
+  / dir
+  / dir info 0
+
+The first line shows the package index and link name. dir info prints version
+and manifest details when the module registered them.
+
+
+Remove when done
+----------------
+
+  / rm funny
+
+Or clear every loaded util without wiping username or vars:
+
+  x dir
+
+
+Registry alternative
+--------------------
+
+If the registry foundation module is installed, you can install the same
+package from the cloud:
+
+  / i f registry
+  reg login
+  reg i funny
+  joke

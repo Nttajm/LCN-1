@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBNM Docs — LCN</title>
+    <link rel="stylesheet" href="../../css/home_2026/home.css">
+    <link rel="stylesheet" href="../../css/standard.css">
+    <link rel="stylesheet" href="../../css/doc.css">
+    <style>
+        .doc-body pre {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 0.85rem 1rem;
+            overflow-x: auto;
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+        .doc-body code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.9em;
+        }
+        .doc-body pre code {
+            font-size: 0.92rem;
+            background: none;
+            padding: 0;
+        }
+        .doc-body :not(pre) > code {
+            background: rgba(255,255,255,0.06);
+            padding: 0.12rem 0.35rem;
+            border-radius: 4px;
+        }
+        .doc-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0 1.5rem;
+            font-size: 0.95rem;
+        }
+        .doc-body th,
+        .doc-body td {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: left;
+            padding: 0.55rem 0.4rem;
+            vertical-align: top;
+        }
+        .doc-body th {
+            color: rgba(255,255,255,0.55);
+            font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .doc-body blockquote {
+            margin: 1.25rem 0;
+            padding: 0.2rem 0 0.2rem 1rem;
+            border-left: 3px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.72);
+        }
+        .doc-publish-hint {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.45);
+        }
+        .doc-publish-hint a { color: rgba(120,180,255,0.9); }
+    </style>
+</head>
+<body>
+    <script src="../../js/nav.js" data-root="../../"></script>
+
+    <div class="doc-page doc-page--collection" id="doc-page">
+        <div class="doc-shell is-ready" id="doc-shell">
+            <button type="button" class="doc-nav-toggle" id="doc-nav-toggle" aria-label="Toggle documentation menu">Docs</button>
+            <div class="doc-nav-backdrop" id="doc-nav-backdrop"></div>
+            <aside class="doc-toc" id="doc-nav" aria-label="Documentation">
+                <div class="doc-toc-head">
+                    <span class="doc-toc-collection" id="doc-nav-collection">DBNM</span>
+                </div>
+                <div class="doc-toc-tree" id="doc-nav-tree"></div>
+            </aside>
+            <div class="doc-main">
+                <article class="doc-article" id="doc-article">
+                    <header class="doc-header">
+                        <a href="/dbnm" class="doc-back">&larr; Open DBNM</a>
+                        <div class="doc-meta">
+                            <span class="doc-cat">projects</span>
+                            <span class="doc-subcat">docs</span>
+                            <span class="doc-date" id="doc-date"></span>
+                        </div>
+                        <h1 class="doc-title" id="doc-title"></h1>
+                        <p class="doc-subdesc" id="doc-subdesc" style="display:none;"></p>
+                        <div class="doc-goto-wrap">
+                            <a class="doc-goto-btn" href="/dbnm">Visit Project</a>
+                        </div>
+                    </header>
+                    <div class="doc-body" id="doc-body"></div>
+                    <p class="doc-publish-hint">
+                        Prefer the LCN docs reader?
+                        <a href="../../index/publish-dbnm-docs.html">Publish this guide into the /index editor</a>
+                        (requires Google sign-in), then open it from Projects.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <script src="docs-data.js"></script>
+    <script>
+    (function () {
+        var DATA = window.DBNM_DOCS;
+        if (!DATA) return;
+
+        var pagesById = {};
+        DATA.pages.forEach(function (p) { pagesById[p.id] = p; });
+
+        var navEl = document.getElementById('doc-nav');
+        var navTree = document.getElementById('doc-nav-tree');
+        var navToggle = document.getElementById('doc-nav-toggle');
+        var navBackdrop = document.getElementById('doc-nav-backdrop');
+        var titleEl = document.getElementById('doc-title');
+        var subEl = document.getElementById('doc-subdesc');
+        var bodyEl = document.getElementById('doc-body');
+        var dateEl = document.getElementById('doc-date');
+
+        function setNavOpen(open) {
+            navEl.classList.toggle('open', open);
+            navBackdrop.classList.toggle('open', open);
+        }
+
+        navToggle.addEventListener('click', function () {
+            setNavOpen(!navEl.classList.contains('open'));
+        });
+        navBackdrop.addEventListener('click', function () { setNavOpen(false); });
+
+        function currentId() {
+            var hash = (location.hash || '').replace(/^#/, '');
+            if (hash && pagesById[hash]) return hash;
+            return DATA.overviewId;
+        }
+
+        function renderNav(activeId) {
+            navTree.innerHTML = '';
+            var tree = DATA.buildTree();
+            tree.forEach(function (node) {
+                if (node.type === 'page') {
+                    var page = pagesById[node.id];
+                    if (!page) return;
+                    var a = document.createElement('a');
+                    a.href = '#' + page.id;
+                    a.className = 'doc-toc-link' + (page.role === 'overview' ? ' doc-toc-link--top' : ' doc-toc-link--child');
+                    if (page.id === activeId) a.classList.add('is-active');
+                    a.textContent = page.navLabel || page.title;
+                    navTree.appendChild(a);
+                    return;
+                }
+                if (node.type === 'section') {
+                    var sec = document.createElement('div');
+                    sec.className = 'doc-toc-section is-open';
+                    var toggle = document.createElement('button');
+                    toggle.type = 'button';
+                    toggle.className = 'doc-toc-section-toggle';
+                    toggle.innerHTML = '<span class="doc-toc-section-name"></span><span class="doc-toc-caret"></span>';
+                    toggle.querySelector('.doc-toc-section-name').textContent = node.title;
+                    toggle.addEventListener('click', function () {
+                        sec.classList.toggle('is-open');
+                    });
+                    sec.appendChild(toggle);
+                    var list = document.createElement('div');
+                    list.className = 'doc-toc-section-list';
+                    (node.children || []).forEach(function (child) {
+                        var p = pagesById[child.id];
+                        if (!p) return;
+                        var link = document.createElement('a');
+                        link.href = '#' + p.id;
+                        link.className = 'doc-toc-link doc-toc-link--child';
+                        if (p.id === activeId) link.classList.add('is-active');
+                        link.textContent = p.navLabel || p.title;
+                        list.appendChild(link);
+                    });
+                    sec.appendChild(list);
+                    navTree.appendChild(sec);
+                }
+            });
+        }
+
+        function renderPage() {
+            var id = currentId();
+            var page = pagesById[id] || pagesById[DATA.overviewId];
+            document.title = (page.navLabel || page.title) + ' — DBNM Docs';
+            titleEl.textContent = page.title;
+            dateEl.textContent = page.date || '';
+            if (page.subDesc) {
+                subEl.style.display = '';
+                subEl.textContent = page.subDesc;
+            } else {
+                subEl.style.display = 'none';
+                subEl.textContent = '';
+            }
+            bodyEl.innerHTML = page.content || '';
+            renderNav(page.id);
+            setNavOpen(false);
+            window.scrollTo(0, 0);
+        }
+
+        window.addEventListener('hashchange', renderPage);
+        renderPage();
+    })();
+    </script>
+</body>
+</html>
