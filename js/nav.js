@@ -9,9 +9,7 @@
     </div>
     <ul class="nav-links">
       <li><a href="${root}#">Projects</a></li>
-      <li><a href="${root}#">DBNM</a></li>
-      <li><a href="${root}#">Games</a></li>
-      <li><a href="${root}#">Team</a></li>
+      <li><a href="${root}index/doc.html?v=dbnm_doc_overview">DBNM</a></li>
     </ul>
     <div class="search" id="search-trigger">
       <div class="search-bar">
