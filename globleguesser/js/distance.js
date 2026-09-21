@@ -15,7 +15,10 @@ const ZERO_DISTANCE_PAIRS = new Set([
   "Lesotho|South Africa",
 ]);
 
-// Hot (near) → cold (far). Correct guesses use a separate green fill.
+export const DISTANCE_PACK_WORLD = "world";
+export const DISTANCE_PACK_US = "us-states";
+
+// Hot (near) → cold (far). Correct guesses use a separate blue fill.
 const COLOR_STOPS = [
   { km: 0, color: [139, 26, 26] },
   { km: 250, color: [200, 50, 30] },
@@ -25,6 +28,20 @@ const COLOR_STOPS = [
   { km: 10000, color: [230, 225, 215] },
   { km: 20000, color: [220, 218, 210] },
 ];
+
+/** Compressed scale so adjacent wrong states read hot. */
+const COLOR_STOPS_US = [
+  { km: 0, color: [139, 26, 26] },
+  { km: 250, color: [200, 50, 30] },
+  { km: 750, color: [230, 120, 40] },
+  { km: 1500, color: [240, 200, 80] },
+  { km: 3000, color: [245, 235, 210] },
+  { km: 5000, color: [220, 218, 210] },
+];
+
+function stopsForPack(pack) {
+  return pack === DISTANCE_PACK_US ? COLOR_STOPS_US : COLOR_STOPS;
+}
 
 function toRad(deg) {
   return (deg * Math.PI) / 180;
@@ -268,10 +285,11 @@ function lerpColor(c1, c2, t) {
   ];
 }
 
-export function colorFromDistance(km) {
-  for (let i = 0; i < COLOR_STOPS.length - 1; i++) {
-    const curr = COLOR_STOPS[i];
-    const next = COLOR_STOPS[i + 1];
+export function colorFromDistance(km, pack = DISTANCE_PACK_WORLD) {
+  const stops = stopsForPack(pack);
+  for (let i = 0; i < stops.length - 1; i++) {
+    const curr = stops[i];
+    const next = stops[i + 1];
     if (km <= next.km) {
       const t = (km - curr.km) / (next.km - curr.km);
       const [r, g, b] = lerpColor(curr.color, next.color, t);
@@ -279,7 +297,7 @@ export function colorFromDistance(km) {
     }
   }
 
-  const last = COLOR_STOPS[COLOR_STOPS.length - 1].color;
+  const last = stops[stops.length - 1].color;
   return `rgb(${last[0]}, ${last[1]}, ${last[2]})`;
 }
 

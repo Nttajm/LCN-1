@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publish DBNM Docs — LCN Editor</title>
+    <link rel="stylesheet" href="../css/standard.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+            color: #e4e4e7;
+            font-family: system-ui, sans-serif;
+            padding: 2rem;
+        }
+        .box {
+            width: min(520px, 100%);
+            border: 1px solid #27272a;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background: #111113;
+        }
+        h1 { font-size: 1.2rem; margin: 0 0 0.5rem; }
+        p { color: #a1a1aa; font-size: 0.92rem; line-height: 1.5; margin: 0 0 1rem; }
+        .row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+        button, a.btn {
+            appearance: none;
+            border: none;
+            border-radius: 6px;
+            padding: 0.55rem 0.95rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .primary { background: #2563eb; color: #fff; }
+        .primary:hover { background: #1d4ed8; }
+        .ghost { background: transparent; color: #e4e4e7; border: 1px solid #3f3f46; }
+        .ghost:hover { background: #27272a; }
+        #status {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            white-space: pre-wrap;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+        #status.ok { color: #4ade80; }
+        #status.err { color: #f87171; }
+        .meta { font-size: 0.8rem; color: #71717a; margin-top: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Publish DBNM docs to the LCN editor</h1>
+        <p>
+            Signs into the same Firebase project as <code>/index/editor</code>, then writes the
+            DBNM documentation collection into <code>editor_docs</code> /
+            <code>editor_doc_collections</code> (create or update).
+        </p>
+        <div class="row">
+            <button type="button" class="primary" id="btn-auth">Sign in with Google</button>
+            <button type="button" class="primary" id="btn-publish" disabled>Publish / update docs</button>
+            <a class="btn ghost" href="editor.html">Open editor</a>
+            <a class="btn ghost" href="../dbnm/docs/">Preview static docs</a>
+        </div>
+        <div class="meta" id="user-line">Not signed in.</div>
+        <div id="status"></div>
+    </div>
+
+    <script src="../dbnm/docs/docs-data.js"></script>
+    <script>
+    (function () {
+        var firebaseConfig = {
+            apiKey: 'AIzaSyBh8O0qR9FjRz30Si3-xxToRaPe2vsK9wg',
+            authDomain: 'lcnfoundation-registry.firebaseapp.com',
+            projectId: 'lcnfoundation-registry',
+            storageBucket: 'lcnfoundation-registry.firebasestorage.app',
+            messagingSenderId: '472081807534',
+            appId: '1:472081807534:web:eed62912dd832743e4553f',
+            measurementId: 'G-FJB125MV97'
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        var auth = firebase.auth();
+        var db = firebase.firestore();
+        var TS = firebase.firestore.FieldValue.serverTimestamp;
+        var DATA = window.DBNM_DOCS;
+
+        var btnAuth = document.getElementById('btn-auth');
+        var btnPublish = document.getElementById('btn-publish');
+        var userLine = document.getElementById('user-line');
+        var statusEl = document.getElementById('status');
+
+        function setStatus(msg, kind) {
+            statusEl.textContent = msg;
+            statusEl.className = kind || '';
+        }
+
+        auth.onAuthStateChanged(function (user) {
+            if (user) {
+                userLine.textContent = 'Signed in as ' + (user.email || user.uid);
+                btnPublish.disabled = false;
+                btnAuth.textContent = 'Switch account';
+            } else {
+                userLine.textContent = 'Not signed in.';
+                btnPublish.disabled = true;
+                btnAuth.textContent = 'Sign in with Google';
+            }
+        });
+
+        btnAuth.addEventListener('click', function () {
+            var provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(function (err) {
+                setStatus(err.message || String(err), 'err');
+            });
+        });
+
+        btnPublish.addEventListener('click', function () {
+            if (!auth.currentUser) {
+                setStatus('Sign in first.', 'err');
+                return;
+            }
+            if (!DATA || !DATA.pages || !DATA.pages.length) {
+                setStatus('docs-data.js failed to load.', 'err');
+                return;
+            }
+
+            btnPublish.disabled = true;
+            setStatus('Publishing ' + DATA.pages.length + ' pages…');
+
+            var colId = DATA.collectionId;
+            var tree = DATA.buildTree();
+            var batchWrites = [];
+
+            DATA.pages.forEach(function (page) {
+                var payload = {
+                    title: page.title,
+                    navLabel: page.navLabel || page.title,
+                    subDesc: page.subDesc || '',
+                    goToUrl: page.goToUrl || '/dbnm',
+                    date: page.date || '',
+                    category: page.category || 'projects',
+                    subCategory: page.subCategory || 'docs',
+                    content: page.content || '',
+                    images: page.images || [],
+                    published: true,
+                    collectionId: colId,
+                    role: page.role || 'page',
+                    listOn: page.listOn || { projects: false, development: false, updates: false },
+                    updatedAt: TS()
+                };
+                batchWrites.push(
+                    db.collection('editor_docs').doc(page.id).get().then(function (snap) {
+                        if (!snap.exists) payload.createdAt = TS();
+                        return db.collection('editor_docs').doc(page.id).set(payload, { merge: true });
+                    })
+                );
+            });
+
+            Promise.all(batchWrites)
+                .then(function () {
+                    return db.collection('editor_doc_collections').doc(colId).get().then(function (snap) {
+                        var colPayload = {
+                            title: DATA.collectionTitle || 'DBNM',
+                            overviewId: DATA.overviewId,
+                            tree: tree,
+                            updatedAt: TS()
+                        };
+                        if (!snap.exists) colPayload.createdAt = TS();
+                        return db.collection('editor_doc_collections').doc(colId).set(colPayload, { merge: true });
+                    });
+                })
+                .then(function () {
+                    var overviewUrl = 'doc.html?v=' + encodeURIComponent(DATA.overviewId);
+                    setStatus(
+                        'Published DBNM collection (“' + (DATA.collectionTitle || 'DBNM') + '”).\n' +
+                        'Pages: ' + DATA.pages.length + '\n' +
+                        'Open: ' + overviewUrl,
+                        'ok'
+                    );
+                    btnPublish.disabled = false;
+                    var link = document.createElement('a');
+                    link.className = 'btn primary';
+                    link.href = overviewUrl;
+                    link.textContent = 'Open published overview';
+                    link.style.marginTop = '0.75rem';
+                    statusEl.parentNode.appendChild(link);
+                })
+                .catch(function (err) {
+                    setStatus((err && err.message) || String(err), 'err');
+                    btnPublish.disabled = false;
+                });
+        });
+    })();
+    </script>
+</body>
+</html>

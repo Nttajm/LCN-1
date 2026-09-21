@@ -19,11 +19,13 @@
     var activeFilter = 'all';
 
     function getDocImage(doc) {
-        if (doc.images && doc.images.length > 0) {
-            var img = doc.images[0];
-            return img.startsWith('a_home_assets/') ? '../' + img : img;
+        var fallback = '../a_home_assets/gradients/g_2_gray.jpg';
+        if (!doc.images || !doc.images.length) return fallback;
+        if (window.LCN && LCN.resolveAssetUrl) {
+            return LCN.resolveAssetUrl(doc.images[0], { root: '../' });
         }
-        return '../a_home_assets/gradients/g_2_gray.jpg';
+        var img = doc.images[0];
+        return img.startsWith('a_home_assets/') ? '../' + img : img;
     }
 
     function formatDate(ts) {

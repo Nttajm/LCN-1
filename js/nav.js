@@ -9,9 +9,7 @@
     </div>
     <ul class="nav-links">
       <li><a href="${root}#">Projects</a></li>
-      <li><a href="${root}#">DBNM</a></li>
-      <li><a href="${root}#">Games</a></li>
-      <li><a href="${root}#">Team</a></li>
+      <li><a href="${root}index/doc.html?v=dbnm_doc_overview">DBNM</a></li>
     </ul>
     <div class="search" id="search-trigger">
       <div class="search-bar">
@@ -141,6 +139,9 @@
     }
 
     function resolveImageSrc(url) {
+        if (window.LCN && LCN.resolveAssetUrl) {
+            return LCN.resolveAssetUrl(url, { root: root });
+        }
         if (!url) return '';
         if (url.startsWith('a_home_assets/')) return root + url;
         return url;
@@ -185,7 +186,7 @@
         matches.forEach(function (doc, i) {
             const item = document.createElement('a');
             item.className = 'search-result-item';
-            item.href = root + 'index/article.html?id=' + doc.id;
+            item.href = root + 'index/doc.html?v=' + encodeURIComponent(doc.id);
             item.style.animationDelay = (i * 60) + 'ms';
 
             const imgSrc = doc.images && doc.images.length ? resolveImageSrc(doc.images[0]) : '';

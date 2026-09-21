@@ -1425,8 +1425,12 @@
         els.subCatSelect.value = doc.subCategory || '';
         els.subCatCustom.style.display = 'none';
         els.subCatCustom.value = '';
-        els.editor.innerHTML = doc.content || '';
-        lastSavedContent = doc.content || '';
+        var loadedContent = doc.content || '';
+        if (window.LCN && LCN.rewriteContentHtml) {
+            loadedContent = LCN.rewriteContentHtml(loadedContent, { root: '../' });
+        }
+        els.editor.innerHTML = loadedContent;
+        lastSavedContent = loadedContent;
         deselectEditorImage();
 
         renderImages(doc.images || []);
@@ -3345,7 +3349,11 @@
             el.innerHTML = '';
         });
         if (window.EdLatex) EdLatex.stripRendered(clone);
-        return clone.innerHTML;
+        var html = clone.innerHTML;
+        if (window.LCN && LCN.canonicalizeContentHtmlForSave) {
+            html = LCN.canonicalizeContentHtmlForSave(html);
+        }
+        return html;
     }
 
     if (chartEls.addSeriesBtn) {
