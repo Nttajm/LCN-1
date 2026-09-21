@@ -1372,6 +1372,125 @@ button.s2.expanded {
         padding: 1.5rem 1rem;
         margin-top: 2.5rem;
     }
+
+    /* Home feed skeleton (mobile, while Firebase loads) */
+    .home-skeleton {
+        pointer-events: none;
+    }
+
+    .home-skeleton .skel-shimmer {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.05) 0%,
+            rgba(255, 255, 255, 0.11) 45%,
+            rgba(255, 255, 255, 0.05) 90%
+        );
+        background-size: 200% 100%;
+        animation: homeSkelShimmer 1.35s ease-in-out infinite;
+    }
+
+    @keyframes homeSkelShimmer {
+        0% { background-position: 100% 0; }
+        100% { background-position: -100% 0; }
+    }
+
+    .home-skeleton .skel-block {
+        border-radius: 14px;
+    }
+
+    .home-skeleton .skel-featured-img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+    }
+
+    .home-skeleton .skel-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
+    .home-skeleton .skel-line {
+        height: 14px;
+        border-radius: 7px;
+        max-width: 100%;
+    }
+
+    .home-skeleton .skel-line--lg {
+        height: 22px;
+        width: 88%;
+        border-radius: 8px;
+    }
+
+    .home-skeleton .skel-line--md {
+        width: 72%;
+    }
+
+    .home-skeleton .skel-line--sm {
+        width: 48%;
+    }
+
+    .home-skeleton .skel-line--xs {
+        height: 12px;
+        width: 40%;
+    }
+
+    .home-skeleton .skel-line--label {
+        height: 18px;
+        width: 42%;
+        display: block;
+    }
+
+    .home-skeleton .skel-side {
+        flex-direction: column;
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+    }
+
+    .home-skeleton .skel-sitem-img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+    }
+
+    .home-skeleton .skel-recents-cont {
+        padding-top: 0.5rem;
+    }
+
+    .home-skeleton .skel-recents-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .home-skeleton .skel-ritem {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0.9rem;
+        padding: 0.85rem 0;
+    }
+
+    .home-skeleton .skel-ritem-thumb {
+        width: 5.5rem;
+        height: 5.5rem;
+        flex-shrink: 0;
+        border-radius: 0.45rem;
+    }
+
+    .home-skeleton .skel-ritem-lines {
+        flex: 1;
+        min-width: 0;
+        padding-top: 0.15rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-skeleton .skel-shimmer {
+            animation: none;
+            background: rgba(255, 255, 255, 0.08);
+        }
+    }
 }
 
 @media (max-width: 400px) {

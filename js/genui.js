@@ -124,8 +124,104 @@
         return cont;
     }
 
+    function isMobileHome() {
+        return window.matchMedia('(max-width: 700px)').matches;
+    }
+
+    function skelLine(widthClass) {
+        return '<div class="skel-line skel-shimmer' + (widthClass ? ' ' + widthClass : '') + '"></div>';
+    }
+
+    function buildSideSkelItem() {
+        return (
+            '<div class="mi-sitem skel-sitem">' +
+                '<div class="skel-block skel-shimmer skel-sitem-img"></div>' +
+                '<div class="skel-lines">' +
+                    skelLine('skel-line--md') +
+                    skelLine('skel-line--sm') +
+                '</div>' +
+            '</div>'
+        );
+    }
+
+    function buildRitemSkel() {
+        return (
+            '<div class="skel-ritem">' +
+                '<div class="skel-block skel-shimmer skel-ritem-thumb"></div>' +
+                '<div class="skel-lines skel-ritem-lines">' +
+                    skelLine('skel-line--md') +
+                    skelLine('skel-line--xs') +
+                '</div>' +
+            '</div>'
+        );
+    }
+
+    function buildHomeSkeleton() {
+        var wrap = document.createElement('div');
+        wrap.id = 'home-skeleton';
+        wrap.className = 'home-skeleton';
+        wrap.setAttribute('aria-hidden', 'true');
+
+        var main = document.createElement('div');
+        main.className = 'cont main-infos';
+        main.innerHTML =
+            '<div class="mi-featured skel-featured">' +
+                '<div class="skel-block skel-shimmer skel-featured-img"></div>' +
+                '<div class="skel-lines">' +
+                    skelLine('skel-line--lg') +
+                    skelLine('skel-line--md') +
+                    skelLine('skel-line--sm') +
+                '</div>' +
+            '</div>' +
+            '<div class="mi-side skel-side">' +
+                buildSideSkelItem() +
+                buildSideSkelItem() +
+            '</div>';
+
+        var recents = document.createElement('div');
+        recents.className = 'cont skel-recents-cont';
+        recents.innerHTML =
+            '<div class="recents-header">' +
+                '<span class="skel-line skel-shimmer skel-line--label"></span>' +
+            '</div>' +
+            '<div class="recents-grid skel-recents-grid">' +
+                buildRitemSkel() +
+                buildRitemSkel() +
+                buildRitemSkel() +
+            '</div>';
+
+        wrap.appendChild(main);
+        wrap.appendChild(recents);
+        return wrap;
+    }
+
+    function removeHomeSkeleton() {
+        var el = document.getElementById('home-skeleton');
+        if (el) el.remove();
+    }
+
+    var mainCont = document.getElementById('main-cont');
+    if (isMobileHome() && mainCont) {
+        mainCont.appendChild(buildHomeSkeleton());
+    }
+
+    function renderHomeLayout(layout, docsMap) {
+        if (!mainCont) return;
+
+        if (layout.featured || layout.side) {
+            mainCont.appendChild(buildFeaturedCont(layout.featured || [], layout.side || [], docsMap));
+        }
+
+        if (layout.recent) {
+            mainCont.appendChild(buildRecentsCont(layout.recent, docsMap));
+        }
+    }
+
     db.collection('home_layout').doc('current').get().then(function (snap) {
-        if (!snap.exists) return;
+        if (!snap.exists) {
+            removeHomeSkeleton();
+            return;
+        }
         var layout = snap.data();
 
         var allIds = [];
@@ -137,7 +233,10 @@
             }
         });
 
-        if (allIds.length === 0) return;
+        if (allIds.length === 0) {
+            removeHomeSkeleton();
+            return;
+        }
 
         var docsMap = {};
         var fetches = allIds.map(function (id) {
@@ -146,17 +245,11 @@
             });
         });
 
-        Promise.all(fetches).then(function () {
-            var mainCont = document.getElementById('main-cont');
-            if (!mainCont) return;
-
-            if (layout.featured || layout.side) {
-                mainCont.appendChild(buildFeaturedCont(layout.featured || [], layout.side || [], docsMap));
-            }
-
-            if (layout.recent) {
-                mainCont.appendChild(buildRecentsCont(layout.recent, docsMap));
-            }
+        return Promise.all(fetches).then(function () {
+            removeHomeSkeleton();
+            renderHomeLayout(layout, docsMap);
         });
+    }).catch(function () {
+        removeHomeSkeleton();
     });
 })();

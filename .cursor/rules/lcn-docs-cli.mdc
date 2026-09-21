@@ -1,0 +1,35 @@
+---
+description: Use the lcn-docs CLI for LCN home/docs content changes (Firestore), never the browser editor.
+alwaysApply: true
+---
+
+# LCN docs via CLI
+
+When creating, editing, publishing, organizing, or laying out LCN site docs/collections/home slots, use the terminal CLI — do **not** open `index/editor.html` or drive the browser UI.
+
+## How to run
+
+From the repo root:
+
+```bash
+node scripts/lcn-docs/cli.js <command> ...
+```
+
+Requires one-time setup: `scripts/lcn-docs/serviceAccount.json` + `npm install` in `scripts/lcn-docs` (see `scripts/lcn-docs/README.md`).
+
+## Common commands
+
+- `list` / `get <id>` — inspect docs (`--json` when parsing)
+- `create` / `update <id>` / `set-content <id> <file>` — write meta + body (HTML or light Markdown)
+- `publish` / `unpublish` / `delete`
+- `list-on <id> --projects|--development|--updates` (and `--off-*`)
+- `collection list|create|add-page|add-section|move|dissolve`
+- `home get` / `home set --featured ... --side ... --recent ...`
+
+## Content notes
+
+- Body HTML matches what the contenteditable editor stores.
+- Images live under `a_home_assets/`; prefer paths like `a_home_assets/content/...` or full URLs in `images` / `<img src>`.
+- Public URL shape: `index/doc.html?v=<docId>`.
+
+Do not use the in-page OpenAI “Ask AI” flow for bulk site edits; use this CLI from Cursor.
